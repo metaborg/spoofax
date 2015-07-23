@@ -26,7 +26,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
 
 
     @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) {
-        final Iterable<ILanguageImpl> dependencies = dependencyService.compileDependencies(project);
+        final Iterable<? extends ILanguageImpl> dependencies = dependencyService.compileDependencies(project);
         final Collection<FileObject> sources = Lists.newArrayList();
         for(ILanguageImpl dependency : dependencies) {
             final Iterable<LanguagePathFacet> facets = dependency.facets(LanguagePathFacet.class);
@@ -41,7 +41,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     }
 
     @Override public Iterable<FileObject> includePaths(IProject project, String languageName) {
-        final Iterable<ILanguageImpl> dependencies = dependencyService.runtimeDependencies(project);
+        final Iterable<? extends ILanguageImpl> dependencies = dependencyService.runtimeDependencies(project);
         final Collection<FileObject> includes = Lists.newArrayList();
         for(ILanguageImpl dependency : dependencies) {
             final Iterable<FacetContribution<LanguagePathFacet>> facets =

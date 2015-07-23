@@ -18,6 +18,7 @@ import org.spoofax.jsglr.client.CompletionStateSet;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.State;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
@@ -34,8 +35,8 @@ public class JSGLRCompletionService implements ICompletionService {
 
     @Override public Iterable<ICompletion> get(ParseResult<?> parseResult, int position) throws MetaborgException {
         final ILanguageImpl language = parseResult.language;
-        final CompletionFacet facet = language.facets(CompletionFacet.class);
-        if(facet == null) {
+        final Iterable<CompletionFacet> facets = language.facets(CompletionFacet.class);
+        if(Iterables.isEmpty(facets)) {
             final String message =
                 String.format("Cannot get completions of %s, it does not have a completion facet", language);
             logger.error(message);
@@ -58,24 +59,27 @@ public class JSGLRCompletionService implements ICompletionService {
 
         final State lastState = completionStates.last();
         final int stateId = lastState.stateNumber;
+        
         final Collection<ICompletion> completions = Lists.newLinkedList();
-        final Iterable<CompletionDefinition> completionDefinitions = facet.get(stateId);
+        for(CompletionFacet facet : facets) {
+            final Iterable<CompletionDefinition> completionDefinitions = facet.get(stateId);
+            for(CompletionDefinition completionDefinition : completionDefinitions) {
+                completions.add(new Completion(completionDefinition.items));
 
-        for(CompletionDefinition completionDefinition : completionDefinitions) {
-            completions.add(new Completion(completionDefinition.items));
-
-            for(State state : completionStates.states()) {
-                if(!state.equals(lastState)) {
-                    final Iterable<CompletionDefinition> enclosingCompletions = facet.get(state.stateNumber);
-                    for(CompletionDefinition enclosingCompletionDefinition : enclosingCompletions) {
-                        if(enclosingCompletionDefinition.expectedSort.equals(completionDefinition.producedSort)) {
-                            completions.add(new Completion(enclosingCompletionDefinition.items));
+                for(State state : completionStates.states()) {
+                    if(!state.equals(lastState)) {
+                        final Iterable<CompletionDefinition> enclosingCompletions = facet.get(state.stateNumber);
+                        for(CompletionDefinition enclosingCompletionDefinition : enclosingCompletions) {
+                            if(enclosingCompletionDefinition.expectedSort.equals(completionDefinition.producedSort)) {
+                                completions.add(new Completion(enclosingCompletionDefinition.items));
+                            }
                         }
                     }
-                }
 
+                }
             }
         }
+        
         return completions;
     }
 }

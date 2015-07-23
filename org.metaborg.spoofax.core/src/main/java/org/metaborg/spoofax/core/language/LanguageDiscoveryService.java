@@ -7,11 +7,13 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.ContextFacet;
 import org.metaborg.core.context.IContextStrategy;
-import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
+import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageImplIdentifier;
 import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
@@ -58,11 +60,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
 
-    @Override public Iterable<ILanguageImpl> discover(FileObject location) throws Exception {
-        final Collection<ILanguageImpl> languages = Lists.newLinkedList();
+    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws Exception {
+        final Collection<ILanguageComponent> components = Lists.newLinkedList();
         final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
         if(esvFiles == null) {
-            return languages;
+            return components;
         }
         final Set<FileObject> parents = Sets.newHashSet();
         for(FileObject esvFile : esvFiles) {
@@ -73,12 +75,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                 continue;
             }
             parents.add(languageLocation);
-            languages.add(languageFromESV(languageLocation, esvFile));
+            components.add(componentFromESV(languageLocation, esvFile));
         }
-        return languages;
+        return components;
     }
 
-    private ILanguageImpl languageFromESV(FileObject location, FileObject esvFile) throws Exception {
+    private ILanguageComponent componentFromESV(FileObject location, FileObject esvFile) throws Exception {
         logger.debug("Discovering language at {}", location);
 
         final TermReader reader =
@@ -94,50 +96,53 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final String id = languageId(esvTerm);
         final LanguageVersion version = LanguageVersion.parse(languageVersion(esvTerm));
         final String name = languageName(esvTerm);
-        final ILanguageImpl language = languageService.create(new LanguageIdentifier(groupId, id, version), location, name);
+        final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
+        // GTODO: read contributing component from ESV or POM file
+        final LanguageCreationRequest request =
+            languageService.create(identifier, location,
+                Iterables2.singleton(new LanguageImplIdentifier(identifier, name)));
 
         final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
         final IdentificationFacet identificationFacet =
             new IdentificationFacet(new ResourceExtensionsIdentifier(extensions));
-        language.addFacet(identificationFacet);
+        request.addFacet(identificationFacet);
 
         final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensions);
-        language.addFacet(resourceExtensionsFacet);
+        request.addFacet(resourceExtensionsFacet);
 
         // TODO: get facet strategy from language specification. Currently there is no specification yet so always
         // choose 'project' as the context strategy.
         final IContextStrategy contextStrategy = contextStrategies.get("project");
         final ContextFacet contextFacet = new ContextFacet(contextStrategy);
-        language.addFacet(contextFacet);
+        request.addFacet(contextFacet);
 
         final SyntaxFacet syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
-        language.addFacet(syntaxFacet);
+        request.addFacet(syntaxFacet);
 
         final FileObject itemSetsFile = esvFile.getParent().resolveFile("item-sets.aterm");
         if(itemSetsFile.exists()) {
             final IStrategoTerm itemSetsTerm = reader.parseFromStream(itemSetsFile.getContent().getInputStream());
             final CompletionFacet completionFacet = CompletionFacetFromItemSets.create((IStrategoAppl) itemSetsTerm);
-            language.addFacet(completionFacet);
+            request.addFacet(completionFacet);
         }
 
         final StrategoFacet strategoFacet = StrategoFacetFromESV.create(esvTerm, location);
-        language.addFacet(strategoFacet);
+        request.addFacet(strategoFacet);
 
-        final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, language);
-        language.addFacet(menusFacet);
+        final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, identifier);
+        request.addFacet(menusFacet);
 
-        final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, language);
-        language.addFacet(compilerFacet);
+        final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, identifier);
+        request.addFacet(compilerFacet);
 
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
-        language.addFacet(stylerFacet);
+        request.addFacet(stylerFacet);
 
         final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
-        language.addFacet(languageComponentsFacet);
+        request.addFacet(languageComponentsFacet);
 
-        languageService.add(language);
-
-        return language;
+        final ILanguageComponent component = languageService.add(request);
+        return component;
     }
 
     private static String languageName(IStrategoAppl document) {

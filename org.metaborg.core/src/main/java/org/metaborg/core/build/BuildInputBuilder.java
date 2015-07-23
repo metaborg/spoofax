@@ -108,7 +108,7 @@ public class BuildInputBuilder {
     /**
      * Adds given languages.
      */
-    public BuildInputBuilder addLanguages(Iterable<ILanguageImpl> languages) {
+    public BuildInputBuilder addLanguages(Iterable<? extends ILanguageImpl> languages) {
         Iterables.addAll(this.languages, languages);
         return this;
     }
@@ -349,7 +349,7 @@ public class BuildInputBuilder {
             state = new BuildState();
         }
 
-        final Iterable<ILanguageImpl> compileLanguages = dependencyService.compileDependencies(project);
+        final Iterable<? extends ILanguageImpl> compileLanguages = dependencyService.compileDependencies(project);
         if(addDependencyLanguages) {
             addLanguages(compileLanguages);
         }

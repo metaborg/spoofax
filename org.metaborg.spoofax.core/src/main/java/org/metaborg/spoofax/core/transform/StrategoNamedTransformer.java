@@ -5,6 +5,8 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.FacetContribution;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.core.transform.ITransformerGoal;
@@ -18,6 +20,9 @@ import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;
+
+import fj.P;
+import fj.P2;
 
 /**
  * Transformer executor for the {@link NamedGoal} and {@link MenusFacet}.
@@ -35,13 +40,16 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
 
     @Override public TransformResult<ParseResult<IStrategoTerm>, IStrategoTerm> transform(
         ParseResult<IStrategoTerm> parseResult, IContext context, ITransformerGoal goal) throws TransformerException {
-        final Action action = action(context.language(), goal);
+        final P2<Action, ILanguageComponent> tuple = action(context.language(), goal);
+        final Action action = tuple._1();
+        final ILanguageComponent component = tuple._2();
+        
         final FileObject resource = parseResult.source;
         try {
             final IStrategoTerm inputTerm =
                 transformer.builderInputTerm(parseResult.result, resource, context.location());
             logger.debug("Transforming parse result of {} with '{}'", resource, action.name);
-            return transformer.transform(context, parseResult, action.strategy, inputTerm, resource);
+            return transformer.transform(component, context, parseResult, action.strategy, inputTerm, resource);
         } catch(TransformerException e) {
             throw e;
         } catch(MetaborgException e) {
@@ -52,13 +60,16 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     @Override public TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm> transform(
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult, IContext context, ITransformerGoal goal)
         throws TransformerException {
-        final Action action = action(context.language(), goal);
+        final P2<Action, ILanguageComponent> tuple = action(context.language(), goal);
+        final Action action = tuple._1();
+        final ILanguageComponent component = tuple._2();
+        
         final FileObject resource = analysisResult.source;
         try {
             final IStrategoTerm inputTerm =
                 transformer.builderInputTerm(analysisResult.result, resource, context.location());
             logger.debug("Transforming analysis result of {} with '{}'", resource, action.name);
-            return transformer.transform(context, analysisResult, action.strategy, inputTerm, resource);
+            return transformer.transform(component, context, analysisResult, action.strategy, inputTerm, resource);
         } catch(TransformerException e) {
             throw e;
         } catch(MetaborgException e) {
@@ -77,18 +88,22 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     }
 
 
-    private Action action(ILanguageImpl language, ITransformerGoal goal) throws TransformerException {
+    private P2<Action, ILanguageComponent> action(ILanguageImpl language, ITransformerGoal goal)
+        throws TransformerException {
         if(!(goal instanceof NamedGoal)) {
             final String message = String.format("Goal %s is not a NamedGoal", goal);
             logger.error(message);
             throw new MetaborgRuntimeException(message);
         }
-        final MenusFacet facet = language.facets(MenusFacet.class);
-        if(facet == null) {
+
+        final FacetContribution<MenusFacet> facetContribution = language.facetContribution(MenusFacet.class);
+        if(facetContribution == null) {
             final String message = String.format("No menus facet found for %s", language);
             logger.error(message);
             throw new TransformerException(message);
         }
+        final MenusFacet facet = facetContribution.facet;
+
         final NamedGoal namedGoal = (NamedGoal) goal;
         final String actionName = namedGoal.name;
         final Action action = facet.action(actionName);
@@ -97,6 +112,7 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
             logger.error(message);
             throw new TransformerException(message);
         }
-        return action;
+
+        return P.p(action, facetContribution.contributor);
     }
 }

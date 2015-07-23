@@ -11,8 +11,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class MenusFacet implements IFacet {
-    private static final long serialVersionUID = -2695936811141361719L;
-
     private final Collection<Menu> menus;
     private final Map<String, Action> actions = Maps.newHashMap();
 

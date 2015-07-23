@@ -8,7 +8,7 @@ import com.google.common.collect.Sets;
 
 public class Language implements ILanguage, ILanguageInternal {
     private final String name;
-    private final Set<ILanguageImpl> impls;
+    private final Set<ILanguageImplInternal> impls;
 
 
     public Language(String name) {
@@ -21,35 +21,19 @@ public class Language implements ILanguage, ILanguageInternal {
         return name;
     }
 
-    @Override public Iterable<ILanguageImpl> impls() {
+    @Override public Iterable<? extends ILanguageImpl> impls() {
         return impls;
     }
 
-    @Override public @Nullable ILanguageImpl active() {
-        ILanguageImpl active = null;
-        for(ILanguageImpl impl : impls) {
-            if(active == null || isGreater(impl, active)) {
-                active = impl;
-            }
-
-        }
-        return active;
+    @Override public @Nullable ILanguageImpl activeImpl() {
+        return LanguageUtils.active(impls);
     }
 
-    private boolean isGreater(ILanguageImpl impl, ILanguageImpl other) {
-        int compareVersion = impl.id().version.compareTo(other.id().version);
-        if(compareVersion > 0 || (compareVersion == 0 && impl.sequenceId() > other.sequenceId())) {
-            return true;
-        }
-        return false;
-    }
-
-
-    @Override public void add(ILanguageImpl implementation) {
+    @Override public void add(ILanguageImplInternal implementation) {
         impls.add(implementation);
     }
 
-    @Override public void remove(ILanguageImpl implementation) {
+    @Override public void remove(ILanguageImplInternal implementation) {
         impls.remove(implementation);
     }
 

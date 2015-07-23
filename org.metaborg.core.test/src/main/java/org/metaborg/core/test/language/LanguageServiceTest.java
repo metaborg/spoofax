@@ -105,8 +105,8 @@ public class LanguageServiceTest extends MetaborgTest {
         assertSame(component, languageService.getComponent(component.location().getName()));
         assertEquals(impl, languageService.getImpl(identifier));
         assertSame(impl, languageService.getImpl(identifier));
-        assertEquals(impl, lang.active());
-        assertSame(impl, lang.active());
+        assertEquals(impl, lang.activeImpl());
+        assertSame(impl, lang.activeImpl());
         assertEquals(lang, languageService.getLanguage(name));
         assertSame(lang, languageService.getLanguage(name));
 
@@ -154,12 +154,12 @@ public class LanguageServiceTest extends MetaborgTest {
         assertSame(impl2, languageService.getImpl(identifier2));
         assertEquals(impl3, languageService.getImpl(identifier3));
         assertSame(impl3, languageService.getImpl(identifier3));
-        assertEquals(impl1, lang1.active());
-        assertSame(impl1, lang1.active());
-        assertEquals(impl2, lang2.active());
-        assertSame(impl2, lang2.active());
-        assertEquals(impl3, lang3.active());
-        assertSame(impl3, lang3.active());
+        assertEquals(impl1, lang1.activeImpl());
+        assertSame(impl1, lang1.activeImpl());
+        assertEquals(impl2, lang2.activeImpl());
+        assertSame(impl2, lang2.activeImpl());
+        assertEquals(impl3, lang3.activeImpl());
+        assertSame(impl3, lang3.activeImpl());
         assertEquals(lang1, languageService.getLanguage(name1));
         assertSame(lang1, languageService.getLanguage(name1));
         assertEquals(lang2, languageService.getLanguage(name2));
@@ -193,7 +193,7 @@ public class LanguageServiceTest extends MetaborgTest {
 
         assertEquals(component1, languageService.getComponent(location1.getName()));
         assertEquals(impl1, languageService.getImpl(identifier1));
-        assertEquals(impl1, lang.active());
+        assertEquals(impl1, lang.activeImpl());
         assertEquals(lang, languageService.getLanguage(name));
 
         final ILanguageComponent component2 = language(identifier2, location2, name);
@@ -204,7 +204,7 @@ public class LanguageServiceTest extends MetaborgTest {
         assertEquals(component2, languageService.getComponent(location2.getName()));
         assertEquals(impl1, languageService.getImpl(identifier1));
         assertEquals(impl2, languageService.getImpl(identifier2));
-        assertEquals(impl2, lang.active());
+        assertEquals(impl2, lang.activeImpl());
         assertEquals(lang, languageService.getLanguage(name));
         assertSize(1, impl1.components());
         assertSize(1, impl2.components());
@@ -230,7 +230,7 @@ public class LanguageServiceTest extends MetaborgTest {
 
         assertEquals(component1, languageService.getComponent(location1.getName()));
         assertEquals(impl1, languageService.getImpl(identifier1));
-        assertEquals(impl1, lang.active());
+        assertEquals(impl1, lang.activeImpl());
         assertEquals(lang, languageService.getLanguage(name));
 
         final ILanguageComponent component2 = language(identifier2, location2, name);
@@ -241,7 +241,7 @@ public class LanguageServiceTest extends MetaborgTest {
         assertEquals(component2, languageService.getComponent(location2.getName()));
         assertEquals(impl1, languageService.getImpl(identifier1));
         assertEquals(impl2, languageService.getImpl(identifier2));
-        assertEquals(impl1, lang.active());
+        assertEquals(impl1, lang.activeImpl());
         assertEquals(lang, languageService.getLanguage(name));
         assertSize(1, impl1.components());
         assertSize(1, impl2.components());
@@ -270,29 +270,29 @@ public class LanguageServiceTest extends MetaborgTest {
         final ILanguageComponent component1 = language(identifier1, location1, name);
         final ILanguageImpl impl1 = Iterables.get(component1.contributesTo(), 0);
         final ILanguage lang = impl1.belongsTo();
-        assertEquals(impl1, lang.active());
+        assertEquals(impl1, lang.activeImpl());
         final ILanguageComponent component2 = language(identifier2, location2, name);
         final ILanguageImpl impl2 = Iterables.get(component2.contributesTo(), 0);
-        assertEquals(impl2, lang.active());
+        assertEquals(impl2, lang.activeImpl());
         final ILanguageComponent component3 = language(identifier3, location3, name);
         final ILanguageImpl impl3 = Iterables.get(component3.contributesTo(), 0);
-        assertEquals(impl3, lang.active());
+        assertEquals(impl3, lang.activeImpl());
 
         languageService.remove(component3);
-        assertEquals(impl2, lang.active());
+        assertEquals(impl2, lang.activeImpl());
 
         languageService.remove(component1);
-        assertEquals(impl2, lang.active());
+        assertEquals(impl2, lang.activeImpl());
 
         final ILanguageComponent component4 = language(identifier4, location4, name);
         final ILanguageImpl impl4 = Iterables.get(component4.contributesTo(), 0);
-        assertEquals(impl4, lang.active());
+        assertEquals(impl4, lang.activeImpl());
 
         languageService.remove(component4);
-        assertEquals(impl2, lang.active());
+        assertEquals(impl2, lang.activeImpl());
 
         languageService.remove(component2);
-        assertNull(lang.active());
+        assertNull(lang.activeImpl());
         assertSize(0, lang.impls());
         assertNull(languageService.getLanguage(name));
     }

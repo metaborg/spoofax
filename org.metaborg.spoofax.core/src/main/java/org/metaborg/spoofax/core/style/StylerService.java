@@ -11,6 +11,7 @@ import org.metaborg.core.style.IRegionStyle;
 import org.metaborg.core.style.IStyle;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.style.RegionStyle;
+import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -23,7 +24,13 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
 
     @Override public Iterable<IRegionStyle<IStrategoTerm>> styleParsed(ILanguageImpl language,
         Iterable<IRegionCategory<IStrategoTerm>> categorization) {
-        final StylerFacet facet = language.facets(StylerFacet.class);
+        final StylerFacet facet = language.facet(StylerFacet.class);
+        if(facet == null) {
+            logger.error("Cannot style input of {}, it does not have a styler facet", language);
+            // GTODO: throw exception instead
+            return Iterables2.empty();
+        }
+        
         final List<IRegionStyle<IStrategoTerm>> regionStyles = Lists.newLinkedList();
         for(IRegionCategory<IStrategoTerm> regionCategory : categorization) {
             final IRegionStyle<IStrategoTerm> regionStyle = style(facet, regionCategory);

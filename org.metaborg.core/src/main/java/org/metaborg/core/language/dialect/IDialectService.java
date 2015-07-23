@@ -4,8 +4,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IFacet;
+import org.metaborg.core.language.ILanguageImpl;
 
 public interface IDialectService {
     /**
@@ -77,16 +77,13 @@ public interface IDialectService {
     public abstract ILanguageImpl update(String name, IFacet parserFacet);
 
     /**
-     * Updates all dialects based on {@code oldBase} to be based on {@code newBase}. Does nothing if there were no
-     * dialects based on {@code oldBase}.
+     * Updates all dialects based on {@code base}. Does nothing if there were no dialects based on {@code base}.
      * 
-     * @param oldBase
-     *            Old base language to update.
-     * @param newBase
-     *            New base language to update.
+     * @param base
+     *            Base language for which to update dialects.
      * @return Updated dialect languages.
      */
-    public abstract Iterable<ILanguageImpl> update(ILanguageImpl oldBase, ILanguageImpl newBase);
+    public abstract Iterable<ILanguageImpl> update(ILanguageImpl base);
 
     /**
      * Removes dialect with given name.

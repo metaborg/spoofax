@@ -11,6 +11,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.transform.TransformResult;
@@ -61,8 +62,10 @@ public class StrategoTransformerCommon {
     /**
      * Executes given strategy and creates a transformation result.
      * 
+     * @param component
+     *            Component to initialize Stratego code in.
      * @param context
-     *            Context to execute Stratego code in.
+     *            Context to initialize Stratego runtime with.
      * @param prevResult
      *            Originating result
      * @param strategy
@@ -75,11 +78,11 @@ public class StrategoTransformerCommon {
      * @throws TransformerException
      *             When Stratego invocation fails.
      */
-    public <PrevT> TransformResult<PrevT, IStrategoTerm> transform(IContext context, PrevT prevResult, String strategy,
-        IStrategoTerm input, FileObject resource) throws TransformerException {
+    public <PrevT> TransformResult<PrevT, IStrategoTerm> transform(ILanguageComponent component, IContext context,
+        PrevT prevResult, String strategy, IStrategoTerm input, FileObject resource) throws TransformerException {
         final HybridInterpreter runtime;
         try {
-            runtime = strategoRuntimeService.runtime(context);
+            runtime = strategoRuntimeService.runtime(component, context);
         } catch(MetaborgException e) {
             throw new TransformerException("Failed to get Stratego interpreter", e);
         }

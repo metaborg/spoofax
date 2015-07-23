@@ -7,9 +7,11 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.IMavenProjectService;
 import org.metaborg.core.project.IProject;
@@ -34,15 +36,21 @@ public class MavenDependencyService implements IDependencyService {
     }
 
 
-    @Override public Iterable<ILanguageImpl> compileDependencies(IProject project) {
+    @Override public Iterable<? extends ILanguageImpl> compileDependencies(IProject project) {
         final MavenProject mavenProject = mavenProjectService.get(project);
         if(mavenProject != null) {
             return getLanguages(compileDependencies(mavenProject));
         }
+
         logger.trace(
             "No corresponding Maven project found for project {}, using all active languages as compile dependencies",
             project);
-        return languageService.getAllImpls();
+
+        final Collection<ILanguageImpl> activeImpls = Lists.newLinkedList();
+        for(ILanguage language : languageService.getAllLanguages()) {
+            activeImpls.add(language.activeImpl());
+        }
+        return activeImpls;
     }
 
     @Override public Iterable<ILanguageImpl> runtimeDependencies(IProject project) {
@@ -86,22 +94,26 @@ public class MavenDependencyService implements IDependencyService {
         final List<ILanguageImpl> languages = Lists.newArrayList();
         for(LanguageIdentifier dependency : dependencies) {
             ILanguageImpl language = languageService.getImpl(dependency);
-            if(language != null) {
-                languages.add(language);
-                continue;
-            }
-            language = languageService.getAllImpls(dependency.groupId, dependency.id);
-            if(language != null) {
-                final LanguageVersion version = language.id().version;
-                // HACK: baseline languages have version 0.0.0, don't complain about version if a baseline version is
-                // found.
-                if(version.major() != 0 || version.minor() != 0 || version.patch() != 0) {
-                    logger.warn("Cannot find dependency {}, using version {}", dependency, version);
+
+            if(language == null) {
+                language = LanguageUtils.active(languageService.getAllImpls(dependency.groupId, dependency.id));
+
+                if(language != null) {
+                    final LanguageVersion version = language.id().version;
+                    // HACK: baseline languages have version 0.0.0, don't complain about version if a baseline version
+                    // is found.
+                    if(version.major() != 0 || version.minor() != 0 || version.patch() != 0) {
+                        logger.warn("Cannot find dependency {}, using version {}", dependency, version);
+                    }
                 }
-                languages.add(language);
+            }
+
+            if(language == null) {
+                logger.error("Cannot find dependency {}, make sure it is loaded", dependency);
                 continue;
             }
-            logger.error("Cannot find dependency {}, make sure it is loaded", dependency);
+
+            languages.add(language);
         }
         return languages;
     }

@@ -15,6 +15,7 @@ import org.metaborg.core.analysis.AnalysisResult;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzerData;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
@@ -90,12 +91,13 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             sources.add(input.source);
         }
 
-        final StrategoFacet facet = language.facets(StrategoFacet.class);
-        if(facet == null) {
-            final String message = String.format("Language %s does not have a Stratego facet", language);
+        final FacetContribution<StrategoFacet> facetContribution = language.facetContribution(StrategoFacet.class);
+        if(facetContribution == null) {
+            final String message = String.format("Cannot analyze, %s does not have a Stratego facet", language);
             logger.error(message);
             throw new AnalysisException(sources, context, message);
         }
+        final StrategoFacet facet = facetContribution.facet;
 
         if(facet.analysisStrategy() == null || facet.analysisMode() == null) {
             logger.debug("No analysis required for {}", language);
@@ -108,7 +110,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
 
         final HybridInterpreter interpreter;
         try {
-            interpreter = runtimeService.runtime(context);
+            interpreter = runtimeService.runtime(facetContribution.contributor, context);
         } catch(MetaborgException e) {
             throw new AnalysisException(sources, context, "Failed to get Stratego interpreter", e);
         }

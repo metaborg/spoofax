@@ -47,4 +47,15 @@ public interface IFacetContributions {
      *             When there are multiple facets of given type.
      */
     public @Nullable <T extends IFacet> T facet(Class<T> type);
+
+    /**
+     * Returns a facet contribution of given type.
+     * 
+     * @param type
+     *            Facet type
+     * @return Facet contribution of given type.
+     * @throws MetaborgRuntimeException
+     *             When there are multiple facets of given type.
+     */
+    public @Nullable <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type);
 }

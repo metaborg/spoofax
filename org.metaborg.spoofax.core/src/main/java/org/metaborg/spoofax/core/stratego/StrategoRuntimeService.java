@@ -12,8 +12,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -30,7 +30,7 @@ import org.strategoxt.strc.parse_stratego_file_0_0;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
-public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguageCache {
+public class StrategoRuntimeService implements IStrategoRuntimeService {
     private static final Logger logger = LoggerFactory.getLogger(StrategoRuntimeService.class);
 
     private final IResourceService resourceService;
@@ -38,7 +38,8 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
     private final Set<IOperatorRegistry> strategoLibraries;
     private final ParseStrategoFileStrategy parseStrategoFileStrategy;
 
-    private final Map<ILanguageImpl, HybridInterpreter> prototypes = new HashMap<ILanguageImpl, HybridInterpreter>();
+    private final Map<ILanguageComponent, HybridInterpreter> prototypes =
+        new HashMap<ILanguageComponent, HybridInterpreter>();
 
 
     @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
@@ -50,38 +51,40 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
     }
 
 
-    @Override public HybridInterpreter runtime(IContext context) throws MetaborgException {
-        final ILanguageImpl language = context.language();
-        HybridInterpreter prototype = prototypes.get(language);
+    @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException {
+        HybridInterpreter prototype = prototypes.get(component);
         if(prototype == null) {
-            prototype = createPrototypeRuntime(language);
+            prototype = createPrototypeRuntime(component);
         }
 
         // TODO: this seems to copy operator registries, but they should be recreated to isolate interpreters?
-        final HybridInterpreter interpreter = new HybridInterpreter(prototype, new String[0]);
+        final HybridInterpreter runtime = new HybridInterpreter(prototype, new String[0]);
         final ResourceAgent agent = new ResourceAgent(resourceService);
         agent.setAbsoluteWorkingDir(context.location());
-        agent.setAbsoluteDefinitionDir(context.language().location());
-        interpreter.setIOAgent(agent);
-        interpreter.getContext().setContextObject(context);
-        interpreter.getCompiledContext().setContextObject(context);
-        interpreter.getCompiledContext().getExceptionHandler().setEnabled(false);
+        agent.setAbsoluteDefinitionDir(component.location());
+        runtime.setIOAgent(agent);
+        runtime.getContext().setContextObject(context);
+        runtime.getCompiledContext().setContextObject(context);
+        runtime.getCompiledContext().getExceptionHandler().setEnabled(false);
         // Add primitive libraries again, to make sure that our libraries override any default ones.
         for(IOperatorRegistry library : strategoLibraries) {
-            interpreter.getCompiledContext().addOperatorRegistry(library);
+            runtime.getCompiledContext().addOperatorRegistry(library);
         }
-        interpreter.init();
+        runtime.init();
 
-        return interpreter;
+        return runtime;
     }
 
     @Override public HybridInterpreter genericRuntime() {
         return createRuntime(new ImploderOriginTermFactory(termFactoryService.getGeneric()));
     }
 
-    @Override public void invalidateCache(ILanguageImpl language) {
-        logger.debug("Removing cached stratego runtime for {}", language);
-        prototypes.remove(language);
+    @Override public void invalidateCache(ILanguageComponent component) {
+        logger.debug("Removing cached stratego runtime for {}", component);
+        prototypes.remove(component);
+    }
+
+    @Override public void invalidateCache(ILanguageImpl impl) {
     }
 
 
@@ -101,28 +104,36 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
         return interpreter;
     }
 
-    private HybridInterpreter createPrototypeRuntime(ILanguageImpl language) throws MetaborgException {
-        logger.debug("Creating prototype runtime for {}", language);
-        final HybridInterpreter interpreter =
-            createRuntime(new ImploderOriginTermFactory(termFactoryService.get(language)));
-        loadCompilerFiles(interpreter, language);
-        prototypes.put(language, interpreter);
-        return interpreter;
+    private HybridInterpreter createPrototypeRuntime(ILanguageComponent component) throws MetaborgException {
+        logger.debug("Creating prototype runtime for {}", component);
+        final ITermFactory termFactory = new ImploderOriginTermFactory(termFactoryService.get(component));
+        final HybridInterpreter runtime = createRuntime(termFactory);
+        loadFiles(runtime, component);
+        prototypes.put(component, runtime);
+        return runtime;
     }
 
-    private void loadCompilerFiles(HybridInterpreter interp, ILanguageImpl lang) throws MetaborgException {
-        final StrategoFacet strategoFacet = lang.facets(StrategoFacet.class);
-        final Iterable<FileObject> jars = strategoFacet.jarFiles();
-        final Iterable<FileObject> ctrees = strategoFacet.ctreeFiles();
+    private void loadFiles(HybridInterpreter runtime, ILanguageComponent component) throws MetaborgException {
+        final StrategoFacet facet = component.facet(StrategoFacet.class);
+        if(facet == null) {
+            final String message =
+                String.format("Cannot get Stratego runtime for %s, it does not have a Stratego facet", component);
+            logger.error(message);
+            throw new MetaborgException(message);
+        }
 
         // Order is important, load CTrees first.
-        if(Iterables.size(ctrees) > 0)
-            loadCompilerCTree(interp, ctrees);
-        if(Iterables.size(jars) > 0)
-            loadCompilerJar(interp, jars);
+        final Iterable<FileObject> ctrees = facet.ctreeFiles();
+        if(Iterables.size(ctrees) > 0) {
+            loadCtrees(runtime, ctrees);
+        }
+        final Iterable<FileObject> jars = facet.jarFiles();
+        if(Iterables.size(jars) > 0) {
+            loadJars(runtime, jars);
+        }
     }
 
-    private void loadCompilerJar(HybridInterpreter interp, Iterable<FileObject> jars) throws MetaborgException {
+    private void loadJars(HybridInterpreter runtime, Iterable<FileObject> jars) throws MetaborgException {
         try {
             final URL[] classpath = new URL[Iterables.size(jars)];
             int i = 0;
@@ -132,18 +143,17 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
-            interp.loadJars(classpath);
+            runtime.loadJars(classpath);
         } catch(IncompatibleJarException | IOException | MetaborgRuntimeException e) {
             throw new MetaborgException("Failed to load JAR", e);
         }
     }
 
-    private static void loadCompilerCTree(HybridInterpreter interp, Iterable<FileObject> ctrees)
-        throws MetaborgException {
+    private static void loadCtrees(HybridInterpreter runtime, Iterable<FileObject> ctrees) throws MetaborgException {
         try {
             for(FileObject file : ctrees) {
                 logger.trace("Loading ctree {}", file.getName());
-                interp.load(new BufferedInputStream(file.getContent().getInputStream()));
+                runtime.load(new BufferedInputStream(file.getContent().getInputStream()));
             }
         } catch(IOException | InterpreterException e) {
             throw new MetaborgException("Failed to load ctree", e);

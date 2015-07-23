@@ -4,6 +4,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.FacetContribution;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.core.transform.CompileGoal;
@@ -16,6 +18,9 @@ import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;
+
+import fj.P;
+import fj.P2;
 
 /**
  * Transformer executor for the {@link CompileGoal} and {@link CompilerFacet}.
@@ -33,7 +38,10 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
 
     @Override public TransformResult<ParseResult<IStrategoTerm>, IStrategoTerm> transform(
         ParseResult<IStrategoTerm> parseResult, IContext context, ITransformerGoal goal) throws TransformerException {
-        final String strategyName = strategyName(context.language());
+        final P2<String, ILanguageComponent> tuple = strategyName(context.language());
+        final String strategyName = tuple._1();
+        final ILanguageComponent component = tuple._2();
+
         final FileObject resource = parseResult.source;
         final IStrategoTerm inputTerm;
         try {
@@ -42,13 +50,16 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
             throw new TransformerException("Cannot create input term", e);
         }
         logger.debug("Compiling parse result of {}", resource);
-        return transformer.transform(context, parseResult, strategyName, inputTerm, resource);
+        return transformer.transform(component, context, parseResult, strategyName, inputTerm, resource);
     }
 
     @Override public TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm> transform(
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult, IContext context, ITransformerGoal goal)
         throws TransformerException {
-        final String strategyName = strategyName(context.language());
+        final P2<String, ILanguageComponent> tuple = strategyName(context.language());
+        final String strategyName = tuple._1();
+        final ILanguageComponent component = tuple._2();
+
         final FileObject resource = analysisResult.source;
         final IStrategoTerm inputTerm;
         try {
@@ -57,11 +68,11 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
             throw new TransformerException("Cannot create input term", e);
         }
         logger.debug("Compiling analysis result of {}", resource);
-        return transformer.transform(context, analysisResult, strategyName, inputTerm, resource);
+        return transformer.transform(component, context, analysisResult, strategyName, inputTerm, resource);
     }
 
     @Override public boolean available(ITransformerGoal goal, IContext context) {
-        final CompilerFacet facet = context.language().facets(CompilerFacet.class);
+        final CompilerFacet facet = context.language().facet(CompilerFacet.class);
         if(facet == null) {
             return false;
         }
@@ -72,13 +83,14 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
     }
 
 
-    private String strategyName(ILanguageImpl language) throws TransformerException {
-        final CompilerFacet facet = language.facets(CompilerFacet.class);
-        if(facet == null) {
+    private P2<String, ILanguageComponent> strategyName(ILanguageImpl language) throws TransformerException {
+        final FacetContribution<CompilerFacet> facetContribution = language.facetContribution(CompilerFacet.class);
+        if(facetContribution == null) {
             final String message = String.format("No compiler facet found for %s", language);
             logger.error(message);
             throw new TransformerException(message);
         }
+        final CompilerFacet facet = facetContribution.facet;
 
         final String strategyName = facet.strategyName;
         if(strategyName == null) {
@@ -86,6 +98,6 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
             logger.error(message);
             throw new TransformerException(message);
         }
-        return strategyName;
+        return P.p(strategyName, facetContribution.contributor);
     }
 }

@@ -40,7 +40,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
             // GTODO: throw exception instead
             return Iterables2.empty();
         }
-        final StylerFacet facet = language.facets(StylerFacet.class);
+        final StylerFacet facet = language.facet(StylerFacet.class);
         if(facet == null) {
             logger.error("Cannot categorize input of {}, it does not have a styler facet", language);
             // GTODO: throw exception instead

@@ -10,9 +10,7 @@ import org.metaborg.core.style.IStyle;
 import com.google.common.collect.Maps;
 
 public class StylerFacet implements IFacet {
-    private static final long serialVersionUID = 4154040215394619408L;
-    
-	private final Map<SortConsCategory, IStyle> sortConsToStyle = Maps.newHashMap();
+    private final Map<SortConsCategory, IStyle> sortConsToStyle = Maps.newHashMap();
     private final Map<String, IStyle> consToStyle = Maps.newHashMap();
     private final Map<String, IStyle> sortToStyle = Maps.newHashMap();
     private final Map<String, IStyle> tokenToStyle = Maps.newHashMap();

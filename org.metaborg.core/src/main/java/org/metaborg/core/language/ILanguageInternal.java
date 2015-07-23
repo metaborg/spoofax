@@ -7,7 +7,7 @@ public interface ILanguageInternal extends ILanguage {
      * @param implementation
      *            Language implementation to add.
      */
-    public abstract void add(ILanguageImpl implementation);
+    public abstract void add(ILanguageImplInternal implementation);
 
     /**
      * Removes a language implementation that no longer belongs to this language.
@@ -15,5 +15,5 @@ public interface ILanguageInternal extends ILanguage {
      * @param implementation
      *            Language implementation to remove.
      */
-    public abstract void remove(ILanguageImpl implementation);
+    public abstract void remove(ILanguageImplInternal implementation);
 }

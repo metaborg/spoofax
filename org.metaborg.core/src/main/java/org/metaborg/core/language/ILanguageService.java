@@ -39,34 +39,34 @@ public interface ILanguageService {
      */
     public @Nullable ILanguage getLanguage(String name);
 
-    
+
     /**
      * @return All language components.
      */
     public Iterable<? extends ILanguageComponent> getAllComponents();
-    
+
     /**
      * @return All language implementations.
      */
     public Iterable<? extends ILanguageImpl> getAllImpls();
-    
+
     /**
      * Gets language implementions with group id and id.
      * 
      * @param groupId
-     *            Group id of the implementation to get.
+     *            Group ID of the implementations to get.
      * @param id
-     *            ID of the implementation to get.
+     *            ID of the implementations to get.
      * @return Implementations with given group id and id.
      */
-    public Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id);
-    
+    public abstract Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id);
+
     /**
      * @return All languages
      */
     public Iterable<? extends ILanguage> getAllLanguages();
 
-    
+
     /**
      * @return Observable over language component changes.
      */

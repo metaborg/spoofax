@@ -89,6 +89,7 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
     }
 
     @Override public <T extends IFacet> T facet(Class<T> type) {
+        // GTODO: code duplication with LanguageComponent, use default interface implementation in Java 8.
         final Iterable<T> facets = facets(type);
         final int size = Iterables.size(facets);
         if(size == 0) {
@@ -98,6 +99,19 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
                 + " found, while only a single facet is supported");
         }
         return Iterables.get(facets, 0);
+    }
+
+    @Override public <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type) {
+        // GTODO: code duplication with LanguageComponent, use default interface implementation in Java 8.
+        final Iterable<FacetContribution<T>> facetContributions = facetContributions(type);
+        final int size = Iterables.size(facetContributions);
+        if(size == 0) {
+            return null;
+        } else if(size > 1) {
+            throw new MetaborgRuntimeException("Multiple facets of type " + type
+                + " found, while only a single facet is supported");
+        }
+        return Iterables.get(facetContributions, 0);
     }
 
 

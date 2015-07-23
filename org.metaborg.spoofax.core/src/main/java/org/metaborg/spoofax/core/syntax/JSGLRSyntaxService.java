@@ -2,12 +2,14 @@ package org.metaborg.spoofax.core.syntax;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageCache;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.syntax.FenceCharacters;
@@ -26,6 +28,7 @@ import org.spoofax.terms.util.NotImplementedException;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILanguageCache {
@@ -67,24 +70,30 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
 
 
     @Override public Iterable<String> singleLineCommentPrefixes(ILanguageImpl language) {
-        final SyntaxFacet facet = language.facets(SyntaxFacet.class);
-        return facet.singleLineCommentPrefixes;
+        final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
+        final Set<String> prefixes = Sets.newLinkedHashSet();
+        for(SyntaxFacet facet : facets) {
+            Iterables.addAll(prefixes, facet.singleLineCommentPrefixes);
+        }
+        return prefixes;
     }
 
     @Override public Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguageImpl language) {
-        final SyntaxFacet facet = language.facets(SyntaxFacet.class);
-        return facet.multiLineCommentCharacters;
+        final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
+        final Set<MultiLineCommentCharacters> chars = Sets.newLinkedHashSet();
+        for(SyntaxFacet facet : facets) {
+            Iterables.addAll(chars, facet.multiLineCommentCharacters);
+        }
+        return chars;
     }
 
     @Override public Iterable<FenceCharacters> fenceCharacters(ILanguageImpl language) {
-        final SyntaxFacet facet = language.facets(SyntaxFacet.class);
-        return facet.fenceCharacters;
-    }
-
-
-    @Override public void invalidateCache(ILanguageImpl language) {
-        logger.debug("Removing cached parse table for {}", language);
-        parserConfigs.remove(language);
+        final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
+        final Set<FenceCharacters> fences = Sets.newLinkedHashSet();
+        for(SyntaxFacet facet : facets) {
+            Iterables.addAll(fences, facet.fenceCharacters);
+        }
+        return fences;
     }
 
 
@@ -93,7 +102,7 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
         if(config == null) {
             final ITermFactory termFactory =
                 termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
-            final SyntaxFacet facet = lang.facets(SyntaxFacet.class);
+            final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
             final IParseTableProvider provider = new FileParseTableProvider(facet.parseTable, termFactory);
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
             parserConfigs.put(lang, config);
@@ -106,5 +115,15 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
         @Nullable ILanguageImpl dialect) {
         return new ParseResult<IStrategoTerm>("", termFactoryService.getGeneric().makeTuple(), resource,
             Iterables2.<IMessage>empty(), -1, language, dialect, null);
+    }
+
+
+    @Override public void invalidateCache(ILanguageImpl impl) {
+        logger.debug("Removing cached parse table for {}", impl);
+        parserConfigs.remove(impl);
+    }
+
+    @Override public void invalidateCache(ILanguageComponent component) {
+
     }
 }
