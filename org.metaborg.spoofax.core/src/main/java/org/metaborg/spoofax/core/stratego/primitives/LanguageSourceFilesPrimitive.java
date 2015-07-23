@@ -53,7 +53,7 @@ public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
             return true;
         }
 
-        final ILanguageImpl language = languageService.get(languageName);
+        final ILanguageImpl language = languageService.getLanguage(languageName);
         final Iterable<IdentifiedResource> sourceFiles = languagePathService.sourceFiles(project, language);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(IdentifiedResource sourceFile : sourceFiles) {

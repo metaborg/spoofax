@@ -42,7 +42,7 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
 
 
     @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
-        final ILanguageImpl strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
+        final ILanguageImpl strategoLanguage = languageService.getLanguage(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
             final String message = "Could not find Stratego language, Stratego dialects cannot be identified";
             logger.debug(message);

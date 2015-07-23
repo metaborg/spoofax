@@ -3,8 +3,10 @@ package org.metaborg.core.language;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.MetaborgRuntimeException;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
@@ -73,6 +75,18 @@ public class LanguageComponent implements ILanguageComponentInternal {
             contributions.add(new FacetContribution<T>(facet, this));
         }
         return contributions;
+    }
+
+    @Override public <T extends IFacet> T facet(Class<T> type) {
+        final Iterable<T> facets = facets(type);
+        final int size = Iterables.size(facets);
+        if(size == 0) {
+            return null;
+        } else if(size > 1) {
+            throw new MetaborgRuntimeException("Multiple facets of type " + type
+                + " found, while only a single facet is supported");
+        }
+        return Iterables.get(facets, 0);
     }
 
 

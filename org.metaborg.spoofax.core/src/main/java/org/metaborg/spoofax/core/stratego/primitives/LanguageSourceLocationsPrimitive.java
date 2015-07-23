@@ -57,7 +57,7 @@ public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
             return true;
         }
 
-        final ILanguageImpl language = languageService.get(languageName);
+        final ILanguageImpl language = languageService.getLanguage(languageName);
         final Iterable<FileObject> sourceLocations = languagePathService.sourcePaths(project, language.name());
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject sourceLocation : sourceLocations) {

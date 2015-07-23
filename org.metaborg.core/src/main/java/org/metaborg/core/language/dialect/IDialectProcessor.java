@@ -1,6 +1,6 @@
 package org.metaborg.core.language.dialect;
 
-import org.metaborg.core.language.LanguageChange;
+import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
@@ -19,10 +19,10 @@ public interface IDialectProcessor {
     public abstract void update(IProject project, Iterable<ResourceChange> changes);
 
     /**
-     * Updates dialects using a language change.
+     * Updates dialects using a language implementation change.
      * 
      * @param change
      *            Language change to process.
      */
-    public abstract void update(LanguageChange change);
+    public abstract void update(LanguageImplChange change);
 }

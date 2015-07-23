@@ -356,7 +356,7 @@ public class BuildInputBuilder {
 
         if(addDefaultIncludePaths) {
             for(ILanguageImpl language : compileLanguages) {
-                addIncludePaths(language, languagePathService.includePaths(project, language.name()));
+                addIncludePaths(language, languagePathService.includePaths(project, language.belongsTo().name()));
             }
         }
 
@@ -368,7 +368,7 @@ public class BuildInputBuilder {
         }
 
         for(ILanguageImpl language : languages) {
-            if(pardonedLanguageStrings.contains(language.name())) {
+            if(pardonedLanguageStrings.contains(language.belongsTo().name())) {
                 addPardonedLanguage(language);
             }
         }

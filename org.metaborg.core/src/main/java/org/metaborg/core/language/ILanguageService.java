@@ -28,18 +28,7 @@ public interface ILanguageService {
      *            Identifier of the implementation to get.
      * @return Implementation with given identifier, or null if it could not be found.
      */
-    public @Nullable ILanguageImpl get(LanguageIdentifier identifier);
-
-    /**
-     * Gets the active language implemention by its group id and id.
-     * 
-     * @param groupId
-     *            Group id of the implementation to get.
-     * @param id
-     *            ID of the implementation to get.
-     * @return Implementation with given group id and id, or null if it could not be found.
-     */
-    public @Nullable ILanguageImpl get(String groupId, String id);
+    public @Nullable ILanguageImpl getImpl(LanguageIdentifier identifier);
 
     /**
      * Gets a language by its name.
@@ -48,19 +37,36 @@ public interface ILanguageService {
      *            Name of the language to get.
      * @return Language with given name, or null if it could not be found.
      */
-    public @Nullable ILanguage get(String name);
+    public @Nullable ILanguage getLanguage(String name);
 
+    
+    /**
+     * @return All language components.
+     */
+    public Iterable<? extends ILanguageComponent> getAllComponents();
+    
+    /**
+     * @return All language implementations.
+     */
+    public Iterable<? extends ILanguageImpl> getAllImpls();
+    
+    /**
+     * Gets language implementions with group id and id.
+     * 
+     * @param groupId
+     *            Group id of the implementation to get.
+     * @param id
+     *            ID of the implementation to get.
+     * @return Implementations with given group id and id.
+     */
+    public Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id);
+    
     /**
      * @return All languages
      */
-    public Iterable<? extends ILanguage> getAll();
+    public Iterable<? extends ILanguage> getAllLanguages();
 
-    /**
-     * @return All active language implementations.
-     */
-    public Iterable<? extends ILanguageImpl> getAllActive();
-
-
+    
     /**
      * @return Observable over language component changes.
      */

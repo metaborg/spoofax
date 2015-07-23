@@ -6,9 +6,9 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.editor.IEditor;
 import org.metaborg.core.editor.IEditorRegistry;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageCache;
-import org.metaborg.core.language.LanguageChange;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 
 import com.google.inject.Inject;
@@ -30,25 +30,19 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     }
 
 
-    @Override public void process(LanguageChange change, @Nullable IProgressReporter progressReporter) {
+    @Override public void process(LanguageImplChange change, @Nullable IProgressReporter progressReporter) {
         // GTODO: do something with progress reporter.
         switch(change.kind) {
-            case ADD_FIRST:
-                added(change.newLanguage);
+            case Add:
+                added(change.impl);
                 break;
-            case REPLACE_ACTIVE:
-            case RELOAD_ACTIVE:
-                reloadedActive(change.oldLanguage, change.newLanguage);
+            case Reload:
+                reload(change.impl);
                 break;
-            case RELOAD:
-            case REMOVE:
-                invalidated(change.oldLanguage);
+            case Remove:
+                removed(change.impl);
                 break;
-            case REMOVE_LAST:
-                removed(change.oldLanguage);
-                break;
-            case ADD:
-                // Nothing to do when adding new implementation of existing language.
+            default:
                 break;
         }
 
@@ -69,23 +63,17 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
         }
     }
 
-    protected void invalidated(ILanguageImpl language) {
-        for(ILanguageCache languageCache : languageCaches) {
-            languageCache.invalidateCache(language);
-        }
-    }
-
-    protected void reloadedActive(ILanguageImpl oldLanguage, @SuppressWarnings("unused") ILanguageImpl newLanguage) {
+    protected void reload(ILanguageImpl language) {
         // Invalidate cached language resources
         for(ILanguageCache languageCache : languageCaches) {
-            languageCache.invalidateCache(oldLanguage);
+            languageCache.invalidateCache(language);
         }
 
         // Update editors
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
             final ILanguageImpl editorLanguage = editor.language();
-            if(editorLanguage == null || oldLanguage.equals(editorLanguage)) {
+            if(editorLanguage == null || language.equals(editorLanguage)) {
                 editor.reconfigure();
                 editor.forceUpdate();
             }

@@ -42,7 +42,7 @@ public class MavenDependencyService implements IDependencyService {
         logger.trace(
             "No corresponding Maven project found for project {}, using all active languages as compile dependencies",
             project);
-        return languageService.getAllActive();
+        return languageService.getAllImpls();
     }
 
     @Override public Iterable<ILanguageImpl> runtimeDependencies(IProject project) {
@@ -85,12 +85,12 @@ public class MavenDependencyService implements IDependencyService {
     private Iterable<ILanguageImpl> getLanguages(Iterable<LanguageIdentifier> dependencies) {
         final List<ILanguageImpl> languages = Lists.newArrayList();
         for(LanguageIdentifier dependency : dependencies) {
-            ILanguageImpl language = languageService.get(dependency);
+            ILanguageImpl language = languageService.getImpl(dependency);
             if(language != null) {
                 languages.add(language);
                 continue;
             }
-            language = languageService.get(dependency.groupId, dependency.id);
+            language = languageService.getAllImpls(dependency.groupId, dependency.id);
             if(language != null) {
                 final LanguageVersion version = language.id().version;
                 // HACK: baseline languages have version 0.0.0, don't complain about version if a baseline version is

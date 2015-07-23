@@ -36,12 +36,12 @@ public class BuildOrder {
         final Map<String, ILanguageImpl> lookup = Maps.newHashMap();
         for(ILanguageImpl language : languages) {
             dag.addVertex(language);
-            lookup.put(language.name(), language);
+            lookup.put(language.belongsTo().name(), language);
         }
 
         for(ILanguageImpl source : languages) {
-            final LanguagePathFacet facet = source.facets(LanguagePathFacet.class);
-            if(facet != null) {
+            final Iterable<LanguagePathFacet> facets = source.facets(LanguagePathFacet.class);
+            for(LanguagePathFacet facet : facets) {
                 for(String otherName : facet.sources.keySet()) {
                     final ILanguageImpl target = lookup.get(otherName);
                     if(target != null) {

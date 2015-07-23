@@ -44,29 +44,29 @@ public class LanguageService implements ILanguageService {
         return locationToComponent.get(location);
     }
 
-    @Override public @Nullable ILanguageImpl get(LanguageIdentifier identifier) {
+    @Override public @Nullable ILanguageImpl getImpl(LanguageIdentifier identifier) {
         return identifierToImpl.get(identifier);
     }
 
-    @Override public @Nullable ILanguageImpl get(String groupId, String id) {
-        return getActiveLanguage(idToImpl.get(groupIdId(groupId, id)));
-    }
-
-    @Override public @Nullable ILanguage get(String name) {
+    @Override public @Nullable ILanguage getLanguage(String name) {
         return nameToLanguage.get(name);
     }
 
-    @Override public Iterable<? extends ILanguage> getAll() {
-        return nameToLanguage.values();
+
+    @Override public Iterable<? extends ILanguageComponent> getAllComponents() {
+        return locationToComponent.values();
     }
 
-    @Override public Iterable<? extends ILanguageImpl> getAllActive() {
-        final Collection<ILanguageImpl> activeImpls = Lists.newLinkedList();
-        for(ILanguage language : getAll()) {
-            final ILanguageImpl activeImpl = getActiveLanguage(language.all());
-            activeImpls.add(activeImpl);
-        }
-        return activeImpls;
+    @Override public Iterable<? extends ILanguageImpl> getAllImpls() {
+        return identifierToImpl.values();
+    }
+
+    @Override public Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id) {
+        return idToImpl.get(groupIdId(groupId, id));
+    }
+
+    @Override public Iterable<? extends ILanguage> getAllLanguages() {
+        return nameToLanguage.values();
     }
 
 
@@ -153,7 +153,7 @@ public class LanguageService implements ILanguageService {
                     language.remove(impl);
                     implChange(LanguageImplChange.Kind.Remove, impl);
 
-                    if(Iterables.isEmpty(language.all())) {
+                    if(Iterables.isEmpty(language.impls())) {
                         removeLanguage(language);
                     }
                 } else {
@@ -202,33 +202,13 @@ public class LanguageService implements ILanguageService {
                 language.remove(impl);
                 implChange(LanguageImplChange.Kind.Remove, impl);
 
-                if(Iterables.isEmpty(language.all())) {
+                if(Iterables.isEmpty(language.impls())) {
                     removeLanguage(language);
                 }
             } else {
                 implChange(LanguageImplChange.Kind.Reload, impl);
             }
         }
-    }
-
-
-    private @Nullable ILanguageImpl getActiveLanguage(Iterable<? extends ILanguageImpl> languages) {
-        ILanguageImpl activeLanguage = null;
-        for(ILanguageImpl language : languages) {
-            if(activeLanguage == null || isGreater(language, activeLanguage)) {
-                activeLanguage = language;
-            }
-
-        }
-        return activeLanguage;
-    }
-
-    private boolean isGreater(ILanguageImpl language, ILanguageImpl other) {
-        int compareVersion = language.id().version.compareTo(other.id().version);
-        if(compareVersion > 0 || (compareVersion == 0 && language.sequenceId() > other.sequenceId())) {
-            return true;
-        }
-        return false;
     }
 
 

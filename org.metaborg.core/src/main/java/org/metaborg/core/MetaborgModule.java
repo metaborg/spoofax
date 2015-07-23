@@ -8,7 +8,6 @@ import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.context.ContextService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.context.IContextStrategy;
-import org.metaborg.core.context.LanguageContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.context.ResourceContextStrategy;
 import org.metaborg.core.editor.DummyEditorRegistry;
@@ -104,7 +103,6 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindContextStrategies(MapBinder<String, IContextStrategy> binder) {
         binder.addBinding(ResourceContextStrategy.name).to(ResourceContextStrategy.class).in(Singleton.class);
-        binder.addBinding(LanguageContextStrategy.name).to(LanguageContextStrategy.class).in(Singleton.class);
         binder.addBinding(ProjectContextStrategy.name).to(ProjectContextStrategy.class).in(Singleton.class);
     }
 

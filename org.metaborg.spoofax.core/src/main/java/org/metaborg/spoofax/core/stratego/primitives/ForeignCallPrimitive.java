@@ -38,7 +38,7 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
         final String languageName = Tools.asJavaString(terms[0]);
         final String strategyName = Tools.asJavaString(terms[1]);
 
-        final ILanguageImpl language = languageService.get(languageName);
+        final ILanguageImpl language = languageService.getLanguage(languageName);
         if(language == null) {
             final String message =
                 String.format("Foreign call of '%s' into language %s failed, language could not be found",

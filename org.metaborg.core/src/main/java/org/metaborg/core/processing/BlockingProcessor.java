@@ -6,7 +6,7 @@ import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
 import org.metaborg.core.build.IBuilder;
-import org.metaborg.core.language.LanguageChange;
+import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
@@ -74,10 +74,10 @@ public class BlockingProcessor<P, A, T> implements IProcessor<P, A, T> {
     }
 
 
-    @Override public ITask<?> languageChange(final LanguageChange change) {
+    @Override public ITask<?> languageChange(final LanguageImplChange change) {
         return new BlockingTask<>(new Func0<Object>() {
             @Override public Object call() {
-                languageChangeProcessor.process(change, null);
+                languageChangeProcessor.process(change, new NullProgressReporter());
                 return null;
             }
         });

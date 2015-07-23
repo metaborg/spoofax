@@ -2,16 +2,18 @@ package org.metaborg.core.language;
 
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.Sets;
 
 public class Language implements ILanguage, ILanguageInternal {
     private final String name;
-    private final Set<ILanguageImpl> implementations;
+    private final Set<ILanguageImpl> impls;
 
 
     public Language(String name) {
         this.name = name;
-        this.implementations = Sets.newHashSet();
+        this.impls = Sets.newHashSet();
     }
 
 
@@ -19,17 +21,36 @@ public class Language implements ILanguage, ILanguageInternal {
         return name;
     }
 
-    @Override public Iterable<ILanguageImpl> all() {
-        return implementations;
+    @Override public Iterable<ILanguageImpl> impls() {
+        return impls;
+    }
+
+    @Override public @Nullable ILanguageImpl active() {
+        ILanguageImpl active = null;
+        for(ILanguageImpl impl : impls) {
+            if(active == null || isGreater(impl, active)) {
+                active = impl;
+            }
+
+        }
+        return active;
+    }
+
+    private boolean isGreater(ILanguageImpl impl, ILanguageImpl other) {
+        int compareVersion = impl.id().version.compareTo(other.id().version);
+        if(compareVersion > 0 || (compareVersion == 0 && impl.sequenceId() > other.sequenceId())) {
+            return true;
+        }
+        return false;
     }
 
 
     @Override public void add(ILanguageImpl implementation) {
-        implementations.add(implementation);
+        impls.add(implementation);
     }
 
     @Override public void remove(ILanguageImpl implementation) {
-        implementations.remove(implementation);
+        impls.remove(implementation);
     }
 
 

@@ -49,7 +49,7 @@ public class StrategoDialectProcessor implements IDialectProcessor {
         
         logger.debug("Processing dialect updates for " + project.location());
 
-        final ILanguageImpl strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
+        final ILanguageImpl strategoLanguage = languageService.getLanguage(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
             logger.debug("Could not find Stratego language, Stratego dialects cannot be updated.");
             return;

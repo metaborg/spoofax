@@ -44,7 +44,7 @@ public class ContextService implements IContextService {
     }
     
     private ContextFacet getFacet(ILanguageImpl language) {
-        final ContextFacet facet = language.facets(ContextFacet.class);
+        final ContextFacet facet = language.facet(ContextFacet.class);
         if(facet == null) {
             final String message = String.format("Cannot get a context, % does not have a context facet", language);
             logger.error(message);

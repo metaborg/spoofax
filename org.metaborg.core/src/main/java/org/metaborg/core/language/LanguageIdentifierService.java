@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -32,23 +33,27 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
 
     @Override public boolean identify(FileObject resource, ILanguageImpl language) {
-        final IdentificationFacet identification = language.facets(IdentificationFacet.class);
-        if(identification == null) {
+        final Iterable<IdentificationFacet> facets = language.facets(IdentificationFacet.class);
+        if(Iterables.isEmpty(facets)) {
             logger.error("Cannot identify resources of {}, language does not have an identification facet", language);
             return false;
         }
-        return identification.identify(resource);
+        boolean identified = false;
+        for(IdentificationFacet facet : facets) {
+            identified = identified || facet.identify(resource);
+        }
+        return identified;
     }
 
     @Override public @Nullable ILanguageImpl identify(FileObject resource) {
-        return identify(resource, languageService.getAllActive());
+        return identify(resource, languageService.getAllImpls());
     }
 
     @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource) {
-        return identifyToResource(resource, languageService.getAllActive());
+        return identifyToResource(resource, languageService.getAllImpls());
     }
 
-    @Override public @Nullable ILanguageImpl identify(FileObject resource, Iterable<ILanguageImpl> languages) {
+    @Override public @Nullable ILanguageImpl identify(FileObject resource, Iterable<? extends ILanguageImpl> languages) {
         final IdentifiedResource identified = identifyToResource(resource, languages);
         if(identified == null) {
             return null;
@@ -56,8 +61,8 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         return identified.dialectOrLanguage();
     }
 
-    @Override public @Nullable IdentifiedResource
-        identifyToResource(FileObject resource, Iterable<ILanguageImpl> languages) {
+    @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource,
+        Iterable<? extends ILanguageImpl> languages) {
         // Ignore directories.
         try {
             if(resource.getType() == FileType.FOLDER) {
@@ -81,18 +86,18 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         }
 
         // Identify using identification facet.
-        final Set<String> identifiedLanguageNames = Sets.newLinkedHashSet();
+        final Set<LanguageIdentifier> identifiedLanguageIds = Sets.newLinkedHashSet();
         ILanguageImpl identifiedLanguage = null;
         for(ILanguageImpl language : languages) {
             if(identify(resource, language)) {
-                identifiedLanguageNames.add(language.name());
+                identifiedLanguageIds.add(language.id());
                 identifiedLanguage = language;
             }
         }
 
-        if(identifiedLanguageNames.size() > 1) {
+        if(identifiedLanguageIds.size() > 1) {
             throw new IllegalStateException("Resource " + resource + " identifies to multiple languages: "
-                + Joiner.on(", ").join(identifiedLanguageNames));
+                + Joiner.on(", ").join(identifiedLanguageIds));
         }
 
         if(identifiedLanguage == null) {

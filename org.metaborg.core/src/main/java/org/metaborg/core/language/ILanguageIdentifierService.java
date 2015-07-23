@@ -50,7 +50,7 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to multiple languages.
      */
-    public abstract @Nullable ILanguageImpl identify(FileObject resource, Iterable<ILanguageImpl> languages);
+    public abstract @Nullable ILanguageImpl identify(FileObject resource, Iterable<? extends ILanguageImpl> languages);
 
     /**
      * Attempts to identify the language of given resource, among given list of languages, and return an identified
@@ -62,5 +62,6 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to multiple languages.
      */
-    public abstract @Nullable IdentifiedResource identifyToResource(FileObject resource, Iterable<ILanguageImpl> languages);
+    public abstract @Nullable IdentifiedResource identifyToResource(FileObject resource,
+        Iterable<? extends ILanguageImpl> languages);
 }

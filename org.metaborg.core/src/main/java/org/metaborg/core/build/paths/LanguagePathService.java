@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
@@ -43,7 +43,7 @@ public class LanguagePathService implements ILanguagePathService {
         }
         final Iterable<FileObject> allIncludes = Iterables.concat(includes);
         return allIncludes;
-    } 
+    }
 
     @Override public Iterable<FileObject> sourceAndIncludePaths(IProject project, String languageName) {
         return Iterables.concat(sourcePaths(project, languageName), includePaths(project, languageName));
@@ -51,17 +51,17 @@ public class LanguagePathService implements ILanguagePathService {
 
 
     @Override public Iterable<IdentifiedResource> sourceFiles(IProject project, ILanguageImpl language) {
-        final Iterable<FileObject> sourcePaths = sourcePaths(project, language.name());
+        final Iterable<FileObject> sourcePaths = sourcePaths(project, language.belongsTo().name());
         return toFiles(sourcePaths, language);
     }
 
     @Override public Iterable<IdentifiedResource> includeFiles(IProject project, ILanguageImpl language) {
-        final Iterable<FileObject> includePaths = includePaths(project, language.name());
+        final Iterable<FileObject> includePaths = includePaths(project, language.belongsTo().name());
         return toFiles(includePaths, language);
     }
 
     @Override public Iterable<IdentifiedResource> sourceAndIncludeFiles(IProject project, ILanguageImpl language) {
-        final Iterable<FileObject> paths = sourceAndIncludePaths(project, language.name());
+        final Iterable<FileObject> paths = sourceAndIncludePaths(project, language.belongsTo().name());
         return toFiles(paths, language);
     }
 
