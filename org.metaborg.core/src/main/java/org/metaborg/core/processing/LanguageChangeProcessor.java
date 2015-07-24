@@ -7,7 +7,9 @@ import javax.annotation.Nullable;
 import org.metaborg.core.editor.IEditor;
 import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.language.ILanguageCache;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 
@@ -30,61 +32,128 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     }
 
 
-    @Override public void process(LanguageImplChange change, @Nullable IProgressReporter progressReporter) {
+    @Override public void processComponentChange(LanguageComponentChange change, IProgressReporter progressReporter) {
         // GTODO: do something with progress reporter.
         switch(change.kind) {
             case Add:
-                added(change.impl);
+                addedComponent(change.newComponent);
                 break;
             case Reload:
-                reload(change.impl);
+                reloadedComponent(change.oldComponent, change.newComponent);
                 break;
             case Remove:
-                removed(change.impl);
+                removedComponent(change.oldComponent);
                 break;
-            default:
+        }
+    }
+
+    /**
+     * Component was added
+     * 
+     * @param component
+     *            Added component
+     */
+    protected void addedComponent(ILanguageComponent component) {
+
+    }
+
+    /**
+     * Component was reloaded
+     * 
+     * @param oldComponent
+     *            Component before the reload
+     * @param newComponent
+     *            Component after the reload
+     */
+    protected void reloadedComponent(ILanguageComponent oldComponent, ILanguageComponent newComponent) {
+        for(ILanguageCache languageCache : languageCaches) {
+            languageCache.invalidateCache(oldComponent);
+        }
+    }
+
+    /**
+     * Component was removed
+     * 
+     * @param component
+     *            Removed component
+     */
+    protected void removedComponent(ILanguageComponent component) {
+        for(ILanguageCache languageCache : languageCaches) {
+            languageCache.invalidateCache(component);
+        }
+    }
+
+
+    @Override public void processImplChange(LanguageImplChange change, @Nullable IProgressReporter progressReporter) {
+        // GTODO: do something with progress reporter.
+        switch(change.kind) {
+            case Add:
+                addedImpl(change.impl);
+                break;
+            case Reload:
+                reloadedImpl(change.impl);
+                break;
+            case Remove:
+                removedImpl(change.impl);
                 break;
         }
 
         dialectProcessor.update(change);
     }
 
-
-    protected void added(ILanguageImpl language) {
-        // Enable editors
+    /**
+     * Implementation was added
+     * 
+     * @param impl
+     *            Added implementation
+     */
+    protected void addedImpl(ILanguageImpl impl) {
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
             if(editor.language() == null) {
                 editor.reconfigure();
             }
-            if(!editor.enabled() && language.equals(editor.language())) {
+            if(!editor.enabled() && impl.equals(editor.language())) {
                 editor.enable();
             }
         }
     }
 
-    protected void reload(ILanguageImpl language) {
-        // Invalidate cached language resources
+    /**
+     * Implementation was reloaded
+     * 
+     * @param impl
+     *            Reloaded implementation
+     */
+    protected void reloadedImpl(ILanguageImpl impl) {
         for(ILanguageCache languageCache : languageCaches) {
-            languageCache.invalidateCache(language);
+            languageCache.invalidateCache(impl);
         }
 
-        // Update editors
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
             final ILanguageImpl editorLanguage = editor.language();
-            if(editorLanguage == null || language.equals(editorLanguage)) {
+            if(editorLanguage == null || impl.equals(editorLanguage)) {
                 editor.reconfigure();
                 editor.forceUpdate();
             }
         }
     }
 
-    protected void removed(ILanguageImpl language) {
-        // Disable editors
+    /**
+     * Implementation was removed
+     * 
+     * @param impl
+     *            Removed implementation
+     */
+    protected void removedImpl(ILanguageImpl impl) {
+        for(ILanguageCache languageCache : languageCaches) {
+            languageCache.invalidateCache(impl);
+        }
+
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
-            if(editor.language().equals(language)) {
+            if(editor.language().equals(impl)) {
                 editor.reconfigure();
                 editor.disable();
             }

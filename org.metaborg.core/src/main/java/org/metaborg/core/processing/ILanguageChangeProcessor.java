@@ -2,6 +2,7 @@ package org.metaborg.core.processing;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
 
 /**
@@ -10,12 +11,23 @@ import org.metaborg.core.language.LanguageImplChange;
  */
 public interface ILanguageChangeProcessor {
     /**
-     * Process given language change event.
+     * Process given language component change event.
+     * 
+     * @param change
+     *            Language implementation component event to process.
+     * @param progressReporter
+     *            Progress reporter, or null to use a processor-specific implementation for progress reporting.
+     */
+    public abstract void processComponentChange(LanguageComponentChange change,
+        @Nullable IProgressReporter progressReporter);
+
+    /**
+     * Process given language implementation change event.
      * 
      * @param change
      *            Language implementation change event to process.
      * @param progressReporter
      *            Progress reporter, or null to use a processor-specific implementation for progress reporting.
      */
-    public abstract void process(LanguageImplChange change, @Nullable IProgressReporter progressReporter);
+    public abstract void processImplChange(LanguageImplChange change, @Nullable IProgressReporter progressReporter);
 }
