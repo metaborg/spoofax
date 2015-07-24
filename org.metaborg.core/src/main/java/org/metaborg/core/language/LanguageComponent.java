@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -14,7 +15,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
     private final LanguageIdentifier id;
     private final FileObject location;
     private final int sequenceId;
-    private final Iterable<ILanguageImplInternal> contributesTo;
+    private Iterable<ILanguageImplInternal> contributesTo;
 
     private final Multimap<Class<? extends IFacet>, IFacet> facets = ArrayListMultimap.create();
 
@@ -50,6 +51,10 @@ public class LanguageComponent implements ILanguageComponentInternal {
 
     @Override public Iterable<? extends ILanguageImplInternal> contributesToInternal() {
         return contributesTo;
+    }
+
+    @Override public void clearContributions() {
+        contributesTo = Iterables2.empty();
     }
 
 

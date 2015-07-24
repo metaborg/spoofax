@@ -11,11 +11,11 @@ public class LanguageCreationRequest {
 
     public final LanguageIdentifier identifier;
     public final FileObject location;
-    public final Iterable<LanguageImplIdentifier> implIds;
+    public final Iterable<LanguageRequestImplIdentifier> implIds;
 
 
     public LanguageCreationRequest(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageImplIdentifier> implIds) {
+        Iterable<LanguageRequestImplIdentifier> implIds) {
         this.identifier = identifier;
         this.location = location;
         this.implIds = implIds;

@@ -80,23 +80,23 @@ public class LanguageService implements ILanguageService {
 
 
     @Override public LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageImplIdentifier> implIds) {
+        Iterable<LanguageRequestImplIdentifier> implIds) {
         return new LanguageCreationRequest(identifier, location, implIds);
     }
 
 
     @Override public ILanguageComponent add(LanguageCreationRequest request) {
         validateLocation(request.location);
-
+        
         final Collection<ILanguageImplInternal> impls = Lists.newLinkedList();
-        for(LanguageImplIdentifier identifier : request.implIds) {
+        for(LanguageRequestImplIdentifier identifier : request.implIds) {
             ILanguageInternal language = nameToLanguage.get(identifier.name);
             if(language == null) {
                 language = new Language(identifier.name);
                 addLanguage(language);
             }
 
-            ILanguageImplInternal impl = identifierToImpl.get(identifier);
+            ILanguageImplInternal impl = identifierToImpl.get(identifier.identifier);
             if(impl == null) {
                 impl = new LanguageImplementation(identifier.identifier, language);
                 addImplementation(impl);
@@ -105,7 +105,7 @@ public class LanguageService implements ILanguageService {
             impls.add(impl);
         }
 
-        final ILanguageComponentInternal existingComponent = locationToComponent.get(request.location);
+        final ILanguageComponentInternal existingComponent = locationToComponent.get(request.location.getName());
         final ILanguageComponentInternal newComponent =
             new LanguageComponent(request.identifier, request.location, sequenceIdGenerator.getAndIncrement(), impls,
                 request.facets);
@@ -135,6 +135,7 @@ public class LanguageService implements ILanguageService {
                     removedFromImpls.add(impl);
                 }
             }
+            existingComponent.clearContributions();
             addComponent(newComponent);
             final Set<ILanguageImplInternal> addedToImpls = Sets.newHashSet();
             for(ILanguageImplInternal impl : impls) {
@@ -180,7 +181,7 @@ public class LanguageService implements ILanguageService {
     }
 
     @Override public void remove(ILanguageComponent component) {
-        final ILanguageComponentInternal existingComponent = locationToComponent.get(component.location());
+        final ILanguageComponentInternal existingComponent = locationToComponent.get(component.location().getName());
         if(existingComponent == null) {
             throw new IllegalStateException("Cannot remove component " + component + ", it was not added before");
         }
@@ -192,6 +193,7 @@ public class LanguageService implements ILanguageService {
                 removedFromImpls.add(impl);
             }
         }
+        existingComponent.clearContributions();
 
         componentChange(LanguageComponentChange.Kind.Remove, existingComponent, null);
 

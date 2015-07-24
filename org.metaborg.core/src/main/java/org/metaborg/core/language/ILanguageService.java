@@ -93,7 +93,7 @@ public interface ILanguageService {
      * @return Creation request object, when passed to {@link #add(ILanguageComponent)} actually adds the language.
      */
     public LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageImplIdentifier> implIds);
+        Iterable<LanguageRequestImplIdentifier> implIds);
 
     /**
      * Adds language component created from given request object, and return the created component.
