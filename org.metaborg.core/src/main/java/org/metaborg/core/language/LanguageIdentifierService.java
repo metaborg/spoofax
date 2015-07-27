@@ -62,7 +62,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
     @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource,
-        Iterable<? extends ILanguageImpl> languages) {
+        Iterable<? extends ILanguageImpl> impls) {
         // Ignore directories.
         try {
             if(resource.getType() == FileType.FOLDER) {
@@ -86,24 +86,30 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         }
 
         // Identify using identification facet.
-        final Set<LanguageIdentifier> identifiedLanguageIds = Sets.newLinkedHashSet();
-        ILanguageImpl identifiedLanguage = null;
-        for(ILanguageImpl language : languages) {
-            if(identify(resource, language)) {
-                identifiedLanguageIds.add(language.id());
+        final Set<ILanguage> identifiedLanguages = Sets.newLinkedHashSet();
+        ILanguage identifiedLanguage = null;
+        for(ILanguageImpl impl : impls) {
+            if(identify(resource, impl)) {
+                final ILanguage language = impl.belongsTo();
+                identifiedLanguages.add(language);
                 identifiedLanguage = language;
             }
         }
 
-        if(identifiedLanguageIds.size() > 1) {
+        if(identifiedLanguages.size() > 1) {
             throw new IllegalStateException("Resource " + resource + " identifies to multiple languages: "
-                + Joiner.on(", ").join(identifiedLanguageIds));
+                + Joiner.on(", ").join(identifiedLanguages));
         }
 
         if(identifiedLanguage == null) {
             return null;
         }
 
-        return new IdentifiedResource(resource, null, identifiedLanguage);
+        final ILanguageImpl activeImpl = identifiedLanguage.activeImpl();
+        if(activeImpl == null) {
+            return null;
+        }
+
+        return new IdentifiedResource(resource, null, activeImpl);
     }
 }
