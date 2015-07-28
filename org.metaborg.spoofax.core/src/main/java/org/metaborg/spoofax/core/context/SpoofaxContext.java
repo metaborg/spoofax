@@ -6,12 +6,17 @@ import java.net.URI;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.context.ContextIdentifier;
+import org.metaborg.core.context.IContext;
+import org.metaborg.core.context.IContextInternal;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.runtime.task.engine.TaskManager;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.resource.IResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.library.index.IndexManager;
+
+import com.google.inject.Injector;
 
 public class SpoofaxContext implements IContext, IContextInternal {
     private static final long serialVersionUID = 4177944175684703453L;
@@ -19,11 +24,13 @@ public class SpoofaxContext implements IContext, IContextInternal {
 
     private final URI locationURI;
     private final ContextIdentifier identifier;
+    private final Injector injector;
 
 
-    public SpoofaxContext(IResourceService resourceService, ContextIdentifier identifier) {
+    public SpoofaxContext(IResourceService resourceService, ContextIdentifier identifier, Injector injector) {
         this.identifier = identifier;
         this.locationURI = locationURI(resourceService);
+        this.injector = injector;
     }
 
 
@@ -39,6 +46,14 @@ public class SpoofaxContext implements IContext, IContextInternal {
         return identifier.language;
     }
 
+    @Override public ContextIdentifier id() {
+        return identifier;
+    }
+
+
+    @Override public Injector injector() {
+        return injector;
+    }
 
 
     @Override public void clean() {

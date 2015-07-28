@@ -1,0 +1,10 @@
+module editor/{{name}}-Outliner.generated
+
+imports
+  
+  include/{{name}}
+  runtime/editor/outline-library
+
+rules
+  
+  to-outline-label = fail

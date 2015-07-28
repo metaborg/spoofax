@@ -1,8 +1,7 @@
 package org.metaborg.spoofax.core.stratego;
 
-import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.context.IContext;
+import org.metaborg.core.MetaborgException;
+import org.metaborg.core.context.IContext;
 import org.strategoxt.HybridInterpreter;
 
 /**
@@ -21,10 +20,10 @@ public interface IStrategoRuntimeService {
      * @return A new interpreter for given language. All of the language's CTree and JAR files from
      *         {@link StrategoFacet#ctreeFiles()} and {@link StrategoFacet#jarFiles()} respectively are loaded into the
      *         interpreter.
-     * @throws SpoofaxException
+     * @throws MetaborgException
      *             When loading a CTree or JAR fails.
      */
-    public abstract HybridInterpreter runtime(IContext context) throws SpoofaxException;
+    public abstract HybridInterpreter runtime(IContext context) throws MetaborgException;
 
     public abstract HybridInterpreter genericRuntime();
 }

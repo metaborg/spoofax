@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -19,9 +20,13 @@ import java.util.Map;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.util.log.LoggingOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOAgent;
+import org.spoofax.interpreter.library.PrintStreamWriter;
 
 import com.google.common.collect.Maps;
 
@@ -45,6 +50,14 @@ public class ResourceAgent extends IOAgent {
     private final FileObject tempDir;
 
     private final Map<Integer, ResourceHandle> openFiles = Maps.newHashMap();
+
+    private final Logger stdoutLogger = LoggerFactory.getLogger("stdout");
+    private final OutputStream stdout = new LoggingOutputStream(stdoutLogger, false);
+    private final Writer stdoutWriter = new PrintStreamWriter(new PrintStream(stdout));
+
+    private final Logger stderrLogger = LoggerFactory.getLogger("stderr");
+    private final OutputStream stderr = new LoggingOutputStream(stderrLogger, true);
+    private final Writer stderrWriter = new PrintStreamWriter(new PrintStream(stderr));
 
     private FileObject workingDir;
     private FileObject definitionDir;
@@ -378,7 +391,7 @@ public class ResourceAgent extends IOAgent {
             final URI uri = new URI(path);
             if(uri.isAbsolute()) {
                 return resourceService.resolve(path);
-            } 
+            }
         } catch(URISyntaxException e) {
             // Ignore
         }

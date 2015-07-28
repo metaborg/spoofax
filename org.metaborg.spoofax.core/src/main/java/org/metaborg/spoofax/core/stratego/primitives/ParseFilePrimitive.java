@@ -4,14 +4,14 @@ import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
-import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.resource.IResourceService;
-import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.syntax.ParseException;
-import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.text.ISourceTextService;
+import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.core.syntax.ISyntaxService;
+import org.metaborg.core.syntax.ParseException;
+import org.metaborg.core.syntax.ParseResult;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
@@ -67,7 +67,7 @@ public class ParseFilePrimitive extends AbstractPrimitive {
                 } else {
                     input = sourceTextService.text(resource);
                 }
-            } catch(SpoofaxRuntimeException | IOException e) {
+            } catch(MetaborgRuntimeException | IOException e) {
                 resource = resourceService.resolve(pathOrInput2);
                 input = pathOrInput;
             }

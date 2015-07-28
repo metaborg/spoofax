@@ -1,0 +1,389 @@
+package org.metaborg.core.build;
+
+import java.util.Collection;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelector;
+import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.IdentifiedResource;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.resource.ResourceChange;
+import org.metaborg.core.transform.ITransformerGoal;
+import org.metaborg.util.resource.ResourceUtils;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+
+/**
+ * Fluent interface for creating {@link BuildInput} objects.
+ * 
+ * @see BuildInput
+ */
+public class BuildInputBuilder {
+    private final IProject project;
+
+    private BuildState state;
+
+    private Collection<ILanguage> languages;
+    private boolean addDependencyLanguages;
+
+    private Multimap<ILanguage, FileObject> includePaths;
+    private boolean addDefaultIncludePaths;
+
+    private Collection<ResourceChange> sourceChanges;
+    private boolean addSourcesFromDefaultSourceLocations;
+
+    private @Nullable FileSelector selector;
+
+    private boolean analyze;
+    private @Nullable FileSelector analyzeSelector;
+
+    private boolean transform;
+    private @Nullable FileSelector transformSelector;
+    private Collection<ITransformerGoal> transformGoals;
+
+    private @Nullable IBuildMessagePrinter messagePrinter;
+    private boolean throwOnErrors;
+    private Set<ILanguage> pardonedLanguages;
+    private Set<String> pardonedLanguageStrings;
+
+
+    @Inject public BuildInputBuilder(IProject project) {
+        this.project = project;
+        reset();
+    }
+
+
+    /**
+     * Resets the builder to its original state.
+     */
+    public BuildInputBuilder reset() {
+        state = null;
+        languages = Lists.newLinkedList();
+        addDependencyLanguages = true;
+        includePaths = HashMultimap.create();
+        addDefaultIncludePaths = true;
+        sourceChanges = Lists.newLinkedList();
+        addSourcesFromDefaultSourceLocations = false;
+        selector = null;
+        analyze = true;
+        analyzeSelector = null;
+        transform = true;
+        transformSelector = null;
+        transformGoals = Lists.newLinkedList();
+        messagePrinter = null;
+        throwOnErrors = false;
+        pardonedLanguages = Sets.newHashSet();
+        pardonedLanguageStrings = Sets.newHashSet();
+        return this;
+    }
+
+
+    /**
+     * Sets the build state to given build state.
+     */
+    public BuildInputBuilder withState(@Nullable BuildState state) {
+        this.state = state;
+        return this;
+    }
+
+    /**
+     * Sets the languages to given languagues.
+     */
+    public BuildInputBuilder withLanguages(Collection<ILanguage> languages) {
+        this.languages = languages;
+        return this;
+    }
+
+    /**
+     * Adds given languages.
+     */
+    public BuildInputBuilder addLanguages(Iterable<ILanguage> languages) {
+        Iterables.addAll(this.languages, languages);
+        return this;
+    }
+
+    /**
+     * Adds a single language.
+     */
+    public BuildInputBuilder addLanguage(ILanguage language) {
+        this.languages.add(language);
+        return this;
+    }
+
+    /**
+     * Sets if compile time dependencies should be added to languages when the input is built. Defaults to true.
+     */
+    public BuildInputBuilder withCompileDependencyLanguages(boolean addDependencyLanguages) {
+        this.addDependencyLanguages = addDependencyLanguages;
+        return this;
+    }
+
+
+    /**
+     * Sets the source changes to given resource changes.
+     */
+    public BuildInputBuilder withSourceChanges(Collection<ResourceChange> sourceChanges) {
+        this.sourceChanges = sourceChanges;
+        return this;
+    }
+
+    /**
+     * Adds a source change.
+     */
+    public BuildInputBuilder addSourceChanges(Iterable<ResourceChange> sourceChanges) {
+        Iterables.addAll(this.sourceChanges, sourceChanges);
+        return this;
+    }
+
+    /**
+     * Set the source changes to additions from given sources.
+     */
+    public BuildInputBuilder withSources(Iterable<FileObject> sources) {
+        this.sourceChanges = Lists.newLinkedList();
+        return addSources(sources);
+    }
+
+    /**
+     * Add addition source changes from given identified sources.
+     */
+    public BuildInputBuilder addIdentifiedSources(Iterable<IdentifiedResource> sources) {
+        for(IdentifiedResource source : sources) {
+            addSource(source);
+        }
+        return this;
+    }
+
+    /**
+     * Add addition source changes from given sources.
+     */
+    public BuildInputBuilder addSources(Iterable<FileObject> sources) {
+        for(FileObject source : sources) {
+            addSource(source);
+        }
+        return this;
+    }
+
+    /**
+     * Adds a single addition source change from given identified source.
+     */
+    public BuildInputBuilder addSource(IdentifiedResource source) {
+        sourceChanges.add(new ResourceChange(source.resource));
+        return this;
+    }
+
+    /**
+     * Adds a single addition source change from given source.
+     */
+    public BuildInputBuilder addSource(FileObject source) {
+        sourceChanges.add(new ResourceChange(source));
+        return this;
+    }
+
+    /**
+     * Add addition source changes from source files at given source locations.
+     */
+    public BuildInputBuilder addSourcesFromSourceLocations(Iterable<FileObject> sourceLocations) {
+        addSources(ResourceUtils.expand(sourceLocations));
+        return this;
+    }
+
+    /**
+     * Sets if addition source changes should be added from source at default source locations, when the input is built.
+     * Defaults to false.
+     */
+    public BuildInputBuilder withSourcesFromDefaultSourceLocations(boolean addSourcesFromDefaultSourceLocations) {
+        this.addSourcesFromDefaultSourceLocations = addSourcesFromDefaultSourceLocations;
+        return this;
+    }
+
+
+    /**
+     * Sets the include files to given files.
+     */
+    public BuildInputBuilder withIncludePaths(Multimap<ILanguage, FileObject> includePaths) {
+        this.includePaths = includePaths;
+        return this;
+    }
+
+    /**
+     * Add given include files for given language.
+     */
+    public BuildInputBuilder addIncludePaths(ILanguage language, Iterable<FileObject> includePaths) {
+        this.includePaths.putAll(language, includePaths);
+        return this;
+    }
+
+    /**
+     * Sets if default include files should be added when the input is build. Defaults to true.
+     */
+    public BuildInputBuilder withDefaultIncludePaths(boolean addDefaultIncludePaths) {
+        this.addDefaultIncludePaths = addDefaultIncludePaths;
+        return this;
+    }
+
+
+    /**
+     * Sets the file selector to given selector.
+     */
+    public BuildInputBuilder withSelector(FileSelector selector) {
+        this.selector = selector;
+        return this;
+    }
+
+
+    /**
+     * Sets if analysis should be executed. Defaults to true.
+     */
+    public BuildInputBuilder withAnalysis(boolean analyze) {
+        this.analyze = analyze;
+        return this;
+    }
+
+    /**
+     * Sets the analysis file selector to given selector.
+     */
+    public BuildInputBuilder withAnalyzeSelector(FileSelector analyzeSelector) {
+        this.analyzeSelector = analyzeSelector;
+        return this;
+    }
+
+
+    /**
+     * Sets if transformations should be executed. Defaults to true.
+     */
+    public BuildInputBuilder withTransformation(boolean transform) {
+        this.transform = transform;
+        return this;
+    }
+
+    /**
+     * Sets the transformation file selector to given selector.
+     */
+    public BuildInputBuilder withTransformSelector(FileSelector transformSelector) {
+        this.transformSelector = transformSelector;
+        return this;
+    }
+
+    /**
+     * Sets the transform goals to given transform goals.
+     */
+    public BuildInputBuilder withTransformGoals(Collection<ITransformerGoal> transformGoals) {
+        this.transformGoals = transformGoals;
+        return this;
+    }
+
+    /**
+     * Adds a single transform goal.
+     */
+    public BuildInputBuilder addTransformGoal(ITransformerGoal goal) {
+        this.transformGoals.add(goal);
+        return this;
+    }
+
+
+    /**
+     * Sets the message printer to given message printer.
+     */
+    public BuildInputBuilder withMessagePrinter(IBuildMessagePrinter messagePrinter) {
+        this.messagePrinter = messagePrinter;
+        return this;
+    }
+
+    /**
+     * Sets if a runtime exception should be thrown when errors occur. Defaults to false.
+     */
+    public BuildInputBuilder withThrowOnErrors(boolean throwOnErrors) {
+        this.throwOnErrors = throwOnErrors;
+        return this;
+    }
+
+    /**
+     * Set the pardoned languages from given set of pardoned languages.
+     */
+    public BuildInputBuilder withPardonedLanguages(Set<ILanguage> pardonedLanguages) {
+        this.pardonedLanguages = pardonedLanguages;
+        return this;
+    }
+
+    /**
+     * Set the pardoned languages from given language names.
+     */
+    public BuildInputBuilder withPardonedLanguageStrings(Iterable<String> pardonedLanguages) {
+        this.pardonedLanguageStrings = Sets.newHashSet(pardonedLanguages);
+        return this;
+    }
+
+    /**
+     * Adds a single pardoned language.
+     */
+    public BuildInputBuilder addPardonedLanguage(ILanguage pardonedLanguage) {
+        this.pardonedLanguages.add(pardonedLanguage);
+        return this;
+    }
+
+    /**
+     * Adds a single pardoned language from given language name.
+     */
+    public BuildInputBuilder addPardonedLanguageString(String pardonedLanguage) {
+        this.pardonedLanguageStrings.add(pardonedLanguage);
+        return this;
+    }
+
+
+    /**
+     * Builds a build input object from the current state.
+     */
+    public BuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService) {
+        if(state == null) {
+            state = new BuildState();
+        }
+
+        final Iterable<ILanguage> compileLanguages = dependencyService.compileDependencies(project);
+        if(addDependencyLanguages) {
+            addLanguages(compileLanguages);
+        }
+
+        if(addDefaultIncludePaths) {
+            for(ILanguage language : compileLanguages) {
+                addIncludePaths(language, languagePathService.includePaths(project, language.name()));
+            }
+        }
+
+        if(addSourcesFromDefaultSourceLocations) {
+            for(ILanguage language : compileLanguages) {
+                final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(project, language);
+                addIdentifiedSources(sources);
+            }
+        }
+
+        for(ILanguage language : languages) {
+            if(pardonedLanguageStrings.contains(language.name())) {
+                addPardonedLanguage(language);
+            }
+        }
+
+        final BuildInput input =
+            new BuildInput(state, project, sourceChanges, includePaths, new BuildOrder(languages), selector, analyze,
+                analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
+                pardonedLanguages);
+        return input;
+    }
+
+    /**
+     * Builds a build input object from the current state.
+     */
+    public BuildInput build(Injector injector) {
+        return build(injector.getInstance(IDependencyService.class), injector.getInstance(ILanguagePathService.class));
+    }
+}

@@ -24,6 +24,11 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.core</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.spoofax.terms</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
@@ -93,7 +98,17 @@
       <groupId>org.functionaljava</groupId>
       <artifactId>functionaljava</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.core.test</artifactId>
+      <version>${metaborg-version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

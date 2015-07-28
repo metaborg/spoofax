@@ -1,0 +1,7 @@
+module generate
+
+imports
+	
+  include/{{name}}
+
+rules 

@@ -5,11 +5,15 @@ import java.io.IOException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageService;
-import org.metaborg.spoofax.core.language.IdentificationFacet;
+import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.IdentificationFacet;
+import org.metaborg.core.language.dialect.IDialectIdentifier;
+import org.metaborg.core.language.dialect.IDialectService;
+import org.metaborg.core.language.dialect.IdentifiedDialect;
+import org.metaborg.spoofax.core.SpoofaxProjectConstants;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,12 +41,12 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
     }
 
 
-    @Override public ILanguage identify(FileObject resource) throws SpoofaxException {
-        final ILanguage strategoLanguage = languageService.get("Stratego-Sugar");
+    @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
+        final ILanguage strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
             final String message = "Could not find Stratego language, Stratego dialects cannot be identified";
             logger.debug(message);
-            throw new SpoofaxRuntimeException(message);
+            throw new MetaborgRuntimeException(message);
         }
 
         if(!strategoLanguage.facet(IdentificationFacet.class).identify(resource)) {
@@ -64,17 +68,18 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
             if(dialect == null) {
                 final String message =
                     String.format("Resource %s requires dialect %s, but that dialect does not exist", resource, name);
-                throw new SpoofaxException(message);
+                throw new MetaborgException(message);
             }
-            return dialect;
+            final ILanguage base = dialectService.getBase(dialect);
+            return new IdentifiedDialect(dialect, base);
         } catch(ParseError | IOException e) {
-            throw new SpoofaxException("Unable to open or parse .meta file", e);
+            throw new MetaborgException("Unable to open or parse .meta file", e);
         }
     }
 
-    @Override public boolean identify(FileObject resource, ILanguage dialect) throws SpoofaxException {
-        final ILanguage identified = identify(resource);
-        return dialect.equals(identified);
+    @Override public boolean identify(FileObject resource, ILanguage dialect) throws MetaborgException {
+        final IdentifiedDialect identified = identify(resource);
+        return dialect.equals(identified.dialect);
     }
 
 

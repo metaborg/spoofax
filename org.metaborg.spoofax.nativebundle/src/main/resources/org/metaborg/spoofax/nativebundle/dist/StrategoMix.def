@@ -1,0 +1,930 @@
+definition
+module Stratego-Sugar-Overlays
+imports
+  Stratego-Core-Identifiers
+  Stratego-Sugar-Terms
+
+exports
+  sorts Overlay
+  context-free syntax
+    Id 			 "=" Term 	-> Overlay {cons("OverlayNoArgs")}
+    Id "(" {Id ","}* ")" "=" Term 	-> Overlay {cons("Overlay")}
+
+module Stratego-Sugar-DynamicRules
+imports
+  Stratego-Core-Identifiers
+  Stratego-Sugar-Strategies
+  Stratego-Sugar-Rules
+
+exports
+ 
+  sorts ScopeLabels
+  context-free syntax
+
+    "{|" ScopeLabels ":" Strategy "|}" -> Strategy {cons("DynRuleScope")}
+
+    {DynRuleScopeId ","}*   -> ScopeLabels
+    "~" Term		    -> ScopeLabels {cons("ScopeLabels")}
+
+  sorts DynRuleDef DynRuleId DynRuleScopeId RuleDec
+  context-free syntax
+
+    "rules" "(" DynRuleDef* ")" -> Strategy {cons("GenDynRules")}
+
+    Id "+" Term                 -> DynRuleDef {cons("AddScopeLabel")} 
+    DynRuleId ":-"  Term        -> DynRuleDef {cons("UndefineDynRule")}
+    DynRuleId ":"   Rule        -> DynRuleDef {cons("SetDynRule")}
+    DynRuleId ":+"  Rule        -> DynRuleDef {cons("AddDynRule")}
+    DynRuleId ":"   Term        -> DynRuleDef {cons("SetDynRuleMatch")}
+
+    DynRuleId ":="  Term        -> DynRuleDef {cons("DynRuleAssign")}
+    DynRuleId ":+="  Term       -> DynRuleDef {cons("DynRuleAssignAdd")}
+
+    DynRuleId ":"   Rule "depends" "on" Term -> DynRuleDef {cons("SetDynRuleDepends")}
+
+    RuleDec "." Term            -> DynRuleId {cons("LabeledDynRuleId")}
+    RuleDec "+" Term            -> DynRuleId {cons("AddLabelDynRuleId")}
+    RuleDec                     -> DynRuleId {cons("DynRuleId")}
+
+    Id "." Term                 -> DynRuleScopeId {cons("LabeledDynRuleScopeId")}
+    Id                          -> DynRuleScopeId {cons("DynRuleScopeId")}
+
+  context-free syntax
+
+    Id                          -> RuleDec {cons("RDecNoArgs")}
+    Id "(" {Typedid ","}* ")"   -> RuleDec {cons("RDec")}
+    Id "(" {Typedid ","}* 
+       "|" {Typedid ","}* ")"   -> RuleDec {cons("RDecT")}
+
+  sorts RuleNames
+  context-free syntax
+    {Id ","}*				  -> RuleNames
+    "~" Term				  -> RuleNames {cons("RuleNames")}
+
+    "/" RuleNames "\\*" Strategy          -> Strategy {cons("DynRuleIntersectFix")}
+
+  syntax
+    %% no space after RuleNames
+    "\\" <LAYOUT?-CF> <RuleNames-CF> "/*" <LAYOUT?-CF> <Strategy-CF>
+      -> <Strategy-CF> {cons("DynRuleUnionFix")}
+
+    %% 1 space after RuleNames
+    "\\" <LAYOUT?-CF> <RuleNames-CF> " /*" <LAYOUT?-CF> <Strategy-CF>
+      -> <Strategy-CF> {cons("DynRuleUnionFix")}
+
+    %% no space after RuleNames
+    "/"  <LAYOUT?-CF> <RuleNames-CF> <LAYOUT?-CF> "\\"
+        <LAYOUT?-CF> <RuleNames-CF> "/*" <LAYOUT?-CF> <Strategy-CF>
+      -> <Strategy-CF> {cons("DynRuleIntersectUnionFix")}
+
+    %% 1 space after RuleNames
+    "/"  <LAYOUT?-CF> <RuleNames-CF> <LAYOUT?-CF> "\\"
+        <LAYOUT?-CF> <RuleNames-CF> " /*" <LAYOUT?-CF> <Strategy-CF>
+      -> <Strategy-CF> {cons("DynRuleIntersectUnionFix")}
+
+
+  context-free syntax
+    Strategy "/" RuleNames"\\" Strategy  -> Strategy {cons("DynRuleIntersect"),right}
+    Strategy "\\" RuleNames "/" Strategy  -> Strategy {cons("DynRuleUnion"),right}
+
+    Strategy "/" RuleNames "\\" 
+                 RuleNames "/"  Strategy  -> Strategy {cons("DynRuleIntersectUnion"),right}
+
+  priorities
+    <StrategyAngle-CF> <LAYOUT?-CF> <Term-CF> -> <Strategy-CF> {cons("BA")}
+  > {
+
+    %% no space after RuleNames
+    "\\" <LAYOUT?-CF> <RuleNames-CF> "/*" <LAYOUT?-CF> <Strategy-CF>
+      -> <Strategy-CF> {cons("DynRuleUnionFix")}
+
+    %% 1 space after RuleNames
+    "\\" <LAYOUT?-CF> <RuleNames-CF> " /*" <LAYOUT?-CF> <Strategy-CF>
+      -> <Strategy-CF> {cons("DynRuleUnionFix")}
+
+    %% no space after RuleNames
+    "/"  <LAYOUT?-CF> <RuleNames-CF> <LAYOUT?-CF> "\\"
+        <LAYOUT?-CF> <RuleNames-CF> "/*" <LAYOUT?-CF> <Strategy-CF>
+      -> <Strategy-CF> {cons("DynRuleIntersectUnionFix")}
+
+    %% 1 space after RuleNames
+    "/"  <LAYOUT?-CF> <RuleNames-CF> <LAYOUT?-CF> "\\"
+        <LAYOUT?-CF> <RuleNames-CF> " /*" <LAYOUT?-CF> <Strategy-CF>
+      -> <Strategy-CF> {cons("DynRuleIntersectUnionFix")}
+
+    }
+  > <Strategy-CF> <LAYOUT?-CF> "=>" <LAYOUT?-CF> <Term-CF> -> <Strategy-CF> {cons("AM")}
+
+  context-free priorities
+    StrategyAngle Term 		          -> Strategy {cons("BA")}
+  > "/" RuleNames "\\*" Strategy          -> Strategy {cons("DynRuleIntersectFix")}
+  > Strategy "=>" Term 		  	  -> Strategy {cons("AM")}
+  > Strategy "/" RuleNames "\\" Strategy  -> Strategy {cons("DynRuleIntersect"),right}
+  > Strategy "\\" RuleNames "/" Strategy  -> Strategy {cons("DynRuleUnion"),right}
+  > Strategy "/" RuleNames "\\" 
+                 RuleNames "/"  Strategy  -> Strategy {cons("DynRuleIntersectUnion"),right}
+  > Strategy ";" Strategy 		  -> Strategy {cons("Seq"),right}
+
+module Stratego-Sugar-Rules
+imports Stratego-Sugar-Strategies
+exports
+
+  sorts RuleDef
+  context-free syntax
+    Id ":" Rule 				-> RuleDef {cons("RDefNoArgs")}
+    
+    Anno+ RuleDef               -> Def {cons("AnnoDef")}
+
+    Id "(" {Typedid ","}* ")" ":" Rule 		-> RuleDef {cons("RDef")}
+
+    Id "(" {Typedid ","}* 
+       "|" {Typedid ","}* ")" ":" Rule 		-> RuleDef {cons("RDefT")}
+
+  sorts Rule RuleCond
+  context-free syntax
+    Term "->" Term           	    -> Rule {cons("RuleNoCond")} %% backward comp.
+    Term "->" Term "where" Strategy -> Rule {cons("Rule")}       %% backward comp.
+    Term "->" Term RuleCond+	    -> Rule {cons("Rule"), avoid}
+
+    "where" Strategy -> RuleCond {cons("WhereClause")}
+    "with"  Strategy -> RuleCond {cons("WithClause")}
+
+module Stratego-Sugar-Strategies
+imports
+  Stratego-Core-Strategies
+  Stratego-Sugar-Terms
+  Stratego-Sugar-Constants
+  Stratego-Sugar-Signatures
+
+exports
+  context-free syntax
+    Id  		      "=" Strategy -> StrategyDef {cons("SDefNoArgs")}
+    Id "(" {Typedid ","}* ")" "=" Strategy -> StrategyDef {cons("SDef")}
+
+  context-free syntax
+    ID 				  	  -> Typedid {cons("DefaultVarDec")}
+
+  sorts Rule
+
+  sorts StrategyParen StrategyCurly StrategyAngle
+  context-free syntax
+
+    %% Abstraction
+
+    SVar "(" {Strategy ","}* ")" 	  -> Strategy {cons("Call")}
+
+    %% Match and build
+
+    "{" Strategy "}" 			  -> Strategy {cons("ScopeDefault")}
+
+     %%"<" Strategy ">" Term 		  -> Strategy {cons("BA")}
+     StrategyAngle Term 		  -> Strategy {cons("BA")}
+     "<" Strategy ">"			  -> StrategyAngle {bracket} %% {cons("AngleStrat")}
+
+    %% Combinators
+
+    Strategy "<+" Strategy 		  -> Strategy {cons("LChoice"),right}
+
+    "rec" Id "(" Strategy ")" 		  -> Strategy {cons("Rec")}
+
+    "not"   "(" Strategy ")" 		  -> Strategy {cons("Not")}
+    "where" "(" Strategy ")" 		  -> Strategy {cons("Where")}
+    "with"  "(" Strategy ")" 		  -> Strategy {cons("With"), prefer}
+    "test"  "(" Strategy ")" 		  -> Strategy {cons("Test")}
+
+    %% Primitives
+
+    "prim" "(" String ")" 		  -> Strategy {cons("PrimNoArgs")}
+    "prim" "(" String "," {Term ","}* ")" -> Strategy {cons("Prim")}
+
+    %% Congruence operators
+
+    String 				  -> Strategy {cons("StrCong")}
+    Int 				  -> Strategy {cons("IntCong")}
+    Real 				  -> Strategy {cons("RealCong")}
+    Char 			 	  -> Strategy {cons("CharCong")}
+
+    String "(" {Strategy ","}* ")" 	  -> Strategy {cons("CongQ")}
+
+    %%"(" {Strategy ","}* ")" 		  -> Strategy {cons("TupleCong"),avoid}
+
+    Strategy StrategyCurly		  -> Strategy {cons("AnnoCong")}
+    
+    "{" Strategy "}"		  	  -> StrategyCurly {cons("StrategyCurly")}
+
+    "("  ")" 		  		  -> Strategy {cons("EmptyTupleCong")}
+   "(" Strategy  ")" 		          -> Strategy {bracket}
+    "(" Strategy "," {Strategy ","}+ ")"  -> Strategy {cons("TupleCong")}
+
+%%    Mod 	  			  -> Strategy {cons("ModCongNoArgs")}
+%%    Mod "(" {Strategy ","}* ")"	  	  -> Strategy {cons("ModCong")}
+%%    Id "^" Id				  -> Mod {cons("Mod")}
+    "[" {Strategy ","}* "]" 		  -> Strategy {cons("ListCongNoTail")}
+    "[" {Strategy ","}* "|" Strategy "]"  -> Strategy {cons("ListCong")}
+
+%%    Strategy "#" "(" StrategyInj ")" 	  -> Strategy {cons("ExplodeCong")}
+%%    Strategy "#" "(" Strategy ")" 	  -> Strategy {cons("ExplodeCong")}
+    Strategy "#" StrategyParen	  	  -> Strategy {cons("ExplodeCong")}
+
+  %% Syntactic sugar sugar
+
+  sorts SwitchCase
+  context-free syntax
+
+    SVar  		  		  -> Strategy {cons("CallNoArgs")}
+    "\\" Rule "\\" 			  -> Strategy {cons("LRule")}
+    "(" Rule ")" 			  -> Strategy {cons("SRule")}
+    Strategy "+" Strategy 		  -> Strategy {cons("Choice"),right} 
+    Strategy "+>" Strategy 		  -> Strategy {cons("RChoice"),right}
+
+    "proceed"                          -> Strategy {cons("ProceedNoArgs"), prefer}
+    "proceed" "(" {Strategy "," }+ ")" -> Strategy {cons("Proceed"), prefer}
+
+    "if" Strategy "then" Strategy 
+                  "else" Strategy "end"   -> Strategy {cons("CondChoice")}
+    "if" Strategy "then" Strategy "end"   -> Strategy {cons("IfThen")}
+
+    "switch" Strategy SwitchCase* "end"   -> Strategy {cons("SwitchChoiceNoOtherwise")}
+    "switch" Strategy SwitchCase*
+         "otherwise" ":" Strategy "end"   -> Strategy {cons("SwitchChoice")}
+
+    "case" Strategy ":" Strategy          -> SwitchCase {cons("SwitchCase")}
+
+    Strategy "=>" Term 		  	  -> Strategy {cons("AM")}
+
+    Term ":=" Term			  -> Strategy {cons("Assign")}
+
+  %% Priorities
+
+  context-free priorities
+    { Strategy StrategyCurly		  -> Strategy
+      Strategy "#" StrategyParen          -> Strategy
+    }
+  > { "!" Term 				  -> Strategy
+      "?" Term 				  -> Strategy
+    }
+  > StrategyAngle Term 		          -> Strategy
+  > Strategy "=>" Term 		  	  -> Strategy
+  > Strategy ";" Strategy 		  -> Strategy
+  > {right: 
+     Strategy "+" Strategy 		  -> Strategy
+     Strategy "<+" Strategy 		  -> Strategy
+     Strategy "+>" Strategy 		  -> Strategy
+     
+     Strategy "<" StrategyMid 
+              "+" Strategy 		  -> Strategy
+    }
+
+  context-free priorities
+    Strategy 				  -> StrategyMid
+  > Strategy "+" Strategy 		  -> Strategy
+
+  context-free priorities
+    { Strategy StrategyCurly      -> Strategy
+      Strategy "#" StrategyParen  -> Strategy
+    }
+    .> Term ":=" Term -> Strategy
+
+
+module Stratego-Sugar-Terms
+imports
+  Stratego-Core-Terms
+  Stratego-Sugar-Strategies
+
+exports
+  sorts LID
+  context-free syntax
+    LId 			-> LID  {cons("ListVar")}
+    LID				-> Var  {cons("Var")}
+    LID				-> ID
+
+  context-free syntax
+    "_" PreTerm 		 -> PreTerm {cons("BuildDefaultPT")}
+    "_" Term 			 -> Term {cons("BuildDefault"),prefer}
+
+    Char 			 -> PreTerm {cons("Char")}
+
+    PreTerm "{" {Term ","}* "}"	 -> Term {cons("AnnoList")}
+    PreTerm                      -> Term {cons("NoAnnoList")}
+
+    "<" Strategy ">" Term 	 -> PreTerm {cons("App")}
+    "<" Strategy ">" Term 	 -> Term {cons("App"),prefer}
+
+    StrategyAngle		 -> PreTerm {cons("RootApp")}
+    StrategyAngle		 -> Term {cons("RootApp"),prefer}
+
+    "(" {Term ","}* ")" 	 -> PreTerm {cons("Tuple")}
+    "[" {Term ","}* "]" 	 -> PreTerm {cons("List")}
+    "[" {Term ","}* "|" Term "]" -> PreTerm {cons("ListTail")}
+
+  context-free priorities
+    Term "#" "(" Term ")" 	 -> PreTerm {cons("Explode")}
+  > PreTerm "{" {Term ","}* "}"	 -> Term {cons("AnnoList")}
+  > Var "@" Term 		 -> Term {cons("As")}
+
+module Stratego-Sugar-Signatures
+imports
+  Stratego-Core-Signatures
+  Stratego-Sugar-Constants
+
+exports
+
+  sorts Sort
+  context-free syntax
+    "[" {Sort ","}* "]"		 -> Sort {cons("SortList")}
+    "[" {Sort ","}* "|" Sort "]" -> Sort {cons("SortListTl")}
+    "(" {Sort ","}* ")"		 -> Sort {cons("SortTuple")}
+
+  sorts Kind
+  context-free syntax
+    "*" 			-> Kind {cons("Star")}
+    "**" 			-> Kind {cons("StarStar")}
+
+module Stratego-Core-Signatures
+imports
+  Stratego-Core-Identifiers
+  Stratego-Core-Constants
+exports
+  sorts Sdecl
+  context-free syntax
+    "sorts" Sort* 		-> Sdecl {cons("Sorts")}
+    "constructors" Opdecl* 	-> Sdecl {cons("Constructors")}
+
+  sorts Sort
+  context-free syntax
+    LCID 			 -> Sort {cons("SortVar")}
+    UCID 			 -> Sort {cons("SortNoArgs")}
+    Id "(" {Sort ","}* ")" 	 -> Sort {cons("Sort")}
+
+  sorts Opdecl
+  context-free syntax
+    Id     ":" Type 		-> Opdecl {cons("OpDecl")}
+    String ":" Type 		-> Opdecl {cons("OpDeclQ")}
+           ":" Type 		-> Opdecl {cons("OpDeclInj")}
+
+  context-free syntax
+    "external" Id     ":" Type 	-> Opdecl {cons("ExtOpDecl")}
+    "external" String ":" Type 	-> Opdecl {cons("ExtOpDeclQ")}
+    "external"        ":" Type 	-> Opdecl {cons("ExtOpDeclInj")}
+
+  sorts Type ArgType ConstType FunType RetType
+  context-free syntax
+    Sort	                -> ConstType {cons("ConstType")}
+    {ArgType "*"}+ "->" RetType -> FunType {cons("FunType")}
+    "(" Type ")"                -> ArgType {bracket}
+    ConstType			-> ArgType
+    Type	                -> RetType
+    FunType			-> RetType {reject}
+
+    FunType			-> Type
+    ConstType			-> Type
+
+  %%%
+   %% Restriction is required for the Sort* in Sdecl: List(a) is
+   %% ambiguous.
+   %%%
+  context-free restrictions
+    Sort -/- [\(]
+
+module Stratego-Core-Terms
+imports
+  Stratego-Core-Identifiers
+  Stratego-Core-Constants
+
+exports
+  sorts ID Var Wld
+  context-free syntax
+    Id 				-> Var  {cons("Var")}
+    Id				-> ID
+    %% ":" Var                  -> Var  {cons("SeqVar")}
+
+  sorts Term PreTerm
+  context-free syntax
+    Var 			 -> PreTerm 
+    Var 			 -> Term {prefer}
+
+    "_" 			 -> Wld {cons("Wld")}
+    Wld 			 -> PreTerm
+    Wld 			 -> Term {prefer}
+
+    Int 			 -> PreTerm {cons("Int")}
+    Real 			 -> PreTerm {cons("Real")}
+    String 			 -> PreTerm {cons("Str")}
+
+    Id "(" {Term ","}* ")" 	 -> PreTerm {cons("Op")}
+    String "(" {Term ","}* ")" 	 -> PreTerm {cons("OpQ")}
+    Term "#" "(" Term ")" 	 -> PreTerm {cons("Explode")}
+
+    PreTerm "{^" PreTerm "}"	 -> Term {cons("Anno")}
+
+    Var "@" Term 		 -> Term {cons("As"),prefer}
+    Var "@" PreTerm 		 -> PreTerm {cons("As")}
+
+  context-free priorities
+    Term "#" "(" Term ")" 	 -> PreTerm {cons("Explode")}
+  > Var "@" Term 		 -> Term {cons("As")}
+
+module Stratego-Core-Strategies
+imports
+  Stratego-Core-Terms
+  Stratego-Core-Constants
+  Stratego-Core-Signatures
+
+exports
+  sorts Def
+  context-free syntax
+    StrategyDef					 -> Def 
+    Id						 -> SVar {cons("SVar")}
+    "let" Def* "in" Strategy "end"		 -> Strategy {cons("Let")}
+    SVar "(" {Strategy ","}* "|" {Term ","}* ")" -> Strategy {cons("CallT")}
+
+    "call" "(" Term "|" {Strategy ","}* "|" {Term ","}* ")" -> Strategy {cons("CallDynamic")}
+
+
+  sorts StrategyDef
+  context-free syntax
+    Id "(" {Typedid ","}* 
+       "|" {Typedid ","}* ")" "=" Strategy -> StrategyDef {cons("SDefT")}
+
+    Anno+ StrategyDef -> Def {cons("AnnoDef")}
+
+    "external"
+    Id "(" {Typedid ","}* 
+       "|" {Typedid ","}* ")" "=" Strategy -> StrategyDef {cons("ExtSDefInl")}
+
+    "external"
+    Id "(" {Typedid ","}* 
+       "|" {Typedid ","}* ")"		   -> StrategyDef {cons("ExtSDef")}
+
+    "external"
+    EmptyId "(" {Typedid ","}* 
+       "|" {Typedid ","}* ")"		   -> StrategyDef {cons("ExtSDef")}
+
+
+  sorts EmptyId
+  lexical syntax
+  
+    -> EmptyId
+
+  sorts Anno
+  context-free syntax
+    "extend"      -> Anno {cons("Extend")}
+    "override"    -> Anno {cons("Override")}
+    "internal"    -> Anno {cons("Internal")}
+%%  "sealed"      -> Anno {cons("Sealed")}
+%%  "extensible"  -> Anno {cons("Extensible")}
+%%  "overridable" -> Anno {cons("Overridable")}
+
+  lexical syntax
+    
+    "extend"      -> Keyword
+    "override"    -> Keyword
+    "internal"    -> Keyword
+    "sealed"      -> Keyword
+    "extensible"  -> Keyword
+    "overridable" -> Keyword
+
+  lexical restrictions
+  
+    "extend"
+    "override"
+    "internal"
+    "sealed"
+    "extensible"
+    "overridable" -/- [a-zA-Z0-9\'\-\_]
+
+  sorts Typedid
+  context-free syntax
+    ID ":" Type 			  -> Typedid {cons("VarDec")}
+
+
+  sorts Strategy SVar StrategyParen StrategyMid 
+  context-free syntax
+    "(" Strategy ")"			  -> StrategyParen {cons("ParenStrat")}
+
+    "fail" 				  -> Strategy {cons("Fail")}
+    "id" 				  -> Strategy {cons("Id")}
+
+    "proceed" "(" {Strategy ","}* "|" {Term ","}* ")" -> Strategy {cons("ProceedT"), prefer}
+    "proceed"                                         -> Strategy {cons("ProceedNoArgs"), prefer}
+
+    %% Match and build
+
+    "?" Term 				  -> Strategy {cons("Match")}
+    "!" Term 				  -> Strategy {cons("Build")}
+    "{" {ID ","}* ":" Strategy "}" 	  -> Strategy {cons("Scope")}
+
+    %% Combinators
+
+    Strategy ";" Strategy 		  -> Strategy {cons("Seq"),right}
+    Strategy "<" StrategyMid 
+             "+" Strategy 		  -> Strategy {cons("GuardedLChoice"),right}
+    Strategy 				  -> StrategyMid
+
+    %% Primitives
+
+    "prim" "(" String "," {Strategy ","}* "|" {Term ","}*")"  -> Strategy {cons("PrimT")}
+
+    %% Traversal
+
+    "some" "(" Strategy ")" 		  -> Strategy {cons("Some")}
+    "one" "(" Strategy ")" 		  -> Strategy {cons("One")}
+    "all" "(" Strategy ")" 		  -> Strategy {cons("All")}
+
+  %% Priorities
+
+  context-free priorities
+    { "!" Term 				  -> Strategy {cons("Build")}
+      "?" Term 				  -> Strategy {cons("Match")}
+    }
+  > Strategy ";" Strategy 		  -> Strategy {cons("Seq"),right}
+  > {right: 
+     Strategy "<" StrategyMid 
+              "+" Strategy 		  -> Strategy {cons("GuardedLChoice"),right}
+    }
+
+  context-free syntax
+    "import-term" "(" ModName ")" -> Strategy {cons("ImportTerm")}
+
+module Stratego-Core-Modules
+imports
+  Stratego-Core-Identifiers
+  Stratego-Core-Strategies
+  Stratego-Core-Signatures
+
+exports 
+  sorts Module
+  context-free syntax
+    "module" ModName Decl* 	 -> Module {cons("Module")}
+    "specification" Decl*	 -> Module {cons("Specification")}
+
+  sorts Decl 
+  context-free syntax
+    "imports" ImportModName* 	-> Decl {cons("Imports")}
+    "strategies" Def* 		-> Decl {cons("Strategies")}
+    "signature" Sdecl*  	-> Decl {cons("Signature")}
+
+  sorts ImportModName
+  context-free syntax
+    ModName              -> ImportModName {cons("Import")}
+  syntax
+    <ModName-CF> "/" "-" -> <ImportModName-CF> {cons("ImportWildcard")}
+
+module Stratego-Sugar-Modules
+imports
+  Stratego-Core-Modules
+  Stratego-Sugar-Strategies
+  Stratego-Sugar-Signatures
+  Stratego-Sugar-Overlays
+  Stratego-Sugar-Rules
+
+exports 
+
+  sorts Decl Def
+  context-free syntax
+    "rules" Def* 		-> Decl {cons("Rules")}
+    "overlays" Overlay* 	-> Decl {cons("Overlays")}
+
+    RuleDef 			-> Def 
+
+
+module Stratego-Sugar-StringQuotations
+exports
+
+  sorts
+    StringQuotation
+    StringQuotedPart1 StringQuotedChars1 DollarOpen1 DollarClose1 QuotedBracket1 Dollar1
+    StringQuotedPart2 StringQuotedChars2 DollarOpen2 DollarClose2 QuotedBracket2 Dollar2
+    StringQuotedPart3 StringQuotedChars3 DollarOpen3 DollarClose3 QuotedBracket3 Dollar3
+    StringQuotedPart4 StringQuotedChars4 DollarOpen4 DollarClose4 QuotedBracket4  Dollar4
+    Padding
+
+  context-free syntax
+
+    StringQuotation -> PreTerm
+
+  syntax
+
+    StringQuotation -> <PreTerm-CF>
+
+    "$" "[" Padding StringQuotedPart1*               "]"    -> StringQuotation {cons("StringQuotation1") }
+     Padding "[" <LAYOUT?-CF> <Term-CF> <LAYOUT?-CF> "]"    -> StringQuotedPart1 {cons("StringEscape1")}
+    <StringQuotedChars1-LEX>                                -> StringQuotedPart1 {cons("QStr")}
+    <Dollar1-LEX>                                           -> StringQuotedPart1 {cons("QDollar")}
+    "$" <QuotedBracket1-LEX> "$"                            -> StringQuotedPart1 {cons("QBr")}
+    ~[\[\]\$]+                                              -> <StringQuotedChars1-LEX>
+    [\[\]]                                                  -> <QuotedBracket1-LEX>
+    "$"                                                     -> <Dollar1-LEX>
+
+    "$" "{" Padding StringQuotedPart2*               "}"    -> StringQuotation {cons("StringQuotation2") }
+     Padding "{" <LAYOUT?-CF> <Term-CF> <LAYOUT?-CF> "}"    -> StringQuotedPart2 {cons("StringEscape2")}
+    <StringQuotedChars2-LEX>                                -> StringQuotedPart2 {cons("QStr")}
+    <Dollar2-LEX>                                           -> StringQuotedPart2 {cons("QDollar")}
+    "$" <QuotedBracket2-LEX> "$"                            -> StringQuotedPart2 {cons("QBr")}
+    ~[\{\}\$]+                                              -> <StringQuotedChars2-LEX>
+    [\{\}]                                                  -> <QuotedBracket2-LEX>
+    "$"                                                     -> <Dollar2-LEX>
+
+    "$" "(" Padding StringQuotedPart3*              ")"     -> StringQuotation {cons("StringQuotation3") }
+    Padding "(" <LAYOUT?-CF> <Term-CF> <LAYOUT?-CF> ")"     -> StringQuotedPart3 {cons("StringEscape3")}
+    <StringQuotedChars3-LEX>                                -> StringQuotedPart3 {cons("QStr")}
+    <Dollar3-LEX>                                           -> StringQuotedPart3 {cons("QDollar")}
+    "$" <QuotedBracket3-LEX> "$"                            -> StringQuotedPart3 {cons("QBr")}
+    ~[\(\)\$]+                                              -> <StringQuotedChars3-LEX>
+    [\(\)]                                                  -> <QuotedBracket3-LEX>
+    "$"                                                     -> <Dollar3-LEX>
+
+    "$" "<" Padding StringQuotedPart4*               ">"    -> StringQuotation {cons("StringQuotation4") }
+    Padding "<"  <LAYOUT?-CF> <Term-CF> <LAYOUT?-CF> ">"    -> StringQuotedPart4 {cons("StringEscape4")}
+    <StringQuotedChars4-LEX>                                -> StringQuotedPart4 {cons("QStr")}
+    <Dollar4-LEX>                                           -> StringQuotedPart4 {cons("QDollar")}
+    "$" <QuotedBracket4-LEX> "$"                            -> StringQuotedPart4 {cons("QBr")}
+    ~[\<\>\$]+                                              -> <StringQuotedChars4-LEX>
+    [\<\>]                                                  -> <QuotedBracket4-LEX>
+    "$"                                                     -> <Dollar4-LEX>
+   
+    %% Padding is a dummy lexical that will contain the indentation prefix of every quotation
+    <Padding-LEX>                                           -> Padding
+                                                            -> <Padding-LEX> {indentpadding}
+
+  lexical restrictions
+
+    StringQuotedChars1 -/- ~[\[\]\$]   
+    StringQuotedChars2 -/- ~[\{\}\$]    
+    StringQuotedChars3 -/- ~[\(\)\$]    
+    StringQuotedChars4 -/- ~[\<\>\$]
+    Dollar1            -/- [\[\]] . [\$]
+    Dollar2            -/- [\{\}] . [\$]
+    Dollar3            -/- [\(\)] . [\$]
+    Dollar4            -/- [\<\>] . [\$]
+
+module Stratego-Core-Constants
+exports
+  sorts Int Real String StrChar
+  lexical syntax
+    [\-]? [0-9]+ 		-> Int
+    [\-]? [0-9]+ [\.] [0-9]+ 	-> Real
+    "\"" StrChar* "\"" 		-> String
+    ~[\"\\] 			-> StrChar
+    [\\] [\"tnr\\] 		-> StrChar
+
+
+module Stratego-Sugar-Constants
+imports
+  Stratego-Core-Identifiers
+  Stratego-Core-Constants
+  Stratego-Sugar-StringQuotations
+exports
+  sorts Char CharChar
+  lexical syntax
+    "'" CharChar "'"		-> Char
+    ~[\']			-> CharChar
+    [\\] [\'ntr\ ]		-> CharChar
+    Char		 	-> Id {reject}
+
+module Stratego-Core-Identifiers
+exports
+  sorts ModName ModNamePart
+  lexical syntax
+    {ModNamePart "/"}+ -> ModName
+    [a-zA-Z\.\_] [a-zA-Z0-9\'\.\-\_]* -> ModNamePart
+  lexical restrictions
+    ModName -/- [a-zA-Z0-9\'\.\-\_]
+  lexical syntax
+    "imports" 		-> ModName {reject}
+    "overlays" 		-> ModName {reject}
+    "rules" 		-> ModName {reject}
+    "signature" 	-> ModName {reject}
+    "strategies" 	-> ModName {reject}
+
+  sorts Id LId LCID UCID Wld
+  lexical syntax
+    [a-zA-Z\_] [a-zA-Z0-9\'\-\_]*     -> Id
+    [a-zA-Z\_] [a-zA-Z0-9\'\-\_]* "*" -> LId
+    [\'] [a-z]+                       -> Id
+
+    [a-z] [a-zA-Z0-9\'\-\_]*  -> LCID
+    [A-Z] [a-zA-Z0-9\'\-\_]*  -> UCID
+
+  lexical restrictions
+    Id   -/- [a-zA-Z0-9\'\-\_\*]
+    LId  -/- [a-zA-Z0-9\'\-\_]
+    LCID -/- [a-zA-Z0-9\'\-\_]
+    UCID -/- [a-zA-Z0-9\'\-\_]
+
+  lexical syntax
+    "_"     -> Id {reject}
+    "'"     -> Id {reject}
+
+    Keyword -> Id   {reject}
+    Keyword -> LId  {reject}
+    Keyword -> LCID {reject}
+    Keyword -> UCID {reject}
+
+  lexical restrictions
+    "all"
+    "case" %% not reserved kw
+    "constructors"
+    "else" %% not reserved kw
+    "end" %% not reserved kw
+    "external" %% not reserved kw
+    "fail"
+    "id"
+    "if" %% not reserved kw
+    "in"
+    "imports" %% not reserved kw
+    "let"
+    "module"
+    "not"
+    "one"
+    "overlays"
+    "otherwise" %% not reserved kw
+    "prim"
+    "rec" %% not reserved kw
+    "rules"
+    "script"
+    "signature"
+    "some"
+    "sorts"
+    "strategies"
+    "stratego"
+    "switch" %% not reserved kw
+    "test"
+    "then" %% not reserved kw
+    "where"
+    "import-term"
+      -/- [a-zA-Z0-9\'\-\_]
+  
+  context-free restrictions
+    Wld -/- [a-zA-Z0-9\'\-\_]
+
+  sorts Keyword
+  lexical syntax
+    "all"               -> Keyword
+    "constructors" 	-> Keyword
+    "fail" 		-> Keyword
+    "id" 		-> Keyword
+    "in" 		-> Keyword
+    "let" 		-> Keyword
+    "module" 		-> Keyword
+    "not" 		-> Keyword
+    "one" 		-> Keyword
+    "overlays" 		-> Keyword
+    "prim" 		-> Keyword
+    "rules" 		-> Keyword
+    "script" 		-> Keyword
+    "signature" 	-> Keyword
+    "some" 		-> Keyword
+    "sorts" 		-> Keyword
+    "strategies" 	-> Keyword
+    "stratego" 		-> Keyword
+    "test" 		-> Keyword
+    "where" 		-> Keyword
+    "import-term"	-> Keyword
+
+
+module Stratego-Core-Layout
+exports
+  sorts Ws ShortCom LongCom CommChar Asterisk Eof 
+  lexical syntax
+    [\t\ \n\r]			-> Ws
+
+    "//" ~[\n]* ([\n] | Eof)	-> ShortCom
+    "/*" CommChar* "*/"	-> LongCom
+				-> Eof  
+
+    ~[\*]     -> CommChar
+
+    "*"       -> Asterisk
+    Asterisk  -> CommChar
+
+  lexical restrictions
+    Asterisk -/- [\/]
+    Eof      -/- ~[]
+
+  lexical syntax
+    ShortCom 	-> LAYOUT
+    LongCom 	-> LAYOUT
+    Ws 		-> LAYOUT
+
+  context-free restrictions
+    LAYOUT? -/- [\ \t\n\r]
+    LAYOUT? -/- [\/].[\*]
+    LAYOUT? -/- [\/].[\/]
+
+module Stratego-Sugar-Layout
+imports Stratego-Core-Layout
+%%exports
+%%  sorts VeryLongCom Eof VLCchar Backslash
+%%  lexical syntax
+%%    "\\end{code}" VLCchar* "\\begin{code}" -> VeryLongCom
+%%    "\\begin{code}" 			   -> VeryLongCom
+%%    "\\end{code}" VLCchar* Eof 		   -> VeryLongCom
+%%    "\\literate" VLCchar* "\\begin{code}"  -> VeryLongCom
+%%    ~[\\] 				   -> VLCchar
+%%    Backslash 				   -> VLCchar
+%%    [\\] 				   -> Backslash
+
+%%  lexical restrictions
+%%    Backslash -/- [b].[e].[g].[i].[n].[\{].[c].[o].[d].[e].[\}]
+%%    Eof -/- ~[]
+
+%%  lexical syntax
+%%    VeryLongCom -> LAYOUT
+
+
+
+module Stratego-Sugar
+imports
+  Stratego-Sugar-Layout
+  Stratego-Core-Identifiers
+  Stratego-Sugar-Constants 
+  Stratego-Sugar-Modules
+  Stratego-Sugar-Signatures
+  Stratego-Sugar-Terms
+  Stratego-Sugar-Strategies
+  Stratego-Sugar-Rules
+  Stratego-Sugar-DynamicRules
+  Stratego-Sugar-Overlays
+
+hiddens
+  context-free start-symbols Module
+
+module Stratego
+imports Stratego-Sugar
+hiddens
+  context-free start-symbols Module
+
+module StrategoMix[Ctx0]
+imports Stratego
+          [ RuleNames          => RuleNames[[Ctx0]]
+            RuleDec            => RuleDec[[Ctx0]]
+            DynRuleScopeId     => DynRuleScopeId[[Ctx0]]
+            DynRuleId          => DynRuleId[[Ctx0]]
+            DynRuleDef         => DynRuleDef[[Ctx0]]
+            ScopeLabels        => ScopeLabels[[Ctx0]]
+            RuleCond           => RuleCond[[Ctx0]]
+            Rule               => Rule[[Ctx0]]
+            RuleDef            => RuleDef[[Ctx0]]
+            Overlay            => Overlay[[Ctx0]]
+            SwitchCase         => SwitchCase[[Ctx0]]
+            StrategyCurly      => StrategyCurly[[Ctx0]]
+            StrategyAngle      => StrategyAngle[[Ctx0]]
+            Kind               => Kind[[Ctx0]]
+            LID                => LID[[Ctx0]]
+            ImportModName      => ImportModName[[Ctx0]]
+            Decl               => Decl[[Ctx0]]
+            Module             => Module[[Ctx0]]
+            StrategyParen      => StrategyParen[[Ctx0]]
+            Typedid            => Typedid[[Ctx0]]
+            Anno               => Anno[[Ctx0]]
+            EmptyId            => EmptyId[[Ctx0]]
+            StrategyDef        => StrategyDef[[Ctx0]]
+            SVar               => SVar[[Ctx0]]
+            Def                => Def[[Ctx0]]
+            Type               => Type[[Ctx0]]
+            RetType            => RetType[[Ctx0]]
+            ArgType            => ArgType[[Ctx0]]
+            FunType            => FunType[[Ctx0]]
+            ConstType          => ConstType[[Ctx0]]
+            Opdecl             => Opdecl[[Ctx0]]
+            Sort               => Sort[[Ctx0]]
+            Sdecl              => Sdecl[[Ctx0]]
+            Wld                => Wld[[Ctx0]]
+            ID                 => ID[[Ctx0]]
+            Var                => Var[[Ctx0]]
+            CharChar           => CharChar[[Ctx0]]
+            Char               => Char[[Ctx0]]
+            Padding            => Padding[[Ctx0]]
+            Dollar4            => Dollar4[[Ctx0]]
+            QuotedBracket4     => QuotedBracket4[[Ctx0]]
+            StringQuotedChars4 => StringQuotedChars4[[Ctx0]]
+            StringQuotedPart4  => StringQuotedPart4[[Ctx0]]
+            Dollar3            => Dollar3[[Ctx0]]
+            QuotedBracket3     => QuotedBracket3[[Ctx0]]
+            StringQuotedChars3 => StringQuotedChars3[[Ctx0]]
+            StringQuotedPart3  => StringQuotedPart3[[Ctx0]]
+            Dollar2            => Dollar2[[Ctx0]]
+            QuotedBracket2     => QuotedBracket2[[Ctx0]]
+            StringQuotedChars2 => StringQuotedChars2[[Ctx0]]
+            StringQuotedPart2  => StringQuotedPart2[[Ctx0]]
+            Dollar1            => Dollar1[[Ctx0]]
+            QuotedBracket1     => QuotedBracket1[[Ctx0]]
+            StringQuotedChars1 => StringQuotedChars1[[Ctx0]]
+            StringQuotedPart1  => StringQuotedPart1[[Ctx0]]
+            StringQuotation    => StringQuotation[[Ctx0]]
+            StrChar            => StrChar[[Ctx0]]
+            String             => String[[Ctx0]]
+            Real               => Real[[Ctx0]]
+            Int                => Int[[Ctx0]]
+            Keyword            => Keyword[[Ctx0]]
+            UCID               => UCID[[Ctx0]]
+            LCID               => LCID[[Ctx0]]
+            LId                => LId[[Ctx0]]
+            Id                 => Id[[Ctx0]]
+            ModNamePart        => ModNamePart[[Ctx0]]
+            ModName            => ModName[[Ctx0]]
+            PreTerm            => PreTerm[[Ctx0]]
+            Term               => Term[[Ctx0]]
+            StrategyMid        => StrategyMid[[Ctx0]]
+            Strategy           => Strategy[[Ctx0]] ]

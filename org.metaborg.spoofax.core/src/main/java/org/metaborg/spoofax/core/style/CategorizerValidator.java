@@ -2,7 +2,8 @@ package org.metaborg.spoofax.core.style;
 
 import java.util.Collection;
 
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import org.metaborg.core.source.ISourceRegion;
+import org.metaborg.core.style.IRegionCategory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
