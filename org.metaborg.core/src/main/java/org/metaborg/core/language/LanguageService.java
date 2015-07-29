@@ -80,7 +80,7 @@ public class LanguageService implements ILanguageService {
 
 
     @Override public LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageRequestImplIdentifier> implIds) {
+        Iterable<LanguageContributionIdentifier> implIds) {
         return new LanguageCreationRequest(identifier, location, implIds);
     }
 
@@ -89,7 +89,7 @@ public class LanguageService implements ILanguageService {
         validateLocation(request.location);
         
         final Collection<ILanguageImplInternal> impls = Lists.newLinkedList();
-        for(LanguageRequestImplIdentifier identifier : request.implIds) {
+        for(LanguageContributionIdentifier identifier : request.implIds) {
             ILanguageInternal language = nameToLanguage.get(identifier.name);
             if(language == null) {
                 language = new Language(identifier.name);

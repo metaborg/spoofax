@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageImpl;
@@ -22,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * Fluent interface for creating {@link BuildInput} objects.
@@ -343,8 +343,12 @@ public class BuildInputBuilder {
 
     /**
      * Builds a build input object from the current state.
+     * 
+     * @throws MetaborgException
+     *             When {@link IDependencyService#compileDependencies(IProject)} throws.
      */
-    public BuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService) {
+    public BuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService)
+        throws MetaborgException {
         if(state == null) {
             state = new BuildState();
         }
@@ -378,12 +382,5 @@ public class BuildInputBuilder {
                 analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;
-    }
-
-    /**
-     * Builds a build input object from the current state.
-     */
-    public BuildInput build(Injector injector) {
-        return build(injector.getInstance(IDependencyService.class), injector.getInstance(ILanguagePathService.class));
     }
 }

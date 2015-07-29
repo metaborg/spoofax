@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.FacetContribution;
@@ -25,7 +26,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     }
 
 
-    @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) {
+    @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) throws MetaborgException {
         final Iterable<? extends ILanguageImpl> dependencies = dependencyService.compileDependencies(project);
         final Collection<FileObject> sources = Lists.newArrayList();
         for(ILanguageImpl dependency : dependencies) {
@@ -40,7 +41,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         return sources;
     }
 
-    @Override public Iterable<FileObject> includePaths(IProject project, String languageName) {
+    @Override public Iterable<FileObject> includePaths(IProject project, String languageName) throws MetaborgException {
         final Iterable<? extends ILanguageImpl> dependencies = dependencyService.runtimeDependencies(project);
         final Collection<FileObject> includes = Lists.newArrayList();
         for(ILanguageImpl dependency : dependencies) {

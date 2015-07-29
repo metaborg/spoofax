@@ -16,6 +16,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.resource.IResourceService;
+import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
 import org.metaborg.spoofax.meta.core.ant.IAntRunnerService;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
@@ -41,6 +42,7 @@ class MetaBuildAntRunnerFactory {
 
     public IAntRunner create(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
         throws FileSystemException {
+        final SpoofaxProjectSettings projectSettings = input.projectSettings;
         final FileObject antFile = resourceService.resolve(getClass().getResource("build.xml").toString());
         final FileObject baseDir = input.project.location();
 
@@ -61,23 +63,24 @@ class MetaBuildAntRunnerFactory {
         properties.put("lang.package.path", input.projectSettings.packagePath());
 
         properties.put("sdf.args", formatArgs(buildSdfArgs(input)));
-        properties.put("stratego.args", formatArgs(buildStrategoArgs(input)));
+        if(projectSettings.externalDef() != null) {
+            properties.put("externaldef", projectSettings.externalDef());
+        }
 
-        if(input.externalDef != null) {
-            properties.put("externaldef", input.externalDef);
+        properties.put("stratego.args", formatArgs(buildStrategoArgs(input)));
+        if(projectSettings.externalJar() != null) {
+            properties.put("externaljar", projectSettings.externalJar());
         }
-        if(input.externalJar != null) {
-            properties.put("externaljar", input.externalJar);
-        }
-        if(input.externalJarFlags != null) {
-            properties.put("externaljarflags", input.externalJarFlags);
+        if(projectSettings.externalJarFlags() != null) {
+            properties.put("externaljarflags", projectSettings.externalJarFlags());
         }
 
         return antRunnerService.get(antFile, baseDir, properties, classpaths, listener);
     }
 
     private Collection<String> buildSdfArgs(MetaBuildInput input) {
-        final Collection<String> args = Lists.newArrayList(input.sdfArgs);
+        final SpoofaxProjectSettings projectSettings = input.projectSettings;
+        final Collection<String> args = Lists.newArrayList(projectSettings.sdfArgs());
         final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_SDF_NAME);
         for(FileObject path : paths) {
             final File file = resourceService.localFile(path);
@@ -95,10 +98,11 @@ class MetaBuildAntRunnerFactory {
     }
 
     private Collection<String> buildStrategoArgs(MetaBuildInput input) {
-        final Collection<String> args = Lists.newArrayList(input.strategoArgs);
+        final SpoofaxProjectSettings projectSettings = input.projectSettings;
+        final Collection<String> args = Lists.newArrayList(projectSettings.strategoArgs());
         final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_STRATEGO_NAME);
-        // HACK: Stratego language name was wrongly named "Stratego" instead of "Stratego-Sugar". Also include paths from
-        // the wrong language name to support the older baseline languages used for bootstrapping.
+        // BOOTSTRAPPING: Stratego language name was wrongly named "Stratego" instead of "Stratego-Sugar". Also include
+        // paths from the wrong language name to support the older baseline languages used for bootstrapping.
         final Iterable<FileObject> legacyPaths = languagePathService.sourceAndIncludePaths(input.project, "Stratego");
         for(FileObject path : Iterables.concat(paths, legacyPaths)) {
             File file = resourceService.localFile(path);

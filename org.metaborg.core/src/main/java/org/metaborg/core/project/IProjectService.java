@@ -1,7 +1,5 @@
 package org.metaborg.core.project;
 
-import java.io.Serializable;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -9,7 +7,7 @@ import org.apache.commons.vfs2.FileObject;
 /**
  * Interface for retrieving projects of resources.
  */
-public interface IProjectService extends Serializable {
+public interface IProjectService {
     /**
      * Retrieves the project of given resource.
      * 

@@ -14,7 +14,7 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageRequestImplIdentifier;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
@@ -200,7 +200,7 @@ public class DialectService implements IDialectService {
         final LanguageIdentifier id =
             new LanguageIdentifier(base.id().groupId, base.id().id + "-" + name, base.id().version);
         final LanguageCreationRequest request =
-            languageService.create(id, location, Iterables2.singleton(new LanguageRequestImplIdentifier(id, name)));
+            languageService.create(id, location, Iterables2.singleton(new LanguageContributionIdentifier(id, name)));
 
         for(IFacet facet : base.facets()) {
             if(facet instanceof IdentificationFacet && replaceIdentification) {

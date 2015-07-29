@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.generator.project;
+package org.metaborg.core.project;
 
 public class ProjectException extends Exception {
     private static final long serialVersionUID = 300295066638212450L;

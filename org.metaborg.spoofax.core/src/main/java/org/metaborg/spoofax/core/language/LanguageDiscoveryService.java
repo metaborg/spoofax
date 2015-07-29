@@ -13,7 +13,7 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageRequestImplIdentifier;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
@@ -100,7 +100,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         // GTODO: read contributing component from ESV or POM file
         final LanguageCreationRequest request =
             languageService.create(identifier, location,
-                Iterables2.singleton(new LanguageRequestImplIdentifier(identifier, name)));
+                Iterables2.singleton(new LanguageContributionIdentifier(identifier, name)));
 
         final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
         final IdentificationFacet identificationFacet =

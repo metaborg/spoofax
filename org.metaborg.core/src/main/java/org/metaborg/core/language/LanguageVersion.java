@@ -1,10 +1,11 @@
 package org.metaborg.core.language;
 
-import com.google.common.collect.ComparisonChain;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.google.common.collect.ComparisonChain;
 
 /**
  * Representation for the version of a language. Follows the versioning style of OSGI to be compatible with Eclipse
@@ -99,6 +100,14 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
 
     private static final Pattern VERSION_PATTERN = Pattern
         .compile("((\\d+)(\\.(\\d+)(\\.(\\d+))?)?(-(\\w[\\w\\-]*))?)?");
+
+    public static boolean valid(String version) {
+        final Matcher matcher = VERSION_PATTERN.matcher(version);
+        if(!matcher.matches()) {
+            return false;
+        }
+        return true;
+    }
 
     public static LanguageVersion parse(String version) {
         final Matcher matcher = VERSION_PATTERN.matcher(version);

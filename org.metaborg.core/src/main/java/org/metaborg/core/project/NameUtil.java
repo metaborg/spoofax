@@ -1,6 +1,9 @@
-package org.metaborg.spoofax.generator.project;
+package org.metaborg.core.project;
 
 import java.util.regex.Pattern;
+
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
 
 public class NameUtil {
     private static final Pattern PART = Pattern.compile("[A-Za-z][A-Za-z0-9]*");
@@ -14,6 +17,14 @@ public class NameUtil {
 
     public static boolean isValidId(String id) {
         return id != null && !id.isEmpty() && ID.matcher(id).matches();
+    }
+
+    public static boolean isValidVersion(String version) {
+        return LanguageVersion.valid(version);
+    }
+
+    public static boolean isValidLanguageIdentifier(LanguageIdentifier identifier) {
+        return isValidId(identifier.groupId) && isValidId(identifier.id);
     }
 
     public static boolean isValidFileExtension(String ext) {

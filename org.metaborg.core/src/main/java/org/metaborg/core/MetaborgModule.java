@@ -3,6 +3,8 @@ package org.metaborg.core;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.core.build.Builder;
 import org.metaborg.core.build.IBuilder;
+import org.metaborg.core.build.dependency.DependencyService;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.DependencyPathProvider;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.context.ContextService;
@@ -32,8 +34,8 @@ import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.processing.parse.ParseResultProcessor;
 import org.metaborg.core.project.DummyProjectService;
-import org.metaborg.core.project.IMavenProjectService;
 import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.project.IProjectSettingsService;
 import org.metaborg.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.resource.ResourceService;
@@ -73,6 +75,8 @@ public class MetaborgModule extends AbstractModule {
         bindContext();
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
+        bindProjectSettings();
+        bindDependency();
         bindSourceText();
         bindBuilder();
         bindProcessor();
@@ -109,7 +113,14 @@ public class MetaborgModule extends AbstractModule {
     protected void bindProject() {
         bind(DummyProjectService.class).in(Singleton.class);
         bind(IProjectService.class).to(DummyProjectService.class);
-        bind(IMavenProjectService.class).to(DummyProjectService.class);
+    }
+
+    protected void bindProjectSettings() {
+        bind(IProjectSettingsService.class).to(DummyProjectService.class);
+    }
+
+    protected void bindDependency() {
+        bind(IDependencyService.class).to(DependencyService.class).in(Singleton.class);
     }
 
     protected void bindSourceText() {

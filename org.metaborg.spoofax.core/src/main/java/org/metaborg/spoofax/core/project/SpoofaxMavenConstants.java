@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.build.dependency;
+package org.metaborg.spoofax.core.project;
 
 public class SpoofaxMavenConstants {
     public static final String GROUP_ID = "org.metaborg";

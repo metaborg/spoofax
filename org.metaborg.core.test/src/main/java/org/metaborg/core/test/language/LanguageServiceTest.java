@@ -15,7 +15,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageImplChange;
-import org.metaborg.core.language.LanguageRequestImplIdentifier;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.test.MetaborgTest;
@@ -282,10 +282,10 @@ public class LanguageServiceTest extends MetaborgTest {
         final String name = "Entity";
         final LanguageIdentifier implIdentifier1 = new LanguageIdentifier(groupId, implId1, version);
         final LanguageIdentifier implIdentifier2 = new LanguageIdentifier(groupId, implId2, version);
-        final LanguageRequestImplIdentifier requestIdentifier1 =
-            new LanguageRequestImplIdentifier(implIdentifier1, name);
-        final LanguageRequestImplIdentifier requestIdentifier2 =
-            new LanguageRequestImplIdentifier(implIdentifier2, name);
+        final LanguageContributionIdentifier requestIdentifier1 =
+            new LanguageContributionIdentifier(implIdentifier1, name);
+        final LanguageContributionIdentifier requestIdentifier2 =
+            new LanguageContributionIdentifier(implIdentifier2, name);
 
         final ILanguageComponent component1 = language(identifier1, location1, requestIdentifier1);
         final ILanguageComponent component2 = language(identifier2, location2, requestIdentifier1);
@@ -381,7 +381,7 @@ public class LanguageServiceTest extends MetaborgTest {
         final String implId = "org.metaborg.lang.entity.impl1";
         final String name = "Entity";
         final LanguageIdentifier implIdentifier = new LanguageIdentifier(groupId, implId, version);
-        final LanguageRequestImplIdentifier requestIdentifier = new LanguageRequestImplIdentifier(implIdentifier, name);
+        final LanguageContributionIdentifier requestIdentifier = new LanguageContributionIdentifier(implIdentifier, name);
 
         final DescriptionFacet facet1 = new DescriptionFacet("Component1", null);
         final ResourceExtensionFacet facet2 = new ResourceExtensionFacet(Iterables2.singleton("com"));
@@ -471,12 +471,12 @@ public class LanguageServiceTest extends MetaborgTest {
         final LanguageIdentifier implIdentifier1 = new LanguageIdentifier(groupId, implId1, version);
         final LanguageIdentifier implIdentifier2 = new LanguageIdentifier(groupId, implId2, version);
         final LanguageIdentifier implIdentifier3 = new LanguageIdentifier(groupId, implId3, version);
-        final LanguageRequestImplIdentifier requestIdentifier1 =
-            new LanguageRequestImplIdentifier(implIdentifier1, name);
-        final LanguageRequestImplIdentifier requestIdentifier2 =
-            new LanguageRequestImplIdentifier(implIdentifier2, name);
-        final LanguageRequestImplIdentifier requestIdentifier3 =
-            new LanguageRequestImplIdentifier(implIdentifier3, name);
+        final LanguageContributionIdentifier requestIdentifier1 =
+            new LanguageContributionIdentifier(implIdentifier1, name);
+        final LanguageContributionIdentifier requestIdentifier2 =
+            new LanguageContributionIdentifier(implIdentifier2, name);
+        final LanguageContributionIdentifier requestIdentifier3 =
+            new LanguageContributionIdentifier(implIdentifier3, name);
 
         final ITestableObserver<LanguageComponentChange> compObs = new TestableObserver<LanguageComponentChange>();
         languageService.componentChanges().subscribe(compObs);

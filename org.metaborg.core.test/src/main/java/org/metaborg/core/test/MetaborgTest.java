@@ -11,7 +11,7 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageRequestImplIdentifier;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.resource.IResourceService;
@@ -61,7 +61,7 @@ public class MetaborgTest {
 
 
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageRequestImplIdentifier> implIds, IFacet... facets) {
+        Iterable<LanguageContributionIdentifier> implIds, IFacet... facets) {
         final LanguageCreationRequest request = languageService.create(identifier, location, implIds);
         for(IFacet facet : facets) {
             request.addFacet(facet);
@@ -70,12 +70,12 @@ public class MetaborgTest {
     }
 
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location,
-        LanguageRequestImplIdentifier implId, IFacet... facets) {
+        LanguageContributionIdentifier implId, IFacet... facets) {
         return language(identifier, location, Iterables2.singleton(implId), facets);
     }
 
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location,
-        LanguageRequestImplIdentifier... implIds) {
+        LanguageContributionIdentifier... implIds) {
         return language(identifier, location, Iterables2.from(implIds), new IFacet[0]);
     }
 
@@ -83,7 +83,7 @@ public class MetaborgTest {
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location, String name,
         IFacet... facets) {
         return language(identifier, location,
-            Iterables2.singleton(new LanguageRequestImplIdentifier(identifier, name)), facets);
+            Iterables2.singleton(new LanguageContributionIdentifier(identifier, name)), facets);
     }
 
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location, String name) {
