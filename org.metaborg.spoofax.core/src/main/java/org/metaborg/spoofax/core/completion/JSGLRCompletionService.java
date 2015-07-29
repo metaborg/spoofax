@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.completion.Completion;
 import org.metaborg.core.completion.ICompletion;
+import org.metaborg.core.completion.ICompletionItem;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.syntax.IParserConfiguration;

@@ -2,6 +2,9 @@ package org.metaborg.spoofax.core.completion;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.completion.ICompletionItem;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.core.Tools;
@@ -50,7 +53,11 @@ public class CompletionFacetFromItemSets {
             final Collection<ICompletionItem> items = Lists.newLinkedList();
 
             for(IStrategoTerm completionItem : completionItems) {
-                items.add(item((IStrategoAppl) completionItem));
+                try {
+                    items.add(item((IStrategoAppl) completionItem));
+                } catch (MetaborgException e){
+                    System.out.println(e.getMessage());
+                }
             }
 
             final CompletionDefinition completionDefinition =
@@ -61,7 +68,7 @@ public class CompletionFacetFromItemSets {
         return completionDefinitions;
     }
 
-    public static @Nullable ICompletionItem item(IStrategoAppl term) {
+    public static @Nullable ICompletionItem item(IStrategoAppl term) throws MetaborgException{
         final String consName = term.getConstructor().getName();
         switch(consName) {
             case "String":
@@ -77,7 +84,7 @@ public class CompletionFacetFromItemSets {
         }
 
         final String message = String.format("Unhandled completion item term %s", term);
-        throw new SpoofaxRuntimeException(message);
+        throw new MetaborgException(message);
     }
 
 
