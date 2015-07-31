@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core;
 
 import java.util.Set;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.common.collect.ImmutableSet;
@@ -54,7 +54,7 @@ public class SpoofaxProjectConstants {
     public static final String DIR_JAVA_TRANS = DIR_JAVA + "/trans";
 
 
-    public static boolean isMetaLanguage(ILanguage language) {
+    public static boolean isMetaLanguage(ILanguageImpl language) {
         return isMetaLanguage(language.id());
     }
 

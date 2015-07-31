@@ -4,8 +4,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.language.ILanguage;
-import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.language.IFacet;
+import org.metaborg.core.language.ILanguageImpl;
 
 public interface IDialectService {
     /**
@@ -24,7 +24,7 @@ public interface IDialectService {
      *            Name of the dialect to get.
      * @return Dialect language with given name, or null if it does not exist.
      */
-    public abstract @Nullable ILanguage getDialect(String name);
+    public abstract @Nullable ILanguageImpl getDialect(String name);
 
     /**
      * Gets all dialects for given base language
@@ -33,7 +33,7 @@ public interface IDialectService {
      *            Base language of the dialects.
      * @return Dialects for given base language.
      */
-    public abstract Iterable<ILanguage> getDialects(ILanguage base);
+    public abstract Iterable<ILanguageImpl> getDialects(ILanguageImpl base);
 
     /**
      * Gets the base language for given dialect.
@@ -43,7 +43,7 @@ public interface IDialectService {
      * @return Base language of given dialect, or null if given language is not a dialect or the dialect has been
      *         removed.
      */
-    public abstract @Nullable ILanguage getBase(ILanguage dialect);
+    public abstract @Nullable ILanguageImpl getBase(ILanguageImpl dialect);
 
     /**
      * Creates a new dialect language for given base language and parser facet. The dialect replaces the parser facet,
@@ -61,7 +61,7 @@ public interface IDialectService {
      * @throws MetaborgRuntimeException
      *             When dialect with given name already exists.
      */
-    public abstract ILanguage add(String name, FileObject location, ILanguage base, ILanguageFacet syntaxFacet);
+    public abstract ILanguageImpl add(String name, FileObject location, ILanguageImpl base, IFacet syntaxFacet);
 
     /**
      * Updates dialect of given name, with a new parser facet.
@@ -74,19 +74,16 @@ public interface IDialectService {
      * @throws MetaborgRuntimeException
      *             When dialect with given name does not exist.
      */
-    public abstract ILanguage update(String name, ILanguageFacet parserFacet);
+    public abstract ILanguageImpl update(String name, IFacet parserFacet);
 
     /**
-     * Updates all dialects based on {@code oldBase} to be based on {@code newBase}. Does nothing if there were no
-     * dialects based on {@code oldBase}.
+     * Updates all dialects based on {@code base}. Does nothing if there were no dialects based on {@code base}.
      * 
-     * @param oldBase
-     *            Old base language to update.
-     * @param newBase
-     *            New base language to update.
+     * @param base
+     *            Base language for which to update dialects.
      * @return Updated dialect languages.
      */
-    public abstract Iterable<ILanguage> update(ILanguage oldBase, ILanguage newBase);
+    public abstract Iterable<ILanguageImpl> update(ILanguageImpl base);
 
     /**
      * Removes dialect with given name.
@@ -97,7 +94,7 @@ public interface IDialectService {
      *             When dialect with given name does not exist.
      * @return Removed dialect language.
      */
-    public abstract ILanguage remove(String name);
+    public abstract ILanguageImpl remove(String name);
 
     /**
      * Removes all dialects based on given language. Does nothing if there are no dialects of that language.
@@ -106,5 +103,5 @@ public interface IDialectService {
      *            Base language to remove all dialects for.
      * @return Removed dialect languages.
      */
-    public abstract Iterable<ILanguage> remove(ILanguage base);
+    public abstract Iterable<ILanguageImpl> remove(ILanguageImpl base);
 }

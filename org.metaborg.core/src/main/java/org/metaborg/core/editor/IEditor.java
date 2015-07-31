@@ -3,7 +3,7 @@ package org.metaborg.core.editor;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 
 /**
  * Interface for an editor in an IDE.
@@ -18,7 +18,7 @@ public interface IEditor {
      * @return Language of the current input/document, or null if the editor has not been initialized yet, if it has
      *         been disposed, or if the editor was opened before languages were loaded.
      */
-    public abstract @Nullable ILanguage language();
+    public abstract @Nullable ILanguageImpl language();
 
     /**
      * @return If this editor is enabled.

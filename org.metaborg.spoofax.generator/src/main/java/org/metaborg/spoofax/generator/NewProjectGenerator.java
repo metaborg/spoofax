@@ -3,18 +3,16 @@ package org.metaborg.spoofax.generator;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.generator.project.NameUtil;
-import org.metaborg.spoofax.generator.project.ProjectException;
-import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.core.project.NameUtil;
+import org.metaborg.core.project.ProjectException;
+import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 
 public class NewProjectGenerator extends BaseGenerator {
     private final String[] fileExtensions;
 
-    public NewProjectGenerator(IResourceService resourceService, ProjectSettings projectSettings,
-        String[] fileExtensions) throws ProjectException {
-        super(resourceService, projectSettings);
-        
+    public NewProjectGenerator(GeneratorProjectSettings settings, String[] fileExtensions) throws ProjectException {
+        super(settings);
+
         if(fileExtensions.length < 1) {
             throw new ProjectException("At least one fileExtension is required.");
         }

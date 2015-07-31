@@ -4,6 +4,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
@@ -13,7 +14,6 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.HybridInterpreter;
 
 import com.google.inject.Inject;
 
@@ -38,10 +38,19 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
         final String languageName = Tools.asJavaString(terms[0]);
         final String strategyName = Tools.asJavaString(terms[1]);
 
-        final ILanguage language = languageService.get(languageName);
+        // GTODO: require language identifier instead of language name
+        final ILanguage language = languageService.getLanguage(languageName);
         if(language == null) {
             final String message =
                 String.format("Foreign call of '%s' into language %s failed, language could not be found",
+                    strategyName, languageName);
+            throw new InterpreterException(message);
+        }
+        final ILanguageImpl activeImpl = language.activeImpl();
+        if(activeImpl == null) {
+            final String message =
+                String.format(
+                    "Foreign call of '%s' into language %s failed, no active language implementation could be found",
                     strategyName, languageName);
             throw new InterpreterException(message);
         }
@@ -49,9 +58,9 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
         try {
             final org.metaborg.core.context.IContext currentContext =
                 (org.metaborg.core.context.IContext) env.contextObject();
-            final org.metaborg.core.context.IContext context = contextService.get(currentContext, language);
-            final HybridInterpreter strategoRuntime = strategoRuntimeService.runtime(context);
-            final IStrategoTerm output = StrategoRuntimeUtils.invoke(strategoRuntime, env.current(), strategyName);
+            final org.metaborg.core.context.IContext context = contextService.get(currentContext, activeImpl);
+            final IStrategoTerm output =
+                StrategoRuntimeUtils.invoke(strategoRuntimeService, activeImpl, context, env.current(), strategyName);
             if(output == null) {
                 return false;
             }

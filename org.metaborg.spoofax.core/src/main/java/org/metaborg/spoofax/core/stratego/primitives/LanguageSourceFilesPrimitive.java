@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.project.IProject;
@@ -45,16 +46,30 @@ public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
         }
 
         final ITermFactory factory = env.getFactory();
-        final String languageName = Tools.asJavaString(tvars[0]);
         org.metaborg.core.context.IContext context = (org.metaborg.core.context.IContext) env.contextObject();
         final IProject project = projectService.get(context.location());
         if(project == null) {
             env.setCurrent(factory.makeList());
             return true;
         }
+        
+        // GTODO: require language identifier instead of language name
+        final String languageName = Tools.asJavaString(tvars[0]);
+        final ILanguage language = languageService.getLanguage(languageName);
+        if(language == null) {
+            final String message =
+                String.format("Getting include files for %s failed, language could not be found", languageName);
+            throw new InterpreterException(message);
+        }
+        final ILanguageImpl impl = language.activeImpl();
+        if(impl == null) {
+            final String message =
+                String.format("Getting include files for %s failed, no active language implementation could be found",
+                    languageName);
+            throw new InterpreterException(message);
+        }
 
-        final ILanguage language = languageService.get(languageName);
-        final Iterable<IdentifiedResource> sourceFiles = languagePathService.sourceFiles(project, language);
+        final Iterable<IdentifiedResource> sourceFiles = languagePathService.sourceFiles(project, impl);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(IdentifiedResource sourceFile : sourceFiles) {
             final FileObject file = sourceFile.resource;

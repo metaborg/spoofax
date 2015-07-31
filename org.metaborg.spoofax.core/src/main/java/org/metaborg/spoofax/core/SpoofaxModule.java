@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core;
 import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.IBuilder;
-import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.LanguagePathService;
@@ -21,6 +20,7 @@ import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
+import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.ISyntaxService;
@@ -37,7 +37,6 @@ import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.analysis.StrategoAnalysisService;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
-import org.metaborg.spoofax.core.build.dependency.MavenDependencyService;
 import org.metaborg.spoofax.core.build.paths.SpoofaxLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.SpoofaxContextFactory;
@@ -57,6 +56,11 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
+import org.metaborg.spoofax.core.project.DummyMavenProjectService;
+import org.metaborg.spoofax.core.project.IMavenProjectService;
+import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.ProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
@@ -119,7 +123,7 @@ public class SpoofaxModule extends MetaborgModule {
         super.configure();
 
         bindLanguagePath();
-        bindDependency();
+        bindMavenProject();
         bindSyntax();
         bindCompletion();
         bindAnalysis();
@@ -159,8 +163,16 @@ public class SpoofaxModule extends MetaborgModule {
         bind(IContextFactory.class).to(SpoofaxContextFactory.class).in(Singleton.class);
     }
 
-    protected void bindDependency() {
-        bind(IDependencyService.class).to(MavenDependencyService.class).in(Singleton.class);
+    /**
+     * Overrides {@link MetaborgModule#bindProjectSettings()} for non-dummy implementation of project settings service.
+     */
+    @Override protected void bindProjectSettings() {
+        bind(IProjectSettingsService.class).to(ProjectSettingsService.class).in(Singleton.class);
+        bind(ISpoofaxProjectSettingsService.class).to(SpoofaxProjectSettingsService.class).in(Singleton.class);
+    }
+
+    protected void bindMavenProject() {
+        bind(IMavenProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {

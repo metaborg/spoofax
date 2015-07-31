@@ -8,6 +8,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
@@ -42,14 +43,17 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
 
 
     @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
-        final ILanguage strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
+        final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
             final String message = "Could not find Stratego language, Stratego dialects cannot be identified";
             logger.debug(message);
             throw new MetaborgRuntimeException(message);
         }
 
-        if(!strategoLanguage.facet(IdentificationFacet.class).identify(resource)) {
+        // GTODO: use identifier service instead, but that introduces a cyclic dependency. Could use a provider.
+        final ILanguageImpl strategoImpl = strategoLanguage.activeImpl();
+        // HACK: assuming single identification facet
+        if(strategoImpl == null || !strategoImpl.facet(IdentificationFacet.class).identify(resource)) {
             return null;
         }
 
@@ -64,20 +68,20 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
             if(name == null) {
                 return null;
             }
-            final ILanguage dialect = dialectService.getDialect(name);
+            final ILanguageImpl dialect = dialectService.getDialect(name);
             if(dialect == null) {
                 final String message =
                     String.format("Resource %s requires dialect %s, but that dialect does not exist", resource, name);
                 throw new MetaborgException(message);
             }
-            final ILanguage base = dialectService.getBase(dialect);
+            final ILanguageImpl base = dialectService.getBase(dialect);
             return new IdentifiedDialect(dialect, base);
         } catch(ParseError | IOException e) {
             throw new MetaborgException("Unable to open or parse .meta file", e);
         }
     }
 
-    @Override public boolean identify(FileObject resource, ILanguage dialect) throws MetaborgException {
+    @Override public boolean identify(FileObject resource, ILanguageImpl dialect) throws MetaborgException {
         final IdentifiedDialect identified = identify(resource);
         return dialect.equals(identified.dialect);
     }

@@ -12,6 +12,10 @@ public class LanguageIdentifier {
         this.version = version;
     }
 
+    public LanguageIdentifier(LanguageIdentifier identifier, LanguageVersion version) {
+        this(identifier.groupId, identifier.id, version);
+    }
+
 
     @Override public int hashCode() {
         final int prime = 31;

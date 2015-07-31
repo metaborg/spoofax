@@ -9,7 +9,9 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.FacetContribution;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
@@ -62,18 +64,24 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
     @Override public @Nullable Resolution resolve(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws MetaborgException {
-        final ILanguage language = result.context.language();
-        final StrategoFacet facet = language.facet(StrategoFacet.class);
-        if(facet == null) {
+        final ILanguageImpl language = result.context.language();
+        final FacetContribution<StrategoFacet> facetContribution = language.facetContribution(StrategoFacet.class);
+        if(facetContribution == null) {
+            logger.error("Cannot resolve reference of {}, it does not have a Stratego facet", language);
+            // GTODO: throw exception instead
             return null;
         }
+
+        final StrategoFacet facet = facetContribution.facet;
         final String resolverStrategy = facet.resolverStrategy();
         if(resolverStrategy == null) {
+            logger.debug("Cannot resolve reference of {}, it does not have a resolver strategy", language);
             return null;
         }
 
         try {
-            final P2<IStrategoTerm, ISourceRegion> tuple = outputs(offset, result, resolverStrategy);
+            final P2<IStrategoTerm, ISourceRegion> tuple =
+                outputs(facetContribution.contributor, offset, result, resolverStrategy);
             if(tuple == null) {
                 return null;
             }
@@ -112,18 +120,24 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
     @Override public Hover hover(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws MetaborgException {
-        final ILanguage language = result.context.language();
-        final StrategoFacet facet = language.facet(StrategoFacet.class);
-        if(facet == null) {
+        final ILanguageImpl language = result.context.language();
+        final FacetContribution<StrategoFacet> facetContribution = language.facetContribution(StrategoFacet.class);
+        if(facetContribution == null) {
+            logger.error("Cannot get hover information for {}, it does not have a Stratego facet", language);
+            // GTODO: throw exception instead
             return null;
         }
+
+        final StrategoFacet facet = facetContribution.facet;
         final String hoverStrategy = facet.hoverStrategy();
         if(hoverStrategy == null) {
+            logger.debug("Cannot get hover information for {}, it does not have a hover strategy", language);
             return null;
         }
 
         try {
-            final P2<IStrategoTerm, ISourceRegion> tuple = outputs(offset, result, hoverStrategy);
+            final P2<IStrategoTerm, ISourceRegion> tuple =
+                outputs(facetContribution.contributor, offset, result, hoverStrategy);
             if(tuple == null) {
                 return null;
             }
@@ -138,14 +152,14 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
                 text = output.toString();
             }
             final String massagedText = text.replace("\\\"", "\"").replace("\\n", "");
-            
+
             return new Hover(offsetRegion, massagedText);
         } catch(MetaborgException e) {
             throw new MetaborgException("Hover information creation failed unexpectedly", e);
         }
     }
 
-    private P2<IStrategoTerm, ISourceRegion> outputs(int offset,
+    private P2<IStrategoTerm, ISourceRegion> outputs(ILanguageComponent component, int offset,
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> result, String strategy) throws MetaborgException {
         if(result.result == null) {
             return null;
@@ -153,10 +167,9 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
         final FileObject resource = result.source;
         final IContext context = result.context;
-        final ILanguage language = context.language();
-        final ITermFactory termFactory = termFactoryService.get(language);
+        final ITermFactory termFactory = termFactoryService.get(component);
 
-        final HybridInterpreter runtime = strategoRuntimeService.runtime(context);
+        final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
 
         final File localContextLocation = resourceService.localFile(context.location());
         final File localResource = resourceService.localPath(resource);
@@ -177,7 +190,7 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
             final ISourceLocation highlightLocation = tracingService.fromAnalyzed(term);
             if(highlightLocation == null) {
-                logger.debug("Reference resolution failed, cannot get source region for {}", term);
+                logger.debug("Cannot get source region for {}", term);
                 continue;
             }
 

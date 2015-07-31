@@ -2,12 +2,11 @@ package org.metaborg.spoofax.generator;
 
 import java.io.IOException;
 
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 
 public class ProjectGenerator extends BaseGenerator {
-    public ProjectGenerator(IResourceService resourceService, ProjectSettings projectSettings) {
-        super(resourceService, projectSettings);
+    public ProjectGenerator(GeneratorProjectSettings settings) {
+        super(settings);
     }
 
 

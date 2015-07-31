@@ -6,8 +6,9 @@ import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
-import org.metaborg.core.language.LanguageChange;
+import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.project.IProject;
@@ -46,15 +47,23 @@ public class StrategoDialectProcessor implements IDialectProcessor {
         if(numChanges == 0) {
             return;
         }
-        
-        logger.debug("Processing dialect updates for " + project.location());
 
-        final ILanguage strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
+        final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
-            logger.debug("Could not find Stratego language, Stratego dialects cannot be updated.");
+            logger.debug("Could not find Stratego language, Stratego dialects cannot be updated");
             return;
         }
-        final SyntaxFacet baseFacet = strategoLanguage.facet(SyntaxFacet.class);
+        final ILanguageImpl strategoImpl = strategoLanguage.activeImpl();
+        if(strategoImpl == null) {
+            logger.debug("Could not find active Stratego language implementation, "
+                + "Stratego dialects cannot be updated");
+            return;
+        }
+
+        logger.debug("Processing dialect updates for " + project.location());
+
+        // HACK: assuming single syntax facet
+        final SyntaxFacet baseFacet = strategoImpl.facet(SyntaxFacet.class);
 
         for(ResourceChange change : changes) {
             final FileObject resource = change.resource;
@@ -75,9 +84,10 @@ public class StrategoDialectProcessor implements IDialectProcessor {
                 switch(changeKind) {
                     case Create:
                         if(dialectService.hasDialect(fileName)) {
+                            // GTODO: log warning
                             break;
                         }
-                        dialectService.add(fileName, resource, strategoLanguage, newFacet);
+                        dialectService.add(fileName, resource, strategoImpl, newFacet);
                         break;
                     case Delete:
                         dialectService.remove(fileName);
@@ -91,17 +101,19 @@ public class StrategoDialectProcessor implements IDialectProcessor {
                         }
                         if(change.to != null) {
                             if(dialectService.hasDialect(fileName)) {
+                                // GTODO: log warning
                                 break;
                             }
-                            dialectService.add(fileName, resource, strategoLanguage, newFacet);
+                            dialectService.add(fileName, resource, strategoImpl, newFacet);
                         }
                         break;
                     case Copy:
                         if(change.to != null) {
                             if(dialectService.hasDialect(fileName)) {
+                                // GTODO: log warning
                                 break;
                             }
-                            dialectService.add(fileName, resource, strategoLanguage, newFacet);
+                            dialectService.add(fileName, resource, strategoImpl, newFacet);
                         }
                         break;
                     default:
@@ -114,15 +126,15 @@ public class StrategoDialectProcessor implements IDialectProcessor {
         }
     }
 
-    @Override public void update(LanguageChange change) {
+    @Override public void update(LanguageImplChange change) {
         switch(change.kind) {
-            case RELOAD:
-            case RELOAD_ACTIVE:
-            case REPLACE_ACTIVE:
-                dialectService.update(change.oldLanguage, change.newLanguage);
+            case Add:
                 break;
-            case REMOVE:
-                dialectService.remove(change.oldLanguage);
+            case Reload:
+                dialectService.update(change.impl);
+                break;
+            case Remove:
+                dialectService.remove(change.impl);
                 break;
             default:
                 break;

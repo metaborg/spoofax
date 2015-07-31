@@ -6,17 +6,17 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.ResourceService;
 
 public class ContextIdentifier implements Serializable {
     private static final long serialVersionUID = -5397372170660560878L;
 
     public transient FileObject location;
-    public final ILanguage language;
+    public final ILanguageImpl language;
 
 
-    public ContextIdentifier(FileObject location, ILanguage language) {
+    public ContextIdentifier(FileObject location, ILanguageImpl language) {
         this.location = location;
         this.language = language;
     }

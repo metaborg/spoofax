@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParserConfiguration;
 import org.metaborg.core.syntax.ParseResult;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -25,15 +25,15 @@ import org.spoofax.terms.attachments.ParentTermFactory;
 public class JSGLRI {
     private final IParserConfig config;
     private final ITermFactory termFactory;
-    private final ILanguage language;
-    private final ILanguage dialect;
+    private final ILanguageImpl language;
+    private final ILanguageImpl dialect;
     private final FileObject resource;
     private final String input;
 
     private final SGLR parser;
 
 
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, ILanguage dialect,
+    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
         FileObject resource, String input) throws IOException {
         this.config = config;
         this.termFactory = termFactory;
@@ -127,11 +127,11 @@ public class JSGLRI {
         return config;
     }
 
-    public ILanguage getLanguage() {
+    public ILanguageImpl getLanguage() {
         return language;
     }
 
-    public ILanguage getDialect() {
+    public ILanguageImpl getDialect() {
         return dialect;
     }
 

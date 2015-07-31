@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.transform.menu;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,17 +12,17 @@ public class MenusFacetFromESV {
     private static final Logger logger = LoggerFactory.getLogger(MenusFacetFromESV.class);
 
 
-    public static MenusFacet create(IStrategoAppl esv, ILanguage inputLanguage) {
+    public static MenusFacet create(IStrategoAppl esv, LanguageIdentifier inputLanguageId) {
         final Iterable<IStrategoAppl> menuTerms = ESVReader.collectTerms(esv, "ToolbarMenu");
         final MenusFacet facet = new MenusFacet();
         for(IStrategoAppl menuTerm : menuTerms) {
-            final Menu menu = menu(menuTerm, new ActionFlags(), inputLanguage);
+            final Menu menu = menu(menuTerm, new ActionFlags(), inputLanguageId);
             facet.add(menu);
         }
         return facet;
     }
 
-    private static Menu menu(IStrategoTerm menuTerm, ActionFlags flags, ILanguage inputLanguage) {
+    private static Menu menu(IStrategoTerm menuTerm, ActionFlags flags, LanguageIdentifier inputLanguageId) {
         final String name = name(menuTerm.getSubterm(0));
         final ActionFlags extraFlags = flags(menuTerm.getSubterm(1));
         final ActionFlags mergedFlags = ActionFlags.merge(flags, extraFlags);
@@ -36,11 +36,11 @@ public class MenusFacetFromESV {
             }
             switch(constructor) {
                 case "Submenu":
-                    final Menu submenu = menu(item, mergedFlags, inputLanguage);
+                    final Menu submenu = menu(item, mergedFlags, inputLanguageId);
                     menu.add(submenu);
                     break;
                 case "Action":
-                    final Action action = action(item, mergedFlags, inputLanguage);
+                    final Action action = action(item, mergedFlags, inputLanguageId);
                     menu.add(action);
                     break;
                 default:
@@ -65,12 +65,12 @@ public class MenusFacetFromESV {
         return ESVReader.termContents(term);
     }
 
-    private static Action action(IStrategoTerm action, ActionFlags flags, ILanguage inputLanguage) {
+    private static Action action(IStrategoTerm action, ActionFlags flags, LanguageIdentifier inputLanguageId) {
         final String name = name(action.getSubterm(0));
         final String stategy = Tools.asJavaString(action.getSubterm(1).getSubterm(0));
         final ActionFlags extraFlags = flags(action.getSubterm(2));
         final ActionFlags mergedFlags = ActionFlags.merge(flags, extraFlags);
-        return new Action(name, inputLanguage, null, stategy, mergedFlags);
+        return new Action(name, inputLanguageId, null, stategy, mergedFlags);
     }
 
     private static ActionFlags flags(Iterable<IStrategoTerm> flagTerms) {

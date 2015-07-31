@@ -5,5 +5,19 @@ package org.metaborg.core.language;
  * removed or reloaded. Add Guice bindings to this interface for classes that implement it.
  */
 public interface ILanguageCache {
-    public abstract void invalidateCache(ILanguage language);
+    /**
+     * Invalidate the cache for given language component.
+     * 
+     * @param component
+     *            Component to invalidate the cache for.
+     */
+    public abstract void invalidateCache(ILanguageComponent component);
+
+    /**
+     * Invalidate the cache for given language implementation.
+     * 
+     * @param impl
+     *            Implementation to invalidate the cache for.
+     */
+    public abstract void invalidateCache(ILanguageImpl impl);
 }

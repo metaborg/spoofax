@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.transform.ITransformerGoal;
@@ -37,7 +37,7 @@ public class BuildInput {
     /**
      * Per-language include paths;
      */
-    public final Multimap<ILanguage, FileObject> includePaths;
+    public final Multimap<ILanguageImpl, FileObject> includePaths;
 
     /**
      * Language build order.
@@ -91,14 +91,14 @@ public class BuildInput {
     /**
      * Languages for which errors are pardoned; prevents throwing an exception when {@code throwOnErrors} is true.
      */
-    public final Set<ILanguage> pardonedLanguages;
+    public final Set<ILanguageImpl> pardonedLanguages;
 
 
     public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
-        Multimap<ILanguage, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
+        Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
         boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
         Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter,
-        boolean throwOnErrors, Set<ILanguage> pardonedLanguages) {
+        boolean throwOnErrors, Set<ILanguageImpl> pardonedLanguages) {
         this.state = state;
         this.project = project;
         this.sourceChanges = resourceChanges;

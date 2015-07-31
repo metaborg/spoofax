@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.LanguageIdentifier;
 
 public class Action implements Serializable {
     private static final long serialVersionUID = 727107590910189637L;
@@ -14,13 +14,13 @@ public class Action implements Serializable {
      */
     public final String name;
     /**
-     * Language of input terms this builder accepts, or null if it accepts any terms.
+     * Identifier of the language of input terms this builder accepts, or null if it accepts any terms.
      */
-    @Nullable public final ILanguage inputLangauge;
+    public final @Nullable LanguageIdentifier inputLanguageId;
     /**
-     * Language of output terms this builder creates, or null if unknown.
+     * Identifier of the language of output terms this builder creates, or null if unknown.
      */
-    @Nullable public final ILanguage outputLanguage;
+    public final @Nullable LanguageIdentifier outputLanguageId;
     /**
      * Name of the Stratego strategy this action executes.
      */
@@ -45,18 +45,18 @@ public class Action implements Serializable {
      * @param flags
      *            Flags for this action.
      */
-    public Action(String name, @Nullable ILanguage inputLanguage, @Nullable ILanguage outputLanguage, String strategy,
-        ActionFlags flags) {
+    public Action(String name, @Nullable LanguageIdentifier inputLanguageId,
+        @Nullable LanguageIdentifier outputLanguageId, String strategy, ActionFlags flags) {
         this.name = name;
-        this.inputLangauge = inputLanguage;
-        this.outputLanguage = outputLanguage;
+        this.inputLanguageId = inputLanguageId;
+        this.outputLanguageId = outputLanguageId;
         this.strategy = strategy;
         this.flags = flags;
     }
 
 
     @Override public String toString() {
-        return "Action [name=" + name + ", inputLangauge=" + inputLangauge + ", outputLanguage=" + outputLanguage
-            + ", strategy=" + strategy + ", flags=" + flags + "]";
+        return "Action [name=" + name + ", input=" + inputLanguageId + ", output=" + outputLanguageId + ", strategy="
+            + strategy + ", flags=" + flags + "]";
     }
 }

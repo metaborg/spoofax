@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.terms;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
 
@@ -8,8 +9,11 @@ public class TermFactoryService implements ITermFactoryService {
     private final ITermFactory genericFactory = new TermFactory();
 
 
-    @Override public ITermFactory get(ILanguage language) {
-        // TODO: create language-specific term factory.
+    @Override public ITermFactory get(ILanguageImpl impl) {
+        return genericFactory;
+    }
+
+    @Override public ITermFactory get(ILanguageComponent component) {
         return genericFactory;
     }
 

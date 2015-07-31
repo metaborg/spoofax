@@ -5,14 +5,12 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.language.IFacet;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-public class MenusFacet implements ILanguageFacet {
-    private static final long serialVersionUID = -2695936811141361719L;
-
+public class MenusFacet implements IFacet {
     private final Collection<Menu> menus;
     private final Map<String, Action> actions = Maps.newHashMap();
 

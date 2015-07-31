@@ -17,19 +17,19 @@ public class IdentifiedResource {
     /**
      * Identified dialect of the resource, or null if it does not have a dialect.
      */
-    public final @Nullable ILanguage dialect;
+    public final @Nullable ILanguageImpl dialect;
 
     /**
      * Identified language of the resource.
      */
-    public final ILanguage language;
+    public final ILanguageImpl language;
 
 
     public IdentifiedResource(FileObject resource, IdentifiedDialect identifiedDialect) {
         this(resource, identifiedDialect.dialect, identifiedDialect.base);
     }
 
-    public IdentifiedResource(FileObject resource, @Nullable ILanguage dialect, ILanguage language) {
+    public IdentifiedResource(FileObject resource, @Nullable ILanguageImpl dialect, ILanguageImpl language) {
         this.resource = resource;
         this.language = language;
         this.dialect = dialect;
@@ -39,7 +39,7 @@ public class IdentifiedResource {
     /**
      * @return Dialect of the resource, or the language if it does not belong to a dialect.
      */
-    public ILanguage dialectOrLanguage() {
+    public ILanguageImpl dialectOrLanguage() {
         return dialect == null ? language : dialect;
     }
 

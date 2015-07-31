@@ -2,7 +2,7 @@ package org.metaborg.core.resource;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
 
@@ -18,12 +18,12 @@ public class IdentifiedResourceChange {
     /**
      * Identified dialect of the resource change, or null if it does not have a dialect.
      */
-    public final @Nullable ILanguage dialect;
+    public final @Nullable ILanguageImpl dialect;
 
     /**
      * Identified language of the resource change.
      */
-    public final ILanguage language;
+    public final ILanguageImpl language;
 
 
     public IdentifiedResourceChange(ResourceChange change, IdentifiedDialect identifiedDialect) {
@@ -34,7 +34,7 @@ public class IdentifiedResourceChange {
         this(change, identifiedResource.dialect, identifiedResource.language);
     }
 
-    public IdentifiedResourceChange(ResourceChange change, @Nullable ILanguage dialect, ILanguage language) {
+    public IdentifiedResourceChange(ResourceChange change, @Nullable ILanguageImpl dialect, ILanguageImpl language) {
         this.change = change;
         this.language = language;
         this.dialect = dialect;
@@ -44,7 +44,7 @@ public class IdentifiedResourceChange {
     /**
      * @return Dialect of the resource change, or the language if it does not belong to a dialect.
      */
-    public ILanguage dialectOrLanguage() {
+    public ILanguageImpl dialectOrLanguage() {
         return dialect == null ? language : dialect;
     }
 

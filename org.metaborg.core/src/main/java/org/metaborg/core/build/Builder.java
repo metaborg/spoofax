@@ -23,7 +23,7 @@ import org.metaborg.core.context.ContextUtils;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.AllLanguagesFileSelector;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.messages.IMessage;
@@ -107,9 +107,9 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         ICancellationToken cancel) throws InterruptedException {
         cancel.throwIfCancelled();
 
-        final Iterable<ILanguage> languages = input.buildOrder.languages();
+        final Iterable<ILanguageImpl> languages = input.buildOrder.languages();
 
-        final Multimap<ILanguage, IdentifiedResourceChange> changes = ArrayListMultimap.create();
+        final Multimap<ILanguageImpl, IdentifiedResourceChange> changes = ArrayListMultimap.create();
 
         final FileSelector selector = input.selector;
         final FileObject location = input.project.location();
@@ -148,7 +148,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         final BuildState newState = new BuildState();
         final BuildOutput<P, A, T> buildOutput = new BuildOutput<>(newState);
-        for(ILanguage language : input.buildOrder.buildOrder()) {
+        for(ILanguageImpl language : input.buildOrder.buildOrder()) {
             cancel.throwIfCancelled();
 
             final LanguageBuildState languageState = input.state.get(resourceService, languageIdentifier, language);
@@ -170,7 +170,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
 
-    private void updateLanguageResources(BuildInput input, ILanguage language, LanguageBuildDiff diff,
+    private void updateLanguageResources(BuildInput input, ILanguageImpl language, LanguageBuildDiff diff,
         BuildOutput<P, A, T> output, ICancellationToken cancel) throws InterruptedException {
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
@@ -231,7 +231,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             allTransformResults, extraMessages);
     }
 
-    private Collection<ParseResult<P>> parse(BuildInput input, ILanguage language,
+    private Collection<ParseResult<P>> parse(BuildInput input, ILanguageImpl language,
         Iterable<IdentifiedResourceChange> changes, Collection<FileObject> changedResources,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
         throws InterruptedException {
@@ -247,8 +247,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             cancel.throwIfCancelled();
             final ResourceChange change = identifiedChange.change;
             final FileObject resource = change.resource;
-            final ILanguage dialect = identifiedChange.dialect;
-            final ILanguage parserLanguage = dialect != null ? dialect : language;
+            final ILanguageImpl dialect = identifiedChange.dialect;
+            final ILanguageImpl parserLanguage = dialect != null ? dialect : language;
             final ResourceChangeKind changeKind = change.kind;
 
             try {
@@ -288,7 +288,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allParseResults;
     }
 
-    private Collection<AnalysisResult<P, A>> analyze(BuildInput input, ILanguage language, FileObject location,
+    private Collection<AnalysisResult<P, A>> analyze(BuildInput input, ILanguageImpl language, FileObject location,
         Multimap<IContext, ParseResult<P>> sourceParseResults, Iterable<ParseResult<P>> includeParseResults,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
         throws InterruptedException {
@@ -326,7 +326,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allAnalysisResults;
     }
 
-    private Collection<TransformResult<AnalysisFileResult<P, A>, T>> compile(BuildInput input, ILanguage language,
+    private Collection<TransformResult<AnalysisFileResult<P, A>, T>> compile(BuildInput input, ILanguageImpl language,
         FileObject location, Iterable<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
         throws InterruptedException {
@@ -386,7 +386,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allTransformResults;
     }
 
-    private void printMessages(Iterable<IMessage> messages, String phase, BuildInput input, ILanguage language) {
+    private void printMessages(Iterable<IMessage> messages, String phase, BuildInput input, ILanguageImpl language) {
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             for(IMessage message : messages) {
@@ -401,7 +401,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private void printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
-        ILanguage language) {
+        ILanguageImpl language) {
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(resource, message, e);
@@ -412,7 +412,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         }
     }
 
-    private void printMessage(String message, @Nullable Throwable e, BuildInput input, ILanguage language) {
+    private void printMessage(String message, @Nullable Throwable e, BuildInput input, ILanguageImpl language) {
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(input.project, message, e);
