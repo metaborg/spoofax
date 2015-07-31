@@ -13,9 +13,9 @@ import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageComponentChange;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageImplChange;
-import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.test.MetaborgTest;
@@ -381,7 +381,8 @@ public class LanguageServiceTest extends MetaborgTest {
         final String implId = "org.metaborg.lang.entity.impl1";
         final String name = "Entity";
         final LanguageIdentifier implIdentifier = new LanguageIdentifier(groupId, implId, version);
-        final LanguageContributionIdentifier requestIdentifier = new LanguageContributionIdentifier(implIdentifier, name);
+        final LanguageContributionIdentifier requestIdentifier =
+            new LanguageContributionIdentifier(implIdentifier, name);
 
         final DescriptionFacet facet1 = new DescriptionFacet("Component1", null);
         final ResourceExtensionFacet facet2 = new ResourceExtensionFacet(Iterables2.singleton("com"));
@@ -502,9 +503,14 @@ public class LanguageServiceTest extends MetaborgTest {
         final ILanguageImpl impl2 = languageService.getImpl(implIdentifier2);
         final ILanguageImpl impl3 = languageService.getImpl(implIdentifier3);
         assertOnNext(new LanguageComponentChange(LanguageComponentChange.Kind.Add, null, component3), compObs);
-        assertOnNext(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl1), implObs);
-        assertOnNext(new LanguageImplChange(LanguageImplChange.Kind.Add, impl2), implObs);
-        assertOnNext(new LanguageImplChange(LanguageImplChange.Kind.Add, impl3), implObs);
+        {
+            final Iterable<LanguageImplChange> changes =
+                Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl1), new LanguageImplChange(
+                    LanguageImplChange.Kind.Add, impl2), new LanguageImplChange(LanguageImplChange.Kind.Add, impl3));
+            assertOnNext(changes, implObs);
+            assertOnNext(changes, implObs);
+            assertOnNext(changes, implObs);
+        }
 
         // Remove component1, expect component1 remove, impl1 reload
         languageService.remove(component1);
@@ -516,15 +522,26 @@ public class LanguageServiceTest extends MetaborgTest {
         final ILanguageComponent component2Reload = language(identifier2, location2, requestIdentifier2);
         assertOnNext(new LanguageComponentChange(LanguageComponentChange.Kind.Reload, component2, component2Reload),
             compObs);
-        assertOnNext(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl1), implObs);
-        assertOnNext(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl2), implObs);
+        {
+            final Iterable<LanguageImplChange> changes =
+                Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl1), new LanguageImplChange(
+                    LanguageImplChange.Kind.Reload, impl2));
+            assertOnNext(changes, implObs);
+            assertOnNext(changes, implObs);
+        }
 
         // Remove component3, expect component3 remove, [impl1 remove, impl2 reload, impl3 remove] (order unknown)
         languageService.remove(component3);
         assertOnNext(new LanguageComponentChange(LanguageComponentChange.Kind.Remove, component3, null), compObs);
-        assertOnNext(new LanguageImplChange(LanguageImplChange.Kind.Remove, impl3), implObs);
-        assertOnNext(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl2), implObs);
-        assertOnNext(new LanguageImplChange(LanguageImplChange.Kind.Remove, impl1), implObs);
+        {
+            final Iterable<LanguageImplChange> changes =
+                Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Remove, impl3), new LanguageImplChange(
+                    LanguageImplChange.Kind.Reload, impl2), new LanguageImplChange(LanguageImplChange.Kind.Remove,
+                    impl1));
+            assertOnNext(changes, implObs);
+            assertOnNext(changes, implObs);
+            assertOnNext(changes, implObs);
+        }
 
         // Remove component2, expect component2 remove, impl2 remove
         languageService.remove(component2);
