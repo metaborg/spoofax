@@ -1,7 +1,8 @@
-package org.metaborg.spoofax.core.project;
+package org.metaborg.spoofax.core.project.settings;
 
 import java.util.Collection;
 
+import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
@@ -9,30 +10,15 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
-import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.ProjectException;
+import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.ProjectSettings;
+import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
-public class SpoofaxProjectSettingsService implements ISpoofaxProjectSettingsService {
-    private final IMavenProjectService mavenProjectService;
-
-
-    @Inject public SpoofaxProjectSettingsService(IMavenProjectService mavenProjectService) {
-        this.mavenProjectService = mavenProjectService;
-    }
-
-
-    @Override public SpoofaxProjectSettings get(IProject project) throws ProjectException {
-        final MavenProject mavenProject = mavenProjectService.get(project);
-        if(mavenProject == null) {
-            final String message =
-                String.format("Could not retrieve Maven project for %s, cannot get settings", project);
-            throw new ProjectException(message);
-        }
-
-        final Plugin plugin = mavenProject.getPlugin(SpoofaxMavenConstants.QUAL_PLUGIN_NAME);
+public class MavenProjectSettingsReader {
+    public static SpoofaxProjectSettings spoofaxSettings(FileObject location, MavenProject project) {
+        final Plugin plugin = project.getPlugin(SpoofaxMavenConstants.QUAL_PLUGIN_NAME);
         final Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
 
         final Collection<LanguageIdentifier> compileDeps = Lists.newLinkedList();
@@ -46,7 +32,7 @@ public class SpoofaxProjectSettingsService implements ISpoofaxProjectSettingsSer
         }
 
         final Collection<LanguageIdentifier> runtimeDeps = Lists.newLinkedList();
-        for(Dependency dependency : mavenProject.getModel().getDependencies()) {
+        for(Dependency dependency : project.getModel().getDependencies()) {
             if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
                 final LanguageVersion version = LanguageVersion.parse(dependency.getVersion());
                 final LanguageIdentifier identifier =
@@ -141,20 +127,20 @@ public class SpoofaxProjectSettingsService implements ISpoofaxProjectSettingsSer
             externalJarFlags = null;
         }
 
-        final LanguageVersion version = LanguageVersion.parse(mavenProject.getVersion());
+        final LanguageVersion version = LanguageVersion.parse(project.getVersion());
         final LanguageIdentifier identifier =
-            new LanguageIdentifier(mavenProject.getGroupId(), mavenProject.getArtifactId(), version);
-        final SpoofaxProjectSettings settings =
-            new SpoofaxProjectSettings(identifier, mavenProject.getName(), project.location(), compileDeps,
-                runtimeDeps, langContribs);
-        settings.setPardonedLanguages(pardonedLangs);
-        settings.setFormat(format);
-        settings.setSdfArgs(sdfArgs);
-        settings.setExternalDef(externalDef);
-        settings.setStrategoArgs(strategoArgs);
-        settings.setExternalJar(externalJar);
-        settings.setExternalJarFlags(externalJarFlags);
+            new LanguageIdentifier(project.getGroupId(), project.getArtifactId(), version);
+        final IProjectSettings settings =
+            new ProjectSettings(identifier, project.getName(), compileDeps, runtimeDeps, langContribs);
+        final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, location);
+        spoofaxSettings.setPardonedLanguages(pardonedLangs);
+        spoofaxSettings.setFormat(format);
+        spoofaxSettings.setSdfArgs(sdfArgs);
+        spoofaxSettings.setExternalDef(externalDef);
+        spoofaxSettings.setStrategoArgs(strategoArgs);
+        spoofaxSettings.setExternalJar(externalJar);
+        spoofaxSettings.setExternalJarFlags(externalJarFlags);
 
-        return settings;
+        return spoofaxSettings;
     }
 }

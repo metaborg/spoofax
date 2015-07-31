@@ -1,16 +1,18 @@
-package org.metaborg.spoofax.core.project;
+package org.metaborg.spoofax.core.project.settings;
 
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.IProjectSettingsService;
 import org.metaborg.core.project.ProjectException;
 
-public interface ISpoofaxProjectSettingsService extends IProjectSettingsService {
+/**
+ * Interface for getting Spoofax-specific project settings.
+ */
+public interface ISpoofaxProjectSettingsService {
     /**
-     * Retrieves Spoofax project settings given a project.
+     * Retrieves Spoofax-specific project settings given a project.
      * 
      * @param project
-     *            Project to get settings for
-     * @return Spoofax project settings.
+     *            Project to get settings for.
+     * @return Spoofax-specific project settings.
      * @throws ProjectException
      *             When creating project settings unexpectedly fails.
      */

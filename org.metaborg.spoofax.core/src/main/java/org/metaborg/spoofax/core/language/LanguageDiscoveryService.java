@@ -11,13 +11,15 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
+import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.spoofax.core.completion.CompletionFacet;
 import org.metaborg.spoofax.core.completion.CompletionFacetFromItemSets;
 import org.metaborg.spoofax.core.esv.ESVReader;
@@ -40,6 +42,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.io.binary.TermReader;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -48,13 +51,16 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private static final Logger logger = LoggerFactory.getLogger(LanguageDiscoveryService.class);
 
     private final ILanguageService languageService;
+    private final IProjectSettingsService projectSettingsService;
     private final ITermFactoryService termFactoryService;
     private final Map<String, IContextStrategy> contextStrategies;
 
 
-    @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService,
+    @Inject public LanguageDiscoveryService(ILanguageService languageService,
+        IProjectSettingsService projectSettingsService, ITermFactoryService termFactoryService,
         Map<String, IContextStrategy> contextStrategies) {
         this.languageService = languageService;
+        this.projectSettingsService = projectSettingsService;
         this.termFactoryService = termFactoryService;
         this.contextStrategies = contextStrategies;
     }
@@ -71,7 +77,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             final FileObject languageLocation = esvFile.getParent().getParent();
             if(parents.contains(languageLocation)) {
                 logger.error("Found multiple packed ESV files in language directory: " + languageLocation
-                    + ", skipping.");
+                    + ", skipping");
                 continue;
             }
             parents.add(languageLocation);
@@ -87,20 +93,26 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
         if(term.getTermType() != IStrategoTerm.APPL) {
-            throw new IllegalStateException("Packed ESV file does not contain a valid ESV term.");
+            throw new IllegalStateException("Packed ESV file does not contain a valid ESV term");
         }
         final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
-        // GTODO: fetch this from ESV.
-        final String groupId = "org.metaborg";
-        final String id = languageId(esvTerm);
-        final LanguageVersion version = LanguageVersion.parse(languageVersion(esvTerm));
-        final String name = languageName(esvTerm);
-        final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
-        // GTODO: read contributing component from ESV or POM file
-        final LanguageCreationRequest request =
-            languageService.create(identifier, location,
-                Iterables2.singleton(new LanguageContributionIdentifier(identifier, name)));
+        final LanguageIdentifier identifier;
+        Iterable<LanguageContributionIdentifier> languageContributions;
+        final IProjectSettings settings = projectSettingsService.get(location);
+        if(settings != null) {
+            identifier = settings.identifier();
+            languageContributions = settings.languageContributions();
+        } else {
+            identifier =
+                new LanguageIdentifier("org.metaborg", languageId(esvTerm),
+                    LanguageVersion.parse(languageVersion(esvTerm)));
+            languageContributions = Iterables2.<LanguageContributionIdentifier>empty();
+        }
+        if(Iterables.isEmpty(languageContributions)) {
+            languageContributions = Iterables2.from(new LanguageContributionIdentifier(identifier, languageName(esvTerm)));
+        }
+        final LanguageCreationRequest request = languageService.create(identifier, location, languageContributions);
 
         final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
         final IdentificationFacet identificationFacet =

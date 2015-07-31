@@ -20,7 +20,7 @@ import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
-import org.metaborg.core.project.IProjectSettingsService;
+import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.ISyntaxService;
@@ -56,8 +56,11 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
-import org.metaborg.spoofax.core.project.ISpoofaxProjectSettingsService;
-import org.metaborg.spoofax.core.project.SpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.DummyMavenProjectService;
+import org.metaborg.spoofax.core.project.IMavenProjectService;
+import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.ProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
@@ -120,6 +123,7 @@ public class SpoofaxModule extends MetaborgModule {
         super.configure();
 
         bindLanguagePath();
+        bindMavenProject();
         bindSyntax();
         bindCompletion();
         bindAnalysis();
@@ -163,9 +167,12 @@ public class SpoofaxModule extends MetaborgModule {
      * Overrides {@link MetaborgModule#bindProjectSettings()} for non-dummy implementation of project settings service.
      */
     @Override protected void bindProjectSettings() {
-        bind(SpoofaxProjectSettingsService.class).in(Singleton.class);
-        bind(ISpoofaxProjectSettingsService.class).to(SpoofaxProjectSettingsService.class);
-        bind(IProjectSettingsService.class).to(SpoofaxProjectSettingsService.class);
+        bind(IProjectSettingsService.class).to(ProjectSettingsService.class).in(Singleton.class);
+        bind(ISpoofaxProjectSettingsService.class).to(SpoofaxProjectSettingsService.class).in(Singleton.class);
+    }
+
+    protected void bindMavenProject() {
+        bind(IMavenProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {

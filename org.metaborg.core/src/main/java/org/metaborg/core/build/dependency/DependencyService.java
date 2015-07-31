@@ -9,9 +9,8 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.IProjectSettings;
-import org.metaborg.core.project.IProjectSettingsService;
-import org.metaborg.core.project.ProjectException;
+import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +33,10 @@ public class DependencyService implements IDependencyService {
 
 
     @Override public Iterable<? extends ILanguageImpl> compileDependencies(IProject project) throws MetaborgException {
-        try {
-            final IProjectSettings settings = projectSettingsService.get(project);
+        final IProjectSettings settings = projectSettingsService.get(project);
+        if(settings != null) {
             final Iterable<LanguageIdentifier> identifiers = settings.compileDependencies();
             return getLanguages(identifiers);
-        } catch(ProjectException e) {
-
         }
 
         logger.trace("No project settings found for project {}, "
@@ -53,12 +50,10 @@ public class DependencyService implements IDependencyService {
     }
 
     @Override public Iterable<? extends ILanguageImpl> runtimeDependencies(IProject project) throws MetaborgException {
-        try {
-            final IProjectSettings settings = projectSettingsService.get(project);
+        final IProjectSettings settings = projectSettingsService.get(project);
+        if(settings != null) {
             final Iterable<LanguageIdentifier> identifiers = settings.runtimeDependencies();
             return getLanguages(identifiers);
-        } catch(ProjectException e) {
-
         }
 
         logger.trace("No project settings found for project {}, project will have no runtime dependencies", project);

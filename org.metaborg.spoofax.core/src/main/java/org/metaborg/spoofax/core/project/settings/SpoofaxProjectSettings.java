@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.project;
+package org.metaborg.spoofax.core.project.settings;
 
 import static org.metaborg.spoofax.core.SpoofaxProjectConstants.*;
 
@@ -9,15 +9,15 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.language.LanguageContributionIdentifier;
-import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.NameUtil;
-import org.metaborg.core.project.ProjectException;
-import org.metaborg.core.project.ProjectSettings;
+import org.metaborg.core.project.settings.IProjectSettings;
 
 import com.google.common.collect.Lists;
 
-public class SpoofaxProjectSettings extends ProjectSettings {
+public class SpoofaxProjectSettings {
+    private final IProjectSettings settings;
+    private final FileObject location;
+
     private Collection<String> pardonedLanguages = Lists.newLinkedList();
     private Format format = Format.ctree;
     private Collection<String> sdfArgs = Lists.newLinkedList();
@@ -26,16 +26,19 @@ public class SpoofaxProjectSettings extends ProjectSettings {
     private @Nullable String externalJar;
     private @Nullable String externalJarFlags;
 
-    
-    public SpoofaxProjectSettings(LanguageIdentifier identifier, String name, FileObject location)
-        throws ProjectException {
-        super(identifier, name, location);
+
+    public SpoofaxProjectSettings(IProjectSettings settings, FileObject location) {
+        this.settings = settings;
+        this.location = location;
     }
 
-    public SpoofaxProjectSettings(LanguageIdentifier identifier, String name,
-        FileObject location, Iterable<LanguageIdentifier> compileDependencies,
-        Iterable<LanguageIdentifier> runtimeDependencies, Iterable<LanguageContributionIdentifier> languageContributions) throws ProjectException {
-        super(identifier, name, location, compileDependencies, runtimeDependencies, languageContributions);
+
+    public IProjectSettings settings() {
+        return settings;
+    }
+
+    public FileObject location() {
+        return location;
     }
 
 
@@ -100,15 +103,15 @@ public class SpoofaxProjectSettings extends ProjectSettings {
 
 
     public String strategoName() {
-        return NameUtil.toJavaId(name().toLowerCase());
+        return NameUtil.toJavaId(settings.name().toLowerCase());
     }
 
     public String javaName() {
-        return NameUtil.toJavaId(name());
+        return NameUtil.toJavaId(settings.name());
     }
 
     public String packageName() {
-        return NameUtil.toJavaId(identifier().id);
+        return NameUtil.toJavaId(settings.identifier().id);
     }
 
     public String packagePath() {
@@ -163,7 +166,7 @@ public class SpoofaxProjectSettings extends ProjectSettings {
 
     private FileObject resolve(String directory) {
         try {
-            return location().resolveFile(directory);
+            return location.resolveFile(directory);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }

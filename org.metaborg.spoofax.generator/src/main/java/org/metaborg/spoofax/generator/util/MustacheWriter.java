@@ -48,7 +48,6 @@ public class MustacheWriter {
         if(dest.exists() && !force) {
             return;
         }
-        dest.getParent().createFolder();
         dest.createFile();
         try(final PrintWriter writer = new PrintWriter(dest.getContent().getOutputStream())) {
             mustache.execute(writer, objects);

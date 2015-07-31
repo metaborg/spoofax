@@ -3,17 +3,46 @@ package org.metaborg.spoofax.generator.project;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.language.LanguageContributionIdentifier;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
+import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.spoofax.core.SpoofaxProjectConstants;
-import org.metaborg.spoofax.core.project.Format;
-import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 
 public class GeneratorProjectSettings {
     private final SpoofaxProjectSettings settings;
 
 
-    public GeneratorProjectSettings(SpoofaxProjectSettings settings) {
+    public GeneratorProjectSettings(SpoofaxProjectSettings settings) throws ProjectException {
+        final IProjectSettings metaborgSettings = settings.settings();
+        if(!NameUtil.isValidLanguageIdentifier(metaborgSettings.identifier())) {
+            throw new ProjectException("Invalid language identifier: " + metaborgSettings.identifier());
+        }
+        if(!NameUtil.isValidName(metaborgSettings.name())) {
+            throw new ProjectException("Invalid name: " + name());
+        }
+        for(LanguageIdentifier compileIdentifier : metaborgSettings.compileDependencies()) {
+            if(!NameUtil.isValidLanguageIdentifier(compileIdentifier)) {
+                throw new ProjectException("Invalid compile dependency identifier: " + compileIdentifier);
+            }
+        }
+        for(LanguageIdentifier runtimeIdentifier : metaborgSettings.runtimeDependencies()) {
+            if(!NameUtil.isValidLanguageIdentifier(runtimeIdentifier)) {
+                throw new ProjectException("Invalid runtime dependency identifier: " + runtimeIdentifier);
+            }
+        }
+        for(LanguageContributionIdentifier contributionIdentifier : metaborgSettings.languageContributions()) {
+            if(!NameUtil.isValidLanguageIdentifier(contributionIdentifier.identifier)) {
+                throw new ProjectException("Invalid language contribution identifier: "
+                    + contributionIdentifier.identifier);
+            }
+            if(!NameUtil.isValidName(contributionIdentifier.name)) {
+                throw new ProjectException("Invalid language contribution name: " + metaborgSettings.name());
+            }
+        }
         this.settings = settings;
     }
 
@@ -38,7 +67,7 @@ public class GeneratorProjectSettings {
 
 
     public String groupId() {
-        return settings.identifier().groupId;
+        return settings.settings().identifier().groupId;
     }
 
     public boolean generateGroupId() {
@@ -46,11 +75,11 @@ public class GeneratorProjectSettings {
     }
 
     public String id() {
-        return settings.identifier().id;
+        return settings.settings().identifier().id;
     }
 
     public String version() {
-        return settings.identifier().version.toString();
+        return settings.settings().identifier().version.toString();
     }
 
     public boolean generateVersion() {
@@ -62,7 +91,7 @@ public class GeneratorProjectSettings {
     }
 
     public String name() {
-        return settings.name();
+        return settings.settings().name();
     }
 
     public FileObject location() {

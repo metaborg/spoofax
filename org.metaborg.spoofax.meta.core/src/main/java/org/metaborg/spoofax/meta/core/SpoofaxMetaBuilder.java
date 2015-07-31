@@ -6,9 +6,11 @@ import java.net.URL;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.AllFileSelector;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
-import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
+import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
@@ -29,7 +31,7 @@ public class SpoofaxMetaBuilder {
 
 
     public void initialize(MetaBuildInput input) throws FileSystemException {
-        final SpoofaxProjectSettings settings = input.projectSettings;
+        final SpoofaxProjectSettings settings = input.settings;
         settings.getOutputDirectory().createFolder();
         settings.getLibDirectory().createFolder();
         settings.getGeneratedSourceDirectory().createFolder();
@@ -39,8 +41,13 @@ public class SpoofaxMetaBuilder {
     public void generateSources(MetaBuildInput input) throws Exception {
         log.debug("Generating sources for {}", input.project.location());
 
-        final ProjectGenerator generator = new ProjectGenerator(new GeneratorProjectSettings(input.projectSettings));
+        final ProjectGenerator generator = new ProjectGenerator(new GeneratorProjectSettings(input.settings));
         generator.generateAll();
+
+        final FileObject settingsFile =
+            input.project.location().resolveFile("src-gen").resolveFile("metaborg.generated.yaml");
+        settingsFile.createFile();
+        YAMLProjectSettingsSerializer.write(settingsFile, input.settings.settings());
     }
 
     public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
@@ -59,12 +66,12 @@ public class SpoofaxMetaBuilder {
         runner.execute("package");
     }
 
-    public void clean(SpoofaxProjectSettings projectSettings) throws IOException {
-        log.debug("Cleaning {}", projectSettings.location());
+    public void clean(SpoofaxProjectSettings settings) throws IOException {
+        log.debug("Cleaning {}", settings.location());
         final AllFileSelector selector = new AllFileSelector();
-        projectSettings.getJavaTransDirectory().delete(selector);
-        projectSettings.getOutputDirectory().delete(selector);
-        projectSettings.getGeneratedSourceDirectory().delete(selector);
-        projectSettings.getCacheDirectory().delete(selector);
+        settings.getJavaTransDirectory().delete(selector);
+        settings.getOutputDirectory().delete(selector);
+        settings.getGeneratedSourceDirectory().delete(selector);
+        settings.getCacheDirectory().delete(selector);
     }
 }

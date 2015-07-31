@@ -16,7 +16,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
 import org.metaborg.spoofax.meta.core.ant.IAntRunnerService;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
@@ -42,7 +42,7 @@ class MetaBuildAntRunnerFactory {
 
     public IAntRunner create(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
         throws FileSystemException {
-        final SpoofaxProjectSettings projectSettings = input.projectSettings;
+        final SpoofaxProjectSettings projectSettings = input.settings;
         final FileObject antFile = resourceService.resolve(getClass().getResource("build.xml").toString());
         final FileObject baseDir = input.project.location();
 
@@ -56,11 +56,11 @@ class MetaBuildAntRunnerFactory {
         restoreExecutablePermissions(localNativePath);
         properties.put("nativepath", localNativePath.getPath());
 
-        properties.put("lang.name", input.projectSettings.name());
-        properties.put("lang.strname", input.projectSettings.strategoName());
-        properties.put("lang.format", input.projectSettings.format().name());
-        properties.put("lang.package.name", input.projectSettings.packageName());
-        properties.put("lang.package.path", input.projectSettings.packagePath());
+        properties.put("lang.name", input.settings.settings().name());
+        properties.put("lang.strname", input.settings.strategoName());
+        properties.put("lang.format", input.settings.format().name());
+        properties.put("lang.package.name", input.settings.packageName());
+        properties.put("lang.package.path", input.settings.packagePath());
 
         properties.put("sdf.args", formatArgs(buildSdfArgs(input)));
         if(projectSettings.externalDef() != null) {
@@ -79,7 +79,7 @@ class MetaBuildAntRunnerFactory {
     }
 
     private Collection<String> buildSdfArgs(MetaBuildInput input) {
-        final SpoofaxProjectSettings projectSettings = input.projectSettings;
+        final SpoofaxProjectSettings projectSettings = input.settings;
         final Collection<String> args = Lists.newArrayList(projectSettings.sdfArgs());
         final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_SDF_NAME);
         for(FileObject path : paths) {
@@ -98,7 +98,7 @@ class MetaBuildAntRunnerFactory {
     }
 
     private Collection<String> buildStrategoArgs(MetaBuildInput input) {
-        final SpoofaxProjectSettings projectSettings = input.projectSettings;
+        final SpoofaxProjectSettings projectSettings = input.settings;
         final Collection<String> args = Lists.newArrayList(projectSettings.strategoArgs());
         final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_STRATEGO_NAME);
         // BOOTSTRAPPING: Stratego language name was wrongly named "Stratego" instead of "Stratego-Sugar". Also include
