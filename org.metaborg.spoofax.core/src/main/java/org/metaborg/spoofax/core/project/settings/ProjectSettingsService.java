@@ -40,10 +40,15 @@ public class ProjectSettingsService implements IProjectSettingsService {
     @Override public @Nullable IProjectSettings get(FileObject location) {
         try {
             final FileObject settingsFile = location.resolveFile("metaborg.generated.yaml");
+            if(!settingsFile.exists()) {
+                return null;
+            }
             final IProjectSettings settings = YAMLProjectSettingsSerializer.read(settingsFile);
             return settings;
         } catch(IOException e) {
-            logger.warn("Reading settings file {}/src-gen/metaborg.generated.yaml failed unexpectedly", location);
+            final String message =
+                String.format("Reading settings file %s/src-gen/metaborg.generated.yaml failed unexpectedly", location);
+            logger.warn(message, e);
             return null;
         }
     }

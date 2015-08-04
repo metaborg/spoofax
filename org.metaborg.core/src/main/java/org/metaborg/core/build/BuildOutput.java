@@ -63,6 +63,22 @@ public class BuildOutput<P, A, T> implements IBuildOutput<P, A, T> {
         return extraMessages;
     }
 
+    @Override public Iterable<IMessage> allMessages() {
+        final Collection<IMessage> messages = Lists.newLinkedList();
+        for(ParseResult<P> result : parseResults) {
+            Iterables.addAll(messages, result.messages);
+        }
+        for(AnalysisResult<P, A> result : analysisResults) {
+            for(AnalysisFileResult<P, A> fileResult : result.fileResults) {
+                Iterables.addAll(messages, fileResult.messages);
+            }
+        }
+        for(TransformResult<AnalysisFileResult<P, A>, T> result : transformResults) {
+            Iterables.addAll(messages, result.messages);
+        }
+        return messages;
+    }
+
 
     public void add(Iterable<FileName> removedResources, Iterable<FileName> includedResources,
         Iterable<FileObject> changedResources, Iterable<ParseResult<P>> parseResults,

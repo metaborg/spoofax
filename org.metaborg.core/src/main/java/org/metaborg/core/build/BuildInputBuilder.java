@@ -10,8 +10,10 @@ import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
+import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.transform.ITransformerGoal;
@@ -34,7 +36,7 @@ public class BuildInputBuilder {
 
     private BuildState state;
 
-    private Collection<ILanguageImpl> languages;
+    private Set<ILanguageImpl> languages;
     private boolean addDependencyLanguages;
 
     private Multimap<ILanguageImpl, FileObject> includePaths;
@@ -69,7 +71,7 @@ public class BuildInputBuilder {
      */
     public BuildInputBuilder reset() {
         state = null;
-        languages = Lists.newLinkedList();
+        languages = Sets.newHashSet();
         addDependencyLanguages = true;
         includePaths = HashMultimap.create();
         addDefaultIncludePaths = true;
@@ -98,15 +100,15 @@ public class BuildInputBuilder {
     }
 
     /**
-     * Sets the languages to given languagues.
+     * Sets the languages to given languague implementations.
      */
-    public BuildInputBuilder withLanguages(Collection<ILanguageImpl> languages) {
+    public BuildInputBuilder withLanguages(Set<ILanguageImpl> languages) {
         this.languages = languages;
         return this;
     }
 
     /**
-     * Adds given languages.
+     * Adds given language implementations.
      */
     public BuildInputBuilder addLanguages(Iterable<? extends ILanguageImpl> languages) {
         Iterables.addAll(this.languages, languages);
@@ -114,10 +116,34 @@ public class BuildInputBuilder {
     }
 
     /**
-     * Adds a single language.
+     * Adds a single language implementation.
      */
     public BuildInputBuilder addLanguage(ILanguageImpl language) {
         this.languages.add(language);
+        return this;
+    }
+
+    /**
+     * Sets the languages from given language components.
+     */
+    public BuildInputBuilder withComponents(Iterable<ILanguageComponent> components) {
+        withLanguages(LanguageUtils.toImpls(components));
+        return this;
+    }
+
+    /**
+     * Adds languages from given language components.
+     */
+    public BuildInputBuilder addComponents(Iterable<? extends ILanguageComponent> components) {
+        addLanguages(LanguageUtils.toImpls(components));
+        return this;
+    }
+
+    /**
+     * Adds languages from given language component.
+     */
+    public BuildInputBuilder addComponent(ILanguageComponent component) {
+        addLanguages(component.contributesTo());
         return this;
     }
 

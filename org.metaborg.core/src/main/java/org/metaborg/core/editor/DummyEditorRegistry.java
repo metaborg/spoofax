@@ -4,6 +4,11 @@ import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Dummy editor registry that gets bound by default, to display sane warnings when nothing else is bound to
+ * {@link IEditorRegistry}. Replace with working implementation or bind {@link NullEditorRegistry} to disable the
+ * warning.
+ */
 public class DummyEditorRegistry implements IEditorRegistry {
     private static final Logger logger = LoggerFactory.getLogger(DummyEditorRegistry.class);
 

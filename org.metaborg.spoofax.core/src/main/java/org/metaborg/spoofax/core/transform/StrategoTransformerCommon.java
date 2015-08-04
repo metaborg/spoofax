@@ -20,6 +20,7 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.terms.TermPrettyPrinter;
 import org.metaborg.util.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +30,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
-import org.strategoxt.lang.Context;
-import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
-import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
-import org.strategoxt.stratego_gpp.box2text_string_0_1;
 
 import com.google.inject.Inject;
 
@@ -47,15 +44,17 @@ public class StrategoTransformerCommon {
     private final ITermFactoryService termFactoryService;
 
     private final StrategoLocalPath localPath;
+    private final TermPrettyPrinter termPrettyPrinter;
 
 
     @Inject public StrategoTransformerCommon(IResourceService resourceService,
         IStrategoRuntimeService strategoRuntimeService, ITermFactoryService termFactoryService,
-        StrategoLocalPath localPath) {
+        StrategoLocalPath localPath, TermPrettyPrinter termPrettyPrinter) {
         this.resourceService = resourceService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.termFactoryService = termFactoryService;
         this.localPath = localPath;
+        this.termPrettyPrinter = termPrettyPrinter;
     }
 
 
@@ -169,7 +168,7 @@ public class StrategoTransformerCommon {
             if(resultTerm.getTermType() == IStrategoTerm.STRING) {
                 resultContents = ((IStrategoString) resultTerm).stringValue();
             } else {
-                final IStrategoString pp = ppATerm(resultTerm);
+                final IStrategoString pp = termPrettyPrinter.prettyPrint(resultTerm);
                 if(pp != null) {
                     resultContents = pp.stringValue();
                 } else {
@@ -192,21 +191,5 @@ public class StrategoTransformerCommon {
         }
 
         return null;
-    }
-
-    /**
-     * Pretty prints an ATerm.
-     * 
-     * @param term
-     *            ATerm to pretty print.
-     * @return Pretty printed ATerm as a Stratego string.
-     */
-    private IStrategoString ppATerm(IStrategoTerm term) {
-        final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
-        term = aterm_escape_strings_0_0.instance.invoke(context, term);
-        term = pp_aterm_box_0_0.instance.invoke(context, term);
-        term = box2text_string_0_1.instance.invoke(context, term, termFactory.makeInt(120));
-        return (IStrategoString) term;
     }
 }

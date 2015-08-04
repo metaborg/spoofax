@@ -1,10 +1,12 @@
 package org.metaborg.spoofax.core.language;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.ContextFacet;
 import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.language.ILanguageComponent;
@@ -40,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
 import com.google.common.collect.Iterables;
@@ -66,34 +69,39 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
 
-    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws Exception {
-        final Collection<ILanguageComponent> components = Lists.newLinkedList();
-        final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
-        if(esvFiles == null) {
-            return components;
-        }
-        final Set<FileObject> parents = Sets.newHashSet();
-        for(FileObject esvFile : esvFiles) {
-            final FileObject languageLocation = esvFile.getParent().getParent();
-            if(parents.contains(languageLocation)) {
-                logger.error("Found multiple packed ESV files in language directory: " + languageLocation
-                    + ", skipping");
-                continue;
+    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
+        try {
+            final Collection<ILanguageComponent> components = Lists.newLinkedList();
+            final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
+            if(esvFiles == null) {
+                return components;
             }
-            parents.add(languageLocation);
-            components.add(componentFromESV(languageLocation, esvFile));
+            final Set<FileObject> parents = Sets.newHashSet();
+            for(FileObject esvFile : esvFiles) {
+                final FileObject languageLocation = esvFile.getParent().getParent();
+                if(parents.contains(languageLocation)) {
+                    logger.error("Found multiple packed ESV files at: " + languageLocation + ", skipping");
+                    continue;
+                }
+                parents.add(languageLocation);
+                components.add(componentFromESV(languageLocation, esvFile));
+            }
+            return components;
+        } catch(ParseError | IOException e) {
+            final String message = String.format("Discovering language at %s failed unexpectedly", location);
+            throw new MetaborgException(message, e);
         }
-        return components;
     }
 
-    private ILanguageComponent componentFromESV(FileObject location, FileObject esvFile) throws Exception {
+    private ILanguageComponent componentFromESV(FileObject location, FileObject esvFile) throws MetaborgException,
+        ParseError, IOException {
         logger.debug("Discovering language at {}", location);
 
         final TermReader reader =
             new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
         if(term.getTermType() != IStrategoTerm.APPL) {
-            throw new IllegalStateException("Packed ESV file does not contain a valid ESV term");
+            throw new MetaborgException("Packed ESV file does not contain a valid ESV term");
         }
         final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
@@ -110,7 +118,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             languageContributions = Iterables2.<LanguageContributionIdentifier>empty();
         }
         if(Iterables.isEmpty(languageContributions)) {
-            languageContributions = Iterables2.from(new LanguageContributionIdentifier(identifier, languageName(esvTerm)));
+            languageContributions =
+                Iterables2.from(new LanguageContributionIdentifier(identifier, languageName(esvTerm)));
         }
         final LanguageCreationRequest request = languageService.create(identifier, location, languageContributions);
 

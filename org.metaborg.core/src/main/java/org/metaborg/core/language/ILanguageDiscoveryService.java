@@ -1,6 +1,7 @@
 package org.metaborg.core.language;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.MetaborgException;
 
 /**
  * Interface for a language discovery service that finds, and adds all language components found at a certain location
@@ -13,8 +14,10 @@ public interface ILanguageDiscoveryService {
      * @param location
      *            The directory to search in.
      * @return Language components that were discovered and created.
-     * @throws IllegalStateException
+     * @throws MetaborgException
      *             When {@link ILanguageService} throws when adding a language.
+     * @throws MetaborgException
+     *             When discovery fails unexpectedly.
      */
-    public Iterable<ILanguageComponent> discover(FileObject location) throws Exception;
+    public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException;
 }
