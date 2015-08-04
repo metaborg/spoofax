@@ -46,6 +46,7 @@ import org.metaborg.core.transform.ITransformer;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
+import org.metaborg.util.RefBool;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.DefaultFileSelectInfo;
 import org.metaborg.util.resource.FileSelectorUtils;
@@ -162,8 +163,14 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             final Iterable<FileObject> includePaths = input.includePaths.get(language);
             final Iterable<IdentifiedResource> includeFiles = languagePathService.toFiles(includePaths, language);
             final LanguageBuildDiff diff = languageState.diff(changes.get(language), includeFiles);
-            updateLanguageResources(input, language, diff, buildOutput, cancel);
+            final boolean pardoned = input.pardonedLanguages.contains(language);
+            updateLanguageResources(input, language, diff, buildOutput, pardoned, cancel);
             newState.add(language, diff.newState);
+        }
+
+        final IBuildMessagePrinter printer = input.messagePrinter;
+        if(printer != null) {
+            printer.printSummary();
         }
 
         return buildOutput;
@@ -171,7 +178,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
 
     private void updateLanguageResources(BuildInput input, ILanguageImpl language, LanguageBuildDiff diff,
-        BuildOutput<P, A, T> output, ICancellationToken cancel) throws InterruptedException {
+        BuildOutput<P, A, T> output, boolean pardoned, ICancellationToken cancel) throws InterruptedException {
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
@@ -183,6 +190,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         final Collection<FileObject> changedResources = Sets.newHashSet();
         final Set<FileName> removedResources = Sets.newHashSet();
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
+        final RefBool success = new RefBool(true);
 
         logger.debug("Processing {} sources, {} includes of {}", Iterables.size(sourceChanges),
             Iterables.size(includeChanges), language);
@@ -190,11 +198,13 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         // Parse
         cancel.throwIfCancelled();
         final Collection<ParseResult<P>> sourceParseResults =
-            parse(input, language, sourceChanges, changedResources, removedResources, extraMessages, cancel);
+            parse(input, language, sourceChanges, pardoned, changedResources, removedResources, extraMessages, success,
+                cancel);
         // GTODO: when a new context is created, all include files need to be parsed and analyzed in that context, this
         // approach does not do that!
         final Collection<ParseResult<P>> includeParseResults =
-            parse(input, language, includeChanges, changedResources, removedResources, extraMessages, cancel);
+            parse(input, language, includeChanges, pardoned, changedResources, removedResources, extraMessages,
+                success, cancel);
         final Iterable<ParseResult<P>> allParseResults = Iterables.concat(sourceParseResults, includeParseResults);
 
         // Segregate by context
@@ -208,7 +218,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 sourceResultsPerContext.put(context, parseResult);
             } catch(ContextException e) {
                 final String message = String.format("Failed to retrieve context for parse result of %s", resource);
-                printMessage(resource, message, e, input, language);
+                printMessage(resource, message, e, input, pardoned);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
             }
         }
@@ -216,24 +226,24 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         // Analyze
         cancel.throwIfCancelled();
         final Collection<AnalysisResult<P, A>> allAnalysisResults =
-            analyze(input, language, location, sourceResultsPerContext, includeParseResults, removedResources,
-                extraMessages, cancel);
+            analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned, removedResources,
+                extraMessages, success, cancel);
 
         // Compile
         cancel.throwIfCancelled();
         final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
-            compile(input, language, location, allAnalysisResults, includedResources, removedResources, extraMessages,
-                cancel);
+            compile(input, location, allAnalysisResults, includedResources, pardoned, removedResources, extraMessages,
+                success, cancel);
 
-        printMessages(extraMessages, "Something", input, language);
+        printMessages(extraMessages, "Something", input, pardoned);
 
-        output.add(removedResources, includedResources, changedResources, allParseResults, allAnalysisResults,
-            allTransformResults, extraMessages);
+        output.add(success.get(), removedResources, includedResources, changedResources, allParseResults,
+            allAnalysisResults, allTransformResults, extraMessages);
     }
 
     private Collection<ParseResult<P>> parse(BuildInput input, ILanguageImpl language,
-        Iterable<IdentifiedResourceChange> changes, Collection<FileObject> changedResources,
-        Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
+        Iterable<IdentifiedResourceChange> changes, boolean pardoned, Collection<FileObject> changedResources,
+        Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel)
         throws InterruptedException {
         final int size = Iterables.size(changes);
         final Collection<ParseResult<P>> allParseResults = Lists.newArrayListWithCapacity(size);
@@ -266,20 +276,23 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     final String sourceText = sourceTextService.text(resource);
                     parseResultProcessor.invalidate(resource);
                     final ParseResult<P> parseResult = syntaxService.parse(sourceText, resource, parserLanguage, null);
-                    printMessages(parseResult.messages, "Parsing", input, language);
+                    final boolean noErrors = printMessages(parseResult.messages, "Parsing", input, pardoned);
+                    success.and(noErrors);
                     allParseResults.add(parseResult);
                     parseResultProcessor.update(resource, parseResult);
                     changedResources.add(resource);
                 }
             } catch(ParseException e) {
                 final String message = String.format("Parsing failed unexpectedly for %s", resource);
-                printMessage(resource, message, e, input, language);
+                final boolean noErrors = printMessage(resource, message, e, input, pardoned);
+                success.and(noErrors);
                 parseResultProcessor.error(resource, e);
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed unexpectedly", e));
                 changedResources.add(resource);
             } catch(IOException e) {
                 final String message = String.format("Parsing failed unexpectedly for %s", resource);
-                printMessage(resource, message, e, input, language);
+                final boolean noErrors = printMessage(resource, message, e, input, pardoned);
+                success.and(noErrors);
                 parseResultProcessor.error(resource, new ParseException(resource, parserLanguage, e));
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed unexpectedly", e));
                 changedResources.add(resource);
@@ -288,10 +301,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allParseResults;
     }
 
-    private Collection<AnalysisResult<P, A>> analyze(BuildInput input, ILanguageImpl language, FileObject location,
+    private Collection<AnalysisResult<P, A>> analyze(BuildInput input, FileObject location,
         Multimap<IContext, ParseResult<P>> sourceParseResults, Iterable<ParseResult<P>> includeParseResults,
-        Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
-        throws InterruptedException {
+        boolean pardoned, Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success,
+        ICancellationToken cancel) throws InterruptedException {
         final int size = sourceParseResults.size() + Iterables.size(includeParseResults);
         final Collection<AnalysisResult<P, A>> allAnalysisResults = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
@@ -310,7 +323,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     analysisResultProcessor.invalidate(parseResults);
                     final AnalysisResult<P, A> analysisResult = analyzer.analyze(parseResults, context);
                     for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
-                        printMessages(fileResult.messages, "Analysis", input, language);
+                        final boolean noErrors = printMessages(fileResult.messages, "Analysis", input, pardoned);
+                        success.and(noErrors);
                     }
                     analysisResultProcessor.update(analysisResult, removedResources);
                     allAnalysisResults.add(analysisResult);
@@ -318,7 +332,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 // GTODO: also update messages for affected sources
             } catch(AnalysisException e) {
                 final String message = "Analysis failed unexpectedly";
-                printMessage(message, e, input, language);
+                final boolean noErrors = printMessage(message, e, input, pardoned);
+                success.and(noErrors);
                 analysisResultProcessor.error(parseResults, e);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             }
@@ -326,9 +341,9 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allAnalysisResults;
     }
 
-    private Collection<TransformResult<AnalysisFileResult<P, A>, T>> compile(BuildInput input, ILanguageImpl language,
-        FileObject location, Iterable<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles,
-        Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
+    private Collection<TransformResult<AnalysisFileResult<P, A>, T>> compile(BuildInput input, FileObject location,
+        Iterable<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles, boolean pardoned,
+        Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel)
         throws InterruptedException {
         int size = 0;
         for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
@@ -370,12 +385,15 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                             }
                             final TransformResult<AnalysisFileResult<P, A>, T> result =
                                 transformer.transform(fileResult, context, goal);
-                            printMessages(result.messages, goal + " transformation", input, language);
+                            final boolean noErrors =
+                                printMessages(result.messages, goal + " transformation", input, pardoned);
+                            success.and(noErrors);
                             allTransformResults.add(result);
                         }
                     } catch(TransformerException e) {
                         final String message = String.format("Transformation failed unexpectedly for %s", name);
-                        printMessage(resource, message, e, input, language);
+                        final boolean noErrors = printMessage(resource, message, e, input, pardoned);
+                        success.and(noErrors);
                         extraMessages.add(MessageFactory.newBuilderErrorAtTop(location,
                             "Transformation failed unexpectedly", e));
                     }
@@ -386,9 +404,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allTransformResults;
     }
 
-    private void printMessages(Iterable<IMessage> messages, String phase, BuildInput input, ILanguageImpl language) {
-        final boolean pardoned = input.pardonedLanguages.contains(language);
-
+    private boolean printMessages(Iterable<IMessage> messages, String phase, BuildInput input, boolean pardoned) {
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             for(IMessage message : messages) {
@@ -396,15 +412,15 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             }
         }
 
-        if(input.throwOnErrors && !pardoned && MessageUtils.containsSeverity(messages, MessageSeverity.ERROR)) {
+        final boolean failed = !pardoned && MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
+        if(input.throwOnErrors && failed) {
             throw new MetaborgRuntimeException(phase + " produced errors");
         }
+        return !failed;
     }
 
-    private void printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
-        ILanguageImpl language) {
-        final boolean pardoned = input.pardonedLanguages.contains(language);
-
+    private boolean printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
+        boolean pardoned) {
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(resource, message, e, pardoned);
@@ -413,11 +429,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         if(input.throwOnErrors && !pardoned) {
             throw new MetaborgRuntimeException(message, e);
         }
+        return pardoned;
     }
 
-    private void printMessage(String message, @Nullable Throwable e, BuildInput input, ILanguageImpl language) {
-        final boolean pardoned = input.pardonedLanguages.contains(language);
-
+    private boolean printMessage(String message, @Nullable Throwable e, BuildInput input, boolean pardoned) {
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(input.project, message, e, pardoned);
@@ -426,6 +441,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         if(input.throwOnErrors && !pardoned) {
             throw new MetaborgRuntimeException(message, e);
         }
+        return pardoned;
     }
 
 
@@ -435,8 +451,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         logger.debug("Cleaning " + location);
 
         try {
-            final FileSelector selector =
-                FileSelectorUtils.and(new AllLanguagesFileSelector(languageIdentifier), input.selector);
+            final FileSelector selector;
+            if(input.selector == null) {
+                selector = new AllLanguagesFileSelector(languageIdentifier);
+            } else {
+                selector = FileSelectorUtils.and(new AllLanguagesFileSelector(languageIdentifier), input.selector);
+            }
             final FileObject[] resources = location.findFiles(selector);
             final Set<IContext> contexts =
                 ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);

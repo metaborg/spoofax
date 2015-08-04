@@ -39,4 +39,9 @@ public interface IBuildMessagePrinter {
      *            Exception to print, or null if there is no exception.
      */
     public abstract void print(IProject project, String message, @Nullable Throwable e, boolean pardoned);
+
+    /**
+     * Prints a summary based on printed messages before.
+     */
+    public void printSummary();
 }

@@ -24,6 +24,11 @@ import org.metaborg.core.transform.TransformResult;
  */
 public interface IBuildOutput<P, A, T> {
     /**
+     * @return If the build was successful.
+     */
+    public abstract boolean success();
+
+    /**
      * @return State produced by the build.
      */
     public abstract BuildState state();

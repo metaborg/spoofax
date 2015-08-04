@@ -67,24 +67,26 @@ public class JSGLRParseErrorHandler {
 
     public void gatherNonFatalErrors(IStrategoTerm top) {
         final ITokenizer tokenizer = getTokenizer(top);
-        for(int i = 0, max = tokenizer.getTokenCount(); i < max; i++) {
-            final IToken token = tokenizer.getTokenAt(i);
-            final String error = token.getError();
-            if(error != null) {
-                if(error == ITokenizer.ERROR_SKIPPED_REGION) {
-                    i = findRightMostWithSameError(token, null);
-                    reportSkippedRegion(token, tokenizer.getTokenAt(i));
-                } else if(error.startsWith(ITokenizer.ERROR_WARNING_PREFIX)) {
-                    i = findRightMostWithSameError(token, null);
-                    reportWarningAtTokens(token, tokenizer.getTokenAt(i), error);
-                } else if(error.startsWith(ITokenizer.ERROR_WATER_PREFIX)) {
-                    i = findRightMostWithSameError(token, ITokenizer.ERROR_WATER_PREFIX);
-                    reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
-                } else {
-                    i = findRightMostWithSameError(token, null);
-                    // UNDONE: won't work for multi-token errors (as seen in
-                    // SugarJ)
-                    reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
+        if(tokenizer != null) {
+            for(int i = 0, max = tokenizer.getTokenCount(); i < max; i++) {
+                final IToken token = tokenizer.getTokenAt(i);
+                final String error = token.getError();
+                if(error != null) {
+                    if(error == ITokenizer.ERROR_SKIPPED_REGION) {
+                        i = findRightMostWithSameError(token, null);
+                        reportSkippedRegion(token, tokenizer.getTokenAt(i));
+                    } else if(error.startsWith(ITokenizer.ERROR_WARNING_PREFIX)) {
+                        i = findRightMostWithSameError(token, null);
+                        reportWarningAtTokens(token, tokenizer.getTokenAt(i), error);
+                    } else if(error.startsWith(ITokenizer.ERROR_WATER_PREFIX)) {
+                        i = findRightMostWithSameError(token, ITokenizer.ERROR_WATER_PREFIX);
+                        reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
+                    } else {
+                        i = findRightMostWithSameError(token, null);
+                        // UNDONE: won't work for multi-token errors (as seen in
+                        // SugarJ)
+                        reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
+                    }
                 }
             }
         }
