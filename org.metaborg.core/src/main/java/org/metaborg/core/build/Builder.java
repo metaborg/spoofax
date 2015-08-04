@@ -23,8 +23,8 @@ import org.metaborg.core.context.ContextUtils;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.AllLanguagesFileSelector;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
@@ -387,38 +387,43 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private void printMessages(Iterable<IMessage> messages, String phase, BuildInput input, ILanguageImpl language) {
+        final boolean pardoned = input.pardonedLanguages.contains(language);
+
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             for(IMessage message : messages) {
-                printer.print(message);
+                printer.print(message, pardoned);
             }
         }
 
-        if(input.throwOnErrors && !input.pardonedLanguages.contains(language)
-            && MessageUtils.containsSeverity(messages, MessageSeverity.ERROR)) {
+        if(input.throwOnErrors && !pardoned && MessageUtils.containsSeverity(messages, MessageSeverity.ERROR)) {
             throw new MetaborgRuntimeException(phase + " produced errors");
         }
     }
 
     private void printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
         ILanguageImpl language) {
+        final boolean pardoned = input.pardonedLanguages.contains(language);
+
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
-            printer.print(resource, message, e);
+            printer.print(resource, message, e, pardoned);
         }
 
-        if(input.throwOnErrors && !input.pardonedLanguages.contains(language)) {
+        if(input.throwOnErrors && !pardoned) {
             throw new MetaborgRuntimeException(message, e);
         }
     }
 
     private void printMessage(String message, @Nullable Throwable e, BuildInput input, ILanguageImpl language) {
+        final boolean pardoned = input.pardonedLanguages.contains(language);
+
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
-            printer.print(input.project, message, e);
+            printer.print(input.project, message, e, pardoned);
         }
 
-        if(input.throwOnErrors && !input.pardonedLanguages.contains(language)) {
+        if(input.throwOnErrors && !pardoned) {
             throw new MetaborgRuntimeException(message, e);
         }
     }

@@ -21,9 +21,9 @@ import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.util.log.LoggingOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.Level;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.PrintStreamWriter;
@@ -51,12 +51,12 @@ public class ResourceAgent extends IOAgent {
 
     private final Map<Integer, ResourceHandle> openFiles = Maps.newHashMap();
 
-    private final Logger stdoutLogger = LoggerFactory.getLogger("stdout");
-    private final OutputStream stdout = new LoggingOutputStream(stdoutLogger, false);
+    private final ILogger stdoutLogger = LoggerUtils.logger("stdout");
+    private final OutputStream stdout = LoggerUtils.stream(stdoutLogger, Level.Info);
     private final Writer stdoutWriter = new PrintStreamWriter(new PrintStream(stdout));
 
-    private final Logger stderrLogger = LoggerFactory.getLogger("stderr");
-    private final OutputStream stderr = new LoggingOutputStream(stderrLogger, true);
+    private final ILogger stderrLogger = LoggerUtils.logger("stderr");
+    private final OutputStream stderr = LoggerUtils.stream(stderrLogger, Level.Error);
     private final Writer stderrWriter = new PrintStreamWriter(new PrintStream(stderr));
 
     private FileObject workingDir;

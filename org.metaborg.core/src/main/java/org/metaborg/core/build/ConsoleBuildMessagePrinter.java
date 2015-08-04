@@ -10,30 +10,44 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.source.AffectedSourceHelper;
 import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.Level;
+import org.metaborg.util.log.LoggerUtils;
 
 /**
  * Build message printer implementation that prints detailed messages to a stream.
  */
 public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
     private final ISourceTextService sourceTextService;
-    private final PrintStream stream;
+    private final PrintStream infoStream;
+    private final PrintStream warnStream;
+    private final PrintStream errorStream;
     private final boolean printHighlight;
     private final boolean printExceptions;
 
 
-    public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, OutputStream stream,
-        boolean printHighlight, boolean printExceptions) {
+    public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight,
+        boolean printExceptions, OutputStream infoStream, OutputStream warnStream, OutputStream errorStream) {
         this.sourceTextService = sourceTextService;
-        this.stream = new PrintStream(stream);
+        this.infoStream = new PrintStream(infoStream);
+        this.warnStream = new PrintStream(warnStream);
+        this.errorStream = new PrintStream(errorStream);
         this.printHighlight = printHighlight;
         this.printExceptions = printExceptions;
     }
 
+    public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight,
+        boolean printExceptions, ILogger logger) {
+        this(sourceTextService, printHighlight, printExceptions, LoggerUtils.stream(logger, Level.Info), LoggerUtils
+            .stream(logger, Level.Warn), LoggerUtils.stream(logger, Level.Error));
+    }
 
-    @Override public void print(IMessage message) {
+
+    @Override public void print(IMessage message, boolean pardoned) {
         final StringBuilder sb = new StringBuilder();
 
         sb.append(message.severity());
@@ -54,29 +68,30 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
             }
         }
 
-        print(sb, message.message(), message.exception());
+        print(sb, message.message(), message.exception(), message.severity(), pardoned);
     }
 
-    @Override public void print(FileObject source, String message, @Nullable Throwable e) {
+    @Override public void print(FileObject source, String message, @Nullable Throwable e, boolean pardoned) {
         final StringBuilder sb = new StringBuilder();
         sb.append("EXCEPTION in ");
         sb.append(source.getName().getPath());
         sb.append('\n');
 
-        print(sb, message, e);
+        print(sb, message, e, MessageSeverity.ERROR, pardoned);
     }
 
-    @Override public void print(IProject project, String message, @Nullable Throwable e) {
+    @Override public void print(IProject project, String message, @Nullable Throwable e, boolean pardoned) {
         final StringBuilder sb = new StringBuilder();
         sb.append("EXCEPTION in project ");
         sb.append(project.location().getName().getPath());
         sb.append('\n');
 
-        print(sb, message, e);
+        print(sb, message, e, MessageSeverity.ERROR, pardoned);
     }
 
 
-    private void print(StringBuilder sb, String message, @Nullable Throwable e) {
+    private void print(StringBuilder sb, String message, @Nullable Throwable e, MessageSeverity severity,
+        boolean pardoned) {
         sb.append(message);
         sb.append('\n');
 
@@ -92,12 +107,26 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         }
 
         sb.append('\n');
-        print(sb);
-    }
 
-    private void print(StringBuilder sb) {
         final String str = sb.toString();
-        stream.print(str);
-        stream.flush();
+        if(pardoned) {
+            infoStream.print(str);
+            infoStream.flush();
+        } else {
+            switch(severity) {
+                case NOTE:
+                    infoStream.print(str);
+                    infoStream.flush();
+                    break;
+                case WARNING:
+                    warnStream.print(str);
+                    warnStream.flush();
+                    break;
+                case ERROR:
+                    errorStream.print(str);
+                    errorStream.flush();
+                    break;
+            }
+        }
     }
 }
