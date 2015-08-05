@@ -56,7 +56,7 @@ public class ResourceAgent extends IOAgent {
     private final Writer stdoutWriter = new PrintStreamWriter(new PrintStream(stdout));
 
     private final ILogger stderrLogger = LoggerUtils.logger("stderr");
-    private final OutputStream stderr = LoggerUtils.stream(stderrLogger, Level.Error);
+    private final OutputStream stderr = LoggerUtils.stream(stderrLogger, Level.Info);
     private final Writer stderrWriter = new PrintStreamWriter(new PrintStream(stderr));
 
     private FileObject workingDir;
