@@ -229,11 +229,16 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned, removedResources,
                 extraMessages, success, cancel);
 
-        // Compile
+        // Transform
         cancel.throwIfCancelled();
-        final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
-            compile(input, location, allAnalysisResults, includedResources, pardoned, removedResources, extraMessages,
-                success, cancel);
+        final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults;
+        if(input.transform) {
+            allTransformResults =
+                transform(input, location, allAnalysisResults, includedResources, pardoned, removedResources,
+                    extraMessages, success, cancel);
+        } else {
+            allTransformResults = Lists.newLinkedList();
+        }
 
         printMessages(extraMessages, "Something", input, pardoned);
 
@@ -341,7 +346,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allAnalysisResults;
     }
 
-    private Collection<TransformResult<AnalysisFileResult<P, A>, T>> compile(BuildInput input, FileObject location,
+    private Collection<TransformResult<AnalysisFileResult<P, A>, T>> transform(BuildInput input, FileObject location,
         Iterable<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles, boolean pardoned,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel)
         throws InterruptedException {

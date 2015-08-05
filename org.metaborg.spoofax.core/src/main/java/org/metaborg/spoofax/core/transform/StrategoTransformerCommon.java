@@ -163,19 +163,7 @@ public class StrategoTransformerCommon {
             logger.error("First term of result tuple {} is not a string, cannot write output file");
         } else {
             final String resourceString = Tools.asJavaString(resourceTerm);
-            final IStrategoTerm resultTerm = result.getSubterm(1);
-            final String resultContents;
-            if(resultTerm.getTermType() == IStrategoTerm.STRING) {
-                resultContents = ((IStrategoString) resultTerm).stringValue();
-            } else {
-                final IStrategoString pp = termPrettyPrinter.prettyPrint(resultTerm);
-                if(pp != null) {
-                    resultContents = pp.stringValue();
-                } else {
-                    logger.error("Could not pretty print ATerm, falling back to non-pretty printed ATerm");
-                    resultContents = resultTerm.toString();
-                }
-            }
+            final String resultContents = resultToString(result);
 
             try {
                 final FileObject resource = location.resolveFile(resourceString);
@@ -191,5 +179,20 @@ public class StrategoTransformerCommon {
         }
 
         return null;
+    }
+
+    public String resultToString(IStrategoTerm result) {
+        final IStrategoTerm resultTerm = result.getSubterm(1);
+        if(resultTerm.getTermType() == IStrategoTerm.STRING) {
+            return ((IStrategoString) resultTerm).stringValue();
+        } else {
+            final IStrategoString pp = termPrettyPrinter.prettyPrint(resultTerm);
+            if(pp != null) {
+                return pp.stringValue();
+            } else {
+                logger.error("Could not pretty print ATerm, falling back to non-pretty printed ATerm");
+                return resultTerm.toString();
+            }
+        }
     }
 }
