@@ -202,36 +202,36 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         if(exceptions == 0 || exceptions > 1) {
             sb.append('s');
         }
-        sb.append(", ");
         if(exceptionsPardoned > 0) {
             sb.append(" [");
             sb.append(exceptionsPardoned);
             sb.append(" pardoned]");
         }
+        sb.append(", ");
         
         sb.append(errors);
         sb.append(" error");
         if(errors == 0 || errors > 1) {
             sb.append('s');
         }
-        sb.append(", ");
         if(errorsPardoned > 0) {
             sb.append(" [");
             sb.append(errorsPardoned);
             sb.append(" pardoned]");
         }
+        sb.append(", ");
         
         sb.append(warnings);
         sb.append(" warning");
         if(warnings == 0 || warnings > 1) {
             sb.append('s');
         }
-        sb.append(", ");
         if(warningsPardoned > 0) {
             sb.append(" [");
             sb.append(warningsPardoned);
             sb.append(" pardoned]");
         }
+        sb.append(", ");
         
         sb.append(notes);
         sb.append(" note");
