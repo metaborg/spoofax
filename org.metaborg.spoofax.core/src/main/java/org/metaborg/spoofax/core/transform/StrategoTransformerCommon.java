@@ -182,6 +182,9 @@ public class StrategoTransformerCommon {
     }
 
     public String resultToString(IStrategoTerm result) {
+        if(result.getSubtermCount() == 0) {
+            return "";
+        }
         final IStrategoTerm resultTerm = result.getSubterm(1);
         if(resultTerm.getTermType() == IStrategoTerm.STRING) {
             return ((IStrategoString) resultTerm).stringValue();
