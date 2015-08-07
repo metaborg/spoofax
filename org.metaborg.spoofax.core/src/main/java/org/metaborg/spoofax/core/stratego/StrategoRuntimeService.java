@@ -4,7 +4,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,7 +28,10 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
-import org.strategoxt.strc.parse_stratego_file_0_0;
+import org.strategoxt.lang.Context;
+import org.strategoxt.lang.LibraryInitializer;
+import org.strategoxt.lang.LibraryInitializer.InitializerSetEntry;
+import org.strategoxt.lang.RegisteringStrategy;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -95,10 +100,22 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
         for(IOperatorRegistry library : strategoLibraries) {
             interpreter.getCompiledContext().addOperatorRegistry(library);
         }
-
+        
         // Override parse Stratego file strategy with one that works with Spoofax core.
-        parse_stratego_file_0_0.instance = parseStrategoFileStrategy;
+        interpreter.getCompiledContext().getStrategyCollector().addLibraryInitializers(Arrays.asList(new InitializerSetEntry(new LibraryInitializer() {
 
+			@Override
+			protected List<RegisteringStrategy> getLibraryStrategies() {
+				return Arrays.<RegisteringStrategy>asList(parseStrategoFileStrategy);
+			}
+
+			@Override
+			protected void initializeLibrary(Context context) {
+				// TODO Auto-generated method stub
+				
+			}
+        	
+        })));
         return interpreter;
     }
 

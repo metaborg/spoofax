@@ -47,8 +47,6 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.HybridInterpreter;
-import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
-import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.lang.Context;
 
 import com.google.common.collect.Iterables;
@@ -393,9 +391,8 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final Collection<IMessage> result = new ArrayList<IMessage>(msgs.getSubtermCount());
 
         // HACK: init sdf2shit and flatten the messages list.
-        final Context context = new Context();
-        sdf2imp.init(context);
-        final IStrategoTerm processedMsgs = postprocess_feedback_results_0_0.instance.invoke(context, msgs);
+        final Context context = org.strategoxt.imp.generator.sdf2imp.sdf2imp.init();
+        final IStrategoTerm processedMsgs = context.getStrategyCollector().getStrategyExecutor("postprocess_feedback_results_0_0").invoke(context, msgs);
 
         for(IStrategoTerm msg : processedMsgs.getAllSubterms()) {
             final IStrategoTerm term;

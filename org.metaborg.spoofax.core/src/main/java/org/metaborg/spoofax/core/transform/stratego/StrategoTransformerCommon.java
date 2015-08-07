@@ -29,9 +29,6 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
-import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
-import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
-import org.strategoxt.stratego_gpp.box2text_string_0_1;
 
 import com.google.inject.Inject;
 
@@ -201,9 +198,9 @@ public class StrategoTransformerCommon {
     private IStrategoString ppATerm(IStrategoTerm term) {
         final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
         final ITermFactory termFactory = termFactoryService.getGeneric();
-        term = aterm_escape_strings_0_0.instance.invoke(context, term);
-        term = pp_aterm_box_0_0.instance.invoke(context, term);
-        term = box2text_string_0_1.instance.invoke(context, term, termFactory.makeInt(120));
+        term = context.getStrategyCollector().getStrategyExecutor("aterm_escape_strings_0_0").invoke(context, term);
+        term = context.getStrategyCollector().getStrategyExecutor("pp_aterm_box_0_0").invoke(context, term);
+        term = context.getStrategyCollector().getStrategyExecutor("box2text_string_0_1").invoke(context, term, termFactory.makeInt(120));
         return (IStrategoString) term;
     }
 }
