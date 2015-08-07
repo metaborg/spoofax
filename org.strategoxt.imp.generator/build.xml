@@ -112,8 +112,8 @@
 				<arg value=".cache" />
 				<arg value="--verbose" />
 				<arg value="2" />
-				<arg value="-O" />
-				<arg value="3" />
+			<!--	<arg value="-O" />
+				<arg value="3" /> Not supported by separate compilation -->
 				<arg value="-m" />
 				<arg value="main-sdf2imp" />
 				<arg value="-la" />
