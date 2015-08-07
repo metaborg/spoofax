@@ -1,4 +1,11 @@
-module check-validity
+module sdf2imp/services/check-validity
+
+imports 
+	
+	libstratego-lib
+	Stratego-Sdf2
+	sdf2imp/services/common
+
 
 signature constructors
 

@@ -5,6 +5,9 @@ imports
   
   sdf2imp/util/-
   sdf2imp/services/ast-form-heuristic
+  sdf2imp/services/common
+  sdf2imp/main
+  sdf2imp/lib/debug
   
 strategies
 

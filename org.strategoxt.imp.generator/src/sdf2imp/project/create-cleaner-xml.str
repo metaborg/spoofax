@@ -2,6 +2,8 @@ module sdf2imp/project/create-cleaner-xml
     
 imports
   sdf2imp/util/-
+  sdf2imp/options
+  libtools
 
 strategies
 

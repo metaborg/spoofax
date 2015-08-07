@@ -2,10 +2,13 @@ module sdf2imp/services/create-outliner-descriptor
 
 imports
   libstratego-lib
+  libtools
   
   sdf2imp/util/-
   sdf2imp/services/common
   sdf2imp/services/ast-form-heuristic
+  sdf2imp/lib/debug
+  sdf2imp/main
 
 strategies
 

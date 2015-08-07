@@ -2,6 +2,9 @@ module sdf2imp/project/create-project-file
     
 imports
   sdf2imp/util/-
+  sdf2imp/options
+  sdf2imp/project/create-builder-xml
+  sdf2imp/project/create-cleaner-xml
 
 strategies
 

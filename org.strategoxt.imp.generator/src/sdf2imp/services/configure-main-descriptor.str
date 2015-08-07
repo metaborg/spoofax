@@ -2,8 +2,14 @@ module sdf2imp/services/configure-main-descriptor
 
 imports
   libstratego-lib
+  libtools
   
   sdf2imp/util/-
+  sdf2imp/options
+  sdf2imp/lib/debug
+  sdf2imp/services/create-main-descriptor
+  
+  EditorService
 
 strategies
 

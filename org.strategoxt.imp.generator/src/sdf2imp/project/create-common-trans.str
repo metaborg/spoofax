@@ -2,6 +2,8 @@ module sdf2imp/project/create-common-trans
 
 imports
   sdf2imp/util/-
+  sdf2imp/project/create-example-trans
+  libtools
 
 strategies
 

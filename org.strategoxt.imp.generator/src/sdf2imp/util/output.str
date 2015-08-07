@@ -4,6 +4,7 @@ imports
   libstratego-gpp
   libstratego-sglr
   libjava-front
+  libstratego-xtc
   
   sdf2imp/lib/-
 

@@ -1,7 +1,16 @@
 module sdf2imp/project/create-example-trans
 
 imports
+  libstratego-lib
+  libtools
+  libstratcgo-xtc
+  sdf2imp/services/configure-main-descriptor
   sdf2imp/util/-
+  sdf2imp/project/create-parse-table
+  sdf2imp/main
+  Stratego-Sdf2
+  sdf2imp/options
+  
 
 strategies
 

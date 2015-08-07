@@ -1,7 +1,8 @@
-module project/create-maven-pom
+module sdf2imp/project/create-maven-pom
 
 imports
   sdf2imp/util/-
+  sdf2imp/options
 
 strategies
 

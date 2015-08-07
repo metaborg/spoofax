@@ -2,6 +2,8 @@ module sdf2imp/project/copy-jars
 
 imports
   libstratego-lib
+  sdf2imp/options
+  sdf2imp/lib/debug
 
 strategies
   

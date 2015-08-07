@@ -2,6 +2,9 @@ module sdf2imp/project/create-example-file
     
 imports
   sdf2imp/util/-
+  sdf2imp/options
+  sdf2imp/services/configure-main-descriptor
+  libtools
 
 strategies
 

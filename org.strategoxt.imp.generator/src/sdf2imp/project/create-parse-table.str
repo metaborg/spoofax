@@ -3,6 +3,7 @@ module sdf2imp/project/create-parse-table
 imports
   libstratego-lib
   libstratego-xtc
+  libtools
   
   EditorService
   
@@ -10,6 +11,7 @@ imports
   sdf2imp/services/-
   sdf2imp/util/-
   sdf2imp/lib/-
+  sdf2imp/options
 
 strategies
   

@@ -4,7 +4,11 @@ imports
   libstratego-gpp
   libstratego-sglr
   
+  EditorService
+  
   sdf2imp/lib/-
+  sdf2imp/services/common
+  sdf2imp/services/configure-main-descriptor
 
 strategies
 

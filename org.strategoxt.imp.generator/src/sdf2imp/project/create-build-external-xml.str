@@ -1,9 +1,10 @@
-module project/create-build-external-xml
+module sdf2imp/project/create-build-external-xml
 
 imports
   sdf2imp/options
   sdf2imp/util/-
   sdf2imp/project/create-example-trans
+  libtools
 
 strategies
 	

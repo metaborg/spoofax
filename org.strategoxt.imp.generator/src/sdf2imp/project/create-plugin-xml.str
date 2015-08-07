@@ -1,7 +1,11 @@
-module project/create-plugin-xml
+module sdf2imp/project/create-plugin-xml
 
 imports
   sdf2imp/util/-
+  sdf2imp/options
+  sdf2imp/project/create-parse-controller
+  sdf2imp/project/create-validator
+  libtools
 
 strategies
 

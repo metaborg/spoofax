@@ -2,6 +2,7 @@ module sdf2imp/util/class-naming
 
 imports
   libstratego-lib
+  libtools
 
 strategies
 

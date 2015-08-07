@@ -2,9 +2,13 @@ module sdf2imp/services/create-main-descriptor
 
 imports
   libstratego-lib
+  libtools
   
   sdf2imp/util/-
   sdf2imp/project/create-example-trans
+  sdf2imp/options
+  sdf2imp/services/common
+  sdf2imp/main
 
 strategies
 

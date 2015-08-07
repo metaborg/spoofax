@@ -4,6 +4,8 @@ imports
   libstratego-lib
   sdf2imp/util/-
   sdf2imp/services/common
+  Stratego-Java-EditorService
+  
 
 strategies
 

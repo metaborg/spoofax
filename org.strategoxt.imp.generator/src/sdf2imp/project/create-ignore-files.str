@@ -2,6 +2,9 @@ module sdf2imp/project/create-ignore-files
     
 imports
   sdf2imp/util/-
+  sdf2imp/options
+  libtools
+  sdf2imp/project/create-example-trans
 
 strategies
 

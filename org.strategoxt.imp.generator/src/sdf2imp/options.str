@@ -1,4 +1,9 @@
-module sdf2imp/util/options
+module sdf2imp/options
+
+imports libtools
+imports libjava-front
+imports sdf2imp/lib/multi-options
+imports sdf2imp/util/class-naming
 
 strategies
 

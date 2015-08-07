@@ -2,6 +2,10 @@ module sdf2imp/services/ast-form-heuristic
 
 imports
   libstratego-lib
+  libtools
+  
+  EditorService
+  Stratego-rtg
   
   sdf2imp/util/-
   sdf2imp/lib/-
