@@ -463,6 +463,9 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 selector = FileSelectorUtils.and(new AllLanguagesFileSelector(languageIdentifier), input.selector);
             }
             final FileObject[] resources = location.findFiles(selector);
+            if(resources == null) {
+                return;
+            }
             final Set<IContext> contexts =
                 ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);
             for(IContext context : contexts) {
