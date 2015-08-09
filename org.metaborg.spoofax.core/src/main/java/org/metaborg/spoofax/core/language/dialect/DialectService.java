@@ -86,7 +86,7 @@ public class DialectService implements IDialectService {
         }
         logger.debug("Adding dialect {} from {} with {} as base", name, location, base);
 
-        final ILanguageImpl dialect = createDialect(name, location, base, syntaxFacet, true);
+        final ILanguageImpl dialect = createDialect(name, location, base, syntaxFacet, true, true);
 
         nameToDialect.put(name, dialect);
         dialectToBase.put(dialect, base);
@@ -105,7 +105,7 @@ public class DialectService implements IDialectService {
         logger.debug("Updating syntax facet for dialect {}", name);
 
         final FileObject location = Iterables.get(dialect.components(), 0).location();
-        final ILanguageImpl newDialect = createDialect(name, location, dialect, syntaxFacet, false);
+        final ILanguageImpl newDialect = createDialect(name, location, dialect, syntaxFacet, false, false);
 
         nameToDialect.put(name, newDialect);
 
@@ -130,7 +130,7 @@ public class DialectService implements IDialectService {
                 // Add dialect before updating maps, adding can cause an exception; maps should not be updated.
                 // Adding reloads the dialect because location is the same, no need to remove old dialect.
                 // GTODO: what if id's or version change?
-                newDialect = createDialect(name, location, base, syntaxFacet, true);
+                newDialect = createDialect(name, location, base, syntaxFacet, true, true);
             } catch(IllegalStateException e) {
                 final String message = String.format("Error updating dialect %s", name);
                 logger.error(message, e);
@@ -196,9 +196,16 @@ public class DialectService implements IDialectService {
 
 
     private ILanguageImpl createDialect(String name, FileObject location, ILanguageImpl base, IFacet syntaxFacet,
-        boolean replaceIdentification) {
+        boolean replaceIdentification, boolean appendDialectName) {
+        final LanguageIdentifier baseId = base.id();
+        final String dialectId;
+        if(appendDialectName) {
+            dialectId = baseId.id + "-Dialect-" + name;
+        } else {
+            dialectId = baseId.id;
+        }
         final LanguageIdentifier id =
-            new LanguageIdentifier(base.id().groupId, base.id().id + "-" + name, base.id().version);
+            new LanguageIdentifier(baseId.groupId, dialectId, baseId.version);
         final LanguageCreationRequest request =
             languageService.create(id, location, Iterables2.singleton(new LanguageContributionIdentifier(id, name)));
 

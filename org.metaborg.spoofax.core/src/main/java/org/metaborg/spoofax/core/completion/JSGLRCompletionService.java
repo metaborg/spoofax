@@ -35,7 +35,7 @@ public class JSGLRCompletionService implements ICompletionService {
 
     @Override public Iterable<ICompletion> get(ParseResult<?> parseResult, int position) throws MetaborgException {
         final ILanguageImpl language = parseResult.language;
-        final Iterable<CompletionFacet> facets = language.facets(CompletionFacet.class);
+        final Iterable<SyntacticCompletionFacet> facets = language.facets(SyntacticCompletionFacet.class);
         if(Iterables.isEmpty(facets)) {
             final String message =
                 String.format("Cannot get completions of %s, it does not have a completion facet", language);
@@ -61,7 +61,7 @@ public class JSGLRCompletionService implements ICompletionService {
         final int stateId = lastState.stateNumber;
         
         final Collection<ICompletion> completions = Lists.newLinkedList();
-        for(CompletionFacet facet : facets) {
+        for(SyntacticCompletionFacet facet : facets) {
             final Iterable<CompletionDefinition> completionDefinitions = facet.get(stateId);
             for(CompletionDefinition completionDefinition : completionDefinitions) {
                 completions.add(new Completion(completionDefinition.items));

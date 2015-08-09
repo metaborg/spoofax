@@ -114,7 +114,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
     private void loadFiles(HybridInterpreter runtime, ILanguageComponent component) throws MetaborgException {
-        final StrategoFacet facet = component.facet(StrategoFacet.class);
+        final StrategoRuntimeFacet facet = component.facet(StrategoRuntimeFacet.class);
         if(facet == null) {
             final String message =
                 String.format("Cannot get Stratego runtime for %s, it does not have a Stratego facet", component);
@@ -123,11 +123,11 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         }
 
         // Order is important, load CTrees first.
-        final Iterable<FileObject> ctrees = facet.ctreeFiles();
+        final Iterable<FileObject> ctrees = facet.ctreeFiles;
         if(Iterables.size(ctrees) > 0) {
             loadCtrees(runtime, ctrees);
         }
-        final Iterable<FileObject> jars = facet.jarFiles();
+        final Iterable<FileObject> jars = facet.jarFiles;
         if(Iterables.size(jars) > 0) {
             loadJars(runtime, jars);
         }

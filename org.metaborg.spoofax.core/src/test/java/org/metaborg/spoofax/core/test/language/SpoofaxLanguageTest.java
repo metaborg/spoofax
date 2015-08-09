@@ -12,8 +12,10 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.test.language.LanguageServiceTest;
 import org.metaborg.spoofax.core.SpoofaxModule;
-import org.metaborg.spoofax.core.stratego.StrategoFacet;
+import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
+import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
 
 import com.google.common.collect.Iterables;
 
@@ -49,11 +51,17 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
         assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTable);
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
-        final StrategoFacet strategoFacet = impl.facet(StrategoFacet.class);
+        final StrategoRuntimeFacet strategoFacet = impl.facet(StrategoRuntimeFacet.class);
 
-        assertIterableEquals(strategoFacet.ctreeFiles(), resourceService.resolve("res:Entity/include/entity.ctree"));
-        assertIterableEquals(strategoFacet.jarFiles(), resourceService.resolve("res:Entity/include/entity-java.jar"));
-        assertEquals("editor-analyze", strategoFacet.analysisStrategy());
-        assertEquals("editor-save", strategoFacet.onSaveStrategy());
+        assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/include/entity.ctree"));
+        assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/include/entity-java.jar"));
+
+        final AnalysisFacet analysisFacet = impl.facet(AnalysisFacet.class);
+
+        assertEquals("editor-analyze", analysisFacet.strategyName);
+
+        final CompilerFacet compilerFacet = impl.facet(CompilerFacet.class);
+
+        assertEquals("editor-save", compilerFacet.strategyName);
     }
 }

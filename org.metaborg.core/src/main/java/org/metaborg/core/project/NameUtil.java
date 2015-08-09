@@ -6,7 +6,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 
 public class NameUtil {
-    private static final Pattern PART = Pattern.compile("[A-Za-z][A-Za-z0-9]*");
+    private static final Pattern PART = Pattern.compile("[A-Za-z0-9_\\-.]+");
     private static final Pattern NAME = Pattern.compile(PART + "(-" + PART + ")*");
     private static final Pattern ID = Pattern.compile(NAME + "(\\." + NAME + ")*");
 

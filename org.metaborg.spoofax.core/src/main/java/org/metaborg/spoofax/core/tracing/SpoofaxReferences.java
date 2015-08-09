@@ -21,7 +21,6 @@ import org.metaborg.core.tracing.IHoverService;
 import org.metaborg.core.tracing.IReferenceResolver;
 import org.metaborg.core.tracing.Resolution;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -65,15 +64,16 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
     @Override public @Nullable Resolution resolve(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws MetaborgException {
         final ILanguageImpl language = result.context.language();
-        final FacetContribution<StrategoFacet> facetContribution = language.facetContribution(StrategoFacet.class);
+        final FacetContribution<ResolverFacet> facetContribution =
+            language.facetContribution(ResolverFacet.class);
         if(facetContribution == null) {
             logger.error("Cannot resolve reference of {}, it does not have a Stratego facet", language);
             // GTODO: throw exception instead
             return null;
         }
 
-        final StrategoFacet facet = facetContribution.facet;
-        final String resolverStrategy = facet.resolverStrategy();
+        final ResolverFacet facet = facetContribution.facet;
+        final String resolverStrategy = facet.strategyName;
         if(resolverStrategy == null) {
             logger.debug("Cannot resolve reference of {}, it does not have a resolver strategy", language);
             return null;
@@ -121,15 +121,16 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
     @Override public Hover hover(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws MetaborgException {
         final ILanguageImpl language = result.context.language();
-        final FacetContribution<StrategoFacet> facetContribution = language.facetContribution(StrategoFacet.class);
+        final FacetContribution<HoverFacet> facetContribution =
+            language.facetContribution(HoverFacet.class);
         if(facetContribution == null) {
             logger.error("Cannot get hover information for {}, it does not have a Stratego facet", language);
             // GTODO: throw exception instead
             return null;
         }
 
-        final StrategoFacet facet = facetContribution.facet;
-        final String hoverStrategy = facet.hoverStrategy();
+        final HoverFacet facet = facetContribution.facet;
+        final String hoverStrategy = facet.strategyName;
         if(hoverStrategy == null) {
             logger.debug("Cannot get hover information for {}, it does not have a hover strategy", language);
             return null;

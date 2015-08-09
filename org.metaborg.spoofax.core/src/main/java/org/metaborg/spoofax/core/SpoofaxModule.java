@@ -12,6 +12,7 @@ import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
+import org.metaborg.core.menu.IMenuService;
 import org.metaborg.core.processing.IProcessor;
 import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
@@ -44,6 +45,7 @@ import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectProcessor;
+import org.metaborg.spoofax.core.menu.MenuService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessor;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.processing.SpoofaxBlockingProcessor;
@@ -135,6 +137,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindCategorizer();
         bindStyler();
         bindTracing();
+        bindMenu();
     }
 
 
@@ -346,6 +349,10 @@ public class SpoofaxModule extends MetaborgModule {
         bind(new TypeLiteral<IReferenceResolver<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferences.class);
         bind(ISpoofaxHoverService.class).to(SpoofaxReferences.class);
         bind(new TypeLiteral<IHoverService<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferences.class);
+    }
+
+    protected void bindMenu() {
+        bind(IMenuService.class).to(MenuService.class).in(Singleton.class);
     }
 
 

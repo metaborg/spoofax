@@ -5,16 +5,18 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.menu.ActionContribution;
+import org.metaborg.core.menu.IAction;
+import org.metaborg.core.menu.IMenuService;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.NamedGoal;
 import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
-import org.metaborg.spoofax.core.transform.menu.Action;
-import org.metaborg.spoofax.core.transform.menu.MenusFacet;
+import org.metaborg.spoofax.core.menu.MenuFacet;
+import org.metaborg.spoofax.core.menu.StrategoTransformAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -25,25 +27,28 @@ import fj.P;
 import fj.P2;
 
 /**
- * Transformer executor for the {@link NamedGoal} and {@link MenusFacet}.
+ * Transformer executor for the {@link NamedGoal} and {@link MenuFacet}.
  */
 public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     private static final Logger logger = LoggerFactory.getLogger(StrategoNamedTransformer.class);
 
+    private final IMenuService menuService;
+
     private final StrategoTransformerCommon transformer;
 
 
-    @Inject public StrategoNamedTransformer(StrategoTransformerCommon transformer) {
+    @Inject public StrategoNamedTransformer(StrategoTransformerCommon transformer, IMenuService menuService) {
         this.transformer = transformer;
+        this.menuService = menuService;
     }
 
 
     @Override public TransformResult<ParseResult<IStrategoTerm>, IStrategoTerm> transform(
         ParseResult<IStrategoTerm> parseResult, IContext context, ITransformerGoal goal) throws TransformerException {
-        final P2<Action, ILanguageComponent> tuple = action(context.language(), goal);
-        final Action action = tuple._1();
+        final P2<StrategoTransformAction, ILanguageComponent> tuple = action(context.language(), goal);
+        final StrategoTransformAction action = tuple._1();
         final ILanguageComponent component = tuple._2();
-        
+
         final FileObject resource = parseResult.source;
         try {
             final IStrategoTerm inputTerm =
@@ -60,10 +65,10 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     @Override public TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm> transform(
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult, IContext context, ITransformerGoal goal)
         throws TransformerException {
-        final P2<Action, ILanguageComponent> tuple = action(context.language(), goal);
-        final Action action = tuple._1();
+        final P2<StrategoTransformAction, ILanguageComponent> tuple = action(context.language(), goal);
+        final StrategoTransformAction action = tuple._1();
         final ILanguageComponent component = tuple._2();
-        
+
         final FileObject resource = analysisResult.source;
         try {
             final IStrategoTerm inputTerm =
@@ -88,7 +93,7 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     }
 
 
-    private P2<Action, ILanguageComponent> action(ILanguageImpl language, ITransformerGoal goal)
+    private P2<StrategoTransformAction, ILanguageComponent> action(ILanguageImpl language, ITransformerGoal goal)
         throws TransformerException {
         if(!(goal instanceof NamedGoal)) {
             final String message = String.format("Goal %s is not a NamedGoal", goal);
@@ -96,23 +101,28 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
             throw new MetaborgRuntimeException(message);
         }
 
-        final FacetContribution<MenusFacet> facetContribution = language.facetContribution(MenusFacet.class);
-        if(facetContribution == null) {
-            final String message = String.format("No menus facet found for %s", language);
-            logger.error(message);
-            throw new TransformerException(message);
-        }
-        final MenusFacet facet = facetContribution.facet;
-
         final NamedGoal namedGoal = (NamedGoal) goal;
         final String actionName = namedGoal.name;
-        final Action action = facet.action(actionName);
-        if(action == null) {
+        final ActionContribution actionContrib;
+        try {
+            actionContrib = menuService.actionContribution(language, actionName);
+        } catch(MetaborgException e) {
+            throw new TransformerException(e);
+        }
+        
+        if(actionContrib == null) {
             final String message = String.format("Action %s not found in %s", actionName, language);
             logger.error(message);
             throw new TransformerException(message);
         }
 
-        return P.p(action, facetContribution.contributor);
+        final IAction action = actionContrib.action;
+        if(!(action instanceof StrategoTransformAction)) {
+            final String message = String.format("Action %s is not a Stratego transformation action", actionName);
+            logger.error(message);
+            throw new TransformerException(message);
+        }
+
+        return P.p((StrategoTransformAction) action, actionContrib.contributor);
     }
 }

@@ -22,20 +22,27 @@ import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
-import org.metaborg.spoofax.core.completion.CompletionFacet;
-import org.metaborg.spoofax.core.completion.CompletionFacetFromItemSets;
+import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
+import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
+import org.metaborg.spoofax.core.completion.SemanticCompletionFacetFromESV;
+import org.metaborg.spoofax.core.completion.SyntacticCompletionFacet;
+import org.metaborg.spoofax.core.completion.SyntacticCompletionFacetFromItemSets;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.metaborg.spoofax.core.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.stratego.StrategoFacetFromESV;
+import org.metaborg.spoofax.core.menu.MenuFacet;
+import org.metaborg.spoofax.core.menu.MenusFacetFromESV;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.tracing.HoverFacet;
+import org.metaborg.spoofax.core.tracing.ReferencesFacetsFromESV;
+import org.metaborg.spoofax.core.tracing.ResolverFacet;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacetFromESV;
-import org.metaborg.spoofax.core.transform.menu.MenusFacet;
-import org.metaborg.spoofax.core.transform.menu.MenusFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ContainsFileSelector;
 import org.slf4j.Logger;
@@ -74,6 +81,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             final Collection<ILanguageComponent> components = Lists.newLinkedList();
             final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
             if(esvFiles == null) {
+                logger.error("No packed.esv files found at {}", location);
                 return components;
             }
             final Set<FileObject> parents = Sets.newHashSet();
@@ -123,41 +131,76 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         }
         final LanguageCreationRequest request = languageService.create(identifier, location, languageContributions);
 
-        final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
-        final IdentificationFacet identificationFacet =
-            new IdentificationFacet(new ResourceExtensionsIdentifier(extensions));
-        request.addFacet(identificationFacet);
+        final String[] extensions = extensions(esvTerm);
+        if(extensions.length != 0) {
+            final Iterable<String> extensionsIterable = Iterables2.from(extensions);
 
-        final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensions);
-        request.addFacet(resourceExtensionsFacet);
+            final IdentificationFacet identificationFacet =
+                new IdentificationFacet(new ResourceExtensionsIdentifier(extensionsIterable));
+            request.addFacet(identificationFacet);
 
-        // TODO: get facet strategy from language specification. Currently there is no specification yet so always
-        // choose 'project' as the context strategy.
-        final IContextStrategy contextStrategy = contextStrategies.get("project");
-        final ContextFacet contextFacet = new ContextFacet(contextStrategy);
-        request.addFacet(contextFacet);
+            final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensionsIterable);
+            request.addFacet(resourceExtensionsFacet);
+        }
 
         final SyntaxFacet syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
-        request.addFacet(syntaxFacet);
+        if(syntaxFacet != null) {
+            request.addFacet(syntaxFacet);
+        }
 
         final FileObject itemSetsFile = esvFile.getParent().resolveFile("item-sets.aterm");
         if(itemSetsFile.exists()) {
             final IStrategoTerm itemSetsTerm = reader.parseFromStream(itemSetsFile.getContent().getInputStream());
-            final CompletionFacet completionFacet = CompletionFacetFromItemSets.create((IStrategoAppl) itemSetsTerm);
+            final SyntacticCompletionFacet completionFacet =
+                SyntacticCompletionFacetFromItemSets.create((IStrategoAppl) itemSetsTerm);
             request.addFacet(completionFacet);
         }
 
-        final StrategoFacet strategoFacet = StrategoFacetFromESV.create(esvTerm, location);
-        request.addFacet(strategoFacet);
+        final SemanticCompletionFacet semanticCompletionFacet = SemanticCompletionFacetFromESV.create(esvTerm);
+        if(semanticCompletionFacet != null) {
+            request.addFacet(semanticCompletionFacet);
+        }
 
-        final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, identifier);
-        request.addFacet(menusFacet);
+        final StrategoRuntimeFacet strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, location);
+        if(strategoRuntimeFacet != null) {
+            request.addFacet(strategoRuntimeFacet);
+        }
+
+        final AnalysisFacet analysisFacet = AnalysisFacetFromESV.create(esvTerm);
+        if(analysisFacet != null) {
+            request.addFacet(analysisFacet);
+            
+            // TODO: get facet strategy from language specification. Currently there is no specification yet so always
+            // choose 'project' as the context strategy.
+            final IContextStrategy contextStrategy = contextStrategies.get("project");
+            final ContextFacet contextFacet = new ContextFacet(contextStrategy);
+            request.addFacet(contextFacet);
+        }
+
+        final MenuFacet menusFacet = MenusFacetFromESV.create(esvTerm, identifier);
+        if(menusFacet != null) {
+            request.addFacet(menusFacet);
+        }
 
         final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, identifier);
-        request.addFacet(compilerFacet);
+        if(compilerFacet != null) {
+            request.addFacet(compilerFacet);
+        }
 
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
-        request.addFacet(stylerFacet);
+        if(stylerFacet != null) {
+            request.addFacet(stylerFacet);
+        }
+
+        final ResolverFacet resolverFacet = ReferencesFacetsFromESV.createResolver(esvTerm);
+        if(resolverFacet != null) {
+            request.addFacet(resolverFacet);
+        }
+
+        final HoverFacet hoverFacet = ReferencesFacetsFromESV.createHover(esvTerm);
+        if(hoverFacet != null) {
+            request.addFacet(hoverFacet);
+        }
 
         final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
         request.addFacet(languageComponentsFacet);
@@ -179,6 +222,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
     private static String[] extensions(IStrategoAppl document) {
-        return ESVReader.getProperty(document, "Extensions").split(",");
+        return ESVReader.getProperty(document, "Extensions", "").split(",");
     }
 }

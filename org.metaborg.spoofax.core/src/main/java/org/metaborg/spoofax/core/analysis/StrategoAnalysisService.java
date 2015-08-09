@@ -24,7 +24,6 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
@@ -91,15 +90,9 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             sources.add(input.source);
         }
 
-        final FacetContribution<StrategoFacet> facetContribution = language.facetContribution(StrategoFacet.class);
+        final FacetContribution<AnalysisFacet> facetContribution =
+            language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
-            final String message = String.format("Cannot analyze, %s does not have a Stratego facet", language);
-            logger.error(message);
-            throw new AnalysisException(sources, context, message);
-        }
-        final StrategoFacet facet = facetContribution.facet;
-
-        if(facet.analysisStrategy() == null || facet.analysisMode() == null) {
             logger.debug("No analysis required for {}", language);
             final IAnalyzerData data =
                 new StrategoAnalyzerData(Iterables2.<String>empty(), new AnalysisDebugResult(termFactory),
@@ -107,6 +100,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context,
                 Iterables2.<AnalysisFileResult<IStrategoTerm, IStrategoTerm>>empty(), data);
         }
+        final AnalysisFacet facet = facetContribution.facet;
 
         final HybridInterpreter interpreter;
         try {
@@ -115,10 +109,10 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             throw new AnalysisException(sources, context, "Failed to get Stratego interpreter", e);
         }
 
-        final StrategoAnalysisMode mode = facet.analysisMode();
+        final StrategoAnalysisMode mode = facet.mode;
         switch(mode) {
             case SingleAST:
-                return analyzeSingleAST(inputs, sources, context, interpreter, facet.analysisStrategy(), termFactory);
+                return analyzeSingleAST(inputs, sources, context, interpreter, facet.strategyName, termFactory);
             case MultiAST:
                 return analyzeMultiAST(inputs, sources, context, interpreter, "analysis-cmd", termFactory);
             default: {

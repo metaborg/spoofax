@@ -12,8 +12,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
-public class CompletionFacetFromItemSets {
-	public static CompletionFacet create(IStrategoAppl itemSets) {
+public class SyntacticCompletionFacetFromItemSets {
+	public static SyntacticCompletionFacet create(IStrategoAppl itemSets) {
 		// collect itemSets
 		final Iterable<IStrategoAppl> terms = ESVReader.collectTerms(itemSets, "ItemSet");
 
@@ -26,7 +26,7 @@ public class CompletionFacetFromItemSets {
 				completionDefinitionMap.put(state, completionDefinition);
 			}
 		}
-		return new CompletionFacet(completionDefinitionMap);
+		return new SyntacticCompletionFacet(completionDefinitionMap);
 	}
 
 	public static Iterable<CompletionDefinition> completionDefinition(IStrategoAppl term) {
@@ -55,5 +55,4 @@ public class CompletionFacetFromItemSets {
 
 		return completionDefinitions;
 	}
-
 }

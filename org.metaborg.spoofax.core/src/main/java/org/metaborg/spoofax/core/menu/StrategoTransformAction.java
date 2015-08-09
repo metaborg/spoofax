@@ -1,34 +1,35 @@
-package org.metaborg.spoofax.core.transform.menu;
-
-import java.io.Serializable;
+package org.metaborg.spoofax.core.menu;
 
 import javax.annotation.Nullable;
 
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.menu.IAction;
 
-public class Action implements Serializable {
-    private static final long serialVersionUID = 727107590910189637L;
-
+public class StrategoTransformAction implements IAction {
     /**
      * Name of the action.
      */
     public final String name;
+
     /**
      * Identifier of the language of input terms this builder accepts, or null if it accepts any terms.
      */
     public final @Nullable LanguageIdentifier inputLanguageId;
+
     /**
      * Identifier of the language of output terms this builder creates, or null if unknown.
      */
     public final @Nullable LanguageIdentifier outputLanguageId;
+
     /**
      * Name of the Stratego strategy this action executes.
      */
     public final String strategy;
+
     /**
      * Flags for this action.
      */
-    public final ActionFlags flags;
+    public final StrategoTransformActionFlags flags;
 
 
     /**
@@ -45,13 +46,18 @@ public class Action implements Serializable {
      * @param flags
      *            Flags for this action.
      */
-    public Action(String name, @Nullable LanguageIdentifier inputLanguageId,
-        @Nullable LanguageIdentifier outputLanguageId, String strategy, ActionFlags flags) {
+    public StrategoTransformAction(String name, @Nullable LanguageIdentifier inputLanguageId,
+        @Nullable LanguageIdentifier outputLanguageId, String strategy, StrategoTransformActionFlags flags) {
         this.name = name;
         this.inputLanguageId = inputLanguageId;
         this.outputLanguageId = outputLanguageId;
         this.strategy = strategy;
         this.flags = flags;
+    }
+
+
+    @Override public String name() {
+        return name;
     }
 
 

@@ -39,7 +39,7 @@ public class ProjectSettingsService implements IProjectSettingsService {
 
     @Override public @Nullable IProjectSettings get(FileObject location) {
         try {
-            final FileObject settingsFile = location.resolveFile("metaborg.generated.yaml");
+            final FileObject settingsFile = location.resolveFile("src-gen/metaborg.generated.yaml");
             if(!settingsFile.exists()) {
                 return null;
             }

@@ -59,7 +59,7 @@ public class StrategoRuntimeUtils {
     public static @Nullable IStrategoTerm invoke(IStrategoRuntimeService service, ILanguageImpl impl, IContext context,
         IStrategoTerm input, String strategy) throws MetaborgException {
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(StrategoFacet.class) == null) {
+            if(component.facet(StrategoRuntimeFacet.class) == null) {
                 continue;
             }
 

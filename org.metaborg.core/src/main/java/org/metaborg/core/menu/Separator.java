@@ -1,0 +1,7 @@
+package org.metaborg.core.menu;
+
+public class Separator implements IMenuItem {
+    @Override public String name() {
+        return "";
+    }
+}

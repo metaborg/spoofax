@@ -6,11 +6,11 @@ import org.metaborg.core.language.IFacet;
 
 import com.google.common.collect.Multimap;
 
-public class CompletionFacet implements IFacet {
+public class SyntacticCompletionFacet implements IFacet {
     private final Multimap<Integer, CompletionDefinition> completionDefinitions;
 
 
-    public CompletionFacet(Multimap<Integer, CompletionDefinition> completionDefinitions) {
+    public SyntacticCompletionFacet(Multimap<Integer, CompletionDefinition> completionDefinitions) {
         this.completionDefinitions = completionDefinitions;
     }
 
