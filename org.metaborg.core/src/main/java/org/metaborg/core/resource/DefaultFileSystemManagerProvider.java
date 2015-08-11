@@ -10,6 +10,7 @@ import org.apache.commons.vfs2.provider.bzip2.Bzip2FileProvider;
 import org.apache.commons.vfs2.provider.ftp.FtpFileProvider;
 import org.apache.commons.vfs2.provider.ftps.FtpsFileProvider;
 import org.apache.commons.vfs2.provider.gzip.GzipFileProvider;
+import org.apache.commons.vfs2.provider.http.HttpFileProvider;
 import org.apache.commons.vfs2.provider.https.HttpsFileProvider;
 import org.apache.commons.vfs2.provider.jar.JarFileProvider;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
@@ -72,7 +73,7 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
         manager.addProvider("tbz2", new Tbz2FileProvider());
         manager.addProvider("gz", new GzipFileProvider());
         manager.addProvider("bz2", new Bzip2FileProvider());
-        manager.addProvider("http", new HttpsFileProvider());
+        manager.addProvider("http", new HttpFileProvider());
         manager.addProvider("https", new HttpsFileProvider());
         manager.addProvider("webdav", new WebdavFileProvider());
         manager.addProvider("ftp", new FtpFileProvider());
