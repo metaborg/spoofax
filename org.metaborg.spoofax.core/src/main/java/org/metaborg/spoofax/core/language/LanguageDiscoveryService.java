@@ -169,7 +169,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final AnalysisFacet analysisFacet = AnalysisFacetFromESV.create(esvTerm);
         if(analysisFacet != null) {
             request.addFacet(analysisFacet);
-            
+
             // TODO: get facet strategy from language specification. Currently there is no specification yet so always
             // choose 'project' as the context strategy.
             final IContextStrategy contextStrategy = contextStrategies.get("project");
@@ -222,6 +222,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
     private static String[] extensions(IStrategoAppl document) {
-        return ESVReader.getProperty(document, "Extensions", "").split(",");
+        final String extensionsStr = ESVReader.getProperty(document, "Extensions");
+        if(extensionsStr == null) {
+            return new String[0];
+        }
+        return extensionsStr.split(",");
     }
 }

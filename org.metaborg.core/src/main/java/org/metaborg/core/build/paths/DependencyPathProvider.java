@@ -10,7 +10,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.FacetContribution;
-import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.core.project.IProject;
 
@@ -27,9 +27,9 @@ public class DependencyPathProvider implements ILanguagePathProvider {
 
 
     @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) throws MetaborgException {
-        final Iterable<? extends ILanguageImpl> dependencies = dependencyService.compileDependencies(project);
+        final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(project);
         final Collection<FileObject> sources = Lists.newArrayList();
-        for(ILanguageImpl dependency : dependencies) {
+        for(ILanguageComponent dependency : dependencies) {
             final Iterable<LanguagePathFacet> facets = dependency.facets(LanguagePathFacet.class);
             for(LanguagePathFacet facet : facets) {
                 final Collection<String> paths = facet.sources.get(languageName);
@@ -42,9 +42,9 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     }
 
     @Override public Iterable<FileObject> includePaths(IProject project, String languageName) throws MetaborgException {
-        final Iterable<? extends ILanguageImpl> dependencies = dependencyService.runtimeDependencies(project);
+        final Iterable<ILanguageComponent> dependencies = dependencyService.runtimeDependencies(project);
         final Collection<FileObject> includes = Lists.newArrayList();
-        for(ILanguageImpl dependency : dependencies) {
+        for(ILanguageComponent dependency : dependencies) {
             final Iterable<FacetContribution<LanguagePathFacet>> facets =
                 dependency.facetContributions(LanguagePathFacet.class);
             for(FacetContribution<LanguagePathFacet> facetContribution : facets) {

@@ -3,10 +3,10 @@ package org.metaborg.core.build.dependency;
 import java.util.Collection;
 
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.language.ILanguage;
-import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.settings.IProjectSettings;
@@ -32,7 +32,7 @@ public class DependencyService implements IDependencyService {
     }
 
 
-    @Override public Iterable<? extends ILanguageImpl> compileDependencies(IProject project) throws MetaborgException {
+    @Override public Iterable<ILanguageComponent> compileDependencies(IProject project) throws MetaborgException {
         final IProjectSettings settings = projectSettingsService.get(project);
         if(settings != null) {
             final Iterable<LanguageIdentifier> identifiers = settings.compileDependencies();
@@ -42,14 +42,10 @@ public class DependencyService implements IDependencyService {
         logger.trace("No project settings found for project {}, "
             + "using all active languages as compile dependencies", project);
 
-        final Collection<ILanguageImpl> activeImpls = Lists.newLinkedList();
-        for(ILanguage language : languageService.getAllLanguages()) {
-            activeImpls.add(language.activeImpl());
-        }
-        return activeImpls;
+        return LanguageUtils.allActiveComponents(languageService);
     }
 
-    @Override public Iterable<? extends ILanguageImpl> runtimeDependencies(IProject project) throws MetaborgException {
+    @Override public Iterable<ILanguageComponent> runtimeDependencies(IProject project) throws MetaborgException {
         final IProjectSettings settings = projectSettingsService.get(project);
         if(settings != null) {
             final Iterable<LanguageIdentifier> identifiers = settings.runtimeDependencies();
@@ -58,26 +54,26 @@ public class DependencyService implements IDependencyService {
 
         logger.trace("No project settings found for project {}, project will have no runtime dependencies", project);
 
-        return Iterables2.<ILanguageImpl>empty();
+        return Iterables2.empty();
     }
 
-    private Iterable<? extends ILanguageImpl> getLanguages(Iterable<LanguageIdentifier> identifiers)
+    private Iterable<ILanguageComponent> getLanguages(Iterable<LanguageIdentifier> identifiers)
         throws MetaborgException {
-        final Collection<ILanguageImpl> impls = Lists.newLinkedList();
+        final Collection<ILanguageComponent> components = Lists.newLinkedList();
         for(LanguageIdentifier identifier : identifiers) {
-            ILanguageImpl impl = languageService.getImpl(identifier);
-            if(impl == null) {
+            ILanguageComponent component = languageService.getComponent(identifier);
+            if(component == null) {
                 // BOOTSTRAPPING: baseline languages have version 0.0.0, try to get impl with that version.
                 final LanguageIdentifier baselineIdentifier =
                     new LanguageIdentifier(identifier, new LanguageVersion(0, 0, 0, ""));
-                impl = languageService.getImpl(baselineIdentifier);
+                component = languageService.getComponent(baselineIdentifier);
             }
-            if(impl == null) {
+            if(component == null) {
                 final String message = String.format("Language for dependency %s does not exist", identifier);
                 throw new MetaborgException(message);
             }
-            impls.add(impl);
+            components.add(component);
         }
-        return impls;
+        return components;
     }
 }

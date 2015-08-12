@@ -30,6 +30,7 @@ public class LanguageService implements ILanguageService {
     private final AtomicInteger sequenceIdGenerator = new AtomicInteger(0);
 
     private final Map<FileName, ILanguageComponentInternal> locationToComponent = Maps.newHashMap();
+    private final Map<LanguageIdentifier, ILanguageComponentInternal> identifierToComponent = Maps.newHashMap();
     private final Subject<LanguageComponentChange, LanguageComponentChange> componentChanges = PublishSubject.create();
 
     private final Map<LanguageIdentifier, ILanguageImplInternal> identifierToImpl = Maps.newHashMap();
@@ -40,7 +41,11 @@ public class LanguageService implements ILanguageService {
 
 
 
-    @Override public @Nullable ILanguageComponent getComponent(FileName location) {
+    @Override public @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier) {
+        return identifierToComponent.get(identifier);
+    }
+
+    @Override public ILanguageComponent getComponent(FileName location) {
         return locationToComponent.get(location);
     }
 
@@ -54,7 +59,7 @@ public class LanguageService implements ILanguageService {
 
 
     @Override public Iterable<? extends ILanguageComponent> getAllComponents() {
-        return locationToComponent.values();
+        return identifierToComponent.values();
     }
 
     @Override public Iterable<? extends ILanguageImpl> getAllImpls() {
@@ -87,7 +92,7 @@ public class LanguageService implements ILanguageService {
 
     @Override public ILanguageComponent add(LanguageCreationRequest request) {
         validateLocation(request.location);
-        
+
         final Collection<ILanguageImplInternal> impls = Lists.newLinkedList();
         for(LanguageContributionIdentifier identifier : request.implIds) {
             ILanguageInternal language = nameToLanguage.get(identifier.name);
@@ -105,7 +110,7 @@ public class LanguageService implements ILanguageService {
             impls.add(impl);
         }
 
-        final ILanguageComponentInternal existingComponent = locationToComponent.get(request.location.getName());
+        final ILanguageComponentInternal existingComponent = identifierToComponent.get(request.identifier);
         final ILanguageComponentInternal newComponent =
             new LanguageComponent(request.identifier, request.location, sequenceIdGenerator.getAndIncrement(), impls,
                 request.facets);
@@ -181,7 +186,7 @@ public class LanguageService implements ILanguageService {
     }
 
     @Override public void remove(ILanguageComponent component) {
-        final ILanguageComponentInternal existingComponent = locationToComponent.get(component.location().getName());
+        final ILanguageComponentInternal existingComponent = identifierToComponent.get(component.id());
         if(existingComponent == null) {
             throw new IllegalStateException("Cannot remove component " + component + ", it was not added before");
         }
@@ -227,8 +232,8 @@ public class LanguageService implements ILanguageService {
 
 
     private void addComponent(ILanguageComponentInternal component) {
-        final FileName location = component.location().getName();
-        locationToComponent.put(location, component);
+        identifierToComponent.put(component.id(), component);
+        locationToComponent.put(component.location().getName(), component);
         logger.debug("Adding {}", component);
     }
 
@@ -246,8 +251,8 @@ public class LanguageService implements ILanguageService {
     }
 
     private void removeComponent(ILanguageComponentInternal component) {
-        final FileName location = component.location().getName();
-        locationToComponent.remove(location);
+        identifierToComponent.remove(component.id());
+        locationToComponent.remove(component.location().getName());
         logger.debug("Removing {}", component);
     }
 

@@ -39,6 +39,16 @@ public class LanguageUtils {
         return activeImpls;
     }
 
+    public static Iterable<ILanguageComponent> allActiveComponents(ILanguageService languageService) {
+        final Iterable<ILanguageImpl> activeImpls = allActiveImpls(languageService);
+        final Collection<ILanguageComponent> activeComponents = Lists.newLinkedList();
+        for(ILanguageImpl impl : activeImpls) {
+            Iterables.addAll(activeComponents, impl.components());
+        }
+        return activeComponents;
+    }
+
+
     private static boolean isGreater(ILanguageImpl impl, ILanguageImpl other) {
         int compareVersion = impl.id().version.compareTo(other.id().version);
         if(compareVersion > 0 || (compareVersion == 0 && impl.sequenceId() > other.sequenceId())) {

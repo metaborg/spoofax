@@ -13,10 +13,19 @@ import rx.Observable;
  */
 public interface ILanguageService {
     /**
+     * Gets a language component by its identifier.
+     * 
+     * @param identifier
+     *            Identifier of the implementation to get.
+     * @return Component with given identifier, or null if it could not be found.
+     */
+    public @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier);
+
+    /**
      * Gets a language component by its location.
      * 
      * @param location
-     *            Location of the component to get.
+     *            Location of the implementation to get.
      * @return Component at given location, or null if it could not be found.
      */
     public @Nullable ILanguageComponent getComponent(FileName location);

@@ -7,7 +7,19 @@ import javax.annotation.Nullable;
  */
 public class LanguageComponentChange {
     public enum Kind {
-        Add, Reload, Remove
+        Add("addition"), Reload("reload"), Remove("removal");
+
+
+        private final String name;
+
+
+        private Kind(String name) {
+            this.name = name;
+        }
+        
+        @Override public String toString() {
+            return name;
+        }
     }
 
 
