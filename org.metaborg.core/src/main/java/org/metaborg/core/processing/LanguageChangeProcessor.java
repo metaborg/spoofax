@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.core.context.IContextProcessor;
 import org.metaborg.core.editor.IEditor;
 import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.language.ILanguageCache;
@@ -20,13 +21,15 @@ import com.google.inject.Inject;
  */
 public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     private final IDialectProcessor dialectProcessor;
+    private final IContextProcessor contextProcessor;
     private final IEditorRegistry editorRegistry;
     private final Set<ILanguageCache> languageCaches;
 
 
-    @Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IEditorRegistry editorRegistry,
-        Set<ILanguageCache> languageCaches) {
+    @Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IContextProcessor contextProcessor,
+        IEditorRegistry editorRegistry, Set<ILanguageCache> languageCaches) {
         this.dialectProcessor = dialectProcessor;
+        this.contextProcessor = contextProcessor;
         this.editorRegistry = editorRegistry;
         this.languageCaches = languageCaches;
     }
@@ -99,6 +102,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
         }
 
         dialectProcessor.update(change);
+        contextProcessor.update(change);
     }
 
     /**

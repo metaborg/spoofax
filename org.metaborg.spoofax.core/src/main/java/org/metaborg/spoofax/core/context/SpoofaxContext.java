@@ -118,6 +118,6 @@ public class SpoofaxContext implements IContext, IContextInternal {
     }
 
     @Override public String toString() {
-        return String.format("Context for %s, %s", identifier.location, identifier.language);
+        return String.format("context for %s, %s", identifier.location, identifier.language);
     }
 }

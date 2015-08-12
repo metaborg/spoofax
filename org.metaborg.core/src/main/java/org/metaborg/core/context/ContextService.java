@@ -5,18 +5,20 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.LanguageImplChange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-public class ContextService implements IContextService {
+public class ContextService implements IContextService, IContextProcessor {
     private static final Logger logger = LoggerFactory.getLogger(ContextService.class);
 
     private final IContextFactory contextFactory;
 
-    private final ConcurrentMap<ContextIdentifier, IContextInternal> contexts = Maps.newConcurrentMap();
+    private final ConcurrentMap<ContextIdentifier, IContextInternal> idToContext = Maps.newConcurrentMap();
+    private final ConcurrentMap<ILanguageImpl, ContextIdentifier> langToContextId = Maps.newConcurrentMap();
 
 
     @Inject public ContextService(IContextFactory contextFactory) {
@@ -40,9 +42,29 @@ public class ContextService implements IContextService {
         final IContextInternal contextInternal = (IContextInternal) context;
         contextInternal.unload();
         final ContextIdentifier identifier = contextInternal.identifier();
-        contexts.remove(identifier);
+        idToContext.remove(identifier);
+        langToContextId.remove(identifier.language);
     }
-    
+
+    @Override public void update(LanguageImplChange change) {
+        switch(change.kind) {
+            case Remove:
+                final ContextIdentifier id = langToContextId.remove(change.impl);
+                if(id != null) {
+                    final IContextInternal removed = idToContext.remove(id);
+                    if(removed != null) {
+                        removed.unload();
+                        logger.debug("Removing {}", removed);
+                    }
+                }
+                break;
+            default:
+                // Ignore other changes
+                break;
+        }
+    }
+
+
     private ContextFacet getFacet(ILanguageImpl language) {
         final ContextFacet facet = language.facet(ContextFacet.class);
         if(facet == null) {
@@ -52,10 +74,11 @@ public class ContextService implements IContextService {
         }
         return facet;
     }
-    
+
     private IContextInternal getOrCreate(ContextIdentifier identifier) {
         final IContextInternal newContext = contextFactory.create(identifier);
-        final IContextInternal prevContext = contexts.putIfAbsent(identifier, newContext);
+        final IContextInternal prevContext = idToContext.putIfAbsent(identifier, newContext);
+        langToContextId.putIfAbsent(identifier.language, identifier);
         if(prevContext == null) {
             newContext.initialize();
             return newContext;

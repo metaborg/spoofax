@@ -8,6 +8,7 @@ import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.DependencyPathProvider;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.context.ContextService;
+import org.metaborg.core.context.IContextProcessor;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
@@ -103,7 +104,9 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindContext() {
-        bind(IContextService.class).to(ContextService.class).in(Singleton.class);
+        bind(ContextService.class).in(Singleton.class);
+        bind(IContextService.class).to(ContextService.class);
+        bind(IContextProcessor.class).to(ContextService.class);
     }
 
     protected void bindContextStrategies(MapBinder<String, IContextStrategy> binder) {
