@@ -80,11 +80,15 @@ public class SpoofaxContext implements IContext, IContextInternal {
     }
 
     @Override public void initialize() {
-
+        
     }
 
     @Override public void unload() {
-
+        final IndexManager indexManager = IndexManager.getInstance();
+        indexManager.unloadIndex(locationURI);
+        
+        final TaskManager taskManager = TaskManager.getInstance();
+        taskManager.unloadTaskEngine(locationURI);
     }
 
 
