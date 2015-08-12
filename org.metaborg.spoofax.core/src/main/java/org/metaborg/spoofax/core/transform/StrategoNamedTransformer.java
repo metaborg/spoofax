@@ -97,7 +97,6 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
         throws TransformerException {
         if(!(goal instanceof NamedGoal)) {
             final String message = String.format("Goal %s is not a NamedGoal", goal);
-            logger.error(message);
             throw new MetaborgRuntimeException(message);
         }
 
@@ -112,14 +111,12 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
         
         if(actionContrib == null) {
             final String message = String.format("Action %s not found in %s", actionName, language);
-            logger.error(message);
             throw new TransformerException(message);
         }
 
         final IAction action = actionContrib.action;
         if(!(action instanceof StrategoTransformAction)) {
             final String message = String.format("Action %s is not a Stratego transformation action", actionName);
-            logger.error(message);
             throw new TransformerException(message);
         }
 
