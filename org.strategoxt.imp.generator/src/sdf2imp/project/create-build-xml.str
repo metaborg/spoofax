@@ -255,7 +255,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	</target>
 
 	<target name="check-classpath">
-		<available classname="org.strategoxt.imp.generator.sdf2imp" property="check-classpath.available" />
+		<available classname="org.strategoxt.imp.generator.sdf2imp.LibraryInitializer" property="check-classpath.available" />
 		<antcall target="check-classpath.helper" />
 	</target>
 
