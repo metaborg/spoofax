@@ -112,4 +112,13 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
         return new IdentifiedResource(resource, null, activeImpl);
     }
+
+
+    @Override public boolean available(ILanguageImpl impl) {
+        final Iterable<IdentificationFacet> facets = impl.facets(IdentificationFacet.class);
+        if(Iterables.isEmpty(facets)) {
+            return false;
+        }
+        return true;
+    }
 }

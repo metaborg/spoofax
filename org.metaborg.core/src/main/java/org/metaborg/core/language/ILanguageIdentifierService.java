@@ -64,4 +64,13 @@ public interface ILanguageIdentifierService {
      */
     public abstract @Nullable IdentifiedResource identifyToResource(FileObject resource,
         Iterable<? extends ILanguageImpl> languages);
+
+    /**
+     * Returns if language identification is available for given implementation.
+     * 
+     * @param impl
+     *            Language implementation to check.
+     * @return True if identification is available, false if not.
+     */
+    public boolean available(ILanguageImpl impl);
 }
