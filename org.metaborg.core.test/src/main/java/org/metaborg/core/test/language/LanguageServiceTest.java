@@ -456,8 +456,8 @@ public class LanguageServiceTest extends MetaborgTest {
      */
     @Test public void languageChanges() throws Exception {
         final String id1 = "org.metaborg.lang.entity.component1";
-        final String id2 = "org.metaborg.lang.entity.component1";
-        final String id3 = "org.metaborg.lang.entity.component1";
+        final String id2 = "org.metaborg.lang.entity.component2";
+        final String id3 = "org.metaborg.lang.entity.component3";
         final LanguageVersion version = version(0, 0, 1);
         final LanguageIdentifier identifier1 = new LanguageIdentifier(groupId, id1, version);
         final LanguageIdentifier identifier2 = new LanguageIdentifier(groupId, id2, version);
