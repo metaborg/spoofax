@@ -144,15 +144,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 continue;
             }
 
-            final FileObject resource = input.source;
-            final File localResource = resourceService.localPath(resource);
-            if(localResource == null) {
-                final String message =
-                    String.format("Input %s does not reside on the local file system, cannot analyze it", resource);
-                logger.error(message);
-                continue;
-            }
-
+            final File localResource = resourceService.localFile(input.source);
             final IStrategoString path = localPath.localResourceTerm(localResource, localContextLocation);
             final IStrategoString contextPath = localPath.localLocationTerm(localContextLocation);
             analysisInputs.add(P.p(input, termFactory.makeTuple(input.result, path, contextPath)));
@@ -256,14 +248,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
 
             final FileObject resource = input.source;
-            final File localResource = resourceService.localPath(resource);
-            if(localResource == null) {
-                final String message =
-                    String.format("Input %s does not reside on the local file system, cannot analyze it", resource);
-                logger.error(message);
-                continue;
-            }
-
+            final File localResource = resourceService.localFile(resource);
             final IStrategoString pathTerm = localPath.localResourceTerm(localResource, localContextLocation);
             originalSources.put(pathTerm.stringValue(), resource);
             analysisInputs.add(termFactory.makeAppl(fileCons, pathTerm, input.result,
