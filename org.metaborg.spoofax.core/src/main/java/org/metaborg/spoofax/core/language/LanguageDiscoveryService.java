@@ -80,8 +80,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         try {
             final Collection<ILanguageComponent> components = Lists.newLinkedList();
             final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
-            if(esvFiles == null) {
-                logger.error("No packed.esv files found at {}", location);
+            if(esvFiles == null || esvFiles.length == 0) {
+                logger.error("No packed.esv files found at {}, no languages were discovered", location);
                 return components;
             }
             final Set<FileObject> parents = Sets.newHashSet();
