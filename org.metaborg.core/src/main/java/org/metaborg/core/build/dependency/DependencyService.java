@@ -40,7 +40,7 @@ public class DependencyService implements IDependencyService {
         }
 
         logger.trace("No project settings found for project {}, "
-            + "using all active languages as compile dependencies", project);
+            + "using all active components as compile dependencies", project);
 
         return LanguageUtils.allActiveComponents(languageService);
     }
@@ -56,6 +56,34 @@ public class DependencyService implements IDependencyService {
 
         return Iterables2.empty();
     }
+
+
+    @Override public Iterable<ILanguageComponent> compileDependencies(ILanguageComponent component)
+        throws MetaborgException {
+        final DependencyFacet facet = component.facet(DependencyFacet.class);
+        if(facet != null) {
+            return getLanguages(facet.compileDependencies);
+        }
+
+        logger
+            .trace("No dependency facet found for {}, using all active components as compile dependencies", component);
+
+        return LanguageUtils.allActiveComponents(languageService);
+    }
+
+
+    @Override public Iterable<ILanguageComponent> runtimeDependencies(ILanguageComponent component)
+        throws MetaborgException {
+        final DependencyFacet facet = component.facet(DependencyFacet.class);
+        if(facet != null) {
+            return getLanguages(facet.runtimeDependencies);
+        }
+
+        logger.trace("No dependency facet found for {}, component will have no runtime dependencies", component);
+
+        return Iterables2.empty();
+    }
+
 
     private Iterable<ILanguageComponent> getLanguages(Iterable<LanguageIdentifier> identifiers)
         throws MetaborgException {

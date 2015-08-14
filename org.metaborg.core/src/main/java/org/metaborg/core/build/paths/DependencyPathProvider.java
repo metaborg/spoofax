@@ -53,7 +53,21 @@ public class DependencyPathProvider implements ILanguagePathProvider {
                     resolve(facetContribution.contributor.location(), paths, includes);
                 }
             }
+            
+            final Iterable<ILanguageComponent> transitiveDeps = dependencyService.compileDependencies(dependency);
+            for(ILanguageComponent transitiveDep : transitiveDeps) {
+                final Iterable<FacetContribution<LanguagePathFacet>> transFacets =
+                    transitiveDep.facetContributions(LanguagePathFacet.class);
+                for(FacetContribution<LanguagePathFacet> facetContribution : transFacets) {
+                    final Collection<String> paths = facetContribution.facet.sources.get(languageName);
+                    if(paths != null) {
+                        resolve(facetContribution.contributor.location(), paths, includes);
+                    }
+                }
+            }
         }
+        
+        
         return includes;
     }
 

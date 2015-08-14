@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.build.dependency.DependencyFacet;
 import org.metaborg.core.context.ContextFacet;
 import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.language.ILanguageComponent;
@@ -204,6 +205,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
         request.addFacet(languageComponentsFacet);
+
+        if(settings != null) {
+            final DependencyFacet dependencyFacet =
+                new DependencyFacet(settings.compileDependencies(), settings.runtimeDependencies());
+            request.addFacet(dependencyFacet);
+        }
 
         final ILanguageComponent component = languageService.add(request);
         return component;
