@@ -188,11 +188,19 @@
 	</target>
 
 	<target name="install" depends="jar, install-no-compile" />
+	
+	<target name="wrap-make-permissive" depends="jar-no-compile">
+		<mkdir dir="${install-prefix}/make-permissive"/>
+		<unjar src="${lib}/make_permissive.jar" dest="${install-prefix}/make-permissive" overwrite="false"/>
+		<unjar src="${lib}/strategoxt-min-global-compilation.jar" dest="${install-prefix}/make-permissive" overwrite="false"/>
+		<jar basedir="${install-prefix}/make-permissive" destfile="${install-prefix}/make_permissive_unshaded.jar"/>
+		<unjar src="${install-prefix}/make_permissive_unshaded.jar" dest="morepoms/make-permissive-jar/target/classes" overwrite="false"/>
+	</target>
 
-	<target name="install-no-compile" depends="jar-no-compile">
+	<target name="install-no-compile" depends="jar-no-compile,wrap-make-permissive">
 		<copy file="${lib}/StrategoMix.def" todir="${install-prefix}" overwrite="false" verbose="true" />
 		<copy file="${lib}/aster.jar" todir="${install-prefix}" overwrite="false" verbose="true" />
-		<copy file="${lib}/make_permissive.jar" todir="${install-prefix}" overwrite="false" verbose="true" />
+		<!-- <copy file="${lib}/make_permissive.jar" todir="${install-prefix}" overwrite="false" verbose="true" /> -->
 		<copy todir="${install-prefix}" overwrite="true" verbose="true">
 			<fileset dir="${gen}" includes="*.*" />
 		</copy>

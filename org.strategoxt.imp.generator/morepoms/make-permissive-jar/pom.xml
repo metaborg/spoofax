@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>make-permissive-jar-installer</artifactId>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<description>Permissive grammar generator JAR file - installer POM</description>
 	<url>https://github.com/metaborg/spoofax</url>
 
@@ -27,24 +27,78 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.6.1</version>
 				<configuration>
-					<!-- Skip default installation -->
-					<skip>true</skip>
+					<filesets>
+						<fileset>
+							<directory>${basedir}/../../dist</directory>
+							<includes>
+								<include>make_permissive.jar</include>
+							</includes>
+						</fileset>
+					</filesets>
 				</configuration>
 				<executions>
 					<execution>
-						<phase>install</phase>
+						<phase>clean</phase>
 						<goals>
-							<goal>install-file</goal>
+							<goal>clean</goal>
 						</goals>
-						<configuration>
-							<file>${basedir}/../../dist/make_permissive.jar</file>
-							<pomFile>${basedir}/jar/pom.xml</pomFile>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<artifactSet/>
+					<relocations>
+						<relocation>
+							<pattern>org.strategoxt</pattern>
+							<shadedPattern>org.strategoxt.permissivegrammars.complibrary</shadedPattern>
+							<excludes>
+								<exclude>org.strategoxt.permissivegrammars.*</exclude>
+							</excludes>
+						</relocation>
+						<relocation>
+							<pattern>org.strategoxt.permissivegrammars</pattern>
+							<shadedPattern>org.strategoxt.permissivegrammars</shadedPattern>
+						</relocation>
+					</relocations>
+					<outputFile>${basedir}/../../dist/make_permissive.jar</outputFile>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							  <goal>shade</goal>
+						  </goals>
+					  </execution>
+				  </executions>
+				  </plugin>
+	  			<plugin>
+	  				<groupId>org.apache.maven.plugins</groupId>
+	  				<artifactId>maven-install-plugin</artifactId>
+	  				<configuration>
+	  					<!-- Skip default installation -->
+	  					<skip>true</skip>
+	  				</configuration>
+	  				<executions>
+	  					<execution>
+	  						<phase>install</phase>
+	  						<goals>
+	  							<goal>install-file</goal>
+	  						</goals>
+	  						<configuration>
+	  							<file>${basedir}/../../dist/make_permissive.jar</file>
+	  							<pomFile>${basedir}/jar/pom.xml</pomFile>
+	  						</configuration>
+	  					</execution>
+	  				</executions>
+	  			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
