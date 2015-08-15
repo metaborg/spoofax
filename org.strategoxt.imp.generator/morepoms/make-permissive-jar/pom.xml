@@ -14,18 +14,51 @@
 		<relativePath>../../../../spoofax-deploy/org.metaborg.maven.parent</relativePath>
 	</parent>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.metaborg</groupId>
-			<artifactId>org.strategoxt.imp.generator</artifactId>
-			<version>${metaborg-version}</version>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.6.1</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${basedir}/../../dist</directory>
+							<includes>
+								<include>make_permissive.jar</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<configuration>
+							<target>
+								<unjar src="${basedir}/../../dist/make_permissive_unshaded.jar" dest="target/classes" overwrite="false"/>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
