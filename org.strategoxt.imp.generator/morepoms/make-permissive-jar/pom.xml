@@ -69,6 +69,7 @@
 							<artifact>*:*</artifact>
 							<includes>
 								<include>org/strategoxt/**</include>
+								<include>Comments.pp.af</include>
 							</includes>
 						</filter>
 					</filters>
