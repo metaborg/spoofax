@@ -194,6 +194,7 @@
 		<unjar src="${lib}/make_permissive.jar" dest="${install-prefix}/make-permissive" overwrite="false"/>
 		<unjar src="${lib}/strategoxt-global-compilation.jar" dest="${install-prefix}/make-permissive" overwrite="false"/>
 		<jar basedir="${install-prefix}/make-permissive" destfile="${install-prefix}/make_permissive_unshaded.jar"/>
+		<delete dir="${install-prefix}/make-permissive" />
 	</target>
 
 	<target name="install-no-compile" depends="jar-no-compile,wrap-make-permissive">
