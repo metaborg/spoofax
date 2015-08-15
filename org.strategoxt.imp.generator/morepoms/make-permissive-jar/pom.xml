@@ -64,7 +64,14 @@
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
-					<artifactSet/>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<includes>
+								<include>org/strategoxt/**</include>
+							</includes>
+						</filter>
+					</filters>
 					<relocations>
 						<relocation>
 							<pattern>org.strategoxt</pattern>
@@ -72,10 +79,6 @@
 							<excludes>
 								<exclude>org.strategoxt.permissivegrammars.*</exclude>
 							</excludes>
-						</relocation>
-						<relocation>
-							<pattern>org.strategoxt.permissivegrammars</pattern>
-							<shadedPattern>org.strategoxt.permissivegrammars</shadedPattern>
 						</relocation>
 					</relocations>
 					<outputFile>${basedir}/../../dist/make_permissive.jar</outputFile>
