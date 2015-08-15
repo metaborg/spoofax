@@ -652,21 +652,17 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 
 	<target name="stratego.jvm.helper" unless="strc-java.available" if="build.stratego.enabled">
 		<delete file="${include}/${strmodule}.rtree" failonerror="false" />
-		<java classname="org.strategoxt.strj.Main" failonerror="true">
-			<arg value="-i" />
-			<arg value="${trans}/${strmodule}.str" />
-			<arg value="-o" />
-			<arg value="${build.stratego.outputfile}" />
-			<arg value="-p" />
-			<arg value="trans" />
-			<arg value="--library" />
-			<arg value="--clean" />
-			<arg line="${build.stratego.args}" />
-			<arg line="${build.stratego.extraargs}" />
-			<arg line="${externaljarflags}" />
-			<arg line="${externaldefimport}" />
-			<arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
-		</java>
+		<strj input="${trans}/${strmodule}.str" output="${build.stratego.outputfile}" package="trans">
+			<strjargs>
+				<arg value="--library" />
+				<arg value="--clean" />
+				<arg line="${build.stratego.args}" />
+				<arg line="${build.stratego.extraargs}" />
+				<arg line="${externaljarflags}" />
+				<arg line="${externaldefimport}" />
+				<arg line="-I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
+			</strjargs>
+		</strj>	
 		<delete file="${include}/${strmodule}.rtree" failonerror="false" />
 	</target>
 
