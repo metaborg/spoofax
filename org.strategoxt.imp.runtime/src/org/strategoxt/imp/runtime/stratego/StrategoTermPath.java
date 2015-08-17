@@ -21,16 +21,10 @@ import org.spoofax.terms.StrategoSubList;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.ParentAttachment;
-import org.strategoxt.imp.generator.generator;
-import org.strategoxt.imp.generator.position_of_term_1_0;
-import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.ContentProposerSemantic;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
-import org.strategoxt.stratego_aterm.explode_aterm_0_0;
-import org.strategoxt.stratego_aterm.implode_aterm_0_0;
-import org.strategoxt.stratego_lib.oncetd_1_0;
 
 /**
  * Maintains aterm paths, lists of nodes on the path to the root from a given AST node.
@@ -78,18 +72,18 @@ public class StrategoTermPath {
 	public static IStrategoList createPathFromParsedIStrategoTerm(final IStrategoTerm node, Context context) {
 		IStrategoTerm top = ParentAttachment.getRoot(node);
 		final IStrategoTerm marker = context.getFactory().makeString(ContentProposerSemantic.COMPLETION_TOKEN);
-		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
+		top = context.getStrategyCollector().getStrategyExecutor("oncetd_1_0").invoke(context, top, new Strategy() {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 				if (hasImploderOrigin(current) && tryGetOrigin(current) == node) {
-					return explode_aterm_0_0.instance.invoke(context, marker);
+					return context.getStrategyCollector().getStrategyExecutor("explode_aterm_0_0").invoke(context, marker);
 				} else {
 					return null;
 				}
 			}
 		});
-		top = implode_aterm_0_0.instance.invoke(context, top);
-		return (IStrategoList) position_of_term_1_0.instance.invoke(context, top, new Strategy() {
+		top = context.getStrategyCollector().getStrategyExecutor("implode_aterm_0_0").invoke(context, top);
+		return (IStrategoList) context.getStrategyCollector().getStrategyExecutor("position_of_term_1_0").invoke(context, top, new Strategy() {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 				return marker.equals(current) ? current : null;
@@ -174,21 +168,21 @@ public class StrategoTermPath {
 		TestOrigin testOrigin = new TestOrigin();
 		testOrigin.origin1 = origin;
 		
-		generator.init(context);
-		IStrategoTerm perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+		org.strategoxt.imp.generator.sdf2imp.sdf2imp.init(context, true);
+		IStrategoTerm perfectMatch = context.getStrategyCollector().getStrategyExecutor("position_of_term_1_0").invoke(context, ast, testOrigin);
 
 		if (perfectMatch != null) {
 			return (IStrategoList) perfectMatch;
 		} else if (testOrigin.nextBest != null) {
 			testOrigin.origin1 = testOrigin.nextBest;
-			return (IStrategoList) position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+			return (IStrategoList) context.getStrategyCollector().getStrategyExecutor("position_of_term_1_0").invoke(context, ast, testOrigin);
 		} else {
 			return null;
 		}
 	}
 
 	public static IStrategoTerm getTermAtPath(Context context, IStrategoTerm term, IStrategoList path) {
-		return term_at_position_0_1.instance.invoke(context, term, path);
+		return context.getStrategyCollector().getStrategyExecutor("term_at_position_0_1").invoke(context, term, path);
 	}
 	
 	private static int indexOfIdentical(IStrategoTerm parent, IStrategoTerm node) {

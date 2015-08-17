@@ -28,8 +28,7 @@ import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.TermVisitor;
-import org.strategoxt.imp.generator.sdf2imp;
-import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
+import org.strategoxt.imp.generator.sdf2imp.sdf2imp;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageBatch;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
@@ -175,12 +174,12 @@ public class ParseErrorHandler {
 				try {
 					if (asyncAmbReportingContext == null) {
 						Context context = new Context();
-						asyncAmbReportingContext = stratego_sglr.init(context);
-						stratego_aterm.init(asyncAmbReportingContext);
-						sdf2imp.init(asyncAmbReportingContext);
+						asyncAmbReportingContext = stratego_sglr.init(context, true);
+						stratego_aterm.init(asyncAmbReportingContext, true);
+						sdf2imp.init(asyncAmbReportingContext, true);
 					}
 
-					IStrategoTerm message = simplify_ambiguity_report_0_0.instance.invoke(asyncAmbReportingContext, amb);
+					IStrategoTerm message = asyncAmbReportingContext.getStrategyCollector().getStrategyExecutor("simplify_ambiguity_report_0_0").invoke(asyncAmbReportingContext, amb);
 					if (message != null)
 						result = asJavaString(message);
 				} finally {

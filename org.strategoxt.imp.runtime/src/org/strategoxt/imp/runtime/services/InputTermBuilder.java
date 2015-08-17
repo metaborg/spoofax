@@ -29,7 +29,6 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
-import org.strategoxt.stratego_aterm.implode_aterm_0_0;
 import org.strategoxt.stratego_aterm.stratego_aterm;
 
 /**
@@ -155,7 +154,7 @@ public class InputTermBuilder {
 	 * based on the IStrategoTerm syntax of the AST of the source file.
 	 */
 	public IStrategoTuple makeATermInputTerm(IStrategoTerm node, boolean includeSubNode, IResource resource) {
-		stratego_aterm.init(context);
+		stratego_aterm.init(context, true);
 		
 		ITermFactory factory = Environment.getTermFactory();
 		String path = resource.getProjectRelativePath().toPortableString();
@@ -177,7 +176,7 @@ public class InputTermBuilder {
 	}
 
 	public IStrategoTerm implodeATerm(IStrategoTerm term) {
-		return implode_aterm_0_0.instance.invoke(context, term);
+		return context.getStrategyCollector().getStrategyExecutor("implode_aterm_0_0").invoke(context, term);
 	}
 
 	public IStrategoTerm getImplodableNode(IStrategoTerm node) {

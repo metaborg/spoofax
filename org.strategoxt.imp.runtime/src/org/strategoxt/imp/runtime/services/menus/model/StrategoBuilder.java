@@ -56,9 +56,6 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.lang.Context;
-import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
-import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
-import org.strategoxt.stratego_gpp.box2text_string_0_1;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -338,9 +335,9 @@ public class StrategoBuilder extends AbstractBuilder {
 
 	private IStrategoString ppATerm(IStrategoTerm term) {
 		Context context = observer.getRuntime().getCompiledContext();
-		term = aterm_escape_strings_0_0.instance.invoke(context, term);
-		term = pp_aterm_box_0_0.instance.invoke(context, term);
-		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory()
+		term = context.getStrategyCollector().getStrategyExecutor("aterm_escape_strings_0_0").invoke(context, term);
+		term = context.getStrategyCollector().getStrategyExecutor("pp_aterm_box_0_0").invoke(context, term);
+		term = context.getStrategyCollector().getStrategyExecutor("box2text_string_0_1").invoke(context, term, Environment.getTermFactory()
 				.makeInt(80));
 		return (IStrategoString) term;
 	}

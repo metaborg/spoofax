@@ -15,7 +15,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.io.binary.TermReader;
-import org.strategoxt.imp.generator.sdf2imp;
+import org.strategoxt.imp.generator.sdf2imp.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;

@@ -51,8 +51,7 @@ import org.spoofax.interpreter.util.IAsyncCancellable;
 import org.spoofax.terms.attachments.OriginTermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.debug.core.str.launching.DebuggableHybridInterpreter;
-import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
-import org.strategoxt.imp.generator.sdf2imp;
+import org.strategoxt.imp.generator.sdf2imp.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
@@ -72,7 +71,6 @@ import org.strategoxt.imp.runtime.util.IObserver;
 import org.strategoxt.imp.runtime.util.Observable;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
-import org.strategoxt.stratego_lib.set_config_0_0;
 
 /**
  * Basic Stratego feedback (i.e., errors and warnings) provider. This service
@@ -540,7 +538,7 @@ public class StrategoObserver implements IDynamicLanguageService,
 		assert getLock().isHeldByCurrentThread();
 
 		Context context = runtime.getCompiledContext();
-		sdf2imp.init(context);
+		sdf2imp.init(context, true);
 		feedbacks = postProcessFeedback(feedbacks, context);
 
 		for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
@@ -561,7 +559,7 @@ public class StrategoObserver implements IDynamicLanguageService,
 
 	private IStrategoList postProcessFeedback(IStrategoList feedbacks,
 			Context context) {
-		IStrategoList result = (IStrategoList) postprocess_feedback_results_0_0.instance
+		IStrategoList result = (IStrategoList) context.getStrategyCollector().getStrategyExecutor("postprocess_feedback_results_0_0")
 				.invoke(context, feedbacks);
 		if (result == null) {
 			// Throw an exception to trigger an Eclipse pop-up
@@ -813,7 +811,7 @@ public class StrategoObserver implements IDynamicLanguageService,
 			IStrategoTuple programName = factory.makeTuple(
 					factory.makeString("program"),
 					factory.makeString(descriptor.getLanguage().getName()));
-			set_config_0_0.instance.invoke(runtime.getCompiledContext(),
+			runtime.getCompiledContext().getStrategyCollector().getStrategyExecutor("set_config_0_0").invoke(runtime.getCompiledContext(),
 					programName);
 		} catch (BadDescriptorException e) {
 			// Ignore; use default program name
