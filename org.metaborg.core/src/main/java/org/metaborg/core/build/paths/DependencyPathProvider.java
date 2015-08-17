@@ -54,17 +54,19 @@ public class DependencyPathProvider implements ILanguagePathProvider {
                 }
             }
             
-            final Iterable<ILanguageComponent> transitiveDeps = dependencyService.compileDependencies(dependency);
-            for(ILanguageComponent transitiveDep : transitiveDeps) {
-                final Iterable<FacetContribution<LanguagePathFacet>> transFacets =
-                    transitiveDep.facetContributions(LanguagePathFacet.class);
-                for(FacetContribution<LanguagePathFacet> facetContribution : transFacets) {
-                    final Collection<String> paths = facetContribution.facet.sources.get(languageName);
-                    if(paths != null) {
-                        resolve(facetContribution.contributor.location(), paths, includes);
-                    }
-                }
-            }
+            // TODO: temporarly disabled because languages are not loaded transitively on the command-line
+            
+            // final Iterable<ILanguageComponent> transitiveDeps = dependencyService.compileDependencies(dependency);
+            // for(ILanguageComponent transitiveDep : transitiveDeps) {
+            // final Iterable<FacetContribution<LanguagePathFacet>> transFacets =
+            // transitiveDep.facetContributions(LanguagePathFacet.class);
+            // for(FacetContribution<LanguagePathFacet> facetContribution : transFacets) {
+            // final Collection<String> paths = facetContribution.facet.sources.get(languageName);
+            // if(paths != null) {
+            // resolve(facetContribution.contributor.location(), paths, includes);
+            // }
+            // }
+            // }
         }
         
         
