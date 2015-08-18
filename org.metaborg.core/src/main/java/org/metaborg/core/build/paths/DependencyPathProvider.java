@@ -53,9 +53,8 @@ public class DependencyPathProvider implements ILanguagePathProvider {
                     resolve(facetContribution.contributor.location(), paths, includes);
                 }
             }
-            
-            // TODO: temporarly disabled because languages are not loaded transitively on the command-line
-            
+
+            // TODO: temporarily disabled because baseline languages do not expose transitive dependencies yet.
             // final Iterable<ILanguageComponent> transitiveDeps = dependencyService.compileDependencies(dependency);
             // for(ILanguageComponent transitiveDep : transitiveDeps) {
             // final Iterable<FacetContribution<LanguagePathFacet>> transFacets =
@@ -68,8 +67,8 @@ public class DependencyPathProvider implements ILanguagePathProvider {
             // }
             // }
         }
-        
-        
+
+
         return includes;
     }
 

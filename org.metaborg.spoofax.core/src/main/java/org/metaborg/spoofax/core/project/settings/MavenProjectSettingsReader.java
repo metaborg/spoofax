@@ -22,22 +22,27 @@ public class MavenProjectSettingsReader {
         final Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
 
         final Collection<LanguageIdentifier> compileDeps = Lists.newLinkedList();
+        final Collection<LanguageIdentifier> runtimeDeps = Lists.newLinkedList();
+
+        for(Dependency dependency : project.getModel().getDependencies()) {
+            if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
+                final LanguageVersion version = LanguageVersion.parse(dependency.getVersion());
+                final LanguageIdentifier identifier =
+                    new LanguageIdentifier(dependency.getGroupId(), dependency.getArtifactId(), version);
+                compileDeps.add(identifier);
+                if(dependency.getScope() != "provided") {
+                    runtimeDeps.add(identifier);
+                }
+            }
+        }
+
+        // BOOTSTRAPPING: add plugin artifacts for supporting baseline languages
         for(Dependency dependency : plugin.getDependencies()) {
             if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
                 final LanguageVersion version = LanguageVersion.parse(dependency.getVersion());
                 final LanguageIdentifier identifier =
                     new LanguageIdentifier(dependency.getGroupId(), dependency.getArtifactId(), version);
                 compileDeps.add(identifier);
-            }
-        }
-
-        final Collection<LanguageIdentifier> runtimeDeps = Lists.newLinkedList();
-        for(Dependency dependency : project.getModel().getDependencies()) {
-            if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
-                final LanguageVersion version = LanguageVersion.parse(dependency.getVersion());
-                final LanguageIdentifier identifier =
-                    new LanguageIdentifier(dependency.getGroupId(), dependency.getArtifactId(), version);
-                runtimeDeps.add(identifier);
             }
         }
 
