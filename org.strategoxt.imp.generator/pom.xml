@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.metaborg</groupId>
 		<artifactId>org.metaborg.maven.parent.java</artifactId>
-		<version>1.5.0-baseline-20150818-143639</version>
+		<version>1.5.0-SNAPSHOT</version>
 		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent.java</relativePath>
 	</parent>
 
