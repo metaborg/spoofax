@@ -246,7 +246,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	</target>
 
 	<target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg">
-		<java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
+		<java classname="org.strategoxt.imp.generator.sdf2imp.sdf2imp" failonerror="true">
 			<arg value="-i" />
 			<arg value="${basedir}/editor/${esvmodule}.main.esv" />
 			<arg value="-p" />
