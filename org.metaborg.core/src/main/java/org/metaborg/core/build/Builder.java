@@ -192,7 +192,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
         final RefBool success = new RefBool(true);
 
-        logger.debug("Processing {} sources, {} includes of {}", Iterables.size(sourceChanges),
+        logger.info("Building {} sources, {} includes of {}", Iterables.size(sourceChanges),
             Iterables.size(includeChanges), language);
 
         // Parse

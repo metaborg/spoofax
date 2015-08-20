@@ -87,12 +87,11 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
         // Identify using identification facet.
         final Set<ILanguage> identifiedLanguages = Sets.newLinkedHashSet();
-        ILanguage identifiedLanguage = null;
+        ILanguageImpl identifiedImpl = null;
         for(ILanguageImpl impl : impls) {
             if(identify(resource, impl)) {
-                final ILanguage language = impl.belongsTo();
-                identifiedLanguages.add(language);
-                identifiedLanguage = language;
+                identifiedLanguages.add(impl.belongsTo());
+                identifiedImpl = impl;
             }
         }
 
@@ -101,16 +100,11 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
                 + Joiner.on(", ").join(identifiedLanguages));
         }
 
-        if(identifiedLanguage == null) {
+        if(identifiedImpl == null) {
             return null;
         }
 
-        final ILanguageImpl activeImpl = identifiedLanguage.activeImpl();
-        if(activeImpl == null) {
-            return null;
-        }
-
-        return new IdentifiedResource(resource, null, activeImpl);
+        return new IdentifiedResource(resource, null, identifiedImpl);
     }
 
 
