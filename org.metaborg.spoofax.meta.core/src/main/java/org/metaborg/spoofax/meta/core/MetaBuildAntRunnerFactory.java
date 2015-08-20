@@ -83,15 +83,19 @@ class MetaBuildAntRunnerFactory {
         final Collection<String> args = Lists.newArrayList(projectSettings.sdfArgs());
         final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_SDF_NAME);
         for(FileObject path : paths) {
-            final File file = resourceService.localFile(path);
-            if(file.exists()) {
-                if(path.getName().getExtension().equals("def")) {
-                    args.add("-Idef");
-                    args.add(file.getPath());
-                } else {
-                    args.add("-I");
-                    args.add(file.getPath());
+            try {
+                if(path.exists()) {
+                    final File file = resourceService.localFile(path);
+                    if(path.getName().getExtension().equals("def")) {
+                        args.add("-Idef");
+                        args.add(file.getPath());
+                    } else {
+                        args.add("-I");
+                        args.add(file.getPath());
+                    }
                 }
+            } catch(FileSystemException e) {
+                // Ignore path if path.exists fails.
             }
         }
         return args;
