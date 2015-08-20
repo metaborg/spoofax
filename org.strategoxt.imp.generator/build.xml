@@ -105,8 +105,8 @@
 
 	<target name="compile-stratego" depends="ensure-dirs, syntax">
 		<mkdir dir="${src-gen}/org/strategoxt/imp/generator" />
-		<strj-lib input="src/sdf2imp.str" output="${src-gen}/org/strategoxt/imp/generator/sdf2imp.java" package="org.strategoxt.imp.generator">
-			<strjlibargs>
+		<strj input="src/sdf2imp.str" output="${src-gen}/org/strategoxt/imp/generator/sdf2imp.java" package="org.strategoxt.imp.generator">
+			<strjargs>
 				<arg value="-clean" />
 				<arg value="--cache-dir" />
 				<arg value=".cache" />
@@ -157,12 +157,12 @@
 				<arg value="-I" />
 				<arg value="${gen}" />
 
-			</strjlibargs>
+			</strjargs>
 			<str-deps>
 				<srcfiles dir="src" includes="**/*.str" />
 				<srcfiles dir="${src-gen}" includes="**/*.str" />
 			</str-deps>
-		</strj-lib>
+		</strj>
 	</target>
 
 	<target name="compile-java" depends="ensure-dirs, compile-stratego">
