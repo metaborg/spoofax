@@ -80,7 +80,6 @@ public class ContextService implements IContextService, IContextProcessor {
         final IContextInternal prevContext = idToContext.putIfAbsent(identifier, newContext);
         langToContextId.putIfAbsent(identifier.language, identifier);
         if(prevContext == null) {
-            newContext.initialize();
             return newContext;
         }
         return prevContext;

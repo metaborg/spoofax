@@ -95,7 +95,7 @@ public class ResourceService implements IResourceService {
     }
 
 
-    @Override public FileObject userStorage() {
+    @Deprecated @Override public FileObject userStorage() {
         try {
             final FileObject storageDir = root().resolveFile(".cache");
             storageDir.createFolder();

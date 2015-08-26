@@ -100,7 +100,7 @@ import org.metaborg.spoofax.core.transform.StrategoTransformerCommon;
 import org.metaborg.spoofax.core.transform.StrategoTransformerFileWriter;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
-import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
+import org.spoofax.interpreter.library.index.primitives.legacy.LegacyIndexLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Singleton;

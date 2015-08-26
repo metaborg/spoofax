@@ -1,7 +1,11 @@
 package org.metaborg.spoofax.core.context;
 
-import java.io.File;
-import java.net.URI;
+import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
@@ -10,27 +14,41 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.resource.IResourceService;
+import org.metaborg.runtime.task.engine.ITaskEngine;
 import org.metaborg.runtime.task.engine.TaskManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.util.concurrent.ClosableLock;
+import org.metaborg.util.concurrent.IClosableLock;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.library.index.IIndex;
 import org.spoofax.interpreter.library.index.IndexManager;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.ParseError;
 
 import com.google.inject.Injector;
 
-public class SpoofaxContext implements IContext, IContextInternal {
-    private static final long serialVersionUID = 4177944175684703453L;
-    private static final Logger logger = LoggerFactory.getLogger(SpoofaxContext.class);
+public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxContext {
+    private static final ILogger logger = LoggerUtils.logger(SpoofaxContext.class);
 
-    private final URI locationURI;
-    private final ContextIdentifier identifier;
     private final Injector injector;
 
+    private final ITermFactory termFactory;
+    private final ReadWriteLock lock;
 
-    public SpoofaxContext(IResourceService resourceService, ContextIdentifier identifier, Injector injector) {
-        this.identifier = identifier;
-        this.locationURI = locationURI(resourceService);
+    private final ContextIdentifier identifier;
+
+    private IIndex index;
+    private ITaskEngine taskEngine;
+
+
+    public SpoofaxContext(Injector injector, ITermFactoryService termFactoryService, ContextIdentifier identifier) {
         this.injector = injector;
+
+        this.termFactory = termFactoryService.get(identifier.language);
+        this.lock = new ReentrantReadWriteLock(true);
+
+        this.identifier = identifier;
     }
 
 
@@ -50,54 +68,175 @@ public class SpoofaxContext implements IContext, IContextInternal {
         return identifier;
     }
 
-
     @Override public Injector injector() {
         return injector;
     }
 
 
-    @Override public void clean() {
-        try {
-            final FileObject cacheDir = identifier.location.resolveFile(".cache");
-            cacheDir.delete(new AllFileSelector());
-        } catch(FileSystemException e) {
-            final String message = String.format("Cannot delete cache directory in %s", this);
-            logger.error(message, e);
+    @Override public @Nullable IIndex index() {
+        return index;
+    }
+
+    @Override public @Nullable ITaskEngine taskEngine() {
+        return taskEngine;
+    }
+
+
+    @Override public IClosableLock read() {
+        if(index == null || taskEngine == null) {
+            // THREADING: temporarily acquire a write lock when initializing the index, need exclusive access.
+            final Lock writeLock = lock.writeLock();
+            try(IClosableLock lock = new ClosableLock(writeLock)) {
+                /*
+                 * THREADING: re-check if index/task engine are still null now that we have exclusive access, there
+                 * could have been a context switch before acquiring the lock. Check is also needed because the null
+                 * check before is disjunct.
+                 */
+                if(index == null) {
+                    index = initIndex();
+                }
+                if(taskEngine == null) {
+                    taskEngine = initTaskEngine();
+                }
+            }
         }
 
-        if(locationURI == null) {
-            logger.error("{} does not reside on the local file system, cannot clean the index and task engine", this);
+        final Lock readLock = lock.readLock();
+        final IClosableLock closableLock = new ClosableLock(readLock);
+        return closableLock;
+    }
+
+    @Override public IClosableLock write() {
+        final Lock readLock = lock.writeLock();
+        final IClosableLock lock = new ClosableLock(readLock);
+
+        if(index == null) {
+            index = initIndex();
+        }
+        if(taskEngine == null) {
+            taskEngine = initTaskEngine();
+        }
+
+        return lock;
+    }
+
+    @Override public void persist() throws IOException {
+        if(index == null && taskEngine == null) {
             return;
         }
 
-        final IndexManager indexManager = IndexManager.getInstance();
-        indexManager.resetIndex(locationURI);
-        indexManager.unloadIndex(locationURI);
-
-        final TaskManager taskManager = TaskManager.getInstance();
-        taskManager.resetTaskEngine(locationURI);
-        taskManager.unloadTaskEngine(locationURI);
+        try(IClosableLock lock = read()) {
+            if(index != null) {
+                IndexManager.write(index, indexFile(), termFactory);
+            }
+            if(taskEngine != null) {
+                TaskManager.write(taskEngine, taskEngineFile(), termFactory);
+            }
+        }
     }
 
-    @Override public void initialize() {
-        
+    @Override public void reset() throws FileSystemException {
+        try(IClosableLock lock = write()) {
+            if(index != null) {
+                index.reset();
+                index = null;
+            }
+
+            if(taskEngine != null) {
+                taskEngine.reset();
+                taskEngine = null;
+            }
+
+            final FileObject cacheDir = identifier.location.resolveFile(".cache");
+            cacheDir.delete(new AllFileSelector());
+        }
     }
 
     @Override public void unload() {
-        final IndexManager indexManager = IndexManager.getInstance();
-        indexManager.unloadIndex(locationURI);
-        
-        final TaskManager taskManager = TaskManager.getInstance();
-        taskManager.unloadTaskEngine(locationURI);
+        if(index == null && taskEngine == null) {
+            return;
+        }
+
+        try(IClosableLock lock = write()) {
+            index = null;
+            taskEngine = null;
+        }
     }
 
 
-    private URI locationURI(IResourceService resourceService) {
-        final File localLocation = resourceService.localPath(identifier.location);
-        if(localLocation == null) {
-            return null;
+    private FileObject indexFile() throws FileSystemException {
+        return IndexManager.cacheFile(identifier.location);
+    }
+
+    private IIndex initIndex() {
+        try {
+            final FileObject indexFile = indexFile();
+            if(indexFile.exists()) {
+                try {
+                    final IIndex index = IndexManager.read(indexFile, termFactory);
+                    return index;
+                } catch(ParseError | IOException e) {
+                    logger.error("Loading index from {} failed, deleting that file and returning an empty index. "
+                        + "Clean the project to reanalyze", e, indexFile);
+                    deleteIndexFile(indexFile);
+                } catch(Exception e) {
+                    logger.error("Loading index from {} failed, deleting that file and returning an empty index. "
+                        + "Clean the project to reanalyze", e, indexFile);
+                    deleteIndexFile(indexFile);
+                }
+            }
+        } catch(FileSystemException e) {
+            logger.error("Locating index file for {} failed, returning an empty index. "
+                + "Clean the project to reanalyze", e, this);
         }
-        return localLocation.toURI();
+        return IndexManager.create(termFactory);
+    }
+
+    private void deleteIndexFile(FileObject file) {
+        try {
+            file.delete();
+        } catch(Exception e) {
+            logger.error("Deleting index file {} failed, please delete the file manually", e, file);
+        }
+    }
+
+
+    private FileObject taskEngineFile() throws FileSystemException {
+        return TaskManager.cacheFile(identifier.location);
+    }
+
+    private ITaskEngine initTaskEngine() {
+        try {
+            final FileObject taskEngineFile = taskEngineFile();
+            if(taskEngineFile.exists()) {
+                try {
+                    final ITaskEngine taskEngine = TaskManager.read(taskEngineFile, termFactory);
+                    return taskEngine;
+                } catch(ParseError | IOException e) {
+                    logger.error(
+                        "Loading task engine from {} failed, deleting that file and returning an empty task engine. "
+                            + "Clean the project to reanalyze", e, taskEngineFile);
+                    deleteTaskEngineFile(taskEngineFile);
+                } catch(Exception e) {
+                    logger.error(
+                        "Loading task engine from {} failed, deleting that file and returning an empty task engine. "
+                            + "Clean the project to reanalyze", e, taskEngineFile);
+                    deleteTaskEngineFile(taskEngineFile);
+                }
+            }
+        } catch(FileSystemException e) {
+            logger.error("Locating task engine file for {} failed, returning an empty task engine. "
+                + "Clean the project to reanalyze", e, this);
+        }
+        return TaskManager.create(termFactory);
+    }
+
+    private void deleteTaskEngineFile(FileObject file) {
+        try {
+            file.delete();
+        } catch(Exception e) {
+            logger.error("Deleting task engine file {} failed, please delete the file manually", e, file);
+        }
     }
 
 

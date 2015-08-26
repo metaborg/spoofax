@@ -9,14 +9,9 @@ public interface IContextInternal extends IContext {
      */
     public abstract ContextIdentifier identifier();
 
-    /**
-     * Initializes the context. Any expensive operations are done in this method, instead of the constructor.
-     */
-    public abstract void initialize();
 
     /**
-     * Unloads the context, optionally persisting it to disk and removing it from memory. Clients should not call this
-     * method.
+     * Unloads the context, removing it from memory. Acquires a write lock, so it may be blocked.
      */
     public abstract void unload();
 }

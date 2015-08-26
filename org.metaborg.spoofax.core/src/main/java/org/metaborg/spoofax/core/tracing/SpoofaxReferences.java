@@ -24,6 +24,7 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.Tools;
@@ -64,8 +65,7 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
     @Override public @Nullable Resolution resolve(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws MetaborgException {
         final ILanguageImpl language = result.context.language();
-        final FacetContribution<ResolverFacet> facetContribution =
-            language.facetContribution(ResolverFacet.class);
+        final FacetContribution<ResolverFacet> facetContribution = language.facetContribution(ResolverFacet.class);
         if(facetContribution == null) {
             logger.error("Cannot resolve reference of {}, it does not have a Stratego facet", language);
             // GTODO: throw exception instead
@@ -80,8 +80,10 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
         }
 
         try {
-            final P2<IStrategoTerm, ISourceRegion> tuple =
-                outputs(facetContribution.contributor, offset, result, resolverStrategy);
+            final P2<IStrategoTerm, ISourceRegion> tuple;
+            try(IClosableLock lock = result.context.read()) {
+                tuple = outputs(facetContribution.contributor, offset, result, resolverStrategy);
+            }
             if(tuple == null) {
                 return null;
             }
@@ -121,8 +123,7 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
     @Override public Hover hover(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws MetaborgException {
         final ILanguageImpl language = result.context.language();
-        final FacetContribution<HoverFacet> facetContribution =
-            language.facetContribution(HoverFacet.class);
+        final FacetContribution<HoverFacet> facetContribution = language.facetContribution(HoverFacet.class);
         if(facetContribution == null) {
             logger.error("Cannot get hover information for {}, it does not have a Stratego facet", language);
             // GTODO: throw exception instead
@@ -137,8 +138,10 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
         }
 
         try {
-            final P2<IStrategoTerm, ISourceRegion> tuple =
-                outputs(facetContribution.contributor, offset, result, hoverStrategy);
+            final P2<IStrategoTerm, ISourceRegion> tuple;
+            try(IClosableLock lock = result.context.read()) {
+                tuple = outputs(facetContribution.contributor, offset, result, hoverStrategy);
+            }
             if(tuple == null) {
                 return null;
             }

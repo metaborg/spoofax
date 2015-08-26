@@ -47,11 +47,12 @@ import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
 import org.metaborg.util.RefBool;
+import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.DefaultFileSelectInfo;
 import org.metaborg.util.resource.FileSelectorUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -71,7 +72,7 @@ import com.google.inject.Inject;
  *            Type of transformed fragments.
  */
 public class Builder<P, A, T> implements IBuilder<P, A, T> {
-    private static final Logger logger = LoggerFactory.getLogger(Builder.class);
+    private static final ILogger logger = LoggerUtils.logger(Builder.class);
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
@@ -324,7 +325,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             final Iterable<ParseResult<P>> parseResults = Iterables.concat(entry.getValue(), includeParseResults);
 
             try {
-                synchronized(context) {
+                try(IClosableLock lock = context.write()) {
                     analysisResultProcessor.invalidate(parseResults);
                     final AnalysisResult<P, A> analysisResult = analyzer.analyze(parseResults, context);
                     for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
@@ -365,7 +366,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
             cancel.throwIfCancelled();
             final IContext context = analysisResult.context;
-            synchronized(context) {
+            try(IClosableLock lock = context.write()) {
                 for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
                     cancel.throwIfCancelled();
                     final FileObject resource = fileResult.source;
@@ -453,7 +454,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     @Override public void clean(CleanInput input, IProgressReporter progressReporter,
         ICancellationToken cancellationToken) throws InterruptedException {
         final FileObject location = input.project.location();
-        logger.debug("Cleaning " + location);
+        logger.debug("Cleaning {}", location);
 
         try {
             final FileSelector selector;
@@ -469,11 +470,14 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             final Set<IContext> contexts =
                 ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);
             for(IContext context : contexts) {
-                context.clean();
+                try {
+                    context.reset();
+                } catch(IOException e) {
+                    logger.error("Could not clean {}", e, context);
+                }
             }
         } catch(FileSystemException e) {
-            final String message = String.format("Could not clean contexts for {}", location);
-            logger.error(message, e);
+            logger.error("Could not clean contexts at {}", e, location);
         }
     }
 }

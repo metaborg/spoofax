@@ -94,6 +94,8 @@ public interface IResourceService {
      * 
      * @throws MetaborgRuntimeException
      *             when an internal error occurs.
+     * 
+     * @deprecated Wrong abstraction, will be removed in the future.
      */
-    public FileObject userStorage();
+    @Deprecated public FileObject userStorage();
 }
