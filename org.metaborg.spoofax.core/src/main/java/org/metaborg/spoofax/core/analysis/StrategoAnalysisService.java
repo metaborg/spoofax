@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
@@ -90,8 +91,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             sources.add(input.source);
         }
 
-        final FacetContribution<AnalysisFacet> facetContribution =
-            language.facetContribution(AnalysisFacet.class);
+        final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
             final IAnalyzerData data =
@@ -144,7 +144,25 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 continue;
             }
 
-            final File localResource = resourceService.localFile(input.source);
+            final FileObject resource = input.source;
+            final File localResource;
+            try {
+                if(input.source.exists()) {
+                    localResource = resourceService.localFile(resource);
+                } else {
+                    localResource = resourceService.localPath(resource);
+                }
+                if(localResource == null) {
+                    logger.error(
+                        "Input {} does not exist, and cannot reside on the local file system, cannot analyze it",
+                        resource);
+                    continue;
+                }
+            } catch(FileSystemException e) {
+                logger.error("Cannot determine if input {} exists, cannot analyze it", resource);
+                continue;
+            }
+
             final IStrategoString path = localPath.localResourceTerm(localResource, localContextLocation);
             final IStrategoString contextPath = localPath.localLocationTerm(localContextLocation);
             analysisInputs.add(P.p(input, termFactory.makeTuple(input.result, path, contextPath)));
@@ -248,7 +266,24 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
 
             final FileObject resource = input.source;
-            final File localResource = resourceService.localFile(resource);
+            final File localResource;
+            try {
+                if(input.source.exists()) {
+                    localResource = resourceService.localFile(resource);
+                } else {
+                    localResource = resourceService.localPath(resource);
+                }
+                if(localResource == null) {
+                    logger.error(
+                        "Input {} does not exist, and cannot reside on the local file system, cannot analyze it",
+                        resource);
+                    continue;
+                }
+            } catch(FileSystemException e) {
+                logger.error("Cannot determine if input {} exists, cannot analyze it", resource);
+                continue;
+            }
+            
             final IStrategoString pathTerm = localPath.localResourceTerm(localResource, localContextLocation);
             originalSources.put(pathTerm.stringValue(), resource);
             analysisInputs.add(termFactory.makeAppl(fileCons, pathTerm, input.result,
