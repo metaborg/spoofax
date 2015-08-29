@@ -1,3 +1,0 @@
-module sdf2imp
-
-imports sdf2imp/main

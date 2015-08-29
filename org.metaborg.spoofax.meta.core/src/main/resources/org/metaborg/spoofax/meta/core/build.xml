@@ -34,7 +34,7 @@
 	<taskdef resource="org/strategoxt/antcontrib/strategoxt-antlib.xml" classpath="${plugin.classpath}" />
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${plugin.classpath}" />
 
-	<target name="generate-sources-common" depends="check-classpath, sdf2table, meta-sdf2table, ppgen, pppack, sdf2rtg, sdf2parenthesize, stratego.aster" />
+	<target name="generate-sources-common" depends="sdf2table, meta-sdf2table, ppgen, pppack, sdf2rtg, sdf2parenthesize" />
 	<target name="generate-sources-jar" depends="generate-sources-common, call.stratego.jar" />
 	<target name="generate-sources-ctree" depends="generate-sources-common, stratego.ctree" />
 
@@ -74,23 +74,11 @@
 		<isset property="javajar-includes" />
 	</condition>
 
-	<fail unless="build" message="Please use build.main.xml to build this project or configure the required properties manually" />
 	<mkdir dir="${build}" />
 	<mkdir dir="${src-gen}" />
 	<mkdir dir="${include}" />
 	<mkdir dir="${lib}" />
 	<mkdir dir="${syntax}" />
-
-	<target name="check-classpath">
-		<available classname="org.strategoxt.imp.generator.sdf2imp" property="check-classpath.available" />
-		<antcall target="check-classpath.helper" />
-	</target>
-
-	<target name="check-classpath.helper" unless="check-classpath.available">
-		<echo level="error" message="Could not load the Spoofax classes." />
-		<echo level="error" message="Make sure it is on the class path." />
-		<fail message="" />
-	</target>
 
 	<!-- Copy sdf2 files from the syntax folder into the src-gen/syntax folder  -->
 	<target name="copy-sdf2">
@@ -329,36 +317,6 @@
 
 	<target name="ppgen.helper.fallback" unless="ppgen.available">
 		<echo file="${include}/${sdfmodule}.generated.pp.af" message="PP-Table([])" />
-	</target>
-
-	<!-- Aster to Stratego -->
-	<target name="stratego.aster">
-		<available file="${trans}/${strmodule}.rtree" property="aster-output.available" />
-		<fileset dir="${basedir}" id="aster-input-set">
-			<include name="**/*.astr" />
-		</fileset>
-		<pathconvert pathsep=" " setonempty="false" property="aster-input" refid="aster-input-set" />
-		<dependset>
-			<srcfileset dir="${basedir}">
-				<include name="**/*.astr" />
-			</srcfileset>
-			<targetfileset file="${trans}/${strmodule}.rtree" />
-		</dependset>
-		<condition property="aster-output.uptodate">
-			<and>
-				<isset property="aster-output.available" />
-				<available file="${trans}/${strmodule}.rtree" />
-			</and>
-		</condition>
-		<available file="${trans}/${strmodule}.rtree" property="aster-output.uptodate" />
-		<antcall target="stratego.aster.helper" />
-	</target>
-
-	<target name="stratego.aster.helper" if="aster-input" unless="aster-output.uptodate">
-		<java classname="org.strategoxt.aster.Main" failonerror="true">
-			<arg value="-i" />
-			<arg line="${aster-input}" />
-		</java>
 	</target>
 
 	<target name="compile-java-files">

@@ -46,9 +46,6 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.HybridInterpreter;
-import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
-import org.strategoxt.imp.generator.sdf2imp;
-import org.strategoxt.lang.Context;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -283,7 +280,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 logger.error("Cannot determine if input {} exists, cannot analyze it", resource);
                 continue;
             }
-            
+
             final IStrategoString pathTerm = localPath.localResourceTerm(localResource, localContextLocation);
             originalSources.put(pathTerm.stringValue(), resource);
             analysisInputs.add(termFactory.makeAppl(fileCons, pathTerm, input.result,
@@ -389,12 +386,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
     public static Collection<IMessage> makeMessages(FileObject file, MessageSeverity severity, IStrategoTerm msgs) {
         final Collection<IMessage> result = new ArrayList<IMessage>(msgs.getSubtermCount());
 
-        // HACK: init sdf2shit and flatten the messages list.
-        final Context context = new Context();
-        sdf2imp.init(context);
-        final IStrategoTerm processedMsgs = postprocess_feedback_results_0_0.instance.invoke(context, msgs);
-
-        for(IStrategoTerm msg : processedMsgs.getAllSubterms()) {
+        for(IStrategoTerm msg : msgs.getAllSubterms()) {
             final IStrategoTerm term;
             final String message;
             if(Tools.isTermTuple(msg) && msg.getSubtermCount() == 2) {
