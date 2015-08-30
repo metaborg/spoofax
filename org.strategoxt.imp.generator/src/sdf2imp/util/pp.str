@@ -2,9 +2,8 @@ module sdf2imp/util/pp
 
 imports
   libstratego-gpp
-  
-  Stratego-rtg
-  Editor-Service
+
+  EditorService
 
 strategies
 

@@ -5,7 +5,6 @@ imports
   libtools
   
   EditorService
-  Stratego-rtg
   
   sdf2imp/util/-
   sdf2imp/lib/-
