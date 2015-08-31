@@ -50,7 +50,8 @@ public interface IContext {
     public abstract IClosableLock write();
 
     /**
-     * Persist context data from memory to permanent storing. Acquires a read lock, so it may be blocked.
+     * Persist context data from memory to permanent storing. Acquires a read lock. Can be called while holding the
+     * write lock.
      * 
      * @throws IOException
      *             When persisting fails unexpectedly.
@@ -58,7 +59,7 @@ public interface IContext {
     public abstract void persist() throws IOException;
 
     /**
-     * Resets the state of this context. Acquires a write lock, so it may be blocked.
+     * Resets the state of this context. Acquires a write lock. Cannot be called while holding the read lock.
      * 
      * @throws IOException
      *             When resetting fails unexpectedly

@@ -334,6 +334,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     }
                     analysisResultProcessor.update(analysisResult, removedResources);
                     allAnalysisResults.add(analysisResult);
+                    context.persist();
                 }
                 // GTODO: also update messages for affected sources
             } catch(AnalysisException e) {
@@ -341,6 +342,11 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 final boolean noErrors = printMessage(message, e, input, pardoned);
                 success.and(noErrors);
                 analysisResultProcessor.error(parseResults, e);
+                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
+            } catch(IOException e) {
+                final String message = "Persisting analysis data failed unexpectedly";
+                final boolean noErrors = printMessage(message, e, input, pardoned);
+                success.and(noErrors);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             }
         }
@@ -366,7 +372,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
             cancel.throwIfCancelled();
             final IContext context = analysisResult.context;
-            try(IClosableLock lock = context.write()) {
+            try(IClosableLock lock = context.read()) {
                 for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
                     cancel.throwIfCancelled();
                     final FileObject resource = fileResult.source;

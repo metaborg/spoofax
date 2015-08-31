@@ -11,7 +11,8 @@ public interface IContextInternal extends IContext {
 
 
     /**
-     * Unloads the context, removing it from memory. Acquires a write lock, so it may be blocked.
+     * Unloads the context, removing it from memory. Acquires a write lock. Cannot be called while holding the read
+     * lock.
      */
     public abstract void unload();
 }
