@@ -20,7 +20,7 @@
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>org.spoofax.meta.runtime.libraries</artifactId>
+      <artifactId>org.metaborg.meta.lib.analysis</artifactId>
       <version>${metaborg-version}</version>
       <type>spoofax-language</type>
     </dependency>
