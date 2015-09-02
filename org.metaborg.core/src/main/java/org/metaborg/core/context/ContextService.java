@@ -3,7 +3,6 @@ package org.metaborg.core.context;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageImplChange;
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ public class ContextService implements IContextService, IContextProcessor {
 
 
     @Override public IContext get(FileObject resource, ILanguageImpl language) throws ContextException {
-        final ContextFacet facet = getFacet(language);
+        final ContextFacet facet = getFacet(resource, language);
         final IContextStrategy strategy = facet.strategy();
         final ContextIdentifier identifier = strategy.get(resource, language);
         return getOrCreate(identifier);
@@ -65,12 +64,12 @@ public class ContextService implements IContextService, IContextProcessor {
     }
 
 
-    private ContextFacet getFacet(ILanguageImpl language) {
+    private ContextFacet getFacet(FileObject resource, ILanguageImpl language) throws ContextException {
         final ContextFacet facet = language.facet(ContextFacet.class);
         if(facet == null) {
-            final String message = String.format("Cannot get a context, % does not have a context facet", language);
+            final String message = String.format("Cannot get a context, %s does not have a context facet", language);
             logger.error(message);
-            throw new MetaborgRuntimeException(message);
+            throw new ContextException(resource, language, message);
         }
         return facet;
     }

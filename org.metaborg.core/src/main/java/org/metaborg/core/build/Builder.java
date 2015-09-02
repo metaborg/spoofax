@@ -26,6 +26,7 @@ import org.metaborg.core.language.AllLanguagesFileSelector;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
+import org.metaborg.core.language.LanguagesFileSelector;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
@@ -467,7 +468,9 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             if(input.selector == null) {
                 selector = new AllLanguagesFileSelector(languageIdentifier);
             } else {
-                selector = FileSelectorUtils.and(new AllLanguagesFileSelector(languageIdentifier), input.selector);
+                selector =
+                    FileSelectorUtils.and(new LanguagesFileSelector(languageIdentifier, input.languages),
+                        input.selector);
             }
             final FileObject[] resources = location.findFiles(selector);
             if(resources == null) {
