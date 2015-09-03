@@ -8,8 +8,9 @@
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>org.metaborg.maven.parent.java</artifactId>
+    <artifactId>parent.java</artifactId>
     <version>1.5.0-SNAPSHOT</version>
+    <relativePath>../../releng/parent/java</relativePath>
   </parent>
 
   <dependencies>

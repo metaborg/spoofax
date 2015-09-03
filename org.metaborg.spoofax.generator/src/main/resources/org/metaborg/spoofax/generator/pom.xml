@@ -13,7 +13,7 @@
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>org.metaborg.maven.parent.language</artifactId>
+    <artifactId>parent.language</artifactId>
     <version>{{metaborgVersion}}</version>
   </parent>
 

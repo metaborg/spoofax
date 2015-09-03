@@ -11,7 +11,7 @@
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>org.metaborg.spoofax.eclipse.parent.language</artifactId>
+    <artifactId>parent.eclipse.language</artifactId>
     <version>1.5.0-SNAPSHOT</version>
     <relativePath />
   </parent>
