@@ -85,8 +85,7 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
     @Override public IClosableLock read() {
         if(index == null || taskEngine == null) {
             // THREADING: temporarily acquire a write lock when initializing the index, need exclusive access.
-            final Lock writeLock = lock.writeLock();
-            try(IClosableLock lock = new ClosableLock(writeLock)) {
+            try(IClosableLock lock = writeLock()) {
                 /*
                  * THREADING: re-check if index/task engine are still null now that we have exclusive access, there
                  * could have been a context switch before acquiring the lock. Check is also needed because the null
@@ -101,14 +100,17 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
             }
         }
 
+        return readLock();
+    }
+    
+    private IClosableLock readLock() {
         final Lock readLock = lock.readLock();
-        final IClosableLock closableLock = new ClosableLock(readLock);
-        return closableLock;
+        final IClosableLock lock = new ClosableLock(readLock);
+        return lock;
     }
 
     @Override public IClosableLock write() {
-        final Lock readLock = lock.writeLock();
-        final IClosableLock lock = new ClosableLock(readLock);
+        final IClosableLock lock = writeLock();
 
         if(index == null) {
             index = initIndex();
@@ -119,13 +121,19 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
 
         return lock;
     }
+    
+    private IClosableLock writeLock() {
+        final Lock writeLock = lock.writeLock();
+        final IClosableLock lock = new ClosableLock(writeLock);
+        return lock;
+    }
 
     @Override public void persist() throws IOException {
         if(index == null && taskEngine == null) {
             return;
         }
 
-        try(IClosableLock lock = read()) {
+        try(IClosableLock lock = readLock()) {
             if(index != null) {
                 IndexManager.write(index, indexFile(), termFactory);
             }
@@ -136,7 +144,7 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
     }
 
     @Override public void reset() throws FileSystemException {
-        try(IClosableLock lock = write()) {
+        try(IClosableLock lock = writeLock()) {
             if(index != null) {
                 index.reset();
                 index = null;
@@ -157,7 +165,7 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
             return;
         }
 
-        try(IClosableLock lock = write()) {
+        try(IClosableLock lock = writeLock()) {
             index = null;
             taskEngine = null;
         }
