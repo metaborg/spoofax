@@ -13,7 +13,7 @@ strategies
 
 try(<file-exists <+ mkdir> "lib");
 <output-text-file(|["lib"], "editor-common.generated.str")>
-${module lib/editor-common.generated
+${module editor-common.generated
 
 imports
   libstratego-lib
@@ -285,7 +285,7 @@ strategies
 };
 
 <output-text-file(|["lib"], "refactor-common.generated.str")>
-${module lib/refactor-common.generated
+${module refactor-common.generated
 
 imports
   libstratego-lib
