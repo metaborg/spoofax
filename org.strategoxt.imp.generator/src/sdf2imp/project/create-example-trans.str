@@ -34,15 +34,15 @@ imports
 	libstratego-gpp
 	libstratego-aterm
 	include/{sdf-name}
-	editor/{sdf-name}-Outliner
-	lib/editor-common.generated
-	lib/runtime/index/-
-	lib/runtime/nabl/-
-	lib/runtime/properties/-
-	lib/runtime/types/-
-	lib/runtime/task/-
-	lib/runtime/analysis/-
-	lib/runtime/editor/-
+	{sdf-name}-Outliner
+	editor-common.generated
+	runtime/index/-
+	runtime/nabl/-
+	runtime/properties/-
+	runtime/types/-
+	runtime/task/-
+	runtime/analysis/-
+	runtime/editor/-
 	names
 	check
 	generate

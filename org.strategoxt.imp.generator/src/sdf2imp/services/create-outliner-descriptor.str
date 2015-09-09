@@ -17,14 +17,14 @@ strategies
     if not(<file-exists> ${editor/{sdf-name}-Outliner.str}) then
       <output-text-file(|["editor"], ${{sdf-name}-Outliner.str})>
 
-${module editor/{sdf-name}-Outliner
+${module {sdf-name}-Outliner
 
 imports
   
   include/{sdf-name}
-  lib/runtime/editor/outline-library
-  lib/runtime/editor/origins
-  editor/{sdf-name}-Outliner.generated
+  runtime/editor/outline-library
+  runtime/editor/origins
+  {sdf-name}-Outliner.generated
 
 rules
   
@@ -49,12 +49,12 @@ rules
     end;
     <output-text-file(|["editor"], $[[sdf-name]-Outliner.generated.str])>
       
-${module editor/{sdf-name}-Outliner.generated
+${module {sdf-name}-Outliner.generated
 
 imports
   
   include/{sdf-name}
-  lib/runtime/editor/outline-library
+  runtime/editor/outline-library
 
 rules
   
