@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.spoofax.interpreter.core.Interpreter;
-import org.strategoxt.imp.generator.sdf2imp;
+import org.strategoxt.imp.generator.sdf2imp.sdf2imp;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
@@ -125,7 +125,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		agent.setAlwaysActivateConsole(true);
 		Context context = new Context(Environment.getTermFactory(), agent);
 		context.registerClassLoader(make_permissive.class.getClassLoader());
-		sdf2imp.init(context);
+		sdf2imp.init(context, true);
 		monitor.worked(1);
 
 		monitor.setTaskName("Creating project");

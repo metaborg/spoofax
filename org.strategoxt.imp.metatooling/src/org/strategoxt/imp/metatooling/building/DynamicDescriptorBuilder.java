@@ -20,8 +20,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.generator.sdf2imp;
-import org.strategoxt.imp.generator.sdf2imp_jvm_0_0;
+import org.strategoxt.imp.generator.sdf2imp.sdf2imp;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
@@ -31,9 +30,6 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
-import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
-import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
-import org.strategoxt.stratego_lib.stratego_lib;
 
 /**
  * Runs the project generator on modified editor descriptors.
@@ -58,7 +54,7 @@ public class DynamicDescriptorBuilder {
 			agent = new EditorIOAgent();
 			context = new Context(Environment.getTermFactory(), agent);
 			context.registerClassLoader(sdf2imp.class.getClassLoader());
-			sdf2imp.init(context);
+			sdf2imp.init(context, true);
 			
 		} catch (Throwable e) { // (catch classes not loading, etc.)
 			Environment.logException("Unable to initialize dynamic builder", e);
@@ -151,14 +147,14 @@ public class DynamicDescriptorBuilder {
 		
 		agent.clearLog();
 		agent.setWorkingDir(path);
-		dr_scope_all_start_0_0.instance.invoke(context, input);
+		context.getStrategyCollector().getStrategyExecutor("dr_scope_all_start_0_0").invoke(context, input);
 		
 		try {
 			Debug.startTimer();
 			// UNDONE: setting the exceptionhandler has no effect,
 			//         other than making eclipse not release the locks
 			//context.getExceptionHandler().setEnabled(true);
-			return sdf2imp_jvm_0_0.instance.invoke(context, input);
+			return context.getStrategyCollector().getStrategyExecutor("sdf2imp_jvm_0_0").invoke(context, input);
 		} catch (StrategoErrorExit e) {
 			context.printStackTrace();
 			Environment.logException("Fatal error in dynamic builder, log:\n" + agent.getLog().trim(), e);
@@ -172,7 +168,7 @@ public class DynamicDescriptorBuilder {
 		} finally {
 			//context.getExceptionHandler().setEnabled(false);
 			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());
-			dr_scope_all_end_0_0.instance.invoke(context, input);
+			context.getStrategyCollector().getStrategyExecutor("dr_scope_all_end_0_0").invoke(context, input);
 		}
 	}
 	

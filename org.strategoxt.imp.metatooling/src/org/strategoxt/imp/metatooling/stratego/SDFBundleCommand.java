@@ -1,6 +1,7 @@
 package org.strategoxt.imp.metatooling.stratego;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
+import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,23 +26,27 @@ import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
+import org.strategoxt.lang.RegisteringStrategy;
 import org.strategoxt.lang.StrategoException;
+import org.strategoxt.lang.Strategy;
+import org.strategoxt.lang.StrategyCollector;
 import org.strategoxt.lang.compat.NativeCallHelper;
 import org.strategoxt.lang.compat.SSL_EXT_call;
-import org.strategoxt.stratego_xtc.xtc_command_1_0;
 
 /**
  * Overrides the xtc-command strategy to use sdf2table from the SDF plugin.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class SDFBundleCommand extends xtc_command_1_0 {
+public class SDFBundleCommand extends RegisteringStrategy {
+	
+	protected static final SDFBundleCommand instance = new SDFBundleCommand();
 
     private static final String NATIVE_PATH = "native/";
 
     private static final boolean ENABLED = true;
 
-    private final xtc_command_1_0 proceed = xtc_command_1_0.instance;
+    private Strategy proceed;
 
     private final String[] windowsEnvironment = createWindowsEnvironment();
 
@@ -51,6 +56,17 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 
     private boolean initialized;
 
+    @Override
+    public void registerImplementators(StrategyCollector collector) {
+		collector.registerStrategyImplementator("xtc_command_1_0", instance);
+	}
+	
+    @Override
+	public void bindExecutors(StrategyCollector collector) {
+    	proceed = collector.getStrategyExecutor("xtc_command_1_0", this);
+	}
+
+    
     public void init() throws IOException {
         if(initialized)
             return;
@@ -115,14 +131,11 @@ public class SDFBundleCommand extends xtc_command_1_0 {
     }
 
     public static SDFBundleCommand getInstance() {
-        if(!(instance instanceof SDFBundleCommand))
-            instance = new SDFBundleCommand();
-
         return (SDFBundleCommand) instance;
     }
 
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm args,
-        org.strategoxt.lang.Strategy commandStrategy) {
+    @Override 
+    public IStrategoTerm invoke(Context context, IStrategoTerm args, org.strategoxt.lang.Strategy commandStrategy) {
 
         try {
             init();

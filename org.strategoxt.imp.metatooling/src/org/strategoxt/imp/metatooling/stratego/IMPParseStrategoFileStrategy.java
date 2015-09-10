@@ -22,15 +22,26 @@ import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.Context;
+import org.strategoxt.lang.RegisteringStrategy;
 import org.strategoxt.lang.StrategoException;
-import org.strategoxt.strc.parse_stratego_file_0_0;
-
+import org.strategoxt.lang.StrategyCollector;
 /**
  * Parse Stratego files with unmanaged parse table support for .meta files.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
+public class IMPParseStrategoFileStrategy extends RegisteringStrategy {
+	
+	
+	protected static final IMPParseStrategoFileStrategy instance = new IMPParseStrategoFileStrategy();
+	
+	public void registerImplementators(StrategyCollector collector) {
+		collector.registerStrategyImplementator("parse_stratego_file_0_0", instance);
+	}
+	
+	public void bindExecutors(StrategyCollector collectors) {
+		
+	}
 	
 	@Override
 	public IStrategoTerm invoke(Context context, IStrategoTerm current) {

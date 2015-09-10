@@ -12,11 +12,6 @@ import org.strategoxt.strc.parse_stratego_file_0_0;
  */
 public class MetaSPILibrary {
     public static void init() {
-        parse_stratego_file_0_0.instance = new IMPParseStrategoFileStrategy();
-
-        SDFBundleCommand nativeBundle = new SDFBundleCommand();
-        xtc_command_1_0.instance = nativeBundle;
-
         try {
             nativeBundle.init();
         } catch(IOException e) {

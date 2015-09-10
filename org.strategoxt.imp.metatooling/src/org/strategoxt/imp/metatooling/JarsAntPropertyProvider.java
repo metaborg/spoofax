@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import org.eclipse.ant.core.IAntPropertyValueProvider;
-import org.strategoxt.imp.generator.sdf2imp;
+import org.strategoxt.imp.generator.sdf2imp.sdf2imp;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
