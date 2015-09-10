@@ -5,6 +5,7 @@ import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.get
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -28,6 +29,7 @@ import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
+import org.strategoxt.lang.LibraryInitializer;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
 
@@ -53,6 +55,7 @@ public class DynamicDescriptorBuilder {
 		try {
 			agent = new EditorIOAgent();
 			context = new Context(Environment.getTermFactory(), agent);
+			context.getStrategyCollector().addLibraryInitializers(Arrays.asList(new LibraryInitializer.InitializerSetEntry(new org.strategoxt.imp.metatooling.stratego.LibraryInitializer())));
 			context.registerClassLoader(sdf2imp.class.getClassLoader());
 			sdf2imp.init(context, true);
 			
