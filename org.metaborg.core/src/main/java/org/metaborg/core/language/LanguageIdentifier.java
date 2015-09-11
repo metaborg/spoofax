@@ -1,6 +1,10 @@
 package org.metaborg.core.language;
 
-public class LanguageIdentifier {
+import java.io.Serializable;
+
+public class LanguageIdentifier implements Serializable {
+    private static final long serialVersionUID = 8892997161544718124L;
+    
     public final String groupId;
     public final String id;
     public final LanguageVersion version;

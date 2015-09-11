@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core;
 
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_BUILD;
+
 import java.util.Set;
 
 import org.metaborg.core.language.ILanguageImpl;
@@ -46,12 +48,15 @@ public class SpoofaxProjectConstants {
     public static final String DIR_SYNTAX = "syntax";
     public static final String DIR_TRANS = "trans";
     public static final String DIR_INCLUDE = "include";
+    public static final String DIR_BUILD = DIR_INCLUDE + "/build";
     public static final String DIR_LIB = "lib";
     public static final String DIR_ICONS = "icons";
     public static final String DIR_SRCGEN = "src-gen";
     public static final String DIR_SRCGEN_SYNTAX = DIR_SRCGEN + "/syntax";
-    public static final String DIR_JAVA = DIR_EDITOR + "/java";
-    public static final String DIR_JAVA_TRANS = DIR_JAVA + "/trans";
+    public static final String DIR_STR_JAVA = DIR_EDITOR + "/java";
+    public static final String DIR_STR_JAVA_TRANS = DIR_STR_JAVA + "/trans";
+    public static final String DIR_OUTPUT = "target";
+    public static final String DIR_CLASSES = DIR_OUTPUT + "/classes";
 
 
     public static boolean isMetaLanguage(ILanguageImpl language) {

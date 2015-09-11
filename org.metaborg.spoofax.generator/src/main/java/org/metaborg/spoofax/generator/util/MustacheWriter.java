@@ -6,6 +6,7 @@ import java.io.StringWriter;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.util.file.FileAccess;
 
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
@@ -14,12 +15,14 @@ public class MustacheWriter {
     private final FileObject root;
     private final Object[] objects;
     private final MustacheFactory factory;
+    private final FileAccess access;
 
 
-    public MustacheWriter(FileObject root, Object[] objs, Class<?> cls) {
+    public MustacheWriter(FileObject root, Object[] objs, Class<?> cls, FileAccess access) {
         this.root = root;
         this.objects = objs;
         this.factory = new StrictMustacheFactory(new ClassResolver(cls));
+        this.access = access;
     }
 
 
@@ -52,6 +55,7 @@ public class MustacheWriter {
         try(final PrintWriter writer = new PrintWriter(dest.getContent().getOutputStream())) {
             mustache.execute(writer, objects);
         }
+        access.addWrite(dest);
     }
 
     public String writeString(String template) {

@@ -6,12 +6,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.util.file.FileAccess;
 
 public class NewProjectGenerator extends BaseGenerator {
     private final String[] fileExtensions;
 
-    public NewProjectGenerator(GeneratorProjectSettings settings, String[] fileExtensions) throws ProjectException {
-        super(settings);
+    public NewProjectGenerator(GeneratorProjectSettings settings, String[] fileExtensions, FileAccess access)
+        throws ProjectException {
+        super(settings, access);
 
         if(fileExtensions.length < 1) {
             throw new ProjectException("At least one fileExtension is required.");

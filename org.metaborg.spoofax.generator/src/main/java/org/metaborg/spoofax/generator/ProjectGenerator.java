@@ -3,10 +3,11 @@ package org.metaborg.spoofax.generator;
 import java.io.IOException;
 
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.util.file.FileAccess;
 
 public class ProjectGenerator extends BaseGenerator {
-    public ProjectGenerator(GeneratorProjectSettings settings) {
-        super(settings);
+    public ProjectGenerator(GeneratorProjectSettings settings, FileAccess access) {
+        super(settings, access);
     }
 
 

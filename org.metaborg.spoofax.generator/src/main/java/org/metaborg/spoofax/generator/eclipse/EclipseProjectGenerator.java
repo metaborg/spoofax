@@ -5,10 +5,11 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.util.file.FileAccess;
 
 public class EclipseProjectGenerator extends BaseGenerator {
-    public EclipseProjectGenerator(GeneratorProjectSettings settings) {
-        super(settings);
+    public EclipseProjectGenerator(GeneratorProjectSettings settings, FileAccess access) {
+        super(settings, access);
     }
 
 

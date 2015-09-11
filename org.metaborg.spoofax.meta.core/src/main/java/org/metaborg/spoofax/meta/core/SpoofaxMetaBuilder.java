@@ -14,6 +14,7 @@ import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
+import org.metaborg.util.file.FileAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,20 +35,21 @@ public class SpoofaxMetaBuilder {
         final SpoofaxProjectSettings settings = input.settings;
         settings.getOutputDirectory().createFolder();
         settings.getLibDirectory().createFolder();
-        settings.getGeneratedSourceDirectory().createFolder();
-        settings.getGeneratedSyntaxDirectory().createFolder();
+        settings.getGenSourceDirectory().createFolder();
+        settings.getGenSyntaxDirectory().createFolder();
     }
 
-    public void generateSources(MetaBuildInput input) throws Exception {
+    public void generateSources(MetaBuildInput input, FileAccess access) throws Exception {
         log.debug("Generating sources for {}", input.project.location());
-
-        final ProjectGenerator generator = new ProjectGenerator(new GeneratorProjectSettings(input.settings));
+        
+        final ProjectGenerator generator = new ProjectGenerator(new GeneratorProjectSettings(input.settings), access);
         generator.generateAll();
 
         final FileObject settingsFile =
             input.project.location().resolveFile("src-gen").resolveFile("metaborg.generated.yaml");
         settingsFile.createFile();
         YAMLProjectSettingsSerializer.write(settingsFile, input.settings.settings());
+        access.addWrite(settingsFile);
     }
 
     public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
@@ -69,9 +71,9 @@ public class SpoofaxMetaBuilder {
     public void clean(SpoofaxProjectSettings settings) throws IOException {
         log.debug("Cleaning {}", settings.location());
         final AllFileSelector selector = new AllFileSelector();
-        settings.getJavaTransDirectory().delete(selector);
+        settings.getStrJavaTransDirectory().delete(selector);
         settings.getOutputDirectory().delete(selector);
-        settings.getGeneratedSourceDirectory().delete(selector);
+        settings.getGenSourceDirectory().delete(selector);
         settings.getCacheDirectory().delete(selector);
     }
 }

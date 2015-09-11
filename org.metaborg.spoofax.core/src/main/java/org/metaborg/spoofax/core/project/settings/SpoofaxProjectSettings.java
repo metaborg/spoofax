@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.project.settings;
 
 import static org.metaborg.spoofax.core.SpoofaxProjectConstants.*;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 import javax.annotation.Nullable;
@@ -11,12 +12,17 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.util.file.FileUtils;
 
 import com.google.common.collect.Lists;
 
-public class SpoofaxProjectSettings {
+public class SpoofaxProjectSettings implements Serializable {
+    private static final long serialVersionUID = 7439146986768086591L;
+    
     private final IProjectSettings settings;
-    private final FileObject location;
+    private final String locationPath;
+    private transient FileObject location;
 
     private Collection<String> pardonedLanguages = Lists.newLinkedList();
     private Format format = Format.ctree;
@@ -29,7 +35,13 @@ public class SpoofaxProjectSettings {
 
     public SpoofaxProjectSettings(IProjectSettings settings, FileObject location) {
         this.settings = settings;
+        this.locationPath = FileUtils.toPath(location);
         this.location = location;
+    }
+    
+    
+    public void initAfterDeserialization(IResourceService resourceService) {
+        location = resourceService.resolve(locationPath);
     }
 
 
@@ -101,11 +113,23 @@ public class SpoofaxProjectSettings {
         this.externalJarFlags = externalJarFlags;
     }
 
+    
+    public String sdfName() {
+        return settings.name();
+    }
+    
+    public String metaSdfName() {
+        return sdfName() + "-Statego";
+    }
+    
+    public String esvName() {
+        return settings.name();
+    }
 
     public String strategoName() {
         return NameUtil.toJavaId(settings.name().toLowerCase());
     }
-
+    
     public String javaName() {
         return NameUtil.toJavaId(settings.name());
     }
@@ -118,8 +142,16 @@ public class SpoofaxProjectSettings {
         return packageName().replace('.', '/');
     }
 
+    public String strategiesPackageName() {
+        return packageName() + ".strategies";
+    }
+    
+    public String packageStrategiesPath() {
+        return strategiesPackageName().replace('.', '/');
+    }
+    
 
-    public FileObject getGeneratedSourceDirectory() {
+    public FileObject getGenSourceDirectory() {
         return resolve(DIR_SRCGEN);
     }
 
@@ -127,6 +159,10 @@ public class SpoofaxProjectSettings {
         return resolve(DIR_INCLUDE);
     }
 
+    public FileObject getBuildDirectory() {
+        return resolve(DIR_BUILD);
+    }
+    
     public FileObject getIconsDirectory() {
         return resolve(DIR_ICONS);
     }
@@ -143,15 +179,7 @@ public class SpoofaxProjectSettings {
         return resolve(DIR_EDITOR);
     }
 
-    public FileObject getJavaDirectory() {
-        return resolve(DIR_JAVA);
-    }
-
-    public FileObject getJavaTransDirectory() {
-        return resolve(DIR_JAVA_TRANS);
-    }
-
-    public FileObject getGeneratedSyntaxDirectory() {
+    public FileObject getGenSyntaxDirectory() {
         return resolve(DIR_SRCGEN_SYNTAX);
     }
 
@@ -163,10 +191,115 @@ public class SpoofaxProjectSettings {
         return resolve(DIR_CACHE);
     }
 
+    public FileObject getClassesDirectory() {
+        return resolve(DIR_CLASSES);
+    }
 
-    private FileObject resolve(String directory) {
+    
+    public FileObject getSdfMainFile(String sdfName) {
+        return resolve(getGenSyntaxDirectory(), sdfName + ".sdf");
+    }
+    
+    public FileObject getSdfCompiledDefFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + ".def");
+    }
+    
+    public FileObject getSdfCompiledPermissiveDefFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + "-Permissive.def");
+    }
+    
+    public FileObject getSdfCompiledTableFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + ".tbl");
+    }
+    
+    
+    public FileObject getRtgFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + ".rtg");
+    }
+    
+    
+    public FileObject getStrMainFile() {
+        return resolve(getTransDirectory(), strategoName() + ".str");
+    }
+    
+    public FileObject getStrJavaDirectory() {
+        return resolve(DIR_STR_JAVA);
+    }
+    
+    public FileObject getStrJavaPackageDirectory() {
+        return resolve(getStrJavaDirectory(), packagePath());
+    }
+    
+    public FileObject getStrJavaStrategiesDirectory() {
+        return resolve(getStrJavaPackageDirectory(), "strategies");
+    }
+    
+    public FileObject getStrJavaStrategiesMainFile() {
+        return resolve(getStrJavaStrategiesDirectory(), "Main.java");
+    }
+
+    public FileObject getStrJavaTransDirectory() {
+        return resolve(DIR_STR_JAVA_TRANS);
+    }
+    
+    public FileObject getStrJavaMainFile() {
+        return resolve(getStrJavaTransDirectory(), "Main.java");
+    }
+    
+    public FileObject getStrCompiledJarFile() {
+        return resolve(getOutputDirectory(), strategoName() + ".jar");
+    }
+    
+    public FileObject getStrCompiledJavaJarFile() {
+        return resolve(getOutputDirectory(), strategoName() + "-java.jar");
+    }
+    
+    public FileObject getStrCompiledCtreeFile() {
+        return resolve(getOutputDirectory(), strategoName() + ".ctree");
+    }
+    
+    public FileObject getStrCompiledParenthesizerFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + "-parenthesize.str");
+    }
+    
+    public FileObject getStrCompiledSigFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + ".str");
+    }
+    
+
+    public FileObject getPpFile(String sdfName) {
+        return resolve(getSyntaxDirectory(), sdfName + ".pp");
+    }
+    
+    public FileObject getPpAfCompiledFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + ".pp.af");
+    }
+    
+    public FileObject getGenPpCompiledFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + ".generated.pp");
+    }
+    
+    public FileObject getGenPpAfCompiledFile(String sdfName) {
+        return resolve(getOutputDirectory(), sdfName + ".generated.pp.af");
+    }
+    
+    
+    public FileObject getPackedEsv() {
+        return resolve(getOutputDirectory(), esvName() + ".packed.esv");
+    }
+
+
+    private FileObject resolve(String name) {
         try {
-            return location.resolveFile(directory);
+            return location.resolveFile(name);
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException(e);
+        }
+    }
+
+    private FileObject resolve(FileObject file, String name) {
+        try {
+            return file.resolveFile(name);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }
