@@ -859,7 +859,7 @@ rules // Empty file to clear previous definitions
 
   create-analysis-singleast = 
     <output-text-file(|["lib", "runtime", "analysis"], "singleast.str")>
-"module singleast
+"module runtime/analysis/singleast
 
 imports
   
@@ -1467,7 +1467,7 @@ rules
 
   create-editor-time = 
     <output-text-file(|["lib", "runtime", "editor"], "time.str")>
-"module runtime/analysis/time
+"module runtime/editor/time
   
 rules
   
@@ -2839,7 +2839,7 @@ rules // index uri & value projections
 
   create-nabl-incremental = 
     <output-text-file(|["lib", "runtime", "nabl"], "incremental.str")>
-"module nbl/incremental
+"module runtime/nbl/incremental
 
 imports
   
@@ -2971,7 +2971,7 @@ rules // Lookup
 
   create-nabl-namegen = 
     <output-text-file(|["lib", "runtime", "nabl"], "namegen.str")>
-"module nbl/namegen
+"module runtime/nbl/namegen
 
 imports
   
