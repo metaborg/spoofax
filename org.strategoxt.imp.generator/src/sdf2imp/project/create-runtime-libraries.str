@@ -2839,7 +2839,7 @@ rules // index uri & value projections
 
   create-nabl-incremental = 
     <output-text-file(|["lib", "runtime", "nabl"], "incremental.str")>
-"module runtime/nbl/incremental
+"module runtime/nabl/incremental
 
 imports
   
@@ -2971,7 +2971,7 @@ rules // Lookup
 
   create-nabl-namegen = 
     <output-text-file(|["lib", "runtime", "nabl"], "namegen.str")>
-"module runtime/nbl/namegen
+"module runtime/nabl/namegen
 
 imports
   
