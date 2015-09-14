@@ -8,6 +8,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParserConfiguration;
 import org.metaborg.core.syntax.ParseResult;
+import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
@@ -59,6 +60,7 @@ public class JSGLRI {
             new JSGLRParseErrorHandler(this, termFactory, resource, config.getParseTableProvider().parseTable()
                 .hasRecovers());
 
+        final Timer timer = new Timer(true);
         SGLRParseResult result;
         try {
             result = actuallyParse(input, fileName, configuration);
@@ -67,6 +69,7 @@ public class JSGLRI {
             errorHandler.setRecoveryFailed(configuration.recovery);
             errorHandler.processFatalException(new NullTokenizer(input, fileName), e);
         }
+        final long duration = timer.stop();
 
         final IStrategoTerm ast;
         if(result != null) {
@@ -82,9 +85,8 @@ public class JSGLRI {
             ast = null;
         }
 
-        // GTODO: measure parse time
-        return new ParseResult<IStrategoTerm>(input, ast, resource, errorHandler.messages(), -1, language, dialect,
-            result);
+        return new ParseResult<IStrategoTerm>(input, ast, resource, errorHandler.messages(), duration, language,
+            dialect, result);
     }
 
     public SGLRParseResult actuallyParse(String text, String filename, @Nullable JSGLRParserConfiguration parserConfig)
