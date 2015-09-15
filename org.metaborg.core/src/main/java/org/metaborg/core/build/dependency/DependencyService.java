@@ -2,6 +2,8 @@ package org.metaborg.core.build.dependency;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageService;
@@ -57,6 +59,29 @@ public class DependencyService implements IDependencyService {
         return Iterables2.empty();
     }
 
+    @Override public MissingDependencies checkDependencies(IProject project) {
+        final IProjectSettings settings = projectSettingsService.get(project);
+        if(settings != null) {
+            final Iterable<LanguageIdentifier> compile = settings.compileDependencies();
+            final Collection<LanguageIdentifier> missingCompile = Lists.newLinkedList();
+            for(LanguageIdentifier identifier : compile) {
+                if(getLanguage(identifier) == null) {
+                    missingCompile.add(identifier);
+                }
+            }
+            
+            final Iterable<LanguageIdentifier> runtime = settings.runtimeDependencies();
+            final Collection<LanguageIdentifier> missingRuntime = Lists.newLinkedList();
+            for(LanguageIdentifier identifier : runtime) {
+                if(getLanguage(identifier) == null) {
+                    missingRuntime.add(identifier);
+                }
+            }
+            return new MissingDependencies(missingCompile, missingRuntime);
+        }
+        return new MissingDependencies();
+    }
+
 
     @Override public Iterable<ILanguageComponent> compileDependencies(ILanguageComponent component)
         throws MetaborgException {
@@ -89,13 +114,7 @@ public class DependencyService implements IDependencyService {
         throws MetaborgException {
         final Collection<ILanguageComponent> components = Lists.newLinkedList();
         for(LanguageIdentifier identifier : identifiers) {
-            ILanguageComponent component = languageService.getComponent(identifier);
-            if(component == null) {
-                // BOOTSTRAPPING: baseline languages have version 0.0.0, try to get impl with that version.
-                final LanguageIdentifier baselineIdentifier =
-                    new LanguageIdentifier(identifier, new LanguageVersion(0, 0, 0, ""));
-                component = languageService.getComponent(baselineIdentifier);
-            }
+            final ILanguageComponent component = getLanguage(identifier);
             if(component == null) {
                 final String message = String.format("Language for dependency %s does not exist", identifier);
                 throw new MetaborgException(message);
@@ -103,5 +122,16 @@ public class DependencyService implements IDependencyService {
             components.add(component);
         }
         return components;
+    }
+    
+    private @Nullable ILanguageComponent getLanguage(LanguageIdentifier identifier) {
+        ILanguageComponent component = languageService.getComponent(identifier);
+        if(component == null) {
+            // BOOTSTRAPPING: baseline languages have version 0.0.0, try to get impl with that version.
+            final LanguageIdentifier baselineIdentifier =
+                new LanguageIdentifier(identifier, new LanguageVersion(0, 0, 0, ""));
+            component = languageService.getComponent(baselineIdentifier);
+        }
+        return component;
     }
 }

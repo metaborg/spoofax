@@ -30,6 +30,14 @@ public interface IDependencyService {
      */
     public abstract Iterable<ILanguageComponent> runtimeDependencies(IProject project) throws MetaborgException;
 
+    /**
+     * Checks if dependencies for given project are loaded and returns any missing dependencies.
+     * 
+     * @param project
+     *            Project to check dependencies for.
+     */
+    public abstract MissingDependencies checkDependencies(IProject project);
+
 
     /**
      * Gets compile-time language component dependencies for given component.
