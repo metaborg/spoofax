@@ -359,7 +359,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	<target name="sdf2parenthesize" depends="pack-sdf,copy-sdf">
 	   <trycatch>
 		   <try>
-			   	<sdf2parenthesize input="${include.rel}/${sdfmodule}.def" language="${sdfmodule}" main="${sdfmodule}" output="${include.rel}/${sdfmodule}-parenthesize.str" outputmodule="include/${sdfmodule}-parenthesize">
+			   	<sdf2parenthesize input="${include.rel}/${sdfmodule}.def" language="${sdfmodule}" main="${sdfmodule}" output="${include.rel}/${sdfmodule}-parenthesize.str" outputmodule="${sdfmodule}-parenthesize">
 				<args>
 					<arg value="--main-strategy"/>
 					<arg value="io-${sdfmodule}-parenthesize"/>
