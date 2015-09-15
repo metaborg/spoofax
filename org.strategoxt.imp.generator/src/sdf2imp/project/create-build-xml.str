@@ -371,7 +371,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 				</sdf2parenthesize>
 			</try>
 			<catch>
-			    <echo file="${include}/${sdfmodule}-parenthesize.str" message="module include/${sdfmodule}-parenthesize rules parenthesize-${sdfmodule} = id" />
+			    <echo file="${include}/${sdfmodule}-parenthesize.str" message="module ${sdfmodule}-parenthesize rules parenthesize-${sdfmodule} = id" />
 			</catch>
 		</trycatch>
 	</target>
