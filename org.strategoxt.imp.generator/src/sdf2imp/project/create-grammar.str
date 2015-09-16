@@ -224,7 +224,7 @@ exports
     <file-exists> $["include/[<get-sdf-main-module>].str"]
   <+
     <output-text-file(|["include"], $[[<get-sdf-main-module>].str])> $[
-      module include/[<get-sdf-main-module>]
+      module [<get-sdf-main-module>]
       
       // (to be generated)
     ]

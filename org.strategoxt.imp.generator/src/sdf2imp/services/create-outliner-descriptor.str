@@ -21,7 +21,7 @@ ${module {sdf-name}-Outliner
 
 imports
   
-  include/{sdf-name}
+  {sdf-name}
   runtime/editor/outline-library
   runtime/editor/origins
   {sdf-name}-Outliner.generated
@@ -53,7 +53,7 @@ ${module {sdf-name}-Outliner.generated
 
 imports
   
-  include/{sdf-name}
+  {sdf-name}
   runtime/editor/outline-library
 
 rules
