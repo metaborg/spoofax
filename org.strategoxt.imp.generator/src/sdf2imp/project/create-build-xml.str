@@ -658,7 +658,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 				<arg line="${build.stratego.extraargs}" />
 				<arg line="${externaljarflags}" />
 				<arg line="${externaldefimport}" />
-				<arg line="-I &quot;${lib}&quot; -I &quot;${trans}&quot; -I &quot;${include}&quot; -I &quot;${src-gen}&quot; -I &quot;${basedir}/editor&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
+				<arg line="-I &quot;${lib}&quot; -I &quot;${trans}&quot; -I &quot;${include}&quot; -I &quot;${sdf-src-gen}&quot; -I &quot;${basedir}/editor&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
 			</strjargs>
 		</strj>
 		<delete file="${include}/${strmodule}.rtree" failonerror="false" />
