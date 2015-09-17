@@ -120,7 +120,7 @@ class ProjectSettingsDeserializer extends JsonDeserializer<IProjectSettings> {
         final JsonNode root = parser.getCodec().readTree(parser);
 
         final LanguageIdentifier identifier = identifier(root.get("identifier"));
-        final String name = root.get("name").asText();
+        final String name = asText(root.get("name"));
         final Collection<LanguageIdentifier> compileDependencies = Lists.newLinkedList();
         for(JsonNode node : root.get("compileDependencies")) {
             compileDependencies.add(identifier(node));
@@ -137,23 +137,43 @@ class ProjectSettingsDeserializer extends JsonDeserializer<IProjectSettings> {
     }
 
     private LanguageVersion version(JsonNode root) {
-        final int major = root.get("major").asInt();
-        final int minor = root.get("minor").asInt();
-        final int patch = root.get("patch").asInt();
-        final String qualifier = root.get("qualifier").asText();
+        final int major = asInt(root.get("major"));
+        final int minor = asInt(root.get("minor"));
+        final int patch = asInt(root.get("patch"));
+        final String qualifier = asText(root.get("qualifier"));
         return new LanguageVersion(major, minor, patch, qualifier);
     }
 
     private LanguageIdentifier identifier(JsonNode root) {
-        final String groupId = root.get("groupId").asText();
-        final String id = root.get("id").asText();
+        final String groupId = asText(root.get("groupId"));
+        final String id = asText(root.get("id"));
         final LanguageVersion version = version(root.get("version"));
         return new LanguageIdentifier(groupId, id, version);
     }
 
     private LanguageContributionIdentifier contributionIdentifier(JsonNode root) {
         final LanguageIdentifier identifier = identifier(root.get("identifier"));
-        final String name = root.get("name").asText();
+        final String name = asText(root.get("name"));
         return new LanguageContributionIdentifier(identifier, name);
+    }
+    
+    private String asText(JsonNode node) {
+    	return asText(node, "");
+    }
+    
+    private String asText(JsonNode node, String defaultValue) {
+    	if (node == null)
+    		return defaultValue;
+    	return node.asText(defaultValue);
+    }
+    
+    private int asInt(JsonNode node) {
+    	return asInt(node, 0);
+    }
+    
+    private int asInt(JsonNode node, int defaultValue) {
+    	if (node == null)
+    		return defaultValue;
+    	return node.asInt(defaultValue);
     }
 }
