@@ -1,6 +1,8 @@
 package org.metaborg.core;
 
 import org.apache.commons.vfs2.FileSystemManager;
+import org.metaborg.core.analysis.AnalysisService;
+import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.dependency.DependencyService;
@@ -80,6 +82,7 @@ public class MetaborgModule extends AbstractModule {
         bindProjectSettings();
         bindDependency();
         bindSourceText();
+        bindAnalysis();
         bindBuilder();
         bindProcessor();
         bindProcessorRunner();
@@ -128,6 +131,10 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindSourceText() {
         bind(ISourceTextService.class).to(SourceTextService.class).in(Singleton.class);
+    }
+    
+    protected void bindAnalysis() {
+        bind(IAnalysisService.class).to(AnalysisService.class);
     }
 
     protected void bindBuilder() {

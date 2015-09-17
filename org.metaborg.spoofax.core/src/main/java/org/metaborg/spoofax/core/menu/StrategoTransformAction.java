@@ -4,12 +4,18 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.menu.IAction;
+import org.metaborg.core.transform.NestedNamedGoal;
 
 public class StrategoTransformAction implements IAction {
     /**
      * Name of the action.
      */
     public final String name;
+
+    /**
+     * Goal of the action.
+     */
+    public final NestedNamedGoal goal;
 
     /**
      * Identifier of the language of input terms this builder accepts, or null if it accepts any terms.
@@ -32,23 +38,10 @@ public class StrategoTransformAction implements IAction {
     public final StrategoTransformActionFlags flags;
 
 
-    /**
-     * Creates an action from a strategy name and flags.
-     * 
-     * @param name
-     *            Name of the action.
-     * @param inputLanguage
-     *            Language of input terms this builder accepts.
-     * @param outputLanguage
-     *            Language of input terms this builder accepts.
-     * @param strategy
-     *            Name of the Stratego strategy this action executes.
-     * @param flags
-     *            Flags for this action.
-     */
-    public StrategoTransformAction(String name, @Nullable LanguageIdentifier inputLanguageId,
+    public StrategoTransformAction(String name, NestedNamedGoal goal, @Nullable LanguageIdentifier inputLanguageId,
         @Nullable LanguageIdentifier outputLanguageId, String strategy, StrategoTransformActionFlags flags) {
         this.name = name;
+        this.goal = goal;
         this.inputLanguageId = inputLanguageId;
         this.outputLanguageId = outputLanguageId;
         this.strategy = strategy;
@@ -58,6 +51,10 @@ public class StrategoTransformAction implements IAction {
 
     @Override public String name() {
         return name;
+    }
+
+    @Override public NestedNamedGoal goal() {
+        return goal;
     }
 
 

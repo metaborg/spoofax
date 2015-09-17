@@ -8,6 +8,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.menu.IMenu;
 import org.metaborg.core.menu.Menu;
 import org.metaborg.core.menu.Separator;
+import org.metaborg.core.transform.NestedNamedGoal;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 public class MenusFacetFromESV {
@@ -24,8 +26,9 @@ public class MenusFacetFromESV {
     public static @Nullable MenuFacet create(IStrategoAppl esv, LanguageIdentifier inputLanguageId) {
         final Iterable<IStrategoAppl> menuTerms = ESVReader.collectTerms(esv, "ToolbarMenu");
         final Collection<IMenu> menus = Lists.newLinkedList();
+        final ImmutableList<String> nesting = ImmutableList.of();
         for(IStrategoAppl menuTerm : menuTerms) {
-            final IMenu submenu = menu(menuTerm, new StrategoTransformActionFlags(), inputLanguageId);
+            final IMenu submenu = menu(menuTerm, new StrategoTransformActionFlags(), inputLanguageId, nesting);
             menus.add(submenu);
         }
         if(menus.isEmpty()) {
@@ -34,8 +37,10 @@ public class MenusFacetFromESV {
         return new MenuFacet(menus);
     }
 
-    private static Menu menu(IStrategoTerm menuTerm, StrategoTransformActionFlags flags, LanguageIdentifier inputLanguageId) {
+    private static Menu menu(IStrategoTerm menuTerm, StrategoTransformActionFlags flags,
+        LanguageIdentifier inputLanguageId, ImmutableList<String> nesting) {
         final String name = name(menuTerm.getSubterm(0));
+        final ImmutableList<String> newNesting = ImmutableList.<String>builder().addAll(nesting).add(name).build();
         final StrategoTransformActionFlags extraFlags = flags(menuTerm.getSubterm(1));
         final StrategoTransformActionFlags mergedFlags = StrategoTransformActionFlags.merge(flags, extraFlags);
         final Iterable<IStrategoTerm> items = menuTerm.getSubterm(2);
@@ -48,11 +53,11 @@ public class MenusFacetFromESV {
             }
             switch(constructor) {
                 case "Submenu":
-                    final Menu submenu = menu(item, mergedFlags, inputLanguageId);
+                    final Menu submenu = menu(item, mergedFlags, inputLanguageId, newNesting);
                     menu.add(submenu);
                     break;
                 case "Action":
-                    final StrategoTransformAction action = action(item, mergedFlags, inputLanguageId);
+                    final StrategoTransformAction action = action(item, mergedFlags, inputLanguageId, newNesting);
                     menu.add(action);
                     break;
                 case "Separator":
@@ -81,12 +86,15 @@ public class MenusFacetFromESV {
         return ESVReader.termContents(term);
     }
 
-    private static StrategoTransformAction action(IStrategoTerm action, StrategoTransformActionFlags flags, LanguageIdentifier inputLanguageId) {
+    private static StrategoTransformAction action(IStrategoTerm action, StrategoTransformActionFlags flags,
+        LanguageIdentifier inputLanguageId, ImmutableList<String> nesting) {
         final String name = name(action.getSubterm(0));
         final String stategy = Tools.asJavaString(action.getSubterm(1).getSubterm(0));
         final StrategoTransformActionFlags extraFlags = flags(action.getSubterm(2));
         final StrategoTransformActionFlags mergedFlags = StrategoTransformActionFlags.merge(flags, extraFlags);
-        return new StrategoTransformAction(name, inputLanguageId, null, stategy, mergedFlags);
+        final ImmutableList<String> newNesting = ImmutableList.<String>builder().addAll(nesting).add(name).build();
+        final NestedNamedGoal goal = new NestedNamedGoal(newNesting);
+        return new StrategoTransformAction(name, goal, inputLanguageId, null, stategy, mergedFlags);
     }
 
     private static StrategoTransformActionFlags flags(Iterable<IStrategoTerm> flagTerms) {

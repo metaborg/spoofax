@@ -45,6 +45,21 @@ public interface IResourceService {
     public FileObject resolve(File file);
 
     /**
+     * Tries to resolve {@code path} as an absolute path first, if that fails, resolves {@code path} relative to
+     * {@code parent}. If {@code path} is absolute but does not have a scheme, it is assumed to be on the local file
+     * system.
+     * 
+     * @param parent
+     *            Parent file object to resolve relatively to, if {@code path} is a relative path.
+     * @param path
+     *            Path to resolve
+     * @return File system object for given path.
+     * @throws MetaborgRuntimeException
+     *             When absolute or relative resolution fails.
+     */
+    public FileObject resolve(FileObject parent, String path);
+
+    /**
      * Returns file system objects for given absolute or relative to the root URIs. See <a
      * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
      * 

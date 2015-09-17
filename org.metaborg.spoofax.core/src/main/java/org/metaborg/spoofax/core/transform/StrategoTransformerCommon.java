@@ -7,7 +7,6 @@ import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
@@ -165,17 +164,13 @@ public class StrategoTransformerCommon {
             final String resourceString = Tools.asJavaString(resourceTerm);
             final String resultContents = resultToString(result);
 
-            try {
-                final FileObject resource = location.resolveFile(resourceString);
-                try(OutputStream stream = resource.getContent().getOutputStream()) {
-                    IOUtils.write(resultContents, stream);
-                } catch(IOException e) {
-                    logger.error("Error occured while writing output file", e);
-                }
-                return resource;
-            } catch(FileSystemException e) {
+            final FileObject resource = resourceService.resolve(location, resourceString);
+            try(OutputStream stream = resource.getContent().getOutputStream()) {
+                IOUtils.write(resultContents, stream);
+            } catch(IOException e) {
                 logger.error("Error occured while writing output file", e);
             }
+            return resource;
         }
 
         return null;

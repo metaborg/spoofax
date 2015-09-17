@@ -7,6 +7,8 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.analysis.AnalyzerFacet;
 import org.metaborg.core.build.dependency.DependencyFacet;
 import org.metaborg.core.context.ContextFacet;
 import org.metaborg.core.context.IContextStrategy;
@@ -23,8 +25,11 @@ import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
-import org.metaborg.spoofax.core.analysis.AnalysisFacet;
-import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
+import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
+import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
+import org.metaborg.spoofax.core.analysis.taskengine.AnalysisFacetFromESV;
+import org.metaborg.spoofax.core.analysis.taskengine.BaselineTaskEngineAnalyzer;
+import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacetFromESV;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacet;
@@ -48,6 +53,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ContainsFileSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
@@ -167,10 +173,23 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             request.addFacet(strategoRuntimeFacet);
         }
 
-        final AnalysisFacet analysisFacet = AnalysisFacetFromESV.create(esvTerm);
+        final SpoofaxAnalysisFacet analysisFacet = AnalysisFacetFromESV.create(esvTerm);
         if(analysisFacet != null) {
             request.addFacet(analysisFacet);
 
+            final String analyzerName;
+            if(useTaskEngineAnalysis(esvTerm)) {
+                if(isBaseline(identifier)) {
+                    analyzerName = BaselineTaskEngineAnalyzer.name;
+                } else {
+                    analyzerName = TaskEngineAnalyzer.name;
+                }
+            } else {
+                analyzerName = StrategoAnalyzer.name;
+            }
+            final AnalyzerFacet analyzerFacet = new AnalyzerFacet(analyzerName);
+            request.addFacet(analyzerFacet);
+            
             // TODO: get facet strategy from language specification. Currently there is no specification yet so always
             // choose 'project' as the context strategy.
             final IContextStrategy contextStrategy = contextStrategies.get("project");
@@ -216,6 +235,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         return component;
     }
 
+    
     private static String languageName(IStrategoAppl document) {
         return ESVReader.getProperty(document, "LanguageName");
     }
@@ -234,5 +254,25 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             return new String[0];
         }
         return extensionsStr.split(",");
+    }
+
+    private static boolean useTaskEngineAnalysis(IStrategoAppl esv) {
+        final IStrategoAppl strategy = ESVReader.findTerm(esv, "SemanticObserver");
+        if(strategy == null) {
+            throw new MetaborgRuntimeException(
+                "Cannot determine if task engine analysis should be used, no observer was found");
+        }
+        final IStrategoTerm annotations = strategy.getSubterm(1);
+        boolean multifile = false;
+        for(IStrategoTerm annotation : annotations) {
+            multifile |= Tools.hasConstructor((IStrategoAppl) annotation, "MultiFile", 0);
+        }
+        return multifile;
+    }
+
+    private static boolean isBaseline(LanguageIdentifier identifier) {
+        final LanguageVersion version = identifier.version;
+        final String qualifier = version.qualifier();
+        return qualifier.isEmpty() || qualifier.contains("baseline");
     }
 }

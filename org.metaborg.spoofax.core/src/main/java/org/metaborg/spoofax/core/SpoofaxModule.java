@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core;
 
 import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.analysis.IAnalyzer;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -34,8 +35,13 @@ import org.metaborg.core.transform.ITransformerExecutor;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.ITransformerResultHandler;
 import org.metaborg.core.transform.NamedGoal;
+import org.metaborg.core.transform.NestedNamedGoal;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
-import org.metaborg.spoofax.core.analysis.StrategoAnalysisService;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
+import org.metaborg.spoofax.core.analysis.taskengine.BaselineTaskEngineAnalyzer;
+import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
 import org.metaborg.spoofax.core.build.paths.SpoofaxLanguagePathProvider;
@@ -129,7 +135,6 @@ public class SpoofaxModule extends MetaborgModule {
         bindMavenProject();
         bindSyntax();
         bindCompletion();
-        bindAnalysis();
         bindTransformer();
         bindTransformerResultHandlers(MapBinder.newMapBinder(binder(),
             new TypeLiteral<Class<? extends ITransformerGoal>>() {},
@@ -192,14 +197,33 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ICompletionService.class).to(JSGLRCompletionService.class).in(Singleton.class);
     }
 
-    protected void bindAnalysis() {
-        bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(StrategoAnalysisService.class)
-            .in(Singleton.class);
+    /**
+     * Overrides {@link MetaborgModule#bindAnalysis()} to provide Spoofax-specific bindings with generics filled in as
+     * {@link IStrategoTerm}, and to provide analyzers.
+     */
+    @Override protected void bindAnalysis() {
+        // Analysis service
+        bind(SpoofaxAnalysisService.class).in(Singleton.class);
+        bind(ISpoofaxAnalysisService.class).to(SpoofaxAnalysisService.class);
+        bind(IAnalysisService.class).to(SpoofaxAnalysisService.class);
+        bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxAnalysisService.class);
+        bind(new TypeLiteral<IAnalysisService<?, ?>>() {}).to(SpoofaxAnalysisService.class);
+
+        // Analyzers
+        final MapBinder<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers =
+            MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
+                new TypeLiteral<IAnalyzer<IStrategoTerm, IStrategoTerm>>() {});
+        analyzers.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class).in(Singleton.class);
+        analyzers.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class).in(Singleton.class);
+        analyzers.addBinding(BaselineTaskEngineAnalyzer.name).to(BaselineTaskEngineAnalyzer.class).in(Singleton.class);
+
+        // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class);
         languageCacheBinder.addBinding().to(StrategoRuntimeService.class);
         bind(StrategoLocalPath.class).in(Singleton.class);
 
+        // Stratego primitives
         bind(ParseFileStrategy.class).in(Singleton.class);
         bind(ParseStrategoFileStrategy.class).in(Singleton.class);
 
@@ -238,13 +262,16 @@ public class SpoofaxModule extends MetaborgModule {
         final MapBinder<Class<? extends ITransformerGoal>, ITransformerExecutor<IStrategoTerm, IStrategoTerm, IStrategoTerm>> executorBinder =
             MapBinder.newMapBinder(binder(), new TypeLiteral<Class<? extends ITransformerGoal>>() {},
                 new TypeLiteral<ITransformerExecutor<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {});
-        executorBinder.addBinding(NamedGoal.class).to(StrategoNamedTransformer.class).in(Singleton.class);
+        bind(StrategoNamedTransformer.class).in(Singleton.class);
+        executorBinder.addBinding(NamedGoal.class).to(StrategoNamedTransformer.class);
+        executorBinder.addBinding(NestedNamedGoal.class).to(StrategoNamedTransformer.class);
         executorBinder.addBinding(CompileGoal.class).to(StrategoCompileTransformer.class).in(Singleton.class);
 
         bind(StrategoTransformerCommon.class).in(Singleton.class);
 
         bind(StrategoTransformer.class).in(Singleton.class);
         bind(IStrategoTransformer.class).to(StrategoTransformer.class);
+        bind(ITransformer.class).to(StrategoTransformer.class);
         bind(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
             StrategoTransformer.class);
         bind(new TypeLiteral<ITransformer<?, ?, ?>>() {}).to(StrategoTransformer.class);
@@ -254,6 +281,7 @@ public class SpoofaxModule extends MetaborgModule {
         MapBinder<Class<? extends ITransformerGoal>, ITransformerResultHandler<IStrategoTerm>> binder) {
         bind(StrategoTransformerFileWriter.class).in(Singleton.class);
         binder.addBinding(NamedGoal.class).to(StrategoTransformerFileWriter.class);
+        binder.addBinding(NestedNamedGoal.class).to(StrategoTransformerFileWriter.class);
         binder.addBinding(CompileGoal.class).to(StrategoTransformerFileWriter.class);
     }
 

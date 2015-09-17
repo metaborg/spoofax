@@ -88,7 +88,7 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
                         final String message =
                             String.format("Analysis result for % was removed unexpectedly", resource);
                         logger.error(message);
-                        observer.onError(new AnalysisException(Iterables2.singleton(resource), context, message));
+                        observer.onError(new AnalysisException(context, message));
                         break;
                     }
                     default: {
@@ -214,8 +214,7 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
             } catch(Exception e) {
                 final String message = String.format("Analysis for % failed", name);
                 logger.error(message, e);
-                updates.onNext(AnalysisChange.<P, A>error(resource,
-                    new AnalysisException(Iterables2.singleton(resource), context, message, e)));
+                updates.onNext(AnalysisChange.<P, A>error(resource, new AnalysisException(context, message, e)));
             }
         }
         return updates;

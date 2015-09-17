@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.AllFileSelector;
@@ -58,6 +60,29 @@ public class ResourceService implements IResourceService {
     @Override public FileObject resolve(File file) {
         try {
             return fileSystemManager.toFileObject(file);
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException(e);
+        }
+    }
+
+    @Override public FileObject resolve(FileObject parent, String path) {
+        final File file = new File(path);
+
+        try {
+            final URI uri = new URI(path);
+            if(uri.isAbsolute()) {
+                return resolve(path);
+            }
+        } catch(URISyntaxException e) {
+            // Ignore
+        }
+
+        if(file.isAbsolute()) {
+            return resolve("file://" + path);
+        }
+
+        try {
+            return parent.resolveFile(path);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }

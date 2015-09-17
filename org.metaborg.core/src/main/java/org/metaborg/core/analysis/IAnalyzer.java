@@ -11,7 +11,7 @@ import org.metaborg.core.syntax.ParseResult;
  * @param <A>
  *            Type of the analysis result.
  */
-public interface IAnalysisService<P, A> {
+public interface IAnalyzer<P, A> {
     /**
      * Performs semantic analysis on given parsed resources, using analysis rules from given language.
      * 

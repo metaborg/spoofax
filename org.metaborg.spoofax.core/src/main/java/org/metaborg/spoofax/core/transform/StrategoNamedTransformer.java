@@ -13,6 +13,7 @@ import org.metaborg.core.menu.IMenuService;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.NamedGoal;
+import org.metaborg.core.transform.NestedNamedGoal;
 import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
 import org.metaborg.spoofax.core.menu.MenuFacet;
@@ -95,28 +96,34 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
 
     private P2<StrategoTransformAction, ILanguageComponent> action(ILanguageImpl language, ITransformerGoal goal)
         throws TransformerException {
-        if(!(goal instanceof NamedGoal)) {
-            final String message = String.format("Goal %s is not a NamedGoal", goal);
+        final ActionContribution actionContrib;
+        if(goal instanceof NamedGoal) {
+            final NamedGoal namedGoal = (NamedGoal) goal;
+            try {
+                actionContrib = menuService.actionContribution(language, namedGoal.name);
+            } catch(MetaborgException e) {
+                throw new TransformerException(e);
+            }
+        } else if(goal instanceof NestedNamedGoal) {
+            final NestedNamedGoal namedGoal = (NestedNamedGoal) goal;
+            try {
+                actionContrib = menuService.nestedActionContribution(language, namedGoal.names);
+            } catch(MetaborgException e) {
+                throw new TransformerException(e);
+            }
+        } else {
+            final String message = String.format("Goal %s of class %s is not a named goal", goal, goal.getClass());
             throw new MetaborgRuntimeException(message);
         }
 
-        final NamedGoal namedGoal = (NamedGoal) goal;
-        final String actionName = namedGoal.name;
-        final ActionContribution actionContrib;
-        try {
-            actionContrib = menuService.actionContribution(language, actionName);
-        } catch(MetaborgException e) {
-            throw new TransformerException(e);
-        }
-        
         if(actionContrib == null) {
-            final String message = String.format("Action %s not found in %s", actionName, language);
+            final String message = String.format("Action %s not found in %s", goal, language);
             throw new TransformerException(message);
         }
 
         final IAction action = actionContrib.action;
         if(!(action instanceof StrategoTransformAction)) {
-            final String message = String.format("Action %s is not a Stratego transformation action", actionName);
+            final String message = String.format("Action %s is not a Stratego transformation action", goal);
             throw new TransformerException(message);
         }
 
