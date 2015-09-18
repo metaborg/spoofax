@@ -25,6 +25,11 @@ public class ContextService implements IContextService, IContextProcessor {
     }
 
 
+    @Override public boolean available(ILanguageImpl language) {
+        final ContextFacet facet = language.facet(ContextFacet.class);
+        return facet != null;
+    }
+
     @Override public IContext get(FileObject resource, ILanguageImpl language) throws ContextException {
         final ContextFacet facet = getFacet(resource, language);
         final IContextStrategy strategy = facet.strategy();

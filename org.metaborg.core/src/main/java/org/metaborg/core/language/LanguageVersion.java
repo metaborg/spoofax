@@ -1,6 +1,7 @@
 package org.metaborg.core.language;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,23 +47,27 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
 
     @Override public int compareTo(LanguageVersion other) {
         // @formatter:off
-        int result = ComparisonChain.start()
+        return ComparisonChain.start()
             .compare(this.major, other.major)
             .compare(this.minor, other.minor)
             .compare(this.patch, other.patch)
-            .result();
+            .compare(this.qualifier, other.qualifier, new Comparator<String>() {
+                @Override public int compare(String qualifier, String other) {
+                    int result = qualifier.compareToIgnoreCase(other);
+                    if(result != 0) {
+                        if(SNAPSHOT.equalsIgnoreCase(qualifier)) {
+                            return 1;
+                        } else if(SNAPSHOT.equalsIgnoreCase(other)) {
+                            return -1;
+                        } else {
+                            return result;
+                        }
+                    }
+                    return 0;
+                }})
+            .result()
+            ;
         // @formatter:on
-        if(result == 0) {
-            result = this.qualifier.compareToIgnoreCase(other.qualifier);
-            if(result != 0) {
-                if(SNAPSHOT.equalsIgnoreCase(this.qualifier)) {
-                    result = -1;
-                } else if(SNAPSHOT.equalsIgnoreCase(this.qualifier)) {
-                    result = 1;
-                }
-            }
-        }
-        return result;
     }
 
     @Override public int hashCode() {
@@ -89,7 +94,7 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
             return false;
         if(patch != other.patch)
             return false;
-        if(!qualifier.equals(other.qualifier))
+        if(!qualifier.equalsIgnoreCase(other.qualifier))
             return false;
         return true;
     }

@@ -22,7 +22,6 @@ import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ContextUtils;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
-import org.metaborg.core.language.AllLanguagesFileSelector;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
@@ -216,8 +215,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             cancel.throwIfCancelled();
             final FileObject resource = parseResult.source;
             try {
-                final IContext context = contextService.get(resource, parseResult.language);
-                sourceResultsPerContext.put(context, parseResult);
+                if(contextService.available(parseResult.language)) {
+                    final IContext context = contextService.get(resource, parseResult.language);
+                    sourceResultsPerContext.put(context, parseResult);
+                }
             } catch(ContextException e) {
                 final String message = String.format("Failed to retrieve context for parse result of %s", resource);
                 printMessage(resource, message, e, input, pardoned);
@@ -463,15 +464,11 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         final FileObject location = input.project.location();
         logger.debug("Cleaning {}", location);
 
+        FileSelector selector = new LanguagesFileSelector(languageIdentifier, input.languages);
+        if(input.selector != null) {
+            selector = FileSelectorUtils.and(selector, input.selector);
+        }
         try {
-            final FileSelector selector;
-            if(input.selector == null) {
-                selector = new AllLanguagesFileSelector(languageIdentifier);
-            } else {
-                selector =
-                    FileSelectorUtils.and(new LanguagesFileSelector(languageIdentifier, input.languages),
-                        input.selector);
-            }
             final FileObject[] resources = location.findFiles(selector);
             if(resources == null) {
                 return;
