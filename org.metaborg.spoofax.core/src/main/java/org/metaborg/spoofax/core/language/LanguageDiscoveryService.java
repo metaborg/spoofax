@@ -273,6 +273,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private static boolean isBaseline(LanguageIdentifier identifier) {
         final LanguageVersion version = identifier.version;
         final String qualifier = version.qualifier();
-        return qualifier.isEmpty() || qualifier.contains("baseline");
+        return qualifier.contains("baseline-20150905-200051");
     }
 }
