@@ -35,8 +35,8 @@ public class SpoofaxAnalysisCommon {
             final IStrategoTerm originTerm;
             final String message;
             if(term.getSubtermCount() == 2) {
-                originTerm = Tools.termAt(term, 0);
-                message = toString(Tools.termAt(term, 1));
+                originTerm = term.getSubterm(0);
+                message = toString(term.getSubterm(1));
             } else {
                 originTerm = term;
                 message = toString(term) + " (no tree node indicated)";
