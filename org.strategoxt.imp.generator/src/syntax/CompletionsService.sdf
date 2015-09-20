@@ -66,4 +66,4 @@ exports
     ~[\:\>\n]                -> PlaceholderChar
 
 lexical restrictions
-  "completions" "completion" "template" -/- [A-Za-z0-9\_\\]
+  "completions" "completion" "template" -/- [A-Za-z0-9\_\/]
