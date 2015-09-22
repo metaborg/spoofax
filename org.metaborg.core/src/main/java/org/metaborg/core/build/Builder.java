@@ -144,7 +144,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             return new BuildOutput<>(input.state);
         }
 
-        logger.debug("Building " + input.project.location());
+        logger.info("Building " + input.project.location());
 
         cancel.throwIfCancelled();
 
