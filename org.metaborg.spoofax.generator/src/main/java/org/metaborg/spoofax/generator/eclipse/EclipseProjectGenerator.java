@@ -19,6 +19,7 @@ public class EclipseProjectGenerator extends BaseGenerator {
 
     public void generateAll() throws IOException {
         generateProject();
+        generateClasspath();
         generatePOM();
         generateManifest();
         generatePluginXML();
@@ -28,6 +29,10 @@ public class EclipseProjectGenerator extends BaseGenerator {
 
     public void generateProject() throws IOException {
         writer.write(".project", false);
+    }
+
+    public void generateClasspath() throws IOException {
+        writer.write(".classpath", false);
     }
 
     public void generatePOM() throws IOException {
