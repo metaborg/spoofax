@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.project.settings;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
@@ -17,8 +19,11 @@ import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
 import com.google.common.collect.Lists;
 
 public class MavenProjectSettingsReader {
-    public static SpoofaxProjectSettings spoofaxSettings(FileObject location, MavenProject project) {
+    public static @Nullable SpoofaxProjectSettings spoofaxSettings(FileObject location, MavenProject project) {
         final Plugin plugin = project.getPlugin(SpoofaxMavenConstants.QUAL_PLUGIN_NAME);
+        if(plugin == null) {
+            return null;
+        }
         final Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
 
         final Collection<LanguageIdentifier> compileDeps = Lists.newLinkedList();
