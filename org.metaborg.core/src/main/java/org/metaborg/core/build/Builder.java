@@ -9,7 +9,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -51,7 +50,6 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.DefaultFileSelectInfo;
 import org.metaborg.util.resource.FileSelectorUtils;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -121,13 +119,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             final FileObject resource = change.resource;
 
             if(selector != null) {
-                final FileSelectInfo info = new DefaultFileSelectInfo(location, resource, -1);
                 try {
-                    if(!selector.includeFile(info)) {
+                    if(!FileSelectorUtils.include(selector, resource, location)) {
                         continue;
                     }
-                } catch(Exception e) {
-                    // Ignore exception, just include file.
+                } catch(FileSystemException e) {
+                    logger.error("Error determining if {} should be ignored from the build, including it", e, resource);
                 }
             }
 
