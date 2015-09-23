@@ -5,6 +5,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
@@ -83,37 +84,25 @@ public class StrategoDialectProcessor implements IDialectProcessor {
             try {
                 switch(changeKind) {
                     case Create:
-                        if(dialectService.hasDialect(fileName)) {
-                            // GTODO: log warning
-                            break;
-                        }
-                        dialectService.add(fileName, resource, strategoImpl, newFacet);
+                        add(fileName, resource, strategoImpl, newFacet);
                         break;
                     case Delete:
-                        dialectService.remove(fileName);
+                        remove(fileName, resource);
                         break;
                     case Modify:
-                        dialectService.update(fileName, newFacet);
+                        update(fileName, resource, newFacet);
                         break;
                     case Rename:
                         if(change.from != null) {
-                            dialectService.remove(fileName);
+                            remove(fileName, resource);
                         }
                         if(change.to != null) {
-                            if(dialectService.hasDialect(fileName)) {
-                                // GTODO: log warning
-                                break;
-                            }
-                            dialectService.add(fileName, resource, strategoImpl, newFacet);
+                            add(fileName, resource, strategoImpl, newFacet);
                         }
                         break;
                     case Copy:
                         if(change.to != null) {
-                            if(dialectService.hasDialect(fileName)) {
-                                // GTODO: log warning
-                                break;
-                            }
-                            dialectService.add(fileName, resource, strategoImpl, newFacet);
+                            add(fileName, resource, strategoImpl, newFacet);
                         }
                         break;
                     default:
@@ -139,5 +128,30 @@ public class StrategoDialectProcessor implements IDialectProcessor {
             default:
                 break;
         }
+    }
+
+
+    private void add(String name, FileObject location, ILanguageImpl base, IFacet syntaxFacet) {
+        if(dialectService.hasDialect(name)) {
+            logger.warn("Trying to create dialect {} that already exists, from {}", name, location);
+            return;
+        }
+        dialectService.add(name, location, base, syntaxFacet);
+    }
+
+    private void remove(String name, FileObject location) {
+        if(!dialectService.hasDialect(name)) {
+            logger.warn("Trying to delete dialect {} that does not exist, from {}", name, location);
+            return;
+        }
+        dialectService.remove(name);
+    }
+
+    private void update(String name, FileObject location, IFacet syntaxFacet) {
+        if(!dialectService.hasDialect(name)) {
+            logger.warn("Trying to update dialect {} that does not exist, from {}", name, location);
+            return;
+        }
+        dialectService.update(name, syntaxFacet);
     }
 }
