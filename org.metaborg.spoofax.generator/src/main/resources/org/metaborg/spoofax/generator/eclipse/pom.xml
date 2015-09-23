@@ -16,6 +16,11 @@
     <relativePath />
   </parent>
 
+  <properties>
+    <lang.unpack.artifactId>{{id}}</lang.unpack.artifactId>
+    <lang.baseline.unpack.skip>true</lang.baseline.unpack.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -24,4 +29,17 @@
       <type>spoofax-language</type>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.metaborg</groupId>
+        <artifactId>spoofax-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 </project>

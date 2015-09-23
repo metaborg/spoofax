@@ -2,6 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
   <extension point="org.metaborg.spoofax.eclipse.language">
-    <language esvFile="target/unpacked/include/{{name}}.packed.esv" /> 
+    <language location="target/unpacked/latest" />
   </extension>
 </plugin>
