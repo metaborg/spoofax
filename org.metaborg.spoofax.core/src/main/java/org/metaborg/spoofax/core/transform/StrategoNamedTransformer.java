@@ -18,8 +18,8 @@ import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
 import org.metaborg.spoofax.core.menu.MenuFacet;
 import org.metaborg.spoofax.core.menu.StrategoTransformAction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;
@@ -31,7 +31,7 @@ import fj.P2;
  * Transformer executor for the {@link NamedGoal} and {@link MenuFacet}.
  */
 public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
-    private static final Logger logger = LoggerFactory.getLogger(StrategoNamedTransformer.class);
+    private static final ILogger logger = LoggerUtils.logger(StrategoNamedTransformer.class);
 
     private final IMenuService menuService;
 
@@ -66,20 +66,26 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     @Override public TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm> transform(
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult, IContext context, ITransformerGoal goal)
         throws TransformerException {
+        final FileObject resource = analysisResult.source;
+        if(analysisResult.result == null) {
+            final String message = logger.format("Cannot transform {}, analyzed AST is null", resource);
+            throw new TransformerException(message);
+        }
         final P2<StrategoTransformAction, ILanguageComponent> tuple = action(context.language(), goal);
         final StrategoTransformAction action = tuple._1();
         final ILanguageComponent component = tuple._2();
 
-        final FileObject resource = analysisResult.source;
         try {
-            final IStrategoTerm inputTerm =
-                transformer.builderInputTerm(analysisResult.result, resource, context.location());
+            final IStrategoTerm inputTerm;
+            try {
+                inputTerm = transformer.builderInputTerm(analysisResult.result, resource, context.location());
+            } catch(MetaborgException e) {
+                throw new TransformerException("Cannot create input term", e);
+            }
             logger.debug("Transforming analysis result of {} with '{}'", resource, action.name);
             return transformer.transform(component, context, analysisResult, action.strategy, inputTerm, resource);
         } catch(TransformerException e) {
             throw e;
-        } catch(MetaborgException e) {
-            throw new TransformerException("Cannot create input term", e);
         }
     }
 
