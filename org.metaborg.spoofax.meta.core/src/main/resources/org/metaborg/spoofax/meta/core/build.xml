@@ -343,14 +343,7 @@
 				</not>
 			</condition>
 		</fail>
-		<dependset>
-			<srcfileset dir="${basedir}">
-				<include name="**/*.str" />
-				<include name="**/*.astr" />
-				<exclude name="lib/*.generated.str" />
-			</srcfileset>
-			<targetfileset file="${include}/${strmodule}.ctree" />
-		</dependset>
+		<delete file="${include}/${strmodule}.ctree" />
 		<available file="${include}/${strmodule}.ctree" property="strc-java.available" />
 		<antcall target="copy-jar" />
 		<antcall target="stratego.jvm.helper">
@@ -368,14 +361,7 @@
 				</not>
 			</condition>
 		</fail>
-		<dependset>
-			<srcfileset dir="${basedir}">
-				<include name="**/*.str" />
-				<include name="**/*.astr" />
-				<exclude name="lib/*.generated.str" />
-			</srcfileset>
-			<targetfileset file="${src-gen}/trans/Main.java" />
-		</dependset>
+		<delete file="${src-gen}/trans/Main.java" />
 		<available file="${src-gen}/trans/Main.java" property="strc-java.available" />
 		<antcall target="copy-jar" />
 		<delete>
