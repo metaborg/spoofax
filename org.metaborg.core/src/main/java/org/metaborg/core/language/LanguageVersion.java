@@ -103,7 +103,7 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
         return String.format("%d.%d.%d%s", major, minor, patch, (qualifier.isEmpty() ? "" : ("-" + qualifier)));
     }
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)(?:\\.(\\d+)(?:\\.(\\d+))?)?(?:(?:\\-)(.+))?");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)?(?:\\.(\\d+)(?:\\.(\\d+))?)?(?:(?:\\-)(.+))?");
 
     public static boolean valid(String version) {
         final Matcher matcher = VERSION_PATTERN.matcher(version);
