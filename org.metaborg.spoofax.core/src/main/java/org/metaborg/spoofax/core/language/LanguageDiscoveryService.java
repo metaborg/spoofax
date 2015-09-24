@@ -28,7 +28,6 @@ import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.AnalysisFacetFromESV;
-import org.metaborg.spoofax.core.analysis.taskengine.BaselineTaskEngineAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacetFromESV;
@@ -179,17 +178,13 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
             final String analyzerName;
             if(useTaskEngineAnalysis(esvTerm)) {
-                if(isBaseline(identifier)) {
-                    analyzerName = BaselineTaskEngineAnalyzer.name;
-                } else {
-                    analyzerName = TaskEngineAnalyzer.name;
-                }
+                analyzerName = TaskEngineAnalyzer.name;
             } else {
                 analyzerName = StrategoAnalyzer.name;
             }
             final AnalyzerFacet analyzerFacet = new AnalyzerFacet(analyzerName);
             request.addFacet(analyzerFacet);
-            
+
             // TODO: get facet strategy from language specification. Currently there is no specification yet so always
             // choose 'project' as the context strategy.
             final IContextStrategy contextStrategy = contextStrategies.get("project");
@@ -235,7 +230,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         return component;
     }
 
-    
+
     private static String languageName(IStrategoAppl document) {
         return ESVReader.getProperty(document, "LanguageName");
     }
@@ -270,9 +265,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         return multifile;
     }
 
-    private static boolean isBaseline(LanguageIdentifier identifier) {
+    @SuppressWarnings("unused") private static boolean isBaseline(LanguageIdentifier identifier) {
         final LanguageVersion version = identifier.version;
         final String qualifier = version.qualifier();
+        // BOOTSTRAPPING: check for older baseline, update to new baseline and use when necessary.
         return qualifier.contains("baseline-20150905-200051");
     }
 }

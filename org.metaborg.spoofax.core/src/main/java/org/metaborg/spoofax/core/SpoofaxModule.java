@@ -40,7 +40,6 @@ import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
-import org.metaborg.spoofax.core.analysis.taskengine.BaselineTaskEngineAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
@@ -70,7 +69,7 @@ import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService
 import org.metaborg.spoofax.core.project.settings.ProjectSettingsService;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
+import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ForeignCallPrimitive;
@@ -92,7 +91,6 @@ import org.metaborg.spoofax.core.style.StylerService;
 import org.metaborg.spoofax.core.syntax.JSGLRSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
-import org.metaborg.spoofax.core.terms.TermPrettyPrinter;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxReferenceResolver;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
@@ -102,7 +100,6 @@ import org.metaborg.spoofax.core.transform.IStrategoTransformer;
 import org.metaborg.spoofax.core.transform.StrategoCompileTransformer;
 import org.metaborg.spoofax.core.transform.StrategoNamedTransformer;
 import org.metaborg.spoofax.core.transform.StrategoTransformer;
-import org.metaborg.spoofax.core.transform.StrategoTransformerCommon;
 import org.metaborg.spoofax.core.transform.StrategoTransformerFileWriter;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
@@ -190,7 +187,6 @@ public class SpoofaxModule extends MetaborgModule {
         bind(new TypeLiteral<ISyntaxService<?>>() {}).to(JSGLRSyntaxService.class);
         languageCacheBinder.addBinding().to(JSGLRSyntaxService.class);
         bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
-        bind(TermPrettyPrinter.class).in(Singleton.class);
     }
 
     protected void bindCompletion() {
@@ -215,13 +211,14 @@ public class SpoofaxModule extends MetaborgModule {
                 new TypeLiteral<IAnalyzer<IStrategoTerm, IStrategoTerm>>() {});
         analyzers.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class).in(Singleton.class);
         analyzers.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class).in(Singleton.class);
-        analyzers.addBinding(BaselineTaskEngineAnalyzer.name).to(BaselineTaskEngineAnalyzer.class).in(Singleton.class);
 
         // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class);
         languageCacheBinder.addBinding().to(StrategoRuntimeService.class);
-        bind(StrategoLocalPath.class).in(Singleton.class);
+
+        // Stratego utilities
+        bind(StrategoCommon.class).in(Singleton.class);
 
         // Stratego primitives
         bind(ParseFileStrategy.class).in(Singleton.class);
@@ -266,8 +263,6 @@ public class SpoofaxModule extends MetaborgModule {
         executorBinder.addBinding(NamedGoal.class).to(StrategoNamedTransformer.class);
         executorBinder.addBinding(NestedNamedGoal.class).to(StrategoNamedTransformer.class);
         executorBinder.addBinding(CompileGoal.class).to(StrategoCompileTransformer.class).in(Singleton.class);
-
-        bind(StrategoTransformerCommon.class).in(Singleton.class);
 
         bind(StrategoTransformer.class).in(Singleton.class);
         bind(IStrategoTransformer.class).to(StrategoTransformer.class);

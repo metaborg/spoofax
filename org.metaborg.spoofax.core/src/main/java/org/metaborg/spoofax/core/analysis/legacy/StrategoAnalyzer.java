@@ -19,11 +19,10 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisCommon;
+import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
-import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
+import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
@@ -52,15 +51,15 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
-    private final StrategoLocalPath localPath;
+    private final StrategoCommon common;
 
 
     @Inject public StrategoAnalyzer(IResourceService resourceService, ITermFactoryService termFactoryService,
-        IStrategoRuntimeService runtimeService, StrategoLocalPath localPath) {
+        IStrategoRuntimeService runtimeService, StrategoCommon common) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
-        this.localPath = localPath;
+        this.common = common;
     }
 
 
@@ -127,8 +126,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                 continue;
             }
 
-            final IStrategoString path = localPath.localResourceTerm(localResource, localContextLocation);
-            final IStrategoString contextPath = localPath.localLocationTerm(localContextLocation);
+            final IStrategoString path = common.localResourceTerm(localResource, localContextLocation);
+            final IStrategoString contextPath = common.localLocationTerm(localContextLocation);
             analysisInputs.add(P.p(input, termFactory.makeTuple(input.result, path, contextPath)));
         }
 
@@ -139,7 +138,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
             final IStrategoTuple inputTerm = input._2();
             try {
                 logger.trace("Analysing {}", resource);
-                final IStrategoTerm resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, analysisStrategy);
+                final IStrategoTerm resultTerm = common.invoke(interpreter, inputTerm, analysisStrategy);
                 if(resultTerm == null) {
                     logger.trace("Analysis for {} failed", resource);
                     results.add(result(SpoofaxAnalysisCommon.analysisFailedMessage(interpreter), parseResult, context,

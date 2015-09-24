@@ -21,10 +21,10 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisCommon;
+import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
+import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,14 +53,17 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
+    private final StrategoCommon common;
+
     private final IStrategoConstructor fileCons;
 
 
     @Inject public TaskEngineAnalyzer(IResourceService resourceService, ITermFactoryService termFactoryService,
-        IStrategoRuntimeService runtimeService) {
+        IStrategoRuntimeService runtimeService, StrategoCommon common) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
+        this.common = common;
 
         this.fileCons = termFactoryService.getGeneric().makeConstructor("File", 3);
     }
@@ -109,7 +112,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         logger.trace("Invoking {} strategy", analysisStrategy);
         final IStrategoTerm resultTerm;
         try {
-            resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, analysisStrategy);
+            resultTerm = common.invoke(interpreter, inputTerm, analysisStrategy);
         } catch(MetaborgException e) {
             final String message = SpoofaxAnalysisCommon.analysisFailedMessage(interpreter);
             logger.error(message, e);

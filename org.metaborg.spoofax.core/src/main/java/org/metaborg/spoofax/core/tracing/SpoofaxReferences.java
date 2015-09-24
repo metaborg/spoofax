@@ -21,8 +21,7 @@ import org.metaborg.core.tracing.IHoverService;
 import org.metaborg.core.tracing.IReferenceResolver;
 import org.metaborg.core.tracing.Resolution;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
-import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
+import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
@@ -48,17 +47,16 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
 
-    private final StrategoLocalPath localPath;
+    private final StrategoCommon common;
 
 
     @Inject public SpoofaxReferences(IResourceService resourceService, ITermFactoryService termFactoryService,
-        IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService,
-        StrategoLocalPath localPath) {
+        IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService, StrategoCommon common) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;
-        this.localPath = localPath;
+        this.common = common;
     }
 
 
@@ -180,14 +178,14 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
         if(localContextLocation == null || localResource == null) {
             return null;
         }
-        final IStrategoString path = localPath.localResourceTerm(localResource, localContextLocation);
-        final IStrategoString contextPath = localPath.localLocationTerm(localContextLocation);
+        final IStrategoString path = common.localResourceTerm(localResource, localContextLocation);
+        final IStrategoString contextPath = common.localLocationTerm(localContextLocation);
 
         final Iterable<IStrategoTerm> inRegion = tracingService.toAnalyzed(result, new SourceRegion(offset));
         for(IStrategoTerm term : inRegion) {
             final IStrategoTerm inputTerm =
                 termFactory.makeTuple(term, termFactory.makeTuple(), result.result, path, contextPath);
-            final IStrategoTerm output = StrategoRuntimeUtils.invoke(runtime, inputTerm, strategy);
+            final IStrategoTerm output = common.invoke(runtime, inputTerm, strategy);
             if(output == null) {
                 continue;
             }
