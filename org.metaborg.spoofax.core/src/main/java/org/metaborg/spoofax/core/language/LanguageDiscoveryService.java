@@ -9,9 +9,12 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalyzerFacet;
+import org.metaborg.core.analysis.IAnalyzer;
 import org.metaborg.core.build.dependency.DependencyFacet;
 import org.metaborg.core.context.ContextFacet;
+import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextStrategy;
+import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageService;
@@ -33,6 +36,8 @@ import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacetFromESV;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacetFromItemSets;
+import org.metaborg.spoofax.core.context.AnalysisContextFactory;
+import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.menu.MenuFacet;
 import org.metaborg.spoofax.core.menu.MenusFacetFromESV;
@@ -69,16 +74,21 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private final ILanguageService languageService;
     private final IProjectSettingsService projectSettingsService;
     private final ITermFactoryService termFactoryService;
+    private final Map<String, IContextFactory> contextFactories;
     private final Map<String, IContextStrategy> contextStrategies;
+    private final Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers;
 
 
     @Inject public LanguageDiscoveryService(ILanguageService languageService,
         IProjectSettingsService projectSettingsService, ITermFactoryService termFactoryService,
-        Map<String, IContextStrategy> contextStrategies) {
+        Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
+        Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
         this.languageService = languageService;
         this.projectSettingsService = projectSettingsService;
         this.termFactoryService = termFactoryService;
+        this.contextFactories = contextFactories;
         this.contextStrategies = contextStrategies;
+        this.analyzers = analyzers;
     }
 
 
@@ -172,25 +182,27 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             request.addFacet(strategoRuntimeFacet);
         }
 
+        final IContextFactory contextFactory;
+        final IContextStrategy contextStrategy = contextStrategies.get(ProjectContextStrategy.name);
         final SpoofaxAnalysisFacet analysisFacet = AnalysisFacetFromESV.create(esvTerm);
         if(analysisFacet != null) {
             request.addFacet(analysisFacet);
 
-            final String analyzerName;
+            final IAnalyzer<IStrategoTerm, IStrategoTerm> analyzer;
             if(useTaskEngineAnalysis(esvTerm)) {
-                analyzerName = TaskEngineAnalyzer.name;
+                contextFactory = contextFactories.get(AnalysisContextFactory.name);
+                analyzer = analyzers.get(TaskEngineAnalyzer.name);
             } else {
-                analyzerName = StrategoAnalyzer.name;
+                contextFactory = contextFactories.get(LegacyContextFactory.name);
+                analyzer = analyzers.get(StrategoAnalyzer.name);
             }
-            final AnalyzerFacet analyzerFacet = new AnalyzerFacet(analyzerName);
+            final AnalyzerFacet<IStrategoTerm, IStrategoTerm> analyzerFacet = new AnalyzerFacet<>(analyzer);
             request.addFacet(analyzerFacet);
-
-            // TODO: get facet strategy from language specification. Currently there is no specification yet so always
-            // choose 'project' as the context strategy.
-            final IContextStrategy contextStrategy = contextStrategies.get("project");
-            final ContextFacet contextFacet = new ContextFacet(contextStrategy);
-            request.addFacet(contextFacet);
+        } else {
+            contextFactory = contextFactories.get(LegacyContextFactory.name);
         }
+        final ContextFacet contextFacet = new ContextFacet(contextFactory, contextStrategy);
+        request.addFacet(contextFacet);
 
         final MenuFacet menusFacet = MenusFacetFromESV.create(esvTerm, identifier);
         if(menusFacet != null) {
@@ -229,7 +241,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final ILanguageComponent component = languageService.add(request);
         return component;
     }
-
 
     private static String languageName(IStrategoAppl document) {
         return ESVReader.getProperty(document, "LanguageName");

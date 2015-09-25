@@ -8,8 +8,6 @@ import org.metaborg.core.project.IProjectService;
 import com.google.inject.Inject;
 
 public class ProjectContextStrategy implements IContextStrategy {
-    private static final long serialVersionUID = -3941929496884299255L;
-
     public static final String name = "project";
 
     private final IProjectService projectService;

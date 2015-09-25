@@ -45,7 +45,8 @@ import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
 import org.metaborg.spoofax.core.build.paths.SpoofaxLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
-import org.metaborg.spoofax.core.context.SpoofaxContextFactory;
+import org.metaborg.spoofax.core.context.AnalysisContextFactory;
+import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectIdentifier;
@@ -94,7 +95,9 @@ import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxReferenceResolver;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
-import org.metaborg.spoofax.core.tracing.SpoofaxReferences;
+import org.metaborg.spoofax.core.tracing.SpoofaxHoverService;
+import org.metaborg.spoofax.core.tracing.SpoofaxReferenceResolver;
+import org.metaborg.spoofax.core.tracing.SpoofaxTracingCommon;
 import org.metaborg.spoofax.core.tracing.SpoofaxTracingService;
 import org.metaborg.spoofax.core.transform.IStrategoTransformer;
 import org.metaborg.spoofax.core.transform.StrategoCompileTransformer;
@@ -162,11 +165,12 @@ public class SpoofaxModule extends MetaborgModule {
 
         binder.addBinding().to(SpoofaxLanguagePathProvider.class);
     }
-
-    @Override protected void bindContext() {
-        super.bindContext();
-
-        bind(IContextFactory.class).to(SpoofaxContextFactory.class).in(Singleton.class);
+    
+    @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
+        super.bindContextFactories(binder);
+        
+        binder.addBinding(AnalysisContextFactory.name).to(AnalysisContextFactory.class).in(Singleton.class);
+        binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
     }
 
     /**
@@ -367,11 +371,15 @@ public class SpoofaxModule extends MetaborgModule {
         bind(new TypeLiteral<ITracingService<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
             SpoofaxTracingService.class);
 
-        bind(SpoofaxReferences.class).in(Singleton.class);
-        bind(ISpoofaxReferenceResolver.class).to(SpoofaxReferences.class);
-        bind(new TypeLiteral<IReferenceResolver<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferences.class);
-        bind(ISpoofaxHoverService.class).to(SpoofaxReferences.class);
-        bind(new TypeLiteral<IHoverService<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferences.class);
+        bind(SpoofaxTracingCommon.class).in(Singleton.class);
+
+        bind(SpoofaxReferenceResolver.class).in(Singleton.class);
+        bind(ISpoofaxReferenceResolver.class).to(SpoofaxReferenceResolver.class);
+        bind(new TypeLiteral<IReferenceResolver<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferenceResolver.class);
+
+        bind(SpoofaxHoverService.class).in(Singleton.class);
+        bind(ISpoofaxHoverService.class).to(SpoofaxHoverService.class);
+        bind(new TypeLiteral<IHoverService<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxHoverService.class);
     }
 
     protected void bindMenu() {

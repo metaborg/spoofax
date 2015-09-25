@@ -25,11 +25,6 @@ public interface IContext {
     public abstract ILanguageImpl language();
 
     /**
-     * @return Identifier of this context.
-     */
-    public abstract ContextIdentifier id();
-
-    /**
      * @return Injector to retrieve implementations.
      */
     public abstract Injector injector();

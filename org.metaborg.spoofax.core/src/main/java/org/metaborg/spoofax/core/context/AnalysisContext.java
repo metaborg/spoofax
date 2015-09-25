@@ -28,8 +28,8 @@ import org.spoofax.terms.ParseError;
 
 import com.google.inject.Injector;
 
-public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxContext {
-    private static final ILogger logger = LoggerUtils.logger(SpoofaxContext.class);
+public class AnalysisContext implements IContext, IContextInternal, IAnalysisContext {
+    private static final ILogger logger = LoggerUtils.logger(AnalysisContext.class);
 
     private final Injector injector;
 
@@ -42,7 +42,7 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
     private ITaskEngine taskEngine;
 
 
-    public SpoofaxContext(Injector injector, ITermFactoryService termFactoryService, ContextIdentifier identifier) {
+    public AnalysisContext(Injector injector, ITermFactoryService termFactoryService, ContextIdentifier identifier) {
         this.injector = injector;
 
         this.termFactory = termFactoryService.get(identifier.language);
@@ -62,10 +62,6 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
 
     @Override public ILanguageImpl language() {
         return identifier.language;
-    }
-
-    @Override public ContextIdentifier id() {
-        return identifier;
     }
 
     @Override public Injector injector() {
@@ -102,7 +98,7 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
 
         return readLock();
     }
-    
+
     private IClosableLock readLock() {
         final Lock readLock = lock.readLock();
         final IClosableLock lock = new ClosableLock(readLock);
@@ -121,7 +117,7 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
 
         return lock;
     }
-    
+
     private IClosableLock writeLock() {
         final Lock writeLock = lock.writeLock();
         final IClosableLock lock = new ClosableLock(writeLock);
@@ -262,7 +258,7 @@ public class SpoofaxContext implements IContext, IContextInternal, ISpoofaxConte
             return false;
         if(getClass() != obj.getClass())
             return false;
-        final SpoofaxContext other = (SpoofaxContext) obj;
+        final AnalysisContext other = (AnalysisContext) obj;
         if(!identifier.equals(other.identifier))
             return false;
         return true;

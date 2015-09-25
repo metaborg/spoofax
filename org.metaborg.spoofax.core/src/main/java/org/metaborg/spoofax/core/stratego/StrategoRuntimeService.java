@@ -54,30 +54,30 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException {
         HybridInterpreter prototype = prototypes.get(component);
         if(prototype == null) {
-            prototype = createPrototypeRuntime(component);
+            prototype = createPrototype(component);
         }
 
-        // TODO: this seems to copy operator registries, but they should be recreated to isolate interpreters?
-        final HybridInterpreter runtime = new HybridInterpreter(prototype, new String[0]);
-        final ResourceAgent agent = new ResourceAgent(resourceService);
-        agent.setAbsoluteWorkingDir(context.location());
-        agent.setAbsoluteDefinitionDir(component.location());
-        runtime.setIOAgent(agent);
+        final HybridInterpreter runtime = clone(prototype, context.location(), component.location());
         runtime.getContext().setContextObject(context);
         runtime.getCompiledContext().setContextObject(context);
-        runtime.getCompiledContext().getExceptionHandler().setEnabled(false);
-        // Add primitive libraries again, to make sure that our libraries override any default ones.
-        for(IOperatorRegistry library : strategoLibraries) {
-            runtime.getCompiledContext().addOperatorRegistry(library);
-        }
-        runtime.init();
+        return runtime;
+    }
 
+    @Override public HybridInterpreter runtime(ILanguageComponent component, FileObject location)
+        throws MetaborgException {
+        HybridInterpreter prototype = prototypes.get(component);
+        if(prototype == null) {
+            prototype = createPrototype(component);
+        }
+
+        final HybridInterpreter runtime = clone(prototype, location, component.location());
         return runtime;
     }
 
     @Override public HybridInterpreter genericRuntime() {
-        return createRuntime(new ImploderOriginTermFactory(termFactoryService.getGeneric()));
+        return createNew(new ImploderOriginTermFactory(termFactoryService.getGeneric()));
     }
+
 
     @Override public void invalidateCache(ILanguageComponent component) {
         logger.debug("Removing cached stratego runtime for {}", component);
@@ -88,7 +88,29 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
 
-    private HybridInterpreter createRuntime(ITermFactory termFactory) {
+    private HybridInterpreter clone(HybridInterpreter prototype, FileObject workingLocation,
+        FileObject definitionLocation) {
+        // TODO: this seems to copy operator registries, but they should be recreated to isolate interpreters?
+        final HybridInterpreter runtime = new HybridInterpreter(prototype, new String[0]);
+
+        final ResourceAgent agent = new ResourceAgent(resourceService);
+        agent.setAbsoluteWorkingDir(workingLocation);
+        agent.setAbsoluteDefinitionDir(definitionLocation);
+        runtime.setIOAgent(agent);
+
+        runtime.getCompiledContext().getExceptionHandler().setEnabled(false);
+
+        // Add primitive libraries again, to make sure that our libraries override any default ones.
+        for(IOperatorRegistry library : strategoLibraries) {
+            runtime.getCompiledContext().addOperatorRegistry(library);
+        }
+
+        runtime.init();
+
+        return runtime;
+    }
+
+    private HybridInterpreter createNew(ITermFactory termFactory) {
         final HybridInterpreter interpreter = new HybridInterpreter(termFactory);
 
         interpreter.getCompiledContext().registerComponent("stratego_lib");
@@ -104,10 +126,10 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         return interpreter;
     }
 
-    private HybridInterpreter createPrototypeRuntime(ILanguageComponent component) throws MetaborgException {
+    private HybridInterpreter createPrototype(ILanguageComponent component) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", component);
         final ITermFactory termFactory = new ImploderOriginTermFactory(termFactoryService.get(component));
-        final HybridInterpreter runtime = createRuntime(termFactory);
+        final HybridInterpreter runtime = createNew(termFactory);
         loadFiles(runtime, component);
         prototypes.put(component, runtime);
         return runtime;

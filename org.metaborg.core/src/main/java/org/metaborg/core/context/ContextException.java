@@ -7,7 +7,6 @@ import org.metaborg.core.language.ILanguageImpl;
 public class ContextException extends MetaborgException {
     private static final long serialVersionUID = -3491537178639412764L;
 
-
     public final FileObject resource;
     public final ILanguageImpl language;
 

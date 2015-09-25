@@ -10,6 +10,7 @@ import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.DependencyPathProvider;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.context.ContextService;
+import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextProcessor;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.context.IContextStrategy;
@@ -77,6 +78,7 @@ public class MetaborgModule extends AbstractModule {
         bindLanguage();
         bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
         bindContext();
+        bindContextFactories(MapBinder.newMapBinder(binder(), String.class, IContextFactory.class));
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
         bindProjectSettings();
@@ -112,6 +114,10 @@ public class MetaborgModule extends AbstractModule {
         bind(IContextProcessor.class).to(ContextService.class);
     }
 
+    @SuppressWarnings("unused") protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
+
+    }
+
     protected void bindContextStrategies(MapBinder<String, IContextStrategy> binder) {
         binder.addBinding(ResourceContextStrategy.name).to(ResourceContextStrategy.class).in(Singleton.class);
         binder.addBinding(ProjectContextStrategy.name).to(ProjectContextStrategy.class).in(Singleton.class);
@@ -132,7 +138,7 @@ public class MetaborgModule extends AbstractModule {
     protected void bindSourceText() {
         bind(ISourceTextService.class).to(SourceTextService.class).in(Singleton.class);
     }
-    
+
     protected void bindAnalysis() {
         bind(IAnalysisService.class).to(AnalysisService.class);
     }

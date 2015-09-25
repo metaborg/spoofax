@@ -10,11 +10,13 @@ import org.metaborg.core.language.ILanguageImpl;
 public interface IContextService {
     /**
      * Checks if contexts are available for given language implementation.
-     * @param language Language implementation to check.
+     * 
+     * @param language
+     *            Language implementation to check.
      * @return True if contexts are available, false if not.
      */
     public abstract boolean available(ILanguageImpl language);
-    
+
     /**
      * Retrieves or creates a context for given resource and language.
      * 
