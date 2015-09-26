@@ -221,4 +221,4 @@ strategies
     with
       def := $[include/[<get-sdf-main-module>].def];
       <file-exists <+ mkdir> "include";
-      <call> ("org.strategoxt.tools.main-pack-sdf", ["-i", sdf, "-o", def])
+      <call> ("org.strategoxt.lib.pack-sdf.main-pack-sdf", ["-i", sdf, "-o", def])
