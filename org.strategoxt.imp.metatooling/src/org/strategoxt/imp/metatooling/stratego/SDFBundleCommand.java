@@ -32,12 +32,14 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.lang.StrategyCollector;
 import org.strategoxt.lang.compat.NativeCallHelper;
 import org.strategoxt.lang.compat.SSL_EXT_call;
+import org.strategoxt.lang.linking.OverridingStrategy;
 
 /**
  * Overrides the xtc-command strategy to use sdf2table from the SDF plugin.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
+@OverridingStrategy
 public class SDFBundleCommand extends RegisteringStrategy {
 	
 	protected static final SDFBundleCommand instance = new SDFBundleCommand();
