@@ -5,6 +5,7 @@ import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -33,6 +34,7 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
+import org.strategoxt.lang.LibraryInitializer;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.StrategoExit;
@@ -125,6 +127,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		agent.setAlwaysActivateConsole(true);
 		Context context = new Context(Environment.getTermFactory(), agent);
 		context.registerClassLoader(make_permissive.class.getClassLoader());
+		context.getStrategyCollector().addLibraryInitializers(Arrays.asList(new LibraryInitializer.InitializerSetEntry(new org.strategoxt.imp.metatooling.stratego.LibraryInitializer())));
 		sdf2imp.init(context, true);
 		monitor.worked(1);
 
