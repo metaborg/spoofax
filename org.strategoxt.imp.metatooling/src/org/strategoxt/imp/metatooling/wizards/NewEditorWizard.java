@@ -3,6 +3,7 @@ package org.strategoxt.imp.metatooling.wizards;
 import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +29,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.spoofax.interpreter.core.Interpreter;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.generator.sdf2imp.sdf2imp;
+import org.strategoxt.imp.generator.sdf2imp.main.sdf2table_0_0;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
@@ -38,7 +41,9 @@ import org.strategoxt.lang.LibraryInitializer;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.StrategoExit;
+import org.strategoxt.lang.Strategy;
 import org.strategoxt.permissivegrammars.make_permissive;
+import org.strategoxt.stratego.xtc.c99.$Proc.xtc_transform_file_2_0;
 
 /**
  * A wizard for creating new Spoofax/IMP projects.
@@ -47,13 +52,13 @@ import org.strategoxt.permissivegrammars.make_permissive;
  * @author Vlad Vergu <v.a.vergu at tudelft.nl>
  */
 public class NewEditorWizard extends Wizard implements INewWizard {
-	
+
 	private final NewEditorWizardPage input = new NewEditorWizardPage();
-	
+
 	private IProject lastProject;
 
 	// TODO: Support external directory and working set selection in wizard
-			
+
 	public NewEditorWizard() {
 		setNeedsProgressMonitor(true);
 	}
@@ -61,16 +66,15 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		// No further initialization required
 	}
-	
+
 	@Override
 	public void addPages() {
 		addPage(input);
 	}
 
 	/**
-	 * This method is called when 'Finish' button is pressed in
-	 * the wizard. We will create an operation and run it
-	 * using wizard as execution context.
+	 * This method is called when 'Finish' button is pressed in the wizard. We
+	 * will create an operation and run it using wizard as execution context.
 	 */
 	@Override
 	public boolean performFinish() {
@@ -80,7 +84,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		final String extensions = input.getInputExtensions();
 		final boolean genIgnores = input.getInputIgnores();
 		final boolean genMinimal = input.getInputMinimalProject();
-		
+
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
@@ -92,7 +96,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				}
 			}
 		};
-		
+
 		try {
 			getContainer().run(true, false, op);
 		} catch (InterruptedException e) {
@@ -101,38 +105,61 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		} catch (InvocationTargetException e) {
 			Throwable realException = e.getTargetException();
 			Environment.logException("Exception while creating new project", realException);
-			MessageDialog.openError(getShell(), "Error: " + realException.getClass().getName(), realException.getMessage());
+			MessageDialog.openError(getShell(), "Error: " + realException.getClass().getName(),
+					realException.getMessage());
 			rollback();
 			return false;
 		}
 		return true;
 	}
-	
+
 	private void rollback() {
 		// monitor.setTaskName("Undoing workspace operations");
 		try {
-			if (lastProject != null) lastProject.delete(true, null);
+			if (lastProject != null)
+				lastProject.delete(true, null);
 		} catch (CoreException e) {
 			Environment.logException("Could not remove new project", e);
 		}
 	}
-	
- 	private void doFinish(String languageName, String projectName, String packageName, String extensions, boolean genIgnores, boolean genMinimal, IProgressMonitor monitor) throws IOException, CoreException {
+
+	private void doFinish(String languageName, String projectName, String packageName, String extensions,
+			boolean genIgnores, boolean genMinimal, IProgressMonitor monitor) throws IOException, CoreException {
 		final int TASK_COUNT = 22;
 		lastProject = null;
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
-		
+
 		monitor.setTaskName("Preparing project builder");
 		EditorIOAgent agent = new EditorIOAgent();
 		agent.setAlwaysActivateConsole(true);
 		Context context = new Context(Environment.getTermFactory(), agent);
 		context.registerClassLoader(make_permissive.class.getClassLoader());
-		
+
 		// Add overwrites for sdf2imp which are only used inside eclipse
-		LibraryInitializer.initialize(context,
-				new org.strategoxt.imp.generator.sdf2imp.LibraryInitializer(),
+		LibraryInitializer.initialize(context, new org.strategoxt.imp.generator.sdf2imp.LibraryInitializer(),
 				new org.strategoxt.imp.metatooling.stratego.LibraryInitializer());
-		
+		Strategy xtc_command_1_0 = context.getStrategyCollector().getStrategyExecutor("xtc_command_1_0");
+		System.out.println("xtc_command_1_0 Strategy: " + xtc_command_1_0);
+		try {
+			Field instanceField = xtc_transform_file_2_0.class.getDeclaredField("instance");
+			instanceField.setAccessible(true);
+			Field f = xtc_transform_file_2_0.class.getDeclaredField("xtc_command_1_0_Executor");
+			xtc_transform_file_2_0 instance = (xtc_transform_file_2_0) instanceField.get(null);
+			f.setAccessible(true);
+			Strategy xtc_command_executor = (Strategy) f.get(instance);
+			System.out.println("xtc_command_1_0 for sdf2table: " + xtc_command_executor);
+		} catch (Exception e2) {
+			e2.printStackTrace();
+		}
+		IStrategoTerm result = xtc_command_1_0.invoke(context,
+				context.getFactory().makeList(context.getFactory().makeString("-V")), new Strategy() {
+					@Override
+					public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+						return context.getFactory().makeString("implodePT");
+					}
+				});
+		System.out.println("Invoke result: " + result);
+
 		monitor.worked(1);
 
 		monitor.setTaskName("Creating project");
@@ -158,34 +185,50 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			sdf2imp_switches.add("-e");
 			sdf2imp_switches.add(extensions);
 			// .gitignores
-			if(genIgnores)
+			if (genIgnores)
 				sdf2imp_switches.add("-vci");
 			// minimal project
-			if(genMinimal)
+			if (genMinimal)
 				sdf2imp_switches.add("-min");
-			
+
 			// verbosity of builder
 			sdf2imp_switches.add("--verbose");
 			sdf2imp_switches.add("2");
-			
-			sdf2imp.mainNoExit(context, sdf2imp_switches.toArray(new String[sdf2imp_switches.size()]));
-			
-//				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-vci", "--verbose", "2");
+
+			context.invokeStrategyCLI(context.getStrategyCollector().getStrategyExecutor("main_sdf2imp_0_0"), "sdf2imp", sdf2imp_switches.toArray(new String[sdf2imp_switches.size()]));
+
+			//sdf2imp.mainNoExit(context, sdf2imp_switches.toArray(new String[sdf2imp_switches.size()]));
+
+			// sdf2imp.mainNoExit(context, "-m", languageName, "-pn",
+			// projectName, "-n", packageName, "-e", extensions, "-vci",
+			// "--verbose", "2");
 		} catch (StrategoErrorExit e) {
+			try {
+				Field instanceField = xtc_transform_file_2_0.class.getDeclaredField("instance");
+				instanceField.setAccessible(true);
+				Field f = xtc_transform_file_2_0.class.getDeclaredField("xtc_command_1_0_Executor");
+				xtc_transform_file_2_0 instance = (xtc_transform_file_2_0) instanceField.get(null);
+				f.setAccessible(true);
+				Strategy xtc_command_executor = (Strategy) f.get(instance);
+				System.out.println("xtc_command_1_0 for sdf2table: " + xtc_command_executor);
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
 			Environment.logException(e);
-			throw new StrategoException("Project builder failed: " + e.getMessage() + "\nLog follows:\n\n"
-					+ agent.getLog(), e);
+			throw new StrategoException(
+					"Project builder failed: " + e.getMessage() + "\nLog follows:\n\n" + agent.getLog(), e);
 		} catch (StrategoExit e) {
 			if (e.getValue() != 0) {
-				throw new StrategoException("Project builder failed.\nLog follows:\n\n"
-						+ agent.getLog(), e);
+				throw new StrategoException("Project builder failed.\nLog follows:\n\n" + agent.getLog(), e);
 			}
 		}
 		monitor.worked(3);
 
-		monitor.setTaskName("Acquiring workspace lock"); // need root lock for builder
+		monitor.setTaskName("Acquiring workspace lock"); // need root lock for
+															// builder
 		IWorkspaceRoot root = project.getWorkspace().getRoot();
-		Job.getJobManager().beginRule(root, monitor); // avoid ant builder launching
+		Job.getJobManager().beginRule(root, monitor); // avoid ant builder
+														// launching
 		try {
 			monitor.setTaskName("Acquiring environment lock");
 			monitor.worked(1);
@@ -194,19 +237,21 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				monitor.setTaskName("Loading new resources");
 				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 				monitor.worked(3);
-				
+
 				monitor.setTaskName("Building and loading example editor");
 				project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 				monitor.worked(6);
 
-				// TODO: Optimize - don't reload editor (already done from Ant file)
+				// TODO: Optimize - don't reload editor (already done from Ant
+				// file)
 				// DynamicDescriptorLoader.getInstance().forceNoUpdate(descriptor);
 				monitor.setTaskName("Loading editor");
 				IResource descriptor = project.findMember("include/" + languageName + ".packed.esv");
 				DynamicDescriptorLoader.getInstance().forceUpdate(descriptor);
 				monitor.worked(2);
 
-				//project.refreshLocal(DEPTH_INFINITE, new NullProgressMonitor());
+				// project.refreshLocal(DEPTH_INFINITE, new
+				// NullProgressMonitor());
 				monitor.worked(1);
 			} finally {
 				Environment.getStrategoLock().unlock();
@@ -217,15 +262,15 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 
 		monitor.setTaskName("Opening editor tabs");
 		Display display = getShell().getDisplay();
-		EditorState.asyncOpenEditor(display, project.getFile("/syntax/" + languageName +  ".sdf3"), true);
+		EditorState.asyncOpenEditor(display, project.getFile("/syntax/" + languageName + ".sdf3"), true);
 		monitor.worked(1);
 		EditorState.asyncOpenEditor(display, project.getFile("/trans/names.nab"), true);
 		monitor.worked(1);
-		EditorState.asyncOpenEditor(display, project.getFile("/editor/" + languageName +  ".main.esv"), true);
+		EditorState.asyncOpenEditor(display, project.getFile("/editor/" + languageName + ".main.esv"), true);
 		monitor.worked(1);
-		EditorState.asyncOpenEditor(display, project.getFile("/trans/" + toStrategoName(languageName) +  ".str"), true);
+		EditorState.asyncOpenEditor(display, project.getFile("/trans/" + toStrategoName(languageName) + ".str"), true);
 		monitor.worked(1);
-		if(!genMinimal)
+		if (!genMinimal)
 			EditorState.asyncOpenEditor(display, project.getFile("/test/example." + extensions.split(",")[0]), false);
 		refreshProject(project);
 		monitor.done();
@@ -250,16 +295,15 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		job.setSystem(true);
 		job.schedule(5000);
 	}
- 	
- 	private static String toStrategoName(String languageName) {
- 		return Interpreter.cify(languageName.toLowerCase()).replace('-', '_');
- 	}
+
+	private static String toStrategoName(String languageName) {
+		return Interpreter.cify(languageName.toLowerCase()).replace('-', '_');
+	}
 
 	/*
-	private void throwCoreException(String message) throws CoreException {
-		IStatus status =
-			new Status(IStatus.ERROR, "org.strategoxt.imp.metatooling", IStatus.OK, message, null);
-		throw new CoreException(status);
-	}
-	*/
+	 * private void throwCoreException(String message) throws CoreException {
+	 * IStatus status = new Status(IStatus.ERROR,
+	 * "org.strategoxt.imp.metatooling", IStatus.OK, message, null); throw new
+	 * CoreException(status); }
+	 */
 }

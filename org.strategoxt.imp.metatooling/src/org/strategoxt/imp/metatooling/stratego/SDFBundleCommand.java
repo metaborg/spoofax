@@ -6,6 +6,7 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Arrays;
@@ -60,11 +61,13 @@ public class SDFBundleCommand extends RegisteringStrategy {
 
     @Override
     public void registerImplementators(StrategyCollector collector) {
+    	System.out.println("Register SDFBundleCommand");
 		collector.registerStrategyImplementator("xtc_command_1_0", instance);
 	}
 	
     @Override
 	public void bindExecutors(StrategyCollector collector) {
+    	System.out.println("Bind SDFBundleCommand");
     	proceed = collector.getStrategyExecutor("xtc_command_1_0", this);
 	}
 
@@ -72,6 +75,7 @@ public class SDFBundleCommand extends RegisteringStrategy {
     public void init() throws IOException {
         if(initialized)
             return;
+        System.out.println("Initialze SDFBundleCommand");
         binaryPath = getBinaryPath();
         binaryExtension = getBinaryExtension();
 
@@ -138,7 +142,7 @@ public class SDFBundleCommand extends RegisteringStrategy {
 
     @Override 
     public IStrategoTerm invoke(Context context, IStrategoTerm args, org.strategoxt.lang.Strategy commandStrategy) {
-
+    	System.out.println("Invoke SDFBundleCommand");
         try {
             init();
         } catch(IOException e) {
@@ -153,17 +157,21 @@ public class SDFBundleCommand extends RegisteringStrategy {
         }
 
         IStrategoTerm commandTerm = commandStrategy.invoke(context, args);
+        System.out.println("Command Term: " + commandTerm);
         if(!ENABLED || commandTerm.getTermType() != STRING)
             return proceed.invoke(context, args, commandStrategy);
 
         String command = ((IStrategoString) commandTerm).stringValue();
         if(!new File(binaryPath + command + binaryExtension).exists()) {
+        	System.out.println("File does not exist");
             if(command.equals("sdf2table") || command.equals("implodePT")) {
                 throw new StrategoException("Could not find the native tool bundle command " + command + " in "
                     + binaryPath + command + binaryExtension);
             }
             return proceed.invoke(context, args, commandStrategy);
         }
+        
+        System.out.println("Args: " + args);
 
         if(args.getTermType() != LIST)
             return null;
@@ -176,8 +184,11 @@ public class SDFBundleCommand extends RegisteringStrategy {
                 return proceed.invoke(context, args, commandStrategy); // (already logged)
             }
         }
-
-        return invoke(context, command, ((IStrategoList) args).getAllSubterms()) ? args : null;
+        
+        System.out.println("INVOKE");
+        boolean success = invoke(context, command, ((IStrategoList) args).getAllSubterms());
+        System.out.println("Scuess : " + success );
+        return success ? args : null;
     }
 
     public boolean invoke(Context context, String command, IStrategoTerm[] argList) {
@@ -186,18 +197,20 @@ public class SDFBundleCommand extends RegisteringStrategy {
         // String[] environment = isWindowsOS()
         // ? createWindowsEnvironment()
         // : null;
+        System.out.println("Command args: " + Arrays.toString(commandArgs));
         String[] environment = windowsEnvironment;
         IOAgent io = context.getIOAgent();
 
         try {
             if(commandArgs == null)
                 return false;
-            Writer out = io.getWriter(IOAgent.CONST_STDOUT);
-            Writer err = io.getWriter(IOAgent.CONST_STDERR);
-
+            Writer out = new OutputStreamWriter(System.out);//io.getWriter(IOAgent.CONST_STDOUT);
+            Writer err = new OutputStreamWriter(System.err);//io.getWriter(IOAgent.CONST_STDERR);
+            System.out.println("Invoke Native tool");
             err.write("Invoking native tool " + binaryPath + command + binaryExtension + " " + Arrays.toString(argList)
                 + "\n");
             int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), out, err);
+            System.out.println("Result: " + result);
             if(result != 0) {
                 Environment.logException("Native tool " + command + " exited with error code " + result
                     + "\nCommand:\n  " + Arrays.toString(commandArgs) + "\nEnvironment:\n "

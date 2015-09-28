@@ -42,7 +42,7 @@ strategies
     ?(input, output, options);
     <xtc-command(!"sdf2table")> ["-i", <abspath> input, "-o", <abspath> output, "-m", <get-sdf-main-module> | <conc> (options, <pass-v-verbose>)]
   <+
-    if <xtc-command(!"sdf2table")> ["-V"] then // ensure it's available
+    if <xtc-command(!"sdf2table")> ["-V"] then // ensure it's available // THIS DOES NOT HELP -V returns exit code 1, so xtc-command will fail always
       fatal-err(|["Internal error: parse table creation failed"])
     else
       fatal-err(|["Internal error: could not call sdf2table"])
