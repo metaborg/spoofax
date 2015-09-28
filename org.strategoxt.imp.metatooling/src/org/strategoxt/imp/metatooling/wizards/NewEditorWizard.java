@@ -127,8 +127,12 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		agent.setAlwaysActivateConsole(true);
 		Context context = new Context(Environment.getTermFactory(), agent);
 		context.registerClassLoader(make_permissive.class.getClassLoader());
-		context.getStrategyCollector().addLibraryInitializers(Arrays.asList(new LibraryInitializer.InitializerSetEntry(new org.strategoxt.imp.metatooling.stratego.LibraryInitializer())));
-		sdf2imp.init(context, true);
+		
+		// Add overwrites for sdf2imp which are only used inside eclipse
+		LibraryInitializer.initialize(context,
+				new org.strategoxt.imp.generator.sdf2imp.LibraryInitializer(),
+				new org.strategoxt.imp.metatooling.stratego.LibraryInitializer());
+		
 		monitor.worked(1);
 
 		monitor.setTaskName("Creating project");
