@@ -26,9 +26,16 @@ import com.google.common.collect.Multimap;
 public class MenuService implements IMenuService {
     @Override public Iterable<IMenuItem> menuItems(ILanguageImpl language) {
         final Iterable<MenuFacet> facets = language.facets(MenuFacet.class);
-        final Collection<IMenuItem> menuItems = Lists.newLinkedList();
+        final List<IMenuItem> menuItems = Lists.newLinkedList();
         for(MenuFacet facet : facets) {
             Iterables.addAll(menuItems, facet.menuItems);
+        }
+        if(menuItems.size() == 1) {
+            final IMenuItem item = menuItems.get(0);
+            if(item instanceof IMenu) {
+                final IMenu menu = (IMenu) item;
+                return menu.items();
+            }
         }
         return menuItems;
     }
