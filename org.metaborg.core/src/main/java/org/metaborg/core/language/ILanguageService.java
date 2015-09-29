@@ -60,7 +60,7 @@ public interface ILanguageService {
     public Iterable<? extends ILanguageImpl> getAllImpls();
 
     /**
-     * Gets language implementions with group id and id.
+     * Gets language implementations with group id and id.
      * 
      * @param groupId
      *            Group ID of the implementations to get.

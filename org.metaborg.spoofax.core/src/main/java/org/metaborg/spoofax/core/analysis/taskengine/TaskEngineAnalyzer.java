@@ -23,8 +23,8 @@ import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisCommon;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
+import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,13 +53,13 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
-    private final StrategoCommon common;
+    private final IStrategoCommon common;
 
     private final IStrategoConstructor fileCons;
 
 
     @Inject public TaskEngineAnalyzer(IResourceService resourceService, ITermFactoryService termFactoryService,
-        IStrategoRuntimeService runtimeService, StrategoCommon common) {
+        IStrategoRuntimeService runtimeService, IStrategoCommon common) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;

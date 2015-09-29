@@ -9,7 +9,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.spoofax.core.stratego.StrategoCommon;
+import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -28,11 +28,11 @@ public class SpoofaxTracingCommon {
     private final IResourceService resourceService;
     private final ISpoofaxTracingService tracingService;
 
-    private final StrategoCommon common;
+    private final IStrategoCommon common;
 
 
     @Inject public SpoofaxTracingCommon(IResourceService resourceService, ISpoofaxTracingService tracingService,
-        StrategoCommon common) {
+        IStrategoCommon common) {
         this.resourceService = resourceService;
         this.tracingService = tracingService;
         this.common = common;

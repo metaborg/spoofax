@@ -69,6 +69,7 @@ import org.metaborg.spoofax.core.project.IMavenProjectService;
 import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.project.settings.ProjectSettingsService;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
@@ -165,10 +166,10 @@ public class SpoofaxModule extends MetaborgModule {
 
         binder.addBinding().to(SpoofaxLanguagePathProvider.class);
     }
-    
+
     @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
         super.bindContextFactories(binder);
-        
+
         binder.addBinding(AnalysisContextFactory.name).to(AnalysisContextFactory.class).in(Singleton.class);
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
     }
@@ -222,7 +223,7 @@ public class SpoofaxModule extends MetaborgModule {
         languageCacheBinder.addBinding().to(StrategoRuntimeService.class);
 
         // Stratego utilities
-        bind(StrategoCommon.class).in(Singleton.class);
+        bind(IStrategoCommon.class).to(StrategoCommon.class).in(Singleton.class);
 
         // Stratego primitives
         bind(ParseFileStrategy.class).in(Singleton.class);

@@ -6,7 +6,7 @@ import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
-import org.metaborg.spoofax.core.stratego.StrategoCommon;
+import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
@@ -20,11 +20,11 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
     private final ILanguageService languageService;
     private final IContextService contextService;
 
-    private final StrategoCommon common;
+    private final IStrategoCommon common;
 
 
     @Inject public ForeignCallPrimitive(ILanguageService languageService, IContextService contextService,
-        StrategoCommon common) {
+        IStrategoCommon common) {
         super("SSL_EXT_foreigncall", 0, 2);
 
         this.languageService = languageService;

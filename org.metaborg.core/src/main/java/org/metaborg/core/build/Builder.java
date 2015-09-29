@@ -208,26 +208,33 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         // Segregate by context
         cancel.throwIfCancelled();
         final Multimap<IContext, ParseResult<P>> sourceResultsPerContext = ArrayListMultimap.create();
-        for(ParseResult<P> parseResult : sourceParseResults) {
-            cancel.throwIfCancelled();
-            final FileObject resource = parseResult.source;
-            try {
-                if(contextService.available(parseResult.language)) {
-                    final IContext context = contextService.get(resource, parseResult.language);
-                    sourceResultsPerContext.put(context, parseResult);
+        if(input.analyze) {
+            for(ParseResult<P> parseResult : sourceParseResults) {
+                cancel.throwIfCancelled();
+                final FileObject resource = parseResult.source;
+                try {
+                    if(contextService.available(parseResult.language)) {
+                        final IContext context = contextService.get(resource, parseResult.language);
+                        sourceResultsPerContext.put(context, parseResult);
+                    }
+                } catch(ContextException e) {
+                    final String message = String.format("Failed to retrieve context for parse result of %s", resource);
+                    printMessage(resource, message, e, input, pardoned);
+                    extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
                 }
-            } catch(ContextException e) {
-                final String message = String.format("Failed to retrieve context for parse result of %s", resource);
-                printMessage(resource, message, e, input, pardoned);
-                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
             }
         }
 
         // Analyze
         cancel.throwIfCancelled();
-        final Collection<AnalysisResult<P, A>> allAnalysisResults =
-            analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned, removedResources,
-                extraMessages, success, cancel);
+        final Collection<AnalysisResult<P, A>> allAnalysisResults;
+        if(input.analyze) {
+            allAnalysisResults =
+                analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned, removedResources,
+                    extraMessages, success, cancel);
+        } else {
+            allAnalysisResults = Lists.newLinkedList();
+        }
 
         // Transform
         cancel.throwIfCancelled();
