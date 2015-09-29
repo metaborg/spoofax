@@ -50,7 +50,7 @@ public class SpoofaxAnalysisCommon {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(left, right);
                 messages.add(MessageFactory.newAnalysisMessage(resource, region, message, severity, null));
             } else {
-                messages.add(MessageFactory.newAnalysisMessageAtTop(resource, message, severity, null));
+                messages.add(MessageFactory.newAnalysisMessageAtTop(resource, message + " (no origin information)", severity, null));
             }
         }
 
