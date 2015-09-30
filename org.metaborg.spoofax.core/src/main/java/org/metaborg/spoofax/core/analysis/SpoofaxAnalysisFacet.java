@@ -6,7 +6,7 @@ public class SpoofaxAnalysisFacet implements IFacet {
     public final String strategyName;
 
 
-    public SpoofaxAnalysisFacet(String analysisStrategy) {
-        this.strategyName = analysisStrategy;
+    public SpoofaxAnalysisFacet(String strategyName) {
+        this.strategyName = strategyName;
     }
 }

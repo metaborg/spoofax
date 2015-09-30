@@ -5,9 +5,10 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalyzerFacet;
 import org.metaborg.core.analysis.IAnalyzer;
 import org.metaborg.core.build.dependency.DependencyFacet;
@@ -29,14 +30,15 @@ import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
+import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
-import org.metaborg.spoofax.core.analysis.taskengine.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacetFromESV;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacetFromItemSets;
 import org.metaborg.spoofax.core.context.AnalysisContextFactory;
+import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.menu.MenuFacet;
@@ -54,10 +56,9 @@ import org.metaborg.spoofax.core.tracing.ResolverFacet;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ContainsFileSelector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
@@ -69,7 +70,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
-    private static final Logger logger = LoggerFactory.getLogger(LanguageDiscoveryService.class);
+    private static final ILogger logger = LoggerUtils.logger(LanguageDiscoveryService.class);
 
     private final ILanguageService languageService;
     private final IProjectSettingsService projectSettingsService;
@@ -182,28 +183,57 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             request.addFacet(strategoRuntimeFacet);
         }
 
+
+        final boolean hasContext = ContextFacetFromESV.hasContext(esvTerm);
+        final boolean hasAnalysis = SpoofaxAnalysisFacetFromESV.hasAnalysis(esvTerm);
+
         final IContextFactory contextFactory;
-        final IContextStrategy contextStrategy = contextStrategies.get(ProjectContextStrategy.name);
-        final SpoofaxAnalysisFacet analysisFacet = AnalysisFacetFromESV.create(esvTerm);
+        final IAnalyzer<IStrategoTerm, IStrategoTerm> analyzer;
+        final SpoofaxAnalysisFacet analysisFacet;
+        if(!hasContext && !hasAnalysis) {
+            contextFactory = contextFactory(LegacyContextFactory.name);
+            analyzer = null;
+            analysisFacet = null;
+        } else if(hasContext && !hasAnalysis) {
+            final String type = ContextFacetFromESV.type(esvTerm);
+            contextFactory = contextFactory(type);
+            analyzer = null;
+            analysisFacet = null;
+        } else if(!hasContext && hasAnalysis) {
+            final String type = SpoofaxAnalysisFacetFromESV.type(esvTerm);
+            switch(type) {
+                default:
+                case StrategoAnalyzer.name:
+                    contextFactory = contextFactory(LegacyContextFactory.name);
+                    break;
+                case TaskEngineAnalyzer.name:
+                    contextFactory = contextFactory(AnalysisContextFactory.name);
+                    break;
+            }
+            // Analyzer type cannot be null because hasAnalysis is true, no null check is needed.
+            analyzer = analyzers.get(type);
+            analysisFacet = SpoofaxAnalysisFacetFromESV.create(esvTerm);
+        } else { // Both context and analysis are specified.
+            final String contextType = ContextFacetFromESV.type(esvTerm);
+            contextFactory = contextFactory(contextType);
+            final String analysisType = SpoofaxAnalysisFacetFromESV.type(esvTerm);
+            // Analyzer type cannot be null because hasAnalysis is true, no null check is needed.
+            analyzer = analyzers.get(analysisType);
+            analysisFacet = SpoofaxAnalysisFacetFromESV.create(esvTerm);
+        }
+        
+        if(contextFactory != null) {
+            final IContextStrategy contextStrategy = contextStrategy(ProjectContextStrategy.name);
+            request.addFacet(new ContextFacet(contextFactory, contextStrategy));
+        }
+        if(analyzer != null) {
+            request.addFacet(new AnalyzerFacet<>(analyzer));
+        }
         if(analysisFacet != null) {
             request.addFacet(analysisFacet);
-
-            final IAnalyzer<IStrategoTerm, IStrategoTerm> analyzer;
-            if(useTaskEngineAnalysis(esvTerm)) {
-                contextFactory = contextFactories.get(AnalysisContextFactory.name);
-                analyzer = analyzers.get(TaskEngineAnalyzer.name);
-            } else {
-                contextFactory = contextFactories.get(LegacyContextFactory.name);
-                analyzer = analyzers.get(StrategoAnalyzer.name);
-            }
-            final AnalyzerFacet<IStrategoTerm, IStrategoTerm> analyzerFacet = new AnalyzerFacet<>(analyzer);
-            request.addFacet(analyzerFacet);
-        } else {
-            contextFactory = contextFactories.get(LegacyContextFactory.name);
         }
-        final ContextFacet contextFacet = new ContextFacet(contextFactory, contextStrategy);
-        request.addFacet(contextFacet);
 
+        
         final MenuFacet menusFacet = MenusFacetFromESV.create(esvTerm, identifier);
         if(menusFacet != null) {
             request.addFacet(menusFacet);
@@ -262,24 +292,32 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         return extensionsStr.split(",");
     }
 
-    private static boolean useTaskEngineAnalysis(IStrategoAppl esv) {
-        final IStrategoAppl strategy = ESVReader.findTerm(esv, "SemanticObserver");
-        if(strategy == null) {
-            throw new MetaborgRuntimeException(
-                "Cannot determine if task engine analysis should be used, no observer was found");
-        }
-        final IStrategoTerm annotations = strategy.getSubterm(1);
-        boolean multifile = false;
-        for(IStrategoTerm annotation : annotations) {
-            multifile |= Tools.hasConstructor((IStrategoAppl) annotation, "MultiFile", 0);
-        }
-        return multifile;
-    }
-
     @SuppressWarnings("unused") private static boolean isBaseline(LanguageIdentifier identifier) {
         final LanguageVersion version = identifier.version;
         final String qualifier = version.qualifier();
         // BOOTSTRAPPING: check for older baseline, update to new baseline and use when necessary.
         return qualifier.contains("baseline-20150905-200051");
+    }
+
+
+    private @Nullable IContextFactory contextFactory(@Nullable String name) throws MetaborgException {
+        if(name == null) {
+            return null;
+        }
+        final IContextFactory contextFactory = contextFactories.get(name);
+        if(contextFactory == null) {
+            final String message = logger.format("Could not get context factory with name {}", name);
+            throw new MetaborgException(message);
+        }
+        return contextFactory;
+    }
+
+    private IContextStrategy contextStrategy(String name) throws MetaborgException {
+        final IContextStrategy contextStrategy = contextStrategies.get(name);
+        if(contextStrategy == null) {
+            final String message = logger.format("Could not get context strategy with name {}", name);
+            throw new MetaborgException(message);
+        }
+        return contextStrategy;
     }
 }
