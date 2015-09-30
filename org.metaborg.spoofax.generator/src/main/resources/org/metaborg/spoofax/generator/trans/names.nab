@@ -2,7 +2,7 @@ module names
 
 imports
   
-  include/{{name}}
+  syntax/{{name}}
   
 namespaces
   
