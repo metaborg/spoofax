@@ -57,6 +57,9 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
         try {
             final org.metaborg.core.context.IContext currentContext =
                 (org.metaborg.core.context.IContext) env.contextObject();
+            if(currentContext == null) {
+                return false;
+            }
             final org.metaborg.core.context.IContext context = contextService.get(currentContext, activeImpl);
             final IStrategoTerm output = common.invoke(activeImpl, context, env.current(), strategyName);
             if(output == null) {

@@ -15,7 +15,7 @@ public class ContextFacetFromESV {
         if(contextTerm == null) {
             return null;
         }
-        final IStrategoAppl typeTerm = (IStrategoAppl) contextTerm.getSubterm(0);
+        final IStrategoAppl typeTerm = (IStrategoAppl) contextTerm.getSubterm(0); 
 
         switch(typeTerm.getConstructor().getName()) {
             case "None":

@@ -43,6 +43,8 @@ import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.menu.MenuFacet;
 import org.metaborg.spoofax.core.menu.MenusFacetFromESV;
+import org.metaborg.spoofax.core.outline.OutlineFacet;
+import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
@@ -221,7 +223,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             analyzer = analyzers.get(analysisType);
             analysisFacet = SpoofaxAnalysisFacetFromESV.create(esvTerm);
         }
-        
+
         if(contextFactory != null) {
             final IContextStrategy contextStrategy = contextStrategy(ProjectContextStrategy.name);
             request.addFacet(new ContextFacet(contextFactory, contextStrategy));
@@ -233,7 +235,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             request.addFacet(analysisFacet);
         }
 
-        
+
         final MenuFacet menusFacet = MenusFacetFromESV.create(esvTerm, identifier);
         if(menusFacet != null) {
             request.addFacet(menusFacet);
@@ -257,6 +259,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final HoverFacet hoverFacet = ReferencesFacetsFromESV.createHover(esvTerm);
         if(hoverFacet != null) {
             request.addFacet(hoverFacet);
+        }
+
+        final OutlineFacet outlineFacet = OutlineFacetFromESV.create(esvTerm);
+        if(outlineFacet != null) {
+            request.addFacet(outlineFacet);
         }
 
         final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
