@@ -71,7 +71,7 @@ public class OutlineService implements ISpoofaxOutlineService {
             if(outlineTerm == null) {
                 return null;
             }
-            final IOutline outline = toOutline(outlineTerm, facet.expandTo, contributor.location(), true);
+            final IOutline outline = toOutline(outlineTerm, facet.expandTo, contributor.location());
             return outline;
         } catch(MetaborgException e) {
             throw new MetaborgException("Creating outline failed", e);
@@ -98,7 +98,7 @@ public class OutlineService implements ISpoofaxOutlineService {
             if(outlineTerm == null) {
                 return null;
             }
-            final IOutline outline = toOutline(outlineTerm, facet.expandTo, contributor.location(), false);
+            final IOutline outline = toOutline(outlineTerm, facet.expandTo, contributor.location());
             return outline;
         } catch(MetaborgException e) {
             throw new MetaborgException("Creating outline failed", e);
@@ -117,16 +117,16 @@ public class OutlineService implements ISpoofaxOutlineService {
     }
 
 
-    private @Nullable IOutline toOutline(IStrategoTerm term, int expandTo, FileObject location, boolean parsed) {
-        final IOutlineNode node = toOutlineNode(term, null, location, parsed);
+    private @Nullable IOutline toOutline(IStrategoTerm term, int expandTo, FileObject location) {
+        final IOutlineNode node = toOutlineNode(term, null, location);
         if(node == null) {
             return null;
         }
         return new Outline(node, expandTo);
     }
 
-    private @Nullable IOutlineNode toOutlineNode(IStrategoTerm term, @Nullable IOutlineNode parent,
-        FileObject location, boolean parsed) {
+    private @Nullable IOutlineNode
+        toOutlineNode(IStrategoTerm term, @Nullable IOutlineNode parent, FileObject location) {
         if(!(term instanceof IStrategoAppl)) {
             return null;
         }
@@ -138,13 +138,13 @@ public class OutlineService implements ISpoofaxOutlineService {
         final IStrategoTerm labelTerm = appl.getSubterm(0);
         final String label = label(labelTerm);
         final FileObject icon = icon(labelTerm, location);
-        final ISourceRegion region = region(labelTerm, parsed);
+        final ISourceRegion region = region(labelTerm);
 
         final OutlineNode node = new OutlineNode(label, icon, region, parent);
 
         final IStrategoTerm nodesTerm = appl.getSubterm(1);
         for(IStrategoTerm nodeTerm : nodesTerm) {
-            final IOutlineNode childNode = toOutlineNode(nodeTerm, node, location, parsed);
+            final IOutlineNode childNode = toOutlineNode(nodeTerm, node, location);
             if(childNode != null) {
                 node.addChild(childNode);
             }
@@ -184,13 +184,8 @@ public class OutlineService implements ISpoofaxOutlineService {
         }
     }
 
-    private @Nullable ISourceRegion region(IStrategoTerm term, boolean parsed) {
-        final ISourceLocation location;
-        if(parsed) {
-            location = tracingService.fromParsed(term);
-        } else {
-            location = tracingService.fromAnalyzed(term);
-        }
+    private @Nullable ISourceRegion region(IStrategoTerm term) {
+        final ISourceLocation location = tracingService.fromTransformed(term);
         if(location != null) {
             return location.region();
         }
