@@ -9,6 +9,7 @@ import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
+import org.metaborg.core.processing.ICancellationToken;
 import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.ProjectGenerator;
@@ -50,20 +51,20 @@ public class SpoofaxMetaBuilder {
         YAMLProjectSettingsSerializer.write(settingsFile, input.settings.settings());
     }
 
-    public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
-        throws Exception {
+    public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
+        @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running pre-Java build for {}", input.project.location());
 
         final IAntRunner runner = antRunner.create(input, classpaths, listener);
-        runner.execute("generate-sources");
+        runner.execute("generate-sources", cancellationToken);
     }
 
-    public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
-        throws Exception {
+    public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
+        @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running post-Java build for {}", input.project.location());
 
         final IAntRunner runner = antRunner.create(input, classpaths, listener);
-        runner.execute("package");
+        runner.execute("package", cancellationToken);
     }
 
     public void clean(SpoofaxProjectSettings settings) throws IOException {
