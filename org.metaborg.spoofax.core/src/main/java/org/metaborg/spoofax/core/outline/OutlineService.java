@@ -3,10 +3,12 @@ package org.metaborg.spoofax.core.outline;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.outline.IOutline;
 import org.metaborg.core.outline.IOutlineNode;
@@ -59,16 +61,17 @@ public class OutlineService implements ISpoofaxOutlineService {
 
         final FacetContribution<OutlineFacet> facetContrib = facet(language);
         final OutlineFacet facet = facetContrib.facet;
+        final ILanguageComponent contributor = facetContrib.contributor;
         final String strategy = facet.strategyName;
 
         try {
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(facetContrib.contributor, resource);
+            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, resource);
             final IStrategoTerm input = common.builderInputTerm(result.result, resource, resource);
             final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
             if(outlineTerm == null) {
                 return null;
             }
-            final IOutline outline = toOutline(outlineTerm, facet.expandTo, true);
+            final IOutline outline = toOutline(outlineTerm, facet.expandTo, contributor.location(), true);
             return outline;
         } catch(MetaborgException e) {
             throw new MetaborgException("Creating outline failed", e);
@@ -85,16 +88,17 @@ public class OutlineService implements ISpoofaxOutlineService {
 
         final FacetContribution<OutlineFacet> facetContrib = facet(language);
         final OutlineFacet facet = facetContrib.facet;
+        final ILanguageComponent contributor = facetContrib.contributor;
         final String strategy = facet.strategyName;
 
         try {
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(facetContrib.contributor, context);
+            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, context);
             final IStrategoTerm input = common.builderInputTerm(result.result, result.source, context.location());
             final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
             if(outlineTerm == null) {
                 return null;
             }
-            final IOutline outline = toOutline(outlineTerm, facet.expandTo, false);
+            final IOutline outline = toOutline(outlineTerm, facet.expandTo, contributor.location(), false);
             return outline;
         } catch(MetaborgException e) {
             throw new MetaborgException("Creating outline failed", e);
@@ -113,15 +117,16 @@ public class OutlineService implements ISpoofaxOutlineService {
     }
 
 
-    private @Nullable IOutline toOutline(IStrategoTerm term, int expandTo, boolean parsed) {
-        final IOutlineNode node = toOutlineNode(term, null, parsed);
+    private @Nullable IOutline toOutline(IStrategoTerm term, int expandTo, FileObject location, boolean parsed) {
+        final IOutlineNode node = toOutlineNode(term, null, location, parsed);
         if(node == null) {
             return null;
         }
         return new Outline(node, expandTo);
     }
 
-    private @Nullable IOutlineNode toOutlineNode(IStrategoTerm term, @Nullable IOutlineNode parent, boolean parsed) {
+    private @Nullable IOutlineNode toOutlineNode(IStrategoTerm term, @Nullable IOutlineNode parent,
+        FileObject location, boolean parsed) {
         if(!(term instanceof IStrategoAppl)) {
             return null;
         }
@@ -132,15 +137,14 @@ public class OutlineService implements ISpoofaxOutlineService {
 
         final IStrategoTerm labelTerm = appl.getSubterm(0);
         final String label = label(labelTerm);
-        // GTODO: resolve icon location to FileObject
-        final String iconLocation = icon(labelTerm);
+        final FileObject icon = icon(labelTerm, location);
         final ISourceRegion region = region(labelTerm, parsed);
 
-        final OutlineNode node = new OutlineNode(label, null, region, parent);
+        final OutlineNode node = new OutlineNode(label, icon, region, parent);
 
         final IStrategoTerm nodesTerm = appl.getSubterm(1);
         for(IStrategoTerm nodeTerm : nodesTerm) {
-            final IOutlineNode childNode = toOutlineNode(nodeTerm, node, parsed);
+            final IOutlineNode childNode = toOutlineNode(nodeTerm, node, location, parsed);
             if(childNode != null) {
                 node.addChild(childNode);
             }
@@ -158,12 +162,12 @@ public class OutlineService implements ISpoofaxOutlineService {
         }
     }
 
-    private @Nullable String icon(IStrategoTerm term) {
+    private @Nullable FileObject icon(IStrategoTerm term, FileObject location) {
         final IStrategoList annos = term.getAnnotations();
         if(annos == null) {
             return null;
         }
-        if(annos.getSubtermCount() != 0) {
+        if(annos.getSubtermCount() != 1) {
             return null;
         }
         final IStrategoTerm iconTerm = annos.getSubterm(0);
@@ -171,7 +175,13 @@ public class OutlineService implements ISpoofaxOutlineService {
             return null;
         }
         final IStrategoString iconTermString = (IStrategoString) iconTerm;
-        return iconTermString.stringValue();
+        final String iconLocation = iconTermString.stringValue();
+        try {
+            return location.resolveFile(iconLocation);
+        } catch(FileSystemException e) {
+            logger.error("Cannot resolve icon {} in {}", e, iconLocation, location);
+            return null;
+        }
     }
 
     private @Nullable ISourceRegion region(IStrategoTerm term, boolean parsed) {
