@@ -5,9 +5,9 @@ package org.metaborg.core.outline;
  */
 public interface IOutline {
     /**
-     * @return Root node of the outline.
+     * @return Root nodes of the outline.
      */
-    public abstract IOutlineNode root();
+    public abstract Iterable<IOutlineNode> roots();
 
     /**
      * @return Automatically expand the outline returned levels deep.

@@ -1,18 +1,18 @@
 package org.metaborg.core.outline;
 
 public class Outline implements IOutline {
-    public final IOutlineNode root;
+    public final Iterable<IOutlineNode> roots;
     public final int expandTo;
 
 
-    public Outline(IOutlineNode root, int expandTo) {
-        this.root = root;
+    public Outline(Iterable<IOutlineNode> roots, int expandTo) {
+        this.roots = roots;
         this.expandTo = expandTo;
     }
 
 
-    @Override public IOutlineNode root() {
-        return root;
+    @Override public Iterable<IOutlineNode> roots() {
+        return roots;
     }
 
     @Override public int expandTo() {
