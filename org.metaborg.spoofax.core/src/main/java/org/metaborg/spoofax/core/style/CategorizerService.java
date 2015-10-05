@@ -108,20 +108,22 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
     private ICategory sortConsCategory(StylerFacet facet, IStrategoTerm term) {
         final ImploderAttachment imploderAttachment = ImploderAttachment.get(term);
         final String sort = imploderAttachment.getSort();
+        // LEGACY: for some reason, when using concrete syntax extensions, all sorts are appended with _sort.
+        final String massagedSort = sort.replace("_sort", "");
         if(term.getTermType() == IStrategoTerm.APPL) {
             final String cons = ((IStrategoAppl) term).getConstructor().getName();
-            if(facet.hasSortConsStyle(sort, cons)) {
-                return new SortConsCategory(sort, cons);
+            if(facet.hasSortConsStyle(massagedSort, cons)) {
+                return new SortConsCategory(massagedSort, cons);
             } else if(facet.hasConsStyle(cons)) {
                 return new ConsCategory(cons);
-            } else if(facet.hasSortStyle(sort)) {
-                return new SortCategory(sort);
+            } else if(facet.hasSortStyle(massagedSort)) {
+                return new SortCategory(massagedSort);
             }
             return null;
         }
 
-        if(facet.hasSortStyle(sort)) {
-            return new SortCategory(sort);
+        if(facet.hasSortStyle(massagedSort)) {
+            return new SortCategory(massagedSort);
         }
 
         return null;
