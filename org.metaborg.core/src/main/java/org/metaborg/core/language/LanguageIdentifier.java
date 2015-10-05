@@ -7,7 +7,7 @@ import com.google.common.collect.ComparisonChain;
 
 public class LanguageIdentifier implements Comparable<LanguageIdentifier> {
     private static final Pattern idPattern = Pattern.compile("[A-Za-z0-9_\\-.]+");
-    private static final Pattern fullPattern = Pattern.compile("(?:([^:]+):)?(" + idPattern + "?)-(.+)");
+    private static final Pattern fullPattern = Pattern.compile("(?:(" + idPattern + "):)?(" + idPattern + ")(?::(.+))?");
 
     public final String groupId;
     public final String id;
@@ -108,6 +108,6 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier> {
     }
 
     @Override public String toString() {
-        return groupId + ":" + id + "-" + version;
+        return groupId + ":" + id + ":" + version;
     }
 }
