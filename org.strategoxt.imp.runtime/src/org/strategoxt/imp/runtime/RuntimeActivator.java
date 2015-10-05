@@ -45,7 +45,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 		FileNotificationServer.init();
 
 		// precacheStratego();
-		checkJVMOptions();
+		//checkJVMOptions();
 	}
 
 	// /**
