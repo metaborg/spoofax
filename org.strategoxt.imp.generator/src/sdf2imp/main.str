@@ -210,9 +210,7 @@ strategies
         fatal-err(|"Input file must be a .def file.")
       end;
       table := <xtc-new-file>;
-      log(|Critical(), ["CALL SDF2TABLE"]);
       <sdf2table> (sdf, table, ["-n"]);
-      log(|Critical(), ["CALL ImplodePT"]);
       <xtc-transform(!"implodePT")> FILE(table);
       read-from;
       sdf-desugar;

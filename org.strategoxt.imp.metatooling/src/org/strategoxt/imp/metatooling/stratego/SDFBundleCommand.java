@@ -34,6 +34,7 @@ import org.strategoxt.lang.StrategyCollector;
 import org.strategoxt.lang.compat.NativeCallHelper;
 import org.strategoxt.lang.compat.SSL_EXT_call;
 import org.strategoxt.lang.linking.OverridingStrategy;
+import org.strategoxt.permissivegrammars.main_make_permissive_0_0;
 
 /**
  * Overrides the xtc-command strategy to use sdf2table from the SDF plugin.
@@ -161,7 +162,15 @@ public class SDFBundleCommand extends RegisteringStrategy {
         if(!ENABLED || commandTerm.getTermType() != STRING)
             return proceed.invoke(context, args, commandStrategy);
 
+        // TODO: Hack: make-permissive is called through this too (because it cannot be compiled by the separate compiler due to missing sources)
+        
         String command = ((IStrategoString) commandTerm).stringValue();
+        
+        if (command.equals("make-permissive")) {
+        	return  invokeMakePermissive(context, args);
+        }
+        
+        
         if(!new File(binaryPath + command + binaryExtension).exists()) {
         	System.out.println("File does not exist");
             if(command.equals("sdf2table") || command.equals("implodePT")) {
@@ -191,6 +200,15 @@ public class SDFBundleCommand extends RegisteringStrategy {
         return success ? args : null;
     }
 
+    private IStrategoTerm invokeMakePermissive(Context context, IStrategoTerm args) {
+    	System.out.println("Invoke make permissive with " + args);
+    	org.strategoxt.permissivegrammars.complibrary.lang.Context makePermissiveContext =
+    			org.strategoxt.permissivegrammars.Main.init();
+    	IStrategoTerm result = main_make_permissive_0_0.instance.invoke(makePermissiveContext, args);
+    	System.out.println("Make permissive result: " + result);
+    	return result;
+    }
+    
     public boolean invoke(Context context, String command, IStrategoTerm[] argList) {
         String[] commandArgs = SSL_EXT_call.toCommandArgs(binaryPath + command, argList);
         // Disabled this check since Windows x64 might identify differently?

@@ -55,7 +55,10 @@ strategies
       print-filename(|[], output);
       args   := ["-i", input, "-o", output, "--open-brackets", "on", "--optimize", "on"];
       if-java-platform(
-        <call> ("org.strategoxt.permissivegrammars.main-make-permissive", args)
+      	// FIXME: Use xtc for java, because xtc is not compiled by separate compilation and uses completly different classes
+      	// Eclipse overwrites xtc and uses the right classes
+      	// As soon as make-permissive is replaced or compiled by separate compilation, this can be removed
+        <xtc-command(!"make-permissive")> args
       );
       if-c-platform(  // FIXME: should we even bother making make-permissive an xtc executable?
         <call> ("make-permissive", args)
