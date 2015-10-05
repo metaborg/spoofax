@@ -141,10 +141,8 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		Strategy xtc_command_1_0 = context.getStrategyCollector().getStrategyExecutor("xtc_command_1_0");
 		System.out.println("xtc_command_1_0 Strategy: " + xtc_command_1_0);
 		try {
-			Field instanceField = xtc_transform_file_2_0.class.getDeclaredField("instance");
-			instanceField.setAccessible(true);
 			Field f = xtc_transform_file_2_0.class.getDeclaredField("xtc_command_1_0_Executor");
-			xtc_transform_file_2_0 instance = (xtc_transform_file_2_0) instanceField.get(null);
+			xtc_transform_file_2_0 instance = (xtc_transform_file_2_0) context.getStrategyCollector().getStrategyExecutor("xtc_transform_file_2_0");
 			f.setAccessible(true);
 			Strategy xtc_command_executor = (Strategy) f.get(instance);
 			System.out.println("xtc_command_1_0 for sdf2table: " + xtc_command_executor);
@@ -204,13 +202,19 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			// "--verbose", "2");
 		} catch (StrategoErrorExit e) {
 			try {
-				Field instanceField = xtc_transform_file_2_0.class.getDeclaredField("instance");
-				instanceField.setAccessible(true);
 				Field f = xtc_transform_file_2_0.class.getDeclaredField("xtc_command_1_0_Executor");
-				xtc_transform_file_2_0 instance = (xtc_transform_file_2_0) instanceField.get(null);
 				f.setAccessible(true);
+				Field f2 = sdf2table_0_0.class.getDeclaredField("xtc_command_1_0_Executor");
+				f2.setAccessible(true);
+				
+				xtc_transform_file_2_0 instance = (xtc_transform_file_2_0) context.getStrategyCollector().getStrategyExecutor("xtc_transform_file_2_0");
+				sdf2table_0_0 instance2 = (sdf2table_0_0) context.getStrategyCollector().getStrategyExecutor("sdf2table_0_0");
+				
 				Strategy xtc_command_executor = (Strategy) f.get(instance);
-				System.out.println("xtc_command_1_0 for sdf2table: " + xtc_command_executor);
+				Strategy xtc_command_executor2 = (Strategy) f2.get(instance2);
+				System.out.println("xtc_command_1_0 for xtc_transform_file_2_0: " + xtc_command_executor);
+				System.out.println("xtc_command_1_0 for sdf2table_0_0: " + xtc_command_executor2);
+				System.out.println("xtc_command_1_0 of context: " + context.getStrategyCollector().getStrategyExecutor("xtc_command_1_0"));
 			} catch (Exception e2) {
 				e2.printStackTrace();
 			}
