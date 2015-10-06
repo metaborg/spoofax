@@ -8,20 +8,20 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-public class AnalysisContextFactory implements IContextFactory {
-    public static final String name = "analysis";
+public class IndexTaskContextFactory implements IContextFactory {
+    public static final String name = "index-task";
     
     private final Injector injector;
     private final ITermFactoryService termFactoryService;
 
 
-    @Inject public AnalysisContextFactory(Injector injector, ITermFactoryService termFactoryService) {
+    @Inject public IndexTaskContextFactory(Injector injector, ITermFactoryService termFactoryService) {
         this.injector = injector;
         this.termFactoryService = termFactoryService;
     }
 
 
     @Override public IContextInternal create(ContextIdentifier identifier) {
-        return new AnalysisContext(injector, termFactoryService, identifier);
+        return new IndexTaskContext(injector, termFactoryService, identifier);
     }
 }

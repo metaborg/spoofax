@@ -23,7 +23,7 @@ public class ContextFacetFromESV {
             case "Legacy":
                 return LegacyContextFactory.name;
             case "TaskEngine":
-                return AnalysisContextFactory.name;
+                return IndexTaskContextFactory.name;
             default:
                 return null;
         }

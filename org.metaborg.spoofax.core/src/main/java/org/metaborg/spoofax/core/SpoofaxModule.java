@@ -46,7 +46,7 @@ import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
 import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
-import org.metaborg.spoofax.core.context.AnalysisContextFactory;
+import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
@@ -174,7 +174,7 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
         super.bindContextFactories(binder);
 
-        binder.addBinding(AnalysisContextFactory.name).to(AnalysisContextFactory.class).in(Singleton.class);
+        binder.addBinding(IndexTaskContextFactory.name).to(IndexTaskContextFactory.class).in(Singleton.class);
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
     }
 

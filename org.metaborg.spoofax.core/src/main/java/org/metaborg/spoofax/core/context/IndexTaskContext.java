@@ -28,8 +28,8 @@ import org.spoofax.terms.ParseError;
 
 import com.google.inject.Injector;
 
-public class AnalysisContext implements IContext, IContextInternal, IAnalysisContext {
-    private static final ILogger logger = LoggerUtils.logger(AnalysisContext.class);
+public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskContext {
+    private static final ILogger logger = LoggerUtils.logger(IndexTaskContext.class);
 
     private final Injector injector;
 
@@ -42,7 +42,7 @@ public class AnalysisContext implements IContext, IContextInternal, IAnalysisCon
     private ITaskEngine taskEngine;
 
 
-    public AnalysisContext(Injector injector, ITermFactoryService termFactoryService, ContextIdentifier identifier) {
+    public IndexTaskContext(Injector injector, ITermFactoryService termFactoryService, ContextIdentifier identifier) {
         this.injector = injector;
 
         this.termFactory = termFactoryService.get(identifier.language);
@@ -96,6 +96,9 @@ public class AnalysisContext implements IContext, IContextInternal, IAnalysisCon
             }
         }
 
+        index.recover();
+        taskEngine.recover();
+        
         return readLock();
     }
 
@@ -114,7 +117,10 @@ public class AnalysisContext implements IContext, IContextInternal, IAnalysisCon
         if(taskEngine == null) {
             taskEngine = initTaskEngine();
         }
-
+        
+        index.recover();
+        taskEngine.recover();
+        
         return lock;
     }
 
@@ -258,7 +264,7 @@ public class AnalysisContext implements IContext, IContextInternal, IAnalysisCon
             return false;
         if(getClass() != obj.getClass())
             return false;
-        final AnalysisContext other = (AnalysisContext) obj;
+        final IndexTaskContext other = (IndexTaskContext) obj;
         if(!identifier.equals(other.identifier))
             return false;
         return true;

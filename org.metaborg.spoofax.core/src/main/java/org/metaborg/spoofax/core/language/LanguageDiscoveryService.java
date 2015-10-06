@@ -37,7 +37,7 @@ import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacetFromESV;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacetFromItemSets;
-import org.metaborg.spoofax.core.context.AnalysisContextFactory;
+import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
@@ -209,7 +209,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                     contextFactory = contextFactory(LegacyContextFactory.name);
                     break;
                 case TaskEngineAnalyzer.name:
-                    contextFactory = contextFactory(AnalysisContextFactory.name);
+                    contextFactory = contextFactory(IndexTaskContextFactory.name);
                     break;
             }
             // Analyzer type cannot be null because hasAnalysis is true, no null check is needed.
