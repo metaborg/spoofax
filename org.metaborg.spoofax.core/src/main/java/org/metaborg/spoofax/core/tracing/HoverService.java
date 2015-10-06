@@ -27,18 +27,18 @@ import com.google.inject.Inject;
 
 import fj.P2;
 
-public class SpoofaxHoverService implements IHoverService<IStrategoTerm, IStrategoTerm>, ISpoofaxHoverService {
-    private static final ILogger logger = LoggerUtils.logger(SpoofaxHoverService.class);
+public class HoverService implements IHoverService<IStrategoTerm, IStrategoTerm>, ISpoofaxHoverService {
+    private static final ILogger logger = LoggerUtils.logger(HoverService.class);
 
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
-    private final SpoofaxTracingCommon common;
+    private final TracingCommon common;
 
 
-    @Inject public SpoofaxHoverService(ITermFactoryService termFactoryService,
+    @Inject public HoverService(ITermFactoryService termFactoryService,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService,
-        SpoofaxTracingCommon common) {
+        TracingCommon common) {
         this.termFactoryService = termFactoryService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;

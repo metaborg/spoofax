@@ -14,7 +14,7 @@ import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
-import org.metaborg.spoofax.core.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +26,15 @@ import org.spoofax.terms.io.binary.TermReader;
 
 import com.google.inject.Inject;
 
-public class StrategoDialectIdentifier implements IDialectIdentifier {
-    private static final Logger logger = LoggerFactory.getLogger(StrategoDialectIdentifier.class);
+public class DialectIdentifier implements IDialectIdentifier {
+    private static final Logger logger = LoggerFactory.getLogger(DialectIdentifier.class);
 
     private final ILanguageService languageService;
     private final IDialectService dialectService;
     private final ITermFactoryService termFactoryService;
 
 
-    @Inject public StrategoDialectIdentifier(ILanguageService languageService, IDialectService dialectService,
+    @Inject public DialectIdentifier(ILanguageService languageService, IDialectService dialectService,
         ITermFactoryService termFactoryService) {
         this.languageService = languageService;
         this.dialectService = dialectService;
@@ -43,7 +43,7 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
 
 
     @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
-        final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
+        final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
             final String message = "Could not find Stratego language, Stratego dialects cannot be identified";
             logger.debug(message);

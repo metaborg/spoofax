@@ -19,8 +19,8 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisCommon;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
+import org.metaborg.spoofax.core.analysis.AnalysisCommon;
+import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -68,13 +68,13 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final ILanguageImpl language = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        final FacetContribution<SpoofaxAnalysisFacet> facetContribution =
-            language.facetContribution(SpoofaxAnalysisFacet.class);
+        final FacetContribution<AnalysisFacet> facetContribution =
+            language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
             return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context);
         }
-        final SpoofaxAnalysisFacet facet = facetContribution.facet;
+        final AnalysisFacet facet = facetContribution.facet;
 
         final HybridInterpreter interpreter;
         try {
@@ -141,7 +141,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                 final IStrategoTerm resultTerm = common.invoke(interpreter, inputTerm, analysisStrategy);
                 if(resultTerm == null) {
                     logger.trace("Analysis for {} failed", resource);
-                    results.add(result(SpoofaxAnalysisCommon.analysisFailedMessage(interpreter), parseResult, context,
+                    results.add(result(AnalysisCommon.analysisFailedMessage(interpreter), parseResult, context,
                         null));
                 } else if(!(resultTerm instanceof IStrategoTuple)) {
                     logger.trace("Analysis for {} has unexpected result, not a tuple", resource);
@@ -162,7 +162,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                 }
             } catch(MetaborgException e) {
                 logger.trace("Analysis for {} failed", resource);
-                results.add(result(SpoofaxAnalysisCommon.analysisFailedMessage(interpreter), parseResult, context, e));
+                results.add(result(AnalysisCommon.analysisFailedMessage(interpreter), parseResult, context, e));
             }
         }
 
@@ -173,9 +173,9 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         ParseResult<IStrategoTerm> parseResult, IContext context) {
         final FileObject source = parseResult.source;
         final Collection<IMessage> messages = Lists.newLinkedList();
-        messages.addAll(SpoofaxAnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(1)));
-        messages.addAll(SpoofaxAnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(2)));
-        messages.addAll(SpoofaxAnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(1)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(2)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3)));
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(result.getSubterm(0), source, context, messages,
             parseResult);
     }
@@ -184,9 +184,9 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         ParseResult<IStrategoTerm> parseResult, IContext context) {
         final FileObject source = parseResult.source;
         final Collection<IMessage> messages = Lists.newLinkedList();
-        messages.addAll(SpoofaxAnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(0)));
-        messages.addAll(SpoofaxAnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(1)));
-        messages.addAll(SpoofaxAnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(2)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(0)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(1)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(2)));
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, context, messages, parseResult);
     }
 

@@ -9,7 +9,7 @@ import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.spoofax.core.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 
@@ -59,7 +59,7 @@ public class GeneratorProjectSettings {
 
     public String metaborgVersion() {
         return metaborgVersion != null && !metaborgVersion.isEmpty() ? metaborgVersion
-            : SpoofaxProjectConstants.METABORG_VERSION;
+            : SpoofaxConstants.METABORG_VERSION;
     }
 
     public String eclipseMetaborgVersion() {
@@ -72,7 +72,7 @@ public class GeneratorProjectSettings {
     }
 
     public boolean generateGroupId() {
-        return !groupId().equals(SpoofaxProjectConstants.METABORG_GROUP_ID);
+        return !groupId().equals(SpoofaxConstants.METABORG_GROUP_ID);
     }
 
     public String id() {

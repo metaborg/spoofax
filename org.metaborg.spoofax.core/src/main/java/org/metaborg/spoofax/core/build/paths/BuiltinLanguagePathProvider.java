@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.build.paths;
 
-import static org.metaborg.spoofax.core.SpoofaxProjectConstants.*;
+import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
 import java.util.Collection;
 
@@ -15,7 +15,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
-public class SpoofaxLanguagePathProvider implements ILanguagePathProvider {
+public class BuiltinLanguagePathProvider implements ILanguagePathProvider {
     private static final String ROOT = ".";
 
     // @formatter:off

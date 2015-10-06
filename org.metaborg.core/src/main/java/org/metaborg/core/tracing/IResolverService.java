@@ -15,7 +15,7 @@ import org.metaborg.core.syntax.ParseResult;
  * @param <A>
  *            Type of analyzed fragments
  */
-public interface IReferenceResolver<P, A> {
+public interface IResolverService<P, A> {
     /**
      * Checks if reference resolution is available for given language implementation.
      * 

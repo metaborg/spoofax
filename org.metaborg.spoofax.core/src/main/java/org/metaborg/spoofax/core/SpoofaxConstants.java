@@ -7,7 +7,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.common.collect.ImmutableSet;
 
-public class SpoofaxProjectConstants {
+public class SpoofaxConstants {
     public static final String METABORG_GROUP_ID = "org.metaborg";
     public static final String METABORG_VERSION = "1.5.0-SNAPSHOT";
 
@@ -99,6 +99,6 @@ public class SpoofaxProjectConstants {
     // @formatter:on
 
 
-    private SpoofaxProjectConstants() {
+    private SpoofaxConstants() {
     }
 }

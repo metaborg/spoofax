@@ -6,7 +6,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.menu.IAction;
 import org.metaborg.core.transform.NestedNamedGoal;
 
-public class StrategoTransformAction implements IAction {
+public class TransformAction implements IAction {
     /**
      * Name of the action.
      */
@@ -35,11 +35,11 @@ public class StrategoTransformAction implements IAction {
     /**
      * Flags for this action.
      */
-    public final StrategoTransformActionFlags flags;
+    public final TransformActionFlags flags;
 
 
-    public StrategoTransformAction(String name, NestedNamedGoal goal, @Nullable LanguageIdentifier inputLanguageId,
-        @Nullable LanguageIdentifier outputLanguageId, String strategy, StrategoTransformActionFlags flags) {
+    public TransformAction(String name, NestedNamedGoal goal, @Nullable LanguageIdentifier inputLanguageId,
+        @Nullable LanguageIdentifier outputLanguageId, String strategy, TransformActionFlags flags) {
         this.name = name;
         this.goal = goal;
         this.inputLanguageId = inputLanguageId;

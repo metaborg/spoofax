@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.project.settings;
 
-import static org.metaborg.spoofax.core.SpoofaxProjectConstants.*;
+import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
 import java.util.Collection;
 

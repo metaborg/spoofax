@@ -21,7 +21,7 @@ import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
 
-public class SpoofaxAnalysisCommon {
+public class AnalysisCommon {
     public static String analysisFailedMessage(HybridInterpreter interpreter) {
         final StackTracer stackTracer = interpreter.getContext().getStackTracer();
         return "Analysis failed\nStratego stack trace:\n" + stackTracer.getTraceString();

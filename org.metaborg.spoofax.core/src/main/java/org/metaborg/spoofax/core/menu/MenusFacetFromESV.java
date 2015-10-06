@@ -28,7 +28,7 @@ public class MenusFacetFromESV {
         final Collection<IMenu> menus = Lists.newLinkedList();
         final ImmutableList<String> nesting = ImmutableList.of();
         for(IStrategoAppl menuTerm : menuTerms) {
-            final IMenu submenu = menu(menuTerm, new StrategoTransformActionFlags(), inputLanguageId, nesting);
+            final IMenu submenu = menu(menuTerm, new TransformActionFlags(), inputLanguageId, nesting);
             menus.add(submenu);
         }
         if(menus.isEmpty()) {
@@ -37,12 +37,12 @@ public class MenusFacetFromESV {
         return new MenuFacet(menus);
     }
 
-    private static Menu menu(IStrategoTerm menuTerm, StrategoTransformActionFlags flags,
+    private static Menu menu(IStrategoTerm menuTerm, TransformActionFlags flags,
         LanguageIdentifier inputLanguageId, ImmutableList<String> nesting) {
         final String name = name(menuTerm.getSubterm(0));
         final ImmutableList<String> newNesting = ImmutableList.<String>builder().addAll(nesting).add(name).build();
-        final StrategoTransformActionFlags extraFlags = flags(menuTerm.getSubterm(1));
-        final StrategoTransformActionFlags mergedFlags = StrategoTransformActionFlags.merge(flags, extraFlags);
+        final TransformActionFlags extraFlags = flags(menuTerm.getSubterm(1));
+        final TransformActionFlags mergedFlags = TransformActionFlags.merge(flags, extraFlags);
         final Iterable<IStrategoTerm> items = menuTerm.getSubterm(2);
         final Menu menu = new Menu(name);
         for(IStrategoTerm item : items) {
@@ -57,7 +57,7 @@ public class MenusFacetFromESV {
                     menu.add(submenu);
                     break;
                 case "Action":
-                    final StrategoTransformAction action = action(item, mergedFlags, inputLanguageId, newNesting);
+                    final TransformAction action = action(item, mergedFlags, inputLanguageId, newNesting);
                     menu.add(action);
                     break;
                 case "Separator":
@@ -86,19 +86,19 @@ public class MenusFacetFromESV {
         return ESVReader.termContents(term);
     }
 
-    private static StrategoTransformAction action(IStrategoTerm action, StrategoTransformActionFlags flags,
+    private static TransformAction action(IStrategoTerm action, TransformActionFlags flags,
         LanguageIdentifier inputLanguageId, ImmutableList<String> nesting) {
         final String name = name(action.getSubterm(0));
         final String stategy = Tools.asJavaString(action.getSubterm(1).getSubterm(0));
-        final StrategoTransformActionFlags extraFlags = flags(action.getSubterm(2));
-        final StrategoTransformActionFlags mergedFlags = StrategoTransformActionFlags.merge(flags, extraFlags);
+        final TransformActionFlags extraFlags = flags(action.getSubterm(2));
+        final TransformActionFlags mergedFlags = TransformActionFlags.merge(flags, extraFlags);
         final ImmutableList<String> newNesting = ImmutableList.<String>builder().addAll(nesting).add(name).build();
         final NestedNamedGoal goal = new NestedNamedGoal(newNesting);
-        return new StrategoTransformAction(name, goal, inputLanguageId, null, stategy, mergedFlags);
+        return new TransformAction(name, goal, inputLanguageId, null, stategy, mergedFlags);
     }
 
-    private static StrategoTransformActionFlags flags(Iterable<IStrategoTerm> flagTerms) {
-        final StrategoTransformActionFlags flags = new StrategoTransformActionFlags();
+    private static TransformActionFlags flags(Iterable<IStrategoTerm> flagTerms) {
+        final TransformActionFlags flags = new TransformActionFlags();
         for(IStrategoTerm flagTerm : flagTerms) {
             final String constructor = Tools.constructorName(flagTerm);
             if(constructor == null) {

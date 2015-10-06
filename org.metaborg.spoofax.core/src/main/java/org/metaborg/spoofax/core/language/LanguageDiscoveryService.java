@@ -29,8 +29,8 @@ import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacetFromESV;
+import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
@@ -53,7 +53,7 @@ import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.HoverFacet;
-import org.metaborg.spoofax.core.tracing.ReferencesFacetsFromESV;
+import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
 import org.metaborg.spoofax.core.tracing.ResolverFacet;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacetFromESV;
@@ -187,11 +187,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
 
         final boolean hasContext = ContextFacetFromESV.hasContext(esvTerm);
-        final boolean hasAnalysis = SpoofaxAnalysisFacetFromESV.hasAnalysis(esvTerm);
+        final boolean hasAnalysis = AnalysisFacetFromESV.hasAnalysis(esvTerm);
 
         final IContextFactory contextFactory;
         final IAnalyzer<IStrategoTerm, IStrategoTerm> analyzer;
-        final SpoofaxAnalysisFacet analysisFacet;
+        final AnalysisFacet analysisFacet;
         if(!hasContext && !hasAnalysis) {
             contextFactory = contextFactory(LegacyContextFactory.name);
             analyzer = null;
@@ -202,7 +202,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             analyzer = null;
             analysisFacet = null;
         } else if(!hasContext && hasAnalysis) {
-            final String type = SpoofaxAnalysisFacetFromESV.type(esvTerm);
+            final String type = AnalysisFacetFromESV.type(esvTerm);
             switch(type) {
                 default:
                 case StrategoAnalyzer.name:
@@ -214,14 +214,14 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             }
             // Analyzer type cannot be null because hasAnalysis is true, no null check is needed.
             analyzer = analyzers.get(type);
-            analysisFacet = SpoofaxAnalysisFacetFromESV.create(esvTerm);
+            analysisFacet = AnalysisFacetFromESV.create(esvTerm);
         } else { // Both context and analysis are specified.
             final String contextType = ContextFacetFromESV.type(esvTerm);
             contextFactory = contextFactory(contextType);
-            final String analysisType = SpoofaxAnalysisFacetFromESV.type(esvTerm);
+            final String analysisType = AnalysisFacetFromESV.type(esvTerm);
             // Analyzer type cannot be null because hasAnalysis is true, no null check is needed.
             analyzer = analyzers.get(analysisType);
-            analysisFacet = SpoofaxAnalysisFacetFromESV.create(esvTerm);
+            analysisFacet = AnalysisFacetFromESV.create(esvTerm);
         }
 
         if(contextFactory != null) {
@@ -251,12 +251,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             request.addFacet(stylerFacet);
         }
 
-        final ResolverFacet resolverFacet = ReferencesFacetsFromESV.createResolver(esvTerm);
+        final ResolverFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
         if(resolverFacet != null) {
             request.addFacet(resolverFacet);
         }
 
-        final HoverFacet hoverFacet = ReferencesFacetsFromESV.createHover(esvTerm);
+        final HoverFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
         if(hoverFacet != null) {
             request.addFacet(hoverFacet);
         }

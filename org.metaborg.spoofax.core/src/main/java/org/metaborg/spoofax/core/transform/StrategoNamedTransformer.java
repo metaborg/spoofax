@@ -17,7 +17,7 @@ import org.metaborg.core.transform.NestedNamedGoal;
 import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
 import org.metaborg.spoofax.core.menu.MenuFacet;
-import org.metaborg.spoofax.core.menu.StrategoTransformAction;
+import org.metaborg.spoofax.core.menu.TransformAction;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -53,8 +53,8 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
             throw new TransformerException(message);
         }
         
-        final P2<StrategoTransformAction, ILanguageComponent> tuple = action(context.language(), goal);
-        final StrategoTransformAction action = tuple._1();
+        final P2<TransformAction, ILanguageComponent> tuple = action(context.language(), goal);
+        final TransformAction action = tuple._1();
         final ILanguageComponent component = tuple._2();
 
         final IStrategoTerm inputTerm;
@@ -81,8 +81,8 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
             throw new TransformerException(message);
         }
         
-        final P2<StrategoTransformAction, ILanguageComponent> tuple = action(context.language(), goal);
-        final StrategoTransformAction action = tuple._1();
+        final P2<TransformAction, ILanguageComponent> tuple = action(context.language(), goal);
+        final TransformAction action = tuple._1();
         final ILanguageComponent component = tuple._2();
 
         final IStrategoTerm inputTerm;
@@ -111,7 +111,7 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     }
 
 
-    private P2<StrategoTransformAction, ILanguageComponent> action(ILanguageImpl language, ITransformerGoal goal)
+    private P2<TransformAction, ILanguageComponent> action(ILanguageImpl language, ITransformerGoal goal)
         throws TransformerException {
         final ActionContribution actionContrib;
         if(goal instanceof NamedGoal) {
@@ -139,11 +139,11 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
         }
 
         final IAction action = actionContrib.action;
-        if(!(action instanceof StrategoTransformAction)) {
+        if(!(action instanceof TransformAction)) {
             final String message = String.format("Action %s is not a Stratego transformation action", goal);
             throw new TransformerException(message);
         }
 
-        return P.p((StrategoTransformAction) action, actionContrib.contributor);
+        return P.p((TransformAction) action, actionContrib.contributor);
     }
 }

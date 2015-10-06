@@ -21,8 +21,8 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisCommon;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
+import org.metaborg.spoofax.core.analysis.AnalysisCommon;
+import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -74,13 +74,13 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final ILanguageImpl language = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        final FacetContribution<SpoofaxAnalysisFacet> facetContribution =
-            language.facetContribution(SpoofaxAnalysisFacet.class);
+        final FacetContribution<AnalysisFacet> facetContribution =
+            language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
             return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context);
         }
-        final SpoofaxAnalysisFacet facet = facetContribution.facet;
+        final AnalysisFacet facet = facetContribution.facet;
 
         final HybridInterpreter interpreter;
         try {
@@ -114,12 +114,12 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         try {
             resultTerm = common.invoke(interpreter, inputTerm, analysisStrategy);
         } catch(MetaborgException e) {
-            final String message = SpoofaxAnalysisCommon.analysisFailedMessage(interpreter);
+            final String message = AnalysisCommon.analysisFailedMessage(interpreter);
             logger.error(message, e);
             throw new AnalysisException(context, message, e);
         }
         if(resultTerm == null) {
-            final String message = SpoofaxAnalysisCommon.analysisFailedMessage(interpreter);
+            final String message = AnalysisCommon.analysisFailedMessage(interpreter);
             logger.error(message);
             throw new AnalysisException(context, message);
         }
@@ -171,9 +171,9 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final IStrategoTerm previousAst = result.getSubterm(1);
         final IStrategoTerm ast = result.getSubterm(2);
         final Collection<IMessage> messages = Sets.newHashSet();
-        messages.addAll(SpoofaxAnalysisCommon.messages(resource, MessageSeverity.ERROR, result.getSubterm(3)));
-        messages.addAll(SpoofaxAnalysisCommon.messages(resource, MessageSeverity.WARNING, result.getSubterm(4)));
-        messages.addAll(SpoofaxAnalysisCommon.messages(resource, MessageSeverity.NOTE, result.getSubterm(5)));
+        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.ERROR, result.getSubterm(3)));
+        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.WARNING, result.getSubterm(4)));
+        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.NOTE, result.getSubterm(5)));
 
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, resource, context, messages,
             new ParseResult<IStrategoTerm>("", previousAst, resource, Arrays.asList(new IMessage[] {}), -1,
@@ -184,9 +184,9 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final String file = Tools.asJavaString(result.getSubterm(0));
         final FileObject resource = resourceService.resolve(file);
         final Collection<IMessage> messages = Sets.newHashSet();
-        messages.addAll(SpoofaxAnalysisCommon.messages(resource, MessageSeverity.ERROR, result.getSubterm(1)));
-        messages.addAll(SpoofaxAnalysisCommon.messages(resource, MessageSeverity.WARNING, result.getSubterm(2)));
-        messages.addAll(SpoofaxAnalysisCommon.messages(resource, MessageSeverity.NOTE, result.getSubterm(3)));
+        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.ERROR, result.getSubterm(1)));
+        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.WARNING, result.getSubterm(2)));
+        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.NOTE, result.getSubterm(3)));
         return new AnalysisMessageResult(resource, messages);
     }
 

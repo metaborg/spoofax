@@ -14,7 +14,7 @@ import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.syntax.ParseResult;
-import org.metaborg.core.tracing.IReferenceResolver;
+import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.Resolution;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -30,19 +30,19 @@ import com.google.inject.Inject;
 
 import fj.P2;
 
-public class SpoofaxReferenceResolver implements IReferenceResolver<IStrategoTerm, IStrategoTerm>,
-    ISpoofaxReferenceResolver {
-    private static final ILogger logger = LoggerUtils.logger(SpoofaxReferenceResolver.class);
+public class ReferenceResolver implements IResolverService<IStrategoTerm, IStrategoTerm>,
+    ISpoofaxResolverService {
+    private static final ILogger logger = LoggerUtils.logger(ReferenceResolver.class);
 
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
-    private final SpoofaxTracingCommon common;
+    private final TracingCommon common;
 
 
-    @Inject public SpoofaxReferenceResolver(ITermFactoryService termFactoryService,
+    @Inject public ReferenceResolver(ITermFactoryService termFactoryService,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService,
-        SpoofaxTracingCommon common) {
+        TracingCommon common) {
         this.termFactoryService = termFactoryService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;

@@ -15,7 +15,7 @@ import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
-import org.metaborg.spoofax.core.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.resource.ExtensionFileSelector;
@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
-public class StrategoDialectProcessor implements IDialectProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(StrategoDialectProcessor.class);
+public class DialectProcessor implements IDialectProcessor {
+    private static final Logger logger = LoggerFactory.getLogger(DialectProcessor.class);
 
     private final ILanguageService languageService;
     private final IDialectService dialectService;
@@ -35,7 +35,7 @@ public class StrategoDialectProcessor implements IDialectProcessor {
     private final FileSelector selector;
 
 
-    @Inject public StrategoDialectProcessor(ILanguageService languageService, IDialectService dialectService) {
+    @Inject public DialectProcessor(ILanguageService languageService, IDialectService dialectService) {
         this.languageService = languageService;
         this.dialectService = dialectService;
 
@@ -49,7 +49,7 @@ public class StrategoDialectProcessor implements IDialectProcessor {
             return;
         }
 
-        final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
+        final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
             logger.debug("Could not find Stratego language, Stratego dialects cannot be updated");
             return;

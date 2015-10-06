@@ -11,17 +11,17 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class SpoofaxAnalysisFacetFromESV {
+public class AnalysisFacetFromESV {
     public static boolean hasAnalysis(IStrategoAppl esv) {
         return ESVReader.findTerm(esv, "SemanticObserver") != null;
     }
     
-    public static @Nullable SpoofaxAnalysisFacet create(IStrategoAppl esv) {
+    public static @Nullable AnalysisFacet create(IStrategoAppl esv) {
         final String strategyName = strategyName(esv);
         if(strategyName == null) {
             return null;
         }
-        return new SpoofaxAnalysisFacet(strategyName);
+        return new AnalysisFacet(strategyName);
     }
 
     private static @Nullable String strategyName(IStrategoAppl esv) {

@@ -28,7 +28,7 @@ import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.tracing.IHoverService;
-import org.metaborg.core.tracing.IReferenceResolver;
+import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.core.transform.ITransformer;
@@ -44,14 +44,14 @@ import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
-import org.metaborg.spoofax.core.build.paths.SpoofaxLanguagePathProvider;
+import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.AnalysisContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
-import org.metaborg.spoofax.core.language.dialect.StrategoDialectIdentifier;
-import org.metaborg.spoofax.core.language.dialect.StrategoDialectProcessor;
+import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
+import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
 import org.metaborg.spoofax.core.menu.MenuService;
 import org.metaborg.spoofax.core.outline.ISpoofaxOutlineService;
 import org.metaborg.spoofax.core.outline.OutlineService;
@@ -97,12 +97,12 @@ import org.metaborg.spoofax.core.syntax.JSGLRSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
-import org.metaborg.spoofax.core.tracing.ISpoofaxReferenceResolver;
+import org.metaborg.spoofax.core.tracing.ISpoofaxResolverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
-import org.metaborg.spoofax.core.tracing.SpoofaxHoverService;
-import org.metaborg.spoofax.core.tracing.SpoofaxReferenceResolver;
-import org.metaborg.spoofax.core.tracing.SpoofaxTracingCommon;
-import org.metaborg.spoofax.core.tracing.SpoofaxTracingService;
+import org.metaborg.spoofax.core.tracing.HoverService;
+import org.metaborg.spoofax.core.tracing.ReferenceResolver;
+import org.metaborg.spoofax.core.tracing.TracingCommon;
+import org.metaborg.spoofax.core.tracing.TracingService;
 import org.metaborg.spoofax.core.transform.IStrategoTransformer;
 import org.metaborg.spoofax.core.transform.StrategoCompileTransformer;
 import org.metaborg.spoofax.core.transform.StrategoNamedTransformer;
@@ -157,8 +157,8 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
 
         bind(IDialectService.class).to(DialectService.class).in(Singleton.class);
-        bind(IDialectIdentifier.class).to(StrategoDialectIdentifier.class).in(Singleton.class);
-        bind(IDialectProcessor.class).to(StrategoDialectProcessor.class).in(Singleton.class);
+        bind(IDialectIdentifier.class).to(DialectIdentifier.class).in(Singleton.class);
+        bind(IDialectProcessor.class).to(DialectProcessor.class).in(Singleton.class);
     }
 
     protected void bindLanguagePath() {
@@ -168,7 +168,7 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
         super.bindLanguagePathProviders(binder);
 
-        binder.addBinding().to(SpoofaxLanguagePathProvider.class);
+        binder.addBinding().to(BuiltinLanguagePathProvider.class);
     }
 
     @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
@@ -371,20 +371,20 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
     protected void bindTracing() {
-        bind(SpoofaxTracingService.class).in(Singleton.class);
-        bind(ISpoofaxTracingService.class).to(SpoofaxTracingService.class);
+        bind(TracingService.class).in(Singleton.class);
+        bind(ISpoofaxTracingService.class).to(TracingService.class);
         bind(new TypeLiteral<ITracingService<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
-            SpoofaxTracingService.class);
+            TracingService.class);
 
-        bind(SpoofaxTracingCommon.class).in(Singleton.class);
+        bind(TracingCommon.class).in(Singleton.class);
 
-        bind(SpoofaxReferenceResolver.class).in(Singleton.class);
-        bind(ISpoofaxReferenceResolver.class).to(SpoofaxReferenceResolver.class);
-        bind(new TypeLiteral<IReferenceResolver<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferenceResolver.class);
+        bind(ReferenceResolver.class).in(Singleton.class);
+        bind(ISpoofaxResolverService.class).to(ReferenceResolver.class);
+        bind(new TypeLiteral<IResolverService<IStrategoTerm, IStrategoTerm>>() {}).to(ReferenceResolver.class);
 
-        bind(SpoofaxHoverService.class).in(Singleton.class);
-        bind(ISpoofaxHoverService.class).to(SpoofaxHoverService.class);
-        bind(new TypeLiteral<IHoverService<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxHoverService.class);
+        bind(HoverService.class).in(Singleton.class);
+        bind(ISpoofaxHoverService.class).to(HoverService.class);
+        bind(new TypeLiteral<IHoverService<IStrategoTerm, IStrategoTerm>>() {}).to(HoverService.class);
     }
 
     protected void bindOutline() {

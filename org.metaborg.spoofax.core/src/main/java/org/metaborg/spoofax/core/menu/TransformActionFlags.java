@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.menu;
 
-public class StrategoTransformActionFlags {
+public class TransformActionFlags {
     /**
      * Flag indicating if the strategy should be invoked on the parsed AST instead of the analyzed AST.
      */
@@ -22,11 +22,11 @@ public class StrategoTransformActionFlags {
     public boolean realtime;
 
 
-    public StrategoTransformActionFlags() {
+    public TransformActionFlags() {
         this(false, false, false, false);
     }
 
-    public StrategoTransformActionFlags(boolean parsed, boolean meta, boolean openEditor, boolean realtime) {
+    public TransformActionFlags(boolean parsed, boolean meta, boolean openEditor, boolean realtime) {
         this.parsed = parsed;
         this.meta = meta;
         this.openEditor = openEditor;
@@ -34,8 +34,8 @@ public class StrategoTransformActionFlags {
     }
 
 
-    public static StrategoTransformActionFlags merge(StrategoTransformActionFlags x, StrategoTransformActionFlags y) {
-        return new StrategoTransformActionFlags(x.parsed || y.parsed, x.meta || y.meta, x.openEditor || y.openEditor, x.realtime
+    public static TransformActionFlags merge(TransformActionFlags x, TransformActionFlags y) {
+        return new TransformActionFlags(x.parsed || y.parsed, x.meta || y.meta, x.openEditor || y.openEditor, x.realtime
             || y.realtime);
     }
 }

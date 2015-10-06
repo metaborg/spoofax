@@ -9,8 +9,8 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
-public class ReferencesFacetsFromESV {
-    private static final ILogger logger = LoggerUtils.logger(ReferencesFacetsFromESV.class);
+public class ResolverFacetFromESV {
+    private static final ILogger logger = LoggerUtils.logger(ResolverFacetFromESV.class);
 
     public static @Nullable ResolverFacet createResolver(IStrategoAppl esv) {
         final IStrategoAppl resolver = ESVReader.findTerm(esv, "ReferenceRule");

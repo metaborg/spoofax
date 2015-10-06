@@ -26,11 +26,11 @@ import org.spoofax.terms.visitor.StrategoTermVisitee;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class SpoofaxTracingService implements ISpoofaxTracingService {
+public class TracingService implements ISpoofaxTracingService {
     private final IResourceService resourceService;
 
 
-    @Inject public SpoofaxTracingService(IResourceService resourceService) {
+    @Inject public TracingService(IResourceService resourceService) {
         this.resourceService = resourceService;
     }
 

@@ -22,8 +22,8 @@ import com.google.inject.Inject;
 import fj.P;
 import fj.P2;
 
-public class SpoofaxTracingCommon {
-    private static final ILogger logger = LoggerUtils.logger(SpoofaxTracingCommon.class);
+public class TracingCommon {
+    private static final ILogger logger = LoggerUtils.logger(TracingCommon.class);
 
     private final IResourceService resourceService;
     private final ISpoofaxTracingService tracingService;
@@ -31,7 +31,7 @@ public class SpoofaxTracingCommon {
     private final IStrategoCommon common;
 
 
-    @Inject public SpoofaxTracingCommon(IResourceService resourceService, ISpoofaxTracingService tracingService,
+    @Inject public TracingCommon(IResourceService resourceService, ISpoofaxTracingService tracingService,
         IStrategoCommon common) {
         this.resourceService = resourceService;
         this.tracingService = tracingService;

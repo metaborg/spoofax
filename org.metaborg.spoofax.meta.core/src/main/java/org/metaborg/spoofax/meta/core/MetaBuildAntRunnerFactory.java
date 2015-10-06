@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.meta.core;
 
-import static org.metaborg.spoofax.core.SpoofaxProjectConstants.LANG_SDF_NAME;
-import static org.metaborg.spoofax.core.SpoofaxProjectConstants.LANG_STRATEGO_NAME;
+import static org.metaborg.spoofax.core.SpoofaxConstants.LANG_SDF_NAME;
+import static org.metaborg.spoofax.core.SpoofaxConstants.LANG_STRATEGO_NAME;
 
 import java.io.File;
 import java.net.URL;

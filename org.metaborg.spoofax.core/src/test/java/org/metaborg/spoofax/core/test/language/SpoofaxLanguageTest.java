@@ -12,7 +12,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.test.language.LanguageServiceTest;
 import org.metaborg.spoofax.core.SpoofaxModule;
-import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisFacet;
+import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
@@ -56,7 +56,7 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
         assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/include/entity.ctree"));
         assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/include/entity-java.jar"));
 
-        final SpoofaxAnalysisFacet analysisFacet = impl.facet(SpoofaxAnalysisFacet.class);
+        final AnalysisFacet analysisFacet = impl.facet(AnalysisFacet.class);
 
         assertEquals("editor-analyze", analysisFacet.strategyName);
 
