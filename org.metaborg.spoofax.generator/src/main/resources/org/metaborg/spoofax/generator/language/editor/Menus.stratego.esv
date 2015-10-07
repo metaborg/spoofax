@@ -1,0 +1,9 @@
+module Menus
+
+menus
+  
+  menu: "Syntax" (openeditor)
+    
+    action: "Format"                 = editor-format (source)
+    action: "Show abstract syntax"   = debug-show-aterm (source)
+    action: "Show analyzed syntax"   = debug-show-analyzed

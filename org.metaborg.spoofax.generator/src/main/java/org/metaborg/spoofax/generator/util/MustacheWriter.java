@@ -23,29 +23,43 @@ public class MustacheWriter {
     }
 
 
-    public void write(String name, boolean force) throws FileSystemException {
-        write(name, name, force);
+    public boolean exists(String srcNameTemplate) throws FileSystemException {
+        final String srcName = writeString(srcNameTemplate);
+        final FileObject resource = root.resolveFile(srcName);
+        return resource.exists();
     }
 
-    public void write(String name, String ifNameTemplate) throws FileSystemException {
-        write(name, name, ifNameTemplate);
-    }
 
-    public void write(String srcName, String dstNameTemplate, String ifNameTemplate) throws FileSystemException {
-        final String ifName = writeString(ifNameTemplate);
-        if(root.resolveFile(ifName).exists()) {
-            write(srcName, dstNameTemplate, true);
-        }
-    }
-
-    public void write(String srcName, String dstNameTemplate, boolean force) throws FileSystemException {
+    public void write(String nameTemplate, boolean overwrite) throws FileSystemException {
+        final String srcName = nameTemplate;
+        final String dstName = writeString(nameTemplate);
         final Mustache content = factory.compile(srcName);
-        final String dstName = writeString(dstNameTemplate);
-        write(content, root.resolveFile(dstName), force);
+        write(content, root.resolveFile(dstName), overwrite);
     }
 
-    private void write(Mustache mustache, FileObject dest, boolean force) throws FileSystemException {
-        if(dest.exists() && !force) {
+    public void writeResolve(String nameTemplate, boolean overwrite) throws FileSystemException {
+        final String name = writeString(nameTemplate);
+        final Mustache content = factory.compile(name);
+        write(content, root.resolveFile(name), overwrite);
+    }
+
+    
+    public void write(String srcName, String dstName, boolean overwrite) throws FileSystemException {
+        final Mustache content = factory.compile(srcName);
+        write(content, root.resolveFile(dstName), overwrite);
+    }
+
+    public void writeResolve(String srcNameTemplate, String dstNameTemplate, boolean overwrite)
+        throws FileSystemException {
+        final String srcName = writeString(srcNameTemplate);
+        final String dstName = writeString(dstNameTemplate);
+        final Mustache content = factory.compile(srcName);
+        write(content, root.resolveFile(dstName), overwrite);
+    }
+
+
+    private void write(Mustache mustache, FileObject dest, boolean overwrite) throws FileSystemException {
+        if(dest.exists() && !overwrite) {
             return;
         }
         dest.createFile();
@@ -54,7 +68,7 @@ public class MustacheWriter {
         }
     }
 
-    public String writeString(String template) {
+    private String writeString(String template) {
         final Mustache dest = factory.compile(new StringReader(template), "nameOf(" + template + ")");
         return dest.execute(new StringWriter(), objects).toString();
     }
