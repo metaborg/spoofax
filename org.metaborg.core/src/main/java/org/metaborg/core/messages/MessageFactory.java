@@ -4,7 +4,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.core.source.SourceRegion;
 
 public class MessageFactory {
     public static Message newMessage(FileObject resource, ISourceRegion region, String msg, MessageSeverity severity,
@@ -52,7 +51,7 @@ public class MessageFactory {
 
     public static Message newAtTop(FileObject resource, String msg, MessageType type, MessageSeverity severity,
         @Nullable Throwable cause) {
-        return new Message(msg, severity, type, resource, new SourceRegion(0, 0, 0, 0, 0, 0), cause);
+        return new Message(msg, severity, type, resource, null, cause);
     }
 
     public static Message newErrorAtTop(FileObject resource, String msg, MessageType type, @Nullable Throwable cause) {

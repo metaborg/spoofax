@@ -1,5 +1,7 @@
 package org.metaborg.core.source;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Strings;
 
 /**
@@ -18,14 +20,14 @@ public class AffectedSourceHelper {
      *            Indentation to add to each line in the resulting string.
      * @return Multi-line string that highlights the affected source code region.
      */
-    public static String affectedSourceText(ISourceRegion region, String sourceText, String indentation) {
+    public static @Nullable String affectedSourceText(ISourceRegion region, String sourceText, String indentation) {
         final int startOffset = region.startOffset();
         final int endOffset = region.endOffset();
 
         int startRow = -1;
         int endRow = -1;
         int startExtend = Integer.MAX_VALUE;
-        int endExtend = -1;
+        int endExtend = 0;
         int pos = 0;
         final String[] lines = sourceText.split("\\r?\\n");
         for(int i = 0; i < lines.length; ++i) {
@@ -57,7 +59,7 @@ public class AffectedSourceHelper {
             }
         }
 
-        if(endRow == -1) {
+        if(endRow == -1 || startExtend == Integer.MAX_VALUE) {
             return null;
         }
 

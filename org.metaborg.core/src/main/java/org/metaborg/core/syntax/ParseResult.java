@@ -1,27 +1,19 @@
 package org.metaborg.core.syntax;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.resource.ResourceService;
 
 import com.google.common.collect.Lists;
 
-public class ParseResult<T> implements Serializable {
-    private static final long serialVersionUID = 7584042729127258710L;
-
+public class ParseResult<T> {
     /**
      * Parser input string.
      */
     public final String input;
-    
+
     /**
      * Parser output, or null if parsing failed.
      */
@@ -30,7 +22,7 @@ public class ParseResult<T> implements Serializable {
     /**
      * Resource that was parsed.
      */
-    public transient FileObject source;
+    public final FileObject source;
 
     /**
      * Messages produced during parsing.
@@ -45,13 +37,13 @@ public class ParseResult<T> implements Serializable {
     /**
      * Base language the source was parsed with.
      */
-    public final ILanguage language;
+    public final ILanguageImpl language;
 
     /**
      * Dialect the source was parsed with, or null if no dialect was used.
      */
-    public final @Nullable ILanguage dialect;
-    
+    public final @Nullable ILanguageImpl dialect;
+
     /**
      * Optional parser specific data.
      */
@@ -59,7 +51,7 @@ public class ParseResult<T> implements Serializable {
 
 
     public ParseResult(String input, @Nullable T result, FileObject source, Iterable<IMessage> messages, long duration,
-        ILanguage language, @Nullable ILanguage dialect, Object parserSpecificData) {
+        ILanguageImpl language, @Nullable ILanguageImpl dialect, Object parserSpecificData) {
         this.input = input;
         this.result = result;
         this.source = source;
@@ -103,16 +95,5 @@ public class ParseResult<T> implements Serializable {
             return "null";
         }
         return result.toString();
-    }
-
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        ResourceService.writeFileObject(source, out);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        source = ResourceService.readFileObject(in);
     }
 }

@@ -6,10 +6,10 @@ import org.apache.commons.vfs2.FileType;
 
 public class LanguageFileSelector implements FileSelector {
     private final ILanguageIdentifierService languageIdentifierService;
-    private final ILanguage language;
+    private final ILanguageImpl language;
 
 
-    public LanguageFileSelector(ILanguageIdentifierService languageIdentifierService, ILanguage language) {
+    public LanguageFileSelector(ILanguageIdentifierService languageIdentifierService, ILanguageImpl language) {
         this.languageIdentifierService = languageIdentifierService;
         this.language = language;
     }

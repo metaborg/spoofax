@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.UpdateKind;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.core.syntax.ParseResult;
@@ -37,7 +37,7 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
     }
 
 
-    @Override public Observable<ParseResult<P>> request(final FileObject resource, final ILanguage language,
+    @Override public Observable<ParseResult<P>> request(final FileObject resource, final ILanguageImpl language,
         final String text) {
         return Observable.create(new OnSubscribe<ParseResult<P>>() {
             @Override public void call(Subscriber<? super ParseResult<P>> observer) {
@@ -135,7 +135,7 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
         return prevUpdates == null ? newUpdates : prevUpdates;
     }
 
-    private BehaviorSubject<ParseChange<P>> getUpdates(FileObject resource, ILanguage language, String text) {
+    private BehaviorSubject<ParseChange<P>> getUpdates(FileObject resource, ILanguageImpl language, String text) {
         final FileName name = resource.getName();
 
         // THREADING: it is possible that two different threads asking for a subject may do the parsing twice here, as

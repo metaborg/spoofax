@@ -13,17 +13,15 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.util.log.LoggingOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.Level;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.PrintStreamWriter;
@@ -51,12 +49,12 @@ public class ResourceAgent extends IOAgent {
 
     private final Map<Integer, ResourceHandle> openFiles = Maps.newHashMap();
 
-    private final Logger stdoutLogger = LoggerFactory.getLogger("stdout");
-    private final OutputStream stdout = new LoggingOutputStream(stdoutLogger, false);
+    private final ILogger stdoutLogger = LoggerUtils.logger("stdout");
+    private final OutputStream stdout = LoggerUtils.stream(stdoutLogger, Level.Info);
     private final Writer stdoutWriter = new PrintStreamWriter(new PrintStream(stdout));
 
-    private final Logger stderrLogger = LoggerFactory.getLogger("stderr");
-    private final OutputStream stderr = new LoggingOutputStream(stderrLogger, true);
+    private final ILogger stderrLogger = LoggerUtils.logger("stderr");
+    private final OutputStream stderr = LoggerUtils.stream(stderrLogger, Level.Info);
     private final Writer stderrWriter = new PrintStreamWriter(new PrintStream(stderr));
 
     private FileObject workingDir;
@@ -109,22 +107,18 @@ public class ResourceAgent extends IOAgent {
         if(!acceptDirChanges)
             return;
 
-        workingDir = resolve(workingDir, newWorkingDir);
+        workingDir = resourceService.resolve(workingDir, newWorkingDir);
     }
 
     public void setAbsoluteWorkingDir(FileObject dir) {
         workingDir = dir;
     }
 
-    @Override public void setDefinitionDir(String newDefinitionDir) throws FileNotFoundException {
+    @Override public void setDefinitionDir(String newDefinitionDir) {
         if(!acceptDirChanges)
             return;
 
-        try {
-            definitionDir = resolve(definitionDir, newDefinitionDir);
-        } catch(FileSystemException e) {
-            throw new FileNotFoundException(newDefinitionDir);
-        }
+        definitionDir = resourceService.resolve(definitionDir, newDefinitionDir);
     }
 
     public void setAbsoluteDefinitionDir(FileObject dir) {
@@ -222,7 +216,7 @@ public class ResourceAgent extends IOAgent {
         boolean writeMode = appendMode || mode.indexOf('w') >= 0;
         boolean clearFile = false;
 
-        final FileObject resource = resolve(workingDir, fn);
+        final FileObject resource = resourceService.resolve(workingDir, fn);
 
         if(writeMode) {
             if(!resource.exists()) {
@@ -293,7 +287,7 @@ public class ResourceAgent extends IOAgent {
     @Override public InputStream openInputStream(String fn, boolean isDefinitionFile) throws FileNotFoundException {
         final FileObject dir = isDefinitionFile ? definitionDir : workingDir;
         try {
-            final FileObject file = resolve(dir, fn);
+            final FileObject file = resourceService.resolve(dir, fn);
             return file.getContent().getInputStream();
         } catch(FileSystemException e) {
             throw new RuntimeException("Could not get input stream for resource", e);
@@ -303,30 +297,25 @@ public class ResourceAgent extends IOAgent {
 
     @Override public OutputStream openFileOutputStream(String fn) throws FileNotFoundException {
         try {
-            return resolve(workingDir, fn).getContent().getOutputStream();
+            return resourceService.resolve(workingDir, fn).getContent().getOutputStream();
         } catch(FileSystemException e) {
             throw new RuntimeException("Could not get output stream for resource", e);
         }
     }
 
     @Override public File openFile(String fn) {
-        // GTODO: does not work for files that do not reside on the local file system
-        try {
-            final FileObject resource = resolve(workingDir, fn);
-            File localResource = resourceService.localPath(resource);
-            if(localResource == null) {
-                final File localWorkingDir = resourceService.localPath(workingDir);
-                if(localWorkingDir == null) {
-                    // Local working directory does not reside on the local file system, just return a File.
-                    return new File(fn);
-                }
-                // Could not get a local File using the FileObject interface, fall back to composing Files.
-                return new File(getAbsolutePath(localWorkingDir.getPath(), fn));
+        final FileObject resource = resourceService.resolve(workingDir, fn);
+        File localResource = resourceService.localPath(resource);
+        if(localResource == null) {
+            final File localWorkingDir = resourceService.localPath(workingDir);
+            if(localWorkingDir == null) {
+                // Local working directory does not reside on the local file system, just return a File.
+                return new File(fn);
             }
-            return localResource;
-        } catch(FileSystemException e) {
-            throw new RuntimeException("Could not open file", e);
+            // Could not get a local File using the FileObject interface, fall back to composing Files.
+            return new File(getAbsolutePath(localWorkingDir.getPath(), fn));
         }
+        return localResource;
     }
 
     @Override public String createTempFile(String prefix) throws IOException {
@@ -349,7 +338,7 @@ public class ResourceAgent extends IOAgent {
 
     @Override public boolean mkdir(String dn) {
         try {
-            final FileObject resource = resolve(workingDir, dn);
+            final FileObject resource = resourceService.resolve(workingDir, dn);
             final boolean created = !resource.exists();
             resource.createFolder();
             return created;
@@ -364,44 +353,10 @@ public class ResourceAgent extends IOAgent {
 
     @Override public boolean rmdir(String dn) {
         try {
-            final FileObject resource = resolve(workingDir, dn);
+            final FileObject resource = resourceService.resolve(workingDir, dn);
             return resource.delete(new AllFileSelector()) > 0;
         } catch(FileSystemException e) {
             throw new RuntimeException("Could not delete directory", e);
         }
-    }
-
-
-    /**
-     * Tries to resolve {@code path} as an absolute path first, if that fails, resolves {@code path} relative to
-     * {@code parent}.
-     * 
-     * @param parent
-     *            Parent file object to resolve relatively to, if {@code path} is a relative path.
-     * @param path
-     *            Path to resolve
-     * @return Resolved file object
-     * @throws FileSystemException
-     *             when absolute and relative resolution fails.
-     */
-    private FileObject resolve(FileObject parent, String path) throws FileSystemException {
-        final File file = new File(path);
-
-        try {
-            final URI uri = new URI(path);
-            if(uri.isAbsolute()) {
-                return resourceService.resolve(path);
-            }
-        } catch(URISyntaxException e) {
-            // Ignore
-        }
-
-        if(file.isAbsolute()) {
-            return resourceService.resolve("file://" + path);
-        }
-        if(parent != null) {
-            return parent.resolveFile(path);
-        }
-        throw new RuntimeException("Cannot resolve relative path if base path is null");
     }
 }

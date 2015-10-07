@@ -1,9 +1,10 @@
 package org.metaborg.core.context;
 
-import java.io.Serializable;
+import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.util.concurrent.IClosableLock;
 
 import com.google.inject.Injector;
 
@@ -12,7 +13,7 @@ import com.google.inject.Injector;
  * and {@link #equals(Object)} using {@link #location()} and {@link #language()}, and also implement
  * {@link IContextInternal}.
  */
-public interface IContext extends Serializable {
+public interface IContext {
     /**
      * @return Location of this context.
      */
@@ -21,13 +22,7 @@ public interface IContext extends Serializable {
     /**
      * @return Language of this context.
      */
-    public abstract ILanguage language();
-
-    /**
-     * @return Identifier of this context.
-     */
-    public abstract ContextIdentifier id();
-
+    public abstract ILanguageImpl language();
 
     /**
      * @return Injector to retrieve implementations.
@@ -36,9 +31,35 @@ public interface IContext extends Serializable {
 
 
     /**
-     * Cleans given context, resetting its state.
+     * Request read access to this context.
+     * 
+     * @return Closable lock which must be held during reading. Close the lock when done.
      */
-    public abstract void clean();
+    public abstract IClosableLock read();
+
+    /**
+     * Request write access to this context.
+     * 
+     * @return Closable lock which must be held during writing. Close the lock when done.
+     */
+    public abstract IClosableLock write();
+
+    /**
+     * Persist context data from memory to permanent storing. Acquires a read lock. Can be called while holding the
+     * write lock.
+     * 
+     * @throws IOException
+     *             When persisting fails unexpectedly.
+     */
+    public abstract void persist() throws IOException;
+
+    /**
+     * Resets the state of this context. Acquires a write lock. Cannot be called while holding the read lock.
+     * 
+     * @throws IOException
+     *             When resetting fails unexpectedly
+     */
+    public abstract void reset() throws IOException;
 
 
     /* Hint for hashCode implementation. */

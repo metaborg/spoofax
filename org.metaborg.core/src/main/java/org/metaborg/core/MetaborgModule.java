@@ -1,14 +1,19 @@
 package org.metaborg.core;
 
 import org.apache.commons.vfs2.FileSystemManager;
+import org.metaborg.core.analysis.AnalysisService;
+import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
 import org.metaborg.core.build.IBuilder;
+import org.metaborg.core.build.dependency.DependencyService;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.DependencyPathProvider;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.context.ContextService;
+import org.metaborg.core.context.IContextFactory;
+import org.metaborg.core.context.IContextProcessor;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.context.IContextStrategy;
-import org.metaborg.core.context.LanguageContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.context.ResourceContextStrategy;
 import org.metaborg.core.editor.DummyEditorRegistry;
@@ -33,8 +38,9 @@ import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.processing.parse.ParseResultProcessor;
 import org.metaborg.core.project.DummyProjectService;
-import org.metaborg.core.project.IMavenProjectService;
 import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.project.settings.DummyProjectSettingsService;
+import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.resource.ResourceService;
@@ -72,9 +78,13 @@ public class MetaborgModule extends AbstractModule {
         bindLanguage();
         bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
         bindContext();
+        bindContextFactories(MapBinder.newMapBinder(binder(), String.class, IContextFactory.class));
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
+        bindProjectSettings();
+        bindDependency();
         bindSourceText();
+        bindAnalysis();
         bindBuilder();
         bindProcessor();
         bindProcessorRunner();
@@ -99,23 +109,38 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindContext() {
-        bind(IContextService.class).to(ContextService.class).in(Singleton.class);
+        bind(ContextService.class).in(Singleton.class);
+        bind(IContextService.class).to(ContextService.class);
+        bind(IContextProcessor.class).to(ContextService.class);
+    }
+
+    @SuppressWarnings("unused") protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
+
     }
 
     protected void bindContextStrategies(MapBinder<String, IContextStrategy> binder) {
         binder.addBinding(ResourceContextStrategy.name).to(ResourceContextStrategy.class).in(Singleton.class);
-        binder.addBinding(LanguageContextStrategy.name).to(LanguageContextStrategy.class).in(Singleton.class);
         binder.addBinding(ProjectContextStrategy.name).to(ProjectContextStrategy.class).in(Singleton.class);
     }
 
     protected void bindProject() {
-        bind(DummyProjectService.class).in(Singleton.class);
-        bind(IProjectService.class).to(DummyProjectService.class);
-        bind(IMavenProjectService.class).to(DummyProjectService.class);
+        bind(IProjectService.class).to(DummyProjectService.class).in(Singleton.class);
+    }
+
+    protected void bindProjectSettings() {
+        bind(IProjectSettingsService.class).to(DummyProjectSettingsService.class).in(Singleton.class);
+    }
+
+    protected void bindDependency() {
+        bind(IDependencyService.class).to(DependencyService.class).in(Singleton.class);
     }
 
     protected void bindSourceText() {
         bind(ISourceTextService.class).to(SourceTextService.class).in(Singleton.class);
+    }
+
+    protected void bindAnalysis() {
+        bind(IAnalysisService.class).to(AnalysisService.class);
     }
 
     protected void bindBuilder() {

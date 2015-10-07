@@ -11,9 +11,9 @@
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>org.metaborg.maven.parent.java</artifactId>
+    <artifactId>parent.java</artifactId>
     <version>1.5.0-SNAPSHOT</version>
-    <relativePath>../../spoofax-deploy/org.metaborg.maven.parent.java</relativePath>
+    <relativePath>../../releng/parent/java</relativePath>
   </parent>
 
   <dependencies>
@@ -42,6 +42,7 @@
       <artifactId>org.metaborg.util</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
+    
     <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>

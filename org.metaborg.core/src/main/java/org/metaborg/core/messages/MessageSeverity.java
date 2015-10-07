@@ -1,5 +1,13 @@
 package org.metaborg.core.messages;
 
 public enum MessageSeverity {
-    ERROR, WARNING, NOTE
+    NOTE(0), WARNING(1), ERROR(2);
+
+
+    public final int value;
+
+
+    private MessageSeverity(int value) {
+        this.value = value;
+    }
 }

@@ -7,10 +7,13 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
+import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.transform.ITransformerGoal;
@@ -22,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * Fluent interface for creating {@link BuildInput} objects.
@@ -34,10 +36,10 @@ public class BuildInputBuilder {
 
     private BuildState state;
 
-    private Collection<ILanguage> languages;
+    private Set<ILanguageImpl> languages;
     private boolean addDependencyLanguages;
 
-    private Multimap<ILanguage, FileObject> includePaths;
+    private Multimap<ILanguageImpl, FileObject> includePaths;
     private boolean addDefaultIncludePaths;
 
     private Collection<ResourceChange> sourceChanges;
@@ -54,7 +56,7 @@ public class BuildInputBuilder {
 
     private @Nullable IBuildMessagePrinter messagePrinter;
     private boolean throwOnErrors;
-    private Set<ILanguage> pardonedLanguages;
+    private Set<ILanguageImpl> pardonedLanguages;
     private Set<String> pardonedLanguageStrings;
 
 
@@ -69,7 +71,7 @@ public class BuildInputBuilder {
      */
     public BuildInputBuilder reset() {
         state = null;
-        languages = Lists.newLinkedList();
+        languages = Sets.newHashSet();
         addDependencyLanguages = true;
         includePaths = HashMultimap.create();
         addDefaultIncludePaths = true;
@@ -98,26 +100,50 @@ public class BuildInputBuilder {
     }
 
     /**
-     * Sets the languages to given languagues.
+     * Sets the languages to given languague implementations.
      */
-    public BuildInputBuilder withLanguages(Collection<ILanguage> languages) {
+    public BuildInputBuilder withLanguages(Set<ILanguageImpl> languages) {
         this.languages = languages;
         return this;
     }
 
     /**
-     * Adds given languages.
+     * Adds given language implementations.
      */
-    public BuildInputBuilder addLanguages(Iterable<ILanguage> languages) {
+    public BuildInputBuilder addLanguages(Iterable<? extends ILanguageImpl> languages) {
         Iterables.addAll(this.languages, languages);
         return this;
     }
 
     /**
-     * Adds a single language.
+     * Adds a single language implementation.
      */
-    public BuildInputBuilder addLanguage(ILanguage language) {
+    public BuildInputBuilder addLanguage(ILanguageImpl language) {
         this.languages.add(language);
+        return this;
+    }
+
+    /**
+     * Sets the languages from given language components.
+     */
+    public BuildInputBuilder withComponents(Iterable<ILanguageComponent> components) {
+        withLanguages(LanguageUtils.toImpls(components));
+        return this;
+    }
+
+    /**
+     * Adds languages from given language components.
+     */
+    public BuildInputBuilder addComponents(Iterable<? extends ILanguageComponent> components) {
+        addLanguages(LanguageUtils.toImpls(components));
+        return this;
+    }
+
+    /**
+     * Adds languages from given language component.
+     */
+    public BuildInputBuilder addComponent(ILanguageComponent component) {
+        addLanguages(component.contributesTo());
         return this;
     }
 
@@ -211,7 +237,7 @@ public class BuildInputBuilder {
     /**
      * Sets the include files to given files.
      */
-    public BuildInputBuilder withIncludePaths(Multimap<ILanguage, FileObject> includePaths) {
+    public BuildInputBuilder withIncludePaths(Multimap<ILanguageImpl, FileObject> includePaths) {
         this.includePaths = includePaths;
         return this;
     }
@@ -219,7 +245,7 @@ public class BuildInputBuilder {
     /**
      * Add given include files for given language.
      */
-    public BuildInputBuilder addIncludePaths(ILanguage language, Iterable<FileObject> includePaths) {
+    public BuildInputBuilder addIncludePaths(ILanguageImpl language, Iterable<FileObject> includePaths) {
         this.includePaths.putAll(language, includePaths);
         return this;
     }
@@ -311,7 +337,7 @@ public class BuildInputBuilder {
     /**
      * Set the pardoned languages from given set of pardoned languages.
      */
-    public BuildInputBuilder withPardonedLanguages(Set<ILanguage> pardonedLanguages) {
+    public BuildInputBuilder withPardonedLanguages(Set<ILanguageImpl> pardonedLanguages) {
         this.pardonedLanguages = pardonedLanguages;
         return this;
     }
@@ -327,7 +353,7 @@ public class BuildInputBuilder {
     /**
      * Adds a single pardoned language.
      */
-    public BuildInputBuilder addPardonedLanguage(ILanguage pardonedLanguage) {
+    public BuildInputBuilder addPardonedLanguage(ILanguageImpl pardonedLanguage) {
         this.pardonedLanguages.add(pardonedLanguage);
         return this;
     }
@@ -343,32 +369,37 @@ public class BuildInputBuilder {
 
     /**
      * Builds a build input object from the current state.
+     * 
+     * @throws MetaborgException
+     *             When {@link IDependencyService#compileDependencies(IProject)} throws.
      */
-    public BuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService) {
+    public BuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService)
+        throws MetaborgException {
         if(state == null) {
             state = new BuildState();
         }
 
-        final Iterable<ILanguage> compileLanguages = dependencyService.compileDependencies(project);
+        final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDependencies(project);
+        final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);
         if(addDependencyLanguages) {
-            addLanguages(compileLanguages);
+            addLanguages(compileImpls);
         }
 
         if(addDefaultIncludePaths) {
-            for(ILanguage language : compileLanguages) {
-                addIncludePaths(language, languagePathService.includePaths(project, language.name()));
+            for(ILanguageImpl language : compileImpls) {
+                addIncludePaths(language, languagePathService.includePaths(project, language.belongsTo().name()));
             }
         }
 
         if(addSourcesFromDefaultSourceLocations) {
-            for(ILanguage language : compileLanguages) {
+            for(ILanguageImpl language : compileImpls) {
                 final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(project, language);
                 addIdentifiedSources(sources);
             }
         }
 
-        for(ILanguage language : languages) {
-            if(pardonedLanguageStrings.contains(language.name())) {
+        for(ILanguageImpl language : languages) {
+            if(pardonedLanguageStrings.contains(language.belongsTo().name())) {
                 addPardonedLanguage(language);
             }
         }
@@ -378,12 +409,5 @@ public class BuildInputBuilder {
                 analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;
-    }
-
-    /**
-     * Builds a build input object from the current state.
-     */
-    public BuildInput build(Injector injector) {
-        return build(injector.getInstance(IDependencyService.class), injector.getInstance(ILanguagePathService.class));
     }
 }

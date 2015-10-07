@@ -34,7 +34,7 @@
 	<taskdef resource="org/strategoxt/antcontrib/strategoxt-antlib.xml" classpath="${plugin.classpath}" />
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${plugin.classpath}" />
 
-	<target name="generate-sources-common" depends="check-classpath, sdf2table, meta-sdf2table, ppgen, pppack, sdf2rtg, sdf2parenthesize, stratego.aster, normalize, normalize-permissive" />
+	<target name="generate-sources-common" depends="sdf2table, meta-sdf2table, ppgen, pppack, sdf2rtg, sdf2parenthesize" />
 	<target name="generate-sources-jar" depends="generate-sources-common, call.stratego.jar" />
 	<target name="generate-sources-ctree" depends="generate-sources-common, stratego.ctree" />
 
@@ -74,23 +74,11 @@
 		<isset property="javajar-includes" />
 	</condition>
 
-	<fail unless="build" message="Please use build.main.xml to build this project or configure the required properties manually" />
 	<mkdir dir="${build}" />
 	<mkdir dir="${src-gen}" />
 	<mkdir dir="${include}" />
 	<mkdir dir="${lib}" />
 	<mkdir dir="${syntax}" />
-
-	<target name="check-classpath">
-		<available classname="org.strategoxt.imp.generator.sdf2imp" property="check-classpath.available" />
-		<antcall target="check-classpath.helper" />
-	</target>
-
-	<target name="check-classpath.helper" unless="check-classpath.available">
-		<echo level="error" message="Could not load the Spoofax classes." />
-		<echo level="error" message="Make sure it is on the class path." />
-		<fail message="" />
-	</target>
 
 	<!-- Copy sdf2 files from the syntax folder into the src-gen/syntax folder  -->
 	<target name="copy-sdf2">
@@ -154,10 +142,9 @@
 	</target>
 
 	<target name="sdf2parenthesize" depends="pack-sdf,copy-sdf">
-		<echo message="${nativepath}/" />
 		<trycatch>
 			<try>
-				<sdf2parenthesize input="${include.rel}/${sdfmodule}.def" language="${sdfmodule}" main="${sdfmodule}" output="${include.rel}/${sdfmodule}-parenthesize.str" outputmodule="include/${sdfmodule}-parenthesize" nativepath="${nativepath}/">
+				<sdf2parenthesize input="${include.rel}/${sdfmodule}.def" language="${sdfmodule}" main="${sdfmodule}" output="${include.rel}/${sdfmodule}-parenthesize.str" outputmodule="include/${sdfmodule}-parenthesize">
 					<args>
 						<arg value="--main-strategy" />
 						<arg value="io-${sdfmodule}-parenthesize" />
@@ -332,36 +319,6 @@
 		<echo file="${include}/${sdfmodule}.generated.pp.af" message="PP-Table([])" />
 	</target>
 
-	<!-- Aster to Stratego -->
-	<target name="stratego.aster">
-		<available file="${trans}/${strmodule}.rtree" property="aster-output.available" />
-		<fileset dir="${basedir}" id="aster-input-set">
-			<include name="**/*.astr" />
-		</fileset>
-		<pathconvert pathsep=" " setonempty="false" property="aster-input" refid="aster-input-set" />
-		<dependset>
-			<srcfileset dir="${basedir}">
-				<include name="**/*.astr" />
-			</srcfileset>
-			<targetfileset file="${trans}/${strmodule}.rtree" />
-		</dependset>
-		<condition property="aster-output.uptodate">
-			<and>
-				<isset property="aster-output.available" />
-				<available file="${trans}/${strmodule}.rtree" />
-			</and>
-		</condition>
-		<available file="${trans}/${strmodule}.rtree" property="aster-output.uptodate" />
-		<antcall target="stratego.aster.helper" />
-	</target>
-
-	<target name="stratego.aster.helper" if="aster-input" unless="aster-output.uptodate">
-		<java classname="org.strategoxt.aster.Main" failonerror="true">
-			<arg value="-i" />
-			<arg line="${aster-input}" />
-		</java>
-	</target>
-
 	<target name="compile-java-files">
 		<delete dir="${build}" />
 		<mkdir dir="${build}" />
@@ -386,14 +343,7 @@
 				</not>
 			</condition>
 		</fail>
-		<dependset>
-			<srcfileset dir="${basedir}">
-				<include name="**/*.str" />
-				<include name="**/*.astr" />
-				<exclude name="lib/*.generated.str" />
-			</srcfileset>
-			<targetfileset file="${include}/${strmodule}.ctree" />
-		</dependset>
+		<delete file="${include}/${strmodule}.ctree" />
 		<available file="${include}/${strmodule}.ctree" property="strc-java.available" />
 		<antcall target="copy-jar" />
 		<antcall target="stratego.jvm.helper">
@@ -411,14 +361,7 @@
 				</not>
 			</condition>
 		</fail>
-		<dependset>
-			<srcfileset dir="${basedir}">
-				<include name="**/*.str" />
-				<include name="**/*.astr" />
-				<exclude name="lib/*.generated.str" />
-			</srcfileset>
-			<targetfileset file="${src-gen}/trans/Main.java" />
-		</dependset>
+		<delete file="${src-gen}/trans/Main.java" />
 		<available file="${src-gen}/trans/Main.java" property="strc-java.available" />
 		<antcall target="copy-jar" />
 		<delete>
@@ -479,145 +422,4 @@
 	<target name="package">
 		<antcall target="package-${lang.format}" />
 	</target>
-
-	<!-- Normalization targets -->
-	<macrodef name="normalize">
-				<attribute name="input" />
-				<attribute name="output" />
-				<attribute name="main" />
-				<sequential>
-					<uptodate-io input="@{input}" output="@{output}" type="sdf2table">
-						<action>
-							<exec executable="${nativepath}/sdf2table">
-								<arg value="-t" />
-								<arg value="-i" />
-								<arg value="@{input}" />
-								<arg value="-m" />
-								<arg value="@{main}" />
-								<arg value="-o" />
-								<arg value="@{output}" />
-								<arg value="-n" /> 
-							</exec>
-						</action>
-					</uptodate-io>
-				</sequential>
-			</macrodef>
-		
-		<macrodef name="implodePT">
-					<attribute name="input" />
-					<attribute name="output" />
-					<sequential>
-						<uptodate-io input="@{input}" output="@{output}" type="implodePT">
-							<action>
-								<exec executable="${nativepath}/implodePT">
-									<arg value="-t" />
-									<arg value="-i" />
-									<arg value="@{input}" />
-									<arg value="-o" />
-									<arg value="@{output}" />
-								</exec>
-							</action>
-						</uptodate-io>
-					</sequential>
-				</macrodef>
-		
-	<macrodef name="pp-sdf">
-	        <attribute name="input" />
-	        <attribute name="output" />
-	        <sequential>
-	            <uptodate-io input="@{input}" output="@{output}" type="pp-sdf">
-	                <action>
-	                    <java classname="run" failonerror="true">
-	                        <arg value="org.strategoxt.tools.main-pp-sdf" />
-	                        <arg value="-i" />
-	                        <arg value="@{input}" />
-	                        <arg value="-o" />
-	                        <arg value="@{output}" />
-	                    </java>
-	                </action>
-	            </uptodate-io>
-	        </sequential>
-	    </macrodef>
-	
-		<target name="normalize">
-			<for param="input">
-				<path>
-					<fileset dir="${include}" includes="*.def" excludes="*-Permissive.def"/>
-				</path>
-				<sequential>
-					<local name="input-basename"/>
-					<basename file="@{input}" property="input-basename" suffix=".def"/>
-					
-					<normalize input="@{input}" main="${sdfmodule}" output="${include}/${input-basename}-normalized.pt"/>
-					
-					<implodePT input="${include}/${input-basename}-normalized.pt" output="${include}/${input-basename}-normalized.aterm.temp"/>
-					<!-- call pp-sdf to pretty print the normalized grammar and define a builder in SDF2 to generate the item-sets -->
-					
-					<echo message="module(unparameterized(&quot;${input-basename}-normalized&quot;), [], [ exports(" file="${include}/${input-basename}-normalized.aterm" />
-					
-					<concat destfile="${include}/${input-basename}-normalized.aterm" append="true">
-	            	    <filelist dir="${include}" files="${input-basename}-normalized.aterm.temp"/>
-					</concat>
-					
-					<echo message=")])" file="${include}/${input-basename}-normalized.aterm.footer" />
-					
-					<concat destfile="${include}/${input-basename}-normalized.aterm" append="true">
-	            		<filelist dir="${include}" files="${input-basename}-normalized.aterm.footer"/>
-	            	</concat>
-					
-					<pp-sdf input="${include}/${input-basename}-normalized.aterm" output="${include}/${input-basename}-normalized.sdf" />
-					<delete includeemptydirs="true" failonerror="false">
-						<fileset dir="${include}" >
-							<include name="${input-basename}-normalized.pt"/>
-							<include name="${input-basename}-normalized.aterm.temp" />
-							<include name="${input-basename}-normalized.aterm.footer" />
-							<include name="${input-basename}-normalized.aterm" />
-						</fileset>
-					</delete>
-					
-				</sequential>
-			</for>	
-		</target>
-
-	<target name="normalize-permissive">
-				<for param="input">
-					<path>
-						<fileset dir="${include}" includes="*-Permissive.def"/>
-					</path>
-					<sequential>
-						<local name="input-basename"/>
-						<basename file="@{input}" property="input-basename" suffix=".def"/>
-						
-						<normalize input="@{input}" main="${sdfmodule}" output="${include}/${input-basename}-normalized.pt"/>
-						
-						<implodePT input="${include}/${input-basename}-normalized.pt" output="${include}/${input-basename}-normalized.aterm.temp"/>
-						<!-- call pp-sdf to pretty print the normalized grammar and define a builder in SDF2 to generate the item-sets -->
-						
-						<echo message="module(unparameterized(&quot;${input-basename}-normalized&quot;), [], [ exports(" file="${include}/${input-basename}-normalized.aterm" />
-						
-						<concat destfile="${include}/${input-basename}-normalized.aterm" append="true">
-		            	    <filelist dir="${include}" files="${input-basename}-normalized.aterm.temp"/>
-						</concat>
-						
-						<echo message=")])" file="${include}/${input-basename}-normalized.aterm.footer" />
-						
-						<concat destfile="${include}/${input-basename}-normalized.aterm" append="true">
-		            		<filelist dir="${include}" files="${input-basename}-normalized.aterm.footer"/>
-		            	</concat>
-						
-						<pp-sdf input="${include}/${input-basename}-normalized.aterm" output="${include}/${input-basename}-normalized.sdf" />
-						<delete includeemptydirs="true" failonerror="false">
-							<fileset dir="${include}" >
-								<include name="${input-basename}-normalized.pt"/>
-								<include name="${input-basename}-normalized.aterm.temp" />
-								<include name="${input-basename}-normalized.aterm.footer" />
-								<include name="${input-basename}-normalized.aterm" />
-							</fileset>
-						</delete>
-						
-					</sequential>
-				</for>	
-			</target>
-
-
 </project>

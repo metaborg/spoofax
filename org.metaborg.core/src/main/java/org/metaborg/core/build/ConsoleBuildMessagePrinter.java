@@ -10,73 +10,150 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.source.AffectedSourceHelper;
+import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.Level;
+import org.metaborg.util.log.LoggerUtils;
 
 /**
  * Build message printer implementation that prints detailed messages to a stream.
  */
 public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
     private final ISourceTextService sourceTextService;
-    private final PrintStream stream;
+    private final PrintStream infoStream;
+    private final PrintStream warnStream;
+    private final PrintStream errorStream;
     private final boolean printHighlight;
     private final boolean printExceptions;
 
+    private int notes = 0;
+    private int warnings = 0;
+    private int warningsPardoned = 0;
+    private int errors = 0;
+    private int errorsPardoned = 0;
+    private int exceptions = 0;
+    private int exceptionsPardoned = 0;
 
-    public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, OutputStream stream,
-        boolean printHighlight, boolean printExceptions) {
+
+    public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight,
+        boolean printExceptions, OutputStream infoStream, OutputStream warnStream, OutputStream errorStream) {
         this.sourceTextService = sourceTextService;
-        this.stream = new PrintStream(stream);
+        this.infoStream = new PrintStream(infoStream);
+        this.warnStream = new PrintStream(warnStream);
+        this.errorStream = new PrintStream(errorStream);
         this.printHighlight = printHighlight;
         this.printExceptions = printExceptions;
     }
 
+    public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight,
+        boolean printExceptions, ILogger logger) {
+        this(sourceTextService, printHighlight, printExceptions, LoggerUtils.stream(logger, Level.Info), LoggerUtils
+            .stream(logger, Level.Warn), LoggerUtils.stream(logger, Level.Error));
+    }
 
-    @Override public void print(IMessage message) {
+
+    @Override public void print(IMessage message, boolean pardoned) {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append(message.severity());
+        final MessageSeverity severity = message.severity();
+        sb.append(severity);
+        if(severity != MessageSeverity.NOTE && pardoned) {
+            sb.append(" (pardoned)");
+        }
 
         final FileObject source = message.source();
+        final ISourceRegion region = message.region();
         if(source != null) {
             sb.append(" in ");
             sb.append(source.getName().getPath());
-            sb.append(":" + message.region().startRow());
+            if(region != null) {
+                sb.append(":" + region.startRow());
+            }
             sb.append('\n');
         }
 
         if(printHighlight) {
             try {
                 final String sourceText = sourceTextService.text(source);
-                sb.append(AffectedSourceHelper.affectedSourceText(message.region(), sourceText, "    "));
+                if(region != null) {
+                    final String affected =
+                        AffectedSourceHelper.affectedSourceText(message.region(), sourceText, "    ");
+                    if(affected != null) {
+                        sb.append(affected);
+                    }
+                }
             } catch(IOException e) {
             }
         }
 
-        print(sb, message.message(), message.exception());
+        print(sb, message.message(), message.exception(), message.severity(), pardoned);
+
+        switch(severity) {
+            case NOTE:
+                ++notes;
+                break;
+            case WARNING:
+                if(pardoned) {
+                    ++warningsPardoned;
+                } else {
+                    ++warnings;
+                }
+                break;
+            case ERROR:
+                if(pardoned) {
+                    ++errorsPardoned;
+                } else {
+                    ++errors;
+                }
+                break;
+        }
     }
 
-    @Override public void print(FileObject source, String message, @Nullable Throwable e) {
+    @Override public void print(FileObject source, String message, @Nullable Throwable e, boolean pardoned) {
         final StringBuilder sb = new StringBuilder();
-        sb.append("EXCEPTION in ");
+        sb.append("EXCEPTION");
+        if(pardoned) {
+            sb.append(" (pardoned)");
+        }
+        sb.append(" in ");
         sb.append(source.getName().getPath());
         sb.append('\n');
 
-        print(sb, message, e);
+        print(sb, message, e, MessageSeverity.ERROR, pardoned);
+
+        if(pardoned) {
+            ++exceptionsPardoned;
+        } else {
+            ++exceptions;
+        }
     }
 
-    @Override public void print(IProject project, String message, @Nullable Throwable e) {
+    @Override public void print(IProject project, String message, @Nullable Throwable e, boolean pardoned) {
         final StringBuilder sb = new StringBuilder();
-        sb.append("EXCEPTION in project ");
+        sb.append("EXCEPTION");
+        if(pardoned) {
+            sb.append(" (pardoned)");
+        }
+        sb.append(" in project ");
         sb.append(project.location().getName().getPath());
         sb.append('\n');
 
-        print(sb, message, e);
+        print(sb, message, e, MessageSeverity.ERROR, pardoned);
+
+        if(pardoned) {
+            ++exceptionsPardoned;
+        } else {
+            ++exceptions;
+        }
     }
 
 
-    private void print(StringBuilder sb, String message, @Nullable Throwable e) {
+    private void print(StringBuilder sb, String message, @Nullable Throwable e, MessageSeverity severity,
+        boolean pardoned) {
         sb.append(message);
         sb.append('\n');
 
@@ -92,12 +169,86 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         }
 
         sb.append('\n');
-        print(sb);
+
+        final String str = sb.toString();
+        if(pardoned) {
+            infoStream.print(str);
+            infoStream.flush();
+        } else {
+            switch(severity) {
+                case NOTE:
+                    infoStream.print(str);
+                    infoStream.flush();
+                    break;
+                case WARNING:
+                    warnStream.print(str);
+                    warnStream.flush();
+                    break;
+                case ERROR:
+                    errorStream.print(str);
+                    errorStream.flush();
+                    break;
+            }
+        }
     }
 
-    private void print(StringBuilder sb) {
+    @Override public void printSummary() {
+        final int total =
+            notes + warnings + warningsPardoned + errors + errorsPardoned + exceptions + exceptionsPardoned;
+        if(total == 0) {
+            return;
+        }
+
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append(total);
+        sb.append(" messages (");
+
+        sb.append(exceptions);
+        sb.append(" exception");
+        if(exceptions == 0 || exceptions > 1) {
+            sb.append('s');
+        }
+        if(exceptionsPardoned > 0) {
+            sb.append(" [");
+            sb.append(exceptionsPardoned);
+            sb.append(" pardoned]");
+        }
+        sb.append(", ");
+
+        sb.append(errors);
+        sb.append(" error");
+        if(errors == 0 || errors > 1) {
+            sb.append('s');
+        }
+        if(errorsPardoned > 0) {
+            sb.append(" [");
+            sb.append(errorsPardoned);
+            sb.append(" pardoned]");
+        }
+        sb.append(", ");
+
+        sb.append(warnings);
+        sb.append(" warning");
+        if(warnings == 0 || warnings > 1) {
+            sb.append('s');
+        }
+        if(warningsPardoned > 0) {
+            sb.append(" [");
+            sb.append(warningsPardoned);
+            sb.append(" pardoned]");
+        }
+        sb.append(", ");
+
+        sb.append(notes);
+        sb.append(" note");
+        if(notes == 0 || notes > 1) {
+            sb.append('s');
+        }
+        sb.append(")");
+
         final String str = sb.toString();
-        stream.print(str);
-        stream.flush();
+        infoStream.print(str);
+        infoStream.flush();
     }
 }

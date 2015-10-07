@@ -20,6 +20,7 @@ public class LanguagePathFacetFromESV {
         return new LanguagePathFacet(sources, includes);
     }
 
+
     private static ListMultimap<String, String> readPathTerms(IStrategoAppl esv, String constructor) {
         final Iterable<IStrategoAppl> terms = ESVReader.collectTerms(esv, constructor);
         final ListMultimap<String, String> languagePath = ArrayListMultimap.create();

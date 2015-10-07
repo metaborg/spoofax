@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.Collection;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileName;
@@ -17,7 +18,6 @@ import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
 import org.metaborg.core.MetaborgRuntimeException;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -63,15 +63,38 @@ public class ResourceService implements IResourceService {
         }
     }
 
-    @Override public Iterable<FileObject> resolveAll(Iterable<String> uris) {
-        final Collection<FileObject> files = Lists.newLinkedList();
-        for(String uri : uris) {
-            files.add(resolve(uri));
+    @Override public FileObject resolve(URI uri) {
+        try {
+            return fileSystemManager.resolveFile(uri.toString());
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException(e);
         }
-        return files;
     }
 
-    @Override public FileName resolveURI(String uri) {
+    @Override public FileObject resolve(FileObject parent, String path) {
+        final File file = new File(path);
+
+        try {
+            final URI uri = new URI(path);
+            if(uri.isAbsolute()) {
+                return resolve(path);
+            }
+        } catch(URISyntaxException e) {
+            // Ignore
+        }
+
+        if(file.isAbsolute()) {
+            return resolve("file://" + path);
+        }
+
+        try {
+            return parent.resolveFile(path);
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException(e);
+        }
+    }
+
+    @Override public FileName resolveToName(String uri) {
         try {
             return fileSystemManager.resolveURI(uri);
         } catch(FileSystemException e) {
@@ -95,7 +118,7 @@ public class ResourceService implements IResourceService {
     }
 
 
-    @Override public FileObject userStorage() {
+    @Deprecated @Override public FileObject userStorage() {
         try {
             final FileObject storageDir = root().resolveFile(".cache");
             storageDir.createFolder();

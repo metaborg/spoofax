@@ -2,87 +2,26 @@ package org.metaborg.core.language;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.FileObject;
-
-import rx.Observable;
 
 /**
- * Interface that represents a language and its facets. Implementors implement {@link #hashCode()}, and
- * {@link #equals(Object)} using {@link #name()}, {@link #version()}, and {@link #location()}.
+ * Interface that represents a language. A language has multiple implementations.
  */
 public interface ILanguage {
     /**
-     * Returns the identifier of the language.
+     * @return Name of this language.
      */
-    public LanguageIdentifier id();
+    public abstract String name();
 
     /**
-     * Returns the location of the language.
+     * @return All language implementations that belong to this language.
      */
-    public FileObject location();
+    public abstract Iterable<? extends ILanguageImpl> impls();
 
     /**
-     * Returns the name of the language.
+     * @return Active language implementation for this language. A language implementation is active when it has a
+     *         higher version number than other language implementations. When there are multiple implementations with
+     *         the highest version number, the one that was added last wins. Returns null when {@code #impls()} returns
+     *         an empty iterable, which only happens if this language has been removed from the language service.
      */
-    public String name();
-
-    /**
-     * Returns the sequence identifier of the language. Used to find out if a language was created after or before
-     * another language.
-     */
-    public int sequenceId();
-
-
-
-    /**
-     * Returns the facets of this language.
-     * 
-     * @return Iterable over the facets of this language.
-     */
-    public Iterable<ILanguageFacet> facets();
-
-    /**
-     * Returns facet of given type.
-     * 
-     * @param type
-     *            Facet type
-     * @return Facet of given type, or null if it does not exist.
-     */
-    public @Nullable <T extends ILanguageFacet> T facet(Class<T> type);
-
-    /**
-     * Returns an observable over facet added and removed changes.
-     * 
-     * @return Observable over facet changes.
-     */
-    public Observable<LanguageFacetChange> facetChanges();
-
-    /**
-     * Adds given facet to the language.
-     * 
-     * @param facet
-     *            The facet to add.
-     * @return The added facet
-     * @throws IllegalStateException
-     *             when facet with given type already exists in the language.
-     */
-    public <T extends ILanguageFacet> ILanguageFacet addFacet(T facet);
-
-    /**
-     * Removes facet of given type from the language.
-     * 
-     * @param type
-     *            Type of the facet to remove.
-     * @return The removed facet
-     * @throws IllegalStateException
-     *             when facet with given type does not exist in the language.
-     */
-    public <T extends ILanguageFacet> ILanguageFacet removeFacet(Class<T> type);
-
-
-    /* Hint for hashCode implementation. */
-    public abstract int hashCode();
-
-    /* Hint for equals implementation. */
-    public abstract boolean equals(Object other);
+    public abstract @Nullable ILanguageImpl activeImpl();
 }

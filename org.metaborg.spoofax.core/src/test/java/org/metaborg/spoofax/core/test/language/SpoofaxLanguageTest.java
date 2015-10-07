@@ -7,11 +7,15 @@ import static org.metaborg.util.test.Assert2.assertIterableEquals;
 import org.apache.commons.vfs2.FileObject;
 import org.junit.Test;
 import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.test.language.LanguageServiceTest;
 import org.metaborg.spoofax.core.SpoofaxModule;
-import org.metaborg.spoofax.core.stratego.StrategoFacet;
+import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
+import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
 
 import com.google.common.collect.Iterables;
 
@@ -28,28 +32,36 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
     @Test public void discoverLanguage() throws Exception {
         final FileObject location = resourceService.resolve("res:");
 
-        final Iterable<ILanguage> languages = languageDiscoveryService.discover(location);
+        final Iterable<ILanguageComponent> languages = languageDiscoveryService.discover(location);
 
         assertEquals(1, Iterables.size(languages));
 
-        final ILanguage language = Iterables.get(languages, 0);
+        final ILanguageComponent component = Iterables.get(languages, 0);
+        final ILanguageImpl impl = Iterables.get(component.contributesTo(), 0);
+        final ILanguage language = impl.belongsTo();
 
         assertEquals("Entity", language.name());
-        assertEquals(resourceService.resolve("res:Entity"), language.location());
+        assertEquals(resourceService.resolve("res:Entity"), component.location());
 
-        final IdentificationFacet identificationFacet = language.facet(IdentificationFacet.class);
+        final IdentificationFacet identificationFacet = impl.facet(IdentificationFacet.class);
         assertTrue(identificationFacet.identify(resourceService.resolve("ram:///Entity/test.ent")));
 
-        final SyntaxFacet syntaxFacet = language.facet(SyntaxFacet.class);
+        final SyntaxFacet syntaxFacet = impl.facet(SyntaxFacet.class);
 
         assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTable);
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
-        final StrategoFacet strategoFacet = language.facet(StrategoFacet.class);
+        final StrategoRuntimeFacet strategoFacet = impl.facet(StrategoRuntimeFacet.class);
 
-        assertIterableEquals(strategoFacet.ctreeFiles(), resourceService.resolve("res:Entity/include/entity.ctree"));
-        assertIterableEquals(strategoFacet.jarFiles(), resourceService.resolve("res:Entity/include/entity-java.jar"));
-        assertEquals("editor-analyze", strategoFacet.analysisStrategy());
-        assertEquals("editor-save", strategoFacet.onSaveStrategy());
+        assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/include/entity.ctree"));
+        assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/include/entity-java.jar"));
+
+        final AnalysisFacet analysisFacet = impl.facet(AnalysisFacet.class);
+
+        assertEquals("editor-analyze", analysisFacet.strategyName);
+
+        final CompilerFacet compilerFacet = impl.facet(CompilerFacet.class);
+
+        assertEquals("editor-save", compilerFacet.strategyName);
     }
 }

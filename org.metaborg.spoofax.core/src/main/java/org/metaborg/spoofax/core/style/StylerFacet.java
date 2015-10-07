@@ -4,15 +4,13 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.style.IStyle;
 
 import com.google.common.collect.Maps;
 
-public class StylerFacet implements ILanguageFacet {
-    private static final long serialVersionUID = 4154040215394619408L;
-    
-	private final Map<SortConsCategory, IStyle> sortConsToStyle = Maps.newHashMap();
+public class StylerFacet implements IFacet {
+    private final Map<SortConsCategory, IStyle> sortConsToStyle = Maps.newHashMap();
     private final Map<String, IStyle> consToStyle = Maps.newHashMap();
     private final Map<String, IStyle> sortToStyle = Maps.newHashMap();
     private final Map<String, IStyle> tokenToStyle = Maps.newHashMap();

@@ -2,8 +2,8 @@ package org.metaborg.spoofax.core;
 
 import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.analysis.IAnalyzer;
 import org.metaborg.core.build.IBuilder;
-import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.LanguagePathService;
@@ -13,6 +13,8 @@ import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
+import org.metaborg.core.menu.IMenuService;
+import org.metaborg.core.outline.IOutlineService;
 import org.metaborg.core.processing.IProcessor;
 import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
@@ -21,11 +23,12 @@ import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
+import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.tracing.IHoverService;
-import org.metaborg.core.tracing.IReferenceResolver;
+import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.core.transform.ITransformer;
@@ -33,18 +36,25 @@ import org.metaborg.core.transform.ITransformerExecutor;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.ITransformerResultHandler;
 import org.metaborg.core.transform.NamedGoal;
+import org.metaborg.core.transform.NestedNamedGoal;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
-import org.metaborg.spoofax.core.analysis.StrategoAnalysisService;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
+import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
-import org.metaborg.spoofax.core.build.dependency.MavenDependencyService;
-import org.metaborg.spoofax.core.build.paths.SpoofaxLanguagePathProvider;
+import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
-import org.metaborg.spoofax.core.context.SpoofaxContextFactory;
+import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
+import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
-import org.metaborg.spoofax.core.language.dialect.StrategoDialectIdentifier;
-import org.metaborg.spoofax.core.language.dialect.StrategoDialectProcessor;
+import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
+import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
+import org.metaborg.spoofax.core.menu.MenuService;
+import org.metaborg.spoofax.core.outline.ISpoofaxOutlineService;
+import org.metaborg.spoofax.core.outline.OutlineService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessor;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.processing.SpoofaxBlockingProcessor;
@@ -57,8 +67,14 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
+import org.metaborg.spoofax.core.project.DummyMavenProjectService;
+import org.metaborg.spoofax.core.project.IMavenProjectService;
+import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.ProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
+import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ForeignCallPrimitive;
@@ -81,19 +97,20 @@ import org.metaborg.spoofax.core.syntax.JSGLRSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
-import org.metaborg.spoofax.core.tracing.ISpoofaxReferenceResolver;
+import org.metaborg.spoofax.core.tracing.ISpoofaxResolverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
-import org.metaborg.spoofax.core.tracing.SpoofaxReferences;
-import org.metaborg.spoofax.core.tracing.SpoofaxTracingService;
+import org.metaborg.spoofax.core.tracing.HoverService;
+import org.metaborg.spoofax.core.tracing.ReferenceResolver;
+import org.metaborg.spoofax.core.tracing.TracingCommon;
+import org.metaborg.spoofax.core.tracing.TracingService;
 import org.metaborg.spoofax.core.transform.IStrategoTransformer;
 import org.metaborg.spoofax.core.transform.StrategoCompileTransformer;
 import org.metaborg.spoofax.core.transform.StrategoNamedTransformer;
 import org.metaborg.spoofax.core.transform.StrategoTransformer;
-import org.metaborg.spoofax.core.transform.StrategoTransformerCommon;
 import org.metaborg.spoofax.core.transform.StrategoTransformerFileWriter;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
-import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
+import org.spoofax.interpreter.library.index.primitives.legacy.LegacyIndexLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Singleton;
@@ -119,10 +136,9 @@ public class SpoofaxModule extends MetaborgModule {
         super.configure();
 
         bindLanguagePath();
-        bindDependency();
+        bindMavenProject();
         bindSyntax();
         bindCompletion();
-        bindAnalysis();
         bindTransformer();
         bindTransformerResultHandlers(MapBinder.newMapBinder(binder(),
             new TypeLiteral<Class<? extends ITransformerGoal>>() {},
@@ -130,6 +146,8 @@ public class SpoofaxModule extends MetaborgModule {
         bindCategorizer();
         bindStyler();
         bindTracing();
+        bindOutline();
+        bindMenu();
     }
 
 
@@ -139,8 +157,8 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
 
         bind(IDialectService.class).to(DialectService.class).in(Singleton.class);
-        bind(IDialectIdentifier.class).to(StrategoDialectIdentifier.class).in(Singleton.class);
-        bind(IDialectProcessor.class).to(StrategoDialectProcessor.class).in(Singleton.class);
+        bind(IDialectIdentifier.class).to(DialectIdentifier.class).in(Singleton.class);
+        bind(IDialectProcessor.class).to(DialectProcessor.class).in(Singleton.class);
     }
 
     protected void bindLanguagePath() {
@@ -150,17 +168,26 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
         super.bindLanguagePathProviders(binder);
 
-        binder.addBinding().to(SpoofaxLanguagePathProvider.class);
+        binder.addBinding().to(BuiltinLanguagePathProvider.class);
     }
 
-    @Override protected void bindContext() {
-        super.bindContext();
+    @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
+        super.bindContextFactories(binder);
 
-        bind(IContextFactory.class).to(SpoofaxContextFactory.class).in(Singleton.class);
+        binder.addBinding(IndexTaskContextFactory.name).to(IndexTaskContextFactory.class).in(Singleton.class);
+        binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
     }
 
-    protected void bindDependency() {
-        bind(IDependencyService.class).to(MavenDependencyService.class).in(Singleton.class);
+    /**
+     * Overrides {@link MetaborgModule#bindProjectSettings()} for non-dummy implementation of project settings service.
+     */
+    @Override protected void bindProjectSettings() {
+        bind(IProjectSettingsService.class).to(ProjectSettingsService.class).in(Singleton.class);
+        bind(ISpoofaxProjectSettingsService.class).to(SpoofaxProjectSettingsService.class).in(Singleton.class);
+    }
+
+    protected void bindMavenProject() {
+        bind(IMavenProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {
@@ -175,14 +202,34 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ICompletionService.class).to(JSGLRCompletionService.class).in(Singleton.class);
     }
 
-    protected void bindAnalysis() {
-        bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(StrategoAnalysisService.class)
-            .in(Singleton.class);
+    /**
+     * Overrides {@link MetaborgModule#bindAnalysis()} to provide Spoofax-specific bindings with generics filled in as
+     * {@link IStrategoTerm}, and to provide analyzers.
+     */
+    @Override protected void bindAnalysis() {
+        // Analysis service
+        bind(SpoofaxAnalysisService.class).in(Singleton.class);
+        bind(ISpoofaxAnalysisService.class).to(SpoofaxAnalysisService.class);
+        bind(IAnalysisService.class).to(SpoofaxAnalysisService.class);
+        bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxAnalysisService.class);
+        bind(new TypeLiteral<IAnalysisService<?, ?>>() {}).to(SpoofaxAnalysisService.class);
+
+        // Analyzers
+        final MapBinder<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers =
+            MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
+                new TypeLiteral<IAnalyzer<IStrategoTerm, IStrategoTerm>>() {});
+        analyzers.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class).in(Singleton.class);
+        analyzers.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class).in(Singleton.class);
+
+        // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class);
         languageCacheBinder.addBinding().to(StrategoRuntimeService.class);
-        bind(StrategoLocalPath.class).in(Singleton.class);
 
+        // Stratego utilities
+        bind(IStrategoCommon.class).to(StrategoCommon.class).in(Singleton.class);
+
+        // Stratego primitives
         bind(ParseFileStrategy.class).in(Singleton.class);
         bind(ParseStrategoFileStrategy.class).in(Singleton.class);
 
@@ -221,13 +268,14 @@ public class SpoofaxModule extends MetaborgModule {
         final MapBinder<Class<? extends ITransformerGoal>, ITransformerExecutor<IStrategoTerm, IStrategoTerm, IStrategoTerm>> executorBinder =
             MapBinder.newMapBinder(binder(), new TypeLiteral<Class<? extends ITransformerGoal>>() {},
                 new TypeLiteral<ITransformerExecutor<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {});
-        executorBinder.addBinding(NamedGoal.class).to(StrategoNamedTransformer.class).in(Singleton.class);
+        bind(StrategoNamedTransformer.class).in(Singleton.class);
+        executorBinder.addBinding(NamedGoal.class).to(StrategoNamedTransformer.class);
+        executorBinder.addBinding(NestedNamedGoal.class).to(StrategoNamedTransformer.class);
         executorBinder.addBinding(CompileGoal.class).to(StrategoCompileTransformer.class).in(Singleton.class);
-
-        bind(StrategoTransformerCommon.class).in(Singleton.class);
 
         bind(StrategoTransformer.class).in(Singleton.class);
         bind(IStrategoTransformer.class).to(StrategoTransformer.class);
+        bind(ITransformer.class).to(StrategoTransformer.class);
         bind(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
             StrategoTransformer.class);
         bind(new TypeLiteral<ITransformer<?, ?, ?>>() {}).to(StrategoTransformer.class);
@@ -237,6 +285,7 @@ public class SpoofaxModule extends MetaborgModule {
         MapBinder<Class<? extends ITransformerGoal>, ITransformerResultHandler<IStrategoTerm>> binder) {
         bind(StrategoTransformerFileWriter.class).in(Singleton.class);
         binder.addBinding(NamedGoal.class).to(StrategoTransformerFileWriter.class);
+        binder.addBinding(NestedNamedGoal.class).to(StrategoTransformerFileWriter.class);
         binder.addBinding(CompileGoal.class).to(StrategoTransformerFileWriter.class);
     }
 
@@ -322,16 +371,30 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
     protected void bindTracing() {
-        bind(SpoofaxTracingService.class).in(Singleton.class);
-        bind(ISpoofaxTracingService.class).to(SpoofaxTracingService.class);
+        bind(TracingService.class).in(Singleton.class);
+        bind(ISpoofaxTracingService.class).to(TracingService.class);
         bind(new TypeLiteral<ITracingService<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
-            SpoofaxTracingService.class);
+            TracingService.class);
 
-        bind(SpoofaxReferences.class).in(Singleton.class);
-        bind(ISpoofaxReferenceResolver.class).to(SpoofaxReferences.class);
-        bind(new TypeLiteral<IReferenceResolver<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferences.class);
-        bind(ISpoofaxHoverService.class).to(SpoofaxReferences.class);
-        bind(new TypeLiteral<IHoverService<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferences.class);
+        bind(TracingCommon.class).in(Singleton.class);
+
+        bind(ReferenceResolver.class).in(Singleton.class);
+        bind(ISpoofaxResolverService.class).to(ReferenceResolver.class);
+        bind(new TypeLiteral<IResolverService<IStrategoTerm, IStrategoTerm>>() {}).to(ReferenceResolver.class);
+
+        bind(HoverService.class).in(Singleton.class);
+        bind(ISpoofaxHoverService.class).to(HoverService.class);
+        bind(new TypeLiteral<IHoverService<IStrategoTerm, IStrategoTerm>>() {}).to(HoverService.class);
+    }
+
+    protected void bindOutline() {
+        bind(OutlineService.class).in(Singleton.class);
+        bind(ISpoofaxOutlineService.class).to(OutlineService.class);
+        bind(new TypeLiteral<IOutlineService<IStrategoTerm, IStrategoTerm>>() {}).to(OutlineService.class);
+    }
+
+    protected void bindMenu() {
+        bind(IMenuService.class).to(MenuService.class).in(Singleton.class);
     }
 
 

@@ -9,46 +9,92 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.IProjectService;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguageIdentifierService implements ILanguageIdentifierService {
-    private static final Logger logger = LoggerFactory.getLogger(LanguageIdentifierService.class);
+    private static final ILogger logger = LoggerUtils.logger(LanguageIdentifierService.class);
 
     private final ILanguageService languageService;
     private final IDialectIdentifier dialectIdentifier;
+    private final IProjectService projectService;
+    private final IDependencyService dependencyService;
 
 
-    @Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier) {
+    @Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier,
+        IProjectService projectService, IDependencyService dependencyService) {
         this.languageService = languageService;
         this.dialectIdentifier = dialectIdentifier;
+        this.projectService = projectService;
+        this.dependencyService = dependencyService;
     }
 
 
-    @Override public boolean identify(FileObject resource, ILanguage language) {
-        final IdentificationFacet identification = language.facet(IdentificationFacet.class);
-        if(identification == null) {
-            logger.error("Cannot identify resources of {}, language does not have an identification facet", language);
+    @Override public boolean identify(FileObject resource, ILanguageImpl language) {
+        final Iterable<IdentificationFacet> facets = language.facets(IdentificationFacet.class);
+        if(Iterables.isEmpty(facets)) {
+            logger.trace("Cannot identify if {} is of {}, language does not have an identification facet", resource,
+                language);
             return false;
         }
-        return identification.identify(resource);
+        boolean identified = false;
+        for(IdentificationFacet facet : facets) {
+            identified = identified || facet.identify(resource);
+        }
+        return identified;
     }
 
-    @Override public @Nullable ILanguage identify(FileObject resource) {
-        return identify(resource, languageService.getAllActive());
+    @Override public @Nullable ILanguageImpl identify(FileObject resource) {
+        final IProject project = projectService.get(resource);
+        if(project != null) {
+            try {
+                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(project);
+                final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(dependencies);
+                ILanguageImpl impl = identify(resource, impls);
+                if(impl == null) {
+                    // Try with all active languages if identification with dependencies fails
+                    impl = identify(resource, LanguageUtils.allActiveImpls(languageService));
+                }
+                return impl;
+            } catch(MetaborgException e) {
+                return identify(resource, LanguageUtils.allActiveImpls(languageService));
+            }
+        } else {
+            return identify(resource, LanguageUtils.allActiveImpls(languageService));
+        }
     }
 
     @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource) {
-        return identifyToResource(resource, languageService.getAllActive());
+        final Iterable<ILanguageImpl> dependencies = compileDependencies(resource);
+        return identifyToResource(resource, dependencies);
+    }
+    
+    public Iterable<ILanguageImpl> compileDependencies(FileObject resource) {
+        final IProject project = projectService.get(resource);
+        if(project != null) {
+            try {
+                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(project);
+                final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(dependencies);
+                return impls;
+            } catch(MetaborgException e) {
+                return LanguageUtils.allActiveImpls(languageService);
+            }
+        } else {
+            return LanguageUtils.allActiveImpls(languageService);
+        }
     }
 
-    @Override public @Nullable ILanguage identify(FileObject resource, Iterable<ILanguage> languages) {
+    @Override public @Nullable ILanguageImpl identify(FileObject resource, Iterable<? extends ILanguageImpl> languages) {
         final IdentifiedResource identified = identifyToResource(resource, languages);
         if(identified == null) {
             return null;
@@ -56,14 +102,15 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         return identified.dialectOrLanguage();
     }
 
-    @Override public @Nullable IdentifiedResource
-        identifyToResource(FileObject resource, Iterable<ILanguage> languages) {
+    @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource,
+        Iterable<? extends ILanguageImpl> impls) {
         // Ignore directories.
         try {
             if(resource.getType() == FileType.FOLDER) {
                 return null;
             }
-        } catch(FileSystemException e1) {
+        } catch(FileSystemException e) {
+            logger.error("Cannot identify {}, cannot determine its file type", e, resource);
             return null;
         }
 
@@ -74,31 +121,40 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
                 return new IdentifiedResource(resource, dialect);
             }
         } catch(MetaborgException e) {
-            logger.error("Error identifying dialect", e);
+            logger.error("Cannot identify dialect of {}", e, resource);
             return null;
         } catch(MetaborgRuntimeException e) {
             // Ignore
         }
 
         // Identify using identification facet.
-        final Set<String> identifiedLanguageNames = Sets.newLinkedHashSet();
-        ILanguage identifiedLanguage = null;
-        for(ILanguage language : languages) {
-            if(identify(resource, language)) {
-                identifiedLanguageNames.add(language.name());
-                identifiedLanguage = language;
+        final Set<ILanguage> identifiedLanguages = Sets.newLinkedHashSet();
+        ILanguageImpl identifiedImpl = null;
+        for(ILanguageImpl impl : impls) {
+            if(identify(resource, impl)) {
+                identifiedLanguages.add(impl.belongsTo());
+                identifiedImpl = impl;
             }
         }
 
-        if(identifiedLanguageNames.size() > 1) {
+        if(identifiedLanguages.size() > 1) {
             throw new IllegalStateException("Resource " + resource + " identifies to multiple languages: "
-                + Joiner.on(", ").join(identifiedLanguageNames));
+                + Joiner.on(", ").join(identifiedLanguages));
         }
 
-        if(identifiedLanguage == null) {
+        if(identifiedImpl == null) {
             return null;
         }
 
-        return new IdentifiedResource(resource, null, identifiedLanguage);
+        return new IdentifiedResource(resource, null, identifiedImpl);
+    }
+
+
+    @Override public boolean available(ILanguageImpl impl) {
+        final Iterable<IdentificationFacet> facets = impl.facets(IdentificationFacet.class);
+        if(Iterables.isEmpty(facets)) {
+            return false;
+        }
+        return true;
     }
 }

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
@@ -46,7 +46,7 @@ public class ParseFileStrategy extends Strategy {
             if(resource.getType() != FileType.FILE) {
                 return null;
             }
-            final ILanguage language = languageIdentifierService.identify(resource);
+            final ILanguageImpl language = languageIdentifierService.identify(resource);
             if(language == null) {
                 return null;
             }

@@ -1,19 +1,14 @@
 package org.metaborg.core.context;
 
-import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.language.IFacet;
 
-public class ContextFacet implements ILanguageFacet {
-    private static final long serialVersionUID = -992751010335621557L;
+public class ContextFacet implements IFacet {
+    public final IContextFactory factory;
+    public final IContextStrategy strategy;
 
-    private final IContextStrategy strategy;
 
-
-    public ContextFacet(IContextStrategy strategy) {
+    public ContextFacet(IContextFactory factory, IContextStrategy strategy) {
+        this.factory = factory;
         this.strategy = strategy;
-    }
-
-
-    public IContextStrategy strategy() {
-        return strategy;
     }
 }

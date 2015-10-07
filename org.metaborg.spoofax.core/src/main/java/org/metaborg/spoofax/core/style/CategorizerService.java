@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.style;
 import java.util.List;
 
 import org.metaborg.core.analysis.AnalysisFileResult;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.ICategory;
@@ -33,7 +33,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
     }
 
 
-    @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguage language,
+    @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguageImpl language,
         ParseResult<IStrategoTerm> parseResult) {
         if(parseResult.result == null) {
             logger.error("Cannot categorize input of {}, parse result is empty", language);
@@ -73,7 +73,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
         return regionCategories;
     }
 
-    @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguage language,
+    @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguageImpl language,
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult) {
         throw new UnsupportedOperationException();
     }
@@ -108,20 +108,22 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
     private ICategory sortConsCategory(StylerFacet facet, IStrategoTerm term) {
         final ImploderAttachment imploderAttachment = ImploderAttachment.get(term);
         final String sort = imploderAttachment.getSort();
+        // LEGACY: for some reason, when using concrete syntax extensions, all sorts are appended with _sort.
+        final String massagedSort = sort.replace("_sort", "");
         if(term.getTermType() == IStrategoTerm.APPL) {
             final String cons = ((IStrategoAppl) term).getConstructor().getName();
-            if(facet.hasSortConsStyle(sort, cons)) {
-                return new SortConsCategory(sort, cons);
+            if(facet.hasSortConsStyle(massagedSort, cons)) {
+                return new SortConsCategory(massagedSort, cons);
             } else if(facet.hasConsStyle(cons)) {
                 return new ConsCategory(cons);
-            } else if(facet.hasSortStyle(sort)) {
-                return new SortCategory(sort);
+            } else if(facet.hasSortStyle(massagedSort)) {
+                return new SortCategory(massagedSort);
             }
             return null;
         }
 
-        if(facet.hasSortStyle(sort)) {
-            return new SortCategory(sort);
+        if(facet.hasSortStyle(massagedSort)) {
+            return new SortCategory(massagedSort);
         }
 
         return null;

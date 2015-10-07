@@ -13,7 +13,7 @@ public interface IBuildMessagePrinter {
     /**
      * Prints given message, located inside source text.
      */
-    public abstract void print(IMessage message);
+    public abstract void print(IMessage message, boolean pardoned);
 
     /**
      * Prints given message and exception, located at a resource. Used if the source location is not available.
@@ -25,7 +25,7 @@ public interface IBuildMessagePrinter {
      * @param e
      *            Exception to print, or null if there is no exception.
      */
-    public abstract void print(FileObject resource, String message, @Nullable Throwable e);
+    public abstract void print(FileObject resource, String message, @Nullable Throwable e, boolean pardoned);
 
     /**
      * Prints given message and exception, located at a project. Used if the source location or resource is not
@@ -38,5 +38,10 @@ public interface IBuildMessagePrinter {
      * @param e
      *            Exception to print, or null if there is no exception.
      */
-    public abstract void print(IProject project, String message, @Nullable Throwable e);
+    public abstract void print(IProject project, String message, @Nullable Throwable e, boolean pardoned);
+
+    /**
+     * Prints a summary based on printed messages before.
+     */
+    public void printSummary();
 }
