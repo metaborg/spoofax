@@ -342,7 +342,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     allAnalysisResults.add(analysisResult);
                     context.persist();
                 }
-                // GTODO: also update messages for affected sources
             } catch(AnalysisException e) {
                 final String message = "Analysis failed unexpectedly";
                 final boolean noErrors = printMessage(message, e, input, pardoned);

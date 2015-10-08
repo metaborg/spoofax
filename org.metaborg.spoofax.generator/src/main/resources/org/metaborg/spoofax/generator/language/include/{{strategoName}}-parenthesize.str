@@ -1,0 +1,5 @@
+module include/{{strategoName}}-parenthesize
+
+strategies
+
+  parenthesize-{{strategoName}} = id

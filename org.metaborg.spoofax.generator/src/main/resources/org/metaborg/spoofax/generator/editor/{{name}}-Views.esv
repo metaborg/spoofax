@@ -1,8 +1,0 @@
-module {{name}}-Views
-
-views
-  
-  outline view: editor-outline (source)
-    expand to level: 3
-    
-  properties view: editor-properties

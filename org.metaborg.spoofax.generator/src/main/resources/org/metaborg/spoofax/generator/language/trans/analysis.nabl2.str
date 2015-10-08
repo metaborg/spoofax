@@ -1,0 +1,43 @@
+module analysis
+
+imports
+  
+  libanalysis2/-
+  libanalysis2/namebinding/-
+  libanalysis2/subtyping/-
+  libanalysis2/prelude/-
+  libanalysis2/nabl2/-
+  
+  pp
+
+rules // Analysis
+
+  editor-analyze = analyze(id)
+  
+  debug-analyze = debug-analyze(id)
+
+rules // Editor services
+  
+  editor-resolve: 
+    (node, _, _, _, _) -> decl
+    where
+      decl := <get-decl> node
+
+  editor-hover: 
+    (node, _, _, _, _) -> label
+    where
+      label := <get-type; pp-partial-{{name}}-string; xmlencode> node
+
+rules // Debugging
+  
+  debug-show-analyzed:
+    (_, _, ast, path, _) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"analyzed.aterm")> path
+    ; result   := ast
+  
+  debug-show-analysis:
+    (_, _, ast, path, project-path) -> (filename, result)
+    with 
+      filename := <guarantee-extension(|"analysis.aterm")> path
+    ; result   := <debug-analyze; pp-debug-analysis> (ast, path, project-path)

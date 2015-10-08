@@ -1,3 +1,0 @@
-module {{name}}-Outliner.generated
-
- // esv-based outline definitions are no longer supported. Use Stratego to define an outline instead.

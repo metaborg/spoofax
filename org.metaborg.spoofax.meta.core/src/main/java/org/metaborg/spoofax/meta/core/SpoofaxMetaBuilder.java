@@ -12,7 +12,7 @@ import org.apache.tools.ant.BuildListener;
 import org.metaborg.core.processing.ICancellationToken;
 import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.generator.ProjectGenerator;
+import org.metaborg.spoofax.generator.language.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
 import org.slf4j.Logger;
