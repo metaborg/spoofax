@@ -61,6 +61,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ContainsFileSelector;
+import org.metaborg.util.resource.FileSelectorUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
@@ -98,7 +99,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
         try {
             final Collection<ILanguageComponent> components = Lists.newLinkedList();
-            final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
+            final FileObject[] esvFiles = location.findFiles(FileSelectorUtils.endsWith("packed.esv"));
             if(esvFiles == null || esvFiles.length == 0) {
                 logger.error("No packed.esv files found at {}, no languages were discovered", location);
                 return components;
