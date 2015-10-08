@@ -3,11 +3,10 @@ package org.metaborg.core.completion;
 
 public class Completion implements ICompletion {
     private final Iterable<ICompletionItem> items;
-    private final String description;
 
-    public Completion(Iterable<ICompletionItem> items, String description) {
+
+    public Completion(Iterable<ICompletionItem> items) {
         this.items = items;
-        this.description = description;
     }
 
 
@@ -16,7 +15,4 @@ public class Completion implements ICompletion {
     }
     
     
-    @Override public String toString() {
-        return description;
-    }
 }
