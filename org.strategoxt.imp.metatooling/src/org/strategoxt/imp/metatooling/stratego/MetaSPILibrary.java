@@ -8,7 +8,7 @@ import org.strategoxt.lang.GlobalLibraries;
 public class MetaSPILibrary {
     public static void init() {
     	// Eclipse Library should be loaded in any stratego program now
-        GlobalInitializers.registerLibraryClass(
+    	GlobalLibraries.registerLibraryClass(
         		org.strategoxt.imp.metatooling.stratego.LibraryInitializer.class);
     }
 }
