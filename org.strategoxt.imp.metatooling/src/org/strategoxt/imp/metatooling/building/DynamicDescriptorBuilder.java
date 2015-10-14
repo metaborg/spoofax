@@ -55,9 +55,7 @@ public class DynamicDescriptorBuilder {
 		try {
 			agent = new EditorIOAgent();
 			context = new Context(Environment.getTermFactory(), agent);
-			context.getStrategyCollector().addLibraryInitializers(Arrays.asList(new LibraryInitializer.InitializerSetEntry(new org.strategoxt.imp.metatooling.stratego.LibraryInitializer())));
-			context.registerClassLoader(sdf2imp.class.getClassLoader());
-			sdf2imp.init(context, true);
+			LibraryInitializer.initialize(context, new  org.strategoxt.imp.generator.sdf2imp.LibraryInitializer(), new org.strategoxt.imp.metatooling.stratego.LibraryInitializer());
 			
 		} catch (Throwable e) { // (catch classes not loading, etc.)
 			Environment.logException("Unable to initialize dynamic builder", e);
