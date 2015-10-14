@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +24,7 @@ import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.Term;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
@@ -35,6 +37,7 @@ import org.strategoxt.lang.compat.NativeCallHelper;
 import org.strategoxt.lang.compat.SSL_EXT_call;
 import org.strategoxt.lang.linking.OverridingStrategy;
 import org.strategoxt.permissivegrammars.main_make_permissive_0_0;
+import org.strategoxt.permissivegrammars.complibrary.lang.StrategoExit;
 
 /**
  * Overrides the xtc-command strategy to use sdf2table from the SDF plugin.
@@ -201,12 +204,28 @@ public class SDFBundleCommand extends RegisteringStrategy {
     }
 
     private IStrategoTerm invokeMakePermissive(Context context, IStrategoTerm args) {
+    	// See: SSL_EXT_java_call; rather similar but cannot be used here because of special classes for make-permissive
     	System.out.println("Invoke make permissive with " + args);
+    	String oldWorkingDir = context.getIOAgent().getWorkingDir();
     	org.strategoxt.permissivegrammars.complibrary.lang.Context makePermissiveContext =
-    			org.strategoxt.permissivegrammars.Main.init();
-    	IStrategoTerm result = main_make_permissive_0_0.instance.invoke(makePermissiveContext, args);
-    	System.out.println("Make permissive result: " + result);
-    	return result;
+    			new org.strategoxt.permissivegrammars.complibrary.lang.Context(context.getFactory(), context.getIOAgent());
+    	org.strategoxt.permissivegrammars.Main.init(makePermissiveContext);
+    	// Need to prepend program name into the list
+    	args = context.getFactory().makeListCons(context.getFactory().makeString("make-permissive"), (IStrategoList) args);
+    	try {
+    		IStrategoTerm result = main_make_permissive_0_0.instance.invoke(makePermissiveContext, args);
+   	    	return result;
+    	} catch (StrategoExit e) {
+    		return e.getValue() == StrategoExit.SUCCESS ? args : null;
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		throw new RuntimeException (e);
+    	} finally {
+    		try {
+    		context.getIOAgent().setWorkingDir(oldWorkingDir);
+    		} catch (Exception e) {}
+    	}
+    	
     }
     
     public boolean invoke(Context context, String command, IStrategoTerm[] argList) {
