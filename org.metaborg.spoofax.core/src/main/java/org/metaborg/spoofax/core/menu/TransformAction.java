@@ -3,10 +3,11 @@ package org.metaborg.spoofax.core.menu;
 import javax.annotation.Nullable;
 
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.menu.Action;
 import org.metaborg.core.menu.IAction;
 import org.metaborg.core.transform.NestedNamedGoal;
 
-public class TransformAction implements IAction {
+public class TransformAction extends Action {
     /**
      * Name of the action.
      */
