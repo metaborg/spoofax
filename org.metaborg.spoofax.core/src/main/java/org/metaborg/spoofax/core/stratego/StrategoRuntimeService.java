@@ -75,7 +75,8 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
     @Override public HybridInterpreter genericRuntime() {
-        return createNew(new ImploderOriginTermFactory(termFactoryService.getGeneric()));
+        ImploderOriginTermFactory termFactory = (ImploderOriginTermFactory)termFactoryService.getGeneric();
+        return createNew(termFactory);
     }
 
 
