@@ -37,8 +37,8 @@ import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SemanticCompletionFacetFromESV;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacet;
 import org.metaborg.spoofax.core.completion.SyntacticCompletionFacetFromItemSets;
-import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
+import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.menu.MenuFacet;
@@ -53,21 +53,19 @@ import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.HoverFacet;
-import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
 import org.metaborg.spoofax.core.tracing.ResolverFacet;
+import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.ContainsFileSelector;
 import org.metaborg.util.resource.FileSelectorUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -116,7 +114,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             }
             return components;
         } catch(ParseError | IOException e) {
-            final String message = String.format("Discovering language at %s failed unexpectedly", location);
+            final String message = logger.format("Discovering language at {} failed unexpectedly", location);
             throw new MetaborgException(message, e);
         }
     }
@@ -129,26 +127,21 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
         if(term.getTermType() != IStrategoTerm.APPL) {
-            throw new MetaborgException("Packed ESV file does not contain a valid ESV term");
+            final String message =
+                logger.format("Cannot discover language at {}, ESV file at {} does not contain a valid ESV term",
+                    location, esvFile);
+            throw new MetaborgException(message);
         }
         final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
-        final LanguageIdentifier identifier;
-        Iterable<LanguageContributionIdentifier> languageContributions;
         final IProjectSettings settings = projectSettingsService.get(location);
-        if(settings != null) {
-            identifier = settings.identifier();
-            languageContributions = settings.languageContributions();
-        } else {
-            identifier =
-                new LanguageIdentifier("org.metaborg", languageId(esvTerm),
-                    LanguageVersion.parse(languageVersion(esvTerm)));
-            languageContributions = Iterables2.<LanguageContributionIdentifier>empty();
+        if(settings == null) {
+            final String message = logger.format("Cannot discover language at {}, cannot retrieve settings", location);
+            throw new MetaborgException(message);
         }
-        if(Iterables.isEmpty(languageContributions)) {
-            languageContributions =
-                Iterables2.from(new LanguageContributionIdentifier(identifier, languageName(esvTerm)));
-        }
+        final LanguageIdentifier identifier = settings.identifier();
+        final Iterable<LanguageContributionIdentifier> languageContributions =
+            Iterables2.from(new LanguageContributionIdentifier(identifier, languageName(esvTerm)));
         final LanguageCreationRequest request = languageService.create(identifier, location, languageContributions);
 
         final String[] extensions = extensions(esvTerm);
@@ -282,14 +275,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     private static String languageName(IStrategoAppl document) {
         return ESVReader.getProperty(document, "LanguageName");
-    }
-
-    private static String languageId(IStrategoAppl document) {
-        return ESVReader.getProperty(document, "LanguageId");
-    }
-
-    private static String languageVersion(IStrategoAppl document) {
-        return ESVReader.getProperty(document, "LanguageVersion", "");
     }
 
     private static String[] extensions(IStrategoAppl document) {

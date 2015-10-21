@@ -15,12 +15,14 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
     private static final long serialVersionUID = -4814753959508772739L;
     private static final String SNAPSHOT = "SNAPSHOT";
     private static final Pattern pattern = Pattern.compile("(\\d+)?(?:\\.(\\d+)(?:\\.(\\d+))?)?(?:(?:\\-)(.+))?");
+    public static final String errorDescription = "must consist of 1-3 numbers separated by dots, optionally followed by a -qualifier string (e.g. 1.0.0-SNAPSHOT)";
 
     private final int major;
     private final int minor;
     private final int patch;
     private final String qualifier;
 
+    
     public LanguageVersion(int major, int minor, int patch, String qualifier) {
         this.major = major;
         this.minor = minor;

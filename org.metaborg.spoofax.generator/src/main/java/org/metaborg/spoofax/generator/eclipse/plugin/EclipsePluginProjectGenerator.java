@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.generator.eclipse;
+package org.metaborg.spoofax.generator.eclipse.plugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,8 +6,12 @@ import java.io.IOException;
 import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 
-public class EclipseProjectGenerator extends BaseGenerator {
-    public EclipseProjectGenerator(GeneratorProjectSettings settings) {
+/**
+ * Generates a new Eclipse plugin companion project for a language project, that lifts a language project into an
+ * Eclipse plugin that can be installed into Eclipse.
+ */
+public class EclipsePluginProjectGenerator extends BaseGenerator {
+    public EclipsePluginProjectGenerator(GeneratorProjectSettings settings) {
         super(settings);
     }
 
@@ -27,6 +31,7 @@ public class EclipseProjectGenerator extends BaseGenerator {
         generateIgnoreFile();
     }
 
+    
     public void generateProject() throws IOException {
         writer.write(".project", false);
     }
