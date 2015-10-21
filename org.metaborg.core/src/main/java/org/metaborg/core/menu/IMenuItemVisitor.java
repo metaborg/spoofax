@@ -8,12 +8,16 @@ public interface IMenuItemVisitor {
     /**
      * Visits the menu.
      *
+     * This method is called when no more specific visitor method applies.
+     *
      * @param menu The menu to visit.
      */
     void visitMenu(IMenu menu);
 
     /**
      * Visits the action.
+     *
+     * This method is called when no more specific visitor method applies.
      *
      * @param action The action to visit.
      */
@@ -29,7 +33,7 @@ public interface IMenuItemVisitor {
     /**
      * Visits the menu item.
      *
-     * This method is called when none of the other visitor methods apply.
+     * This method is called when no more specific visitor method applies.
      *
      * @param item The menu item to visit.
      */

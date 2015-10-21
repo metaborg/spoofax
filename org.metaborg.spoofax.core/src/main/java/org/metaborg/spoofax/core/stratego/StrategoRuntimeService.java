@@ -128,7 +128,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
 
     private HybridInterpreter createPrototype(ILanguageComponent component) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", component);
-        final ITermFactory termFactory = new ImploderOriginTermFactory(termFactoryService.get(component));
+        final ImploderOriginTermFactory termFactory = (ImploderOriginTermFactory)termFactoryService.get(component);
         final HybridInterpreter runtime = createNew(termFactory);
         loadFiles(runtime, component);
         prototypes.put(component, runtime);
