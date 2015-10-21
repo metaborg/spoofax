@@ -8,6 +8,10 @@ import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 
+/**
+ * Generates language project files that are only generated once when a new language project is created. Files are not
+ * specific to an IDE.
+ */
 public class NewProjectGenerator extends BaseGenerator {
     private final String[] fileExtensions;
     private final AnalysisType analysisType;
@@ -72,6 +76,7 @@ public class NewProjectGenerator extends BaseGenerator {
         generateIgnoreFile();
     }
 
+
     public void generatePOM() throws IOException {
         writer.write("pom.xml", false);
     }
@@ -89,7 +94,7 @@ public class NewProjectGenerator extends BaseGenerator {
         writer.write("trans/outline.str", false);
         writer.write("trans/pp.str", false);
     }
-    
+
     public void generateInclude() throws IOException {
         writer.write("include/{{strategoName}}.str", false);
         writer.write("include/{{strategoName}}-parenthesize.str", false);
