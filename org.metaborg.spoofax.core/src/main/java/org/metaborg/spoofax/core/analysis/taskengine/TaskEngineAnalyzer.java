@@ -20,9 +20,9 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -38,7 +38,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 /**
@@ -74,8 +73,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final ILanguageImpl language = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        final FacetContribution<AnalysisFacet> facetContribution =
-            language.facetContribution(AnalysisFacet.class);
+        final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
             return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context);
@@ -163,31 +161,32 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private @Nullable AnalysisFileResult<IStrategoTerm, IStrategoTerm>
         fileResult(IStrategoTerm result, IContext context) {
         final String file = Tools.asJavaString(result.getSubterm(0));
-        final FileObject resource = resourceService.resolve(file);
-        if(resource == null) {
+        final FileObject source = resourceService.resolve(file);
+        if(source == null) {
             logger.error("Cannot find original source for {}, skipping result", file);
             return null;
         }
         final IStrategoTerm previousAst = result.getSubterm(1);
         final IStrategoTerm ast = result.getSubterm(2);
-        final Collection<IMessage> messages = Sets.newHashSet();
-        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.ERROR, result.getSubterm(3)));
-        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.WARNING, result.getSubterm(4)));
-        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.NOTE, result.getSubterm(5)));
+        final Collection<IMessage> messages = Lists.newLinkedList();
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(3)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(4)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(5)));
+        messages.addAll(AnalysisCommon.ambiguityMessages(source, ast));
 
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, resource, context, messages,
-            new ParseResult<IStrategoTerm>("", previousAst, resource, Arrays.asList(new IMessage[] {}), -1,
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, source, context, messages,
+            new ParseResult<IStrategoTerm>("", previousAst, source, Arrays.asList(new IMessage[] {}), -1,
                 context.language(), null, null));
     }
 
     private AnalysisMessageResult messageResult(IStrategoTerm result) {
         final String file = Tools.asJavaString(result.getSubterm(0));
-        final FileObject resource = resourceService.resolve(file);
-        final Collection<IMessage> messages = Sets.newHashSet();
-        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.ERROR, result.getSubterm(1)));
-        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.WARNING, result.getSubterm(2)));
-        messages.addAll(AnalysisCommon.messages(resource, MessageSeverity.NOTE, result.getSubterm(3)));
-        return new AnalysisMessageResult(resource, messages);
+        final FileObject source = resourceService.resolve(file);
+        final Collection<IMessage> messages = Lists.newLinkedList();
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(1)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(2)));
+        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3)));
+        return new AnalysisMessageResult(source, messages);
     }
 
     private Collection<String> affectedPartitions(IStrategoTerm affectedTerm) {
