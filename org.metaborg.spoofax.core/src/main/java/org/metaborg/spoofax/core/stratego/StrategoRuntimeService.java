@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.strc.parse_stratego_file_0_0;
@@ -75,7 +74,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
     @Override public HybridInterpreter genericRuntime() {
-        ImploderOriginTermFactory termFactory = (ImploderOriginTermFactory)termFactoryService.getGeneric();
+        final ITermFactory termFactory = termFactoryService.getGeneric();
         return createNew(termFactory);
     }
 
@@ -129,7 +128,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
 
     private HybridInterpreter createPrototype(ILanguageComponent component) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", component);
-        final ImploderOriginTermFactory termFactory = (ImploderOriginTermFactory)termFactoryService.get(component);
+        final ITermFactory termFactory = termFactoryService.get(component);
         final HybridInterpreter runtime = createNew(termFactory);
         loadFiles(runtime, component);
         prototypes.put(component, runtime);
@@ -166,7 +165,8 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
-            runtime.loadJars(classpath);
+            final ClassLoader classLoader = new StrategoRuntimeClassLoader();
+            runtime.loadJars(classLoader, classpath);
         } catch(IncompatibleJarException | IOException | MetaborgRuntimeException e) {
             throw new MetaborgException("Failed to load JAR", e);
         }
