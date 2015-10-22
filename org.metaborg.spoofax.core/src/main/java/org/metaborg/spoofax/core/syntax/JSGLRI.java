@@ -57,8 +57,7 @@ public class JSGLRI {
         final String fileName = resource.getName().getPath();
 
         final JSGLRParseErrorHandler errorHandler =
-            new JSGLRParseErrorHandler(this, termFactory, resource, config.getParseTableProvider().parseTable()
-                .hasRecovers());
+            new JSGLRParseErrorHandler(this, resource, config.getParseTableProvider().parseTable().hasRecovers());
 
         final Timer timer = new Timer(true);
         SGLRParseResult result;

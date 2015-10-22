@@ -1,5 +1,8 @@
 package org.metaborg.spoofax.core.analysis;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
@@ -16,6 +19,8 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.terms.Term;
+import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.HybridInterpreter;
 
@@ -50,12 +55,14 @@ public class AnalysisCommon {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(left, right);
                 messages.add(MessageFactory.newAnalysisMessage(resource, region, message, severity, null));
             } else {
-                messages.add(MessageFactory.newAnalysisMessageAtTop(resource, message + " (no origin information)", severity, null));
+                messages.add(MessageFactory.newAnalysisMessageAtTop(resource, message + " (no origin information)",
+                    severity, null));
             }
         }
 
         return messages;
     }
+
 
     private static String toString(IStrategoTerm term) {
         if(term instanceof IStrategoString) {
@@ -105,5 +112,39 @@ public class AnalysisCommon {
             }
             return null;
         }
+    }
+
+
+    public static Collection<IMessage> ambiguityMessages(final FileObject resource, IStrategoTerm ast) {
+        final Collection<IMessage> messages = Lists.newLinkedList();
+        final TermVisitor termVisitor = new TermVisitor() {
+            private IStrategoTerm ambStart;
+
+            @Override public void preVisit(IStrategoTerm term) {
+                if(ambStart == null && "amb".equals(Term.tryGetName(term))) {
+                    final IToken left = getLeftToken(term);
+                    final IToken right = getRightToken(term);
+                    final ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(left, right);
+                    final String text = "Fragment is ambiguous: " + ambToString(term);
+
+                    final IMessage message = MessageFactory.newAnalysisWarning(resource, region, text, null);
+                    messages.add(message);
+                    ambStart = term;
+                }
+            }
+
+            @Override public void postVisit(IStrategoTerm term) {
+                if(term == ambStart) {
+                    ambStart = null;
+                }
+            }
+
+            private String ambToString(IStrategoTerm amb) {
+                final String result = amb.toString();
+                return result.length() > 5000 ? result.substring(0, 5000) + "..." : result;
+            }
+        };
+        termVisitor.visit(ast);
+        return messages;
     }
 }
