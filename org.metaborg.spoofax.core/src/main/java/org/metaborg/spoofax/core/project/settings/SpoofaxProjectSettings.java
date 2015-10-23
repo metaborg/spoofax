@@ -1,6 +1,16 @@
 package org.metaborg.spoofax.core.project.settings;
 
-import static org.metaborg.spoofax.core.SpoofaxConstants.*;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_CACHE;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_EDITOR;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_ICONS;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_INCLUDE;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_JAVA;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_JAVA_TRANS;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_LIB;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_SRCGEN;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_SRCGEN_SYNTAX;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_SYNTAX;
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_TRANS;
 
 import java.util.Collection;
 
@@ -161,6 +171,10 @@ public class SpoofaxProjectSettings {
 
     public FileObject getCacheDirectory() {
         return resolve(DIR_CACHE);
+    }
+
+    public FileObject getMainESVFile() {
+        return resolve(DIR_EDITOR + "/" + settings.name() + ".main.esv");
     }
 
 

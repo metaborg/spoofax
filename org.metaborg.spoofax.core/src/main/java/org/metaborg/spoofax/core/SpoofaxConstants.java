@@ -11,7 +11,7 @@ public class SpoofaxConstants {
     public static final String METABORG_GROUP_ID = "org.metaborg";
     public static final String METABORG_VERSION = "1.5.0-SNAPSHOT";
 
-    
+
     public static final String LANG_ATERM_ID = "org.metaborg.meta.lang.aterm";
     public static final String LANG_ATERM_NAME = "ATerm";
 
@@ -36,9 +36,11 @@ public class SpoofaxConstants {
     public static final String LANG_DYNSEM_ID = "org.metaborg.meta.lang.dynsem";
     public static final String LANG_DYNSEM_NAME = "ds";
 
+    public static final String LIB_ANALYSIS_ID = "org.metaborg.meta.lib.analysis";
+    public static final String LIB_ANALYSIS_NAME = "runtime-libraries";
 
-    public static final String LIB_RUNTIME_ID = "org.spoofax.meta.runtime.libraries";
-    public static final String LIB_RUNTIME_NAME = "runtime-libraries";
+    public static final String LIB_ANALYSIS2_ID = "org.metaborg.meta.lib.analysis2";
+    public static final String LIB_ANALYSIS2_NAME = "libanalysis2";
 
 
     public static final String DIR_CACHE = ".cache";
@@ -80,7 +82,8 @@ public class SpoofaxConstants {
         .add(LANG_NABL_ID)
         .add(LANG_TS_ID)
         .add(LANG_DYNSEM_ID)
-        .add(LIB_RUNTIME_ID)
+        .add(LIB_ANALYSIS_ID)
+        .add(LIB_ANALYSIS2_ID)
         .build();
     // @formatter:on
 
@@ -94,7 +97,8 @@ public class SpoofaxConstants {
         .add(LANG_NABL_NAME)
         .add(LANG_TS_NAME)
         .add(LANG_DYNSEM_NAME)
-        .add(LIB_RUNTIME_NAME)
+        .add(LIB_ANALYSIS_NAME)
+        .add(LIB_ANALYSIS2_NAME)
         .build();
     // @formatter:on
 
