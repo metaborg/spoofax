@@ -38,6 +38,7 @@ import org.metaborg.core.transform.ITransformerResultHandler;
 import org.metaborg.core.transform.NamedGoal;
 import org.metaborg.core.transform.NestedNamedGoal;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
+import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
@@ -49,9 +50,9 @@ import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
-import org.metaborg.spoofax.core.language.dialect.DialectService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
+import org.metaborg.spoofax.core.language.dialect.DialectService;
 import org.metaborg.spoofax.core.menu.MenuService;
 import org.metaborg.spoofax.core.outline.ISpoofaxOutlineService;
 import org.metaborg.spoofax.core.outline.OutlineService;
@@ -96,10 +97,10 @@ import org.metaborg.spoofax.core.style.StylerService;
 import org.metaborg.spoofax.core.syntax.JSGLRSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
+import org.metaborg.spoofax.core.tracing.HoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxResolverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
-import org.metaborg.spoofax.core.tracing.HoverService;
 import org.metaborg.spoofax.core.tracing.ReferenceResolver;
 import org.metaborg.spoofax.core.tracing.TracingCommon;
 import org.metaborg.spoofax.core.tracing.TracingService;
@@ -226,8 +227,9 @@ public class SpoofaxModule extends MetaborgModule {
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class);
         languageCacheBinder.addBinding().to(StrategoRuntimeService.class);
 
-        // Stratego utilities
+        // Utilities
         bind(IStrategoCommon.class).to(StrategoCommon.class).in(Singleton.class);
+        bind(AnalysisCommon.class).in(Singleton.class);
 
         // Stratego primitives
         bind(ParseFileStrategy.class).in(Singleton.class);

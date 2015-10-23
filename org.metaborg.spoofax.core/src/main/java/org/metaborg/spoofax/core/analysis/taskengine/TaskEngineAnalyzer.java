@@ -52,17 +52,18 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
-    private final IStrategoCommon common;
-
+    private final IStrategoCommon strategoCommon;
+    private final AnalysisCommon analysisCommon;
     private final IStrategoConstructor fileCons;
 
 
     @Inject public TaskEngineAnalyzer(IResourceService resourceService, ITermFactoryService termFactoryService,
-        IStrategoRuntimeService runtimeService, IStrategoCommon common) {
+        IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon, AnalysisCommon analysisCommon) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
-        this.common = common;
+        this.strategoCommon = strategoCommon;
+        this.analysisCommon = analysisCommon;
 
         this.fileCons = termFactoryService.getGeneric().makeConstructor("File", 3);
     }
@@ -110,14 +111,14 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         logger.trace("Invoking {} strategy", analysisStrategy);
         final IStrategoTerm resultTerm;
         try {
-            resultTerm = common.invoke(interpreter, inputTerm, analysisStrategy);
+            resultTerm = strategoCommon.invoke(interpreter, inputTerm, analysisStrategy);
         } catch(MetaborgException e) {
-            final String message = AnalysisCommon.analysisFailedMessage(interpreter);
+            final String message = analysisCommon.analysisFailedMessage(interpreter);
             logger.error(message, e);
             throw new AnalysisException(context, message, e);
         }
         if(resultTerm == null) {
-            final String message = AnalysisCommon.analysisFailedMessage(interpreter);
+            final String message = analysisCommon.analysisFailedMessage(interpreter);
             logger.error(message);
             throw new AnalysisException(context, message);
         }
@@ -169,10 +170,10 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final IStrategoTerm previousAst = result.getSubterm(1);
         final IStrategoTerm ast = result.getSubterm(2);
         final Collection<IMessage> messages = Lists.newLinkedList();
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(3)));
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(4)));
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(5)));
-        messages.addAll(AnalysisCommon.ambiguityMessages(source, ast));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(3)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(4)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(5)));
+        messages.addAll(analysisCommon.ambiguityMessages(source, ast));
 
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, source, context, messages,
             new ParseResult<IStrategoTerm>("", previousAst, source, Arrays.asList(new IMessage[] {}), -1,
@@ -183,9 +184,9 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final String file = Tools.asJavaString(result.getSubterm(0));
         final FileObject source = resourceService.resolve(file);
         final Collection<IMessage> messages = Lists.newLinkedList();
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(1)));
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(2)));
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(1)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(2)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3)));
         return new AnalysisMessageResult(source, messages);
     }
 

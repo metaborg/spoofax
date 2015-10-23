@@ -1,39 +1,40 @@
 package org.metaborg.spoofax.core.analysis;
 
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
-
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
+import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.spoofax.interpreter.core.StackTracer;
-import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.Term;
 import org.spoofax.terms.TermVisitor;
-import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 public class AnalysisCommon {
-    public static String analysisFailedMessage(HybridInterpreter interpreter) {
+    private final ISpoofaxTracingService tracingService;
+
+
+    @Inject public AnalysisCommon(ISpoofaxTracingService tracingService) {
+        this.tracingService = tracingService;
+    }
+
+
+    public String analysisFailedMessage(HybridInterpreter interpreter) {
         final StackTracer stackTracer = interpreter.getContext().getStackTracer();
         return "Analysis failed\nStratego stack trace:\n" + stackTracer.getTraceString();
     }
 
-    public static Collection<IMessage> messages(FileObject resource, MessageSeverity severity,
-        IStrategoTerm messagesTerm) {
+    public Collection<IMessage> messages(FileObject resource, MessageSeverity severity, IStrategoTerm messagesTerm) {
         final Collection<IMessage> messages = Lists.newArrayListWithExpectedSize(messagesTerm.getSubtermCount());
 
         for(IStrategoTerm term : messagesTerm.getAllSubterms()) {
@@ -47,24 +48,59 @@ public class AnalysisCommon {
                 message = toString(term) + " (no tree node indicated)";
             }
 
-            final ISimpleTerm node = minimizeMarkerSize(getClosestAstNode(originTerm));
-
-            if(node != null) {
-                final IToken left = ImploderAttachment.getLeftToken(node);
-                final IToken right = ImploderAttachment.getRightToken(node);
-                final ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(left, right);
-                messages.add(MessageFactory.newAnalysisMessage(resource, region, message, severity, null));
+            if(originTerm != null) {
+                final ISourceLocation location = tracingService.fromAnalyzed(originTerm);
+                if(location != null) {
+                    final ISourceRegion region = location.region();
+                    messages.add(message(resource, region, message, severity));
+                } else {
+                    messages.add(message(resource, message, severity));
+                }
             } else {
-                messages.add(MessageFactory.newAnalysisMessageAtTop(resource, message + " (no origin information)",
-                    severity, null));
+                messages.add(message(resource, message, severity));
             }
         }
 
         return messages;
     }
 
+    public Collection<IMessage> ambiguityMessages(final FileObject resource, IStrategoTerm ast) {
+        final Collection<IMessage> messages = Lists.newLinkedList();
+        final TermVisitor termVisitor = new TermVisitor() {
+            private IStrategoTerm ambStart;
 
-    private static String toString(IStrategoTerm term) {
+            @Override public void preVisit(IStrategoTerm term) {
+                if(ambStart == null && "amb".equals(Term.tryGetName(term))) {
+                    final String text = "Fragment is ambiguous: " + ambToString(term);
+                    final ISourceLocation location = tracingService.fromAnalyzed(term);
+                    if(location != null) {
+                        final ISourceRegion region = location.region();
+                        messages.add(message(resource, region, text, MessageSeverity.WARNING));
+                    } else {
+                        messages.add(message(resource, text, MessageSeverity.WARNING));
+                    }
+
+                    ambStart = term;
+                }
+            }
+
+            @Override public void postVisit(IStrategoTerm term) {
+                if(term == ambStart) {
+                    ambStart = null;
+                }
+            }
+
+            private String ambToString(IStrategoTerm amb) {
+                final String result = amb.toString();
+                return result.length() > 5000 ? result.substring(0, 5000) + "..." : result;
+            }
+        };
+        termVisitor.visit(ast);
+        return messages;
+    }
+
+
+    private String toString(IStrategoTerm term) {
         if(term instanceof IStrategoString) {
             final IStrategoString messageStringTerm = (IStrategoString) term;
             return messageStringTerm.stringValue();
@@ -84,67 +120,11 @@ public class AnalysisCommon {
         }
     }
 
-    private static ISimpleTerm minimizeMarkerSize(ISimpleTerm node) {
-        // TODO: prefer lexical nodes when minimizing marker size? (e.g., not 'private')
-        if(node == null)
-            return null;
-        while(ImploderAttachment.getLeftToken(node).getLine() < ImploderAttachment.getRightToken(node).getLine()) {
-            if(node.getSubtermCount() == 0)
-                break;
-            node = node.getSubterm(0);
-        }
-        return node;
+    private IMessage message(FileObject resource, ISourceRegion region, String message, MessageSeverity severity) {
+        return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
     }
 
-    /**
-     * Given a Stratego term, get the first AST node associated with any of its subterms, doing a depth-first search.
-     */
-    private static ISimpleTerm getClosestAstNode(IStrategoTerm term) {
-        if(ImploderAttachment.hasImploderOrigin(term)) {
-            return OriginAttachment.tryGetOrigin(term);
-        } else if(term == null) {
-            return null;
-        } else {
-            for(int i = 0; i < term.getSubtermCount(); i++) {
-                ISimpleTerm result = getClosestAstNode(Tools.termAt(term, i));
-                if(result != null)
-                    return result;
-            }
-            return null;
-        }
-    }
-
-
-    public static Collection<IMessage> ambiguityMessages(final FileObject resource, IStrategoTerm ast) {
-        final Collection<IMessage> messages = Lists.newLinkedList();
-        final TermVisitor termVisitor = new TermVisitor() {
-            private IStrategoTerm ambStart;
-
-            @Override public void preVisit(IStrategoTerm term) {
-                if(ambStart == null && "amb".equals(Term.tryGetName(term))) {
-                    final IToken left = getLeftToken(term);
-                    final IToken right = getRightToken(term);
-                    final ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(left, right);
-                    final String text = "Fragment is ambiguous: " + ambToString(term);
-
-                    final IMessage message = MessageFactory.newAnalysisWarning(resource, region, text, null);
-                    messages.add(message);
-                    ambStart = term;
-                }
-            }
-
-            @Override public void postVisit(IStrategoTerm term) {
-                if(term == ambStart) {
-                    ambStart = null;
-                }
-            }
-
-            private String ambToString(IStrategoTerm amb) {
-                final String result = amb.toString();
-                return result.length() > 5000 ? result.substring(0, 5000) + "..." : result;
-            }
-        };
-        //termVisitor.visit(ast);
-        return messages;
+    private IMessage message(FileObject resource, String message, MessageSeverity severity) {
+        return MessageFactory.newAnalysisMessageAtTop(resource, message + " (no origin information)", severity, null);
     }
 }

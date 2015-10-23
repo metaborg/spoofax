@@ -51,15 +51,17 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
-    private final IStrategoCommon common;
+    private final IStrategoCommon strategoCommon;
+    private final AnalysisCommon analysisCommon;
 
 
     @Inject public StrategoAnalyzer(IResourceService resourceService, ITermFactoryService termFactoryService,
-        IStrategoRuntimeService runtimeService, IStrategoCommon common) {
+        IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon, AnalysisCommon analysisCommon) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
-        this.common = common;
+        this.strategoCommon = strategoCommon;
+        this.analysisCommon = analysisCommon;
     }
 
 
@@ -125,8 +127,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                 continue;
             }
 
-            final IStrategoString path = common.localResourceTerm(localResource, localContextLocation);
-            final IStrategoString contextPath = common.localLocationTerm(localContextLocation);
+            final IStrategoString path = strategoCommon.localResourceTerm(localResource, localContextLocation);
+            final IStrategoString contextPath = strategoCommon.localLocationTerm(localContextLocation);
             analysisInputs.add(P.p(input, termFactory.makeTuple(input.result, path, contextPath)));
         }
 
@@ -137,10 +139,10 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
             final IStrategoTuple inputTerm = input._2();
             try {
                 logger.trace("Analysing {}", resource);
-                final IStrategoTerm resultTerm = common.invoke(interpreter, inputTerm, analysisStrategy);
+                final IStrategoTerm resultTerm = strategoCommon.invoke(interpreter, inputTerm, analysisStrategy);
                 if(resultTerm == null) {
                     logger.trace("Analysis for {} failed", resource);
-                    results.add(result(AnalysisCommon.analysisFailedMessage(interpreter), parseResult, context, null));
+                    results.add(result(analysisCommon.analysisFailedMessage(interpreter), parseResult, context, null));
                 } else if(!(resultTerm instanceof IStrategoTuple)) {
                     logger.trace("Analysis for {} has unexpected result, not a tuple", resource);
                     results.add(result(String.format("Unexpected results from analysis {}", resultTerm), parseResult,
@@ -160,7 +162,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                 }
             } catch(MetaborgException e) {
                 logger.trace("Analysis for {} failed", resource);
-                results.add(result(AnalysisCommon.analysisFailedMessage(interpreter), parseResult, context, e));
+                results.add(result(analysisCommon.analysisFailedMessage(interpreter), parseResult, context, e));
             }
         }
 
@@ -172,10 +174,10 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final IStrategoTerm ast = result.getSubterm(0);
         final FileObject source = parseResult.source;
         final Collection<IMessage> messages = Lists.newLinkedList();
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(1)));
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(2)));
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3)));
-        messages.addAll(AnalysisCommon.ambiguityMessages(source, ast));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(1)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(2)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3)));
+        messages.addAll(analysisCommon.ambiguityMessages(source, ast));
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, source, context, messages, parseResult);
     }
 
@@ -183,9 +185,9 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         ParseResult<IStrategoTerm> parseResult, IContext context) {
         final FileObject source = parseResult.source;
         final Collection<IMessage> messages = Lists.newLinkedList();
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(0)));
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(1)));
-        messages.addAll(AnalysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(2)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(0)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(1)));
+        messages.addAll(analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(2)));
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, context, messages, parseResult);
     }
 
