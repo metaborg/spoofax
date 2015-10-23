@@ -144,7 +144,7 @@ public class AnalysisCommon {
                 return result.length() > 5000 ? result.substring(0, 5000) + "..." : result;
             }
         };
-        termVisitor.visit(ast);
+        //termVisitor.visit(ast);
         return messages;
     }
 }
