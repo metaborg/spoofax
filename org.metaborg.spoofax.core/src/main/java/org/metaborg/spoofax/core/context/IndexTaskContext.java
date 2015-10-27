@@ -98,7 +98,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
         index.recover();
         taskEngine.recover();
-        
+
         return readLock();
     }
 
@@ -112,15 +112,15 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
         final IClosableLock lock = writeLock();
 
         if(index == null) {
-            index = initIndex();
+            index = loadIndex();
         }
         if(taskEngine == null) {
-            taskEngine = initTaskEngine();
+            taskEngine = loadTaskEngine();
         }
-        
+
         index.recover();
         taskEngine.recover();
-        
+
         return lock;
     }
 
@@ -129,6 +129,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
         final IClosableLock lock = new ClosableLock(writeLock);
         return lock;
     }
+
 
     @Override public void persist() throws IOException {
         if(index == null && taskEngine == null) {
@@ -162,6 +163,37 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
         }
     }
 
+
+    @Override public void init() {
+        if(index != null && taskEngine != null) {
+            return;
+        }
+
+        try(IClosableLock lock = writeLock()) {
+            if(index == null) {
+                index = initIndex();
+            }
+            if(taskEngine == null) {
+                taskEngine = initTaskEngine();
+            }
+        }
+    }
+
+    @Override public void load() {
+        if(index != null && taskEngine != null) {
+            return;
+        }
+
+        try(IClosableLock lock = writeLock()) {
+            if(index == null) {
+                index = loadIndex();
+            }
+            if(taskEngine == null) {
+                taskEngine = loadTaskEngine();
+            }
+        }
+    }
+
     @Override public void unload() {
         if(index == null && taskEngine == null) {
             return;
@@ -179,6 +211,10 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
     }
 
     private IIndex initIndex() {
+        return IndexManager.create(termFactory);
+    }
+
+    private IIndex loadIndex() {
         try {
             final FileObject indexFile = indexFile();
             if(indexFile.exists()) {
@@ -199,7 +235,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
             logger.error("Locating index file for {} failed, returning an empty index. "
                 + "Clean the project to reanalyze", e, this);
         }
-        return IndexManager.create(termFactory);
+        return initIndex();
     }
 
     private void deleteIndexFile(FileObject file) {
@@ -216,6 +252,10 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
     }
 
     private ITaskEngine initTaskEngine() {
+        return TaskManager.create(termFactory);
+    }
+
+    private ITaskEngine loadTaskEngine() {
         try {
             final FileObject taskEngineFile = taskEngineFile();
             if(taskEngineFile.exists()) {
@@ -238,7 +278,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
             logger.error("Locating task engine file for {} failed, returning an empty task engine. "
                 + "Clean the project to reanalyze", e, this);
         }
-        return TaskManager.create(termFactory);
+        return initTaskEngine();
     }
 
     private void deleteTaskEngineFile(FileObject file) {

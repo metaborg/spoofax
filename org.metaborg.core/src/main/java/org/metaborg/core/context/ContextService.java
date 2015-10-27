@@ -39,6 +39,20 @@ public class ContextService implements IContextService, IContextProcessor {
         return getOrCreate(facet.factory, identifier);
     }
 
+    @Override public ITemporaryContext getTemporary(FileObject resource, ILanguageImpl language)
+        throws ContextException {
+        final ContextFacet facet = getFacet(resource, language);
+        final ContextIdentifier identifier = facet.strategy.get(resource, language);
+        return createTemporary(facet.factory, identifier);
+    }
+
+    @Override public ITemporaryContext getTemporary(IContext context, ILanguageImpl language) throws ContextException {
+        final ContextFacet facet = getFacet(context.location(), language);
+        final ContextIdentifier identifier = new ContextIdentifier(context.location(), language);
+        return createTemporary(facet.factory, identifier);
+    }
+
+
     @Override public void unload(IContext context) {
         final IContextInternal contextInternal = (IContextInternal) context;
         contextInternal.unload();
@@ -76,12 +90,20 @@ public class ContextService implements IContextService, IContextProcessor {
     }
 
     private IContextInternal getOrCreate(IContextFactory factory, ContextIdentifier identifier) {
-        final IContextInternal newContext = factory.create(identifier);
+        final IContextInternal newContext = create(factory, identifier);
         final IContextInternal prevContext = idToContext.putIfAbsent(identifier, newContext);
         langToContextId.putIfAbsent(identifier.language, identifier);
         if(prevContext == null) {
             return newContext;
         }
         return prevContext;
+    }
+
+    private IContextInternal create(IContextFactory factory, ContextIdentifier identifier) {
+        return factory.create(identifier);
+    }
+    
+    private ITemporaryContextInternal createTemporary(IContextFactory factory, ContextIdentifier identifier) {
+        return factory.createTemporary(identifier);
     }
 }
