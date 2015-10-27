@@ -6,13 +6,14 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextInternal;
+import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 
 import com.google.inject.Injector;
 
-public class LegacyContext implements IContext, IContextInternal {
+public class LegacyContext implements IContext, IContextInternal, ITemporaryContextInternal {
     private final Injector injector;
     private final ContextIdentifier identifier;
 
@@ -39,6 +40,7 @@ public class LegacyContext implements IContext, IContextInternal {
         return injector;
     }
 
+
     @Override public IClosableLock read() {
         return new NullClosableLock();
     }
@@ -47,6 +49,7 @@ public class LegacyContext implements IContext, IContextInternal {
         return new NullClosableLock();
     }
 
+
     @Override public void persist() throws IOException {
     }
 
@@ -54,5 +57,16 @@ public class LegacyContext implements IContext, IContextInternal {
     }
 
     @Override public void unload() {
+    }
+
+
+    @Override public void init() {
+    }
+
+    @Override public void load() {
+    }
+
+
+    @Override public void close() {
     }
 }
