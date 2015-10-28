@@ -2,13 +2,13 @@ package org.metaborg.core.processing;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
 import rx.functions.Action1;
@@ -50,8 +50,8 @@ public class ProcessorRunner<P, A, T> implements IProcessorRunner<P, A, T> {
     }
 
 
-    @Override public ITask<?> updateDialects(IProject project, Iterable<ResourceChange> changes) {
-        return processor.updateDialects(project, changes);
+    @Override public ITask<?> updateDialects(FileObject location, Iterable<ResourceChange> changes) {
+        return processor.updateDialects(location, changes);
     }
 
 

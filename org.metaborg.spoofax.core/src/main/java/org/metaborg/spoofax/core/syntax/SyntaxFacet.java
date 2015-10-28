@@ -1,15 +1,20 @@
 package org.metaborg.spoofax.core.syntax;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.syntax.FenceCharacters;
 import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 /**
  * Represents the syntax (or parsing) facet of a language.
  */
 public class SyntaxFacet implements IFacet {
+    private static final ILogger logger = LoggerUtils.logger(SyntaxFacet.class);
+
     public final FileObject parseTable;
     public final Iterable<String> startSymbols;
     public final Iterable<String> singleLineCommentPrefixes;
@@ -52,5 +57,21 @@ public class SyntaxFacet implements IFacet {
         this.singleLineCommentPrefixes = singleLineCommentPrefixes;
         this.multiLineCommentCharacters = multiLineCommentCharacters;
         this.fenceCharacters = fenceCharacters;
+    }
+
+
+    /**
+     * Checks if the parse table file exists, returns errors if not.
+     * 
+     * @throws FileSystemException
+     *             When an error occurs while checking if the parse table file exists.
+     * @return Errors, or empty if there are no errors.
+     */
+    public Iterable<String> available() throws FileSystemException {
+        if(!parseTable.exists()) {
+            final String message = logger.format("Parse table {} does not exist", parseTable);
+            return Iterables2.singleton(message);
+        }
+        return Iterables2.empty();
     }
 }

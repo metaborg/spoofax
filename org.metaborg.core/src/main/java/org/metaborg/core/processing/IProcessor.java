@@ -2,12 +2,12 @@ package org.metaborg.core.processing;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
 import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
 /**
@@ -35,9 +35,9 @@ public interface IProcessor<P, A, T> {
 
 
     /**
-     * @see IProcessorRunner#updateDialects(IProject, Iterable)
+     * @see IProcessorRunner#updateDialects(FileObject, Iterable)
      */
-    public abstract ITask<?> updateDialects(IProject project, Iterable<ResourceChange> changes);
+    public abstract ITask<?> updateDialects(FileObject location, Iterable<ResourceChange> changes);
 
 
     /**
