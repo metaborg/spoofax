@@ -139,7 +139,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
             final IProjectSettings settings = projectSettingsService.get(languageLocation);
             if(settings == null) {
-                final String message = logger.format("Cannot retrieve project settings at {}", location);
+                final String message = logger.format("Cannot retrieve project settings at {}", languageLocation);
                 errors.add(message);
                 requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
                 continue;
@@ -147,7 +147,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
             SyntaxFacet syntaxFacet = null;
             try {
-                syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
+                syntaxFacet = SyntaxFacetFromESV.create(esvTerm, languageLocation);
                 if(syntaxFacet != null) {
                     Iterables.addAll(errors, syntaxFacet.available());
                 }
@@ -157,7 +157,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
             StrategoRuntimeFacet strategoRuntimeFacet = null;
             try {
-                strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, location);
+                strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, languageLocation);
                 if(strategoRuntimeFacet != null) {
                     Iterables.addAll(errors, strategoRuntimeFacet.available());
                 }
