@@ -2,10 +2,10 @@ package org.metaborg.core.processing;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
 /**
@@ -52,11 +52,11 @@ public interface IProcessorRunner<P, A, T> {
     /**
      * Creates a task that updates dialects using given changes.
      * 
-     * @param project
-     *            Project to process changes for.
+     * @param location
+     *            Location to process changes at.
      * @param changes
      *            Resource changes to process.
      * @return Task that processes dialect updates.
      */
-    public abstract ITask<?> updateDialects(IProject project, Iterable<ResourceChange> changes);
+    public abstract ITask<?> updateDialects(FileObject location, Iterable<ResourceChange> changes);
 }

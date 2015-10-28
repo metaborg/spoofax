@@ -12,7 +12,6 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.SpoofaxConstants;
@@ -43,7 +42,7 @@ public class DialectProcessor implements IDialectProcessor {
     }
 
 
-    @Override public void update(IProject project, Iterable<ResourceChange> changes) {
+    @Override public void update(FileObject location, Iterable<ResourceChange> changes) {
         final int numChanges = Iterables.size(changes);
         if(numChanges == 0) {
             return;
@@ -61,7 +60,7 @@ public class DialectProcessor implements IDialectProcessor {
             return;
         }
 
-        logger.debug("Processing dialect updates for " + project.location());
+        logger.debug("Processing dialect updates for {}", location);
 
         // HACK: assuming single syntax facet
         final SyntaxFacet baseFacet = strategoImpl.facet(SyntaxFacet.class);
@@ -69,7 +68,7 @@ public class DialectProcessor implements IDialectProcessor {
         for(ResourceChange change : changes) {
             final FileObject resource = change.resource;
             try {
-                if(!FileSelectorUtils.include(selector, resource, project.location())) {
+                if(!FileSelectorUtils.include(selector, resource, location)) {
                     continue;
                 }
             } catch(FileSystemException e) {

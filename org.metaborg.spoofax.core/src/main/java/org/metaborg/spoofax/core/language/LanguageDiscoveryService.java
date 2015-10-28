@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalyzerFacet;
 import org.metaborg.core.analysis.IAnalyzer;
@@ -17,6 +18,7 @@ import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
@@ -33,10 +35,6 @@ import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
-import org.metaborg.spoofax.core.completion.SemanticCompletionFacet;
-import org.metaborg.spoofax.core.completion.SemanticCompletionFacetFromESV;
-import org.metaborg.spoofax.core.completion.SyntacticCompletionFacet;
-import org.metaborg.spoofax.core.completion.SyntacticCompletionFacetFromItemSets;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
@@ -66,6 +64,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -94,35 +93,111 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
 
-    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
+    @Override public Iterable<ILanguageDiscoveryRequest> request(FileObject location) throws MetaborgException {
+        final Collection<ILanguageDiscoveryRequest> requests = Lists.newLinkedList();
+        final FileObject[] esvFiles;
         try {
-            final Collection<ILanguageComponent> components = Lists.newLinkedList();
-            final FileObject[] esvFiles = location.findFiles(FileSelectorUtils.endsWith("packed.esv"));
-            if(esvFiles == null || esvFiles.length == 0) {
-                logger.error("No packed.esv files found at {}, no languages were discovered", location);
-                return components;
-            }
-            final Set<FileObject> parents = Sets.newHashSet();
-            for(FileObject esvFile : esvFiles) {
-                final FileObject languageLocation = esvFile.getParent().getParent();
-                if(parents.contains(languageLocation)) {
-                    logger.error("Found multiple packed ESV files at: " + languageLocation + ", skipping");
-                    continue;
-                }
-                parents.add(languageLocation);
-                components.add(componentFromESV(languageLocation, esvFile));
-            }
-            return components;
-        } catch(ParseError | IOException e) {
-            final String message = logger.format("Discovering language at {} failed unexpectedly", location);
-            throw new MetaborgException(message, e);
+            esvFiles = location.findFiles(FileSelectorUtils.endsWith("packed.esv"));
+        } catch(FileSystemException e) {
+            throw new MetaborgException("Searching for language components failed unexpectedly", e);
         }
+
+        if(esvFiles == null || esvFiles.length == 0) {
+            return requests;
+        }
+
+        final Set<FileObject> parents = Sets.newHashSet();
+        for(FileObject esvFile : esvFiles) {
+            final Collection<String> errors = Lists.newLinkedList();
+            final Collection<Throwable> exceptions = Lists.newLinkedList();
+
+            final FileObject languageLocation;
+            try {
+                languageLocation = esvFile.getParent().getParent();
+            } catch(FileSystemException e) {
+                logger.error("Could not resolve parent directory of ESV file {}, skipping", e, esvFile);
+                continue;
+            }
+
+            if(parents.contains(languageLocation)) {
+                final String message =
+                    logger.format("Found multiple packed ESV files at {}, skipping", languageLocation);
+                errors.add(message);
+                requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
+                continue;
+            }
+            parents.add(languageLocation);
+
+            final IStrategoAppl esvTerm;
+            try {
+                esvTerm = esvTerm(languageLocation, esvFile);
+            } catch(ParseError | IOException | MetaborgException e) {
+                exceptions.add(e);
+                requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
+                continue;
+            }
+
+            final IProjectSettings settings = projectSettingsService.get(languageLocation);
+            if(settings == null) {
+                final String message = logger.format("Cannot retrieve project settings at {}", location);
+                errors.add(message);
+                requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
+                continue;
+            }
+
+            SyntaxFacet syntaxFacet = null;
+            try {
+                syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
+                if(syntaxFacet != null) {
+                    Iterables.addAll(errors, syntaxFacet.available());
+                }
+            } catch(FileSystemException e) {
+                exceptions.add(e);
+            }
+
+            StrategoRuntimeFacet strategoRuntimeFacet = null;
+            try {
+                strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, location);
+                if(strategoRuntimeFacet != null) {
+                    Iterables.addAll(errors, strategoRuntimeFacet.available());
+                }
+            } catch(FileSystemException e) {
+                exceptions.add(e);
+            }
+
+            final ILanguageDiscoveryRequest request;
+            if(errors.isEmpty() && exceptions.isEmpty()) {
+                request =
+                    new LanguageDiscoveryRequest(languageLocation, esvTerm, settings, syntaxFacet, strategoRuntimeFacet);
+            } else {
+                request = new LanguageDiscoveryRequest(languageLocation, errors, exceptions);
+            }
+            requests.add(request);
+        }
+
+        return requests;
     }
 
-    private ILanguageComponent componentFromESV(FileObject location, FileObject esvFile) throws MetaborgException,
-        ParseError, IOException {
-        logger.debug("Discovering language at {}", location);
+    @Override public ILanguageComponent discover(ILanguageDiscoveryRequest request) throws MetaborgException {
+        return createComponent((LanguageDiscoveryRequest) request);
+    }
 
+    @Override public Iterable<ILanguageComponent> discover(Iterable<ILanguageDiscoveryRequest> requests)
+        throws MetaborgException {
+        final Collection<ILanguageComponent> components = Lists.newLinkedList();
+        for(ILanguageDiscoveryRequest request : requests) {
+            components.add(createComponent((LanguageDiscoveryRequest) request));
+        }
+        return components;
+    }
+
+    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
+        return discover(request(location));
+    }
+
+
+    private IStrategoAppl esvTerm(FileObject location, FileObject esvFile) throws ParseError, IOException,
+        MetaborgException {
         final TermReader reader =
             new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
@@ -133,12 +208,23 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             throw new MetaborgException(message);
         }
         final IStrategoAppl esvTerm = (IStrategoAppl) term;
+        return esvTerm;
+    }
 
-        final IProjectSettings settings = projectSettingsService.get(location);
-        if(settings == null) {
-            final String message = logger.format("Cannot discover language at {}, cannot retrieve settings", location);
+    private ILanguageComponent createComponent(LanguageDiscoveryRequest discoveryRequest) throws MetaborgException {
+        final FileObject location = discoveryRequest.location;
+        if(!discoveryRequest.available) {
+            final String message = discoveryRequest.errorSummary();
             throw new MetaborgException(message);
         }
+
+        final IStrategoAppl esvTerm = discoveryRequest.esvTerm;
+        final IProjectSettings settings = discoveryRequest.settings;
+        final SyntaxFacet syntaxFacet = discoveryRequest.syntaxFacet;
+        final StrategoRuntimeFacet strategoRuntimeFacet = discoveryRequest.strategoRuntimeFacet;
+
+        logger.debug("Creating language component for {}", location);
+
         final LanguageIdentifier identifier = settings.identifier();
         final Iterable<LanguageContributionIdentifier> languageContributions =
             Iterables2.from(new LanguageContributionIdentifier(identifier, languageName(esvTerm)));
@@ -156,29 +242,13 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             request.addFacet(resourceExtensionsFacet);
         }
 
-        final SyntaxFacet syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
         if(syntaxFacet != null) {
             request.addFacet(syntaxFacet);
         }
 
-        final FileObject itemSetsFile = esvFile.getParent().resolveFile("item-sets.aterm");
-        if(itemSetsFile.exists()) {
-            final IStrategoTerm itemSetsTerm = reader.parseFromStream(itemSetsFile.getContent().getInputStream());
-            final SyntacticCompletionFacet completionFacet =
-                SyntacticCompletionFacetFromItemSets.create((IStrategoAppl) itemSetsTerm);
-            request.addFacet(completionFacet);
-        }
-
-        final SemanticCompletionFacet semanticCompletionFacet = SemanticCompletionFacetFromESV.create(esvTerm);
-        if(semanticCompletionFacet != null) {
-            request.addFacet(semanticCompletionFacet);
-        }
-
-        final StrategoRuntimeFacet strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, location);
         if(strategoRuntimeFacet != null) {
             request.addFacet(strategoRuntimeFacet);
         }
-
 
         final boolean hasContext = ContextFacetFromESV.hasContext(esvTerm);
         final boolean hasAnalysis = AnalysisFacetFromESV.hasAnalysis(esvTerm);
