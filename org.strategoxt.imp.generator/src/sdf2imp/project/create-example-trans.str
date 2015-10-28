@@ -17,7 +17,8 @@ strategies
   trans-module-name =
      get-sdf-main-module;
      lower-case;
-     cify
+     cify;
+     <conc-strings> (<id>, "-main")
   
   create-example-trans =
     <file-exists> <conc-strings> ("trans/", <trans-module-name>, ".str")
