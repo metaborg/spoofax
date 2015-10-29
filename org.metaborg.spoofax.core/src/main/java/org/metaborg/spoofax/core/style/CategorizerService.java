@@ -59,14 +59,15 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
                 continue;
             }
             if(token.getStartOffset() > token.getEndOffset()) {
-                // Not sure what these tokens mean, but they are invalid, ignore.
+                // Indicates an invalid region. Empty lists have regions like this.
                 continue;
             }
             offset = token.getEndOffset();
             final ICategory category = category(facet, token);
             if(category != null) {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromToken(token);
-                regionCategories.add(new RegionCategory<IStrategoTerm>(region, category, null));
+                final IStrategoTerm term = (IStrategoTerm) token.getAstNode();
+                regionCategories.add(new RegionCategory<IStrategoTerm>(region, category, term));
             }
         }
 
