@@ -25,6 +25,9 @@ public class MavenProjectSettingsReader {
             return null;
         }
         final Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
+        if(dom == null) {
+            return null;
+        }
 
         final Collection<LanguageIdentifier> compileDeps = Lists.newLinkedList();
         final Collection<LanguageIdentifier> runtimeDeps = Lists.newLinkedList();
@@ -41,7 +44,7 @@ public class MavenProjectSettingsReader {
             }
         }
 
-        // BOOTSTRAPPING: add plugin artifacts for supporting baseline languages
+        // LEGACY: add plugin artifacts for supporting older languages
         for(Dependency dependency : plugin.getDependencies()) {
             if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
                 final LanguageVersion version = LanguageVersion.parse(dependency.getVersion());
