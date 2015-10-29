@@ -80,7 +80,7 @@ public class SourceRegion implements ISourceRegion {
     }
 
     @Override public int length() {
-        return endOffset - startOffset;
+        return (endOffset - startOffset) + 1;
     }
 
     @Override public boolean contains(ISourceRegion region) {
