@@ -54,7 +54,7 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
             return null;
         }
         final ICategory category = regionCategory.category();
-        // GTODO: instanceof checks are nasty, but required since we do not have separate specifications for categories
+        // HACK: instanceof checks are nasty, but required since we do not have separate specifications for categories
         // and styles, they are intertwined.
         final IStyle style;
         if(category instanceof SortConsCategory) {
@@ -78,6 +78,6 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
             return null;
         }
 
-        return new RegionStyle<IStrategoTerm>(regionCategory.fragment(), regionCategory.region(), style);
+        return new RegionStyle<IStrategoTerm>(regionCategory.region(), style, regionCategory.fragment());
     }
 }

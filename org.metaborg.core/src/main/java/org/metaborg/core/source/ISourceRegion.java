@@ -5,11 +5,11 @@ import java.io.Serializable;
 /**
  * Interface for representing a finite region in source code text. A region has:
  * <ul>
- * <li>Offset - number of characters from the beginning of the source text, with interval [0,#chars).</li>
+ * <li>Offset - number of characters from the beginning of the source text, with interval [0,length).</li>
  * <li>Row - row or line in the source text, with interval [0,#rows), or -1 if the row is not supported.</li>
  * <li>Column - column in the source text, with interval [0,#columns@row), or -1 if the column is not supported.</li>
  * </ul>
- * Both the starting and ending locations for these numbers are available.
+ * Both the starting and ending numbers are inclusive.
  */
 public interface ISourceRegion extends Serializable {
     public int startOffset();
