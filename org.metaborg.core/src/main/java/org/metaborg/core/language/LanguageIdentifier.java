@@ -3,8 +3,14 @@ package org.metaborg.core.language;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ComparisonChain;
+import org.metaborg.core.project.settings.LanguageIdentifierJacksonDeserializer;
+import org.metaborg.core.project.settings.LanguageIdentifierJacksonSerializer;
 
+@JsonSerialize(using = LanguageIdentifierJacksonSerializer.class)
+@JsonDeserialize(using = LanguageIdentifierJacksonDeserializer.class)
 public class LanguageIdentifier implements Comparable<LanguageIdentifier> {
     private static final Pattern idPattern = Pattern.compile("[A-Za-z0-9._\\-]+");
     public static final String errorDescription = "may only contain characters, numbers, and _ - .";
