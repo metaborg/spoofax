@@ -20,10 +20,10 @@ public class BuiltinLanguagePathProvider implements ILanguagePathProvider {
 
     // @formatter:off
     private static final Multimap<String, String> sourcesPerMetaLangName = ImmutableMultimap.<String, String>builder()
-        .putAll(LANG_SDF_NAME, DIR_SYNTAX, DIR_LIB)
+        .putAll(LANG_SDF_NAME, ROOT, DIR_SYNTAX, DIR_LIB, DIR_SRCGEN)
         .putAll(LANG_STRATEGO_NAME, ROOT, DIR_TRANS, DIR_LIB)
         .putAll(LANG_ESV_NAME, DIR_EDITOR, DIR_SRCGEN)
-        .putAll(LANG_SDF3_NAME, DIR_SYNTAX)
+        .putAll(LANG_SDF3_NAME, ROOT, DIR_SYNTAX)
         .putAll(LANG_NABL_NAME, ROOT)
         .putAll(LANG_TS_NAME, ROOT)
         .putAll(LANG_DYNSEM_NAME, ROOT, DIR_TRANS, DIR_LIB)
