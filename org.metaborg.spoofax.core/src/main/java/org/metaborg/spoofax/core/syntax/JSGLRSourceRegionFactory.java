@@ -14,4 +14,18 @@ public class JSGLRSourceRegionFactory {
         return new SourceRegion(left.getStartOffset(), left.getLine(), left.getColumn(), right.getEndOffset(),
             right.getEndLine(), right.getEndColumn());
     }
+    
+    public static ISourceRegion fromTokensLayout(IToken left, IToken right) {
+        int leftStartOffset = left.getStartOffset();
+        int rightStartOffset = right.getStartOffset();
+        int rightEndOffset = right.getEndOffset();
+        
+        if (rightEndOffset < rightStartOffset) 
+            rightEndOffset = rightStartOffset;
+        
+        return new SourceRegion(leftStartOffset, left.getLine(), left.getColumn(), rightEndOffset,
+            right.getEndLine(), right.getEndColumn());
+    }
+    
+    
 }

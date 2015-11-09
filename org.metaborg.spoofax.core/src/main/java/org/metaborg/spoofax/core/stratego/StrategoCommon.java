@@ -27,6 +27,9 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.stratego.CallT;
+import org.spoofax.interpreter.stratego.SDefT;
+import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
@@ -94,6 +97,23 @@ public class StrategoCommon implements IStrategoCommon {
             handleException(e, strategy);
             throw new MetaborgException("Invoking Stratego strategy failed unexpectedly", e);
         }
+    }
+
+    @Override public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
+        Strategy[] sp, IStrategoTerm... tp) {
+        final SDefT def = runtime.lookupUncifiedSVar(strategy);
+        final Strategy strat = def.getBody();
+        final CallT callT = (CallT) strat;
+
+        final org.spoofax.interpreter.core.IContext context = runtime.getContext();
+        context.setCurrent(input);
+        boolean success = false;
+        try {
+            success = callT.evaluateWithArgs(context, sp, tp);
+        } catch(InterpreterException e) {
+            throw new RuntimeException("Failed to evaluate strategy " + strategy, e);
+        }
+        return success ? context.current() : null;
     }
 
     private void handleException(InterpreterException ex, String strategy) throws MetaborgException {

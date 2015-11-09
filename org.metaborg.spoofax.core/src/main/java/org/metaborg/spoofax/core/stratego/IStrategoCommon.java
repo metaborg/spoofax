@@ -9,6 +9,7 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
+import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
@@ -74,6 +75,9 @@ public interface IStrategoCommon {
      */
     public abstract IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
         throws MetaborgException;
+
+    public abstract IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
+        Strategy[] sp, IStrategoTerm... tp);
 
     /**
      * Executes given strategy and creates a transformation result.

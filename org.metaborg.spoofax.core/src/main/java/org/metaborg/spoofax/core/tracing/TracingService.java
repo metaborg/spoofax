@@ -79,7 +79,7 @@ public class TracingService implements ISpoofaxTracingService {
     @Override public Iterable<IStrategoTerm> toParsed(ParseResult<IStrategoTerm> result, final ISourceRegion region) {
         return toTerms(result.result, region, false);
     }
-
+    
     @Override public Iterable<IStrategoTerm> toAnalyzed(AnalysisFileResult<IStrategoTerm, IStrategoTerm> result,
         ISourceRegion region) {
         return toTerms(result.result, region, true);
@@ -113,4 +113,8 @@ public class TracingService implements ISpoofaxTracingService {
         StrategoTermVisitee.bottomup(visitor, ast);
         return parsed;
     }
+    
+
+    
+    
 }
