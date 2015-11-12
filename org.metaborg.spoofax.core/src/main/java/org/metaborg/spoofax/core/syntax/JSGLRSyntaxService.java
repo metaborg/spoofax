@@ -46,7 +46,7 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
     }
 
 
-    @Override public ParseResult<IStrategoTerm> parse(String text, FileObject resource, ILanguageImpl language,
+    @Override public ParseResult<IStrategoTerm> parse(String text, @Nullable FileObject resource, ILanguageImpl language,
         @Nullable IParserConfiguration parserConfig) throws ParseException {
         final IParserConfig config = getParserConfig(language);
         try {

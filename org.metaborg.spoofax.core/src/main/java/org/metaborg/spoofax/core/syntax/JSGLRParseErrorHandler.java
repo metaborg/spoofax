@@ -24,12 +24,15 @@ import org.spoofax.jsglr.shared.TokenExpectedException;
 
 import com.google.common.collect.Lists;
 
+import javax.annotation.Nullable;
+
 public class JSGLRParseErrorHandler {
     private static final int LARGE_REGION_SIZE = 8;
     private static final String LARGE_REGION_START =
         "Region could not be parsed because of subsequent syntax error(s) indicated below";
 
     private final JSGLRI parser;
+    @Nullable
     private final FileObject resource;
     private final boolean hasRecoveryRules;
     private final Collection<IMessage> messages = Lists.newArrayList();
@@ -37,7 +40,7 @@ public class JSGLRParseErrorHandler {
     private boolean recoveryFailed;
 
 
-    public JSGLRParseErrorHandler(JSGLRI parser, FileObject resource, boolean hasRecoveryRules) {
+    public JSGLRParseErrorHandler(JSGLRI parser, @Nullable FileObject resource, boolean hasRecoveryRules) {
         this.parser = parser;
         this.resource = resource;
         this.hasRecoveryRules = hasRecoveryRules;

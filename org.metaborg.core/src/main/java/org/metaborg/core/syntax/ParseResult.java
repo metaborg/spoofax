@@ -8,6 +8,8 @@ import org.metaborg.core.messages.IMessage;
 
 import com.google.common.collect.Lists;
 
+import java.util.Objects;
+
 public class ParseResult<T> {
     /**
      * Parser input string.
@@ -22,7 +24,7 @@ public class ParseResult<T> {
     /**
      * Resource that was parsed.
      */
-    public final FileObject source;
+    public final @Nullable FileObject source;
 
     /**
      * Messages produced during parsing.
@@ -50,7 +52,7 @@ public class ParseResult<T> {
     public final @Nullable Object parserSpecificData;
 
 
-    public ParseResult(String input, @Nullable T result, FileObject source, Iterable<IMessage> messages, long duration,
+    public ParseResult(String input, @Nullable T result, @Nullable FileObject source, Iterable<IMessage> messages, long duration,
         ILanguageImpl language, @Nullable ILanguageImpl dialect, Object parserSpecificData) {
         this.input = input;
         this.result = result;
@@ -66,7 +68,7 @@ public class ParseResult<T> {
         final int prime = 31;
         int hashResult = 1;
         hashResult = prime * hashResult + ((this.result == null) ? 0 : result.hashCode());
-        hashResult = prime * hashResult + source.hashCode();
+        hashResult = prime * hashResult + ((this.source != null) ? source.hashCode() : 0);
         return hashResult;
     }
 
@@ -84,10 +86,8 @@ public class ParseResult<T> {
                 return false;
         } else if(!result.equals(other.result))
             return false;
-        if(!source.equals(other.source))
-            return false;
 
-        return true;
+        return Objects.equals(this.source, other.source);
     }
 
     @Override public String toString() {
