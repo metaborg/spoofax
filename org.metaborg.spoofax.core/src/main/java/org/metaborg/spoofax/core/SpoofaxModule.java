@@ -26,6 +26,7 @@ import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
+import org.metaborg.core.syntax.IParseService;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.tracing.IHoverService;
 import org.metaborg.core.tracing.IResolverService;
@@ -94,7 +95,8 @@ import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.style.CategorizerService;
 import org.metaborg.spoofax.core.style.StylerService;
-import org.metaborg.spoofax.core.syntax.JSGLRSyntaxService;
+import org.metaborg.spoofax.core.syntax.JSGLRParseService;
+import org.metaborg.spoofax.core.syntax.SpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.tracing.HoverService;
@@ -192,10 +194,18 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
     protected void bindSyntax() {
-        bind(JSGLRSyntaxService.class).in(Singleton.class);
-        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRSyntaxService.class);
-        bind(new TypeLiteral<ISyntaxService<?>>() {}).to(JSGLRSyntaxService.class);
-        languageCacheBinder.addBinding().to(JSGLRSyntaxService.class);
+        bind(JSGLRParseService.class).in(Singleton.class);
+
+        final MapBinder<String, IParseService<IStrategoTerm>> parsers =
+            MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
+                new TypeLiteral<IParseService<IStrategoTerm>>() {});
+        parsers.addBinding("jsglr").to(JSGLRParseService.class).in(Singleton.class);
+        languageCacheBinder.addBinding().to(JSGLRParseService.class);
+
+        bind(SpoofaxSyntaxService.class).in(Singleton.class);
+        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(SpoofaxSyntaxService.class);
+        bind(new TypeLiteral<ISyntaxService<?>>() {}).to(SpoofaxSyntaxService.class);
+
         bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
     }
 

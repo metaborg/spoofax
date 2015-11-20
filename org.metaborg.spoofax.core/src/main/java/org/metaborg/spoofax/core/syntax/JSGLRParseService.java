@@ -2,7 +2,6 @@ package org.metaborg.spoofax.core.syntax;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -12,10 +11,8 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.syntax.FenceCharacters;
+import org.metaborg.core.syntax.IParseService;
 import org.metaborg.core.syntax.IParserConfiguration;
-import org.metaborg.core.syntax.ISyntaxService;
-import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -28,11 +25,10 @@ import org.spoofax.terms.util.NotImplementedException;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILanguageCache {
-    private static final Logger logger = LoggerFactory.getLogger(JSGLRSyntaxService.class);
+public class JSGLRParseService implements IParseService<IStrategoTerm>, ILanguageCache {
+    private static final Logger logger = LoggerFactory.getLogger(JSGLRParseService.class);
 
     private final IDialectService dialectService;
     private final ITermFactoryService termFactoryService;
@@ -40,7 +36,7 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
     private final Map<ILanguageImpl, IParserConfig> parserConfigs = Maps.newHashMap();
 
 
-    @Inject public JSGLRSyntaxService(IDialectService dialectService, ITermFactoryService termFactoryService) {
+    @Inject public JSGLRParseService(IDialectService dialectService, ITermFactoryService termFactoryService) {
         this.dialectService = dialectService;
         this.termFactoryService = termFactoryService;
     }
@@ -68,35 +64,6 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
         throw new NotImplementedException();
     }
 
-
-    @Override public Iterable<String> singleLineCommentPrefixes(ILanguageImpl language) {
-        final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
-        final Set<String> prefixes = Sets.newLinkedHashSet();
-        for(SyntaxFacet facet : facets) {
-            Iterables.addAll(prefixes, facet.singleLineCommentPrefixes);
-        }
-        return prefixes;
-    }
-
-    @Override public Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguageImpl language) {
-        final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
-        final Set<MultiLineCommentCharacters> chars = Sets.newLinkedHashSet();
-        for(SyntaxFacet facet : facets) {
-            Iterables.addAll(chars, facet.multiLineCommentCharacters);
-        }
-        return chars;
-    }
-
-    @Override public Iterable<FenceCharacters> fenceCharacters(ILanguageImpl language) {
-        final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
-        final Set<FenceCharacters> fences = Sets.newLinkedHashSet();
-        for(SyntaxFacet facet : facets) {
-            Iterables.addAll(fences, facet.fenceCharacters);
-        }
-        return fences;
-    }
-
-
     public IParserConfig getParserConfig(ILanguageImpl lang) {
         IParserConfig config = parserConfigs.get(lang);
         if(config == null) {
@@ -110,9 +77,8 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
         return config;
     }
 
-
     @Override public ParseResult<IStrategoTerm> emptyParseResult(FileObject resource, ILanguageImpl language,
-        @Nullable ILanguageImpl dialect) {
+        ILanguageImpl dialect) {
         return new ParseResult<IStrategoTerm>("", termFactoryService.getGeneric().makeTuple(), resource,
             Iterables2.<IMessage>empty(), -1, language, dialect, null);
     }
