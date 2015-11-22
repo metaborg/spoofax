@@ -9,7 +9,8 @@ strategies
   create-java-strategy =
     create-java-strategy-1;
     create-java-strategy-2;
-    create-java-strategy-3
+    create-java-strategy-3;
+    create-java-library-initializer
 
   create-java-strategy-1 =
     <file-exists> "editor/java/strategies/InteropRegisterer.java"
@@ -27,12 +28,40 @@ strategies
         * Helper class for {@link java_strategy_0_0}.
         */
        public class InteropRegisterer extends JavaInteropRegisterer {
-
-         public InteropRegisterer() {
-           super(new Strategy$[$$]$ { java_strategy_0_0.instance });
-         }
-       }
+			public InteropRegisterer() {
+				super(new LibraryInitializer());
+			}
+	   }
     ]
+    
+  create-java-library-initializer = 
+  	<file-exists> "editor/java/strategies/LibraryInitializer.java"
+  <+
+    pkgname  := <get-package-name-text>;
+    pkgpart* := <string-tokenize('.')> pkgname;
+    
+    <output-text-file(|["editor","java",pkgpart*,"strategies"],"LibraryInitializer.java")>
+  	$[	package [pkgname].strategies;
+
+		import java.util.Collections;
+		import java.util.List;
+
+		import org.strategoxt.lang.Context;
+		import org.strategoxt.lang.RegisteringStrategy;
+
+		public class LibraryInitializer extends org.strategoxt.lang.LibraryInitializer {
+
+			@Override
+			protected List<RegisteringStrategy> getLibraryStrategies() {
+				return Collections.asList<RegisteringStrategy>(new java_strategy_0_0());
+			}
+
+			@Override
+			protected void initializeLibrary(Context context) {
+			}
+
+		}]
+
   
   create-java-strategy-2 =
     <file-exists> "editor/java/strategies/java_strategy_0_0.java"
@@ -61,9 +90,13 @@ strategies
         *
         * @see InteropRegisterer  This class registers java_strategy_0_0 for use.
         */
-       public class java_strategy_0_0 extends Strategy {
+       public class java_strategy_0_0 extends RegisteringStrategy {
          
-         public static java_strategy_0_0 instance = new java_strategy_0_0();
+         private java_strategy_0_0 instance = new java_strategy_0_0();
+         
+         public void registerImplementators(StrategyCollector collector) {
+		    collector.registerStrategyImplementator("java_strategy_0_0", instance);
+		 }
        
          @Override
          public IStrategoTerm invoke(Context context, IStrategoTerm current) {
