@@ -75,7 +75,7 @@ strategies
        import org.spoofax.interpreter.terms.IStrategoTerm;
        import org.spoofax.interpreter.terms.ITermFactory;
        import org.strategoxt.lang.Context;
-       import org.strategoxt.lang.Strategy;
+       import org.strategoxt.lang.RegisteringStrategy;
        
        /**
         * Example Java strategy implementation.
