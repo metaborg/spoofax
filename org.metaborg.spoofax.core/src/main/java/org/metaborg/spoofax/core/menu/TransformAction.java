@@ -4,7 +4,6 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.menu.Action;
-import org.metaborg.core.menu.IAction;
 import org.metaborg.core.transform.NestedNamedGoal;
 
 public class TransformAction extends Action {
