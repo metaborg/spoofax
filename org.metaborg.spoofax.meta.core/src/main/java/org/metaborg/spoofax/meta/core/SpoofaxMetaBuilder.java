@@ -2,6 +2,8 @@ package org.metaborg.spoofax.meta.core;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Arrays;
 
 import javax.annotation.Nullable;
 
@@ -81,6 +83,25 @@ public class SpoofaxMetaBuilder {
     public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
         @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running pre-Java build for {}", input.project.location());
+        
+        
+        System.out.println(Arrays.toString(classpaths));
+        
+        URLClassLoader classLoader = new URLClassLoader(classpaths, SpoofaxMetaBuilder.class.getClassLoader());
+        
+        try {
+        	// TODO: Remove this hard dependency on org.metaborg.meta.lib.antlr.ANTLRBuilder
+        	Class<?> clz = Class.forName("org.metaborg.meta.lib.antlr.ANTLRBuilder", true, classLoader);
+        	Object o = clz.newInstance();
+        	IBuildStep bs = (IBuildStep) o;
+        	bs.build();
+        } catch (ClassNotFoundException e) {
+            log.debug("Could not find ANTLRBuilder");
+        } catch (Exception e) {
+        	e.printStackTrace();
+        } finally {
+        	classLoader.close();
+        }
 
         final IAntRunner runner = antRunner.create(input, classpaths, listener);
         runner.execute("generate-sources", cancellationToken);
