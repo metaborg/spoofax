@@ -635,7 +635,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	<target name="stratego.jar.makejar">
 		<!-- copy imported terms -->
 		<copy todir="${build}/trans">
-			<fileset dir="${src-gen}/trans" excludes="**/*.java" />
+			<fileset dir="${src-gen}/trans" excludes="**/*.java **/*.dep" />
 		</copy>
 		<jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.tmp.jar" />
 		<move file="${include}/${strmodule}.tmp.jar" tofile="${include}/${strmodule}.jar" />
