@@ -2,8 +2,7 @@ package org.metaborg.spoofax.meta.core;
 
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Arrays;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -34,16 +33,17 @@ public class SpoofaxMetaBuilder {
     private final IDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
-
     private final MetaBuildAntRunnerFactory antRunner;
+    private final Set<IBuildStep> buildSteps;
 
 
     @Inject public SpoofaxMetaBuilder(IDependencyService dependencyService, ILanguagePathService languagePathService,
-        ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner) {
+        ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner, Set<IBuildStep> buildSteps) {
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
         this.runner = runner;
         this.antRunner = antRunner;
+        this.buildSteps = buildSteps;
     }
 
 
@@ -84,23 +84,8 @@ public class SpoofaxMetaBuilder {
         @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running pre-Java build for {}", input.project.location());
         
-        
-        System.out.println(Arrays.toString(classpaths));
-        
-        URLClassLoader classLoader = new URLClassLoader(classpaths, SpoofaxMetaBuilder.class.getClassLoader());
-        
-        try {
-        	// TODO: Remove this hard dependency on org.metaborg.meta.lib.antlr.ANTLRBuilder
-        	Class<?> clz = Class.forName("org.metaborg.meta.lib.antlr.ANTLRBuilder", true, classLoader);
-        	Object o = clz.newInstance();
-        	IBuildStep bs = (IBuildStep) o;
-        	bs.build();
-        } catch (ClassNotFoundException e) {
-            log.debug("Could not find ANTLRBuilder");
-        } catch (Exception e) {
-        	e.printStackTrace();
-        } finally {
-        	classLoader.close();
+        for (IBuildStep buildStep : buildSteps) {
+        	buildStep.compilePreJava(input);
         }
 
         final IAntRunner runner = antRunner.create(input, classpaths, listener);
@@ -111,6 +96,10 @@ public class SpoofaxMetaBuilder {
         @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running post-Java build for {}", input.project.location());
 
+        for (IBuildStep buildStep : buildSteps) {
+        	buildStep.compilePostJava(input);
+        }
+        
         final IAntRunner runner = antRunner.create(input, classpaths, listener);
         runner.execute("package", cancellationToken);
     }
