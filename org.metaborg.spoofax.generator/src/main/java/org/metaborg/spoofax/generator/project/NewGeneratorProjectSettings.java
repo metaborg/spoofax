@@ -1,50 +1,50 @@
 package org.metaborg.spoofax.generator.project;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.Format;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.settings.ISpoofaxLanguageSpecConfig;
 
-@Deprecated
-public class GeneratorProjectSettings {
-    private final SpoofaxProjectSettings settings;
+import javax.annotation.Nullable;
+
+public class NewGeneratorProjectSettings {
+    private final FileObject location;
+    private final ISpoofaxLanguageSpecConfig config;
 
 
-    public GeneratorProjectSettings(SpoofaxProjectSettings settings) throws ProjectException {
-        final IProjectSettings metaborgSettings = settings.settings();
-        if(!metaborgSettings.identifier().valid()) {
-            throw new ProjectException("Invalid language identifier: " + metaborgSettings.identifier());
+    public NewGeneratorProjectSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
+//        final IProjectSettings metaborgSettings = settings.settings();
+        if(!config.identifier().valid()) {
+            throw new ProjectException("Invalid language identifier: " + config.identifier());
         }
-        if(!LanguageIdentifier.validId(metaborgSettings.name())) {
+        if(!LanguageIdentifier.validId(config.name())) {
             throw new ProjectException("Invalid name: " + name());
         }
-        for(LanguageIdentifier compileIdentifier : metaborgSettings.compileDependencies()) {
+        for(LanguageIdentifier compileIdentifier : config.compileDependencies()) {
             if(!compileIdentifier.valid()) {
                 throw new ProjectException("Invalid compile dependency identifier: " + compileIdentifier);
             }
         }
-        for(LanguageIdentifier runtimeIdentifier : metaborgSettings.runtimeDependencies()) {
+        for(LanguageIdentifier runtimeIdentifier : config.runtimeDependencies()) {
             if(!runtimeIdentifier.valid()) {
                 throw new ProjectException("Invalid runtime dependency identifier: " + runtimeIdentifier);
             }
         }
-        for(LanguageContributionIdentifier contributionIdentifier : metaborgSettings.languageContributions()) {
+        for(LanguageContributionIdentifier contributionIdentifier : config.languageContributions()) {
             if(!contributionIdentifier.identifier.valid()) {
                 throw new ProjectException("Invalid language contribution identifier: "
                     + contributionIdentifier.identifier);
             }
             if(!LanguageIdentifier.validId(contributionIdentifier.name)) {
-                throw new ProjectException("Invalid language contribution name: " + metaborgSettings.name());
+                throw new ProjectException("Invalid language contribution name: " + config.name());
             }
         }
-        this.settings = settings;
+        this.location = location;
+        this.config = config;
     }
 
 
@@ -68,7 +68,7 @@ public class GeneratorProjectSettings {
 
 
     public String groupId() {
-        return settings.settings().identifier().groupId;
+        return this.config.identifier().groupId;
     }
 
     public boolean generateGroupId() {
@@ -76,11 +76,11 @@ public class GeneratorProjectSettings {
     }
 
     public String id() {
-        return settings.settings().identifier().id;
+        return this.config.identifier().id;
     }
 
     public String version() {
-        return settings.settings().identifier().version.toString();
+        return this.config.identifier().version.toString();
     }
 
     public boolean generateVersion() {
@@ -92,33 +92,33 @@ public class GeneratorProjectSettings {
     }
 
     public String name() {
-        return settings.settings().name();
+        return this.config.name();
     }
 
     public FileObject location() {
-        return settings.location();
+        return this.location();
     }
 
 
     public Format format() {
-        final Format format = settings.format();
+        final Format format = this.config.format();
         return format != null ? format : Format.ctree;
     }
 
 
     public String strategoName() {
-        return settings.strategoName();
+        return this.config.strategoName();
     }
 
     public String javaName() {
-        return settings.javaName();
+        return this.config.javaName();
     }
 
     public String packageName() {
-        return settings.packageName();
+        return this.config.packageName();
     }
 
     public String packagePath() {
-        return settings.packagePath();
+        return this.config.packagePath();
     }
 }

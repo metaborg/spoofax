@@ -1,34 +1,31 @@
 package org.metaborg.core.build;
 
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
+import com.google.common.collect.Multimap;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.transform.ITransformerGoal;
 
-import com.google.common.collect.Multimap;
+import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * Input for a build. Use the {@link BuildInputBuilder} fluent interface to create objects of this class.
  * 
  * @see BuildInputBuilder
  */
-@Deprecated
-public class BuildInput {
+public class NewBuildInput {
     /**
      * Build state with information about previous builds.
      */
     public final BuildState state;
 
     /**
-     * Project to build.
+     * Language specification to build.
      */
-    public final IProject project;
+    public final ILanguageSpec languageSpec;
 
     /**
      * Sources that have changed.
@@ -95,13 +92,13 @@ public class BuildInput {
     public final Set<ILanguageImpl> pardonedLanguages;
 
 
-    public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
-        Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
-        boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
-        Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter,
-        boolean throwOnErrors, Set<ILanguageImpl> pardonedLanguages) {
+    public NewBuildInput(BuildState state, ILanguageSpec languageSpec, Iterable<ResourceChange> resourceChanges,
+                         Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
+                         boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
+                         Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter,
+                         boolean throwOnErrors, Set<ILanguageImpl> pardonedLanguages) {
         this.state = state;
-        this.project = project;
+        this.languageSpec = languageSpec;
         this.sourceChanges = resourceChanges;
         this.includePaths = includePaths;
         this.buildOrder = buildOrder;

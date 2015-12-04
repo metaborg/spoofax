@@ -4,10 +4,13 @@ import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface
@@ -20,6 +23,8 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
     private static final String PROP_COMPILE_DEPENDENCIES = "compileDependencies";
     private static final String PROP_RUNTIME_DEPENDENCIES = "runtimeDependencies";
     private static final String PROP_PARDONED_LANGUAGES = "pardonedLanguages";
+    private static final String PROP_LANGUAGE_CONTRIBUTIONS_NAME = "contributions.name";
+    private static final String PROP_LANGUAGE_CONTRIBUTIONS_ID = "contributions.id";
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
     /**
@@ -67,6 +72,14 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
      */
     @Override public Collection<LanguageIdentifier> runtimeDependencies() {
         return this.config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override public Collection<LanguageContributionIdentifier> languageContributions() {
+        // TODO: Implement!
+        throw new UnsupportedOperationException();
     }
 
     /**

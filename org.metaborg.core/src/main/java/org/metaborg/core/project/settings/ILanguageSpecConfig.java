@@ -1,6 +1,7 @@
 package org.metaborg.core.project.settings;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import java.util.Collection;
@@ -37,6 +38,13 @@ public interface ILanguageSpecConfig {
      * @return The runtime dependency identifiers.
      */
     Collection<LanguageIdentifier> runtimeDependencies();
+
+    /**
+     * Gets the language contributions.
+     *
+     * @return The language contributions.
+     */
+    Collection<LanguageContributionIdentifier> languageContributions();
 
     /**
      * Gets a sequence of languages whose errors are ignored.

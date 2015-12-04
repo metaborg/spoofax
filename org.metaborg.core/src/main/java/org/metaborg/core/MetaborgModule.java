@@ -38,7 +38,9 @@ import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.processing.parse.ParseResultProcessor;
+import org.metaborg.core.project.DefaultLanguageSpecService;
 import org.metaborg.core.project.DummyProjectService;
+import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.project.settings.*;
 import org.metaborg.core.resource.DefaultFileSystemManagerProvider;
@@ -78,6 +80,7 @@ public class MetaborgModule extends AbstractModule {
         bindResource();
         bindLanguage();
         bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
+        bindLanguageSpec();
         bindContext();
         bindContextFactories(MapBinder.newMapBinder(binder(), String.class, IContextFactory.class));
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
@@ -109,6 +112,10 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
         binder.addBinding().to(DependencyPathProvider.class);
+    }
+
+    protected void bindLanguageSpec() {
+        bind(ILanguageSpecService.class).to(DefaultLanguageSpecService.class).in(Singleton.class);
     }
 
     protected void bindContext() {

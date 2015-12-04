@@ -2,7 +2,14 @@ package org.metaborg.core.project;
 
 import org.apache.commons.vfs2.FileObject;
 
+/**
+ * A project.
+ *
+ * A language specification project should implement the {@link ILanguageSpec} interface;
+ * or implement the {@link ILanguageSpecService} for the project type.
+ */
 public class Project implements IProject {
+
     private final FileObject location;
     
     
@@ -11,6 +18,9 @@ public class Project implements IProject {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override public FileObject location() {
         return location;
     }

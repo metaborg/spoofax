@@ -15,6 +15,7 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
 
     private static final String PROP_IDENTIFIER = "identifier";
     private static final String PROP_NAME = "name";
+    private static final String PROP_COMPILE_DEPENDENCIES = "compileDependencies";
     private static final String PROP_RUNTIME_DEPENDENCIES = "runtimeDependencies";
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
@@ -47,6 +48,14 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
      */
     @Override public String name() {
         return this.config.getString(PROP_NAME);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<LanguageIdentifier> compileDependencies() {
+        return this.config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
     }
 
     /**
