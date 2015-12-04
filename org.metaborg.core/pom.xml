@@ -13,28 +13,6 @@
     <relativePath>../../releng/parent/java</relativePath>
   </parent>
 
-  <repositories>
-    <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>central</id>
-      <name>bintray</name>
-      <url>http://jcenter.bintray.com</url>
-    </repository>
-    <!-- TODO: Remove when `commons-configuration2` has been released. -->
-    <repository>
-      <id>apache-snapshots</id>
-      <url>https://repository.apache.org/content/repositories/snapshots/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>
@@ -53,13 +31,10 @@
     <dependency>
       <groupId>com.virtlink.commons</groupId>
       <artifactId>commons-configuration2-jackson</artifactId>
-      <version>0.1.4</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-configuration2</artifactId>
-      <!-- TODO: Change to release. -->
-      <version>2.0-alpha1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.netflix.rxjava</groupId>
