@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
  * {@link IMavenProjectService}. Replace with working implementation or bind {@link NullMavenProjectService} to disable
  * the warning.
  */
+@Deprecated
 public class DummyMavenProjectService implements IMavenProjectService {
     private static final Logger logger = LoggerFactory.getLogger(DummyMavenProjectService.class);
 

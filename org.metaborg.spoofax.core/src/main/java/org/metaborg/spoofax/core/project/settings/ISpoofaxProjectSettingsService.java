@@ -7,7 +7,10 @@ import org.metaborg.core.project.ProjectException;
 
 /**
  * Interface for getting Spoofax-specific project settings.
+ *
+ * @deprecated Use {@link ISpoofaxLanguageSpecConfigService} instead.
  */
+@Deprecated
 public interface ISpoofaxProjectSettingsService {
     /**
      * Retrieves Spoofax-specific project settings given a project.

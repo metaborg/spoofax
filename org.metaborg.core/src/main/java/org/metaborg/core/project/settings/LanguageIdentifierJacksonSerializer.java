@@ -10,6 +10,7 @@ import java.io.IOException;
 /**
  * Serializer for the {@link LanguageIdentifier} class.
  */
+@Deprecated
 public final class LanguageIdentifierJacksonSerializer extends StdSerializer<LanguageIdentifier> {
 
     public LanguageIdentifierJacksonSerializer() {

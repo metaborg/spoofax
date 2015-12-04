@@ -23,7 +23,7 @@ import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
-import org.metaborg.core.project.settings.IProjectSettingsService;
+import org.metaborg.core.project.settings.*;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.ISyntaxService;
@@ -70,9 +70,7 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.project.DummyMavenProjectService;
 import org.metaborg.spoofax.core.project.IMavenProjectService;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.ProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.*;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
@@ -187,8 +185,26 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ISpoofaxProjectSettingsService.class).to(SpoofaxProjectSettingsService.class).in(Singleton.class);
     }
 
+    @Deprecated
     protected void bindMavenProject() {
         bind(IMavenProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
+    }
+
+    @Override
+    protected void bindConfig() {
+        bind(new TypeLiteral<ILanguageComponentConfigService<? extends ILanguageComponentConfig>>() {})
+                .to(new TypeLiteral<ConfigurationBasedLanguageComponentConfigService<ConfigurationBasedLanguageComponentConfig>>() {})
+                .in(Singleton.class);
+        bind(new TypeLiteral<ILanguageSpecConfigService<? extends ILanguageSpecConfig>>() {})
+                .to(new TypeLiteral<ConfigurationBasedLanguageSpecConfigService<ConfigurationBasedSpoofaxLanguageSpecConfig>>() {})
+                .in(Singleton.class);
+    }
+
+    @Override
+    protected void bindConfigMisc() {
+        super.bindConfigMisc();
+        bind(new TypeLiteral<IConfigurationBasedConfigFactory<ConfigurationBasedSpoofaxLanguageSpecConfig>>(){})
+                .to(ConfigurationBasedSpoofaxLanguageSpecConfigFactory.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {

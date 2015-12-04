@@ -1,5 +1,6 @@
 package org.metaborg.core;
 
+import com.google.inject.TypeLiteral;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.core.analysis.AnalysisService;
 import org.metaborg.core.analysis.IAnalysisService;
@@ -39,8 +40,7 @@ import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.processing.parse.ParseResultProcessor;
 import org.metaborg.core.project.DummyProjectService;
 import org.metaborg.core.project.IProjectService;
-import org.metaborg.core.project.settings.DummyProjectSettingsService;
-import org.metaborg.core.project.settings.IProjectSettingsService;
+import org.metaborg.core.project.settings.*;
 import org.metaborg.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.resource.ResourceService;
@@ -52,6 +52,7 @@ import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
+import org.metaborg.core.syntax.ISyntaxService;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -82,6 +83,8 @@ public class MetaborgModule extends AbstractModule {
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
         bindProjectSettings();
+        bindConfig();
+        bindConfigMisc();
         bindDependency();
         bindSourceText();
         bindAnalysis();
@@ -127,8 +130,26 @@ public class MetaborgModule extends AbstractModule {
         bind(IProjectService.class).to(DummyProjectService.class).in(Singleton.class);
     }
 
+    @Deprecated
     protected void bindProjectSettings() {
         bind(IProjectSettingsService.class).to(DummyProjectSettingsService.class).in(Singleton.class);
+    }
+
+    protected void bindConfig() {
+        bind(new TypeLiteral<ILanguageComponentConfigService<? extends ILanguageComponentConfig>>() {})
+                .to(new TypeLiteral<ConfigurationBasedLanguageComponentConfigService<ConfigurationBasedLanguageComponentConfig>>() {})
+                .in(Singleton.class);
+        bind(new TypeLiteral<ILanguageSpecConfigService<? extends ILanguageSpecConfig>>() {})
+                .to(new TypeLiteral<ConfigurationBasedLanguageSpecConfigService<ConfigurationBasedLanguageSpecConfig>>() {})
+                .in(Singleton.class);
+    }
+
+    protected void bindConfigMisc() {
+        bind(YamlConfigurationReaderWriter.class).in(Singleton.class);
+        bind(new TypeLiteral<IConfigurationBasedConfigFactory<ConfigurationBasedLanguageComponentConfig>>(){})
+                .to(ConfigurationBasedLanguageComponentConfigFactory.class).in(Singleton.class);
+        bind(new TypeLiteral<IConfigurationBasedConfigFactory<ConfigurationBasedLanguageSpecConfig>>(){})
+                .to(ConfigurationBasedLanguageSpecConfigFactory.class).in(Singleton.class);
     }
 
     protected void bindDependency() {

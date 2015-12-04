@@ -18,6 +18,7 @@ import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
 
 import com.google.common.collect.Lists;
 
+@Deprecated
 public class MavenProjectSettingsReader {
     public static @Nullable SpoofaxProjectSettings spoofaxSettings(FileObject location, MavenProject project) {
         final Plugin plugin = project.getPlugin(SpoofaxMavenConstants.QUAL_PLUGIN_NAME);

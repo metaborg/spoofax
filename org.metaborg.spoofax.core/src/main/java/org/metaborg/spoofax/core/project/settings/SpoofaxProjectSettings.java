@@ -24,6 +24,7 @@ import org.metaborg.core.project.settings.IProjectSettings;
 
 import com.google.common.collect.Lists;
 
+@Deprecated
 public class SpoofaxProjectSettings {
     private final IProjectSettings settings;
     private final FileObject location;

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Lists;
 
+@Deprecated
 public class YAMLProjectSettingsSerializer {
     public static IProjectSettings read(FileObject file) throws IOException {
         try(final InputStream stream = file.getContent().getInputStream()) {
@@ -51,6 +52,7 @@ public class YAMLProjectSettingsSerializer {
     }
 }
 
+@Deprecated
 class ProjectSettingsSerializer extends JsonSerializer<IProjectSettings> {
     @Override public void serialize(IProjectSettings value, JsonGenerator gen, SerializerProvider serializers)
         throws IOException, JsonProcessingException {
@@ -114,6 +116,7 @@ class ProjectSettingsSerializer extends JsonSerializer<IProjectSettings> {
     }
 }
 
+@Deprecated
 class ProjectSettingsDeserializer extends JsonDeserializer<IProjectSettings> {
     @Override public IProjectSettings deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException,
         JsonProcessingException {

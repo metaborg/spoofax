@@ -12,6 +12,7 @@ import java.io.IOException;
 /**
  * Deserializer for the {@link LanguageIdentifier} class.
  */
+@Deprecated
 public final class LanguageIdentifierJacksonDeserializer extends StdDeserializer<LanguageIdentifier> {
 
     public LanguageIdentifierJacksonDeserializer() {

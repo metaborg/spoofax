@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
+@Deprecated
 public class ProjectSettingsService implements IProjectSettingsService {
     private static final Logger logger = LoggerFactory.getLogger(ProjectSettingsService.class);
 
