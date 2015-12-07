@@ -11,13 +11,16 @@ import org.metaborg.spoofax.core.project.settings.ISpoofaxLanguageSpecConfig;
 
 import javax.annotation.Nullable;
 
-public class NewGeneratorProjectSettings {
+/**
+ * Provides the values that can be used in a generator template, e.g. a Mustache template.
+ */
+public class LanguageSpecGeneratorScope {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
 
 
-    public NewGeneratorProjectSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
-//        final IProjectSettings metaborgSettings = settings.settings();
+    public LanguageSpecGeneratorScope(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
+
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());
         }
@@ -50,16 +53,16 @@ public class NewGeneratorProjectSettings {
 
     private @Nullable String metaborgVersion;
 
+    public String metaborgVersion() {
+        return metaborgVersion != null && !metaborgVersion.isEmpty() ? metaborgVersion
+                : SpoofaxConstants.METABORG_VERSION;
+    }
+
     public void setMetaborgVersion(String metaborgVersion) throws ProjectException {
         if(metaborgVersion != null && !LanguageVersion.valid(metaborgVersion)) {
             throw new ProjectException("Invalid metaborg version: " + metaborgVersion);
         }
         this.metaborgVersion = metaborgVersion;
-    }
-
-    public String metaborgVersion() {
-        return metaborgVersion != null && !metaborgVersion.isEmpty() ? metaborgVersion
-            : SpoofaxConstants.METABORG_VERSION;
     }
 
     public String eclipseMetaborgVersion() {
@@ -96,7 +99,7 @@ public class NewGeneratorProjectSettings {
     }
 
     public FileObject location() {
-        return this.location();
+        return this.location;
     }
 
 

@@ -5,29 +5,29 @@ import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.generator.BaseGenerator;
-import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.spoofax.generator.NewBaseGenerator;
+import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 
 /**
  * Generates language project files that are only generated once when a new language project is created. Files are not
  * specific to an IDE.
  */
-public class NewProjectGenerator extends BaseGenerator {
+public class NewProjectGenerator extends NewBaseGenerator {
     private final String[] fileExtensions;
     private final AnalysisType analysisType;
 
 
-    public NewProjectGenerator(GeneratorProjectSettings settings) throws ProjectException {
-        this(settings, new String[0]);
+    public NewProjectGenerator(LanguageSpecGeneratorScope config) throws ProjectException {
+        this(config, new String[0]);
     }
 
-    public NewProjectGenerator(GeneratorProjectSettings settings, String[] fileExtensions) throws ProjectException {
-        this(settings, fileExtensions, AnalysisType.NaBL_TS);
+    public NewProjectGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions) throws ProjectException {
+        this(config, fileExtensions, AnalysisType.NaBL_TS);
     }
 
-    public NewProjectGenerator(GeneratorProjectSettings settings, String[] fileExtensions, AnalysisType analysisType)
+    public NewProjectGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions, AnalysisType analysisType)
         throws ProjectException {
-        super(settings);
+        super(config);
 
         for(String ext : fileExtensions) {
             if(!NameUtil.isValidFileExtension(ext)) {

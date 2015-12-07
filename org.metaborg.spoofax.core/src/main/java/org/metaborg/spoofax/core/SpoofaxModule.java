@@ -10,6 +10,7 @@ import org.metaborg.core.build.paths.LanguagePathService;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.language.ILanguageDiscoveryService;
+import org.metaborg.core.language.INewLanguageDiscoveryService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
@@ -23,6 +24,7 @@ import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
+import org.metaborg.core.project.ILanguageSpecPathsService;
 import org.metaborg.core.project.settings.*;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
@@ -50,6 +52,7 @@ import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
+import org.metaborg.spoofax.core.language.NewLanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
@@ -70,6 +73,8 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.project.DummyMavenProjectService;
 import org.metaborg.spoofax.core.project.IMavenProjectService;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPathsService;
 import org.metaborg.spoofax.core.project.settings.*;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
@@ -134,7 +139,6 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void configure() {
         super.configure();
 
-        bindLanguagePath();
         bindMavenProject();
         bindSyntax();
         bindCompletion();
@@ -154,14 +158,20 @@ public class SpoofaxModule extends MetaborgModule {
         super.bindLanguage();
 
         bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
+        bind(INewLanguageDiscoveryService.class).to(NewLanguageDiscoveryService.class).in(Singleton.class);
 
         bind(IDialectService.class).to(DialectService.class).in(Singleton.class);
         bind(IDialectIdentifier.class).to(DialectIdentifier.class).in(Singleton.class);
         bind(IDialectProcessor.class).to(DialectProcessor.class).in(Singleton.class);
     }
 
+    @Override
     protected void bindLanguagePath() {
-        bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
+        super.bindLanguagePath();
+
+        bind(new TypeLiteral<ILanguageSpecPathsService<ISpoofaxLanguageSpecPaths>>() {})
+                .to(new TypeLiteral<SpoofaxLanguageSpecPathsService>() {})
+                .in(Singleton.class);
     }
 
     @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {

@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
+/**
+ * @deprecated Use {@link SpoofaxLanguageSpecBuilder instead}.
+ */
 @Deprecated
 public class SpoofaxMetaBuilder {
     private static final Logger log = LoggerFactory.getLogger(SpoofaxMetaBuilder.class);

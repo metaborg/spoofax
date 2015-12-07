@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-
+@Deprecated
 public class DependencyService implements IDependencyService {
     private static final Logger logger = LoggerFactory.getLogger(DependencyService.class);
 

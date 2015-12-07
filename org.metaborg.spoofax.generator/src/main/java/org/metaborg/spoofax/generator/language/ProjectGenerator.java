@@ -7,7 +7,10 @@ import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 
 /**
  * Generates project files which need to be generated after each build. Files are not specific to an IDE.
+ *
+ * @deprecated Use {@link NewProjectGenerator} instead.
  */
+@Deprecated
 public class ProjectGenerator extends BaseGenerator {
     public ProjectGenerator(GeneratorProjectSettings settings) {
         super(settings);

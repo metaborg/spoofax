@@ -1,4 +1,5 @@
 package org.metaborg.spoofax.core.language;
+import org.metaborg.core.MetaborgException;
 
 import java.io.IOException;
 import java.util.Collection;

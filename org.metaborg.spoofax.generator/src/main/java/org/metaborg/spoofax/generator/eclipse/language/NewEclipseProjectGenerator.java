@@ -1,19 +1,18 @@
 package org.metaborg.spoofax.generator.eclipse.language;
 
-import java.io.IOException;
-
 import org.metaborg.spoofax.generator.BaseGenerator;
+import org.metaborg.spoofax.generator.NewBaseGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
+
+import java.io.IOException;
 
 /**
  * Generates Eclipse support files for language projects.
- *
- * @deprecated Use {@link NewEclipseProjectGenerator} instead.
  */
-@Deprecated
-public class EclipseProjectGenerator extends BaseGenerator {
-    public EclipseProjectGenerator(GeneratorProjectSettings settings) {
-        super(settings);
+public class NewEclipseProjectGenerator extends NewBaseGenerator {
+    public NewEclipseProjectGenerator(LanguageSpecGeneratorScope scope) {
+        super(scope);
     }
 
 

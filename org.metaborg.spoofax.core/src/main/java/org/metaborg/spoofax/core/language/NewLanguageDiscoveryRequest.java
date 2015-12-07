@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
+import org.metaborg.core.language.INewLanguageDiscoveryRequest;
 import org.metaborg.core.project.settings.ILanguageComponentConfig;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
@@ -11,99 +12,213 @@ import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-public class NewLanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
-    public final boolean available;
-    public final FileObject location;
-    public final Iterable<String> errors;
-    public final Iterable<Throwable> exceptions;
-    public final @Nullable IStrategoAppl esvTerm;
-    public final @Nullable ILanguageComponentConfig config;
-    public final @Nullable SyntaxFacet syntaxFacet;
-    public final @Nullable StrategoRuntimeFacet strategoRuntimeFacet;
+public class NewLanguageDiscoveryRequest implements INewLanguageDiscoveryRequest {
+
+    private final boolean available;
+    private final FileObject location;
+    private final Collection<String> errors;
+    private final Collection<Throwable> exceptions;
+    @Nullable
+    private final ILanguageComponentConfig config;
+    @Nullable
+    private final IStrategoAppl esvTerm;
+    @Nullable
+    private final SyntaxFacet syntaxFacet;
+    @Nullable
+    private final StrategoRuntimeFacet strategoRuntimeFacet;
 
 
-    public NewLanguageDiscoveryRequest(boolean available, FileObject location, Iterable<String> errors,
-                                       Iterable<Throwable> exceptions, @Nullable IStrategoAppl esvTerm, @Nullable ILanguageComponentConfig config,
+    /**
+     * Initializes a new instance of the {@link NewLanguageDiscoveryRequest} class
+     * for a successful language request.
+     *
+     * @param location             The location of the language component.
+     * @param config               The configuration of the language component.
+     * @param esvTerm              The ESV term.
+     * @param syntaxFacet          The syntax facet.
+     * @param strategoRuntimeFacet The Stratego runtime facet.
+     */
+    public NewLanguageDiscoveryRequest(FileObject location, ILanguageComponentConfig config, IStrategoAppl esvTerm,
                                        @Nullable SyntaxFacet syntaxFacet, @Nullable StrategoRuntimeFacet strategoRuntimeFacet) {
-        this.available = available;
+        this.available = true;
         this.location = location;
-        this.errors = errors;
-        this.exceptions = exceptions;
+        this.errors = Collections.emptyList();
+        this.exceptions = Collections.emptyList();
         this.esvTerm = esvTerm;
         this.config = config;
         this.syntaxFacet = syntaxFacet;
         this.strategoRuntimeFacet = strategoRuntimeFacet;
     }
 
-    public NewLanguageDiscoveryRequest(FileObject location, IStrategoAppl esvTerm, ILanguageComponentConfig config,
-                                       @Nullable SyntaxFacet syntaxFacet, @Nullable StrategoRuntimeFacet strategoRuntimeFacet) {
-        this(true, location, Iterables2.<String>empty(), Iterables2.<Throwable>empty(), esvTerm, config, syntaxFacet,
-            strategoRuntimeFacet);
+    /**
+     * Initializes a new instance of the {@link NewLanguageDiscoveryRequest} class
+     * for a failed language request.
+     *
+     * @param location   The location of the language component.
+     * @param errors     The error messages that were raised during the request.
+     * @param exceptions The exceptions that were raised during the request.
+     */
+    public NewLanguageDiscoveryRequest(FileObject location, Collection<String> errors, Collection<Throwable> exceptions) {
+        this.available = false;
+        this.location = location;
+        this.errors = errors != null ? errors : Collections.<String>emptyList();
+        this.exceptions = exceptions != null ? exceptions : Collections.<Throwable>emptyList();
+        this.esvTerm = null;
+        this.config = null;
+        this.syntaxFacet = null;
+        this.strategoRuntimeFacet = null;
     }
 
-    public NewLanguageDiscoveryRequest(FileObject location, Iterable<String> errors, Iterable<Throwable> exceptions) {
-        this(false, location, errors, exceptions, null, null, null, null);
+    /**
+     * Initializes a new instance of the {@link NewLanguageDiscoveryRequest} class
+     * for a failed language request.
+     *
+     * @param location The location of the language component.
+     * @param errors   The error messages that were raised during the request.
+     */
+    public NewLanguageDiscoveryRequest(FileObject location, Collection<String> errors) {
+        this(location, errors, null);
     }
 
-    public NewLanguageDiscoveryRequest(FileObject location, Iterable<String> errors) {
-        this(false, location, errors, Iterables2.<Throwable>empty(), null, null, null, null);
-    }
-
+    /**
+     * Initializes a new instance of the {@link NewLanguageDiscoveryRequest} class
+     * for a failed language request.
+     *
+     * @param location The location of the language component.
+     * @param error    The error message that was raised during the request.
+     */
     public NewLanguageDiscoveryRequest(FileObject location, String error) {
-        this(false, location, Iterables2.singleton(error), Iterables2.<Throwable>empty(), null, null, null, null);
+        this(location, Collections.singletonList(error), null);
     }
 
+    /**
+     * Initializes a new instance of the {@link NewLanguageDiscoveryRequest} class
+     * for a failed language request.
+     *
+     * @param location  The location of the language component.
+     * @param exception The exception that was raised during the request.
+     */
     public NewLanguageDiscoveryRequest(FileObject location, Throwable exception) {
-        this(false, location, Iterables2.<String>empty(), Iterables2.singleton(exception), null, null, null, null);
+        this(location, null, Collections.singletonList(exception));
     }
 
-
-    @Override public boolean available() {
-        return available;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean available() {
+        return this.available;
     }
 
-    @Override public FileObject location() {
-        return location;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FileObject location() {
+        return this.location;
     }
 
-    @Override public Iterable<String> errors() {
-        return errors;
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    public ILanguageComponentConfig config() { return this.config; }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<String> errors() {
+        return this.errors;
     }
 
-    @Override public Iterable<Throwable> exceptions() {
-        return exceptions;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<Throwable> exceptions() {
+        return this.exceptions;
     }
 
-    @Override public @Nullable String errorSummary() {
-        if(available) {
-            return null;
+    /**
+     * Gets the ESV term.
+     *
+     * @return The ESV term; or <code>null</code> when the language is not available.
+     */
+    @Nullable
+    public IStrategoAppl esvTerm() { return this.esvTerm; }
+
+    /**
+     * Gets the syntax facet.
+     *
+     * @return The syntax facet; or <code>null</code> when the language is not available.
+     */
+    @Nullable
+    public SyntaxFacet syntaxFacet() { return this.syntaxFacet; }
+
+    /**
+     * Gets the Stratego runtime facet.
+     *
+     * @return The Stratego runtime facet; or <code>null</code> when the language is not available.
+     */
+    @Nullable
+    public StrategoRuntimeFacet strategoRuntimeFacet() { return this.strategoRuntimeFacet; }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Deprecated
+    @Override
+    public String errorSummary() {
+        if (available) {
+            return "";
+        }
+        return toString();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        if (this.available) {
+            sb.append("Found language component at ");
+            sb.append(this.location);
+            if (this.config != null) {
+                sb.append(": ");
+                sb.append(this.config.identifier());
+            } else {
+                sb.append(".");
+            }
+            sb.append("\n");
+        } else {
+            sb.append("Cannot create language component at ");
+            sb.append(this.location);
+            sb.append(".\n");
         }
         final boolean hasErrors = !Iterables.isEmpty(errors);
         final boolean hasExceptions = !Iterables.isEmpty(exceptions);
-        if(!hasErrors && !hasExceptions) {
-            return null;
-        }
 
-        final StringBuilder sb = new StringBuilder();
-        sb.append("Cannot create language component at ");
-        sb.append(location);
-        sb.append(".\n");
-        if(hasErrors) {
+        if (hasErrors) {
             sb.append("The following errors occurred: \n");
-            for(String error : errors) {
+            for (String error : errors) {
                 sb.append("  ");
                 sb.append(error);
                 sb.append('\n');
             }
         }
 
-        if(hasExceptions) {
-            if(hasErrors) {
+        if (hasExceptions) {
+            if (hasErrors) {
                 sb.append('\n');
             }
             sb.append("The following exceptions occurred: \n");
-            for(Throwable exception : exceptions) {
+            for (Throwable exception : exceptions) {
                 sb.append("  ");
                 sb.append(ExceptionUtils.getStackTrace(exception));
                 sb.append('\n');

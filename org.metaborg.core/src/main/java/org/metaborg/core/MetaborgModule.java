@@ -6,10 +6,11 @@ import org.metaborg.core.analysis.AnalysisService;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
 import org.metaborg.core.build.IBuilder;
+import org.metaborg.core.build.dependency.DefaultDependencyService;
 import org.metaborg.core.build.dependency.DependencyService;
 import org.metaborg.core.build.dependency.IDependencyService;
-import org.metaborg.core.build.paths.DependencyPathProvider;
-import org.metaborg.core.build.paths.ILanguagePathProvider;
+import org.metaborg.core.build.dependency.INewDependencyService;
+import org.metaborg.core.build.paths.*;
 import org.metaborg.core.context.ContextService;
 import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextProcessor;
@@ -79,6 +80,7 @@ public class MetaborgModule extends AbstractModule {
 
         bindResource();
         bindLanguage();
+        bindLanguagePath();
         bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
         bindLanguageSpec();
         bindContext();
@@ -108,6 +110,10 @@ public class MetaborgModule extends AbstractModule {
     protected void bindLanguage() {
         bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
         bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
+    }
+
+    protected void bindLanguagePath() {
+        bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
     }
 
     protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
@@ -161,6 +167,7 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindDependency() {
         bind(IDependencyService.class).to(DependencyService.class).in(Singleton.class);
+        bind(INewDependencyService.class).to(DefaultDependencyService.class).in(Singleton.class);
     }
 
     protected void bindSourceText() {
