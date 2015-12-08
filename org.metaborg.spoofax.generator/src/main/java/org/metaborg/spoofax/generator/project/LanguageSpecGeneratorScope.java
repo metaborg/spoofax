@@ -6,8 +6,8 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.project.settings.Format;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.core.project.configuration.Format;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 
 import javax.annotation.Nullable;
 

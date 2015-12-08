@@ -18,7 +18,6 @@ import com.google.common.collect.Multimap;
  * 
  * @see BuildInputBuilder
  */
-@Deprecated
 public class BuildInput {
     /**
      * Build state with information about previous builds.

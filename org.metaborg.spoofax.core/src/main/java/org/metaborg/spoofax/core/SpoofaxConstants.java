@@ -55,6 +55,8 @@ public class SpoofaxConstants {
     public static final String DIR_JAVA = DIR_EDITOR + "/java";
     public static final String DIR_JAVA_TRANS = DIR_JAVA + "/trans";
 
+    public static final String FILE_CONFIG = "metaborg.yml";
+
 
     public static boolean isMetaLanguage(ILanguageImpl language) {
         return isMetaLanguage(language.id());

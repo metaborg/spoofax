@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.project;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 
 import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
@@ -18,13 +18,18 @@ public class SpoofaxLanguageSpecPaths implements ISpoofaxLanguageSpecPaths {
     }
 
     @Override
-    public FileObject root() {
+    public FileObject rootFolder() {
         return this.root;
     }
 
     @Override
-    public FileObject output() {
+    public FileObject outputFolder() {
         return resolve(DIR_SRCGEN);
+    }
+
+    @Override
+    public FileObject configFile() {
+        return resolve(FILE_CONFIG);
     }
 
     @Override
@@ -78,7 +83,7 @@ public class SpoofaxLanguageSpecPaths implements ISpoofaxLanguageSpecPaths {
     }
 
     @Override
-    public FileObject mainESVFile() {
+    public FileObject mainEsvFile() {
         return resolve(DIR_EDITOR + "/" + this.config.name() + ".main.esv");
     }
 

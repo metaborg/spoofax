@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.project.settings;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.spoofax.core.project.configuration.Format;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 
 /**
  * Spoofax-specific settings for a project.

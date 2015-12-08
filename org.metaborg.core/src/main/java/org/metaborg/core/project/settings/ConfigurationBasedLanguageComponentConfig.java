@@ -4,6 +4,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.project.configuration.ILanguageComponentConfig;
 
 import java.util.Collection;
 

@@ -8,6 +8,8 @@ import org.metaborg.core.project.ILanguageSpecPaths;
  */
 public interface ISpoofaxLanguageSpecPaths extends ILanguageSpecPaths {
 
+    // TODO: Rename to ..Folder
+
     FileObject generatedSourceDirectory();
 
     FileObject iconsDirectory() ;
@@ -28,5 +30,5 @@ public interface ISpoofaxLanguageSpecPaths extends ILanguageSpecPaths {
 
     FileObject cacheDirectory();
 
-    FileObject mainESVFile();
+    FileObject mainEsvFile();
 }

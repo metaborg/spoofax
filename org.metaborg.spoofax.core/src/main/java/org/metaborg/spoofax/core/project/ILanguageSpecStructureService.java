@@ -1,12 +1,7 @@
 package org.metaborg.spoofax.core.project;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxLanguageSpecConfig;
-
-import static org.metaborg.spoofax.core.SpoofaxConstants.*;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_CACHE;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_EDITOR;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 
 /**
  * Service that provides the structure (folders and files) of a language specification.

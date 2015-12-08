@@ -1,15 +1,14 @@
-package org.metaborg.core.project.settings;
+package org.metaborg.core.project.configuration;
 
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import java.util.Collection;
 
 /**
- * Configuration of a language specification.
+ * Configuration of a language component.
  */
-public interface ILanguageSpecConfig {
+public interface ILanguageComponentConfig {
 
     /**
      * Gets the language identifier.
@@ -21,7 +20,7 @@ public interface ILanguageSpecConfig {
     /**
      * Gets the language name.
      *
-     * @return The language name.
+     * @return The name.
      */
     String name();
 
@@ -38,19 +37,5 @@ public interface ILanguageSpecConfig {
      * @return The runtime dependency identifiers.
      */
     Collection<LanguageIdentifier> runtimeDependencies();
-
-    /**
-     * Gets the language contributions.
-     *
-     * @return The language contributions.
-     */
-    Collection<LanguageContributionIdentifier> languageContributions();
-
-    /**
-     * Gets a sequence of languages whose errors are ignored.
-     *
-     * @return The pardoned languages.
-     */
-    Collection<String> pardonedLanguages();
 
 }

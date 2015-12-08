@@ -5,8 +5,8 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.ILanguageSpecPathsService;
-import org.metaborg.core.project.settings.ILanguageSpecConfigService;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxLanguageSpecConfig;
+import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 
 import java.io.IOException;
 

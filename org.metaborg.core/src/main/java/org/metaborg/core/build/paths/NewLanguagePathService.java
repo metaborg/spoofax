@@ -1,8 +1,8 @@
 package org.metaborg.core.build.paths;
 
-import java.util.Collection;
-import java.util.Set;
-
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageIdentifierService;
@@ -14,22 +14,19 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import java.util.Collection;
+import java.util.Set;
 
-/**
- * @deprecated Use {@link NewLanguagePathService} insetad.
- */
-public class LanguagePathService implements ILanguagePathService {
-    private static final ILogger logger = LoggerUtils.logger(LanguagePathService.class);
+@Deprecated
+public class NewLanguagePathService implements INewLanguagePathService {
+    private static final ILogger logger = LoggerUtils.logger(NewLanguagePathService.class);
 
     private final ILanguageIdentifierService languageIdentifierService;
     private final Set<ILanguagePathProvider> providers;
 
 
-    @Inject public LanguagePathService(ILanguageIdentifierService languageIdentifierService,
-        Set<ILanguagePathProvider> providers) {
+    @Inject public NewLanguagePathService(ILanguageIdentifierService languageIdentifierService,
+                                          Set<ILanguagePathProvider> providers) {
         this.languageIdentifierService = languageIdentifierService;
         this.providers = providers;
     }

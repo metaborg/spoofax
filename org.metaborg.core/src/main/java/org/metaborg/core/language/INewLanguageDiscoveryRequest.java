@@ -1,7 +1,7 @@
 package org.metaborg.core.language;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.settings.ILanguageComponentConfig;
+import org.metaborg.core.project.configuration.ILanguageComponentConfig;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

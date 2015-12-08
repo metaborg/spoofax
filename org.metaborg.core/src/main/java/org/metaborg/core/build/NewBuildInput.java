@@ -16,6 +16,7 @@ import java.util.Set;
  * 
  * @see BuildInputBuilder
  */
+@Deprecated
 public class NewBuildInput {
     /**
      * Build state with information about previous builds.

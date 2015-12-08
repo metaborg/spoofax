@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 /**
  * Service for getting a language specification.
  */
+@Deprecated
 public interface ILanguageSpecService {
 
     /**

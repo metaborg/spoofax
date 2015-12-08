@@ -5,14 +5,13 @@ import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.util.resource.ResourceUtils;
@@ -366,9 +365,9 @@ public class NewBuildInputBuilder {
      * Builds a build input object from the current state.
      * 
      * @throws MetaborgException
-     *             When {@link IDependencyService#compileDependencies(IProject)} throws.
+     *             When {@link INewDependencyService#compileDependencies} throws.
      */
-    public NewBuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService)
+    public BuildInput build(INewDependencyService dependencyService, ILanguagePathService languagePathService)
         throws MetaborgException {
         if(state == null) {
             state = new BuildState();
@@ -399,8 +398,8 @@ public class NewBuildInputBuilder {
             }
         }
 
-        final NewBuildInput input =
-            new NewBuildInput(state, this.languageSpec, sourceChanges, includePaths, new BuildOrder(languages), selector, analyze,
+        final BuildInput input =
+            new BuildInput(state, this.languageSpec, sourceChanges, includePaths, new BuildOrder(languages), selector, analyze,
                 analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;

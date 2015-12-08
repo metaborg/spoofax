@@ -6,6 +6,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.configuration.ILanguageComponentConfigService;
+import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 
 /**
  * Interface for getting project settings.

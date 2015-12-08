@@ -1,11 +1,5 @@
 package org.metaborg.spoofax.core.project.settings;
 
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.settings.ILanguageSpecConfig;
-import org.metaborg.core.project.settings.ILanguageSpecConfigService;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
 //
 ///**
 // * Interface for getting Spoofax-specific project settings.

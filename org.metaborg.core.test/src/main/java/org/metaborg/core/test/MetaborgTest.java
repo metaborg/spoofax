@@ -70,7 +70,12 @@ public class MetaborgTest {
     }
 
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location,
-        LanguageContributionIdentifier implId, IFacet... facets) {
+        LanguageContributionIdentifier implId) {
+        return language(identifier, location, Iterables2.singleton(implId), new IFacet[0]);
+    }
+
+    protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location,
+                                          LanguageContributionIdentifier implId, IFacet... facets) {
         return language(identifier, location, Iterables2.singleton(implId), facets);
     }
 

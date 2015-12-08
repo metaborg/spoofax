@@ -1,19 +1,14 @@
-package org.metaborg.spoofax.core.project.settings;
+package org.metaborg.spoofax.core.project.configuration;
 
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.settings.ILanguageSpecConfig;
+import org.metaborg.core.project.configuration.ILanguageSpecConfig;
+import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 
 /**
  * Spoofax-specific configuration for a language specification.
+ *
+ * To create a new instance of this interface, use the {@link ILanguageSpecConfigBuilder} interface.
  */
 public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
-
-//    /**
-//     * Gets the location of the project root.
-//     *
-//     * @return The project root location.
-//     */
-//    FileObject location();
 
     /**
      * Gets the project artifact format.
@@ -32,7 +27,7 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     /**
      * Gets the Stratego arguments.
      *
-     * @return The stratego arguments.
+     * @return The Stratego arguments.
      */
     Iterable<String> strategoArgs();
 

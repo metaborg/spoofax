@@ -1,6 +1,5 @@
 package org.metaborg.core.build.dependency;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -8,8 +7,8 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.metaborg.core.MessageFormatter;
 import org.metaborg.core.language.*;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.settings.ILanguageSpecConfig;
-import org.metaborg.core.project.settings.ILanguageSpecConfigService;
+import org.metaborg.core.project.configuration.ILanguageSpecConfig;
+import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

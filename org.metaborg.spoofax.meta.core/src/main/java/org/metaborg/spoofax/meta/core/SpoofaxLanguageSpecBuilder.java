@@ -6,21 +6,17 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
 import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.BuildInputBuilder;
-import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.NewBuildInputBuilder;
 import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.core.project.settings.ILanguageSpecConfigService;
-import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
-import org.metaborg.core.project.settings.YamlConfigurationReaderWriter;
+import org.metaborg.core.project.ILanguageSpecPathsService;
+import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
-import org.metaborg.spoofax.core.project.ILanguageSpecStructureService;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.generator.language.NewProjectGenerator;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.generator.language.NewNewProjectGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
 import org.slf4j.Logger;
@@ -36,19 +32,19 @@ public class SpoofaxLanguageSpecBuilder {
     private final INewDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
-    private final ILanguageSpecStructureService languageSpecStructureService;
     private final ILanguageSpecConfigService<ISpoofaxLanguageSpecConfig> languageSpecConfigService;
+    private final ILanguageSpecPathsService<ISpoofaxLanguageSpecPaths> languageSpecPathsService;
 
     private final NewMetaBuildAntRunnerFactory antRunner;
 
 
     @Inject public SpoofaxLanguageSpecBuilder(INewDependencyService dependencyService, ILanguagePathService languagePathService,
-                                              ILanguageSpecStructureService languageSpecStructureService,
+                                              ILanguageSpecPathsService<ISpoofaxLanguageSpecPaths> languageSpecPathsService,
                                               ISpoofaxProcessorRunner runner, NewMetaBuildAntRunnerFactory antRunner,
                                               ILanguageSpecConfigService<ISpoofaxLanguageSpecConfig> languageSpecConfigService) {
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
-        this.languageSpecStructureService = languageSpecStructureService;
+        this.languageSpecPathsService = languageSpecPathsService;
         this.runner = runner;
         this.antRunner = antRunner;
         this.languageSpecConfigService = languageSpecConfigService;
@@ -56,8 +52,9 @@ public class SpoofaxLanguageSpecBuilder {
 
 
     public void initialize(LanguageSpecBuildInput input) throws FileSystemException {
-        ISpoofaxLanguageSpecPaths paths;
-        paths.outputDirectory().createFolder();
+        ISpoofaxLanguageSpecPaths paths = this.languageSpecPathsService.get(input.languageSpec);
+
+        paths.outputFolder().createFolder();
         paths.libDirectory().createFolder();
         paths.generatedSourceDirectory().createFolder();
         paths.generatedSyntaxDirectory().createFolder();
@@ -66,17 +63,18 @@ public class SpoofaxLanguageSpecBuilder {
     public void generateSources(LanguageSpecBuildInput input, ISpoofaxLanguageSpecPaths paths) throws Exception {
         log.debug("Generating sources for {}", input.languageSpec.location());
 
-        final NewProjectGenerator generator = new NewProjectGenerator(new LanguageSpecGeneratorScope(input.languageSpec.location(), input.config));
+        final NewNewProjectGenerator generator = new NewNewProjectGenerator(new LanguageSpecGeneratorScope(input.languageSpec.location(), input.config));
         generator.generateAll();
 
+        // Store the configuration.
         this.languageSpecConfigService.set(input.languageSpec, input.config);
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
-        final FileObject mainEsvFile = this.languageSpecStructureService.getMainESVFile(input.languageSpec.location(), input.config);
+        final FileObject mainEsvFile = paths.mainEsvFile();
         if(mainEsvFile.exists()) {
             // @formatter:off
             final BuildInput buildInput =
-                new BuildInputBuilder(input.languageSpec)
+                new NewBuildInputBuilder(input.languageSpec)
                 .addSource(mainEsvFile)
                 .addTransformGoal(new CompileGoal())
                 .build(dependencyService, languagePathService);
@@ -102,11 +100,11 @@ public class SpoofaxLanguageSpecBuilder {
     }
 
     public void clean(ISpoofaxLanguageSpecPaths paths) throws IOException {
-        log.debug("Cleaning {}", paths.root());
+        log.debug("Cleaning {}", paths.rootFolder());
 
         final AllFileSelector selector = new AllFileSelector();
         paths.javaTransDirectory().delete(selector);
-        paths.output().delete(selector);
+        paths.outputFolder().delete(selector);
         paths.generatedSourceDirectory().delete(selector);
         paths.cacheDirectory().delete(selector);
     }

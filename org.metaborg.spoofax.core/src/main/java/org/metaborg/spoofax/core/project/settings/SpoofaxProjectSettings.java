@@ -23,6 +23,7 @@ import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.settings.IProjectSettings;
 
 import com.google.common.collect.Lists;
+import org.metaborg.spoofax.core.project.configuration.Format;
 
 @Deprecated
 public class SpoofaxProjectSettings {

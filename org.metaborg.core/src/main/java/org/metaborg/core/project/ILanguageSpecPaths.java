@@ -12,13 +12,20 @@ public interface ILanguageSpecPaths {
      *
      * @return The root folder.
      */
-    FileObject root();
+    FileObject rootFolder();
 
     /**
      * Gets the output folder.
      *
      * @return The output folder.
      */
-    FileObject output();
+    FileObject outputFolder();
+
+    /**
+     * Gets the language specification's configuration file.
+     *
+     * @return The configuration file.
+     */
+    FileObject configFile();
 
 }

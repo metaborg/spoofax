@@ -2,22 +2,20 @@ package org.metaborg.core.project.settings;
 
 import com.google.inject.Inject;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.configuration.ConfigurationBasedConfigService;
+import org.metaborg.core.project.configuration.ILanguageComponentConfigService;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
  * Stores and retrieves configurations
  * using the {@link Configuration} class.
  */
-public final class ConfigurationBasedLanguageComponentConfigService<TConfig extends ConfigurationBasedLanguageComponentConfig> extends ConfigurationBasedConfigService<ILanguageComponent, TConfig> implements ILanguageComponentConfigService<TConfig> {
+public final class ConfigurationBasedLanguageXComponentConfigService<TConfig extends ConfigurationBasedLanguageComponentConfig> extends ConfigurationBasedConfigService<ILanguageComponent, TConfig> implements ILanguageComponentConfigService<TConfig> {
 
     @Inject
     public ConfigurationBasedLanguageComponentConfigService(
@@ -25,30 +23,14 @@ public final class ConfigurationBasedLanguageComponentConfigService<TConfig exte
             final IConfigurationBasedConfigFactory<TConfig> configFactory) {
         super(configurationReaderWriter, configFactory);
     }
-//
-//    @Override
-//    protected FileObject getConfigFile(final ILanguageComponent languageComponent) throws FileSystemException {
-//        return null;
-//    }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Nullable
-//    @Override
-//    public T get(final ILanguageComponent languageComponent) throws IOException,
-//            ConfigurationException {
-//        return readConfigFile(getConfigFile(languageComponent));
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Override
-//    public void set(final ILanguageComponent languageComponent, @Nullable final T config) throws
-//            IOException, ConfigurationException {
-//        writeConfigFile(getConfigFile(languageComponent), config);
-//    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TConfig get(final FileObject rootFolder) throws IOException, ConfigurationException {
+        return readConfigFile(getConfigFile(rootFolder));
+    }
 
     /**
      * Gets the configuration file for the specified language component.
@@ -59,6 +41,18 @@ public final class ConfigurationBasedLanguageComponentConfigService<TConfig exte
      */
     @Override
     protected FileObject getConfigFile(final ILanguageComponent languageComponent) throws FileSystemException {
-        return languageComponent.location().resolveFile("metaborg.yml");
+        return getConfigFile(languageComponent.location());
+    }
+
+    /**
+     * Gets the configuration file for the specified language root folder.
+     *
+     * @param rootFolder The language root folder.
+     * @return The configuration file.
+     * @throws FileSystemException
+     */
+    protected FileObject getConfigFile(final FileObject rootFolder) throws FileSystemException {
+        // TODO: Use ILanguageComponentPathsService to get path to config file.
+        return rootFolder.resolveFile("metaborg.yml");
     }
 }

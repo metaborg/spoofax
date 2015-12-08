@@ -1,16 +1,13 @@
 package org.metaborg.core.project.settings;
 
-import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 
-import javax.naming.OperationNotSupportedException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface

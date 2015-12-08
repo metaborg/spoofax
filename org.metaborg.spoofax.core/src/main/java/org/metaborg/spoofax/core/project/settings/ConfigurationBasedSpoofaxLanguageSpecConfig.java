@@ -5,6 +5,8 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.settings.ConfigurationBasedLanguageSpecConfig;
+import org.metaborg.spoofax.core.project.configuration.Format;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 
 import javax.annotation.Nullable;
 

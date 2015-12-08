@@ -9,7 +9,7 @@ import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.spoofax.core.project.configuration.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 
 /**
