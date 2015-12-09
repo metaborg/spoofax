@@ -1,12 +1,14 @@
 package org.metaborg.spoofax.core.project.configuration;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.configuration.ConfigurationBasedLanguageSpecConfigBuilder;
 import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.project.configuration.ConfigurationReaderWriter;
+import org.metaborg.spoofax.core.project.settings.Format;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
      *
      * @param configurationReaderWriter The configuration reader/writer.
      */
+    @Inject
     public ConfigurationBasedSpoofaxLanguageSpecConfigBuilder(final ConfigurationReaderWriter configurationReaderWriter) {
         super(configurationReaderWriter);
     }

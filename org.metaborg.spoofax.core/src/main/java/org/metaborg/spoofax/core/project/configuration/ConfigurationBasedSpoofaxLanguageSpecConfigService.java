@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.project.configuration;
 
+import com.google.inject.Inject;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
@@ -17,6 +18,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends Configur
 
     private final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder;
 
+    @Inject
     public ConfigurationBasedSpoofaxLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ILanguageSpecPathsService languageSpecPathsService, final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder) {
         super(configurationReaderWriter, null);
 

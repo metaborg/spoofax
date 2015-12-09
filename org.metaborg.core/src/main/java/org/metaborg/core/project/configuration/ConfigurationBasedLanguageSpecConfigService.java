@@ -1,5 +1,6 @@
 package org.metaborg.core.project.configuration;
 
+import com.google.inject.Inject;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
@@ -12,6 +13,7 @@ public class ConfigurationBasedLanguageSpecConfigService extends ConfigurationBa
 
     private final ILanguageSpecPathsService languageSpecPathsService;
 
+    @Inject
     public ConfigurationBasedLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ILanguageSpecPathsService languageSpecPathsService, final ConfigurationBasedLanguageSpecConfigBuilder configBuilder) {
         super(configurationReaderWriter, configBuilder);
 

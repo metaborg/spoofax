@@ -1,6 +1,7 @@
 package org.metaborg.core.project.configuration;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -28,6 +29,7 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
      *
      * @param configurationReaderWriter The configuration reader/writer.
      */
+    @Inject
     public ConfigurationBasedLanguageSpecConfigBuilder(final ConfigurationReaderWriter configurationReaderWriter) {
         this.configurationReaderWriter = configurationReaderWriter;
     }

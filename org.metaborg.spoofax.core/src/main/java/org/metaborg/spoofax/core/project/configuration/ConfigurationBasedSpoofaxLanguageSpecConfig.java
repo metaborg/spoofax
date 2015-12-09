@@ -7,7 +7,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.configuration.ConfigurationBasedLanguageSpecConfig;
-import org.metaborg.core.project.configuration.ConfigurationBasedLanguageSpecConfigBuilder;
+import org.metaborg.spoofax.core.project.settings.Format;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

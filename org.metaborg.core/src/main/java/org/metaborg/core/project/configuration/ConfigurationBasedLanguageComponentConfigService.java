@@ -1,5 +1,6 @@
 package org.metaborg.core.project.configuration;
 
+import com.google.inject.Inject;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
@@ -16,6 +17,7 @@ import java.io.IOException;
 
 public class ConfigurationBasedLanguageComponentConfigService extends ConfigurationBasedConfigService<ILanguageComponent, ILanguageComponentConfig> implements ILanguageComponentConfigService, ILanguageComponentConfigWriter {
 
+    @Inject
     public ConfigurationBasedLanguageComponentConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ConfigurationBasedLanguageComponentConfigBuilder configBuilder) {
         super(configurationReaderWriter, configBuilder);
     }
