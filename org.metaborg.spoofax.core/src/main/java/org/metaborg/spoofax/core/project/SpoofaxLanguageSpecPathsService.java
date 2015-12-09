@@ -7,15 +7,16 @@ import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.ILanguageSpecPathsService;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
 
 import java.io.IOException;
 
-public class SpoofaxLanguageSpecPathsService implements ILanguageSpecPathsService<ISpoofaxLanguageSpecPaths> {
+public class SpoofaxLanguageSpecPathsService implements ISpoofaxLanguageSpecPathsService {
 
-    private final ILanguageSpecConfigService<ISpoofaxLanguageSpecConfig> languageSpecConfigService;
+    private final ISpoofaxLanguageSpecConfigService languageSpecConfigService;
 
     @Inject
-    public SpoofaxLanguageSpecPathsService(final ILanguageSpecConfigService<ISpoofaxLanguageSpecConfig> languageSpecConfigService) {
+    public SpoofaxLanguageSpecPathsService(final ISpoofaxLanguageSpecConfigService languageSpecConfigService) {
         this.languageSpecConfigService = languageSpecConfigService;
     }
 
@@ -27,7 +28,7 @@ public class SpoofaxLanguageSpecPathsService implements ILanguageSpecPathsServic
         ISpoofaxLanguageSpecConfig config = null;
         try {
             config = this.languageSpecConfigService.get(languageSpec);
-        } catch (IOException | ConfigurationException e) {
+        } catch (IOException e) {
             throw new MetaborgRuntimeException(e);
         }
         return new SpoofaxLanguageSpecPaths(languageSpec.location(), config);

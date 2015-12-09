@@ -25,12 +25,12 @@ public final class DefaultDependencyService implements INewDependencyService {
     private static final Logger logger = LoggerFactory.getLogger(DefaultDependencyService.class);
 
     private final ILanguageService languageService;
-    private final ILanguageSpecConfigService<ILanguageSpecConfig> languageSpecConfigService;
+    private final ILanguageSpecConfigService languageSpecConfigService;
 
     @Inject
     public DefaultDependencyService(
             ILanguageService languageService,
-            ILanguageSpecConfigService<ILanguageSpecConfig> languageSpecConfigService) {
+            ILanguageSpecConfigService languageSpecConfigService) {
         this.languageService = languageService;
         this.languageSpecConfigService = languageSpecConfigService;
     }
@@ -139,7 +139,7 @@ public final class DefaultDependencyService implements INewDependencyService {
         ILanguageSpecConfig config = null;
         try {
             config = this.languageSpecConfigService.get(languageSpec);
-        } catch (IOException | ConfigurationException e) {
+        } catch (IOException e) {
             logger.error("Exception while retrieving configuration of {}.", languageSpec, e);
         }
         return config;

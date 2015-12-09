@@ -3,6 +3,8 @@ package org.metaborg.spoofax.core.project.configuration;
 import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 
+import javax.annotation.Nullable;
+
 /**
  * Spoofax-specific configuration for a language specification.
  *
@@ -36,6 +38,7 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      *
      * @return The external def.
      */
+    @Nullable
     String externalDef();
 
     /**
@@ -43,6 +46,7 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      *
      * @return The external JAR.
      */
+    @Nullable
     String externalJar();
 
     /**
@@ -50,6 +54,7 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      *
      * @return The external JAR flags.
      */
+    @Nullable
     String externalJarFlags();
 
     /**

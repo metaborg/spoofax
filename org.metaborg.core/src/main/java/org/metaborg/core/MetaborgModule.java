@@ -86,7 +86,8 @@ public class MetaborgModule extends AbstractModule {
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
         bindProjectSettings();
-        bindConfig();
+        bindLanguageSpecConfig();
+        bindLanguageComponentConfig();
         bindConfigMisc();
         bindDependency();
         bindSourceText();
@@ -152,25 +153,26 @@ public class MetaborgModule extends AbstractModule {
 
     }
 
-    protected void bindConfig() {
-        bind(new TypeLiteral<ILanguageComponentConfigService<ILanguageComponentConfig>>() {})
-                .to(ConfigurationBasedLanguageComponentConfigService.class)
-                .in(Singleton.class);
-//
-//        bind(new TypeLiteral<ILanguageComponentConfigService<? extends ILanguageComponentConfig>>() {})
-//                .to(new TypeLiteral<ConfigurationBasedLanguageComponentConfigService<ConfigurationBasedLanguageComponentConfig>>() {})
-//                .in(Singleton.class);
-//        bind(new TypeLiteral<ILanguageSpecConfigService<? extends ILanguageSpecConfig>>() {})
-//                .to(new TypeLiteral<ConfigurationBasedLanguageSpecConfigService<ConfigurationBasedLanguageSpecConfig>>() {})
-//                .in(Singleton.class);
+    protected void bindLanguageSpecConfig() {
+        bind(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
+        bind(ILanguageSpecConfigService.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
+        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
+
+        bind(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
+        bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
+    }
+
+    protected void bindLanguageComponentConfig() {
+        bind(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
+        bind(ILanguageComponentConfigService.class).to(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
+        bind(ILanguageComponentConfigWriter.class).to(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
+
+        bind(ConfigurationBasedLanguageComponentConfigBuilder.class).in(Singleton.class);
+        bind(ILanguageComponentConfigBuilder.class).to(ConfigurationBasedLanguageComponentConfigBuilder.class).in(Singleton.class);
     }
 
     protected void bindConfigMisc() {
-        bind(YamlConfigurationReaderWriter.class).in(Singleton.class);
-        bind(new TypeLiteral<IConfigurationBasedConfigFactory<ConfigurationBasedLanguageComponentConfig>>(){})
-                .to(ConfigurationBasedLanguageComponentConfigFactory.class).in(Singleton.class);
-        bind(new TypeLiteral<IConfigurationBasedConfigFactory<ConfigurationBasedLanguageSpecConfig>>(){})
-                .to(ConfigurationBasedLanguageSpecConfigFactory.class).in(Singleton.class);
+        bind(ConfigurationReaderWriter.class).to(YamlConfigurationReaderWriter.class).in(Singleton.class);
     }
 
     protected void bindDependency() {

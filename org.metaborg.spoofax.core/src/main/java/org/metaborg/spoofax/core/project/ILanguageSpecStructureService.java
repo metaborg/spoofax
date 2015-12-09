@@ -6,6 +6,7 @@ import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfi
 /**
  * Service that provides the structure (folders and files) of a language specification.
  */
+@Deprecated
 public interface ILanguageSpecStructureService {
 
 

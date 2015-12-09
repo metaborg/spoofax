@@ -1,4 +1,4 @@
-package org.metaborg.core.project.settings;
+package org.metaborg.core.project.configuration;
 
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -12,9 +12,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Reads/writes configurations in YAML files.
+ * Reads, writes, and creates configurations Apache Commons {@link HierarchicalConfiguration} objects.
  */
-public class YamlConfigurationReaderWriter {
+public abstract class ConfigurationReaderWriter {
 
     private static final Charset DefaultCharset = StandardCharsets.UTF_8;
 
@@ -98,10 +98,6 @@ public class YamlConfigurationReaderWriter {
      * @param sourceConfiguration The source configuration; or <code>null</code>.
      * @return The created configuration object.
      */
-    private JacksonConfiguration createConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration) {
-        JacksonConfiguration config = new YamlConfiguration(sourceConfiguration);
-        config.setConversionHandler(new MetaborgConversionHandler());
-        return config;
-    }
+    public abstract JacksonConfiguration createConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration);
 
 }

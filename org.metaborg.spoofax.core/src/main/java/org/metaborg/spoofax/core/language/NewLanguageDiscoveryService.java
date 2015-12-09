@@ -62,7 +62,7 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
     private static final ILogger logger = LoggerUtils.logger(NewLanguageDiscoveryService.class);
 
     private final ILanguageService languageService;
-    private final ILanguageComponentConfigService<ILanguageComponentConfig> componentConfigService;
+    private final ILanguageComponentConfigService componentConfigService;
     private final IProjectSettingsService projectSettingsService;
     private final ITermFactoryService termFactoryService;
     private final Map<String, IContextFactory> contextFactories;
@@ -71,7 +71,7 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
 
 
     @Inject public NewLanguageDiscoveryService(ILanguageService languageService,
-                                               ILanguageComponentConfigService<ILanguageComponentConfig> componentConfigService,
+                                               ILanguageComponentConfigService componentConfigService,
                                                IProjectSettingsService projectSettingsService, ITermFactoryService termFactoryService,
                                                Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
                                                Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
@@ -132,7 +132,7 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
             ILanguageComponentConfig config = null;
             try {
                 config = this.componentConfigService.get(languageLocation);
-            } catch (IOException | ConfigurationException e) {
+            } catch (IOException e) {
                 exceptions.add(e);
             }
             if(config == null) {

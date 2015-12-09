@@ -3,9 +3,11 @@ package org.metaborg.core.project.configuration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.settings.YamlConfigurationReaderWriter;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.IObjectBuilder;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -14,93 +16,101 @@ import java.io.IOException;
  * Stores and retrieves configurations
  * using the {@link Configuration} class.
  */
-public abstract class ConfigurationBasedConfigService {
+public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
 
-    private final YamlConfigurationReaderWriter configurationReaderWriter;
-//    private final IConfigurationBasedConfigFactory<TConfig> configFactory;
+    private final ConfigurationReaderWriter configurationReaderWriter;
+    @Nullable private final IObjectBuilder<TConfig> configBuilder;
 
     /**
      * Initializes a new instance of the {@link ConfigurationBasedConfigService} class.
      *
      * @param configurationReaderWriter The configuration reader/writer.
-//     * @param configFactory The configuration factory.
      */
     protected ConfigurationBasedConfigService(
-            final YamlConfigurationReaderWriter configurationReaderWriter) {
-//            final IConfigurationBasedConfigFactory<TConfig> configFactory) {
+            final ConfigurationReaderWriter configurationReaderWriter,
+            @Nullable final IObjectBuilder<TConfig> configBuilder) {
         this.configurationReaderWriter = configurationReaderWriter;
-//        this.configFactory = configFactory;
+        this.configBuilder = configBuilder;
     }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Nullable
-//    @Override
-//    public TConfig get(final TSubject subject) throws IOException, ConfigurationException {
-//        return readConfigFile(getConfigFile(subject));
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Override
-//    public void set(final TSubject subject, @Nullable final TConfig configuration) throws IOException,
-//            ConfigurationException {
-//        writeConfigFile(getConfigFile(subject), configuration);
-//    }
-//
-//    /**
-//     * Gets the configuration file for the specified subject.
-//     *
-//     * @param subject The subject.
-//     * @return The configuration file.
-//     * @throws FileSystemException
-//     */
-//    protected abstract FileObject getConfigFile(TSubject subject) throws FileSystemException;
-//
-//    /**
-//     * Creates a new configuration with the specified properties.
-//     *
-//     * @param configuration The configuration that provides the properties; or <code>null</code>.
-//     * @return The created configuration.
-//     */
-//    protected TConfig createConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> configuration) {
-//        return this.configFactory.create(configuration);
-//    }
-//
-//    /**
-//     * Reads a configuration from a file.
-//     *
-//     * @param configFile The configuration file to read.
-//     * @return The read configuration; or <code>null</code> when the configuration could not be read.
-//     * @throws IOException
-//     * @throws ConfigurationException
-//     */
-//    @Nullable
-//    protected TConfig readConfigFile(final FileObject configFile) throws IOException,
-//            ConfigurationException {
-//        HierarchicalConfiguration<ImmutableNode> configuration = this.configurationReaderWriter.read(configFile);
-//        return createConfiguration(configuration);
-//    }
-//
-//    /**
-//     * Writes a configuration to a file.
-//     * @param configFile The configuration file to write to.
-//     * @param config The configuration to write; or <code>null</code> to delete the configuration file.
-//     * @throws IOException
-//     * @throws ConfigurationException
-//     */
-//    protected void writeConfigFile(final FileObject configFile, @Nullable final TConfig config) throws
-//            IOException, ConfigurationException {
-//
-//        if (config != null) {
-//            HierarchicalConfiguration<ImmutableNode> configuration = config.getConfiguration();
-//            this.configurationReaderWriter.write(configuration, configFile);
-//        } else {
-//            configFile.delete();
-//        }
-//    }
+    /**
+     * Gets the configuration for the given subject.
+     *
+     * @param subject The subject to get the configuration for.
+     * @return The configuration; or <code>null</code> when no configuration could be retrieved.
+     */
+    @Nullable
+    public TConfig get(TSubject subject) throws IOException {
+        return getFromConfigFile(getConfigFile(subject));
+    }
+
+    /**
+     * Gets the configuration from the given file.
+     *
+     * @param configFile The configuration file with the configuration.
+     * @return The configuration; or <code>null</code> when no configuration could be retrieved.
+     */
+    @Nullable
+    public TConfig getFromConfigFile(FileObject configFile) throws IOException {
+        HierarchicalConfiguration<ImmutableNode> configuration;
+        try {
+            configuration = readConfig(configFile);
+        } catch (ConfigurationException e) {
+            throw new ConfigurationRuntimeException(e);
+        }
+        return toConfig(configuration);
+    }
+
+    /**
+     * Writes the configuration for the given subject.
+     *
+     * @param subject The subject to set the configuration for.
+     * @param config The configuration; or <code>null</code> to remove an existing configuration.
+     */
+    public void write(TSubject subject, TConfig config) throws IOException {
+        FileObject configFile = getConfigFile(subject);
+        HierarchicalConfiguration<ImmutableNode> configuration = fromConfig(config);
+        try {
+            writeConfig(configFile, configuration);
+        } catch (ConfigurationException e) {
+            throw new ConfigurationRuntimeException(e);
+        }
+    }
+
+    /**
+     * Gets the configuration file for the specified subject.
+     *
+     * @param subject The subject.
+     * @return The configuration file.
+     * @throws FileSystemException
+     */
+    protected abstract FileObject getConfigFile(TSubject subject) throws FileSystemException;
+
+    /**
+     * Creates a new instance of the config type for the specified configuration.
+     *
+     * @param configuration The configuration.
+     */
+    protected abstract TConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration);
+
+    /**
+     * Creates a new hierarchical configuration for the specified config object.
+     *
+     * @param config The config object.
+     * @return The configuration.
+     */
+    protected HierarchicalConfiguration<ImmutableNode> fromConfig(TConfig config) {
+        if (!(config instanceof IConfigurationBasedConfig)) {
+
+            if (this.configBuilder == null)
+                throw new UnsupportedOperationException("Cannot create a Configuration for this object. Override fromConfig().");
+
+            this.configBuilder.reset();
+            this.configBuilder.copyFrom(config);
+            config = this.configBuilder.build();
+        }
+        return ((IConfigurationBasedConfig)config).getConfiguration();
+    }
 
     /**
      * Reads a configuration from a file.

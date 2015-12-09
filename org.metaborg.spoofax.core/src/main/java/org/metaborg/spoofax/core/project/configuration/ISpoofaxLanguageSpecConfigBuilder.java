@@ -1,37 +1,15 @@
 package org.metaborg.spoofax.core.project.configuration;
 
+import org.metaborg.core.IObjectBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
  */
-public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBuilder {
-
-    /**
-     * Builds the configuration.
-     *
-     * @return The built configuration.
-     * @throws IllegalStateException An error occurred while
-     *                               building the object.
-     */
-    ISpoofaxLanguageSpecConfig build() throws IllegalStateException;
-
-    /**
-     * Resets the values of this builder.
-     *
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder reset();
-
-    /**
-     * Copies the values from the specified configuration.
-     *
-     * @param config The configuration to copy values from.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig config);
+public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBuilder {//IObjectBuilder<ISpoofaxLanguageSpecConfig> {
 
     /**
      * Sets the language identifier.
@@ -122,28 +100,12 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder withFormat(Format format);
 
     /**
-     * Sets the SDF arguments.
-     *
-     * @param args An iterable of SDF arguments.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withSdfArgs(String args);
-
-    /**
-     * Sets the Stratego arguments.
-     *
-     * @param args The Stratego arguments.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withStrategoArgs(String args);
-
-    /**
      * Sets the external def.
      *
      * @param def The external def.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withExtenalDef(String def);
+    ISpoofaxLanguageSpecConfigBuilder withExternalDef(String def);
 
     /**
      * Sets the external JAR.
@@ -162,35 +124,21 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder withExternalJarFlags(String flags);
 
     /**
-     * Sets the Stratego name.
+     * Sets the SDF arguments.
      *
-     * @param name The Stratego name.
+     * @param args An iterable of SDF arguments.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withStrategoName(String name);
+    ISpoofaxLanguageSpecConfigBuilder withSdfArgs(Iterable<String> args);
 
     /**
-     * Sets the Java name.
+     * Sets the Stratego arguments.
      *
-     * @param name The Java name.
+     * @param args The Stratego arguments.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withJavaName(String name);
+    ISpoofaxLanguageSpecConfigBuilder withStrategoArgs(Iterable<String> args);
 
-    /**
-     * Sets the package name.
-     *
-     * @param name The package name.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withPackageName(String name);
 
-    /**
-     * Sets the package path.
-     *
-     * @param path The package path.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withPackagePath(String path);
 
 }

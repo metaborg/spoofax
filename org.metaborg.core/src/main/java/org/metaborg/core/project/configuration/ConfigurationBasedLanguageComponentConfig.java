@@ -1,15 +1,15 @@
-package org.metaborg.core.project.settings;
+package org.metaborg.core.project.configuration;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.configuration.ILanguageComponentConfig;
 
 import java.util.Collection;
 
 /**
- * An implementation of the {@link ILanguageComponentConfig} interface
+ * An implementation of the {@link ILanguageSpecConfig} interface
  * that is backed by an {@link ImmutableConfiguration} object.
  */
 public class ConfigurationBasedLanguageComponentConfig implements ILanguageComponentConfig, IConfigurationBasedConfig {
@@ -35,6 +35,27 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
      */
     public ConfigurationBasedLanguageComponentConfig(final HierarchicalConfiguration<ImmutableNode> configuration) {
         this.config = configuration;
+    }
+
+    /**
+     * Initializes a new instance of the {@link ConfigurationBasedLanguageComponentConfig} class.
+     *
+     * Use the {@link ConfigurationBasedLanguageSpecConfigBuilder} instead.
+     *
+     * @param configuration The configuration that provides some of the properties.
+     */
+    protected ConfigurationBasedLanguageComponentConfig(
+            final HierarchicalConfiguration<ImmutableNode> configuration,
+            final LanguageIdentifier identifier,
+            final String name,
+            final Collection<LanguageIdentifier> compileDependencies,
+            final Collection<LanguageIdentifier> runtimeDependencies
+    ) {
+        this(configuration);
+        configuration.setProperty(PROP_NAME, name);
+        configuration.setProperty(PROP_IDENTIFIER, identifier);
+        configuration.setProperty(PROP_COMPILE_DEPENDENCIES, compileDependencies);
+        configuration.setProperty(PROP_RUNTIME_DEPENDENCIES, runtimeDependencies);
     }
 
     /**

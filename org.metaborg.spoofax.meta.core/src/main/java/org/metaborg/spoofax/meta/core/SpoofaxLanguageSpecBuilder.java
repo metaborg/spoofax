@@ -15,7 +15,10 @@ import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.generator.language.NewNewProjectGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
@@ -32,22 +35,22 @@ public class SpoofaxLanguageSpecBuilder {
     private final INewDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
-    private final ILanguageSpecConfigService<ISpoofaxLanguageSpecConfig> languageSpecConfigService;
-    private final ILanguageSpecPathsService<ISpoofaxLanguageSpecPaths> languageSpecPathsService;
+    private final ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter;
+    private final ISpoofaxLanguageSpecPathsService languageSpecPathsService;
 
     private final NewMetaBuildAntRunnerFactory antRunner;
 
 
     @Inject public SpoofaxLanguageSpecBuilder(INewDependencyService dependencyService, ILanguagePathService languagePathService,
-                                              ILanguageSpecPathsService<ISpoofaxLanguageSpecPaths> languageSpecPathsService,
+                                              ISpoofaxLanguageSpecPathsService languageSpecPathsService,
                                               ISpoofaxProcessorRunner runner, NewMetaBuildAntRunnerFactory antRunner,
-                                              ILanguageSpecConfigService<ISpoofaxLanguageSpecConfig> languageSpecConfigService) {
+                                              ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter) {
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
         this.languageSpecPathsService = languageSpecPathsService;
         this.runner = runner;
         this.antRunner = antRunner;
-        this.languageSpecConfigService = languageSpecConfigService;
+        this.languageSpecConfigWriter = languageSpecConfigWriter;
     }
 
 
@@ -67,7 +70,7 @@ public class SpoofaxLanguageSpecBuilder {
         generator.generateAll();
 
         // Store the configuration.
-        this.languageSpecConfigService.set(input.languageSpec, input.config);
+        this.languageSpecConfigWriter.write(input.languageSpec, input.config);
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
         final FileObject mainEsvFile = paths.mainEsvFile();

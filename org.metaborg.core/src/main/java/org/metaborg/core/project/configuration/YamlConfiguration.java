@@ -1,6 +1,5 @@
-package org.metaborg.core.project.settings;
+package org.metaborg.core.project.configuration;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;

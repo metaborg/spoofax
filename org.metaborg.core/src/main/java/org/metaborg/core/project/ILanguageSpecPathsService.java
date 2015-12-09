@@ -3,7 +3,7 @@ package org.metaborg.core.project;
 /**
  * Service for getting information about a language specification's content paths.
  */
-public interface ILanguageSpecPathsService<T extends ILanguageSpecPaths> {
+public interface ILanguageSpecPathsService {
 
     /**
      * Gets language specification paths for the specified language specification.
@@ -11,6 +11,6 @@ public interface ILanguageSpecPathsService<T extends ILanguageSpecPaths> {
      * @param languageSpec The language specification.
      * @return The language specification paths.
      */
-    T get(ILanguageSpec languageSpec);
+    ILanguageSpecPaths get(ILanguageSpec languageSpec);
 
 }

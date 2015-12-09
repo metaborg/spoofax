@@ -1,36 +1,13 @@
 package org.metaborg.core.project.configuration;
 
+import org.metaborg.core.IObjectBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 /**
  * Builder for {@link ILanguageSpecConfig} objects.
  */
-public interface ILanguageSpecConfigBuilder {
-
-    /**
-     * Builds the configuration.
-     *
-     * @return The built configuration.
-     * @throws IllegalStateException An error occurred while
-     *                               building the object.
-     */
-    ILanguageSpecConfig build() throws IllegalStateException;
-
-    /**
-     * Resets the values of this builder.
-     *
-     * @return This builder.
-     */
-    ILanguageSpecConfigBuilder reset();
-
-    /**
-     * Copies the values from the specified configuration.
-     *
-     * @param config The configuration to copy values from.
-     * @return This builder.
-     */
-    ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig config);
+public interface ILanguageSpecConfigBuilder extends IObjectBuilder<ILanguageSpecConfig> {
 
     /**
      * Sets the language identifier.
@@ -99,17 +76,17 @@ public interface ILanguageSpecConfigBuilder {
     /**
      * Sets the pardoned languages.
      *
-     * @param contributions The language contributions.
+     * @param languages The languages.
      * @return This builder.
      */
-    ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> contributions);
+    ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages);
 
     /**
      * Adds pardoned languages.
      *
-     * @param contributions The language contributions.
+     * @param languages The languages.
      * @return This builder.
      */
-    ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> contributions);
+    ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages);
 
 }

@@ -1,45 +1,22 @@
 package org.metaborg.core.project.configuration;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.settings.IConfigService;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
  * Stores and retrieves language specification configurations.
- *
- * @param <TConfig> The type of configuration.
  */
-public interface ILanguageSpecConfigService<TConfig extends ILanguageSpecConfig> {
+public interface ILanguageSpecConfigService {
 
     /**
-     * Gets the configuration for the given subject.
+     * Gets the configuration for the given language specification.
      *
-     * @param subject The subject to get the configuration for.
+     * @param languageSpec The language specification to get the configuration for.
      * @return The configuration; or <code>null</code> when no configuration could be retrieved.
      */
     @Nullable
-    TConfig get(ILanguageSpec subject) throws IOException, ConfigurationException;
-
-    /**
-     * Sets the configuration for the given subject.
-     *
-     * @param subject The subject to set the configuration for.
-     * @param config The configuration; or <code>null</code> to remove an existing configuration.
-     */
-    void set(ILanguageSpec subject, @Nullable ILanguageSpecConfig config) throws IOException,
-            ConfigurationException;
-
-//    /**
-//     * Gets the configuration for the language specification at the given location.
-//     *
-//     * @param location The language specification location.
-//     * @return The configuration; or <code>null</code> when no configuration could be retrieved.
-//     * @throws IOException
-//     * @throws ConfigurationException
-//     */
-//    TConfig get(FileObject location) throws IOException, ConfigurationException;
+    ILanguageSpecConfig get(ILanguageSpec languageSpec) throws IOException;
 
 }

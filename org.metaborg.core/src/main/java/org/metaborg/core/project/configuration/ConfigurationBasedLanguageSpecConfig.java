@@ -1,11 +1,10 @@
-package org.metaborg.core.project.settings;
+package org.metaborg.core.project.configuration;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 
 import java.util.Collection;
 
@@ -41,6 +40,30 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
         this.config = configuration;
     }
 
+    /**
+     * Initializes a new instance of the {@link ConfigurationBasedLanguageSpecConfig} class.
+     *
+     * Use the {@link ConfigurationBasedLanguageSpecConfigBuilder} instead.
+     *
+     * @param configuration The configuration that provides some of the properties.
+     */
+    protected ConfigurationBasedLanguageSpecConfig(
+            final HierarchicalConfiguration<ImmutableNode> configuration,
+            final LanguageIdentifier identifier,
+            final String name,
+            final Collection<LanguageIdentifier> compileDependencies,
+            final Collection<LanguageIdentifier> runtimeDependencies,
+            final Collection<LanguageContributionIdentifier> languageContributions,
+            final Collection<String> pardonedLanguages
+    ) {
+        this(configuration);
+        configuration.setProperty(PROP_NAME, name);
+        configuration.setProperty(PROP_IDENTIFIER, identifier);
+        configuration.setProperty(PROP_COMPILE_DEPENDENCIES, compileDependencies);
+        configuration.setProperty(PROP_RUNTIME_DEPENDENCIES, runtimeDependencies);
+        // TODO: languageContributions
+        configuration.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
+    }
 
     /**
      * {@inheritDoc}
