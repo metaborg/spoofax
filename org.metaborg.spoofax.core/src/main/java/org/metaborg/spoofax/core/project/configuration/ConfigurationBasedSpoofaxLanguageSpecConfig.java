@@ -11,6 +11,8 @@ import org.metaborg.spoofax.core.project.settings.Format;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An implementation of the {@link ISpoofaxLanguageSpecConfig} interface
@@ -69,14 +71,16 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
      * {@inheritDoc}
      */
     public Format format() {
-        return Format.valueOf(this.config.getString(PROP_FORMAT));
+        @Nullable Format value = Format.valueOf(this.config.getString(PROP_FORMAT));
+        return value != null ? value : Format.ctree;
     }
 
     /**
      * {@inheritDoc}
      */
     public Iterable<String> sdfArgs() {
-        return this.config.getList(String.class, PROP_SDF_ARGS);
+        @Nullable final List<String> value = this.config.getList(String.class, PROP_SDF_ARGS);
+        return value != null ? value : Collections.<String>emptyList();
     }
 
     /**
@@ -91,7 +95,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
      * {@inheritDoc}
      */
     public Iterable<String> strategoArgs() {
-        return this.config.getList(String.class, PROP_STRATEGO_ARGS);
+        @Nullable final List<String> value = this.config.getList(String.class, PROP_STRATEGO_ARGS);
+        return value != null ? value : Collections.<String>emptyList();
     }
 
     /**

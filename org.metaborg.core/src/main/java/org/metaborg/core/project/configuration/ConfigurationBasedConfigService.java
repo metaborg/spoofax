@@ -19,7 +19,6 @@ import java.io.IOException;
 public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
 
     private final ConfigurationReaderWriter configurationReaderWriter;
-    @Nullable private final IObjectBuilder<TConfig> configBuilder;
 
     /**
      * Initializes a new instance of the {@link ConfigurationBasedConfigService} class.
@@ -27,10 +26,8 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      * @param configurationReaderWriter The configuration reader/writer.
      */
     protected ConfigurationBasedConfigService(
-            final ConfigurationReaderWriter configurationReaderWriter,
-            @Nullable final IObjectBuilder<TConfig> configBuilder) {
+            final ConfigurationReaderWriter configurationReaderWriter) {
         this.configurationReaderWriter = configurationReaderWriter;
-        this.configBuilder = configBuilder;
     }
 
     /**
@@ -99,18 +96,7 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      * @param config The config object.
      * @return The configuration.
      */
-    protected HierarchicalConfiguration<ImmutableNode> fromConfig(TConfig config) {
-        if (!(config instanceof IConfigurationBasedConfig)) {
-
-            if (this.configBuilder == null)
-                throw new UnsupportedOperationException("Cannot create a Configuration for this object. Override fromConfig().");
-
-            this.configBuilder.reset();
-            this.configBuilder.copyFrom(config);
-            config = this.configBuilder.build();
-        }
-        return ((IConfigurationBasedConfig)config).getConfiguration();
-    }
+    protected abstract HierarchicalConfiguration<ImmutableNode> fromConfig(TConfig config);
 
     /**
      * Reads a configuration from a file.

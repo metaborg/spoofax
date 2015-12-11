@@ -15,12 +15,11 @@ import org.metaborg.core.project.configuration.ConfigurationReaderWriter;
 public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends ConfigurationBasedConfigService<ILanguageSpec, ISpoofaxLanguageSpecConfig> implements ISpoofaxLanguageSpecConfigService, ISpoofaxLanguageSpecConfigWriter {
 
     private final ILanguageSpecPathsService languageSpecPathsService;
-
     private final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder;
 
     @Inject
     public ConfigurationBasedSpoofaxLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ILanguageSpecPathsService languageSpecPathsService, final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder) {
-        super(configurationReaderWriter, null);
+        super(configurationReaderWriter);
 
         this.languageSpecPathsService = languageSpecPathsService;
         this.configBuilder = configBuilder;

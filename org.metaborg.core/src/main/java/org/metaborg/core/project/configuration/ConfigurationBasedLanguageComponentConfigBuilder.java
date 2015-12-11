@@ -86,22 +86,26 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
      * {@inheritDoc}
      */
     @Override
-    public void reset() {
+    public ILanguageComponentConfigBuilder reset() {
         this.identifier = null;
         this.name = null;
         this.compileDependencies.clear();
         this.runtimeDependencies.clear();
+
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void copyFrom(ILanguageComponentConfig config) {
+    public ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig config) {
         withIdentifier(config.identifier());
         withName(config.name());
         withCompileDependencies(config.compileDependencies());
         withRuntimeDependencies(config.runtimeDependencies());
+
+        return this;
     }
 
     /**

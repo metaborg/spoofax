@@ -20,7 +20,7 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
     /**
      * The version of a baseline language.
      */
-    public static final LanguageVersion BaselineVersion = new LanguageVersion(0, 0, 0, "");
+    public static final LanguageVersion BASELINE_VERSION = new LanguageVersion(0, 0, 0, "");
 
     private final int major;
     private final int minor;

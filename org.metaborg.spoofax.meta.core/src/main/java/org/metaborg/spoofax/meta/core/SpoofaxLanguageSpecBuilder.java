@@ -10,16 +10,12 @@ import org.metaborg.core.build.NewBuildInputBuilder;
 import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.core.project.ILanguageSpecPathsService;
-import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
-import org.metaborg.spoofax.generator.language.NewNewProjectGenerator;
+import org.metaborg.spoofax.generator.language.NewLanguageSpecGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
 import org.slf4j.Logger;
@@ -66,7 +62,7 @@ public class SpoofaxLanguageSpecBuilder {
     public void generateSources(LanguageSpecBuildInput input, ISpoofaxLanguageSpecPaths paths) throws Exception {
         log.debug("Generating sources for {}", input.languageSpec.location());
 
-        final NewNewProjectGenerator generator = new NewNewProjectGenerator(new LanguageSpecGeneratorScope(input.languageSpec.location(), input.config));
+        final NewLanguageSpecGenerator generator = new NewLanguageSpecGenerator(new LanguageSpecGeneratorScope(input.languageSpec.location(), input.config));
         generator.generateAll();
 
         // Store the configuration.

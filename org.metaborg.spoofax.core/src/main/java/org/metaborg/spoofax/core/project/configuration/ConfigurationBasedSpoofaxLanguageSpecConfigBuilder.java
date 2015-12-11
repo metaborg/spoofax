@@ -75,7 +75,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
      * {@inheritDoc}
      */
     @Override
-    public void reset() {
+    public ISpoofaxLanguageSpecConfigBuilder reset() {
         super.reset();
 
         this.format = null;
@@ -84,12 +84,14 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
         this.externalDef = null;
         this.externalJar = null;
         this.externalJarFlags = null;
+
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public void copyFrom(ISpoofaxLanguageSpecConfig config) {
+    public ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig config) {
         super.copyFrom(config);
 
         withFormat(config.format());
@@ -98,6 +100,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
         withExternalJarFlags(config.externalJarFlags());
         withSdfArgs(config.sdfArgs());
         withStrategoArgs(config.strategoArgs());
+
+        return this;
     }
 
     /**

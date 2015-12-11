@@ -6,7 +6,10 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface
@@ -14,7 +17,7 @@ import java.util.Collection;
  */
 public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig, IConfigurationBasedConfig {
 
-    private static final String PROP_IDENTIFIER = "identifier";
+    private static final String PROP_IDENTIFIER = "id";
     private static final String PROP_NAME = "name";
     private static final String PROP_COMPILE_DEPENDENCIES = "compileDependencies";
     private static final String PROP_RUNTIME_DEPENDENCIES = "runtimeDependencies";
@@ -69,14 +72,16 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
      * {@inheritDoc}
      */
     @Override public LanguageIdentifier identifier() {
-        return this.config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
+        @Nullable final LanguageIdentifier value = this.config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
+        return value != null ? value : LanguageIdentifier.EMPTY;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public String name() {
-        return this.config.getString(PROP_NAME);
+        @Nullable final String value = this.config.getString(PROP_NAME);
+        return value != null ? value : "";
     }
 
     /**
@@ -84,14 +89,16 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
      */
     @Override
     public Collection<LanguageIdentifier> compileDependencies() {
-        return this.config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
+        @Nullable final List<LanguageIdentifier> value = this.config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
+        return value != null ? value : Collections.<LanguageIdentifier>emptyList();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public Collection<LanguageIdentifier> runtimeDependencies() {
-        return this.config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);
+        @Nullable final List<LanguageIdentifier> value = this.config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);
+        return value != null ? value : Collections.<LanguageIdentifier>emptyList();
     }
 
     /**
@@ -99,7 +106,7 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
      */
     @Override public Collection<LanguageContributionIdentifier> languageContributions() {
         // TODO: Implement!
-        throw new UnsupportedOperationException();
+        return Collections.emptyList();
     }
 
     /**
@@ -107,7 +114,8 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
      */
     @Override
     public Collection<String> pardonedLanguages() {
-        return this.config.getList(String.class, PROP_PARDONED_LANGUAGES);
+        @Nullable final List<String> value = this.config.getList(String.class, PROP_PARDONED_LANGUAGES);
+        return value != null ? value : Collections.<String>emptyList();
     }
 
 }

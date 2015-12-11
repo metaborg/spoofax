@@ -17,9 +17,12 @@ import java.io.IOException;
 
 public class ConfigurationBasedLanguageComponentConfigService extends ConfigurationBasedConfigService<ILanguageComponent, ILanguageComponentConfig> implements ILanguageComponentConfigService, ILanguageComponentConfigWriter {
 
+    private final ConfigurationBasedLanguageComponentConfigBuilder configBuilder;
+
     @Inject
     public ConfigurationBasedLanguageComponentConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ConfigurationBasedLanguageComponentConfigBuilder configBuilder) {
-        super(configurationReaderWriter, configBuilder);
+        super(configurationReaderWriter);
+        this.configBuilder = configBuilder;
     }
 
     /**
@@ -47,6 +50,19 @@ public class ConfigurationBasedLanguageComponentConfigService extends Configurat
     @Override
     protected ILanguageComponentConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
         return new ConfigurationBasedLanguageComponentConfig(configuration);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected HierarchicalConfiguration<ImmutableNode> fromConfig(ILanguageComponentConfig config) {
+        if (!(config instanceof IConfigurationBasedConfig)) {
+            this.configBuilder.reset();
+            this.configBuilder.copyFrom(config);
+            config = this.configBuilder.build();
+        }
+        return ((IConfigurationBasedConfig)config).getConfiguration();
     }
 
     /**

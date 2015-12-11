@@ -90,26 +90,30 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
      * {@inheritDoc}
      */
     @Override
-    public void reset() {
+    public ILanguageSpecConfigBuilder reset() {
         this.identifier = null;
         this.name = null;
         this.compileDependencies.clear();
         this.runtimeDependencies.clear();
         this.languageContributions.clear();
         this.pardonedLanguages.clear();
+
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void copyFrom(ILanguageSpecConfig config) {
+    public ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig config) {
         withIdentifier(config.identifier());
         withName(config.name());
         withCompileDependencies(config.compileDependencies());
         withRuntimeDependencies(config.runtimeDependencies());
         withLanguageContributions(config.languageContributions());
         withPardonedLanguages(config.pardonedLanguages());
+
+        return this;
     }
 
     /**

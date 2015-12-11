@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.project.configuration;
 
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.project.settings.Format;
 
@@ -9,6 +10,37 @@ import org.metaborg.spoofax.core.project.settings.Format;
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
  */
 public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBuilder {//IObjectBuilder<ISpoofaxLanguageSpecConfig> {
+
+    /**
+     * Builds the object.
+     *
+     * @return The built object.
+     * @throws IllegalStateException The builder state is not valid,
+     * i.e. {@link #isValid()} returned <code>false</code>.
+     */
+    ISpoofaxLanguageSpecConfig build() throws IllegalStateException;
+
+    /**
+     * Determines whether the builder's state is valid.
+     *
+     * @return <code>true</code> when the builder's state is valid;
+     * otherwise, <code>false</code>.
+     */
+    boolean isValid();
+
+    /**
+     * Resets the values of this builder.
+     *
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder reset();
+
+    /**
+     * Copies the values from the specified object.
+     *
+     * @param obj The object to copy values from.
+     */
+    ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig obj);
 
     /**
      * Sets the language identifier.

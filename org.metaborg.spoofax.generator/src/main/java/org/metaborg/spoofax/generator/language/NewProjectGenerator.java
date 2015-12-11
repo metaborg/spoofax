@@ -12,7 +12,7 @@ import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
  * Generates language project files that are only generated once when a new language project is created. Files are not
  * specific to an IDE.
  *
- * @deprecated Use {@link NewNewProjectGenerator} instead.
+ * @deprecated Use {@link NewLanguageSpecGenerator} instead.
  */
 @Deprecated
 public class NewProjectGenerator extends BaseGenerator {

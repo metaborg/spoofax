@@ -12,20 +12,20 @@ import java.io.IOException;
  * Generates language project files that are only generated once when a new language project is created. Files are not
  * specific to an IDE.
  */
-public class NewNewProjectGenerator extends NewBaseGenerator {
+public class NewLanguageSpecGenerator extends NewBaseGenerator {
     private final String[] fileExtensions;
     private final AnalysisType analysisType;
 
 
-    public NewNewProjectGenerator(LanguageSpecGeneratorScope config) throws ProjectException {
+    public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config) throws ProjectException {
         this(config, new String[0]);
     }
 
-    public NewNewProjectGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions) throws ProjectException {
+    public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions) throws ProjectException {
         this(config, fileExtensions, AnalysisType.NaBL_TS);
     }
 
-    public NewNewProjectGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions, AnalysisType analysisType)
+    public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions, AnalysisType analysisType)
         throws ProjectException {
         super(config);
 
@@ -67,6 +67,7 @@ public class NewNewProjectGenerator extends NewBaseGenerator {
 
 
     public void generateAll() throws IOException {
+        generateConfig();
         generatePOM();
         generateGrammar();
         generateTrans();
@@ -76,6 +77,9 @@ public class NewNewProjectGenerator extends NewBaseGenerator {
         generateIgnoreFile();
     }
 
+    public void generateConfig() throws IOException {
+        writer.write("metaborg.yml", false);
+    }
 
     public void generatePOM() throws IOException {
         writer.write("pom.xml", false);

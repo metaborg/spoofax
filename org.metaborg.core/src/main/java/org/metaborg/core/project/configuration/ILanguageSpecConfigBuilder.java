@@ -7,7 +7,38 @@ import org.metaborg.core.language.LanguageIdentifier;
 /**
  * Builder for {@link ILanguageSpecConfig} objects.
  */
-public interface ILanguageSpecConfigBuilder extends IObjectBuilder<ILanguageSpecConfig> {
+public interface ILanguageSpecConfigBuilder { //extends IObjectBuilder<ILanguageSpecConfig> {
+
+    /**
+     * Builds the object.
+     *
+     * @return The built object.
+     * @throws IllegalStateException The builder state is not valid,
+     * i.e. {@link #isValid()} returned <code>false</code>.
+     */
+    ILanguageSpecConfig build() throws IllegalStateException;
+
+    /**
+     * Determines whether the builder's state is valid.
+     *
+     * @return <code>true</code> when the builder's state is valid;
+     * otherwise, <code>false</code>.
+     */
+    boolean isValid();
+
+    /**
+     * Resets the values of this builder.
+     *
+     * @return This builder.
+     */
+    ILanguageSpecConfigBuilder reset();
+
+    /**
+     * Copies the values from the specified object.
+     *
+     * @param obj The object to copy values from.
+     */
+    ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig obj);
 
     /**
      * Sets the language identifier.

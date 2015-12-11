@@ -15,6 +15,7 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier> {
     private static final Pattern idPattern = Pattern.compile("[A-Za-z0-9._\\-]+");
     public static final String errorDescription = "may only contain characters, numbers, and _ - .";
     private static final Pattern fullPattern = Pattern.compile("(?:(" + idPattern + "):)?(" + idPattern + ")(?::(.+))?");
+    public static final LanguageIdentifier EMPTY = new LanguageIdentifier("", "", LanguageVersion.BASELINE_VERSION);
 
     public final String groupId;
     public final String id;

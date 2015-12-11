@@ -6,7 +6,10 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface
@@ -62,14 +65,16 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
      * {@inheritDoc}
      */
     @Override public LanguageIdentifier identifier() {
-        return this.config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
+        @Nullable final LanguageIdentifier value = this.config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
+        return value != null ? value : LanguageIdentifier.EMPTY;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public String name() {
-        return this.config.getString(PROP_NAME);
+        @Nullable final String value = this.config.getString(PROP_NAME);
+        return value != null ? value : "";
     }
 
     /**
@@ -77,14 +82,16 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
      */
     @Override
     public Collection<LanguageIdentifier> compileDependencies() {
-        return this.config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
+        @Nullable final List<LanguageIdentifier> value = this.config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
+        return value != null ? value : Collections.<LanguageIdentifier>emptyList();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public Collection<LanguageIdentifier> runtimeDependencies() {
-        return this.config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);
+        @Nullable final List<LanguageIdentifier> value = this.config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);
+        return value != null ? value : Collections.<LanguageIdentifier>emptyList();
     }
 
 }

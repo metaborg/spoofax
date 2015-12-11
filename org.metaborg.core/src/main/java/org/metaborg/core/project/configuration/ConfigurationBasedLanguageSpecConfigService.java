@@ -12,12 +12,14 @@ import org.metaborg.core.project.ILanguageSpecPathsService;
 public class ConfigurationBasedLanguageSpecConfigService extends ConfigurationBasedConfigService<ILanguageSpec, ILanguageSpecConfig> implements ILanguageSpecConfigService, ILanguageSpecConfigWriter {
 
     private final ILanguageSpecPathsService languageSpecPathsService;
+    private final ConfigurationBasedLanguageSpecConfigBuilder configBuilder;
 
     @Inject
     public ConfigurationBasedLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ILanguageSpecPathsService languageSpecPathsService, final ConfigurationBasedLanguageSpecConfigBuilder configBuilder) {
-        super(configurationReaderWriter, configBuilder);
+        super(configurationReaderWriter);
 
         this.languageSpecPathsService = languageSpecPathsService;
+        this.configBuilder = configBuilder;
     }
 
     /**
@@ -34,6 +36,19 @@ public class ConfigurationBasedLanguageSpecConfigService extends ConfigurationBa
     @Override
     protected ILanguageSpecConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
         return new ConfigurationBasedLanguageSpecConfig(configuration);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected HierarchicalConfiguration<ImmutableNode> fromConfig(ILanguageSpecConfig config) {
+        if (!(config instanceof IConfigurationBasedConfig)) {
+            this.configBuilder.reset();
+            this.configBuilder.copyFrom(config);
+            config = this.configBuilder.build();
+        }
+        return ((IConfigurationBasedConfig)config).getConfiguration();
     }
 
 }

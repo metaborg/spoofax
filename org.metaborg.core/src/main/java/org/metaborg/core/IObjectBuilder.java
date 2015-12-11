@@ -3,6 +3,7 @@ package org.metaborg.core;
 /**
  * Builder of objects.
  */
+@Deprecated
 public interface IObjectBuilder<T> {
 
     /**
