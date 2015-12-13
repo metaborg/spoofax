@@ -20,8 +20,6 @@ import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.iterators.Iterables2;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class MetaborgTest {
