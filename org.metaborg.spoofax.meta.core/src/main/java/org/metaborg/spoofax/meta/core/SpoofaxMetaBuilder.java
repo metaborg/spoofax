@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -36,16 +37,17 @@ public class SpoofaxMetaBuilder {
     private final IDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
-
     private final MetaBuildAntRunnerFactory antRunner;
+    private final Set<IBuildStep> buildSteps;
 
 
     @Inject public SpoofaxMetaBuilder(IDependencyService dependencyService, ILanguagePathService languagePathService,
-        ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner) {
+        ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner, Set<IBuildStep> buildSteps) {
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
         this.runner = runner;
         this.antRunner = antRunner;
+        this.buildSteps = buildSteps;
     }
 
 
@@ -85,6 +87,10 @@ public class SpoofaxMetaBuilder {
     public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
         @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running pre-Java build for {}", input.project.location());
+        
+        for (IBuildStep buildStep : buildSteps) {
+        	buildStep.compilePreJava(input);
+        }
 
         final IAntRunner runner = antRunner.create(input, classpaths, listener);
         runner.execute("generate-sources", cancellationToken);
@@ -94,6 +100,10 @@ public class SpoofaxMetaBuilder {
         @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running post-Java build for {}", input.project.location());
 
+        for (IBuildStep buildStep : buildSteps) {
+        	buildStep.compilePostJava(input);
+        }
+        
         final IAntRunner runner = antRunner.create(input, classpaths, listener);
         runner.execute("package", cancellationToken);
     }

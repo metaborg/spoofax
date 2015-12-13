@@ -32,6 +32,7 @@ import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
+import org.metaborg.core.syntax.ParseFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
@@ -48,6 +49,7 @@ import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
+import org.metaborg.spoofax.core.syntax.ParseFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -246,6 +248,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         if(syntaxFacet != null) {
             request.addFacet(syntaxFacet);
+        }
+        
+        if(ParseFacetFromESV.hasParser(esvTerm)) {
+        	request.addFacet(ParseFacetFromESV.create(esvTerm));
+        } else {
+        	request.addFacet(new ParseFacet("jsglr"));
         }
 
         if(strategoRuntimeFacet != null) {

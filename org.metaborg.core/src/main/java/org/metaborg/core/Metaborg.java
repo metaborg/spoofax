@@ -1,13 +1,10 @@
 package org.metaborg.core;
 
-import java.util.Collection;
-
 import org.metaborg.core.plugin.IModulePluginLoader;
+import org.metaborg.core.plugin.IServiceModulePlugin;
+import org.metaborg.core.plugin.InjectorFactory;
+import org.metaborg.core.plugin.ServiceModulePluginLoader;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.inject.CreationException;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 
@@ -15,17 +12,68 @@ import com.google.inject.Module;
  * Facade for instantiating and accessing the Metaborg API.
  */
 public class Metaborg {
-    public final Injector injector;
+    private final Injector injector;
 
+
+    /**
+     * Instantiate the Metaborg API.
+     * 
+     * @param module
+     *            Metaborg module to use.
+     * @param loader
+     *            Module plugin loader to use.
+     * @throws MetaborgException
+     *             When loading plugins or dependency injection fails.
+     */
     public Metaborg(MetaborgModule module, IModulePluginLoader loader) throws MetaborgException {
-        final Iterable<Module> pluginModules = loader.modules();
-        final Collection<Module> modules = Lists.newLinkedList();
-        modules.add(module);
-        Iterables.addAll(modules, pluginModules);
-        try {
-            injector = Guice.createInjector(modules);
-        } catch(CreationException e) {
-            throw new MetaborgException("Could not instantiate Metaborg API because of dependency injection errors", e);
-        }
+        final Iterable<Module> modules = InjectorFactory.modules(module, loader);
+        this.injector = InjectorFactory.create(modules);
+    }
+
+    /**
+     * Instantiate the Metaborg API.
+     * 
+     * @param module
+     *            Metaborg module to use.
+     * @throws MetaborgException
+     *             When loading plugins or dependency injection fails.
+     */
+    public Metaborg(MetaborgModule module) throws MetaborgException {
+        this(module, defaultPluginLoader());
+    }
+    
+    /**
+     * Instantiate the Metaborg API.
+     * 
+     * @param loader
+     *            Module plugin loader to use.
+     * @throws MetaborgException
+     *             When loading plugins or dependency injection fails.
+     */
+    public Metaborg(IModulePluginLoader loader) throws MetaborgException {
+        this(defaultModule(), loader);
+    }
+
+    /**
+     * Instantiate the Metaborg API.
+     * 
+     * @throws MetaborgException
+     *             When loading plugins or dependency injection fails.
+     */
+    public Metaborg() throws MetaborgException {
+        this(defaultModule(), defaultPluginLoader());
+    }
+    
+    protected static MetaborgModule defaultModule() {
+        return new MetaborgModule();
+    }
+    
+    protected static IModulePluginLoader defaultPluginLoader() {
+        return new ServiceModulePluginLoader<>(IServiceModulePlugin.class);
+    }
+    
+    
+    public Injector injector() {
+        return injector;
     }
 }
