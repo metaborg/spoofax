@@ -5,6 +5,7 @@ import static org.metaborg.util.test.Assert2.*;
 
 import org.apache.commons.vfs2.FileObject;
 import org.junit.Test;
+import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.DescriptionFacet;
 import org.metaborg.core.language.FacetContribution;
@@ -24,10 +25,9 @@ import org.metaborg.util.observable.ITestableObserver;
 import org.metaborg.util.observable.TestableObserver;
 
 import com.google.common.collect.Iterables;
-import com.google.inject.AbstractModule;
 
 public class LanguageServiceTest extends MetaborgTest {
-    public LanguageServiceTest(AbstractModule module) {
+    public LanguageServiceTest(MetaborgModule module) {
         super(module);
     }
 

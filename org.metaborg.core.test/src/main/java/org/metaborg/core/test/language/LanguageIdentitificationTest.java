@@ -5,18 +5,17 @@ import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.vfs2.FileObject;
 import org.junit.Test;
+import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.test.MetaborgTest;
 
 import com.google.common.collect.Iterables;
-import com.google.inject.AbstractModule;
 
 public class LanguageIdentitificationTest extends MetaborgTest {
-    public LanguageIdentitificationTest(AbstractModule module) {
+    public LanguageIdentitificationTest(MetaborgModule module) {
         super(module);
-        // TODO Auto-generated constructor stub
     }
 
 

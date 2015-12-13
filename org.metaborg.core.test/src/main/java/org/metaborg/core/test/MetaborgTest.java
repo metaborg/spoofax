@@ -3,15 +3,18 @@ package org.metaborg.core.test;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.Before;
+import org.metaborg.core.Metaborg;
+import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.resource.IResourceService;
@@ -22,10 +25,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class MetaborgTest {
-    private final AbstractModule module;
+    private final MetaborgModule module;
 
     protected final String groupId = "org.metaborg";
 
+    protected Metaborg metaborg;
     protected Injector injector;
 
     protected IResourceService resourceService;
@@ -34,13 +38,14 @@ public class MetaborgTest {
     protected ILanguageIdentifierService languageIdentifierService;
 
 
-    public MetaborgTest(AbstractModule module) {
+    public MetaborgTest(MetaborgModule module) {
         this.module = module;
     }
 
 
-    @Before public void beforeTest() {
-        injector = Guice.createInjector(module);
+    @Before public void beforeTest() throws MetaborgException {
+        metaborg = new Metaborg(module);
+        injector = metaborg.injector();
 
         resourceService = injector.getInstance(IResourceService.class);
         languageService = injector.getInstance(ILanguageService.class);
