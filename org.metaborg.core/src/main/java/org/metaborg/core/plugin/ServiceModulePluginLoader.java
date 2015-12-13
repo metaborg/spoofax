@@ -12,12 +12,20 @@ import com.google.inject.Module;
 /**
  * Module plugin loader using Java's {@link ServiceLoader}.
  */
-public class ServiceModulePluginLoader implements IModulePluginLoader {
+public class ServiceModulePluginLoader<T extends IServiceModulePlugin> implements IModulePluginLoader {
+    private final Class<T> serviceClass;
+    
+    
+    public ServiceModulePluginLoader(Class<T> serviceClass) {
+        this.serviceClass = serviceClass;
+    }
+    
+    
     @Override public Iterable<Module> modules() throws MetaborgException {
         try {
-            final ServiceLoader<IServiceModulePlugin> modulePlugins = ServiceLoader.load(IServiceModulePlugin.class);
+            final ServiceLoader<T> modulePlugins = ServiceLoader.load(serviceClass);
             final Collection<Module> modules = Lists.newLinkedList();
-            for(IServiceModulePlugin plugin : modulePlugins) {
+            for(T plugin : modulePlugins) {
                 Iterables.addAll(modules, plugin.modules());
             }
             return modules;
