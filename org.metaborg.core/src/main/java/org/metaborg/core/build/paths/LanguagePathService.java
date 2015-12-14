@@ -18,9 +18,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-/**
- * @deprecated Use {@link NewLanguagePathService} insetad.
- */
 public class LanguagePathService implements ILanguagePathService {
     private static final ILogger logger = LoggerUtils.logger(LanguagePathService.class);
 

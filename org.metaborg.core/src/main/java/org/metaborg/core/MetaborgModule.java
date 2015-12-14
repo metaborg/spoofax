@@ -1,6 +1,5 @@
 package org.metaborg.core;
 
-import com.google.inject.TypeLiteral;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.core.analysis.AnalysisService;
 import org.metaborg.core.analysis.IAnalysisService;
@@ -113,7 +112,7 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindLanguagePath() {
         bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
-        bind(INewLanguagePathService.class).to(NewLanguagePathService.class).in(Singleton.class);
+//        bind(INewLanguagePathService.class).to(NewLanguagePathService.class).in(Singleton.class);
     }
 
     protected void bindLanguageSpecPath() {
@@ -124,8 +123,14 @@ public class MetaborgModule extends AbstractModule {
         binder.addBinding().to(DependencyPathProvider.class);
     }
 
+    /**
+     * Override this method to bind a specific language specification service.
+     */
     protected void bindLanguageSpec() {
-        bind(ILanguageSpecService.class).to(DefaultLanguageSpecService.class).in(Singleton.class);
+//        bind(ILanguageSpecService.class).to(DefaultLanguageSpecService.class).in(Singleton.class);
+
+        // This service is used to bridge between the old and the new configuration systems.
+        bind(ILanguageSpecService.class).to(LegacyLanguageSpecService.class).in(Singleton.class);
     }
 
     protected void bindContext() {
@@ -177,6 +182,7 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindDependency() {
         bind(IDependencyService.class).to(DependencyService.class).in(Singleton.class);
+//        bind(IDependencyService.class).to(LegacyDependencyService.class).in(Singleton.class);
         bind(INewDependencyService.class).to(DefaultDependencyService.class).in(Singleton.class);
     }
 

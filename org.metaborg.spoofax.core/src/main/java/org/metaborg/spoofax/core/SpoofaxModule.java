@@ -158,6 +158,7 @@ public class SpoofaxModule extends MetaborgModule {
         super.bindLanguage();
 
         bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
+//        bind(ILanguageDiscoveryService.class).to(LegacyLanguageDiscoveryService.class).in(Singleton.class);
         bind(INewLanguageDiscoveryService.class).to(NewLanguageDiscoveryService.class).in(Singleton.class);
 
         bind(IDialectService.class).to(DialectService.class).in(Singleton.class);

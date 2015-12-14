@@ -30,6 +30,7 @@ import com.google.inject.Inject;
  * Fluent interface for creating {@link BuildInput} objects.
  * 
  * @see BuildInput
+ * @deprecated Use {@link NewBuildInputBuilder} instead.
  */
 @Deprecated
 public class BuildInputBuilder {

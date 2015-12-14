@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 /**
  * The default implementation of the {@link ILanguageSpecService} interface.
  */
-@Deprecated
 public final class DefaultLanguageSpecService implements ILanguageSpecService {
 
     /**

@@ -1,4 +1,7 @@
-package org.metaborg.core.build;
+package org
+/**
+ * @deprecated Use {@link NewLanguagePathService} instead.
+ */.metaborg.core.build;
 
 import com.google.common.collect.*;
 import com.google.inject.Inject;

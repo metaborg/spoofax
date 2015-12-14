@@ -1,13 +1,11 @@
 package org.metaborg.core.project.configuration;
 
-import org.metaborg.core.IObjectBuilder;
-import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 /**
  * Builder for {@link ILanguageComponentConfig} objects.
  */
-public interface ILanguageComponentConfigBuilder { //extends IObjectBuilder<ILanguageComponentConfig> {
+public interface ILanguageComponentConfigBuilder {
 
     /**
      * Builds the object.

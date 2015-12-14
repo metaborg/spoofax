@@ -7,7 +7,6 @@ import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.IObjectBuilder;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

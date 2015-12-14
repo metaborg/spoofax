@@ -1,6 +1,5 @@
 package org.metaborg.core.project.configuration;
 
-import org.metaborg.core.IObjectBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
