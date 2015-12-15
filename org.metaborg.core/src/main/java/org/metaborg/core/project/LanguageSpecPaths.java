@@ -23,9 +23,6 @@ public abstract class LanguageSpecPaths implements ILanguageSpecPaths {
     @Override
     public abstract FileObject outputFolder();
 
-    @Override
-    public abstract FileObject configFile();
-
     /**
      * Resolves a path relative to the root folder.
      *

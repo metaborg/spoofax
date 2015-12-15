@@ -23,11 +23,6 @@ public class SpoofaxLanguageSpecPaths extends LanguageSpecPaths implements ISpoo
     }
 
     @Override
-    public FileObject configFile() {
-        return resolve(FILE_CONFIG);
-    }
-
-    @Override
     public FileObject generatedSourceDirectory() {
         return resolve(DIR_SRCGEN);
     }

@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.language;
 
+import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.*;
@@ -17,6 +18,7 @@ public class LegacyLanguageDiscoveryService implements ILanguageDiscoveryService
 
     private final INewLanguageDiscoveryService newLanguageDiscoveryService;
 
+    @Inject
     public LegacyLanguageDiscoveryService(final INewLanguageDiscoveryService newLanguageDiscoveryService) {
         this.newLanguageDiscoveryService = newLanguageDiscoveryService;
     }

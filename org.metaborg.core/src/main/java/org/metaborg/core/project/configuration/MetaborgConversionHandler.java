@@ -24,6 +24,9 @@ import org.metaborg.core.language.LanguageIdentifier;
     }
 
     private LanguageIdentifier convertToLanguageIdentifier(final Object src, final ConfigurationInterpolator ci) {
+        if (src == null)
+            return null;
+
         return LanguageIdentifier.parse(src.toString());
     }
 }

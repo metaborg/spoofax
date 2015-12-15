@@ -1,5 +1,6 @@
 package org.metaborg.core.project.configuration;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -17,7 +18,7 @@ import java.util.List;
  */
 public class ConfigurationBasedLanguageComponentConfig implements ILanguageComponentConfig, IConfigurationBasedConfig {
 
-    private static final String PROP_IDENTIFIER = "identifier";
+    private static final String PROP_IDENTIFIER = "id";
     private static final String PROP_NAME = "name";
     private static final String PROP_COMPILE_DEPENDENCIES = "compileDependencies";
     private static final String PROP_RUNTIME_DEPENDENCIES = "runtimeDependencies";
@@ -37,6 +38,8 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
      * @param configuration The configuration that provides the properties.
      */
     public ConfigurationBasedLanguageComponentConfig(final HierarchicalConfiguration<ImmutableNode> configuration) {
+        Preconditions.checkNotNull(configuration);
+
         this.config = configuration;
     }
 

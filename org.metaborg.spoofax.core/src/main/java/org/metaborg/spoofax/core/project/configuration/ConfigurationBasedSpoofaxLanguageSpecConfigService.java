@@ -14,14 +14,13 @@ import org.metaborg.core.project.configuration.ConfigurationReaderWriter;
 
 public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends ConfigurationBasedConfigService<ILanguageSpec, ISpoofaxLanguageSpecConfig> implements ISpoofaxLanguageSpecConfigService, ISpoofaxLanguageSpecConfigWriter {
 
-    private final ILanguageSpecPathsService languageSpecPathsService;
+    public static final String CONFIG_FILE = "metaborg.yml";
     private final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder;
 
     @Inject
-    public ConfigurationBasedSpoofaxLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ILanguageSpecPathsService languageSpecPathsService, final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder) {
+    public ConfigurationBasedSpoofaxLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder) {
         super(configurationReaderWriter);
 
-        this.languageSpecPathsService = languageSpecPathsService;
         this.configBuilder = configBuilder;
     }
 
@@ -30,7 +29,18 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends Configur
      */
     @Override
     protected FileObject getConfigFile(ILanguageSpec languageSpec) throws FileSystemException {
-        return this.languageSpecPathsService.get(languageSpec).configFile();
+        return getConfigFile(languageSpec.location());
+    }
+
+    /**
+     * Gets the configuration file for the specified root folder.
+     *
+     * @param rootFolder The root folder.
+     * @return The configuration file.
+     * @throws FileSystemException
+     */
+    private FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+        return rootFolder.resolveFile(CONFIG_FILE);
     }
 
     /**

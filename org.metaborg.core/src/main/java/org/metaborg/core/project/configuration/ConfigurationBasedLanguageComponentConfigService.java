@@ -17,6 +17,7 @@ import java.io.IOException;
 
 public class ConfigurationBasedLanguageComponentConfigService extends ConfigurationBasedConfigService<ILanguageComponent, ILanguageComponentConfig> implements ILanguageComponentConfigService, ILanguageComponentConfigWriter {
 
+    public static final String CONFIG_FILE = "metaborg.yml";
     private final ConfigurationBasedLanguageComponentConfigBuilder configBuilder;
 
     @Inject
@@ -41,7 +42,7 @@ public class ConfigurationBasedLanguageComponentConfigService extends Configurat
      * @throws FileSystemException
      */
     private FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
-        return rootFolder.resolveFile("metaborg.yml");
+        return rootFolder.resolveFile(CONFIG_FILE);
     }
 
     /**

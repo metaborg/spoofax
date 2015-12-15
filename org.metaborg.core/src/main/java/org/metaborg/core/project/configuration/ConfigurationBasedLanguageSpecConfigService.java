@@ -5,20 +5,20 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.ILanguageSpecPaths;
 import org.metaborg.core.project.ILanguageSpecPathsService;
 
 public class ConfigurationBasedLanguageSpecConfigService extends ConfigurationBasedConfigService<ILanguageSpec, ILanguageSpecConfig> implements ILanguageSpecConfigService, ILanguageSpecConfigWriter {
 
-    private final ILanguageSpecPathsService languageSpecPathsService;
+    public static final String CONFIG_FILE = "metaborg.yml";
     private final ConfigurationBasedLanguageSpecConfigBuilder configBuilder;
 
     @Inject
-    public ConfigurationBasedLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ILanguageSpecPathsService languageSpecPathsService, final ConfigurationBasedLanguageSpecConfigBuilder configBuilder) {
+    public ConfigurationBasedLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ConfigurationBasedLanguageSpecConfigBuilder configBuilder) {
         super(configurationReaderWriter);
 
-        this.languageSpecPathsService = languageSpecPathsService;
         this.configBuilder = configBuilder;
     }
 
@@ -27,7 +27,18 @@ public class ConfigurationBasedLanguageSpecConfigService extends ConfigurationBa
      */
     @Override
     protected FileObject getConfigFile(ILanguageSpec languageSpec) throws FileSystemException {
-        return this.languageSpecPathsService.get(languageSpec).configFile();
+        return getConfigFile(languageSpec.location());
+    }
+
+    /**
+     * Gets the configuration file for the specified root folder.
+     *
+     * @param rootFolder The root folder.
+     * @return The configuration file.
+     * @throws FileSystemException
+     */
+    private FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+        return rootFolder.resolveFile(CONFIG_FILE);
     }
 
     /**

@@ -54,7 +54,10 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
         } catch (ConfigurationException e) {
             throw new ConfigurationRuntimeException(e);
         }
-        return toConfig(configuration);
+        if (configuration != null)
+            return toConfig(configuration);
+        else
+            return null;
     }
 
     /**

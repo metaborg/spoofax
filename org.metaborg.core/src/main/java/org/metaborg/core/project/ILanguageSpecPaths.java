@@ -7,6 +7,9 @@ import org.apache.commons.vfs2.FileObject;
  */
 public interface ILanguageSpecPaths {
 
+    // NOTE: There is no getter for the configuration file
+    // as the ILanguageSpecPaths interface requires a configuration to begin with.
+
     /**
      * Gets the language specification's root folder.
      *
@@ -20,12 +23,5 @@ public interface ILanguageSpecPaths {
      * @return The output folder.
      */
     FileObject outputFolder();
-
-    /**
-     * Gets the language specification's configuration file.
-     *
-     * @return The configuration file.
-     */
-    FileObject configFile();
 
 }

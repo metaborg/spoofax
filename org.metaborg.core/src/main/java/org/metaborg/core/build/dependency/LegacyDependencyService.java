@@ -1,5 +1,6 @@
 package org.metaborg.core.build.dependency;
 
+import com.google.inject.Inject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.ILanguageSpecService;
@@ -16,6 +17,7 @@ public class LegacyDependencyService implements IDependencyService {
     private final INewDependencyService newDependencyService;
     private final ILanguageSpecService languageSpecService;
 
+    @Inject
     public LegacyDependencyService(final INewDependencyService newDependencyService, final ILanguageSpecService languageSpecService) {
         this.newDependencyService = newDependencyService;
         this.languageSpecService = languageSpecService;
