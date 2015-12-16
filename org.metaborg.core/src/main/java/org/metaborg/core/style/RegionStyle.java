@@ -7,10 +7,10 @@ import org.metaborg.core.source.ISourceRegion;
 public class RegionStyle<T> implements IRegionStyle<T> {
     private final ISourceRegion region;
     private final IStyle style;
-    @Nullable private final T fragment;
+    private final @Nullable T fragment;
 
 
-    public RegionStyle(T fragment, ISourceRegion region, IStyle style) {
+    public RegionStyle(ISourceRegion region, IStyle style, @Nullable T fragment) {
         this.fragment = fragment;
         this.region = region;
         this.style = style;

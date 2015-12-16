@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -9,31 +10,63 @@ import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
+import org.metaborg.core.build.BuildInput;
+import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.processing.ICancellationToken;
 import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
+import org.metaborg.core.transform.CompileGoal;
+import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.generator.ProjectGenerator;
+import org.metaborg.spoofax.generator.language.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
-import org.metaborg.spoofax.meta.core.ant.IAntRunner;
 import org.metaborg.util.file.FileAccess;
+import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sugarj.common.Log;
+
+import build.pluto.builder.BuildManagers;
+import build.pluto.builder.BuildRequest;
+import build.pluto.buildspoofax.SpoofaxContext;
+import build.pluto.buildspoofax.SpoofaxInput;
+import build.pluto.buildspoofax.builders.main.GenerateSourcesBuilder;
+import build.pluto.buildspoofax.builders.main.PackageBuilder;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
+/**
+ * @deprecated Use {@link SpoofaxLanguageSpecBuilder instead}.
+ */
+@Deprecated
 public class SpoofaxMetaBuilder {
     private static final Logger log = LoggerFactory.getLogger(SpoofaxMetaBuilder.class);
 
+    private final Injector injector;
+    private final IDependencyService dependencyService;
+    private final ILanguagePathService languagePathService;
+    private final ISpoofaxProcessorRunner runner;
     private final MetaBuildAntRunnerFactory antRunner;
+    private final Set<IBuildStep> buildSteps;
 
 
-    @Inject public SpoofaxMetaBuilder(MetaBuildAntRunnerFactory antRunner) {
+    @Inject public SpoofaxMetaBuilder(Injector injector, IDependencyService dependencyService,
+        ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner,
+        Set<IBuildStep> buildSteps) {
+        this.injector = injector;
+        this.dependencyService = dependencyService;
+        this.languagePathService = languagePathService;
+        this.runner = runner;
         this.antRunner = antRunner;
+        this.buildSteps = buildSteps;
     }
 
 
     public void initialize(MetaBuildInput input) throws FileSystemException {
         final SpoofaxProjectSettings settings = input.settings;
-        settings.getOutputDirectory().createFolder();
+        settings.getIncludeDirectory().createFolder();
         settings.getLibDirectory().createFolder();
         settings.getGenSourceDirectory().createFolder();
         settings.getGenSyntaxDirectory().createFolder();
@@ -41,7 +74,7 @@ public class SpoofaxMetaBuilder {
 
     public void generateSources(MetaBuildInput input, FileAccess access) throws Exception {
         log.debug("Generating sources for {}", input.project.location());
-        
+
         final ProjectGenerator generator = new ProjectGenerator(new GeneratorProjectSettings(input.settings), access);
         generator.generateAll();
 
@@ -50,29 +83,65 @@ public class SpoofaxMetaBuilder {
         settingsFile.createFile();
         YAMLProjectSettingsSerializer.write(settingsFile, input.settings.settings());
         access.addWrite(settingsFile);
+
+        // HACK: compile the main ESV file to make sure that packed.esv file is always available.
+        final FileObject mainEsvFile = input.settings.getMainESVFile();
+        if(mainEsvFile.exists()) {
+            // @formatter:off
+            final BuildInput buildInput =
+                new BuildInputBuilder(input.project)
+                .addSource(mainEsvFile)
+                .addTransformGoal(new CompileGoal())
+                .build(dependencyService, languagePathService);
+            // @formatter:on
+            runner.build(buildInput, null, null).schedule().block();
+        }
+        access.addWrite(mainEsvFile);
     }
 
-    public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
-        throws Exception {
+    public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
+        @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running pre-Java build for {}", input.project.location());
 
-        final IAntRunner runner = antRunner.create(input, classpaths, listener);
-        runner.execute("generate-sources");
+        for(IBuildStep buildStep : buildSteps) {
+            buildStep.compilePreJava(input);
+        }
+
+        // final IAntRunner runner = antRunner.create(input, classpaths, listener);
+        // runner.execute("generate-sources", cancellationToken);
+
+        if(SpoofaxContext.injector == null) {
+            SpoofaxContext.init(injector);
+        }
+        Log.log.setLoggingLevel(Log.ALWAYS);
+        BuildManagers.build(new BuildRequest<>(GenerateSourcesBuilder.factory, new SpoofaxInput(new SpoofaxContext(
+            input.settings, Iterables2.<String>empty()))));
     }
 
-    public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
-        throws Exception {
+    public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
+        @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running post-Java build for {}", input.project.location());
 
-        final IAntRunner runner = antRunner.create(input, classpaths, listener);
-        runner.execute("package");
+        for(IBuildStep buildStep : buildSteps) {
+            buildStep.compilePostJava(input);
+        }
+
+        if(SpoofaxContext.injector == null) {
+            SpoofaxContext.init(injector);
+        }
+        Log.log.setLoggingLevel(Log.ALWAYS);
+        BuildManagers.build(new BuildRequest<>(PackageBuilder.factory, new SpoofaxInput(new SpoofaxContext(
+            input.settings, Iterables2.<String>empty()))));
+
+        // final IAntRunner runner = antRunner.create(input, classpaths, listener);
+        // runner.execute("package", cancellationToken);
     }
 
     public void clean(SpoofaxProjectSettings settings) throws IOException {
         log.debug("Cleaning {}", settings.location());
         final AllFileSelector selector = new AllFileSelector();
         settings.getStrJavaTransDirectory().delete(selector);
-        settings.getOutputDirectory().delete(selector);
+        settings.getIncludeDirectory().delete(selector);
         settings.getGenSourceDirectory().delete(selector);
         settings.getCacheDirectory().delete(selector);
     }

@@ -5,6 +5,7 @@ import org.metaborg.core.project.IProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 public class DummyProjectSettingsService implements IProjectSettingsService {
     private static final Logger logger = LoggerFactory.getLogger(DummyProjectSettingsService.class);
 

@@ -4,11 +4,9 @@ import org.metaborg.core.language.IFacet;
 
 public class AnalysisFacet implements IFacet {
     public final String strategyName;
-    public final StrategoAnalysisMode mode;
 
 
-    public AnalysisFacet(String analysisStrategy, StrategoAnalysisMode analysisMode) {
-        this.strategyName = analysisStrategy;
-        this.mode = analysisMode;
+    public AnalysisFacet(String strategyName) {
+        this.strategyName = strategyName;
     }
 }

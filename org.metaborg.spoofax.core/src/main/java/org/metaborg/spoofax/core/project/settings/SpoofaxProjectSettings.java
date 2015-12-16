@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.project.settings;
 
-import static org.metaborg.spoofax.core.SpoofaxProjectConstants.*;
+import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -17,6 +17,7 @@ import org.metaborg.util.file.FileUtils;
 
 import com.google.common.collect.Lists;
 
+@Deprecated
 public class SpoofaxProjectSettings implements Serializable {
     private static final long serialVersionUID = 7439146986768086591L;
     
@@ -129,7 +130,7 @@ public class SpoofaxProjectSettings implements Serializable {
     public String strategoName() {
         return NameUtil.toJavaId(settings.name().toLowerCase());
     }
-    
+
     public String javaName() {
         return NameUtil.toJavaId(settings.name());
     }
@@ -155,8 +156,16 @@ public class SpoofaxProjectSettings implements Serializable {
         return resolve(DIR_SRCGEN);
     }
 
-    public FileObject getOutputDirectory() {
+    public FileObject getIncludeDirectory() {
         return resolve(DIR_INCLUDE);
+    }
+    
+    public FileObject getOutputDirectory() {
+        return resolve(DIR_OUTPUT);
+    }
+    
+    public FileObject getOutputClassesDirectory() {
+        return resolve(DIR_CLASSES);
     }
 
     public FileObject getBuildDirectory() {
@@ -191,30 +200,29 @@ public class SpoofaxProjectSettings implements Serializable {
         return resolve(DIR_CACHE);
     }
 
-    public FileObject getClassesDirectory() {
-        return resolve(DIR_CLASSES);
+    public FileObject getMainESVFile() {
+        return resolve(DIR_EDITOR + "/" + settings.name() + ".main.esv");
     }
-
     
     public FileObject getSdfMainFile(String sdfName) {
         return resolve(getGenSyntaxDirectory(), sdfName + ".sdf");
     }
     
     public FileObject getSdfCompiledDefFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + ".def");
+        return resolve(getIncludeDirectory(), sdfName + ".def");
     }
     
     public FileObject getSdfCompiledPermissiveDefFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + "-Permissive.def");
+        return resolve(getIncludeDirectory(), sdfName + "-Permissive.def");
     }
     
     public FileObject getSdfCompiledTableFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + ".tbl");
+        return resolve(getIncludeDirectory(), sdfName + ".tbl");
     }
     
     
     public FileObject getRtgFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + ".rtg");
+        return resolve(getIncludeDirectory(), sdfName + ".rtg");
     }
     
     
@@ -247,23 +255,23 @@ public class SpoofaxProjectSettings implements Serializable {
     }
     
     public FileObject getStrCompiledJarFile() {
-        return resolve(getOutputDirectory(), strategoName() + ".jar");
+        return resolve(getIncludeDirectory(), strategoName() + ".jar");
     }
     
     public FileObject getStrCompiledJavaJarFile() {
-        return resolve(getOutputDirectory(), strategoName() + "-java.jar");
+        return resolve(getIncludeDirectory(), strategoName() + "-java.jar");
     }
     
     public FileObject getStrCompiledCtreeFile() {
-        return resolve(getOutputDirectory(), strategoName() + ".ctree");
+        return resolve(getIncludeDirectory(), strategoName() + ".ctree");
     }
     
     public FileObject getStrCompiledParenthesizerFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + "-parenthesize.str");
+        return resolve(getIncludeDirectory(), sdfName + "-parenthesize.str");
     }
     
     public FileObject getStrCompiledSigFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + ".str");
+        return resolve(getIncludeDirectory(), sdfName + ".str");
     }
     
 
@@ -272,20 +280,20 @@ public class SpoofaxProjectSettings implements Serializable {
     }
     
     public FileObject getPpAfCompiledFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + ".pp.af");
+        return resolve(getIncludeDirectory(), sdfName + ".pp.af");
     }
     
     public FileObject getGenPpCompiledFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + ".generated.pp");
+        return resolve(getIncludeDirectory(), sdfName + ".generated.pp");
     }
     
     public FileObject getGenPpAfCompiledFile(String sdfName) {
-        return resolve(getOutputDirectory(), sdfName + ".generated.pp.af");
+        return resolve(getIncludeDirectory(), sdfName + ".generated.pp.af");
     }
     
     
     public FileObject getPackedEsv() {
-        return resolve(getOutputDirectory(), esvName() + ".packed.esv");
+        return resolve(getIncludeDirectory(), esvName() + ".packed.esv");
     }
 
 

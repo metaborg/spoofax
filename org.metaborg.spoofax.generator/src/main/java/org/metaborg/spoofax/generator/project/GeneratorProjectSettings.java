@@ -5,41 +5,45 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.NameUtil;
+import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.spoofax.core.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 
+/**
+ * @deprecated Use {@link LanguageSpecGeneratorScope} instead.
+ */
+@Deprecated
 public class GeneratorProjectSettings {
     private final SpoofaxProjectSettings settings;
 
 
     public GeneratorProjectSettings(SpoofaxProjectSettings settings) throws ProjectException {
         final IProjectSettings metaborgSettings = settings.settings();
-        if(!NameUtil.isValidLanguageIdentifier(metaborgSettings.identifier())) {
+        if(!metaborgSettings.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + metaborgSettings.identifier());
         }
-        if(!NameUtil.isValidName(metaborgSettings.name())) {
+        if(!LanguageIdentifier.validId(metaborgSettings.name())) {
             throw new ProjectException("Invalid name: " + name());
         }
         for(LanguageIdentifier compileIdentifier : metaborgSettings.compileDependencies()) {
-            if(!NameUtil.isValidLanguageIdentifier(compileIdentifier)) {
+            if(!compileIdentifier.valid()) {
                 throw new ProjectException("Invalid compile dependency identifier: " + compileIdentifier);
             }
         }
         for(LanguageIdentifier runtimeIdentifier : metaborgSettings.runtimeDependencies()) {
-            if(!NameUtil.isValidLanguageIdentifier(runtimeIdentifier)) {
+            if(!runtimeIdentifier.valid()) {
                 throw new ProjectException("Invalid runtime dependency identifier: " + runtimeIdentifier);
             }
         }
         for(LanguageContributionIdentifier contributionIdentifier : metaborgSettings.languageContributions()) {
-            if(!NameUtil.isValidLanguageIdentifier(contributionIdentifier.identifier)) {
+            if(!contributionIdentifier.identifier.valid()) {
                 throw new ProjectException("Invalid language contribution identifier: "
                     + contributionIdentifier.identifier);
             }
-            if(!NameUtil.isValidName(contributionIdentifier.name)) {
+            if(!LanguageIdentifier.validId(contributionIdentifier.name)) {
                 throw new ProjectException("Invalid language contribution name: " + metaborgSettings.name());
             }
         }
@@ -50,7 +54,7 @@ public class GeneratorProjectSettings {
     private @Nullable String metaborgVersion;
 
     public void setMetaborgVersion(String metaborgVersion) throws ProjectException {
-        if(metaborgVersion != null && !NameUtil.isValidVersion(metaborgVersion)) {
+        if(metaborgVersion != null && !LanguageVersion.valid(metaborgVersion)) {
             throw new ProjectException("Invalid metaborg version: " + metaborgVersion);
         }
         this.metaborgVersion = metaborgVersion;
@@ -58,7 +62,7 @@ public class GeneratorProjectSettings {
 
     public String metaborgVersion() {
         return metaborgVersion != null && !metaborgVersion.isEmpty() ? metaborgVersion
-            : SpoofaxProjectConstants.METABORG_VERSION;
+            : SpoofaxConstants.METABORG_VERSION;
     }
 
     public String eclipseMetaborgVersion() {
@@ -71,7 +75,7 @@ public class GeneratorProjectSettings {
     }
 
     public boolean generateGroupId() {
-        return !groupId().equals(SpoofaxProjectConstants.METABORG_GROUP_ID);
+        return !groupId().equals(SpoofaxConstants.METABORG_GROUP_ID);
     }
 
     public String id() {

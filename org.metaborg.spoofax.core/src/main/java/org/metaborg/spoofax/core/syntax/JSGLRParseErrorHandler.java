@@ -2,10 +2,7 @@ package org.metaborg.spoofax.core.syntax;
 
 import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findLeftMostTokenOnSameLine;
 import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findRightMostTokenOnSameLine;
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
-import static org.spoofax.terms.Term.tryGetConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,9 +12,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.source.ISourceRegion;
-import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.MultiBadTokenException;
 import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.RegionRecovery;
@@ -26,9 +21,10 @@ import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
-import org.spoofax.terms.TermVisitor;
 
 import com.google.common.collect.Lists;
+
+import javax.annotation.Nullable;
 
 public class JSGLRParseErrorHandler {
     private static final int LARGE_REGION_SIZE = 8;
@@ -36,19 +32,18 @@ public class JSGLRParseErrorHandler {
         "Region could not be parsed because of subsequent syntax error(s) indicated below";
 
     private final JSGLRI parser;
+    @Nullable
     private final FileObject resource;
     private final boolean hasRecoveryRules;
-    private final IStrategoConstructor ambiguityConstructor;
     private final Collection<IMessage> messages = Lists.newArrayList();
 
     private boolean recoveryFailed;
 
 
-    public JSGLRParseErrorHandler(JSGLRI parser, ITermFactory termFactory, FileObject resource, boolean hasRecoveryRules) {
+    public JSGLRParseErrorHandler(JSGLRI parser, @Nullable FileObject resource, boolean hasRecoveryRules) {
         this.parser = parser;
         this.resource = resource;
         this.hasRecoveryRules = hasRecoveryRules;
-        this.ambiguityConstructor = termFactory.makeConstructor("amb", 1);
     }
 
 
@@ -90,8 +85,6 @@ public class JSGLRParseErrorHandler {
                 }
             }
         }
-
-        gatherAmbiguities(top);
     }
 
     private static int findRightMostWithSameError(IToken token, String prefix) {
@@ -135,45 +128,6 @@ public class JSGLRParseErrorHandler {
                 results.add(e);
         }
         return results;
-    }
-
-    private void gatherAmbiguities(IStrategoTerm term) {
-        new TermVisitor() {
-            IStrategoTerm ambStart;
-
-            public void preVisit(IStrategoTerm term) {
-                if(ambStart == null && ambiguityConstructor.equals(tryGetConstructor(term))) {
-                    reportAmbiguity(term);
-                    ambStart = term;
-                }
-            }
-
-            @Override public void postVisit(IStrategoTerm term) {
-                if(term == ambStart)
-                    ambStart = null;
-            }
-        }.visit(term);
-    }
-
-    private void reportAmbiguity(IStrategoTerm amb) {
-        reportWarningAtTokens(getLeftToken(amb), getRightToken(amb), "Fragment is ambiguous: " + ambToString(amb));
-    }
-
-    private String ambToString(IStrategoTerm amb) {
-        final String result = amb.toString();
-
-        // if(asyncAmbReportingContext == null) {
-        // Context context = new Context();
-        // asyncAmbReportingContext = stratego_sglr.init(context);
-        // stratego_aterm.init(asyncAmbReportingContext);
-        // sdf2imp.init(asyncAmbReportingContext);
-        // }
-        // IStrategoTerm message = simplify_ambiguity_report_0_0.instance.invoke(asyncAmbReportingContext,
-        // amb);
-        // if(message != null)
-        // result = asJavaString(message);
-
-        return result.length() > 5000 ? result.substring(0, 5000) + "..." : result;
     }
 
 

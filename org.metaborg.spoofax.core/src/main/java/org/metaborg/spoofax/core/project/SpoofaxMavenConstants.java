@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.project;
 
+@Deprecated
 public class SpoofaxMavenConstants {
     public static final String GROUP_ID = "org.metaborg";
     public static final String PLUGIN_NAME = "spoofax-maven-plugin";

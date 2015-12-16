@@ -6,12 +6,12 @@ import org.metaborg.core.syntax.ParseResult;
 /**
  * Interface for semantic analysis of parsed files, and retrieving origin information of analyzed fragments.
  *
- * @param <ParseT>
+ * @param <P>
  *            Type of the parse result.
- * @param <AnalysisT>
+ * @param <A>
  *            Type of the analysis result.
  */
-public interface IAnalysisService<ParseT, AnalysisT> {
+public interface IAnalysisService<P, A> {
     /**
      * Performs semantic analysis on given parsed resources, using analysis rules from given language.
      * 
@@ -23,6 +23,6 @@ public interface IAnalysisService<ParseT, AnalysisT> {
      * @throws AnalysisException
      *             when analysis fails.
      */
-    public abstract AnalysisResult<ParseT, AnalysisT> analyze(Iterable<ParseResult<ParseT>> inputs, IContext context)
+    public abstract AnalysisResult<P, A> analyze(Iterable<ParseResult<P>> inputs, IContext context)
         throws AnalysisException;
 }

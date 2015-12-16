@@ -1,9 +1,0 @@
-module names
-
-imports
-  
-  include/{{name}}
-  
-namespaces
- 
-binding rules

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
+@Deprecated
 public class ProjectSettingsService implements IProjectSettingsService {
     private static final Logger logger = LoggerFactory.getLogger(ProjectSettingsService.class);
 
@@ -34,7 +35,11 @@ public class ProjectSettingsService implements IProjectSettingsService {
             return null;
         }
 
-        return MavenProjectSettingsReader.spoofaxSettings(project.location(), mavenProject).settings();
+        final SpoofaxProjectSettings settings = MavenProjectSettingsReader.spoofaxSettings(project.location(), mavenProject);
+        if(settings != null) {
+            return settings.settings();
+        }
+        return null;
     }
 
     @Override public @Nullable IProjectSettings get(FileObject location) {

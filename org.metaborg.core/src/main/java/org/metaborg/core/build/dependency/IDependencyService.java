@@ -6,7 +6,10 @@ import org.metaborg.core.project.IProject;
 
 /**
  * Interface for a service that returns compile-time and runtime language component dependencies for projects.
+ *
+ * @deprecated Use {@link INewDependencyService} instead.
  */
+@Deprecated
 public interface IDependencyService {
     /**
      * Gets compile-time language component dependencies for given project.
@@ -29,6 +32,14 @@ public interface IDependencyService {
      *             When getting dependencies fails unexpectedly.
      */
     public abstract Iterable<ILanguageComponent> runtimeDependencies(IProject project) throws MetaborgException;
+
+    /**
+     * Checks if dependencies for given project are loaded and returns any missing dependencies.
+     * 
+     * @param project
+     *            Project to check dependencies for.
+     */
+    public abstract MissingDependencies checkDependencies(IProject project);
 
 
     /**

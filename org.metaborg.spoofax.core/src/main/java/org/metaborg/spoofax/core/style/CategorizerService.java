@@ -11,7 +11,6 @@ import org.metaborg.core.style.IRegionCategory;
 import org.metaborg.core.style.RegionCategory;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
-import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -35,18 +34,17 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
 
     @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguageImpl language,
         ParseResult<IStrategoTerm> parseResult) {
+        final List<IRegionCategory<IStrategoTerm>> regionCategories = Lists.newLinkedList();
         if(parseResult.result == null) {
-            logger.error("Cannot categorize input of {}, parse result is empty", language);
-            // GTODO: throw exception instead
-            return Iterables2.empty();
+            return regionCategories;
         }
+
         final StylerFacet facet = language.facet(StylerFacet.class);
         if(facet == null) {
             logger.error("Cannot categorize input of {}, it does not have a styler facet", language);
             // GTODO: throw exception instead
-            return Iterables2.empty();
+            return regionCategories;
         }
-        final List<IRegionCategory<IStrategoTerm>> regionCategories = Lists.newLinkedList();
 
         final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.result);
         final ITokenizer tokenzier = rootImploderAttachment.getLeftToken().getTokenizer();
@@ -59,14 +57,20 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
                 continue;
             }
             if(token.getStartOffset() > token.getEndOffset()) {
-                // Not sure what these tokens mean, but they are invalid, ignore.
+                // Indicates an invalid region. Empty lists have regions like this.
+                continue;
+            }
+            if(offset >= token.getStartOffset()) {
+                // Duplicate region, skip.
                 continue;
             }
             offset = token.getEndOffset();
+            
             final ICategory category = category(facet, token);
             if(category != null) {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromToken(token);
-                regionCategories.add(new RegionCategory<IStrategoTerm>(region, category, null));
+                final IStrategoTerm term = (IStrategoTerm) token.getAstNode();
+                regionCategories.add(new RegionCategory<IStrategoTerm>(region, category, term));
             }
         }
 
@@ -108,20 +112,22 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
     private ICategory sortConsCategory(StylerFacet facet, IStrategoTerm term) {
         final ImploderAttachment imploderAttachment = ImploderAttachment.get(term);
         final String sort = imploderAttachment.getSort();
+        // LEGACY: for some reason, when using concrete syntax extensions, all sorts are appended with _sort.
+        final String massagedSort = sort.replace("_sort", "");
         if(term.getTermType() == IStrategoTerm.APPL) {
             final String cons = ((IStrategoAppl) term).getConstructor().getName();
-            if(facet.hasSortConsStyle(sort, cons)) {
-                return new SortConsCategory(sort, cons);
+            if(facet.hasSortConsStyle(massagedSort, cons)) {
+                return new SortConsCategory(massagedSort, cons);
             } else if(facet.hasConsStyle(cons)) {
                 return new ConsCategory(cons);
-            } else if(facet.hasSortStyle(sort)) {
-                return new SortCategory(sort);
+            } else if(facet.hasSortStyle(massagedSort)) {
+                return new SortCategory(massagedSort);
             }
             return null;
         }
 
-        if(facet.hasSortStyle(sort)) {
-            return new SortCategory(sort);
+        if(facet.hasSortStyle(massagedSort)) {
+            return new SortCategory(massagedSort);
         }
 
         return null;

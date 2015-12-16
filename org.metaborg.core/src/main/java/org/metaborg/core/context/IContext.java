@@ -25,11 +25,6 @@ public interface IContext {
     public abstract ILanguageImpl language();
 
     /**
-     * @return Identifier of this context.
-     */
-    public abstract ContextIdentifier id();
-
-    /**
      * @return Injector to retrieve implementations.
      */
     public abstract Injector injector();
@@ -49,6 +44,7 @@ public interface IContext {
      */
     public abstract IClosableLock write();
 
+    
     /**
      * Persist context data from memory to permanent storing. Acquires a read lock. Can be called while holding the
      * write lock.
@@ -65,7 +61,7 @@ public interface IContext {
      *             When resetting fails unexpectedly
      */
     public abstract void reset() throws IOException;
-
+    
 
     /* Hint for hashCode implementation. */
     public abstract int hashCode();

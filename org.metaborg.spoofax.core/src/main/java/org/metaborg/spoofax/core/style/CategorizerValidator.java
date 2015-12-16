@@ -17,10 +17,10 @@ public class CategorizerValidator {
         final Collection<IRegionCategory<T>> validated = Lists.newLinkedList();
         for(IRegionCategory<T> regionCategory : categorization) {
             final ISourceRegion region = regionCategory.region();
-            if(offset > region.startOffset()) {
+            if(offset >= region.startOffset()) {
                 logger.warn("Invalid {}, starting offset is greater than offset in previous regions, "
                     + "region category will be skipped", regionCategory);
-            } else if(offset > region.endOffset()) {
+            } else if(offset >= region.endOffset()) {
                 logger.warn("Invalid {}, ending offset is greater than offset in previous regions, "
                     + "region category will be skipped", regionCategory);
             } else if(region.startOffset() > region.endOffset()) {

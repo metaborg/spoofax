@@ -1,13 +1,13 @@
 package org.metaborg.spoofax.core.menu;
 
 import org.metaborg.core.language.IFacet;
-import org.metaborg.core.menu.IMenu;
+import org.metaborg.core.menu.IMenuItem;
 
 public class MenuFacet implements IFacet {
-    public final Iterable<IMenu> menus;
+    public final Iterable<? extends IMenuItem> menuItems;
 
-    
-    public MenuFacet(Iterable<IMenu> menus) {
-        this.menus = menus;
+
+    public MenuFacet(Iterable<? extends IMenuItem> menuItems) {
+        this.menuItems = menuItems;
     }
 }

@@ -6,6 +6,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.iterators.Iterables2;
 
+@Deprecated
 public class ProjectSettings implements IProjectSettings, Serializable {
     private static final long serialVersionUID = 7235470907344393083L;
     

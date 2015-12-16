@@ -14,7 +14,7 @@ public class MetaFileIdentifier implements Func1<FileObject, Boolean> {
 
 
     @Override public Boolean call(FileObject resource) {
-        if(StrategoDialectIdentifier.metaResource(resource) != null) {
+        if(DialectIdentifier.metaResource(resource) != null) {
             return identification.identify(resource);
         }
         return false;

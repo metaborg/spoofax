@@ -30,6 +30,11 @@ public class Menu implements IMenu {
         return name;
     }
 
+    @Override
+    public void accept(final IMenuItemVisitor visitor) {
+        visitor.visitMenu(this);
+    }
+
     @Override public Iterable<IMenuItem> items() {
         return items;
     }
@@ -37,11 +42,9 @@ public class Menu implements IMenu {
     @Override public @Nullable IAction action(String name) throws MetaborgException {
         final List<IAction> actions = Lists.newLinkedList();
         for(IMenuItem item : items) {
-            if(item.name().equals(name)) {
-                if(item instanceof IAction) {
-                    final IAction action = (IAction) item;
-                    actions.add(action);
-                }
+            if(item instanceof IAction && name.equals(item.name())) {
+                final IAction action = (IAction) item;
+                actions.add(action);
             }
         }
 
@@ -61,7 +64,7 @@ public class Menu implements IMenu {
         items.add(item);
     }
 
-    public void add(Iterable<IMenuItem> items) {
+    public void add(Iterable<? extends IMenuItem> items) {
         Iterables.addAll(this.items, items);
     }
 }

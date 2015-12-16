@@ -1,7 +1,0 @@
-module {{name}}-Refactorings
-
-imports {{name}}-Refactorings.generated
-
-refactorings
-
-  text reconstruction : construct-textual-change

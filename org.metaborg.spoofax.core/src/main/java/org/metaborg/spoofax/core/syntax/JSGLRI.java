@@ -8,6 +8,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParserConfiguration;
 import org.metaborg.core.syntax.ParseResult;
+import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
@@ -27,6 +28,7 @@ public class JSGLRI {
     private final ITermFactory termFactory;
     private final ILanguageImpl language;
     private final ILanguageImpl dialect;
+    @Nullable
     private final FileObject resource;
     private final String input;
 
@@ -34,7 +36,7 @@ public class JSGLRI {
 
 
     public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
-        FileObject resource, String input) throws IOException {
+                  @Nullable FileObject resource, String input) throws IOException {
         this.config = config;
         this.termFactory = termFactory;
         this.language = language;
@@ -53,12 +55,12 @@ public class JSGLRI {
             configuration = new JSGLRParserConfiguration();
         }
 
-        final String fileName = resource.getName().getPath();
+        final String fileName = resource != null ? resource.getName().getPath() : null;
 
         final JSGLRParseErrorHandler errorHandler =
-            new JSGLRParseErrorHandler(this, termFactory, resource, config.getParseTableProvider().parseTable()
-                .hasRecovers());
+            new JSGLRParseErrorHandler(this, resource, config.getParseTableProvider().parseTable().hasRecovers());
 
+        final Timer timer = new Timer(true);
         SGLRParseResult result;
         try {
             result = actuallyParse(input, fileName, configuration);
@@ -67,6 +69,7 @@ public class JSGLRI {
             errorHandler.setRecoveryFailed(configuration.recovery);
             errorHandler.processFatalException(new NullTokenizer(input, fileName), e);
         }
+        final long duration = timer.stop();
 
         final IStrategoTerm ast;
         if(result != null) {
@@ -82,12 +85,11 @@ public class JSGLRI {
             ast = null;
         }
 
-        // GTODO: measure parse time
-        return new ParseResult<IStrategoTerm>(input, ast, resource, errorHandler.messages(), -1, language, dialect,
-            result);
+        return new ParseResult<IStrategoTerm>(input, ast, resource, errorHandler.messages(), duration, language,
+            dialect, result);
     }
 
-    public SGLRParseResult actuallyParse(String text, String filename, @Nullable JSGLRParserConfiguration parserConfig)
+    public SGLRParseResult actuallyParse(String text, @Nullable String filename, @Nullable JSGLRParserConfiguration parserConfig)
         throws SGLRException, InterruptedException {
         if(!parserConfig.implode) {
             // GTODO: copied from existing code. Is this correct? Seems like this should be the tree builder when

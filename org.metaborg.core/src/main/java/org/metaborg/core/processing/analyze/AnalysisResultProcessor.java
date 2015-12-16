@@ -16,6 +16,7 @@ import org.metaborg.core.build.UpdateKind;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.syntax.ParseResult;
+import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +89,7 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
                         final String message =
                             String.format("Analysis result for % was removed unexpectedly", resource);
                         logger.error(message);
-                        observer.onError(new AnalysisException(Iterables2.singleton(resource), context, message));
+                        observer.onError(new AnalysisException(context, message));
                         break;
                     }
                     default: {
@@ -203,8 +204,10 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
                     parseResultProcessor.request(resource, context.language(), text).toBlocking().single();
 
                 logger.trace("Analysing for {}", resource);
-                final AnalysisResult<P, A> parentResult =
-                    analysisService.analyze(Iterables2.singleton(parseResult), context);
+                final AnalysisResult<P, A> parentResult;
+                try(IClosableLock lock = context.write()) {
+                    parentResult = analysisService.analyze(Iterables2.singleton(parseResult), context);
+                }
                 final AnalysisFileResult<P, A> result = Iterables.get(parentResult.fileResults, 0);
                 updates.onNext(AnalysisChange.<P, A>update(resource, result, parentResult));
             } catch(AnalysisException e) {
@@ -214,8 +217,7 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
             } catch(Exception e) {
                 final String message = String.format("Analysis for % failed", name);
                 logger.error(message, e);
-                updates.onNext(AnalysisChange.<P, A>error(resource,
-                    new AnalysisException(Iterables2.singleton(resource), context, message, e)));
+                updates.onNext(AnalysisChange.<P, A>error(resource, new AnalysisException(context, message, e)));
             }
         }
         return updates;

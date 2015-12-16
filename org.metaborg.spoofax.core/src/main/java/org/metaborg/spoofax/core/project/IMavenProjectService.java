@@ -8,6 +8,7 @@ import org.metaborg.core.project.IProject;
 /**
  * Interface for retrieving Maven projects.
  */
+@Deprecated
 public interface IMavenProjectService {
     /**
      * Gets a Maven project for given Metaborg project.

@@ -24,6 +24,9 @@
 	<property name="trans.rel" location="trans" relative="yes" />
 	<property name="include.rel" location="${include}" relative="yes" />
 	<property name="lib-gen.rel" location="${lib-gen}" relative="yes" />
+	
+	<property name="javajar-includes" value="${lang.package.path}/strategies/, ds/**"/>
+
 
 	<!-- Imports -->
 	<property name="build.sdf.imports" value="${sdf.args}" />
@@ -70,9 +73,7 @@
 	<condition property="src-dirs" value="${src-dirs}" else="${src-gen}">
 		<isset property="src-dirs" />
 	</condition>
-	<condition property="javajar-includes" value="${javajar-includes}" else="${lang.package.path}/strategies/">
-		<isset property="javajar-includes" />
-	</condition>
+
 
 	<mkdir dir="${build}" />
 	<mkdir dir="${src-gen}" />
@@ -343,14 +344,7 @@
 				</not>
 			</condition>
 		</fail>
-		<dependset>
-			<srcfileset dir="${basedir}">
-				<include name="**/*.str" />
-				<include name="**/*.astr" />
-				<exclude name="lib/*.generated.str" />
-			</srcfileset>
-			<targetfileset file="${include}/${strmodule}.ctree" />
-		</dependset>
+		<delete file="${include}/${strmodule}.ctree" />
 		<available file="${include}/${strmodule}.ctree" property="strc-java.available" />
 		<antcall target="copy-jar" />
 		<antcall target="stratego.jvm.helper">
@@ -368,14 +362,7 @@
 				</not>
 			</condition>
 		</fail>
-		<dependset>
-			<srcfileset dir="${basedir}">
-				<include name="**/*.str" />
-				<include name="**/*.astr" />
-				<exclude name="lib/*.generated.str" />
-			</srcfileset>
-			<targetfileset file="${src-gen}/trans/Main.java" />
-		</dependset>
+		<delete file="${src-gen}/trans/Main.java" />
 		<available file="${src-gen}/trans/Main.java" property="strc-java.available" />
 		<antcall target="copy-jar" />
 		<delete>

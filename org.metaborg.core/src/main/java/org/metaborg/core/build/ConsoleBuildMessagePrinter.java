@@ -13,6 +13,7 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.source.AffectedSourceHelper;
+import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.Level;
@@ -65,19 +66,25 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         }
 
         final FileObject source = message.source();
+        final ISourceRegion region = message.region();
         if(source != null) {
             sb.append(" in ");
             sb.append(source.getName().getPath());
-            sb.append(":" + message.region().startRow());
+            if(region != null) {
+                sb.append(":" + region.startRow());
+            }
             sb.append('\n');
         }
 
         if(printHighlight) {
             try {
                 final String sourceText = sourceTextService.text(source);
-                final String affected = AffectedSourceHelper.affectedSourceText(message.region(), sourceText, "    ");
-                if(affected != null) {
-                    sb.append(affected);
+                if(region != null) {
+                    final String affected =
+                        AffectedSourceHelper.affectedSourceText(message.region(), sourceText, "    ");
+                    if(affected != null) {
+                        sb.append(affected);
+                    }
                 }
             } catch(IOException e) {
             }
@@ -196,7 +203,7 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
 
         sb.append(total);
         sb.append(" messages (");
-        
+
         sb.append(exceptions);
         sb.append(" exception");
         if(exceptions == 0 || exceptions > 1) {
@@ -208,7 +215,7 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
             sb.append(" pardoned]");
         }
         sb.append(", ");
-        
+
         sb.append(errors);
         sb.append(" error");
         if(errors == 0 || errors > 1) {
@@ -220,7 +227,7 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
             sb.append(" pardoned]");
         }
         sb.append(", ");
-        
+
         sb.append(warnings);
         sb.append(" warning");
         if(warnings == 0 || warnings > 1) {
@@ -232,7 +239,7 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
             sb.append(" pardoned]");
         }
         sb.append(", ");
-        
+
         sb.append(notes);
         sb.append(" note");
         if(notes == 0 || notes > 1) {

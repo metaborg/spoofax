@@ -9,7 +9,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -22,7 +21,6 @@ import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ContextUtils;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
-import org.metaborg.core.language.AllLanguagesFileSelector;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
@@ -52,7 +50,6 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.DefaultFileSelectInfo;
 import org.metaborg.util.resource.FileSelectorUtils;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -122,13 +119,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             final FileObject resource = change.resource;
 
             if(selector != null) {
-                final FileSelectInfo info = new DefaultFileSelectInfo(location, resource, -1);
                 try {
-                    if(!selector.includeFile(info)) {
+                    if(!FileSelectorUtils.include(selector, resource, location)) {
                         continue;
                     }
-                } catch(Exception e) {
-                    // Ignore exception, just include file.
+                } catch(FileSystemException e) {
+                    logger.error("Error determining if {} should be ignored from the build, including it", e, resource);
                 }
             }
 
@@ -145,7 +141,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             return new BuildOutput<>(input.state);
         }
 
-        logger.debug("Building " + input.project.location());
+        logger.info("Building " + input.project.location());
 
         cancel.throwIfCancelled();
 
@@ -212,24 +208,33 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         // Segregate by context
         cancel.throwIfCancelled();
         final Multimap<IContext, ParseResult<P>> sourceResultsPerContext = ArrayListMultimap.create();
-        for(ParseResult<P> parseResult : sourceParseResults) {
-            cancel.throwIfCancelled();
-            final FileObject resource = parseResult.source;
-            try {
-                final IContext context = contextService.get(resource, parseResult.language);
-                sourceResultsPerContext.put(context, parseResult);
-            } catch(ContextException e) {
-                final String message = String.format("Failed to retrieve context for parse result of %s", resource);
-                printMessage(resource, message, e, input, pardoned);
-                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
+        if(input.analyze) {
+            for(ParseResult<P> parseResult : sourceParseResults) {
+                cancel.throwIfCancelled();
+                final FileObject resource = parseResult.source;
+                try {
+                    if(contextService.available(parseResult.language)) {
+                        final IContext context = contextService.get(resource, parseResult.language);
+                        sourceResultsPerContext.put(context, parseResult);
+                    }
+                } catch(ContextException e) {
+                    final String message = String.format("Failed to retrieve context for parse result of %s", resource);
+                    printMessage(resource, message, e, input, pardoned);
+                    extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
+                }
             }
         }
 
         // Analyze
         cancel.throwIfCancelled();
-        final Collection<AnalysisResult<P, A>> allAnalysisResults =
-            analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned, removedResources,
-                extraMessages, success, cancel);
+        final Collection<AnalysisResult<P, A>> allAnalysisResults;
+        if(input.analyze) {
+            allAnalysisResults =
+                analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned, removedResources,
+                    extraMessages, success, cancel);
+        } else {
+            allAnalysisResults = Lists.newLinkedList();
+        }
 
         // Transform
         cancel.throwIfCancelled();
@@ -337,7 +342,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     allAnalysisResults.add(analysisResult);
                     context.persist();
                 }
-                // GTODO: also update messages for affected sources
             } catch(AnalysisException e) {
                 final String message = "Analysis failed unexpectedly";
                 final boolean noErrors = printMessage(message, e, input, pardoned);
@@ -463,15 +467,11 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         final FileObject location = input.project.location();
         logger.debug("Cleaning {}", location);
 
+        FileSelector selector = new LanguagesFileSelector(languageIdentifier, input.languages);
+        if(input.selector != null) {
+            selector = FileSelectorUtils.and(selector, input.selector);
+        }
         try {
-            final FileSelector selector;
-            if(input.selector == null) {
-                selector = new AllLanguagesFileSelector(languageIdentifier);
-            } else {
-                selector =
-                    FileSelectorUtils.and(new LanguagesFileSelector(languageIdentifier, input.languages),
-                        input.selector);
-            }
             final FileObject[] resources = location.findFiles(selector);
             if(resources == null) {
                 return;

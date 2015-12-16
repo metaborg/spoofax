@@ -2,6 +2,7 @@ package org.metaborg.core.processing;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
@@ -9,7 +10,6 @@ import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
 import rx.functions.Func0;
@@ -65,10 +65,10 @@ public class BlockingProcessor<P, A, T> implements IProcessor<P, A, T> {
     }
 
 
-    @Override public ITask<?> updateDialects(final IProject project, final Iterable<ResourceChange> changes) {
+    @Override public ITask<?> updateDialects(final FileObject location, final Iterable<ResourceChange> changes) {
         return new BlockingTask<>(new Func0<Object>() {
             @Override public Object call() {
-                dialectProcessor.update(project, changes);
+                dialectProcessor.update(location, changes);
                 return null;
             }
         });

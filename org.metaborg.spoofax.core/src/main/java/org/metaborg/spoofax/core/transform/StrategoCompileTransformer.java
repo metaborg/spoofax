@@ -12,9 +12,10 @@ import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
+import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;
@@ -26,49 +27,69 @@ import fj.P2;
  * Transformer executor for the {@link CompileGoal} and {@link CompilerFacet}.
  */
 public class StrategoCompileTransformer implements IStrategoTransformerExecutor {
-    private static final Logger logger = LoggerFactory.getLogger(StrategoCompileTransformer.class);
+    private static final ILogger logger = LoggerUtils.logger(StrategoCompileTransformer.class);
 
-    private final StrategoTransformerCommon transformer;
+    private final StrategoCommon transformer;
 
 
-    @Inject public StrategoCompileTransformer(StrategoTransformerCommon transformer) {
+    @Inject public StrategoCompileTransformer(StrategoCommon transformer) {
         this.transformer = transformer;
     }
 
 
     @Override public TransformResult<ParseResult<IStrategoTerm>, IStrategoTerm> transform(
         ParseResult<IStrategoTerm> parseResult, IContext context, ITransformerGoal goal) throws TransformerException {
+        final FileObject resource = parseResult.source;
+        if(parseResult.result == null) {
+            final String message = logger.format("Cannot transform {}, parsed AST is null", resource);
+            throw new TransformerException(message);
+        }
+
         final P2<String, ILanguageComponent> tuple = strategyName(context.language());
         final String strategyName = tuple._1();
         final ILanguageComponent component = tuple._2();
 
-        final FileObject resource = parseResult.source;
         final IStrategoTerm inputTerm;
         try {
             inputTerm = transformer.builderInputTerm(parseResult.result, resource, context.location());
         } catch(MetaborgException e) {
             throw new TransformerException("Cannot create input term", e);
         }
-        logger.debug("Compiling parse result of {}", resource);
-        return transformer.transform(component, context, parseResult, strategyName, inputTerm, resource);
+
+        try {
+            logger.debug("Compiling parse result of {}", resource);
+            return transformer.transform(component, context, parseResult, strategyName, inputTerm, resource);
+        } catch(MetaborgException e) {
+            throw new TransformerException("Transformation failed", e);
+        }
     }
 
     @Override public TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm> transform(
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult, IContext context, ITransformerGoal goal)
         throws TransformerException {
+        final FileObject resource = analysisResult.source;
+        if(analysisResult.result == null) {
+            final String message = logger.format("Cannot transform {}, analyzed AST is null", resource);
+            throw new TransformerException(message);
+        }
+
         final P2<String, ILanguageComponent> tuple = strategyName(context.language());
         final String strategyName = tuple._1();
         final ILanguageComponent component = tuple._2();
 
-        final FileObject resource = analysisResult.source;
         final IStrategoTerm inputTerm;
         try {
             inputTerm = transformer.builderInputTerm(analysisResult.result, resource, context.location());
         } catch(MetaborgException e) {
             throw new TransformerException("Cannot create input term", e);
         }
-        logger.debug("Compiling analysis result of {}", resource);
-        return transformer.transform(component, context, analysisResult, strategyName, inputTerm, resource);
+
+        try {
+            logger.debug("Compiling analysis result of {}", resource);
+            return transformer.transform(component, context, analysisResult, strategyName, inputTerm, resource);
+        } catch(MetaborgException e) {
+            throw new TransformerException("Transformation failed", e);
+        }
     }
 
     @Override public boolean available(ITransformerGoal goal, IContext context) {

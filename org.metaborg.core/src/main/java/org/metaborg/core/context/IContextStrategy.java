@@ -1,14 +1,12 @@
 package org.metaborg.core.context;
 
-import java.io.Serializable;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 
 /**
  * Interface for {@link IContext} creation/retrieval strategies.
  */
-public interface IContextStrategy extends Serializable {
+public interface IContextStrategy {
     /**
      * Returns the context identifier for given resource and language.
      * 

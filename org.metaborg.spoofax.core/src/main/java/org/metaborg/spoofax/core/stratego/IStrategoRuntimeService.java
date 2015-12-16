@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.stratego;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageCache;
@@ -23,6 +24,20 @@ public interface IStrategoRuntimeService extends ILanguageCache {
      *             When loading a Stratego CTree or JAR fails.
      */
     public abstract HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException;
+
+    /**
+     * Returns a new Stratego runtime for given component, initialized without a context.
+     * 
+     * @param component
+     *            Language component to load the Stratego CTree and JAR files from.
+     * @param location
+     *            Location to initialize the runtime with.
+     * @return New Stratego runtime.
+     * @throws MetaborgException
+     *             When loading a Stratego CTree or JAR fails.
+     */
+    public abstract HybridInterpreter runtime(ILanguageComponent component, FileObject location)
+        throws MetaborgException;
 
     /**
      * @return Generic Stratego runtime, with just the standard libraries loaded.

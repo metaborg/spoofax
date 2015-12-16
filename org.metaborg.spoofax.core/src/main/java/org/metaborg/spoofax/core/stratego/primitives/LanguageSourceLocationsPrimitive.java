@@ -46,6 +46,11 @@ public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
 
         final ITermFactory factory = env.getFactory();
         org.metaborg.core.context.IContext context = (org.metaborg.core.context.IContext) env.contextObject();
+        if(context == null) {
+            env.setCurrent(factory.makeList());
+            return true;
+        }
+
         final IProject project = projectService.get(context.location());
         if(project == null) {
             env.setCurrent(factory.makeList());
