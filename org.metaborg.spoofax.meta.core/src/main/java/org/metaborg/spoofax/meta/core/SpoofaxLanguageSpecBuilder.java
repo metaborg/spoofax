@@ -15,6 +15,7 @@ import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
+import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
 import org.metaborg.spoofax.generator.language.NewLanguageSpecGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
@@ -62,7 +63,7 @@ public class SpoofaxLanguageSpecBuilder {
     public void generateSources(LanguageSpecBuildInput input, ISpoofaxLanguageSpecPaths paths) throws Exception {
         log.debug("Generating sources for {}", input.languageSpec.location());
 
-        final NewLanguageSpecGenerator generator = new NewLanguageSpecGenerator(new LanguageSpecGeneratorScope(input.languageSpec.location(), input.config));
+        final LanguageSpecGenerator generator = new LanguageSpecGenerator(new LanguageSpecGeneratorScope(input.languageSpec.location(), input.config));
         generator.generateAll();
 
         // Store the configuration.
