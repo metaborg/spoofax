@@ -71,8 +71,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
      * {@inheritDoc}
      */
     public Format format() {
-        @Nullable Format value = Format.valueOf(this.config.getString(PROP_FORMAT));
-        return value != null ? value : Format.ctree;
+        @Nullable String value = this.config.getString(PROP_FORMAT);
+        return value != null ? Format.valueOf(value) : Format.ctree;
     }
 
     /**
