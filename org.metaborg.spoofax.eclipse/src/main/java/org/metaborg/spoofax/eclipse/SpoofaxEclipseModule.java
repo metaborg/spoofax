@@ -3,28 +3,26 @@ package org.metaborg.spoofax.eclipse;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.project.IProjectService;
-import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
-import org.metaborg.spoofax.eclipse.editor.LatestEditorListener;
+import org.metaborg.spoofax.core.transform.CompileGoal;
+import org.metaborg.spoofax.core.transform.ITransformerGoal;
+import org.metaborg.spoofax.core.transform.ITransformerResultHandler;
+import org.metaborg.spoofax.core.transform.NamedGoal;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
+import org.metaborg.spoofax.eclipse.editor.SpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
-import org.metaborg.spoofax.eclipse.resource.EclipseLocalFileProvider;
 import org.metaborg.spoofax.eclipse.resource.EclipseProjectService;
 import org.metaborg.spoofax.eclipse.resource.EclipseResourceService;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
-import org.metaborg.spoofax.eclipse.stratego.primitives.DummyPrimitive;
-import org.metaborg.spoofax.eclipse.stratego.primitives.ProjectPathPrimitive;
-import org.metaborg.spoofax.eclipse.stratego.primitives.SpoofaxEclipsePrimitiveLibrary;
-import org.spoofax.interpreter.library.AbstractPrimitive;
-import org.spoofax.interpreter.library.IOperatorRegistry;
+import org.metaborg.spoofax.eclipse.transform.OpenEditorResultHandler;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
-import com.google.inject.multibindings.Multibinder;
-import com.google.inject.name.Names;
 
 public class SpoofaxEclipseModule extends SpoofaxModule {
     public SpoofaxEclipseModule() {
@@ -44,14 +42,15 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
         bind(FileSystemManager.class).toProvider(EclipseFileSystemManagerProvider.class).in(Singleton.class);
     }
 
-    protected void bindLocalFileProviders(MapBinder<String, ILocalFileProvider> binder) {
-        super.bindLocalFileProviders(binder);
-
-        binder.addBinding(EclipseLocalFileProvider.scheme).to(EclipseLocalFileProvider.class).in(Singleton.class);
-    }
-
     @Override protected void bindProject() {
         bind(IProjectService.class).to(EclipseProjectService.class).in(Singleton.class);
+    }
+
+    @Override protected void bindTransformerResultHandlers(
+        MapBinder<Class<? extends ITransformerGoal>, ITransformerResultHandler<IStrategoTerm>> binder) {
+        bind(OpenEditorResultHandler.class).in(Singleton.class);
+        binder.addBinding(NamedGoal.class).to(OpenEditorResultHandler.class);
+        binder.addBinding(CompileGoal.class).to(OpenEditorResultHandler.class);
     }
 
     @Override protected void bindOther() {
@@ -59,26 +58,7 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
         bind(Processor.class).asEagerSingleton();
         bind(ParseResultProcessor.class).asEagerSingleton();
         bind(AnalysisResultProcessor.class).asEagerSingleton();
-        bind(LatestEditorListener.class).asEagerSingleton();
-
-        // Use analysis-cmd to prevent Stratego analysis to schedule on a background thread.
-        bind(String.class).annotatedWith(Names.named("LanguageDiscoveryAnalysisOverride")).toInstance("analysis-cmd");
-
-        bindPrimitives();
-    }
-
-    private void bindPrimitives() {
-        final Multibinder<AbstractPrimitive> primitiveBinder =
-            Multibinder.newSetBinder(binder(), AbstractPrimitive.class);
-        bindPrimitive(primitiveBinder, ProjectPathPrimitive.class);
-        bindPrimitive(primitiveBinder, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
-        bindPrimitive(primitiveBinder, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));
-        bindPrimitive(primitiveBinder, new DummyPrimitive("SSL_EXT_refreshresource", 0, 1));
-        bindPrimitive(primitiveBinder, new DummyPrimitive("SSL_EXT_queue_strategy", 0, 2));
-        bindPrimitive(primitiveBinder, new DummyPrimitive("SSL_EXT_complete_work_unit", 0, 0));
-
-        final Multibinder<IOperatorRegistry> libraryBinder =
-            Multibinder.newSetBinder(binder(), IOperatorRegistry.class);
-        bindPrimitiveLibrary(libraryBinder, SpoofaxEclipsePrimitiveLibrary.class);
+        bind(SpoofaxEditorListener.class).asEagerSingleton();
+        bind(ISpoofaxEditorListener.class).to(SpoofaxEditorListener.class);
     }
 }

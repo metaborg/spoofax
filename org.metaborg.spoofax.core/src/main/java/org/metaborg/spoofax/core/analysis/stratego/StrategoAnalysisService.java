@@ -4,11 +4,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.analysis.AnalysisDebugResult;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
@@ -23,6 +25,7 @@ import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageSeverity;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
@@ -50,6 +53,7 @@ import org.strategoxt.lang.Context;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -63,14 +67,17 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
+    private final StrategoLocalPath localPath;
+
     private final IStrategoConstructor fileCons;
 
 
     @Inject public StrategoAnalysisService(IResourceService resourceService, ITermFactoryService termFactoryService,
-        IStrategoRuntimeService runtimeService) {
+        IStrategoRuntimeService runtimeService, StrategoLocalPath localPath) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
+        this.localPath = localPath;
 
         this.fileCons = termFactoryService.getGeneric().makeConstructor("File", 3);
     }
@@ -143,12 +150,13 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         Iterable<FileObject> sources, IContext context, HybridInterpreter interpreter, String analysisStrategy,
         ITermFactory termFactory) throws AnalysisException {
         final FileObject contextLocation = context.location();
-        final File localContextLocation = resourceService.localFile(contextLocation);
-        if(localContextLocation == null) {
-            final String message =
-                String.format("Context %s does not reside on the local file system, cannot analyze", contextLocation);
+        final File localContextLocation;
+        try {
+            localContextLocation = resourceService.localFile(contextLocation);
+        } catch(SpoofaxRuntimeException e) {
+            final String message = String.format("Context location %s does not exist, cannot analyze", contextLocation);
             logger.error(message);
-            throw new AnalysisException(sources, context, message);
+            throw new AnalysisException(sources, context, message, e);
         }
 
         logger.trace("Creating input terms for analysis (3-tuple terms)");
@@ -160,35 +168,49 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
 
             final FileObject resource = input.source;
-            final File localResource = resourceService.localFile(resource);
+            final File localResource = resourceService.localPath(resource);
             if(localResource == null) {
-                logger.error("Input result for {} does not reside on the local file system, cannot analyze it",
-                    resource);
+                final String message =
+                    String.format("Input %s does not reside on the local file system, cannot analyze it", resource);
+                logger.error(message);
                 continue;
             }
 
-            final IStrategoString path =
-                termFactory.makeString(localContextLocation.toURI().relativize(localResource.toURI()).getPath());
-            final IStrategoString contextPath = termFactory.makeString(localContextLocation.getAbsolutePath());
+            final IStrategoString path = localPath.localResourceTerm(localResource, localContextLocation);
+            final IStrategoString contextPath = localPath.localLocationTerm(localContextLocation);
             analysisInputs.add(P.p(input, termFactory.makeTuple(input.result, path, contextPath)));
         }
 
         final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> results = Lists.newLinkedList();
         for(P2<ParseResult<IStrategoTerm>, IStrategoTuple> input : analysisInputs) {
             final ParseResult<IStrategoTerm> parseResult = input._1();
+            final FileObject resource = parseResult.source;
             final IStrategoTuple inputTerm = input._2();
             try {
+                logger.trace("Analysing {}", resource);
                 final IStrategoTerm resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, analysisStrategy);
                 if(resultTerm == null) {
+                    logger.trace("Analysis for {} failed", resource);
                     results.add(singleASTMakeResult(analysisFailedMessage(interpreter), parseResult, null));
                 } else if(!(resultTerm instanceof IStrategoTuple)) {
+                    logger.trace("Analysis for {} has unexpected result, not a tuple", resource);
                     results.add(singleASTMakeResult(String.format("Unexpected results from analysis {}", resultTerm),
                         parseResult, null));
-                } else {
-                    logger.trace("Analysis resulted in a {} tuple", resultTerm.getSubtermCount());
+                } else if(resultTerm.getSubtermCount() == 4) {
+                    logger.trace("Analysis for {} done", resource);
                     results.add(singleASTMakeResult(resultTerm, parseResult));
+                } else if(resultTerm.getSubtermCount() == 3) {
+                    logger.trace("Analysis for {} done", resource);
+                    results.add(singleASTMakeResultNoAST(resultTerm, parseResult));
+                } else {
+                    logger.trace(
+                        "Analysis for {} has unexpected result, tuple with more than 4 or less than 2 elements",
+                        resource);
+                    results.add(singleASTMakeResult(String.format("Unexpected results from analysis {}", resultTerm),
+                        parseResult, null));
                 }
             } catch(SpoofaxException e) {
+                logger.trace("Analysis for {} failed", resource);
                 results.add(singleASTMakeResult(analysisFailedMessage(interpreter), parseResult, e));
             }
         }
@@ -205,6 +227,16 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.WARNING, result.getSubterm(2)));
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.NOTE, result.getSubterm(3)));
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(result.getSubterm(0), source, messages, parseResult);
+    }
+
+    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> singleASTMakeResultNoAST(IStrategoTerm result,
+        ParseResult<IStrategoTerm> parseResult) {
+        final FileObject source = parseResult.source;
+        final Collection<IMessage> messages = Lists.newLinkedList();
+        messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.ERROR, result.getSubterm(0)));
+        messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.WARNING, result.getSubterm(1)));
+        messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.NOTE, result.getSubterm(2)));
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, messages, parseResult);
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> singleASTMakeResult(String errorString,
@@ -225,18 +257,19 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         Iterable<FileObject> sources, IContext context, HybridInterpreter interpreter, String analysisStrategy,
         ITermFactory termFactory) throws AnalysisException {
         final FileObject contextLocation = context.location();
-        final File localContextLocation = resourceService.localFile(contextLocation);
-        if(localContextLocation == null) {
-            final String message =
-                String.format("Context %s does not reside on the local file system, cannot analyze", contextLocation);
+        final File localContextLocation;
+        try {
+            localContextLocation = resourceService.localFile(contextLocation);
+        } catch(SpoofaxRuntimeException e) {
+            final String message = String.format("Context location %s does not exist, cannot analyze", contextLocation);
             logger.error(message);
-            throw new AnalysisException(sources, context, message);
+            throw new AnalysisException(sources, context, message, e);
         }
-
         final ILanguage language = context.language();
 
         logger.trace("Creating input terms for analysis (File/3 terms)");
         final Collection<IStrategoAppl> analysisInputs = Lists.newLinkedList();
+        final Map<String, FileObject> originalSources = Maps.newHashMap();
         for(ParseResult<IStrategoTerm> input : inputs) {
             if(input.result == null) {
                 logger.warn("Input result for {} is null, cannot analyze it", input.source);
@@ -244,17 +277,18 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
 
             final FileObject resource = input.source;
-            final File localResource = resourceService.localFile(resource);
+            final File localResource = resourceService.localPath(resource);
             if(localResource == null) {
-                logger.error("Input result for {} does not reside on the local file system, cannot analyze it",
-                    resource);
+                final String message =
+                    String.format("Input %s does not reside on the local file system, cannot analyze it", resource);
+                logger.error(message);
                 continue;
             }
 
-            final IStrategoString path =
-                termFactory.makeString(localContextLocation.toURI().relativize(localResource.toURI()).getPath());
-            analysisInputs
-                .add(termFactory.makeAppl(fileCons, path, input.result, termFactory.makeReal(input.duration)));
+            final IStrategoString pathTerm = localPath.localResourceTerm(localResource, localContextLocation);
+            originalSources.put(pathTerm.stringValue(), resource);
+            analysisInputs.add(termFactory.makeAppl(fileCons, pathTerm, input.result,
+                termFactory.makeReal(input.duration)));
         }
         final IStrategoTerm inputTerm = termFactory.makeList(analysisInputs);
 
@@ -288,7 +322,12 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         logger.trace("Analysis contains {} results. Converting to analysis results", numItems);
         final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> fileResults = Sets.newHashSet();
         for(IStrategoTerm result : fileResultsTerm) {
-            fileResults.add(multiASTMakeResult(result, language));
+            final AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult =
+                multiASTMakeResult(result, language, originalSources);
+            if(fileResult == null) {
+                continue;
+            }
+            fileResults.add(fileResult);
         }
 
         final Collection<String> affectedPartitions = makeAffectedPartitions(affectedPartitionsTerm);
@@ -299,20 +338,26 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             timeResult);
     }
 
-    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> multiASTMakeResult(IStrategoTerm res, ILanguage language) {
+    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> multiASTMakeResult(IStrategoTerm res, ILanguage language,
+        Map<String, FileObject> originalSources) {
         assert res != null;
         assert res.getSubtermCount() == 8;
 
-        FileObject file = resourceService.resolve(((IStrategoString) res.getSubterm(2)).stringValue());
-        Collection<IMessage> messages = Sets.newHashSet();
-        messages.addAll(StrategoAnalysisService.makeMessages(file, MessageSeverity.ERROR, res.getSubterm(5)));
-        messages.addAll(StrategoAnalysisService.makeMessages(file, MessageSeverity.WARNING, res.getSubterm(6)));
-        messages.addAll(StrategoAnalysisService.makeMessages(file, MessageSeverity.NOTE, res.getSubterm(7)));
-        IStrategoTerm ast = res.getSubterm(4);
-        IStrategoTerm previousAst = res.getSubterm(3);
+        final String file = Tools.asJavaString(res.getSubterm(2));
+        final FileObject resource = originalSources.get(file);
+        if(resource == null) {
+            logger.error("Cannot find original source for {}, skipping result", file);
+            return null;
+        }
+        final Collection<IMessage> messages = Sets.newHashSet();
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.ERROR, res.getSubterm(5)));
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.WARNING, res.getSubterm(6)));
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.NOTE, res.getSubterm(7)));
+        final IStrategoTerm ast = res.getSubterm(4);
+        final IStrategoTerm previousAst = res.getSubterm(3);
 
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, file, messages,
-            new ParseResult<IStrategoTerm>(previousAst, file, Arrays.asList(new IMessage[] {}), -1, language));
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, resource, messages,
+            new ParseResult<IStrategoTerm>(previousAst, resource, Arrays.asList(new IMessage[] {}), -1, language, null));
     }
 
     private Collection<String> makeAffectedPartitions(IStrategoTerm affectedTerm) {

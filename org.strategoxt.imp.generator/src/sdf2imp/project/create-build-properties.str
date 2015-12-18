@@ -6,6 +6,8 @@ imports
 strategies
 
   create-build-properties =
+    MavenBuild
+  <+
     <file-exists> "build.properties"
   <+
     <output-text-file(|[], "build.properties")>

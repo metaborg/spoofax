@@ -1,20 +1,27 @@
 package org.metaborg.spoofax.core.messages;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.resource.ResourceService;
 
 public class Message implements IMessage {
+    private static final long serialVersionUID = -8129122671657252297L;
+
     private final String message;
     private final MessageSeverity severity;
     private final MessageType type;
-    private final FileObject source;
+    private transient FileObject source;
     private final ISourceRegion region;
-    @Nullable private final Throwable exception;
+    @Nullable private Throwable exception;
 
 
-    public Message(String message, MessageSeverity severity, MessageType type, FileObject source,
-        ISourceRegion region, @Nullable Throwable exception) {
+    public Message(String message, MessageSeverity severity, MessageType type, FileObject source, ISourceRegion region,
+        @Nullable Throwable exception) {
         this.message = message;
         this.severity = severity;
         this.type = type;
@@ -50,5 +57,16 @@ public class Message implements IMessage {
 
     @Override public String toString() {
         return message;
+    }
+
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        ResourceService.writeFileObject(source, out);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        source = ResourceService.readFileObject(in);
     }
 }

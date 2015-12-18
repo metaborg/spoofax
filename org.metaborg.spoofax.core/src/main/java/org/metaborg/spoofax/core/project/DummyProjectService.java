@@ -5,7 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DummyProjectService implements IProjectService {
-    private static final Logger logger = LoggerFactory.getLogger(DummyProjectService.class);
+	private static final long serialVersionUID = 1835155456881028321L;
+	
+	private static final Logger logger = LoggerFactory.getLogger(DummyProjectService.class);
 
 
     @Override public IProject get(FileObject resource) {

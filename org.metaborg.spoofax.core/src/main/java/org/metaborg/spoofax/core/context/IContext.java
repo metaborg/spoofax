@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.context;
 
+import java.io.Serializable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 
@@ -8,7 +10,7 @@ import org.metaborg.spoofax.core.language.ILanguage;
  * and {@link #equals(Object)} using {@link #location()} and {@link #language()}, and also implement
  * {@link IContextInternal}.
  */
-public interface IContext {
+public interface IContext extends Serializable {
     /**
      * @return Location of this context.
      */

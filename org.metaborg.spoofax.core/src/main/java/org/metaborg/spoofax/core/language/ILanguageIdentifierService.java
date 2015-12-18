@@ -8,22 +8,22 @@ public interface ILanguageIdentifierService {
     /**
      * Attempts to identify the active language of given file object.
      * 
-     * @param file
-     *            The file to identify.
+     * @param resource
+     *            Resource to identify.
      * @return Identified language, or null if language could not be identified.
      * @throws IllegalStateException
      *             when a resource can be identified to languages with different names.
      */
-    public @Nullable ILanguage identify(FileObject file);
+    public abstract @Nullable ILanguage identify(FileObject resource);
 
     /**
-     * Attempts to identify the languages (with the same name) of given file object.
+     * Checks if given resource is of given language.
      * 
-     * @param file
-     *            The file to identify.
-     * @return Identified languages.
-     * @throws IllegalStateException
-     *             when a resource can be identified to languages with different names.
+     * @param resource
+     *            Resource to check.
+     * @param language
+     *            Language to check against.
+     * @return True if resource is of given language, false otherwise.
      */
-    public Iterable<ILanguage> identifyAll(FileObject file);
+    public abstract boolean identify(FileObject resource, ILanguage language);
 }

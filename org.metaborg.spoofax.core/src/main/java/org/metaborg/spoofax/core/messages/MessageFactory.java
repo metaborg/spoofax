@@ -13,7 +13,7 @@ public class MessageFactory {
 
     public static Message newParseMessage(FileObject resource, ISourceRegion region, String msg,
         MessageSeverity severity, @Nullable Throwable cause) {
-        return newMessage(resource, region, msg, severity, MessageType.PARSER_MESSAGE, cause);
+        return newMessage(resource, region, msg, severity, MessageType.PARSER, cause);
     }
 
     public static Message
@@ -29,7 +29,7 @@ public class MessageFactory {
 
     public static Message newAnalysisMessage(FileObject resource, ISourceRegion region, String msg,
         MessageSeverity severity, @Nullable Throwable cause) {
-        return newMessage(resource, region, msg, severity, MessageType.ANALYSIS_MESSAGE, cause);
+        return newMessage(resource, region, msg, severity, MessageType.ANALYSIS, cause);
     }
 
     public static Message newAnalysisError(FileObject resource, ISourceRegion region, String msg,
@@ -63,33 +63,33 @@ public class MessageFactory {
 
 
     public static Message newParseErrorAtTop(FileObject resource, String msg, @Nullable Throwable cause) {
-        return newErrorAtTop(resource, msg, MessageType.PARSER_MESSAGE, cause);
+        return newErrorAtTop(resource, msg, MessageType.PARSER, cause);
     }
 
     public static Message newParseWarningAtTop(FileObject resource, String msg, @Nullable Throwable cause) {
-        return newWarningAtTop(resource, msg, MessageType.PARSER_MESSAGE, cause);
+        return newWarningAtTop(resource, msg, MessageType.PARSER, cause);
     }
 
 
     public static Message newAnalysisMessageAtTop(FileObject resource, String msg, MessageSeverity severity,
         @Nullable Throwable cause) {
-        return newAtTop(resource, msg, MessageType.ANALYSIS_MESSAGE, severity, cause);
+        return newAtTop(resource, msg, MessageType.ANALYSIS, severity, cause);
     }
 
     public static Message newAnalysisErrorAtTop(FileObject resource, String msg, @Nullable Throwable cause) {
-        return newErrorAtTop(resource, msg, MessageType.ANALYSIS_MESSAGE, cause);
+        return newErrorAtTop(resource, msg, MessageType.ANALYSIS, cause);
     }
 
     public static Message newAnalysisWarningAtTop(FileObject resource, String msg, @Nullable Throwable cause) {
-        return newWarningAtTop(resource, msg, MessageType.ANALYSIS_MESSAGE, cause);
+        return newWarningAtTop(resource, msg, MessageType.ANALYSIS, cause);
     }
 
 
     public static Message newBuilderErrorAtTop(FileObject resource, String msg, @Nullable Throwable cause) {
-        return newErrorAtTop(resource, msg, MessageType.BUILDER_MESSAGE, cause);
+        return newErrorAtTop(resource, msg, MessageType.TRANSFORMATION, cause);
     }
 
     public static Message newBuilderWarningAtTop(FileObject resource, String msg, @Nullable Throwable cause) {
-        return newWarningAtTop(resource, msg, MessageType.BUILDER_MESSAGE, cause);
+        return newWarningAtTop(resource, msg, MessageType.TRANSFORMATION, cause);
     }
 }

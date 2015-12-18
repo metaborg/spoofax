@@ -1,7 +1,9 @@
 package org.metaborg.spoofax.core.style;
 
 public class SortCategory implements ICategory {
-    public final String sort;
+    private static final long serialVersionUID = 7423414710882093137L;
+    
+	public final String sort;
 
 
     public SortCategory(String sort) {
@@ -11,5 +13,10 @@ public class SortCategory implements ICategory {
 
     @Override public String name() {
         return sort + "._";
+    }
+
+
+    @Override public String toString() {
+        return name();
     }
 }

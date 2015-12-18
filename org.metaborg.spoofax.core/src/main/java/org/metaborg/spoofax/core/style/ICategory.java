@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.style;
 
-public interface ICategory {
+import java.io.Serializable;
+
+public interface ICategory extends Serializable {
     public abstract String name();
 }

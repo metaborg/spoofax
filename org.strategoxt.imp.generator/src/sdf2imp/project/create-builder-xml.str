@@ -11,6 +11,8 @@ strategies
     !$[[<get-sdf-main-module>] build.main.xml.launch]
 
   create-builder-xml =
+    MavenBuild
+  <+
     <file-exists> $[.externalToolBuilders/[<builder-xml-name>]]
   <+
     not(ProjectName);

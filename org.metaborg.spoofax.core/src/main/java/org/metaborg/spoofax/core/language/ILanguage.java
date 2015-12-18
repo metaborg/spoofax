@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.language;
 
-import java.util.Date;
+import java.io.Serializable;
 
 import javax.annotation.Nullable;
 
@@ -9,10 +9,10 @@ import org.apache.commons.vfs2.FileObject;
 import rx.Observable;
 
 /**
- * Interface that represents a language and its facets. Implementors must implement {@link #hashCode()} and
+ * Interface that represents a language and its facets. Implementors implement {@link #hashCode()}, and
  * {@link #equals(Object)} using {@link #name()}, {@link #version()}, and {@link #location()}.
  */
-public interface ILanguage extends Comparable<ILanguage> {
+public interface ILanguage extends Serializable {
     /**
      * Returns the name of the language.
      */
@@ -29,9 +29,10 @@ public interface ILanguage extends Comparable<ILanguage> {
     public FileObject location();
 
     /**
-     * Returns the date at when the language was created.
+     * Returns the sequence identifier of the language. Used to find out if a language was created after or before
+     * another language.
      */
-    public Date createdDate();
+    public int sequenceId();
 
 
     /**

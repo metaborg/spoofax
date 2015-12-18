@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
@@ -186,6 +188,39 @@ public class DescriptorRegistry {
 		
 		descriptors.add(spoofaxEditor);
 		mapping.setEditorsList(descriptors);
-		mapping.setDefaultEditor(spoofaxEditor);
+		
+        // original code without reflection: mapping.setDefaultEditor(spoofaxEditor);
+        final Method setDefaultEditorMethod = getSetDefaultEditorMethod();
+        try {
+            setDefaultEditorMethod.invoke(mapping, spoofaxEditor);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not set default editor", e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Could not set default editor", e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException("Could not set default editor", e);
+        }
 	}
+	
+    /**
+     * Gets the correct {@link FileEditorMapping#setDefaultEditor} method via
+     * reflection. Parameter changed from EditorDescriptor to IEditorDescriptor
+     * in Eclipse Mars.
+     */
+    private static Method getSetDefaultEditorMethod() {
+        final String methodName = "setDefaultEditor";
+        try {
+            return FileEditorMapping.class.getDeclaredMethod(methodName,
+                    EditorDescriptor.class);
+        } catch (NoSuchMethodException e1) {
+            try {
+                return FileEditorMapping.class.getDeclaredMethod(methodName,
+                        IEditorDescriptor.class);
+            } catch (NoSuchMethodException e2) {
+                throw new RuntimeException(
+                        "Cannot find setDefaultEditor method via reflection",
+                        e2);
+            }
+        }
+    }
 }

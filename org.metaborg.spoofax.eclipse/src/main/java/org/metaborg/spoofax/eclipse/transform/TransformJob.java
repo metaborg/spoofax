@@ -3,17 +3,10 @@ package org.metaborg.spoofax.eclipse.transform;
 import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.context.ContextException;
 import org.metaborg.spoofax.core.context.IContext;
@@ -22,11 +15,10 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.transform.ITransformer;
-import org.metaborg.spoofax.core.transform.TransformResult;
+import org.metaborg.spoofax.core.transform.NamedGoal;
 import org.metaborg.spoofax.core.transform.TransformerException;
-import org.metaborg.spoofax.core.transform.stratego.Action;
-import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
-import org.metaborg.spoofax.core.transform.stratego.StrategoTransformResultProcessor;
+import org.metaborg.spoofax.core.transform.stratego.menu.Action;
+import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
@@ -72,7 +64,7 @@ public class TransformJob extends Job {
 
     @Override protected IStatus run(IProgressMonitor monitor) {
         final IEditorInput input = editor.getEditorInput();
-        final String text = editor.currentDocument().get();
+        final String text = editor.document().get();
         final FileObject resource = resourceService.resolve(input);
 
         if(resource == null) {
@@ -83,7 +75,8 @@ public class TransformJob extends Job {
 
         final ILanguage language = langaugeIdentifierService.identify(resource);
         if(language == null) {
-            final String message = String.format("Transformation failed, language of %s cannot be identified", resource);
+            final String message =
+                String.format("Transformation failed, language of %s cannot be identified", resource);
             logger.error(message);
             return StatusUtils.error(message);
         }
@@ -118,40 +111,14 @@ public class TransformJob extends Job {
             return StatusUtils.cancel();
 
         final IContext context = contextService.get(resource, language);
-        final TransformResult<?, IStrategoTerm> transformResult;
         if(action.flags.parsed) {
             final ParseResult<IStrategoTerm> result =
                 parseResultProcessor.request(resource, language, text).toBlocking().single();
-            transformResult = transformer.transformParsed(result, context, action.name);
+            transformer.transform(result, context, new NamedGoal(action.name));
         } else {
             final AnalysisFileResult<IStrategoTerm, IStrategoTerm> result =
                 analysisResultProcessor.request(resource, context, text).toBlocking().single();
-            transformResult = transformer.transformAnalyzed(result, context, action.name);
-        }
-
-        if(monitor.isCanceled())
-            return StatusUtils.cancel();
-        // GTODO: don't depend on StrategoTransformResultProcessor, should be abstracted out to support different
-        // analyzers.
-        final FileObject writtenResource = StrategoTransformResultProcessor.writeFile(transformResult.result, context);
-        if(action.flags.openEditor && writtenResource != null) {
-            final IResource writtenEclipseResource = resourceService.unresolve(writtenResource);
-            if(writtenEclipseResource instanceof IFile) {
-                final IFile file = (IFile) writtenEclipseResource;
-                // Run in the UI thread because we need to get the active workbench window and page.
-                final Display display = Display.getDefault();
-                display.asyncExec(new Runnable() {
-                    @Override public void run() {
-                        final IWorkbenchPage page =
-                            PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-                        try {
-                            IDE.openEditor(page, file);
-                        } catch(PartInitException e) {
-                            logger.error("Cannot open editor", e);
-                        }
-                    }
-                });
-            }
+            transformer.transform(result, context, new NamedGoal(action.name));
         }
 
         return StatusUtils.success();

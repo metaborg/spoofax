@@ -1,16 +1,25 @@
 package org.metaborg.spoofax.core.syntax;
 
-import java.util.Set;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
+import org.metaborg.spoofax.core.resource.ResourceService;
+import org.metaborg.util.iterators.Iterables2;
 
 /**
  * Represents the syntax (or parsing) facet of a language.
  */
 public class SyntaxFacet implements ILanguageFacet {
-    private final FileObject parseTable;
-    private final Set<String> startSymbols;
+    private static final long serialVersionUID = 2342326101518124130L;
+
+    public transient FileObject parseTable;
+    public final Iterable<String> startSymbols;
+    public final Iterable<String> singleLineCommentPrefixes;
+    public final Iterable<MultiLineCommentCharacters> multiLineCommentCharacters;
+    public final Iterable<FenceCharacters> fenceCharacters;
 
 
     /**
@@ -21,27 +30,43 @@ public class SyntaxFacet implements ILanguageFacet {
      * @param startSymbols
      *            Set of start symbols.
      */
-    public SyntaxFacet(FileObject parseTable, Set<String> startSymbols) {
+    public SyntaxFacet(FileObject parseTable, Iterable<String> startSymbols) {
+        this(parseTable, startSymbols, Iterables2.<String>empty(), Iterables2.<MultiLineCommentCharacters>empty(),
+            Iterables2.<FenceCharacters>empty());
+    }
+
+    /**
+     * Creates a syntax facet from syntax configuration.
+     * 
+     * @param parseTableProvider
+     *            Parse table provider.
+     * @param startSymbols
+     *            Set of start symbols.
+     * @param singleLineCommentPrefixes
+     *            Single line comment prefixes.
+     * @param multiLineCommentCharacters
+     *            Multi line comment characters.
+     * @param fenceCharacters
+     *            Fence characters.
+     */
+    public SyntaxFacet(FileObject parseTable, Iterable<String> startSymbols,
+        Iterable<String> singleLineCommentPrefixes, Iterable<MultiLineCommentCharacters> multiLineCommentCharacters,
+        Iterable<FenceCharacters> fenceCharacters) {
         this.parseTable = parseTable;
         this.startSymbols = startSymbols;
+        this.singleLineCommentPrefixes = singleLineCommentPrefixes;
+        this.multiLineCommentCharacters = multiLineCommentCharacters;
+        this.fenceCharacters = fenceCharacters;
     }
 
 
-    /**
-     * Returns the parse table provider.
-     * 
-     * @return Parse table provider.
-     */
-    public FileObject parseTable() {
-        return parseTable;
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        ResourceService.writeFileObject(parseTable, out);
     }
 
-    /**
-     * Returns the start symbols.
-     * 
-     * @return Iterable over the start symbols.
-     */
-    public Iterable<String> startSymbols() {
-        return startSymbols;
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        parseTable = ResourceService.readFileObject(in);
     }
 }

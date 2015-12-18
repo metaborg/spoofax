@@ -6,6 +6,8 @@ imports
 strategies
 
   create-jdt-prefs =
+    MavenBuild
+  <+
     <file-exists> ".settings/org.eclipse.jdt.core.prefs"
   <+
     pkgname  := <get-package-name-text>;

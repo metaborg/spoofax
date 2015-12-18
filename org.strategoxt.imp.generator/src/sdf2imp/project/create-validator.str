@@ -12,6 +12,8 @@ strategies
     <conc-strings> (<get-main-class-name>, "Validator")
 
   create-validator =
+    MavenBuild
+  <+
     x_name   := <validator-name>;
     x_parser := <parse-controller-name>;
     pkgname  := <get-package-name>;

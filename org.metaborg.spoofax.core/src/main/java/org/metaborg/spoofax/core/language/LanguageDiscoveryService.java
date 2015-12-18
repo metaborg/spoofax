@@ -15,8 +15,10 @@ import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
-import org.metaborg.spoofax.core.transform.stratego.MenusFacetFromESV;
+import org.metaborg.spoofax.core.transform.stratego.compile.CompilerFacet;
+import org.metaborg.spoofax.core.transform.stratego.compile.CompilerFacetFromESV;
+import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
+import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ContainsFileSelector;
 import org.slf4j.Logger;
@@ -46,9 +48,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
 
     @Override public Iterable<ILanguage> discover(FileObject location) throws Exception {
-        final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
-        final Set<FileObject> parents = Sets.newHashSet();
         final Collection<ILanguage> languages = Lists.newLinkedList();
+        final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
+        if(esvFiles == null) {
+            return languages;
+        }
+        final Set<FileObject> parents = Sets.newHashSet();
         for(FileObject esvFile : esvFiles) {
             final FileObject languageLocation = esvFile.getParent().getParent();
             if(parents.contains(languageLocation)) {
@@ -101,6 +106,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, language);
         language.addFacet(menusFacet);
+
+        final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, language);
+        language.addFacet(compilerFacet);
 
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
         language.addFacet(stylerFacet);

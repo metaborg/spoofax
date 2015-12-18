@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.file.FileSystemException;
 
 import org.apache.commons.vfs2.FileObject;
@@ -23,6 +24,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.metaborg.util.stream.OnCloseByteArrayOutputStream;
 import org.spoofax.terms.util.NotImplementedException;
 
@@ -58,14 +60,49 @@ public class EclipseResourceFileObject extends AbstractFileObject {
     }
 
     private void updateResource() throws Exception {
-        resource = root.findMember(name.getPath());
+        final String path = name.getPath();
+        resource = root.findMember(path);
+        if(resource != null) {
+            return;
+        }
+
+        final int depth = name.getDepth();
+        switch(depth) {
+            case 0:
+            case 1:
+                resource = root;
+                break;
+            case 2:
+                resource = root.getProject(name.getBaseName());
+                break;
+            default:
+                switch(name.getType()) {
+                    case FILE:
+                        resource = root.getFile(new Path(path));
+                        break;
+                    case FILE_OR_FOLDER:
+                        resource = root.getFile(new Path(path));
+                        break;
+                    case FOLDER:
+                        resource = root.getFolder(new Path(path));
+                        break;
+                    default:
+                        break;
+                }
+                break;
+        }
     }
 
     private void updateFileInfo() throws Exception {
-        if(resource != null) {
-            final IFileStore store = EFS.getStore(resource.getLocationURI());
-            info = store.fetchInfo();
+        if(resource == null) {
+            return;
         }
+        final URI locationURI = resource.getLocationURI();
+        if(locationURI == null) {
+            return;
+        }
+        final IFileStore store = EFS.getStore(locationURI);
+        info = store.fetchInfo();
     }
 
     private IPath getPath() {
@@ -182,7 +219,11 @@ public class EclipseResourceFileObject extends AbstractFileObject {
         return new OnCloseByteArrayOutputStream(new Action1<ByteArrayOutputStream>() {
             @Override public void call(ByteArrayOutputStream out) {
                 try {
-                    file.setContents(new ByteArrayInputStream(out.toByteArray()), true, false, null);
+                    if(!file.exists()) {
+                        file.create(new ByteArrayInputStream(out.toByteArray()), true, null);
+                    } else {
+                        file.setContents(new ByteArrayInputStream(out.toByteArray()), true, false, null);
+                    }
                 } catch(CoreException e) {
                     throw new RuntimeException("Could not set file contents for file " + name, e);
                 }

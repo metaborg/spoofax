@@ -300,9 +300,9 @@ public class ResourceAgent extends IOAgent {
         // GTODO: does not work for files that do not reside on the local file system
         try {
             final FileObject resource = resolve(workingDir, fn);
-            File localResource = resourceService.localFile(resource);
+            File localResource = resourceService.localPath(resource);
             if(localResource == null) {
-                final File localWorkingDir = resourceService.localFile(workingDir);
+                final File localWorkingDir = resourceService.localPath(workingDir);
                 if(localWorkingDir == null) {
                     // Local working directory does not reside on the local file system, just return a File.
                     return new File(fn);
@@ -374,25 +374,21 @@ public class ResourceAgent extends IOAgent {
     private FileObject resolve(FileObject parent, String path) throws FileSystemException {
         final File file = new File(path);
 
-        final URI uri;
         try {
-            uri = new URI(path);
+            final URI uri = new URI(path);
+            if(uri.isAbsolute()) {
+                return resourceService.resolve(path);
+            } 
         } catch(URISyntaxException e) {
-            throw new RuntimeException("Cannot parse path into URI", e);
+            // Ignore
         }
 
-        final FileObject resolved;
-        if(uri.isAbsolute()) {
-            resolved = resourceService.resolve(path);
-        } else if(file.isAbsolute()) {
-            resolved = resourceService.resolve("file://" + path);
-        } else {
-            if(parent != null) {
-                resolved = parent.resolveFile(path);
-            } else {
-                throw new RuntimeException("Cannot resolve relative path if base path is null");
-            }
+        if(file.isAbsolute()) {
+            return resourceService.resolve("file://" + path);
         }
-        return resolved;
+        if(parent != null) {
+            return parent.resolveFile(path);
+        }
+        throw new RuntimeException("Cannot resolve relative path if base path is null");
     }
 }

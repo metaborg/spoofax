@@ -1,32 +1,35 @@
 package org.metaborg.spoofax.core.language;
 
-import java.util.Date;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.resource.ResourceService;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
 import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.MutableClassToInstanceMap;
 
 public class Language implements ILanguage {
+    private static final long serialVersionUID = 5329634831598144245L;
+
     private final String name;
+    private transient FileObject location;
     private final LanguageVersion version;
-    private final FileObject location;
-    private final Date loadedDate;
+    private final int sequenceId;
 
-    private final ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
-    private final Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
+    private transient ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
+    private transient Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
-
-    public Language(String name, LanguageVersion version, FileObject location, Date loadedDate) {
+    public Language(String name, FileObject location, LanguageVersion version, int sequenceId) {
         this.name = name;
-        this.version = version;
         this.location = location;
-        this.loadedDate = loadedDate;
+        this.version = version;
+        this.sequenceId = sequenceId;
     }
 
 
@@ -42,8 +45,8 @@ public class Language implements ILanguage {
         return location;
     }
 
-    @Override public Date createdDate() {
-        return loadedDate;
+    @Override public int sequenceId() {
+        return sequenceId;
     }
 
 
@@ -66,7 +69,7 @@ public class Language implements ILanguage {
                 + name);
         }
         facets.putInstance(type, facet);
-        facetChanges.onNext(new LanguageFacetChange(facet, LanguageFacetChange.Kind.ADDED));
+        facetChanges.onNext(new LanguageFacetChange(facet, LanguageFacetChange.Kind.ADD));
         return facet;
     }
 
@@ -76,20 +79,8 @@ public class Language implements ILanguage {
                 + " does not exists in language " + name);
         }
         final ILanguageFacet removedFacet = facets.remove(type);
-        facetChanges.onNext(new LanguageFacetChange(removedFacet, LanguageFacetChange.Kind.REMOVED));
+        facetChanges.onNext(new LanguageFacetChange(removedFacet, LanguageFacetChange.Kind.REMOVE));
         return removedFacet;
-    }
-
-
-    @Override public int compareTo(ILanguage other) {
-        // @formatter:off
-        return ComparisonChain.start()
-            .compare(name, other.name())
-            .compare(version, other.version())
-            .compare(loadedDate, other.createdDate())
-            .compare(location.getName(), other.location().getName())
-            .result();
-        // @formatter:on
     }
 
 
@@ -97,8 +88,8 @@ public class Language implements ILanguage {
         final int prime = 31;
         int result = 1;
         result = prime * result + name.hashCode();
-        result = prime * result + version.hashCode();
         result = prime * result + location.hashCode();
+        result = prime * result + version.hashCode();
         return result;
     }
 
@@ -112,14 +103,39 @@ public class Language implements ILanguage {
         final Language other = (Language) obj;
         if(!name.equals(other.name))
             return false;
-        if(!version.equals(other.version))
-            return false;
         if(!location.equals(other.location))
+            return false;
+        if(!version.equals(other.version))
             return false;
         return true;
     }
 
     @Override public String toString() {
         return "Language [name=" + name + ", version=" + version + ", location=" + location + "]";
+    }
+
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+
+        ResourceService.writeFileObject(location, out);
+
+        out.writeInt(facets.size());
+        for(ILanguageFacet facet : facets.values())
+            out.writeObject(facet);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        location = ResourceService.readFileObject(in);
+        facets = MutableClassToInstanceMap.create();
+        facetChanges = PublishSubject.create();
+
+        int facetCount = in.readInt();
+        for(int i = 0; i < facetCount; i++) {
+            final ILanguageFacet facet = (ILanguageFacet) in.readObject();
+            facets.put(facet.getClass(), facet);
+        }
     }
 }

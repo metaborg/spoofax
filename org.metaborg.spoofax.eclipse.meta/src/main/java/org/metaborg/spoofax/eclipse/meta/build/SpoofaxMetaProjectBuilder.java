@@ -13,11 +13,20 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.ant.core.AntRunner;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.MultiRule;
+import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
+import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
 import org.metaborg.spoofax.eclipse.meta.SpoofaxMetaPlugin;
+import org.metaborg.spoofax.eclipse.meta.language.LoadLanguageJob;
 import org.metaborg.spoofax.eclipse.meta.legacy.build.LegacyBuildProperties;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.BundleUtils;
@@ -36,11 +45,16 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
     private static final Logger logger = LoggerFactory.getLogger(SpoofaxMetaProjectBuilder.class);
 
     private final IEclipseResourceService resourceService;
+    private final ILanguageDiscoveryService languageDiscoveryService;
+
+    private final GlobalSchedulingRules globalSchedulingRules;
 
 
     public SpoofaxMetaProjectBuilder() {
         final Injector injector = SpoofaxMetaPlugin.injector();
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
+        this.languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
+        this.globalSchedulingRules = injector.getInstance(GlobalSchedulingRules.class);
     }
 
 
@@ -70,8 +84,8 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
         }
     }
 
-    private void runAnt(String buildFilePath, String[] targets, IProgressMonitor monitor) throws CoreException,
-        IOException {
+    private void runAnt(IProject project, String buildFilePath, String[] targets, IProgressMonitor monitor)
+        throws CoreException, IOException {
         final AntRunner runner = new AntRunner();
         runner.setBuildFileLocation(buildFilePath);
         runner.setExecutionTargets(targets);
@@ -80,19 +94,31 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
         final Map<String, String> properties = properties(classpaths);
         runner.addUserProperties(properties);
         runner.addBuildLogger("org.metaborg.spoofax.eclipse.meta.build.SpoofaxAntBuildLogger");
-        runner.run(monitor);
+        final IWorkspaceRunnable antRunnable = new IWorkspaceRunnable() {
+            @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
+                runner.run(workspaceMonitor);
+            }
+        };
+        final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        workspace.run(antRunnable, project, IWorkspace.AVOID_UPDATE, monitor);
     }
 
     private void clean(IProject project, IProgressMonitor monitor) throws CoreException, IOException {
         logger.debug("Cleaning language project {}", project);
         final String buildFilePath = buildFilePath(project, "clean");
-        runAnt(buildFilePath, new String[] { "clean" }, monitor);
+        runAnt(project, buildFilePath, new String[] { "clean" }, monitor);
     }
 
     private void build(IProject project, IProgressMonitor monitor) throws CoreException, IOException {
         logger.debug("Building language project {}", project);
         final String buildFilePath = buildFilePath(project, "build");
-        runAnt(buildFilePath, new String[] { "all" }, monitor);
+        runAnt(project, buildFilePath, new String[] { "all" }, monitor);
+
+        final FileObject projectResource = resourceService.resolve(project);
+        final Job languageLoadJob = new LoadLanguageJob(languageDiscoveryService, projectResource);
+        languageLoadJob.setRule(new MultiRule(new ISchedulingRule[] { globalSchedulingRules.startupReadLock(),
+            globalSchedulingRules.languageServiceLock() }));
+        languageLoadJob.schedule();
     }
 
     private String buildFilePath(IProject project, String action) throws FileSystemException, CoreException {
@@ -105,13 +131,6 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
             throw new CoreException(StatusUtils.error(message));
         }
         final File buildFile = resourceService.localFile(buildFileLocation);
-        if(buildFile == null) {
-            final String message =
-                String.format("Cannot %s language project, build file %s does not reside on the local file system",
-                    action, buildFileLocation);
-            logger.error(message);
-            throw new CoreException(StatusUtils.error(message));
-        }
         final String buildFilePath = buildFile.getAbsolutePath();
         return buildFilePath;
     }

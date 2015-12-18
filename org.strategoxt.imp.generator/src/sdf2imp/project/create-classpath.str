@@ -6,6 +6,8 @@ imports
 strategies
 
   create-classpath =
+    MavenBuild
+  <+
     <file-exists> ".classpath"
   <+
     <output-text-file(|[], ".classpath")>
