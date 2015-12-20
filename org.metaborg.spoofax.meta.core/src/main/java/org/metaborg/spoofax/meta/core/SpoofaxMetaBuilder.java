@@ -25,6 +25,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
+import org.metaborg.util.exception.SneakyThrow;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
@@ -114,8 +115,12 @@ public class SpoofaxMetaBuilder {
             SpoofaxContext.init(injector);
         }
         Log.log.setLoggingLevel(Log.ALWAYS);
-        BuildManagers.build(new BuildRequest<>(GenerateSourcesBuilder.factory, new SpoofaxInput(new SpoofaxContext(
-            input.settings, Iterables2.<String>empty()))));
+        try {
+            BuildManagers.build(GenerateSourcesBuilder.request(new SpoofaxInput(new SpoofaxContext(input.settings,
+                Iterables2.<String>empty()))));
+        } catch(Throwable e) {
+            SneakyThrow.sneakyThrow(e);
+        }
     }
 
     public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
@@ -130,11 +135,12 @@ public class SpoofaxMetaBuilder {
             SpoofaxContext.init(injector);
         }
         Log.log.setLoggingLevel(Log.ALWAYS);
-        BuildManagers.build(new BuildRequest<>(PackageBuilder.factory, new SpoofaxInput(new SpoofaxContext(
-            input.settings, Iterables2.<String>empty()))));
-
-        // final IAntRunner runner = antRunner.create(input, classpaths, listener);
-        // runner.execute("package", cancellationToken);
+        try {
+            BuildManagers.build(PackageBuilder.request(new SpoofaxInput(new SpoofaxContext(input.settings, Iterables2
+                .<String>empty()))));
+        } catch(Throwable e) {
+            SneakyThrow.sneakyThrow(e);
+        }
     }
 
     public void clean(SpoofaxProjectSettings settings) throws IOException {

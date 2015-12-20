@@ -3,6 +3,7 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
@@ -18,6 +19,7 @@ import org.sugarj.common.StringCommands;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
 public class Strj extends SpoofaxBuilder<Strj.Input, None> {
@@ -34,12 +36,12 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         public final String[] libraryIncludes;
         public final File cacheDir;
         public final String[] additionalArgs;
-        public final BuildRequest<?, ?, ?, ?>[] requiredUnits;
+        public final Origin requiredUnits;
 
 
         public Input(SpoofaxContext context, File inputPath, File outputPath, File depPath, String packageName,
             boolean library, boolean clean, File[] directoryIncludes, String[] libraryIncludes, File cacheDir,
-            String[] additionalArgs, BuildRequest<?, ?, ?, ?>[] requiredUnits) {
+            String[] additionalArgs, Origin requiredUnits) {
             super(context);
             this.inputPath = inputPath;
             this.outputPath = outputPath;
@@ -62,6 +64,15 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
 
     public Strj(Input input) {
         super(input);
+    }
+
+
+    public static BuildRequest<Input, None, Strj, SpoofaxBuilderFactory<Input, None, Strj>> request(Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
     }
 
 
@@ -133,16 +144,28 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
     }
 
     private void registerUsedPaths(File strdep) throws IOException {
-        final String contents = FileCommands.readFileAsString(strdep);
-        final String[] lines = contents.split("[\\s\\\\]+");
+        final List<String> lines = org.apache.commons.io.FileUtils.readLines(strdep);
 
         // Skip first line (start at 1 instead of 0), which lists the generated CTree file.
-        for(int i = 1; i < lines.length; i++) {
-            final String line = lines[i];
-            final File p = new File(line);
-            // TODO: there can be dependencies outside of the project, which breaks with getRelativePath?
-            final Path prel = FileCommands.getRelativePath(context.baseDir, p);
-            require(prel != null ? prel.toFile() : p);
+        for(int i = 1; i < lines.size(); i++) {
+            // Remove leading and trailing whitespace.
+            final String trimmedLine = lines.get(i).trim();
+            final int length = trimmedLine.length();
+            if(length < 3) {
+                // Don't process empty lines, i.e. lines with just ' /' or '/'.
+                continue;
+            }
+            // Remove the trailing ' /'.
+            final String line = trimmedLine.substring(0, length - 2);
+
+            // Make paths relative, if possible, to prevent rebuilds when they are moved to another location. Paths 
+            // outside of the base directory will be required as absolute paths.
+            
+            // TODO: non-local dependencies, such as those on .spoofax-language files, are copied to a temporary
+            // directory. That will cause unnecessary rebuilds because of absolute path dependencies.
+            final File path = new File(line);
+            final Path relativePath = FileCommands.getRelativePath(context.baseDir, path);
+            require(relativePath != null ? relativePath.toFile() : path);
         }
     }
 }

@@ -16,6 +16,8 @@ import org.metaborg.util.file.FileUtils;
 import org.strategoxt.permissivegrammars.make_permissive;
 
 import build.pluto.BuildUnit.State;
+import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
 public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
@@ -40,6 +42,16 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
 
     public MakePermissive(Input input) {
         super(input);
+    }
+
+
+    public static BuildRequest<Input, None, MakePermissive, SpoofaxBuilderFactory<Input, None, MakePermissive>>
+        request(Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
     }
 
 

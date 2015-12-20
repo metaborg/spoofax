@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.meta.core.pluto.build;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,6 +16,8 @@ import org.strategoxt.tools.main_parse_pp_table_0_0;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.BuildUnit.State;
+import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
 import com.google.common.base.Joiner;
@@ -49,6 +50,15 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
 
     public PPPack(Input input) {
         super(input);
+    }
+
+
+    public static BuildRequest<Input, None, PPPack, SpoofaxBuilderFactory<Input, None, PPPack>> request(Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
     }
 
 

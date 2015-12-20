@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.project.settings;
 import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
 import java.io.Serializable;
+import java.net.URI;
 import java.util.Collection;
 
 import javax.annotation.Nullable;
@@ -22,7 +23,7 @@ public class SpoofaxProjectSettings implements Serializable {
     private static final long serialVersionUID = 7439146986768086591L;
     
     private final IProjectSettings settings;
-    private final String locationPath;
+    private final URI locationPath;
     private transient FileObject location;
 
     private Collection<String> pardonedLanguages = Lists.newLinkedList();
@@ -36,7 +37,7 @@ public class SpoofaxProjectSettings implements Serializable {
 
     public SpoofaxProjectSettings(IProjectSettings settings, FileObject location) {
         this.settings = settings;
-        this.locationPath = FileUtils.toPath(location);
+        this.locationPath = FileUtils.toURI(location);
         this.location = location;
     }
     

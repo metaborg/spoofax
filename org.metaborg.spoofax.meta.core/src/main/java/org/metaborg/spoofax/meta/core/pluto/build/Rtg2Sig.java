@@ -15,6 +15,8 @@ import org.metaborg.util.file.FileUtils;
 import org.strategoxt.tools.main_rtg2sig_0_0;
 
 import build.pluto.BuildUnit.State;
+import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
 public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
@@ -36,6 +38,15 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
 
     public Rtg2Sig(Input input) {
         super(input);
+    }
+
+
+    public static BuildRequest<Input, None, Rtg2Sig, SpoofaxBuilderFactory<Input, None, Rtg2Sig>> request(Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
     }
 
 

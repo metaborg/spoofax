@@ -13,6 +13,8 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.util.file.FileUtils;
 import org.sugarj.common.FileCommands;
 
+import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.stamp.LastModifiedStamper;
 
@@ -36,6 +38,15 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input, None> {
 
     public CopyJar(Input input) {
         super(input);
+    }
+
+
+    public static BuildRequest<Input, None, CopyJar, SpoofaxBuilderFactory<Input, None, CopyJar>> request(Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
     }
 
 

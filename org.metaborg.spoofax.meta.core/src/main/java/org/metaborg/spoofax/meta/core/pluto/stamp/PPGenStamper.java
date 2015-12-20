@@ -22,88 +22,95 @@ import build.pluto.stamp.Stamper;
 import build.pluto.stamp.ValueStamp;
 
 public class PPGenStamper implements Stamper {
-	private static final long serialVersionUID = 3294157251470549994L;
-	
-	private final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdfDefinition;
-	
-	public PPGenStamper(BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdfDefinition) {
-		this.parseSdfDefinition = parseSdfDefinition;
-	}
+    private static final long serialVersionUID = 3294157251470549994L;
 
-	@Override
-	public Stamp stampOf(File p) {
-		if (!FileCommands.exists(p))
-			return new ValueStamp<>(this, null);
+    private final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf;
 
-		OutputPersisted<IStrategoTerm> term = BuildManagers.build(parseSdfDefinition);
-		
-		if (term == null || term.val == null)
-			return LastModifiedStamper.instance.stampOf(p);
-		
-		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
-		CFProdExtractor cfProdExtractor = new CFProdExtractor(factory);
-		cfProdExtractor.transform(term.val);
-		return new ValueStamp<>(this, cfProdExtractor.getRelevantProds());
-	}
 
-	private static class CFProdExtractor extends TermTransformer {
-		private final Set<IStrategoTerm> relevantProds;
+    public PPGenStamper(BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf) {
+        this.parseSdf = parseSdf;
+    }
 
-		private final ITermFactory factory;
 
-		private boolean inContextFreeSyntax = false;
-		
-		public CFProdExtractor(ITermFactory factory) {
-			super(factory, false);
-			this.factory = factory;
-			this.relevantProds = new HashSet<>();
-		}
+    @Override public Stamp stampOf(File p) {
+        if(!FileCommands.exists(p))
+            return new ValueStamp<>(this, null);
 
-		@Override
-		public IStrategoTerm preTransform(IStrategoTerm term) {
-			if (term instanceof IStrategoAppl)
-				switch (((IStrategoAppl) term).getConstructor().getName()) {
-				case "context-free-syntax":
-					inContextFreeSyntax = true;
-					break;
-				case "sort":
-					if (inContextFreeSyntax)
-						return factory.makeAppl(factory.makeConstructor("sort", 1), factory.makeString(""));
-					break;
-				default:
-					break;
-				}
-			return term;
-		}
-		
-		@Override
-		public IStrategoTerm postTransform(IStrategoTerm term) {
-			if (term instanceof IStrategoAppl)
-				switch (((IStrategoAppl) term).getConstructor().getName()) {
-				case "context-free-syntax":
-					inContextFreeSyntax = false;
-					break;
-				case "prod":
-					if (inContextFreeSyntax) {
-						IStrategoAppl attrTerm = (IStrategoAppl) term.getSubterm(2);
-						if (ATermCommands.isApplication(attrTerm, "attrs")) {
-							for (IStrategoTerm attr : (IStrategoList) attrTerm.getSubterm(0))
-								if (ATermCommands.isApplication(attr, "term") && ATermCommands.isApplication(attr.getSubterm(0), "cons")) {
-									relevantProds.add(term);
-									break;
-								}
-						}
-					}
-					break;
-				default:
-					break;
-				}
-			return term;
-		}
-		
-		public Set<IStrategoTerm> getRelevantProds() {
-			return relevantProds;
-		}
+        final OutputPersisted<IStrategoTerm> term;
+        try {
+            term = BuildManagers.build(parseSdf);
+        } catch(Throwable e) {
+            return LastModifiedStamper.instance.stampOf(p);
+        }
 
-	}
+        if(term == null || term.val == null) {
+            return LastModifiedStamper.instance.stampOf(p);
+        }
+
+        final ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
+        final CFProdExtractor cfProdExtractor = new CFProdExtractor(factory);
+        cfProdExtractor.transform(term.val);
+        return new ValueStamp<>(this, cfProdExtractor.getRelevantProds());
+    }
+
+    
+    private static class CFProdExtractor extends TermTransformer {
+        private final Set<IStrategoTerm> relevantProds;
+        private final ITermFactory factory;
+
+        private boolean inContextFreeSyntax = false;
+
+
+        public CFProdExtractor(ITermFactory factory) {
+            super(factory, false);
+            this.factory = factory;
+            this.relevantProds = new HashSet<>();
+        }
+
+
+        @Override public IStrategoTerm preTransform(IStrategoTerm term) {
+            if(term instanceof IStrategoAppl)
+                switch(((IStrategoAppl) term).getConstructor().getName()) {
+                    case "context-free-syntax":
+                        inContextFreeSyntax = true;
+                        break;
+                    case "sort":
+                        if(inContextFreeSyntax)
+                            return factory.makeAppl(factory.makeConstructor("sort", 1), factory.makeString(""));
+                        break;
+                    default:
+                        break;
+                }
+            return term;
+        }
+
+        @Override public IStrategoTerm postTransform(IStrategoTerm term) {
+            if(term instanceof IStrategoAppl)
+                switch(((IStrategoAppl) term).getConstructor().getName()) {
+                    case "context-free-syntax":
+                        inContextFreeSyntax = false;
+                        break;
+                    case "prod":
+                        if(inContextFreeSyntax) {
+                            IStrategoAppl attrTerm = (IStrategoAppl) term.getSubterm(2);
+                            if(ATermCommands.isApplication(attrTerm, "attrs")) {
+                                for(IStrategoTerm attr : (IStrategoList) attrTerm.getSubterm(0))
+                                    if(ATermCommands.isApplication(attr, "term")
+                                        && ATermCommands.isApplication(attr.getSubterm(0), "cons")) {
+                                        relevantProds.add(term);
+                                        break;
+                                    }
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            return term;
+        }
+
+        public Set<IStrategoTerm> getRelevantProds() {
+            return relevantProds;
+        }
+    }
 }

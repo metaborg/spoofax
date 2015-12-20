@@ -13,6 +13,8 @@ import org.metaborg.spoofax.nativebundle.NativeBundle;
 import org.metaborg.util.file.FileUtils;
 import org.sugarj.common.FileCommands;
 
+import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.stamp.FileExistsStamper;
 import build.pluto.stamp.LastModifiedStamper;
@@ -39,6 +41,16 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input, None> {
 
     public MetaSdf2Table(Input input) {
         super(input);
+    }
+
+
+    public static BuildRequest<Input, None, MetaSdf2Table, SpoofaxBuilderFactory<Input, None, MetaSdf2Table>> request(
+        Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
     }
 
 

@@ -18,43 +18,52 @@ import build.pluto.stamp.Stamper;
 import build.pluto.stamp.ValueStamp;
 
 public class Sdf2RtgStamper implements Stamper {
-	private static final long serialVersionUID = -8516817559822107040L;
+    private static final long serialVersionUID = -8516817559822107040L;
 
-	private BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdfDefinition;
+    private BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf;
 
-	public Sdf2RtgStamper(BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdfDefinition) {
-		this.parseSdfDefinition = parseSdfDefinition;
-	}
+    
+    public Sdf2RtgStamper(BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf) {
+        this.parseSdf = parseSdf;
+    }
 
-	@Override
-	public Stamp stampOf(File p) {
-		if (!FileCommands.exists(p))
-			return new ValueStamp<>(this, null);
+    
+    @Override public Stamp stampOf(File p) {
+        if(!FileCommands.exists(p))
+            return new ValueStamp<>(this, null);
 
-		OutputPersisted<IStrategoTerm> term = BuildManagers.build(parseSdfDefinition);
+        final OutputPersisted<IStrategoTerm> term;
+        try {
+            term = BuildManagers.build(parseSdf);
+        } catch(Throwable e) {
+            return LastModifiedStamper.instance.stampOf(p);
+        }
 
-		if (term == null || term.val == null)
-			return LastModifiedStamper.instance.stampOf(p);
+        if(term == null || term.val == null) {
+            return LastModifiedStamper.instance.stampOf(p);
+        }
 
-		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
-		Deliteralize deliteralize = new Deliteralize(factory, false);
-		IStrategoTerm delit = deliteralize.transform(term.val);
-		return new ValueStamp<>(this, delit);
-	}
+        final ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
+        final Deliteralize deliteralize = new Deliteralize(factory, false);
+        final IStrategoTerm delit = deliteralize.transform(term.val);
+        return new ValueStamp<>(this, delit);
+    }
 
-	private static class Deliteralize extends TermTransformer {
-		private final ITermFactory factory;
+    
+    private static class Deliteralize extends TermTransformer {
+        private final ITermFactory factory;
 
-		public Deliteralize(ITermFactory factory, boolean keepAttachments) {
-			super(factory, keepAttachments);
-			this.factory = factory;
-		}
 
-		@Override
-		public IStrategoTerm preTransform(IStrategoTerm term) {
-			if (term instanceof IStrategoAppl && ((IStrategoAppl) term).getConstructor().getName().equals("lit"))
-				return factory.makeAppl(factory.makeConstructor("lit", 1), factory.makeString(""));
-			return term;
-		}
-	}
+        public Deliteralize(ITermFactory factory, boolean keepAttachments) {
+            super(factory, keepAttachments);
+            this.factory = factory;
+        }
+
+
+        @Override public IStrategoTerm preTransform(IStrategoTerm term) {
+            if(term instanceof IStrategoAppl && ((IStrategoAppl) term).getConstructor().getName().equals("lit"))
+                return factory.makeAppl(factory.makeConstructor("lit", 1), factory.makeString(""));
+            return term;
+        }
+    }
 }

@@ -14,10 +14,9 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.util.file.FileUtils;
-import org.sugarj.common.util.ArrayUtils;
 
 import build.pluto.builder.BuildRequest;
-import build.pluto.output.None;
+import build.pluto.dependency.Origin;
 import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.LastModifiedStamper;
 import build.pluto.stamp.Stamper;
@@ -36,11 +35,11 @@ public class PrepareStrj extends SpoofaxBuilder<PrepareStrj.Input, OutputPersist
         public final String externalJarflags;
         public final File externalDef;
 
-        public final BuildRequest<?, ?, ?, ?>[] requiredUnits;
+        public final Origin requiredUnits;
 
 
         public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports, String strmodule,
-            File externaljar, String externaljarflags, File externalDef, BuildRequest<?, ?, ?, ?>[] requiredUnits) {
+            File externaljar, String externaljarflags, File externalDef, Origin requiredUnits) {
             super(context);
             this.sdfModule = sdfmodule;
             this.buildSdfImports = buildSdfImports;
@@ -62,6 +61,17 @@ public class PrepareStrj extends SpoofaxBuilder<PrepareStrj.Input, OutputPersist
     }
 
 
+    public static
+        BuildRequest<Input, OutputPersisted<File>, PrepareStrj, SpoofaxBuilderFactory<Input, OutputPersisted<File>, PrepareStrj>>
+        request(Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
+    }
+
+
     @Override protected String description(Input input) {
         return "Prepare Stratego code";
     }
@@ -75,9 +85,6 @@ public class PrepareStrj extends SpoofaxBuilder<PrepareStrj.Input, OutputPersist
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
-        BuildRequest<Rtg2Sig.Input, None, Rtg2Sig, ?> rtg2Sig =
-            new BuildRequest<>(Rtg2Sig.factory, new Rtg2Sig.Input(context, input.sdfModule));
-
         if(!context.isBuildStrategoEnabled(this)) {
             final String strategoModule = context.settings.strategoName();
             throw new IllegalArgumentException(String.format("Main stratego file '%s' not found", strategoModule));
@@ -118,11 +125,18 @@ public class PrepareStrj extends SpoofaxBuilder<PrepareStrj.Input, OutputPersist
             includeDirs.add(file);
         }
 
+        // @formatter:off
+        final Origin requiredUnits = Origin.Builder()
+            .add(input.requiredUnits)
+            .add(Rtg2Sig.request(new Rtg2Sig.Input(context, input.sdfModule)))
+            .get();
+        // @formatter:on
+
         // TODO: get libraries from stratego arguments
         requireBuild(Strj.factory, new Strj.Input(context, inputPath, outputPath, depPath, "trans", true, true,
             Iterables.toArray(includeDirs, File.class), new String[] { "stratego-lib", "stratego-sglr", "stratego-gpp",
                 "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc" }, cacheDir, extraArgs.toArray(new String[0]),
-            ArrayUtils.arrayAdd(rtg2Sig, input.requiredUnits)));
+            requiredUnits));
 
         return OutputPersisted.of(outputPath);
     }

@@ -19,13 +19,13 @@ import org.metaborg.spoofax.meta.core.pluto.build.PPGen;
 import org.metaborg.spoofax.meta.core.pluto.build.PPPack;
 import org.metaborg.spoofax.meta.core.pluto.build.Rtg2Sig;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
+import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg.Input;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
-import org.metaborg.spoofax.meta.core.pluto.build.Rtg2Sig.Input;
 import org.metaborg.util.file.FileUtils;
-import org.sugarj.common.util.ArrayUtils;
 
 import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
 import com.google.common.base.Joiner;
@@ -33,12 +33,23 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
-    public static SpoofaxBuilderFactory<SpoofaxInput, None, GenerateSourcesBuilder> factory = SpoofaxBuilderFactoryFactory.of(
-        GenerateSourcesBuilder.class, SpoofaxInput.class);
+    public static SpoofaxBuilderFactory<SpoofaxInput, None, GenerateSourcesBuilder> factory =
+        SpoofaxBuilderFactoryFactory.of(GenerateSourcesBuilder.class, SpoofaxInput.class);
 
 
     public GenerateSourcesBuilder(SpoofaxInput input) {
         super(input);
+    }
+
+
+    public static
+        BuildRequest<SpoofaxInput, None, GenerateSourcesBuilder, SpoofaxBuilderFactory<SpoofaxInput, None, GenerateSourcesBuilder>>
+        request(SpoofaxInput input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
     }
 
 
@@ -57,10 +68,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
         final SpoofaxProjectSettings settings = context.settings;
 
         final String sdfModule = settings.sdfName();
-        //final String strModule = settings.strategoName(); // using context.settings.getStrMainFile()
+        // final String strModule = settings.strategoName(); // using context.settings.getStrMainFile()
         final String metaSdfModule = settings.metaSdfName();
         final String sdfArgs = Joiner.on(' ').join(settings.sdfArgs());
-        //final File externalDef = settings.externalDef() != null ? new File(settings.externalDef()) : null;
+        // final File externalDef = settings.externalDef() != null ? new File(settings.externalDef()) : null;
         final File externalJar = settings.externalJar() != null ? new File(settings.externalJar()) : null;
         final String externalJarFlags = settings.externalJarFlags();
 
@@ -75,12 +86,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
         requireBuild(PPPack.factory, new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, true));
 
         // Parenthesizer
-        final BuildRequest<Sdf2Parenthesize.Input, None, Sdf2Parenthesize, ?> sdf2Parenthesize =
-            new BuildRequest<>(Sdf2Parenthesize.factory, new Sdf2Parenthesize.Input(context, sdfModule));
+        final Origin sdf2Parenthesize = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, sdfModule));
 
         // Stratego signature
-        final BuildRequest<Rtg2Sig.Input, None, Rtg2Sig, ?> rtg2Sig =
-            new BuildRequest<>(Rtg2Sig.factory, new Rtg2Sig.Input(context, sdfModule));
+        final Origin rtg2Sig = Rtg2Sig.origin(new Rtg2Sig.Input(context, sdfModule));
 
         // Stratego
         if(!context.isBuildStrategoEnabled(this)) {
@@ -122,11 +131,21 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
             includeDirs.add(file);
         }
 
+        // @formatter:off
+        final Origin requiredUnits = Origin.Builder()
+            .add(sdf2Parenthesize)
+            .add(rtg2Sig)
+            .get();
+        // @formatter:on
+
         // TODO: get libraries from stratego arguments
+        final String[] libraries =
+            new String[] { "stratego-lib", "stratego-sglr", "stratego-gpp", "stratego-xtc", "stratego-aterm",
+                "stratego-sdf", "strc" };
+
         requireBuild(Strj.factory, new Strj.Input(context, inputPath, outputPath, depPath, "trans", true, true,
-            Iterables.toArray(includeDirs, File.class), new String[] { "stratego-lib", "stratego-sglr", "stratego-gpp",
-                "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc" }, cacheDir, extraArgs.toArray(new String[0]),
-            ArrayUtils.arrayAdd(rtg2Sig, new BuildRequest<?, ?, ?, ?>[] { rtg2Sig, sdf2Parenthesize })));
+            Iterables.toArray(includeDirs, File.class), libraries, cacheDir, extraArgs.toArray(new String[0]),
+            requiredUnits));
 
         // BuildRequest<PrepareStrj.Input, OutputPersisted<File>, PrepareStrj, ?> strategoCtree =
         // new BuildRequest<>(PrepareStrj.factory, new PrepareStrj.Input(context, sdfModule, sdfArgs, strModule,

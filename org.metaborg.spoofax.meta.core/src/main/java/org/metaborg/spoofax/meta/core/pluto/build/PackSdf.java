@@ -22,6 +22,8 @@ import org.strategoxt.tools.main_pack_sdf_0_0;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.BuildUnit.State;
+import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.stamp.LastModifiedStamper;
 
@@ -50,6 +52,15 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
     }
 
 
+    public static BuildRequest<Input, None, PackSdf, SpoofaxBuilderFactory<Input, None, PackSdf>> request(Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
+    }
+
+
     @Override protected String description(Input input) {
         return "Pack SDF modules";
     }
@@ -70,20 +81,26 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
             return None.val;
         }
 
-        // requireBuild(CompileSpoofaxPrograms.factory, new CompileSpoofaxPrograms.Input(context));
-
         copySdf2();
 
         final File inputPath = FileUtils.toFile(context.settings.getSdfMainFile(input.sdfModule));
         final File outputPath = FileUtils.toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
 
-        // TODO: put these includes in the parent POM, since they are always needed.
-        final String syntaxInclude =
-            context.settings.getSyntaxDirectory().exists() ? "-I "
-                + context.settings.getSyntaxDirectory().getName().getPath() : "";
-        final String libInclude =
-            context.settings.getLibDirectory().exists() ? "-I "
-                + context.settings.getLibDirectory().getName().getPath() : "";
+        // TODO: put these includes as defaults in the settings, since they are always needed.
+        final String syntaxInclude;
+        if(context.settings.getSyntaxDirectory().exists()) {
+            final File file = FileUtils.toFile(context.settings.getSyntaxDirectory());
+            syntaxInclude = "-I " + file;
+        } else {
+            syntaxInclude = "";
+        }
+        final String libInclude;
+        if(context.settings.getLibDirectory().exists()) {
+            final File file = FileUtils.toFile(context.settings.getLibDirectory());
+            libInclude = "-I " + file;
+        } else {
+            libInclude = "";
+        }
 
         require(inputPath);
 

@@ -12,7 +12,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdfDefinition;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdf;
 import org.metaborg.spoofax.meta.core.pluto.stamp.Sdf2ParenthesizeStamper;
 import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
 import org.metaborg.util.file.FileUtils;
@@ -21,6 +21,7 @@ import org.strategoxt.tools.main_sdf2parenthesize_0_0;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.output.OutputPersisted;
 
@@ -48,6 +49,16 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
     }
 
 
+    public static BuildRequest<Input, None, Sdf2Parenthesize, SpoofaxBuilderFactory<Input, None, Sdf2Parenthesize>>
+        request(Input input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
+    }
+
+
     @Override protected String description(Input input) {
         return "Extract parenthesis structure from grammar";
     }
@@ -57,9 +68,8 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
     }
 
     @Override public None build(Input input) throws IOException {
-        final BuildRequest<PackSdf.Input, None, PackSdf, ?> packSdf =
-            new BuildRequest<>(PackSdf.factory, new PackSdf.Input(context, input.sdfModule, Joiner.on(' ').join(
-                context.settings.sdfArgs())));
+        final String sdfArgs = Joiner.on(' ').join(context.settings.sdfArgs());
+        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, sdfArgs));
         requireBuild(packSdf);
 
         final File inputPath = FileUtils.toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
@@ -67,10 +77,9 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
         final String outputmodule = "include/" + input.sdfModule + "-parenthesize";
 
         if(SpoofaxContext.BETTER_STAMPERS) {
-            BuildRequest<ParseSdfDefinition.Input, OutputPersisted<IStrategoTerm>, ParseSdfDefinition, ?> parseSdfDefinition =
-                new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath,
-                    new BuildRequest<?, ?, ?, ?>[] { packSdf }));
-            require(inputPath, new Sdf2ParenthesizeStamper(parseSdfDefinition));
+            final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
+                ParseSdf.request(new ParseSdf.Input(context, inputPath, packSdf));
+            require(inputPath, new Sdf2ParenthesizeStamper(parseSdf));
         } else
             require(inputPath);
 

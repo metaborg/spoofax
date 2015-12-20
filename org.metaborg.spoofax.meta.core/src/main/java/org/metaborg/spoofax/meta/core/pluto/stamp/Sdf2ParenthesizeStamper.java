@@ -23,102 +23,106 @@ import build.pluto.stamp.Stamper;
 import build.pluto.stamp.ValueStamp;
 
 public class Sdf2ParenthesizeStamper implements Stamper {
-	private static final long serialVersionUID = 3294157251470549994L;
-	
-	private final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdfDefinition;
-	
-	public Sdf2ParenthesizeStamper(BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdfDefinition) {
-		this.parseSdfDefinition = parseSdfDefinition;
-	}
+    private static final long serialVersionUID = 3294157251470549994L;
 
-	@Override
-	public Stamp stampOf(File p) {
-		if (!FileCommands.exists(p))
-			return new ValueStamp<>(this, null);
+    private final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf;
 
-		OutputPersisted<IStrategoTerm> term = BuildManagers.build(parseSdfDefinition);
-		
-		if (term == null || term.val == null)
-			return LastModifiedStamper.instance.stampOf(p);
-		
-		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
-		ParenExtractor parenExtractor = new ParenExtractor(factory);
-		parenExtractor.visit(term.val);
-		return new ValueStamp<>(this, Pair.create(parenExtractor.getRelevantProds(), parenExtractor.getPriorities()));
-	}
+    
+    public Sdf2ParenthesizeStamper(BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf) {
+        this.parseSdf = parseSdf;
+    }
 
-	private static class ParenExtractor extends TermVisitor {
-		private final Set<IStrategoTerm> relevantProds;
-		private final Set<IStrategoTerm> priorities;
+    
+    @Override public Stamp stampOf(File p) {
+        if(!FileCommands.exists(p))
+            return new ValueStamp<>(this, null);
 
-		private final ITermFactory factory;
-		private final IStrategoTerm noAttrs;
-		private List<IStrategoTerm> prods;
+        final OutputPersisted<IStrategoTerm> term;
+        try {
+            term = BuildManagers.build(parseSdf);
+        } catch(Throwable e) {
+            return LastModifiedStamper.instance.stampOf(p);
+        }
 
-		private boolean inPriorities = false;
-		
-		public ParenExtractor(ITermFactory factory) {
-			this.factory = factory;
-			this.relevantProds = new HashSet<>();
-			this.priorities = new HashSet<>();
-			this.noAttrs = factory.makeAppl(factory.makeConstructor("attrs", 1), factory.makeList());
-			this.prods = new ArrayList<>();
-		}
+        if(term == null || term.val == null) {
+            return LastModifiedStamper.instance.stampOf(p);
+        }
 
-		@Override
-		public void preVisit(IStrategoTerm term) {
-			if (term instanceof IStrategoAppl)
-				switch (((IStrategoAppl) term).getConstructor().getName()) {
-				case "context-free-priorities":
-				case "priorities":
-					priorities.add(term);
-					inPriorities = true;
-					break;
-				case "prod":
-					if (inPriorities) {
-						relevantProds.add(term);
-						relevantProds.add(noProdAttrs(term));
-					}
-					else {
-						prods.add(term);
-					}
-				default:
-					break;
-				}
-		}
-		
-		private IStrategoTerm noProdAttrs(IStrategoTerm term) {
-			return factory.makeAppl(factory.makeConstructor("prod", 3), 
-					term.getSubterm(0),
-					term.getSubterm(1),
-					noAttrs);
-		}
+        final ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
+        final ParenExtractor parenExtractor = new ParenExtractor(factory);
+        parenExtractor.visit(term.val);
+        return new ValueStamp<>(this, Pair.create(parenExtractor.getRelevantProds(), parenExtractor.getPriorities()));
+    }
 
-		@Override
-		public void postVisit(IStrategoTerm term) {
-			if (term instanceof IStrategoAppl)
-				switch (((IStrategoAppl) term).getConstructor().getName()) {
-				case "context-free-priorities":
-				case "priorities":
-					inPriorities = false;
-					break;
-				default:
-					break;
-				}
-		}
-		
-		public Set<IStrategoTerm> getPriorities() {
-			return priorities;
-		}
+    
+    private static class ParenExtractor extends TermVisitor {
+        private final Set<IStrategoTerm> relevantProds;
+        private final Set<IStrategoTerm> priorities;
 
-		public Set<IStrategoTerm> getRelevantProds() {
-			if (prods != null) 
-				for (IStrategoTerm prod : prods)
-					if (relevantProds.contains(noProdAttrs(prod)))
-						relevantProds.add(prod);
-			prods = null;
-			return relevantProds;
-		}
+        private final ITermFactory factory;
+        private final IStrategoTerm noAttrs;
+        private List<IStrategoTerm> prods;
 
-	}
+        private boolean inPriorities = false;
+
+
+        public ParenExtractor(ITermFactory factory) {
+            this.factory = factory;
+            this.relevantProds = new HashSet<>();
+            this.priorities = new HashSet<>();
+            this.noAttrs = factory.makeAppl(factory.makeConstructor("attrs", 1), factory.makeList());
+            this.prods = new ArrayList<>();
+        }
+
+
+        @Override public void preVisit(IStrategoTerm term) {
+            if(term instanceof IStrategoAppl)
+                switch(((IStrategoAppl) term).getConstructor().getName()) {
+                    case "context-free-priorities":
+                    case "priorities":
+                        priorities.add(term);
+                        inPriorities = true;
+                        break;
+                    case "prod":
+                        if(inPriorities) {
+                            relevantProds.add(term);
+                            relevantProds.add(noProdAttrs(term));
+                        } else {
+                            prods.add(term);
+                        }
+                    default:
+                        break;
+                }
+        }
+
+        private IStrategoTerm noProdAttrs(IStrategoTerm term) {
+            return factory
+                .makeAppl(factory.makeConstructor("prod", 3), term.getSubterm(0), term.getSubterm(1), noAttrs);
+        }
+
+        @Override public void postVisit(IStrategoTerm term) {
+            if(term instanceof IStrategoAppl)
+                switch(((IStrategoAppl) term).getConstructor().getName()) {
+                    case "context-free-priorities":
+                    case "priorities":
+                        inPriorities = false;
+                        break;
+                    default:
+                        break;
+                }
+        }
+
+        public Set<IStrategoTerm> getPriorities() {
+            return priorities;
+        }
+
+        public Set<IStrategoTerm> getRelevantProds() {
+            if(prods != null)
+                for(IStrategoTerm prod : prods)
+                    if(relevantProds.contains(noProdAttrs(prod)))
+                        relevantProds.add(prod);
+            prods = null;
+            return relevantProds;
+        }
+    }
 }

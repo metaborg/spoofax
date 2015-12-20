@@ -12,11 +12,13 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg.Input;
 import org.metaborg.util.file.FileUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.buildjava.JavaJar;
+import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
 public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
@@ -26,6 +28,17 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
 
     public PackageBuilder(SpoofaxInput input) {
         super(input);
+    }
+
+
+    public static
+        BuildRequest<SpoofaxInput, None, PackageBuilder, SpoofaxBuilderFactory<SpoofaxInput, None, PackageBuilder>>
+        request(SpoofaxInput input) {
+        return new BuildRequest<>(factory, input);
+    }
+
+    public static Origin origin(Input input) {
+        return Origin.from(request(input));
     }
 
 
@@ -51,24 +64,23 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
             // context.settings.packageStrategiesPath()).split("[\\s]+");
             final String[] paths = new String[] { context.settings.packageStrategiesPath() };
             final File output = FileUtils.toFile(context.settings.getStrCompiledJavaJarFile());
-            jar(buildDir, paths, output, new BuildRequest<?, ?, ?, ?>[] { /* compileJavaCode */});
+            jar(buildDir, paths, output, Origin.Builder().get());
         }
 
         if(context.settings.format() == Format.jar) {
             final File buildDir = FileUtils.toFile(context.settings.getStrJavaDirectory());
             final String[] paths = new String[] { context.settings.getStrJavaTransDirectory().getName().getPath() };
             final File output = FileUtils.toFile(context.settings.getStrCompiledJarFile());
-            jar(buildDir, paths, output, new BuildRequest<?, ?, ?, ?>[] { /* compileJavaCode */});
+            jar(buildDir, paths, output, Origin.Builder()/* .add(compileJavaCode) */.get());
         }
 
         return None.val;
     }
 
-    private void jar(File buildDir, String[] paths, File output, BuildRequest<?, ?, ?, ?>[] requirements)
-        throws IOException {
-        Map<File, Set<File>> files = new HashMap<>();
-        Set<File> relativeFiles = new HashSet<>();
-        Set<File> absoluteFiles = new HashSet<>();
+    private void jar(File buildDir, String[] paths, File output, Origin requirements) throws IOException {
+        final Map<File, Set<File>> files = new HashMap<>();
+        final Set<File> relativeFiles = new HashSet<>();
+        final Set<File> absoluteFiles = new HashSet<>();
         for(int i = 0; i < paths.length; i++) {
             if(FileCommands.acceptableAsAbsolute(paths[i]))
                 absoluteFiles.add(new File(paths[i]));
