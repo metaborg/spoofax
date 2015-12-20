@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.pluto.build.aux;
+package org.metaborg.spoofax.meta.core.pluto.build.misc;
 
 import java.io.File;
 import java.io.IOException;

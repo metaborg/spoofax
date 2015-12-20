@@ -12,7 +12,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.build.aux.ParseSdfDefinition;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdfDefinition;
 import org.metaborg.spoofax.meta.core.pluto.stamp.Sdf2ParenthesizeStamper;
 import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
 import org.metaborg.util.file.FileUtils;

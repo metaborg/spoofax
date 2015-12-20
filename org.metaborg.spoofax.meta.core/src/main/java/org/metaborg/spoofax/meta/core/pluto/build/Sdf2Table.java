@@ -9,7 +9,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.build.aux.Sdf2TablePrepareExecutable;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.Sdf2TablePrepareExecutable;
 import org.metaborg.util.file.FileUtils;
 
 import build.pluto.BuildUnit.State;
