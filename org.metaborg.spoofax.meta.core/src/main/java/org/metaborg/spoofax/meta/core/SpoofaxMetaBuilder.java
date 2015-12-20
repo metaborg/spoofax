@@ -21,6 +21,10 @@ import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.language.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
+import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
@@ -29,10 +33,6 @@ import org.sugarj.common.Log;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
-import build.pluto.buildspoofax.SpoofaxContext;
-import build.pluto.buildspoofax.SpoofaxInput;
-import build.pluto.buildspoofax.builders.main.GenerateSourcesBuilder;
-import build.pluto.buildspoofax.builders.main.PackageBuilder;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;

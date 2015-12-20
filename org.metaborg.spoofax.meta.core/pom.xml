@@ -47,6 +47,16 @@
       <artifactId>org.metaborg.util</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>strategoxt-min-jar</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>make-permissive</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
 
     <dependency>
       <groupId>com.google.inject</groupId>
@@ -65,12 +75,12 @@
       <groupId>ant-contrib</groupId>
       <artifactId>ant-contrib</artifactId>
       <version>1.0b3</version>
-	  <exclusions>
-		<exclusion>
-		  <groupId>ant</groupId>
-		  <artifactId>ant</artifactId>
-		</exclusion>
-	  </exclusions>
+      <exclusions>
+        <exclusion>
+          <groupId>ant</groupId>
+          <artifactId>ant</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -79,10 +89,33 @@
 
     <dependency>
       <groupId>build.pluto</groupId>
-      <artifactId>build-spoofax</artifactId>
-      <version>1.2.0-SNAPSHOT</version>
+      <artifactId>pluto</artifactId>
+      <version>1.6.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>build.pluto</groupId>
+      <artifactId>build-java</artifactId>
+      <version>1.1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sugarj</groupId>
+      <artifactId>org.sugarj.metaborg-utils</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
+
+  <repositories>
+    <repository>
+      <id>pluto-build</id>
+      <url>https://raw.githubusercontent.com/pluto-build/pluto-build.github.io/master/mvnrepository/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <developers>
     <developer>
