@@ -46,10 +46,11 @@ class NewMetaBuildAntRunnerFactory {
 
         final Map<String, String> properties = Maps.newHashMap();
 
-        final FileObject distPath = resourceService.resolve(NativeBundle.getDist().toString());
+        final FileObject mixPath = resourceService.resolve(NativeBundle.getStrategoMix());
+        final FileObject distPath = mixPath.getParent();
         final File localDistPath = resourceService.localFile(distPath);
         properties.put("distpath", localDistPath.getPath());
-        final FileObject nativePath = resourceService.resolve(NativeBundle.getNative().toString());
+        final FileObject nativePath = resourceService.resolve(NativeBundle.getNativeDirectory());
         final File localNativePath = resourceService.localFile(nativePath);
         restoreExecutablePermissions(localNativePath);
         properties.put("nativepath", localNativePath.getPath());

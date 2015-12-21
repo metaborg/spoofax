@@ -57,6 +57,7 @@ public class SpoofaxConstants {
     public static final String DIR_STR_JAVA_TRANS = DIR_STR_JAVA + "/trans";
     public static final String DIR_OUTPUT = "target";
     public static final String DIR_CLASSES = DIR_OUTPUT + "/classes";
+    public static final String DIR_STR_JAVA_CLASSES = DIR_CLASSES + "/trans";
 
     public static final String FILE_CONFIG = "metaborg.yml";
 

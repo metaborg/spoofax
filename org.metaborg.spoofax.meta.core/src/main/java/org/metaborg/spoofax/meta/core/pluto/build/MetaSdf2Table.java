@@ -68,8 +68,7 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input, None> {
 
         final boolean available = FileCommands.exists(metaModule);
         if(available) {
-            final FileObject strategoMixPath =
-                context.resourceService.resolve(NativeBundle.getStrategoMix().toString());
+            final FileObject strategoMixPath = context.resourceService.resolve(NativeBundle.getStrategoMix());
             final File strategoMixFile = context.resourceService.localFile(strategoMixPath);
             provide(strategoMixFile);
 

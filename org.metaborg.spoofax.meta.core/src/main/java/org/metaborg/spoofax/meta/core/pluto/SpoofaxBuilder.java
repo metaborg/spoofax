@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
-import java.io.File;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.file.FileUtils;
@@ -26,14 +24,21 @@ abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Output
         return SpoofaxContext.BETTER_STAMPERS ? FileHashStamper.instance : LastModifiedStamper.instance;
     }
 
+
+    protected void require(FileObject fileObject) {
+        require(FileUtils.toFile(fileObject));
+    }
+
+    protected void provide(FileObject fileObject) {
+        provide(FileUtils.toFile(fileObject));
+    }
+
     protected void processFileAccess(FileAccess access) {
         for(FileObject fileObject : access.reads()) {
-            final File file = FileUtils.toFile(fileObject);
-            require(file);
+            require(fileObject);
         }
         for(FileObject fileObject : access.writes()) {
-            final File file = FileUtils.toFile(fileObject);
-            provide(file);
+            provide(fileObject);
         }
     }
 }

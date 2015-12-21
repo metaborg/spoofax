@@ -94,8 +94,6 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         final File rtree = FileCommands.replaceExtension(input.outputPath, "rtree");
         final File strdep = FileCommands.addExtension(input.outputPath, "dep");
 
-        FileCommands.delete(rtree);
-
         final StringBuilder directoryIncludes = new StringBuilder();
         for(File dir : input.directoryIncludes) {
             if(dir != null) {
@@ -121,8 +119,6 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
                     ? "--library" : "", input.clean ? "--clean" : "", directoryIncludes, libraryIncludes,
                 input.cacheDir != null ? "--cache-dir " + input.cacheDir : "", StringCommands.printListSeparated(
                     input.additionalArgs, " "));
-
-        FileCommands.delete(rtree);
 
         if(input.depPath.isDirectory()) {
             for(Path sourceFile : FileCommands.listFilesRecursive(input.depPath.toPath())) {
@@ -158,9 +154,9 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
             // Remove the trailing ' /'.
             final String line = trimmedLine.substring(0, length - 2);
 
-            // Make paths relative, if possible, to prevent rebuilds when they are moved to another location. Paths 
+            // Make paths relative, if possible, to prevent rebuilds when they are moved to another location. Paths
             // outside of the base directory will be required as absolute paths.
-            
+
             // TODO: non-local dependencies, such as those on .spoofax-language files, are copied to a temporary
             // directory. That will cause unnecessary rebuilds because of absolute path dependencies.
             final File path = new File(line);

@@ -217,8 +217,12 @@ public class SpoofaxProjectSettings implements Serializable {
         return resolve(getIncludeDirectory(), sdfName + "-Permissive.def");
     }
     
+    public String getSdfTableName(String sdfName) {
+        return sdfName + ".tbl";
+    }
+    
     public FileObject getSdfCompiledTableFile(String sdfName) {
-        return resolve(getIncludeDirectory(), sdfName + ".tbl");
+        return resolve(getIncludeDirectory(), getSdfTableName(sdfName));
     }
     
     
@@ -239,8 +243,16 @@ public class SpoofaxProjectSettings implements Serializable {
         return resolve(getStrJavaDirectory(), packagePath());
     }
     
+    public FileObject getStrCompiledJavaPackageDirectory() {
+        return resolve(getOutputClassesDirectory(), packagePath());
+    }
+    
     public FileObject getStrJavaStrategiesDirectory() {
         return resolve(getStrJavaPackageDirectory(), "strategies");
+    }
+    
+    public FileObject getStrCompiledJavaStrategiesDirectory() {
+        return resolve(getStrCompiledJavaPackageDirectory(), "strategies");
     }
     
     public FileObject getStrJavaStrategiesMainFile() {
@@ -253,6 +265,10 @@ public class SpoofaxProjectSettings implements Serializable {
     
     public FileObject getStrJavaMainFile() {
         return resolve(getStrJavaTransDirectory(), "Main.java");
+    }
+    
+    public FileObject getStrCompiledJavaTransDirectory() {
+        return resolve(DIR_STR_JAVA_CLASSES);
     }
     
     public FileObject getStrCompiledJarFile() {
@@ -280,16 +296,24 @@ public class SpoofaxProjectSettings implements Serializable {
         return resolve(getSyntaxDirectory(), sdfName + ".pp");
     }
     
+    public String getPpAfName(String sdfName) {
+        return sdfName + ".pp.af";
+    }
+    
     public FileObject getPpAfCompiledFile(String sdfName) {
-        return resolve(getIncludeDirectory(), sdfName + ".pp.af");
+        return resolve(getIncludeDirectory(), getPpAfName(sdfName));
     }
     
     public FileObject getGenPpCompiledFile(String sdfName) {
         return resolve(getIncludeDirectory(), sdfName + ".generated.pp");
     }
     
+    public String getGenPpAfName(String sdfName) {
+        return sdfName + ".generated.pp.af";
+    }
+    
     public FileObject getGenPpAfCompiledFile(String sdfName) {
-        return resolve(getIncludeDirectory(), sdfName + ".generated.pp.af");
+        return resolve(getIncludeDirectory(), getGenPpAfName(sdfName));
     }
     
     

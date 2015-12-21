@@ -9,13 +9,15 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.Sdf2TablePrepareExecutable;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle.Output;
 import org.metaborg.util.file.FileUtils;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.OutputPersisted;
+import build.pluto.output.OutputTransient;
 
 public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
@@ -63,7 +65,8 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
         requireBuild(MakePermissive.origin(new MakePermissive.Input(context, input.sdfModule, input.sdfArgs)));
-        final Sdf2TablePrepareExecutable.Output commands = requireBuild(Sdf2TablePrepareExecutable.factory, input);
+        final OutputTransient<Output> commandsOutput = requireBuild(PrepareNativeBundle.factory, input);
+        final Output commands = commandsOutput.val();
 
         final File inputPath = FileUtils.toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
         final File outputPath = FileUtils.toFile(context.settings.getSdfCompiledTableFile(input.sdfModule));
