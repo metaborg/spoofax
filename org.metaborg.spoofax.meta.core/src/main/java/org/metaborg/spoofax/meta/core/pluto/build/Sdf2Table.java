@@ -23,8 +23,8 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        final String sdfModule;
-        final String sdfArgs;
+        public final String sdfModule;
+        public final String sdfArgs;
 
 
         public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
@@ -64,7 +64,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
-        requireBuild(MakePermissive.origin(new MakePermissive.Input(context, input.sdfModule, input.sdfArgs)));
+        requireBuild(MakePermissive.factory, new MakePermissive.Input(context, input.sdfModule, input.sdfArgs));
         final OutputTransient<Output> commandsOutput = requireBuild(PrepareNativeBundle.factory, input);
         final Output commands = commandsOutput.val();
 
