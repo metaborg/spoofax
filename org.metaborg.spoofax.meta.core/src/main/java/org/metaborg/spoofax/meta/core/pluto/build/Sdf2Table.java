@@ -60,7 +60,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
     }
 
     @Override public File persistentPath(Input input) {
-        return context.depPath("sdf2Table." + input.sdfModule + ".dep");
+        return context.depPath("sdf2table." + input.sdfModule + ".dep");
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
