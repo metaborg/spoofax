@@ -9,7 +9,6 @@ import build.pluto.builder.BuilderFactoryFactory;
 import build.pluto.output.Output;
 
 public class SpoofaxBuilderFactoryFactory {
-
     public static <In extends SpoofaxInput, Out extends Output, B extends Builder<In, Out>>
         SpoofaxBuilderFactory<In, Out, B> of(final Class<B> builderClass, final Class<In> inputClass) {
         class GeneratedSpoofaxBuilderFactory implements SpoofaxBuilderFactory<In, Out, B> {

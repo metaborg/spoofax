@@ -9,7 +9,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.stratego_sdf.parse_sdf_definition_file_0_0;
@@ -81,7 +80,7 @@ public class ParseSdf extends SpoofaxBuilder<ParseSdf.Input, OutputPersisted<ISt
         final ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
         final ExecutionResult result =
             StrategoExecutor.runStratego(false, StrategoExecutor.strategoSdfcontext(),
-                parse_sdf_definition_file_0_0.instance, "parse-sdf-definition", new LoggingFilteringIOAgent(),
+                parse_sdf_definition_file_0_0.instance, "parse-sdf-definition", newResourceTracker(),
                 factory.makeString(input.defPath.getAbsolutePath()));
 
         return OutputPersisted.of(result.result);

@@ -19,7 +19,6 @@ import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.Level;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -49,33 +48,53 @@ public class ResourceAgent extends IOAgent {
 
     private final Map<Integer, ResourceHandle> openFiles = Maps.newHashMap();
 
-    private final ILogger stdoutLogger = LoggerUtils.logger("stdout");
-    private final OutputStream stdout = LoggerUtils.stream(stdoutLogger, Level.Info);
-    private final Writer stdoutWriter = new PrintStreamWriter(new PrintStream(stdout));
+    private final OutputStream stdout;
+    private final Writer stdoutWriter;
 
-    private final ILogger stderrLogger = LoggerUtils.logger("stderr");
-    private final OutputStream stderr = LoggerUtils.stream(stderrLogger, Level.Info);
-    private final Writer stderrWriter = new PrintStreamWriter(new PrintStream(stderr));
+    private final OutputStream stderr;
+    private final Writer stderrWriter;
 
     private FileObject workingDir;
     private FileObject definitionDir;
     private boolean acceptDirChanges = false;
 
 
+    public static OutputStream defaultStdout(String... excludePatterns) {
+        return LoggerUtils.stream(LoggerUtils.logger("stdout"), Level.Info, excludePatterns);
+    }
+    
+    public static OutputStream defaultStderr(String... excludePatterns) {
+        return LoggerUtils.stream(LoggerUtils.logger("stderr"), Level.Error, excludePatterns);
+    }
+    
+    
     public ResourceAgent(IResourceService resourceService) {
-        this(resourceService, resourceService.resolve(System.getProperty("java.io.tmpdir")), resourceService
-            .resolve(System.getProperty("user.dir")), resourceService.resolve(System.getProperty("user.dir")));
+        this(resourceService, resourceService.resolve(System.getProperty("user.dir")));
     }
 
-    public ResourceAgent(IResourceService resourceService, FileObject tempDir, FileObject workingDir,
-        FileObject definitionDir) {
+    public ResourceAgent(IResourceService resourceService, FileObject initialDir) {
+        this(resourceService, initialDir, defaultStdout());
+    }
+
+    public ResourceAgent(IResourceService resourceService, FileObject initialDir, OutputStream stdout) {
+        this(resourceService, initialDir, stdout, defaultStderr());
+    }
+
+    public ResourceAgent(IResourceService resourceService, FileObject initialDir, OutputStream stdout,
+        OutputStream stderr) {
         super();
         this.acceptDirChanges = true; // Start accepting dir changes after IOAgent constructor call.
 
         this.resourceService = resourceService;
-        this.tempDir = tempDir;
-        this.workingDir = workingDir;
-        this.definitionDir = definitionDir;
+        this.tempDir = resourceService.resolve(System.getProperty("java.io.tmpdir"));
+        this.workingDir = initialDir;
+        this.definitionDir = initialDir;
+
+        this.stdout = stdout;
+        this.stdoutWriter = new PrintStreamWriter(new PrintStream(stdout));
+
+        this.stderr = stderr;
+        this.stderrWriter = new PrintStreamWriter(new PrintStream(stderr));
     }
 
 

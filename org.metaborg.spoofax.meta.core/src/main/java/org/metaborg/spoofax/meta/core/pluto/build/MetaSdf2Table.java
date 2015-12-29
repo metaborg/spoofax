@@ -10,7 +10,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
-import org.metaborg.util.file.FileUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.BuildRequest;
@@ -19,18 +18,18 @@ import build.pluto.output.None;
 import build.pluto.stamp.FileExistsStamper;
 import build.pluto.stamp.LastModifiedStamper;
 
-import com.google.common.base.Joiner;
-
 public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -3179663405417276186L;
 
-        public final String metaModule;
+        public final String metaSdfModule;
+        public final String sdfArgs;
 
 
-        public Input(SpoofaxContext context, String metaModule) {
+        public Input(SpoofaxContext context, String metaModule, String sdfArgs) {
             super(context);
-            this.metaModule = metaModule;
+            this.metaSdfModule = metaModule;
+            this.sdfArgs = sdfArgs;
         }
     }
 
@@ -59,21 +58,21 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input, None> {
     }
 
     @Override public File persistentPath(Input input) {
-        return context.depPath("meta-sdf2table." + input.metaModule + ".dep");
+        return context.depPath("meta-sdf2table." + input.metaSdfModule + ".dep");
     }
 
     @Override public None build(Input input) throws IOException {
-        final File metaModule = FileUtils.toFile(context.settings.getSdfMainFile(input.metaModule));
+        final File metaModule = toFile(context.settings.getSdfMainFile(input.metaSdfModule));
         require(metaModule, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance : LastModifiedStamper.instance);
 
         final boolean available = FileCommands.exists(metaModule);
         if(available) {
-            final FileObject strategoMixPath = context.resourceService.resolve(NativeBundle.getStrategoMix());
-            final File strategoMixFile = context.resourceService.localFile(strategoMixPath);
+            final FileObject strategoMixPath = context.resourceService().resolve(NativeBundle.getStrategoMix());
+            final File strategoMixFile = toFileReplicate(strategoMixPath);
             provide(strategoMixFile);
 
-            final String sdfArgs = "-Idef " + strategoMixFile + " " + Joiner.on(' ').join(context.settings.sdfArgs());
-            requireBuild(Sdf2Table.factory, new Sdf2Table.Input(context, input.metaModule, sdfArgs));
+            final String sdfArgs = "-Idef " + strategoMixFile + " " + input.sdfArgs;
+            requireBuild(Sdf2Table.factory, new Sdf2Table.Input(context, input.metaSdfModule, sdfArgs));
         }
 
         return None.val;

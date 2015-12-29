@@ -11,8 +11,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
-import org.metaborg.util.file.FileUtils;
 import org.strategoxt.permissivegrammars.make_permissive;
 
 import build.pluto.BuildUnit.State;
@@ -66,15 +64,15 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
     @Override public None build(Input input) throws IOException {
         requireBuild(PackSdf.factory, new PackSdf.Input(context, input.sdfModule, input.sdfArgs));
 
-        final File inputPath = FileUtils.toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-        final File outputPath = FileUtils.toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
+        final File inputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
+        final File outputPath = toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
 
         require(inputPath);
 
         final ExecutionResult result =
             StrategoExecutor.runStrategoCLI(StrategoExecutor.permissiveGrammarsContext(),
                 make_permissive.getMainStrategy(), "make-permissive",
-                new LoggingFilteringIOAgent(Pattern.quote("[ make-permissive | info ]") + ".*"), "-i", inputPath, "-o",
+                newResourceTracker(Pattern.quote("[ make-permissive | info ]") + ".*"), "-i", inputPath, "-o",
                 outputPath, "--optimize", "on");
 
         provide(outputPath);

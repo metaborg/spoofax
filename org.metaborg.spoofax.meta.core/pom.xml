@@ -97,35 +97,7 @@
       <artifactId>build-java</artifactId>
       <version>1.3.0-SNAPSHOT</version>
     </dependency>
-    <dependency>
-      <groupId>org.sugarj</groupId>
-      <artifactId>org.sugarj.metaborg-utils</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-    </dependency>
   </dependencies>
-
-  <repositories>
-    <repository>
-      <id>pluto-build</id>
-      <url>https://raw.githubusercontent.com/pluto-build/pluto-build.github.io/master/mvnrepository/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>sugar-lang</id>
-      <url>http://sugar-lang.github.io/mvnrepository/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <developers>
     <developer>

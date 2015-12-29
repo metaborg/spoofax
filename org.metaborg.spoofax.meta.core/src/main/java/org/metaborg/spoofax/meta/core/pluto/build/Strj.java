@@ -13,7 +13,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.StringCommands;
 
@@ -112,7 +111,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
                 StrategoExecutor.strjContext(),
                 org.strategoxt.strj.main_0_0.instance,
                 "strj",
-                new LoggingFilteringIOAgent(Pattern.quote("[ strj | info ]") + ".*", Pattern
+                newResourceTracker(Pattern.quote("[ strj | info ]") + ".*", Pattern
                     .quote("[ strj | error ] Compilation failed") + ".*", Pattern
                     .quote("[ strj | warning ] Nullary constructor") + ".*"), "-i", input.inputPath, "-o",
                 input.outputPath, input.packageName != null ? "-p " + input.packageName : "", input.library

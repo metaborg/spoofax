@@ -13,8 +13,6 @@ import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdf;
 import org.metaborg.spoofax.meta.core.pluto.stamp.Sdf2RtgStamper;
-import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
-import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_sdf2rtg_0_0;
 
@@ -24,17 +22,17 @@ import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.output.OutputPersisted;
 
-import com.google.common.base.Joiner;
-
 public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -4487049822305558202L;
 
         public final String sdfModule;
+        public final String sdfArgs;
 
-        public Input(SpoofaxContext context, String sdfModule) {
+        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
+            this.sdfArgs = sdfArgs;
         }
     }
 
@@ -66,12 +64,11 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
     }
 
     @Override public None build(Input input) throws IOException {
-        final String sdfArgs = Joiner.on(' ').join(context.settings.sdfArgs());
-        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, sdfArgs));
+        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, input.sdfArgs));
         requireBuild(packSdf);
 
-        final File inputPath = FileUtils.toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-        final File outputPath = FileUtils.toFile(context.settings.getRtgFile(input.sdfModule));
+        final File inputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
+        final File outputPath = toFile(context.settings.getRtgFile(input.sdfModule));
 
         if(SpoofaxContext.BETTER_STAMPERS) {
             final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
@@ -81,18 +78,13 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
             require(inputPath);
         }
 
-        // TODO: avoid redundant call to sdf2table
-        // TODO: set nativepath to the native bundle, so that sdf2table can be found
         final ExecutionResult result =
             StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_sdf2rtg_0_0.instance, "sdf2rtg",
-                new LoggingFilteringIOAgent(Pattern.quote("Invoking native tool") + ".*"), "-i", inputPath, "-m",
+                newResourceTracker(Pattern.quote("Invoking native tool") + ".*"), "-i", inputPath, "-m",
                 input.sdfModule, "-o", outputPath, "--ignore-missing-cons");
-        // , "-Xnativepath", context.basePath("${nativepath}/")
-
         provide(outputPath);
         setState(State.finished(result.success));
 
         return None.val;
     }
-
 }

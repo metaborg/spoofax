@@ -14,8 +14,6 @@ import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdf;
 import org.metaborg.spoofax.meta.core.pluto.stamp.Sdf2ParenthesizeStamper;
-import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
-import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_sdf2parenthesize_0_0;
 import org.sugarj.common.FileCommands;
@@ -25,17 +23,17 @@ import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.output.OutputPersisted;
 
-import com.google.common.base.Joiner;
-
 public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 6177130857266733408L;
 
         public final String sdfModule;
+        public final String sdfArgs;
 
-        public Input(SpoofaxContext context, String sdfModule) {
+        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
+            this.sdfArgs = sdfArgs;
         }
     }
 
@@ -68,12 +66,11 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
     }
 
     @Override public None build(Input input) throws IOException {
-        final String sdfArgs = Joiner.on(' ').join(context.settings.sdfArgs());
-        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, sdfArgs));
+        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, input.sdfArgs));
         requireBuild(packSdf);
 
-        final File inputPath = FileUtils.toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-        final File outputPath = FileUtils.toFile(context.settings.getStrCompiledParenthesizerFile(input.sdfModule));
+        final File inputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
+        final File outputPath = toFile(context.settings.getStrCompiledParenthesizerFile(input.sdfModule));
         final String outputmodule = "include/" + input.sdfModule + "-parenthesize";
 
         if(SpoofaxContext.BETTER_STAMPERS) {
@@ -86,8 +83,11 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
         // TODO: avoid redundant call to sdf2table
         // TODO: set nativepath to the native bundle, so that sdf2table can be found
         final ExecutionResult result =
-            StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_sdf2parenthesize_0_0.instance,
-                "sdf2parenthesize", new LoggingFilteringIOAgent(Pattern.quote("[ sdf2parenthesize | info ]") + ".*",
+            StrategoExecutor.runStrategoCLI(
+                StrategoExecutor.toolsContext(),
+                main_sdf2parenthesize_0_0.instance,
+                "sdf2parenthesize",
+                newResourceTracker(Pattern.quote("[ sdf2parenthesize | info ]") + ".*",
                     Pattern.quote("Invoking native tool") + ".*"), "-i", inputPath, "-m", input.sdfModule, "--lang",
                 input.sdfModule, "--omod", outputmodule, "-o", outputPath, "--main-strategy", "io-" + input.sdfModule
                     + "-parenthesize", "--rule-prefix", input.sdfModule, "--sig-module", SpoofaxConstants.DIR_INCLUDE

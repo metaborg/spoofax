@@ -11,7 +11,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle.Output;
-import org.metaborg.util.file.FileUtils;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
@@ -68,8 +67,8 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         final OutputTransient<Output> commandsOutput = requireBuild(PrepareNativeBundle.factory, input);
         final Output commands = commandsOutput.val();
 
-        final File inputPath = FileUtils.toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
-        final File outputPath = FileUtils.toFile(context.settings.getSdfCompiledTableFile(input.sdfModule));
+        final File inputPath = toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
+        final File outputPath = toFile(context.settings.getSdfCompiledTableFile(input.sdfModule));
 
         require(inputPath);
         final ExecutionResult result =

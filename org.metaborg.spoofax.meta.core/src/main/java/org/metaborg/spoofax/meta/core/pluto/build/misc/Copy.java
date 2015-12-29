@@ -75,7 +75,7 @@ public class Copy extends Builder<Copy.Input, None> {
         } else {
             name = input.source.toString().replace(File.separatorChar, '_');
         }
-        return new File(depDir, "copy-jar." + name + ".dep");
+        return new File(depDir, "copy." + name + ".dep");
     }
 
     @Override public None build(Input input) throws IOException {

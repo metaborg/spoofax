@@ -10,6 +10,7 @@ import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.dependency.IDependencyService;
@@ -23,17 +24,17 @@ import org.metaborg.spoofax.generator.language.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
-import org.metaborg.util.exception.SneakyThrow;
 import org.metaborg.util.file.FileAccess;
-import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sugarj.common.Log;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
+import build.pluto.output.Output;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -101,7 +102,7 @@ public class SpoofaxMetaBuilder {
     }
 
     public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
-        @Nullable ICancellationToken cancellationToken) throws Exception {
+        @Nullable ICancellationToken cancellationToken) throws MetaborgException {
         log.debug("Running pre-Java build for {}", input.project.location());
 
         for(IBuildStep buildStep : buildSteps) {
@@ -111,35 +112,31 @@ public class SpoofaxMetaBuilder {
         // final IAntRunner runner = antRunner.create(input, classpaths, listener);
         // runner.execute("generate-sources", cancellationToken);
 
-        if(SpoofaxContext.injector == null) {
-            SpoofaxContext.init(injector);
-        }
-        Log.log.setLoggingLevel(Log.ALWAYS);
+        initPluto();
         try {
-            BuildManagers.build(GenerateSourcesBuilder.request(new SpoofaxInput(new SpoofaxContext(input.settings,
-                Iterables2.<String>empty()))));
+            plutoBuild(GenerateSourcesBuilder.request(new SpoofaxInput(new SpoofaxContext(input.settings))));
+        } catch(RuntimeException e) {
+            throw e;
         } catch(Throwable e) {
-            SneakyThrow.sneakyThrow(e);
+            throw new MetaborgException("Build failed", e);
         }
     }
 
     public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
-        @Nullable ICancellationToken cancellationToken) throws Exception {
+        @Nullable ICancellationToken cancellationToken) throws MetaborgException {
         log.debug("Running post-Java build for {}", input.project.location());
 
         for(IBuildStep buildStep : buildSteps) {
             buildStep.compilePostJava(input);
         }
 
-        if(SpoofaxContext.injector == null) {
-            SpoofaxContext.init(injector);
-        }
-        Log.log.setLoggingLevel(Log.ALWAYS);
+        initPluto();
         try {
-            BuildManagers.build(PackageBuilder.request(new SpoofaxInput(new SpoofaxContext(input.settings, Iterables2
-                .<String>empty()))));
+            plutoBuild(PackageBuilder.request(new SpoofaxInput(new SpoofaxContext(input.settings))));
+        } catch(RuntimeException e) {
+            throw e;
         } catch(Throwable e) {
-            SneakyThrow.sneakyThrow(e);
+            throw new MetaborgException("Build failed", e);
         }
     }
 
@@ -150,5 +147,15 @@ public class SpoofaxMetaBuilder {
         settings.getIncludeDirectory().delete(selector);
         settings.getGenSourceDirectory().delete(selector);
         settings.getCacheDirectory().delete(selector);
+    }
+
+
+    private void initPluto() {
+        SpoofaxContext.init(injector);
+        Log.log.setLoggingLevel(Log.ALWAYS);
+    }
+
+    private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest) throws Throwable {
+        return BuildManagers.build(buildRequest, new SpoofaxReporting());
     }
 }

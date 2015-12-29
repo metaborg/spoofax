@@ -21,7 +21,6 @@ import org.metaborg.spoofax.meta.core.pluto.build.PPPack;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg.Input;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.Copy;
-import org.metaborg.util.file.FileUtils;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.buildjava.JarBuilder;
@@ -83,27 +82,28 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
             // to load those files from Stratego code.
             // TODO: extract build request/origin creation for these files into separate class to prevent code dup.
             final String sdfModule = settings.sdfName();
-            final String sdfArgs = Joiner.on(' ').join(settings.sdfArgs());
+            final String sdfArgs = Joiner.on(' ').join(GenerateSourcesBuilder.sdfArgs(context));
 
             final Origin.Builder originBuilder = Origin.Builder();
             final FileObject target = settings.getStrCompiledJavaTransDirectory();
 
-            final File ppPackInputPath = FileUtils.toFile(settings.getPpFile(sdfModule));
-            final File ppPackOutputPath = FileUtils.toFile(settings.getPpAfCompiledFile(sdfModule));
-            final File ppAfFile = FileUtils.toFile(settings.getPpAfCompiledFile(sdfModule));
-            final File targetPpAfFile = FileUtils.toFile(target.resolveFile(settings.getPpAfName(sdfModule)));
-            final Origin ppAfOrigin = PPPack.origin(new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, true));
+            final File ppPackInputPath = toFile(settings.getPpFile(sdfModule));
+            final File ppPackOutputPath = toFile(settings.getPpAfCompiledFile(sdfModule));
+            final File ppAfFile = toFile(settings.getPpAfCompiledFile(sdfModule));
+            final File targetPpAfFile = toFile(target.resolveFile(settings.getPpAfName(sdfModule)));
+            final Origin ppAfOrigin =
+                PPPack.origin(new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, sdfModule, sdfArgs));
             originBuilder.add(Copy.origin(new Copy.Input(ppAfFile, targetPpAfFile, ppAfOrigin, context.baseDir,
                 context.depDir)));
 
-            final File genPpAfFile = FileUtils.toFile(settings.getGenPpAfCompiledFile(sdfModule));
-            final File targetGenPpAfFile = FileUtils.toFile(target.resolveFile(settings.getGenPpAfName(sdfModule)));
-            final Origin genPpAfOrigin = PPGen.origin(new PPGen.Input(context, sdfModule));
+            final File genPpAfFile = toFile(settings.getGenPpAfCompiledFile(sdfModule));
+            final File targetGenPpAfFile = toFile(target.resolveFile(settings.getGenPpAfName(sdfModule)));
+            final Origin genPpAfOrigin = PPGen.origin(new PPGen.Input(context, sdfModule, sdfArgs));
             originBuilder.add(Copy.origin(new Copy.Input(genPpAfFile, targetGenPpAfFile, genPpAfOrigin,
                 context.baseDir, context.depDir)));
 
-            final File tblFile = FileUtils.toFile(settings.getSdfCompiledTableFile(sdfModule));
-            final File targeTblFile = FileUtils.toFile(target.resolveFile(settings.getSdfTableName(sdfModule)));
+            final File tblFile = toFile(settings.getSdfCompiledTableFile(sdfModule));
+            final File targeTblFile = toFile(target.resolveFile(settings.getSdfTableName(sdfModule)));
             final Origin tblOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, sdfModule, sdfArgs));
             originBuilder.add(Copy.origin(new Copy.Input(tblFile, targeTblFile, tblOrigin, context.baseDir,
                 context.depDir)));
@@ -129,7 +129,7 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
                 continue;
             }
             for(FileObject file : files) {
-                final File javaFile = FileUtils.toFile(file);
+                final File javaFile = toFile(file);
                 final String relative = relativize(file, baseDir);
                 if(relative != null) { // Ignore files that are not relative to the base directory.
                     fileEntries.add(new JarBuilder.Entry(relative, javaFile));
@@ -137,7 +137,7 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
             }
         }
 
-        final File jarFile = FileUtils.toFile(jarPath);
+        final File jarFile = toFile(jarPath);
 
         requireBuild(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin));
     }

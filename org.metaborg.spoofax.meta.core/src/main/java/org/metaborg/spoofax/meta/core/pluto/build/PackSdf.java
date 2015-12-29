@@ -16,8 +16,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
-import org.metaborg.util.file.FileUtils;
 import org.strategoxt.tools.main_pack_sdf_0_0;
 import org.sugarj.common.FileCommands;
 
@@ -73,8 +71,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
         final String externalDef = context.settings.externalDef();
         if(externalDef != null) {
             final File externalDefFile = new File(externalDef);
-            final File target =
-                FileUtils.toFile(context.settings.getIncludeDirectory().resolveFile(input.sdfModule + ".def"));
+            final File target = toFile(context.settings.getIncludeDirectory().resolveFile(input.sdfModule + ".def"));
             require(externalDefFile, LastModifiedStamper.instance);
             FileCommands.copyFile(externalDefFile, target, StandardCopyOption.COPY_ATTRIBUTES);
             provide(target);
@@ -83,32 +80,14 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 
         copySdf2();
 
-        final File inputPath = FileUtils.toFile(context.settings.getSdfMainFile(input.sdfModule));
-        final File outputPath = FileUtils.toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-
-        // TODO: put these includes as defaults in the settings, since they are always needed.
-        final String syntaxInclude;
-        if(context.settings.getSyntaxDirectory().exists()) {
-            final File file = FileUtils.toFile(context.settings.getSyntaxDirectory());
-            syntaxInclude = "-I " + file;
-        } else {
-            syntaxInclude = "";
-        }
-        final String libInclude;
-        if(context.settings.getLibDirectory().exists()) {
-            final File file = FileUtils.toFile(context.settings.getLibDirectory());
-            libInclude = "-I " + file;
-        } else {
-            libInclude = "";
-        }
+        final File inputPath = toFile(context.settings.getSdfMainFile(input.sdfModule));
+        final File outputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
 
         require(inputPath);
-
         final ExecutionResult result =
             StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_pack_sdf_0_0.instance, "pack-sdf",
-                new LoggingFilteringIOAgent(Pattern.quote("  including ") + ".*"), "-i", inputPath, "-o", outputPath,
-                syntaxInclude, libInclude, input.sdfArgs);
-
+                newResourceTracker(Pattern.quote("  including ") + ".*"), "-i", inputPath, "-o", outputPath,
+                input.sdfArgs);
         provide(outputPath);
         for(File required : extractRequiredPaths(result.errLog)) {
             require(required);
@@ -118,6 +97,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 
         return None.val;
     }
+
 
     private List<File> extractRequiredPaths(String log) {
         final String prefix = "  including ";
@@ -144,8 +124,8 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
      * Copy SDF2 files from syntax/ to src-gen/syntax, to support projects that do not use SDF3.
      */
     private void copySdf2() {
-        final File syntaxDir = FileUtils.toFile(context.settings.getSyntaxDirectory());
-        final File genSyntaxDir = FileUtils.toFile(context.settings.getGenSyntaxDirectory());
+        final File syntaxDir = toFile(context.settings.getSyntaxDirectory());
+        final File genSyntaxDir = toFile(context.settings.getGenSyntaxDirectory());
 
         // TODO: identify sdf2 files using Spoofax core
         List<Path> srcSdfFiles = FileCommands.listFilesRecursive(syntaxDir.toPath(), new SuffixFileFilter("sdf"));

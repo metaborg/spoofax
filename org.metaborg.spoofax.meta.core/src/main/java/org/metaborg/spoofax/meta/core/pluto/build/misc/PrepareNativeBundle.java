@@ -50,8 +50,8 @@ public class PrepareNativeBundle extends SpoofaxBuilder<SpoofaxInput, OutputTran
 
     @Override public OutputTransient<Output> build(SpoofaxInput input) throws IOException {
         final URI nativeBundleURI = NativeBundle.getNativeDirectory();
-        final FileObject nativeBundleLocation = context.resourceService.resolve(nativeBundleURI);
-        final File nativeBundleFile = context.resourceService.localFile(nativeBundleLocation);
+        final FileObject nativeBundleLocation = context.resourceService().resolve(nativeBundleURI);
+        final File nativeBundleFile = toFileReplicate(nativeBundleLocation);
         restoreExecutablePermissions(nativeBundleFile);
         final File sdf2TableFile = new File(nativeBundleFile, NativeBundle.getSdf2TableName());
         final File implodePtFile = new File(nativeBundleFile, NativeBundle.getImplodePTName());

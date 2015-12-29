@@ -10,7 +10,6 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermTransformer;
-import org.sugarj.common.ATermCommands;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.BuildManagers;
@@ -53,7 +52,7 @@ public class PPGenStamper implements Stamper {
         return new ValueStamp<>(this, cfProdExtractor.getRelevantProds());
     }
 
-    
+
     private static class CFProdExtractor extends TermTransformer {
         private final Set<IStrategoTerm> relevantProds;
         private final ITermFactory factory;
@@ -93,10 +92,9 @@ public class PPGenStamper implements Stamper {
                     case "prod":
                         if(inContextFreeSyntax) {
                             IStrategoAppl attrTerm = (IStrategoAppl) term.getSubterm(2);
-                            if(ATermCommands.isApplication(attrTerm, "attrs")) {
+                            if(isAppl(attrTerm, "attrs")) {
                                 for(IStrategoTerm attr : (IStrategoList) attrTerm.getSubterm(0))
-                                    if(ATermCommands.isApplication(attr, "term")
-                                        && ATermCommands.isApplication(attr.getSubterm(0), "cons")) {
+                                    if(isAppl(attr, "term") && isAppl(attr.getSubterm(0), "cons")) {
                                         relevantProds.add(term);
                                         break;
                                     }
@@ -111,6 +109,11 @@ public class PPGenStamper implements Stamper {
 
         public Set<IStrategoTerm> getRelevantProds() {
             return relevantProds;
+        }
+
+        public static boolean isAppl(IStrategoTerm term, String cons) {
+            return term.getTermType() == IStrategoTerm.APPL
+                && ((IStrategoAppl) term).getConstructor().getName().equals(cons);
         }
     }
 }

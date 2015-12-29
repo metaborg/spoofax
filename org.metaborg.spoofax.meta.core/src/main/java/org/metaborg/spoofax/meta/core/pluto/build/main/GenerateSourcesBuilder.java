@@ -1,17 +1,21 @@
 package org.metaborg.spoofax.meta.core.pluto.build.main;
 
+import static org.metaborg.spoofax.core.SpoofaxConstants.LANG_SDF_NAME;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.CopyJar;
 import org.metaborg.spoofax.meta.core.pluto.build.MetaSdf2Table;
@@ -22,7 +26,6 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg.Input;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
-import org.metaborg.util.file.FileUtils;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
@@ -67,67 +70,67 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
 
         final SpoofaxProjectSettings settings = context.settings;
 
-        final String sdfModule = settings.sdfName();
-        // final String strModule = settings.strategoName(); // using context.settings.getStrMainFile()
-        final String metaSdfModule = settings.metaSdfName();
-        final String sdfArgs = Joiner.on(' ').join(settings.sdfArgs());
-        // final File externalDef = settings.externalDef() != null ? new File(settings.externalDef()) : null;
-        final File externalJar = settings.externalJar() != null ? new File(settings.externalJar()) : null;
-        final String externalJarFlags = settings.externalJarFlags();
-
         // SDF
+        final String sdfModule = settings.sdfName();
+        final String metaSdfModule = settings.metaSdfName();
+        final String sdfArgs = Joiner.on(' ').join(sdfArgs(context));
+
         requireBuild(Sdf2Table.factory, new Sdf2Table.Input(context, sdfModule, sdfArgs));
-        requireBuild(MetaSdf2Table.factory, new MetaSdf2Table.Input(context, metaSdfModule));
+        requireBuild(MetaSdf2Table.factory, new MetaSdf2Table.Input(context, metaSdfModule, sdfArgs));
 
         // PP tables
-        final File ppPackInputPath = FileUtils.toFile(settings.getPpFile(sdfModule));
-        final File ppPackOutputPath = FileUtils.toFile(settings.getPpAfCompiledFile(sdfModule));
-        requireBuild(PPGen.factory, new PPGen.Input(context, sdfModule));
-        requireBuild(PPPack.factory, new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, true));
+        final File ppPackInputPath = toFile(settings.getPpFile(sdfModule));
+        final File ppPackOutputPath = toFile(settings.getPpAfCompiledFile(sdfModule));
+        requireBuild(PPGen.factory, new PPGen.Input(context, sdfModule, sdfArgs));
+        requireBuild(PPPack.factory, new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, sdfModule, sdfArgs));
 
         // Parenthesizer
-        final Origin sdf2Parenthesize = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, sdfModule));
+        final Origin sdf2Parenthesize =
+            Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, sdfModule, sdfArgs));
 
         // Stratego signature
-        final Origin rtg2Sig = Rtg2Sig.origin(new Rtg2Sig.Input(context, sdfModule));
+        final Origin rtg2Sig = Rtg2Sig.origin(new Rtg2Sig.Input(context, sdfModule, sdfArgs));
 
         // Stratego
         if(!context.isBuildStrategoEnabled(this)) {
             return None.val;
         }
 
+        final File externalJar = settings.externalJar() != null ? new File(settings.externalJar()) : null;
+        final String externalJarFlags = settings.externalJarFlags();
+
         requireBuild(CopyJar.factory, new CopyJar.Input(context, externalJar));
 
-        final File inputPath = FileUtils.toFile(context.settings.getStrMainFile());
-        final File outputPath;
-        final File depPath;
+        final File inputFile = toFile(context.settings.getStrMainFile());
+        final File outputFile;
+        final File depFile;
         if(context.settings.format() == Format.ctree) {
-            outputPath = FileUtils.toFile(context.settings.getStrCompiledCtreeFile());
-            depPath = outputPath;
+            outputFile = toFile(context.settings.getStrCompiledCtreeFile());
+            depFile = outputFile;
         } else {
-            outputPath = FileUtils.toFile(context.settings.getStrJavaMainFile());
-            depPath = FileUtils.toFile(context.settings.getStrJavaTransDirectory());
+            outputFile = toFile(context.settings.getStrJavaMainFile());
+            depFile = toFile(context.settings.getStrJavaTransDirectory());
         }
-        final File cacheDir = FileUtils.toFile(context.settings.getCacheDirectory());
+        final File cacheDir = toFile(context.settings.getCacheDirectory());
 
-        final Collection<String> extraArgs = Lists.newLinkedList();
+        final Collection<String> strategoArgs = Lists.newLinkedList();
         if(context.settings.format() == Format.ctree) {
-            extraArgs.add("-F");
+            strategoArgs.add("-F");
         } else {
-            extraArgs.add("-la java-front");
+            strategoArgs.add("-la java-front");
             if(context.isJavaJarEnabled(this)) {
-                extraArgs.add("-la " + context.settings.strategiesPackageName());
+                strategoArgs.add("-la " + context.settings.strategiesPackageName());
             }
         }
         if(externalJarFlags != null) {
-            Collections.addAll(extraArgs, externalJarFlags.split("[\\s]+"));
+            Collections.addAll(strategoArgs, externalJarFlags.split("[\\s]+"));
         }
 
         final Iterable<FileObject> paths =
-            context.languagePathService.sourceAndIncludePaths(context.project, SpoofaxConstants.LANG_STRATEGO_NAME);
+            context.languagePathService().sourceAndIncludePaths(context.project, SpoofaxConstants.LANG_STRATEGO_NAME);
         final Collection<File> includeDirs = Lists.newLinkedList();
         for(FileObject path : paths) {
-            File file = context.resourceService.localFile(path);
+            final File file = toFileReplicate(path);
             includeDirs.add(file);
         }
 
@@ -138,22 +141,34 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
             .get();
         // @formatter:on
 
-        // TODO: get libraries from stratego arguments
-        final String[] libraries =
-            new String[] { "stratego-lib", "stratego-sglr", "stratego-gpp", "stratego-xtc", "stratego-aterm",
-                "stratego-sdf", "strc" };
-
-        requireBuild(Strj.factory, new Strj.Input(context, inputPath, outputPath, depPath, "trans", true, true,
-            Iterables.toArray(includeDirs, File.class), libraries, cacheDir, extraArgs.toArray(new String[0]),
+        requireBuild(Strj.factory, new Strj.Input(context, inputFile, outputFile, depFile, "trans", true, true,
+            Iterables.toArray(includeDirs, File.class), new String[0], cacheDir, strategoArgs.toArray(new String[0]),
             requiredUnits));
 
-        // BuildRequest<PrepareStrj.Input, OutputPersisted<File>, PrepareStrj, ?> strategoCtree =
-        // new BuildRequest<>(PrepareStrj.factory, new PrepareStrj.Input(context, sdfModule, sdfArgs, strModule,
-        // externalJar, externalJarFlags, externalDef, new BuildRequest<?, ?, ?, ?>[] { sdf2Parenthesize }));
-        // requireBuild(strategoCtree);
-
-        // TODO: run Java compilation and packaging as a single Pluto build.
-
         return None.val;
+    }
+
+
+    public static Collection<String> sdfArgs(SpoofaxContext context) {
+        final Collection<String> args = Lists.newArrayList(context.settings.sdfArgs());
+        final Iterable<FileObject> paths =
+            context.languagePathService().sourceAndIncludePaths(context.project, LANG_SDF_NAME);
+        for(FileObject path : paths) {
+            try {
+                if(path.exists()) {
+                    final File file = context.toFileReplicate(path);
+                    if(path.getName().getExtension().equals("def")) {
+                        args.add("-Idef");
+                        args.add(file.getPath());
+                    } else {
+                        args.add("-I");
+                        args.add(file.getPath());
+                    }
+                }
+            } catch(FileSystemException e) {
+                // Ignore path if path.exists fails.
+            }
+        }
+        return args;
     }
 }

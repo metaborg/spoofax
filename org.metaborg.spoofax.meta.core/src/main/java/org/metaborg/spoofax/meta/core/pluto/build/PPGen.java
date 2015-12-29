@@ -13,8 +13,6 @@ import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdf;
 import org.metaborg.spoofax.meta.core.pluto.stamp.PPGenStamper;
-import org.metaborg.spoofax.meta.core.pluto.util.LoggingFilteringIOAgent;
-import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_pp_pp_table_0_0;
 import org.strategoxt.tools.main_ppgen_0_0;
@@ -26,18 +24,18 @@ import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.output.OutputPersisted;
 
-import com.google.common.base.Joiner;
-
 public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -6752720592940603183L;
 
         public final String sdfModule;
+        public final String sdfArgs;
 
 
-        public Input(SpoofaxContext context, String sdfModule) {
+        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
+            this.sdfArgs = sdfArgs;
         }
     }
 
@@ -73,13 +71,12 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
             return None.val;
         }
 
-        final String sdfArgs = Joiner.on(' ').join(context.settings.sdfArgs());
-        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, sdfArgs));
+        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, input.sdfArgs));
         requireBuild(packSdf);
 
-        final File inputPath = FileUtils.toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-        final File ppOutputPath = FileUtils.toFile(context.settings.getGenPpCompiledFile(input.sdfModule));
-        final File afOutputPath = FileUtils.toFile(context.settings.getGenPpAfCompiledFile(input.sdfModule));
+        final File inputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
+        final File ppOutputPath = toFile(context.settings.getGenPpCompiledFile(input.sdfModule));
+        final File afOutputPath = toFile(context.settings.getGenPpAfCompiledFile(input.sdfModule));
 
         if(SpoofaxContext.BETTER_STAMPERS) {
             final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
@@ -91,15 +88,15 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
 
         final ExecutionResult afResult =
             StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_ppgen_0_0.instance, "main-ppgen",
-                new LoggingFilteringIOAgent(Pattern.quote("[ main-ppgen | warning ]") + ".*"), "-i", inputPath, "-t",
-                "-b", "-o", afOutputPath);
+                newResourceTracker(Pattern.quote("[ main-ppgen | warning ]") + ".*"), "-i", inputPath, "-t", "-b",
+                "-o", afOutputPath);
         provide(afOutputPath);
 
         // TODO: not needed to require something that was provided before?
         // require(afOutputPath);
         final ExecutionResult ppResult =
             StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_pp_pp_table_0_0.instance,
-                "main-pp-pp-table", new LoggingFilteringIOAgent(), "-i", afOutputPath, "-o", ppOutputPath);
+                "main-pp-pp-table", newResourceTracker(), "-i", afOutputPath, "-o", ppOutputPath);
         provide(ppOutputPath);
 
         if(!FileCommands.exists(afOutputPath)) {
