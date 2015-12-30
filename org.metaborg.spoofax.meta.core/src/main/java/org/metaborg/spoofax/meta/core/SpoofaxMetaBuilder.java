@@ -30,11 +30,11 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
 import org.metaborg.util.file.FileAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sugarj.common.Log;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
 import build.pluto.output.Output;
+import build.pluto.xattr.Xattr;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -147,12 +147,12 @@ public class SpoofaxMetaBuilder {
         settings.getIncludeDirectory().delete(selector);
         settings.getGenSourceDirectory().delete(selector);
         settings.getCacheDirectory().delete(selector);
+        Xattr.getDefault().clear();
     }
 
 
     private void initPluto() {
         SpoofaxContext.init(injector);
-        Log.log.setLoggingLevel(Log.ALWAYS);
     }
 
     private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest) throws Throwable {
