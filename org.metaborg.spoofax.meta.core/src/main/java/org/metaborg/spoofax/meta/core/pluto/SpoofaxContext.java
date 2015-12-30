@@ -60,7 +60,13 @@ public class SpoofaxContext implements Serializable {
         this.baseDir = toFile(settings.location());
         this.depDir = toFile(settings.getBuildDirectory());
 
-        this.project = projectService.get(settings.location());
+        init();
+    }
+
+    public void init() {
+        final FileObject location = settings.location();
+        this.base = location;
+        this.project = projectService.get(location);
     }
 
 
@@ -83,7 +89,7 @@ public class SpoofaxContext implements Serializable {
     public File depPath(String relative) {
         return new File(depDir, relative);
     }
-    
+
     public ResourceAgentTracker newResourceTracker(String... excludePatterns) {
         final ResourceAgentTracker tracker = new ResourceAgentTracker(resourceService, base, excludePatterns);
         final ResourceAgent agent = tracker.agent();
@@ -117,7 +123,6 @@ public class SpoofaxContext implements Serializable {
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
         in.defaultReadObject();
         settings.initAfterDeserialization(resourceService);
-        this.base = resourceService.resolve(baseDir);
-        this.project = projectService.get(settings.location());
+        init();
     }
 }

@@ -97,7 +97,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
         }
 
         final File externalJar = settings.externalJar() != null ? new File(settings.externalJar()) : null;
-        final String externalJarFlags = settings.externalJarFlags();
 
         requireBuild(CopyJar.factory, new CopyJar.Input(context, externalJar));
 
@@ -113,7 +112,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
         }
         final File cacheDir = toFile(context.settings.getCacheDirectory());
 
-        final Collection<String> strategoArgs = Lists.newLinkedList();
+        final Collection<String> strategoArgs = Lists.newLinkedList(settings.strategoArgs());
+        
         if(context.settings.format() == Format.ctree) {
             strategoArgs.add("-F");
         } else {
@@ -122,6 +122,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
                 strategoArgs.add("-la " + context.settings.strategiesPackageName());
             }
         }
+        
+        final String externalJarFlags = settings.externalJarFlags();
         if(externalJarFlags != null) {
             Collections.addAll(strategoArgs, externalJarFlags.split("[\\s]+"));
         }

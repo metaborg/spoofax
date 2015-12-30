@@ -63,7 +63,7 @@ public class Copy extends Builder<Copy.Input, None> {
 
 
     @Override protected String description(Input input) {
-        return "Copy";
+        return "Copy " + input.source.getName();
     }
 
     @Override public File persistentPath(Input input) {
