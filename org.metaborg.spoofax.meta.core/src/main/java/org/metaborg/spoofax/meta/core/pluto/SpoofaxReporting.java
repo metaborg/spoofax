@@ -61,7 +61,7 @@ public class SpoofaxReporting implements IReporting {
 
     @Override public <O extends Output> void canceledBuilderRequiredBuilderFailed(BuildRequest<?, O, ?, ?> req,
         BuildUnit<O> unit, RequiredBuilderFailed e) {
-        log.error("Builder failed", e.getCause());
+        log.error("Required builder failed", e.getCause());
     }
 
     @Override public void startBuildCycle(BuildCycle cycle, CycleHandler cycleSupport) {
@@ -77,7 +77,7 @@ public class SpoofaxReporting implements IReporting {
     }
 
     @Override public void inconsistentRequirement(Requirement req) {
-        log.debug("Requirement inconsistent: " + req);
+        log.info("Requirement inconsistent: {}", req);
     }
 
     @Override public void messageFromBuilder(String message, boolean isError, Builder<?, ?> from) {

@@ -41,11 +41,11 @@ public class PrepareNativeBundle extends SpoofaxBuilder<SpoofaxInput, OutputTran
 
 
     @Override protected String description(SpoofaxInput input) {
-        return "Prepare sdf2table exeuctable";
+        return "Prepare native executables";
     }
 
     @Override public File persistentPath(SpoofaxInput input) {
-        return context.depPath("sdf2Table.executable.dep");
+        return context.depPath("native-executables.dep");
     }
 
     @Override public OutputTransient<Output> build(SpoofaxInput input) throws IOException {

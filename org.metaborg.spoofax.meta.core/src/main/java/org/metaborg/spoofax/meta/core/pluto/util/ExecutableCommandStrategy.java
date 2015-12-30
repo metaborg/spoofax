@@ -5,6 +5,8 @@ import java.io.File;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -13,12 +15,13 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.lang.compat.SSL_EXT_call;
 import org.strategoxt.stratego_xtc.xtc_command_1_0;
 import org.sugarj.common.Exec;
-import org.sugarj.common.Log;
 
 public class ExecutableCommandStrategy extends xtc_command_1_0 {
+    private static final ILogger log = LoggerUtils.logger("Build log");
+
     private final String command;
     private final File executable;
-    private final xtc_command_1_0 proceed;
+    private transient final xtc_command_1_0 proceed;
 
 
     public ExecutableCommandStrategy(String command, File executable) {
@@ -55,15 +58,8 @@ public class ExecutableCommandStrategy extends xtc_command_1_0 {
     }
 
     private ExecutionResult runInternal(String[] commandAndArgs) {
-        boolean success = false;
-        try {
-            Log.log.beginTask("Execute " + executable, Log.DETAIL);
-            Exec.ExecutionResult result = Exec.run(commandAndArgs);
-            success = true;
-            return new ExecutionResult(true, StringUtils.join(result.outMsgs, '\n'), StringUtils.join(result.errMsgs,
-                '\n'));
-        } finally {
-            Log.log.endTask(success);
-        }
+        log.info("Execute {}", command);
+        final Exec.ExecutionResult result = Exec.run(commandAndArgs);
+        return new ExecutionResult(true, StringUtils.join(result.outMsgs, '\n'), StringUtils.join(result.errMsgs, '\n'));
     }
 }

@@ -106,6 +106,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
             }
         }
 
+        rtree.delete();
         final ExecutionResult result =
             StrategoExecutor.runStrategoCLI(
                 StrategoExecutor.strjContext(),
@@ -118,7 +119,8 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
                     ? "--library" : "", input.clean ? "--clean" : "", directoryIncludes, libraryIncludes,
                 input.cacheDir != null ? "--cache-dir " + input.cacheDir : "", StringCommands.printListSeparated(
                     input.additionalArgs, " "));
-
+        rtree.delete();
+        
         if(input.depPath.isDirectory()) {
             for(Path sourceFile : FileCommands.listFilesRecursive(input.depPath.toPath())) {
                 provide(sourceFile.toFile());
@@ -126,7 +128,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         } else {
             provide(input.depPath);
         }
-        provide(rtree);
+        //provide(rtree);
         provide(strdep);
 
         if(FileCommands.exists(strdep)) {
