@@ -128,7 +128,6 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         } else {
             provide(input.depPath);
         }
-        //provide(rtree);
         provide(strdep);
 
         if(FileCommands.exists(strdep)) {
@@ -155,14 +154,10 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
             // Remove the trailing ' /'.
             final String line = trimmedLine.substring(0, length - 2);
 
-            // Make paths relative, if possible, to prevent rebuilds when they are moved to another location. Paths
-            // outside of the base directory will be required as absolute paths.
-
             // TODO: non-local dependencies, such as those on .spoofax-language files, are copied to a temporary
             // directory. That will cause unnecessary rebuilds because of absolute path dependencies.
-            final File path = new File(line);
-            final Path relativePath = FileCommands.getRelativePath(context.baseDir, path);
-            require(relativePath != null ? relativePath.toFile() : path);
+            final File file = new File(line);
+            require(file);
         }
     }
 }
