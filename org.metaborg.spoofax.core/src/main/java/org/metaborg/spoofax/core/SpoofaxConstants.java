@@ -48,12 +48,16 @@ public class SpoofaxConstants {
     public static final String DIR_SYNTAX = "syntax";
     public static final String DIR_TRANS = "trans";
     public static final String DIR_INCLUDE = "include";
+    public static final String DIR_BUILD = DIR_INCLUDE + "/build";
     public static final String DIR_LIB = "lib";
     public static final String DIR_ICONS = "icons";
     public static final String DIR_SRCGEN = "src-gen";
     public static final String DIR_SRCGEN_SYNTAX = DIR_SRCGEN + "/syntax";
-    public static final String DIR_JAVA = DIR_EDITOR + "/java";
-    public static final String DIR_JAVA_TRANS = DIR_JAVA + "/trans";
+    public static final String DIR_STR_JAVA = DIR_EDITOR + "/java";
+    public static final String DIR_STR_JAVA_TRANS = DIR_STR_JAVA + "/trans";
+    public static final String DIR_OUTPUT = "target";
+    public static final String DIR_CLASSES = DIR_OUTPUT + "/classes";
+    public static final String DIR_STR_JAVA_CLASSES = DIR_CLASSES + "/trans";
 
     public static final String FILE_CONFIG = "metaborg.yml";
 

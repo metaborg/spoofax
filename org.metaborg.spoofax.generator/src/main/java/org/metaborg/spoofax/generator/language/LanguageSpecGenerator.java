@@ -1,11 +1,9 @@
 package org.metaborg.spoofax.generator.language;
 
-import org.metaborg.spoofax.generator.BaseGenerator;
-import org.metaborg.spoofax.generator.NewBaseGenerator;
-import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
-
 import java.io.IOException;
+
+import org.metaborg.spoofax.generator.NewBaseGenerator;
+import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 
 /**
  * Generates project files which need to be generated after each build. Files are not specific to an IDE.

@@ -49,12 +49,12 @@ public class SpoofaxLanguageSpecPaths extends LanguageSpecPaths implements ISpoo
 
     @Override
     public FileObject javaDirectory() {
-        return resolve(DIR_JAVA);
+        return resolve(DIR_STR_JAVA);
     }
 
     @Override
     public FileObject javaTransDirectory() {
-        return resolve(DIR_JAVA_TRANS);
+        return resolve(DIR_STR_JAVA_TRANS);
     }
 
     @Override

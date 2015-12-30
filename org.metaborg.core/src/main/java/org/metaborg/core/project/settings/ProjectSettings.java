@@ -1,11 +1,15 @@
 package org.metaborg.core.project.settings;
 
+import java.io.Serializable;
+
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.iterators.Iterables2;
 
 @Deprecated
-public class ProjectSettings implements IProjectSettings {
+public class ProjectSettings implements IProjectSettings, Serializable {
+    private static final long serialVersionUID = 7235470907344393083L;
+    
     private final LanguageIdentifier identifier;
     private final String name;
     private final Iterable<LanguageIdentifier> compileDependencies;

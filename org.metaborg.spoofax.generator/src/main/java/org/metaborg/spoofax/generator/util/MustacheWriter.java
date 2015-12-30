@@ -4,8 +4,11 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.util.file.FileAccess;
 
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
@@ -14,12 +17,14 @@ public class MustacheWriter {
     private final FileObject root;
     private final Object[] objects;
     private final MustacheFactory factory;
+    private final @Nullable FileAccess access;
 
 
-    public MustacheWriter(FileObject root, Object[] objs, Class<?> cls) {
+    public MustacheWriter(FileObject root, Object[] objs, Class<?> cls, @Nullable FileAccess access) {
         this.root = root;
         this.objects = objs;
         this.factory = new StrictMustacheFactory(new ClassResolver(cls));
+        this.access = access;
     }
 
 
@@ -43,7 +48,7 @@ public class MustacheWriter {
         write(content, root.resolveFile(name), overwrite);
     }
 
-    
+
     public void write(String srcName, String dstName, boolean overwrite) throws FileSystemException {
         final Mustache content = factory.compile(srcName);
         write(content, root.resolveFile(dstName), overwrite);
@@ -65,6 +70,9 @@ public class MustacheWriter {
         dest.createFile();
         try(final PrintWriter writer = new PrintWriter(dest.getContent().getOutputStream())) {
             mustache.execute(writer, objects);
+        }
+        if(access != null) {
+            access.addWrite(dest);
         }
     }
 

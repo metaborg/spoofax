@@ -1,15 +1,15 @@
 package org.metaborg.spoofax.generator.project;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
-
-import javax.annotation.Nullable;
+import org.metaborg.spoofax.core.project.settings.Format;
 
 /**
  * Provides the values that can be used in a generator template, e.g. a Mustache template.

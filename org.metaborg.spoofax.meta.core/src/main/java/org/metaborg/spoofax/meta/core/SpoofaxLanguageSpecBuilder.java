@@ -1,6 +1,10 @@
 package org.metaborg.spoofax.meta.core;
 
-import com.google.inject.Inject;
+import java.io.IOException;
+import java.net.URL;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -16,15 +20,12 @@ import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
-import org.metaborg.spoofax.generator.language.NewLanguageSpecGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.net.URL;
+import com.google.inject.Inject;
 
 public class SpoofaxLanguageSpecBuilder {
     private static final Logger log = LoggerFactory.getLogger(SpoofaxLanguageSpecBuilder.class);

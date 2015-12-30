@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.util.file.FileAccess;
 
 /**
  * Generates a new Eclipse plugin companion project for a language project, that lifts a language project into an
@@ -14,6 +15,10 @@ import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
  */
 @Deprecated
 public class EclipsePluginProjectGenerator extends BaseGenerator {
+    public EclipsePluginProjectGenerator(GeneratorProjectSettings settings, FileAccess access) {
+        super(settings, access);
+    }
+    
     public EclipsePluginProjectGenerator(GeneratorProjectSettings settings) {
         super(settings);
     }
@@ -34,7 +39,6 @@ public class EclipsePluginProjectGenerator extends BaseGenerator {
         generateIgnoreFile();
     }
 
-    
     public void generateProject() throws IOException {
         writer.write(".project", false);
     }

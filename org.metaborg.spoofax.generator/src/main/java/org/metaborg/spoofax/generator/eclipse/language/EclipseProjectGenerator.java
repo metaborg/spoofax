@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.util.file.FileAccess;
 
 /**
  * Generates Eclipse support files for language projects.
@@ -12,6 +13,10 @@ import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
  */
 @Deprecated
 public class EclipseProjectGenerator extends BaseGenerator {
+    public EclipseProjectGenerator(GeneratorProjectSettings settings, FileAccess access) {
+        super(settings, access);
+    }
+    
     public EclipseProjectGenerator(GeneratorProjectSettings settings) {
         super(settings);
     }
