@@ -65,7 +65,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
                 continue;
             }
             offset = token.getEndOffset();
-            
+
             final ICategory category = category(facet, token);
             if(category != null) {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromToken(token);
@@ -112,6 +112,9 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
     private ICategory sortConsCategory(StylerFacet facet, IStrategoTerm term) {
         final ImploderAttachment imploderAttachment = ImploderAttachment.get(term);
         final String sort = imploderAttachment.getSort();
+        if(sort == null) {
+            return null;
+        }
         // LEGACY: for some reason, when using concrete syntax extensions, all sorts are appended with _sort.
         final String massagedSort = sort.replace("_sort", "");
         if(term.getTermType() == IStrategoTerm.APPL) {
