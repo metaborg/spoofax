@@ -5,8 +5,7 @@ public class Separator implements IMenuItem {
         return "";
     }
 
-    @Override
-    public void accept(final IMenuItemVisitor visitor) {
+    @Override public void accept(final IMenuItemVisitor visitor) {
         visitor.visitSeparator(this);
     }
 }

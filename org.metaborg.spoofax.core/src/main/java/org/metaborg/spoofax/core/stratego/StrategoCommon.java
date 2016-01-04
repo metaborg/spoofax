@@ -17,7 +17,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.transform.TransformResult;
-import org.metaborg.core.transform.TransformerException;
+import org.metaborg.core.transform.TransformException;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -134,14 +134,14 @@ public class StrategoCommon implements IStrategoCommon {
     }
 
 
-    @Override public <PrevT> TransformResult<PrevT, IStrategoTerm> transform(ILanguageComponent component,
-        IContext context, PrevT prevResult, String strategy, IStrategoTerm input, FileObject resource)
+    @Override public <V> TransformResult<V, IStrategoTerm> transform(ILanguageComponent component,
+        IContext context, V prevResult, String strategy, IStrategoTerm input, FileObject resource)
         throws MetaborgException {
         final HybridInterpreter runtime;
         try {
             runtime = strategoRuntimeService.runtime(component, context);
         } catch(MetaborgException e) {
-            throw new TransformerException("Failed to get Stratego interpreter", e);
+            throw new TransformException("Failed to get Stratego interpreter", e);
         }
 
         final Timer timer = new Timer(true);
@@ -152,8 +152,8 @@ public class StrategoCommon implements IStrategoCommon {
             throw new MetaborgException(message);
         }
 
-        final TransformResult<PrevT, IStrategoTerm> transResult =
-            new TransformResult<PrevT, IStrategoTerm>(result, Collections.<IMessage>emptyList(),
+        final TransformResult<V, IStrategoTerm> transResult =
+            new TransformResult<V, IStrategoTerm>(result, Collections.<IMessage>emptyList(),
                 Collections.singletonList(resource), context, duration, prevResult);
         return transResult;
     }
@@ -203,7 +203,7 @@ public class StrategoCommon implements IStrategoCommon {
         return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);
     }
 
-    @Override public FileObject builderWriteResult(IStrategoTerm result, FileObject location) {
+    @Override public @Nullable FileObject builderWriteResult(IStrategoTerm result, FileObject location) {
         if(!(result instanceof IStrategoTuple))
             return null;
 

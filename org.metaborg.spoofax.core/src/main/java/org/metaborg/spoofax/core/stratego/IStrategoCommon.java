@@ -8,7 +8,7 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.transform.TransformResult;
-import org.metaborg.core.transform.TransformerException;
+import org.metaborg.core.transform.TransformException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
@@ -91,7 +91,7 @@ public interface IStrategoCommon {
      * @param resource
      *            Origin resource of the input term.
      * @return Transformation result
-     * @throws TransformerException
+     * @throws TransformException
      *             When Stratego invocation fails.
      */
     public abstract <PrevT> TransformResult<PrevT, IStrategoTerm> transform(ILanguageComponent component,

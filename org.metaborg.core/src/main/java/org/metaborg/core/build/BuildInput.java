@@ -6,10 +6,10 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
+import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
-import org.metaborg.core.transform.ITransformerGoal;
 
 import com.google.common.collect.Multimap;
 
@@ -75,7 +75,7 @@ public class BuildInput {
     /**
      * Transformer goals to execute on analyzed or parsed results.
      */
-    public final Iterable<ITransformerGoal> transformGoals;
+    public final Iterable<ITransformGoal> transformGoals;
 
 
     /**
@@ -97,8 +97,8 @@ public class BuildInput {
     public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
         Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
         boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
-        Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter,
-        boolean throwOnErrors, Set<ILanguageImpl> pardonedLanguages) {
+        Iterable<ITransformGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors,
+        Set<ILanguageImpl> pardonedLanguages) {
         this.state = state;
         this.project = project;
         this.sourceChanges = resourceChanges;

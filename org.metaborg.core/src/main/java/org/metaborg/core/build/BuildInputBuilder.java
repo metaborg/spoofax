@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
@@ -16,7 +17,6 @@ import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
-import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.common.collect.HashMultimap;
@@ -54,7 +54,7 @@ public class BuildInputBuilder {
 
     private boolean transform;
     private @Nullable FileSelector transformSelector;
-    private Collection<ITransformerGoal> transformGoals;
+    private Collection<ITransformGoal> transformGoals;
 
     private @Nullable IBuildMessagePrinter messagePrinter;
     private boolean throwOnErrors;
@@ -306,7 +306,7 @@ public class BuildInputBuilder {
     /**
      * Sets the transform goals to given transform goals.
      */
-    public BuildInputBuilder withTransformGoals(Collection<ITransformerGoal> transformGoals) {
+    public BuildInputBuilder withTransformGoals(Collection<ITransformGoal> transformGoals) {
         this.transformGoals = transformGoals;
         return this;
     }
@@ -314,7 +314,7 @@ public class BuildInputBuilder {
     /**
      * Adds a single transform goal.
      */
-    public BuildInputBuilder addTransformGoal(ITransformerGoal goal) {
+    public BuildInputBuilder addTransformGoal(ITransformGoal goal) {
         this.transformGoals.add(goal);
         return this;
     }

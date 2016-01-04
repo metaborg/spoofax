@@ -5,15 +5,15 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.spoofax.core.action.ActionFacetFromESV;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.metaborg.spoofax.core.menu.MenusFacetFromESV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 public class CompilerFacetFromESV {
-    private static final Logger logger = LoggerFactory.getLogger(MenusFacetFromESV.class);
+    private static final Logger logger = LoggerFactory.getLogger(ActionFacetFromESV.class);
 
 
     public static @Nullable CompilerFacet create(IStrategoAppl esv, LanguageIdentifier languageId) {

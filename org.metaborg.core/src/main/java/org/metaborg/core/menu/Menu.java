@@ -6,6 +6,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.action.IAction;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -30,11 +31,6 @@ public class Menu implements IMenu {
         return name;
     }
 
-    @Override
-    public void accept(final IMenuItemVisitor visitor) {
-        visitor.visitMenu(this);
-    }
-
     @Override public Iterable<IMenuItem> items() {
         return items;
     }
@@ -42,8 +38,9 @@ public class Menu implements IMenu {
     @Override public @Nullable IAction action(String name) throws MetaborgException {
         final List<IAction> actions = Lists.newLinkedList();
         for(IMenuItem item : items) {
-            if(item instanceof IAction && name.equals(item.name())) {
-                final IAction action = (IAction) item;
+            if(item instanceof IMenuAction && name.equals(item.name())) {
+                final IMenuAction menuAction = (IMenuAction) item;
+                final IAction action = menuAction.action();
                 actions.add(action);
             }
         }
@@ -66,5 +63,9 @@ public class Menu implements IMenu {
 
     public void add(Iterable<? extends IMenuItem> items) {
         Iterables.addAll(this.items, items);
+    }
+
+    @Override public void accept(final IMenuItemVisitor visitor) {
+        visitor.visitMenu(this);
     }
 }
