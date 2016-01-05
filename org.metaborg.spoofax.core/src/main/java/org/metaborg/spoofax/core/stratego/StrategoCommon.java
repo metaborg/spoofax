@@ -1,35 +1,25 @@
 package org.metaborg.spoofax.core.stratego;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Collections;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.core.transform.TransformResult;
-import org.metaborg.core.transform.TransformException;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
@@ -133,32 +123,6 @@ public class StrategoCommon implements IStrategoCommon {
         }
     }
 
-
-    @Override public <V> TransformResult<V, IStrategoTerm> transform(ILanguageComponent component,
-        IContext context, V prevResult, String strategy, IStrategoTerm input, FileObject resource)
-        throws MetaborgException {
-        final HybridInterpreter runtime;
-        try {
-            runtime = strategoRuntimeService.runtime(component, context);
-        } catch(MetaborgException e) {
-            throw new TransformException("Failed to get Stratego interpreter", e);
-        }
-
-        final Timer timer = new Timer(true);
-        final IStrategoTerm result = invoke(runtime, input, strategy);
-        final long duration = timer.stop();
-        if(result == null) {
-            final String message = logger.format("Invoking Stratego strategy {} failed", strategy);
-            throw new MetaborgException(message);
-        }
-
-        final TransformResult<V, IStrategoTerm> transResult =
-            new TransformResult<V, IStrategoTerm>(result, Collections.<IMessage>emptyList(),
-                Collections.singletonList(resource), context, duration, prevResult);
-        return transResult;
-    }
-
-
     @Override public IStrategoString localLocationTerm(File localLocation) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
         final String locationPath = localLocation.getAbsolutePath();
@@ -203,47 +167,19 @@ public class StrategoCommon implements IStrategoCommon {
         return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);
     }
 
-    @Override public @Nullable FileObject builderWriteResult(IStrategoTerm result, FileObject location) {
-        if(!(result instanceof IStrategoTuple))
-            return null;
-
-        final IStrategoTerm resourceTerm = result.getSubterm(0);
-        if(!(resourceTerm instanceof IStrategoString)) {
-            logger.error("First term of result tuple {} is not a string, cannot write output file");
+    @Override public String toString(IStrategoTerm term) {
+        if(term instanceof IStrategoString) {
+            return ((IStrategoString) term).stringValue();
         } else {
-            final String resourceString = Tools.asJavaString(resourceTerm);
-            final String resultContents = builderResultToString(result);
-
-            final FileObject resource = resourceService.resolve(location, resourceString);
-            try(OutputStream stream = resource.getContent().getOutputStream()) {
-                IOUtils.write(resultContents, stream);
-            } catch(IOException e) {
-                logger.error("Error occured while writing output file", e);
-            }
-            return resource;
-        }
-
-        return null;
-    }
-
-    @Override public String builderResultToString(IStrategoTerm result) {
-        if(result.getSubtermCount() == 0) {
-            return "";
-        }
-        final IStrategoTerm resultTerm = result.getSubterm(1);
-        if(resultTerm.getTermType() == IStrategoTerm.STRING) {
-            return ((IStrategoString) resultTerm).stringValue();
-        } else {
-            final IStrategoString pp = prettyPrint(resultTerm);
+            final IStrategoString pp = prettyPrint(term);
             if(pp != null) {
                 return pp.stringValue();
             } else {
                 logger.error("Could not pretty print ATerm, falling back to non-pretty printed ATerm");
-                return resultTerm.toString();
+                return term.toString();
             }
         }
     }
-
 
     @Override public IStrategoString prettyPrint(IStrategoTerm term) {
         final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();

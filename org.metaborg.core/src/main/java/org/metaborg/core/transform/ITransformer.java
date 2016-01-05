@@ -6,9 +6,9 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.syntax.ParseResult;
 
 public interface ITransformer<P, A, T> {
-    public abstract TransformResult<ParseResult<P>, T> transform(ParseResult<P> input, IContext context,
+    public abstract TransformResult<P, T> transform(ParseResult<P> input, IContext context,
         TransformActionContribution action) throws TransformException;
 
-    public abstract TransformResult<AnalysisFileResult<P, A>, T> transform(AnalysisFileResult<P, A> input,
-        IContext context, TransformActionContribution action) throws TransformException;
+    public abstract TransformResult<A, T> transform(AnalysisFileResult<P, A> input, IContext context,
+        TransformActionContribution action) throws TransformException;
 }

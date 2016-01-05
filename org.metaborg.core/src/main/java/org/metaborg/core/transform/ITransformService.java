@@ -1,5 +1,6 @@
 package org.metaborg.core.transform;
 
+import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.action.TransformActionContribution;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
@@ -17,34 +18,93 @@ import org.metaborg.core.syntax.ParseResult;
  */
 public interface ITransformService<P, A, T> {
     /**
-     * Transforms given parse result.
+     * Transforms given result with given goal.
      * 
      * @param input
-     *            Parse result to transform.
+     *            Result to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param goal
+     *            Transform goal to execute.
+     * @return Transformation results. Multiple results are returned because a goal can result in multiple
+     *         transformations being executed, e.g. multiple compiler actions.
+     * @throws TransformException
+     *             When transformation fails.
+     */
+    public abstract TransformResults<P, T> transform(ParseResult<P> input, IContext context, ITransformGoal goal)
+        throws TransformException;
+
+    /**
+     * Transforms given result with given goal.
+     * 
+     * @param input
+     *            Result to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param goal
+     *            Transform goal to execute.
+     * @return Transformation results. Multiple results are returned because a goal can result in multiple
+     *         transformations being executed, e.g. multiple compiler actions.
+     * @throws TransformException
+     *             When transformation fails.
+     */
+    public abstract TransformResults<A, T> transform(AnalysisFileResult<P, A> input, IContext context,
+        ITransformGoal goal) throws TransformException;
+
+    /**
+     * Checks if transform actions are available for given context and goal.
+     * 
+     * @param context
+     *            Context to check transform actions from.
+     * @param goal
+     *            Goal to check transform actions for.
+     * @return True if transform actions are available, false if not.
+     */
+    public abstract boolean available(IContext context, ITransformGoal goal);
+
+    /**
+     * Checks if analysis is required for given context and goal.
+     * 
+     * @param context
+     *            Context to check from.
+     * @param goal
+     *            Goal to check for.
+     * @return True if analysis is required, false if not.
+     */
+    public abstract boolean requiresAnalysis(IContext context, ITransformGoal goal);
+
+
+    /**
+     * Transforms given result with given action.
+     * 
+     * @param input
+     *            Result to transform.
      * @param context
      *            Context in which to apply transformation.
      * @param action
      *            Transform action to execute.
-     * @return Transformed result.
+     * @return Transform result.
      * @throws TransformException
      *             When transformation fails.
+     * @throws TransformException
+     *             When transformation action requires analysis.
      */
-    public abstract TransformResult<ParseResult<P>, T> transform(ParseResult<P> input, IContext context,
+    public abstract TransformResult<P, T> transformAction(ParseResult<P> input, IContext context,
         TransformActionContribution action) throws TransformException;
 
     /**
-     * Transforms given analysis result.
+     * Transforms given result with given action.
      * 
      * @param input
-     *            Analysis result to transform.
+     *            Result to transform.
      * @param context
      *            Context in which to apply transformation.
      * @param action
      *            Transform action to execute.
-     * @return Transformed result.
+     * @return Transform result.
      * @throws TransformException
      *             When transformation fails.
      */
-    public abstract TransformResult<AnalysisFileResult<P, A>, T> transform(AnalysisFileResult<P, A> input,
-        IContext context, TransformActionContribution action) throws TransformException;
+    public abstract TransformResult<A, T> transformAction(AnalysisFileResult<P, A> input, IContext context,
+        TransformActionContribution action) throws TransformException;
 }

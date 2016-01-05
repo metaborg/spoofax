@@ -12,4 +12,8 @@ public class TransformActionContribution {
         this.action = action;
         this.contributor = contributor;
     }
+    
+    @Override public String toString() {
+        return action.toString();
+    }
 }

@@ -1,16 +1,19 @@
 package org.metaborg.core.action;
 
-import java.util.Collection;
+import java.util.List;
 
 import com.google.common.base.Joiner;
 
+/**
+ * Named transform goal that points to a builder in a menu via a list of menu names and builder name.
+ */
 public class NamedGoal implements ITransformGoal {
     private static final long serialVersionUID = -8187990679589493213L;
-    
-    public final Collection<String> names;
+
+    public final List<String> names;
 
 
-    public NamedGoal(Collection<String> names) {
+    public NamedGoal(List<String> names) {
         this.names = names;
     }
 

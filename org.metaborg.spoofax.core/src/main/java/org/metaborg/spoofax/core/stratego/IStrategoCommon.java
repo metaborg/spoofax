@@ -7,8 +7,6 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.transform.TransformResult;
-import org.metaborg.core.transform.TransformException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
@@ -76,29 +74,6 @@ public interface IStrategoCommon {
         throws MetaborgException;
 
     /**
-     * Executes given strategy and creates a transformation result.
-     * 
-     * @param component
-     *            Component to initialize Stratego code in.
-     * @param context
-     *            Context to initialize Stratego runtime with.
-     * @param prevResult
-     *            Originating result
-     * @param strategy
-     *            Strategy to execute
-     * @param input
-     *            Term to execute the strategy with.
-     * @param resource
-     *            Origin resource of the input term.
-     * @return Transformation result
-     * @throws TransformException
-     *             When Stratego invocation fails.
-     */
-    public abstract <PrevT> TransformResult<PrevT, IStrategoTerm> transform(ILanguageComponent component,
-        IContext context, PrevT prevResult, String strategy, IStrategoTerm input, FileObject resource)
-        throws MetaborgException;
-
-    /**
      * Converts a location into a Stratego string.
      * 
      * @param localLocation
@@ -135,25 +110,14 @@ public interface IStrategoCommon {
         throws MetaborgException;
 
     /**
-     * Attempts to write given builder result to a file.
+     * Turns given term into a string. If the term is a string, return the string. Otherwise, return a pretty-printed
+     * term.
      * 
-     * @param result
-     *            Builder result to write, should be a 2-tuple (term, filename).
-     * @param location
-     *            Directory to write the file to.
-     * @return Written file, or null if writing a file failed.
-     */
-    public abstract FileObject builderWriteResult(IStrategoTerm result, FileObject location);
-
-    /**
-     * Turns the result of a builder into a string. If the result is a string, return the string. If the result is a
-     * term, return a pretty-printed term. If the result has no subterms, return an empty string.
-     * 
-     * @param result
-     *            Result to convert to a string.
+     * @param term
+     *            Term to convert to a string.
      * @return Result as a string.
      */
-    public abstract String builderResultToString(IStrategoTerm result);
+    public abstract String toString(IStrategoTerm term);
 
     /**
      * Pretty prints an ATerm.

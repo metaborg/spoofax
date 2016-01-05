@@ -56,8 +56,6 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.HoverFacet;
 import org.metaborg.spoofax.core.tracing.ResolverFacet;
 import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
-import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
-import org.metaborg.spoofax.core.transform.compile.CompilerFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -322,11 +320,6 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         final ActionFacet menusFacet = ActionFacetFromESV.create(esvTerm);
         if(menusFacet != null) {
             request.addFacet(menusFacet);
-        }
-
-        final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, identifier);
-        if(compilerFacet != null) {
-            request.addFacet(compilerFacet);
         }
 
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);

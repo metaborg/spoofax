@@ -6,6 +6,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.metaborg.core.action.CompileGoal;
+import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.action.ITransformAction;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.action.NamedGoal;
@@ -66,8 +67,15 @@ public class ActionFacetFromESV {
                     menu.add(submenu);
                     break;
                 case "Action":
-                    final TransformAction action = action(item, mergedFlags, newNesting);
-                    actions.put(action.goal, action);
+                    final String actionName = name(item.getSubterm(0));
+                    final String stategy = Tools.asJavaString(item.getSubterm(1).getSubterm(0));
+                    final TransformActionFlags actionFlags = flags(item.getSubterm(2));
+                    final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
+                    final ImmutableList<String> newActionNesting = ImmutableList.<String>builder().addAll(newNesting).add(actionName).build();
+                    final NamedGoal goal = new NamedGoal(newActionNesting);
+                    final TransformAction action = new TransformAction(actionName, goal, mergedActionFlags, stategy);
+                    actions.put(goal, action);
+                    actions.put(new EndNamedGoal(goal.names.get(goal.names.size() - 1)), action);
                     final MenuAction menuAction = new MenuAction(action);
                     menu.add(menuAction);
                     break;
@@ -97,17 +105,6 @@ public class ActionFacetFromESV {
         return ESVReader.termContents(term);
     }
 
-    private static TransformAction action(IStrategoTerm action, TransformActionFlags flags,
-        ImmutableList<String> nesting) {
-        final String name = name(action.getSubterm(0));
-        final String stategy = Tools.asJavaString(action.getSubterm(1).getSubterm(0));
-        final TransformActionFlags extraFlags = flags(action.getSubterm(2));
-        final TransformActionFlags mergedFlags = TransformActionFlags.merge(flags, extraFlags);
-        final ImmutableList<String> newNesting = ImmutableList.<String>builder().addAll(nesting).add(name).build();
-        final ITransformGoal goal = new NamedGoal(newNesting);
-        return new TransformAction(name, goal, mergedFlags, stategy);
-    }
-
     private static TransformActionFlags flags(Iterable<IStrategoTerm> flagTerms) {
         final TransformActionFlags flags = new TransformActionFlags();
         for(IStrategoTerm flagTerm : flagTerms) {
@@ -125,6 +122,9 @@ public class ActionFacetFromESV {
                     break;
                 case "RealTime":
                     flags.realtime = true;
+                    break;
+                case "Meta":
+                    // Ignore
                     break;
                 default:
                     logger.warn("Unhandled flag term {}", flagTerm);

@@ -14,7 +14,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 public class ActionService implements IActionService {
-    @Override public Iterable<ITransformAction> action(ILanguageImpl language, ITransformGoal goal) {
+    @Override public Collection<ITransformAction> actions(ILanguageImpl language, ITransformGoal goal) {
         final Iterable<ActionFacet> facets = language.facets(ActionFacet.class);
         final Collection<ITransformAction> actions = Lists.newLinkedList();
         for(ActionFacet facet : facets) {
@@ -23,7 +23,7 @@ public class ActionService implements IActionService {
         return actions;
     }
 
-    @Override public Iterable<TransformActionContribution> actionContribution(ILanguageImpl language,
+    @Override public Collection<TransformActionContribution> actionContributions(ILanguageImpl language,
         ITransformGoal goal) {
         final Iterable<FacetContribution<ActionFacet>> facetsContributions =
             language.facetContributions(ActionFacet.class);
@@ -39,9 +39,12 @@ public class ActionService implements IActionService {
     }
 
     @Override public boolean available(ILanguageImpl language, ITransformGoal goal) {
-        final Iterable<ActionFacet> facets = language.facets(ActionFacet.class);
-        for(ActionFacet facet : facets) {
-            if(!Iterables.isEmpty(facet.actions(goal))) {
+        return !actions(language, goal).isEmpty();
+    }
+
+    @Override public boolean requiresAnalysis(ILanguageImpl language, ITransformGoal goal) {
+        for(ITransformAction action : actions(language, goal)) {
+            if(!action.flags().parsed) {
                 return true;
             }
         }

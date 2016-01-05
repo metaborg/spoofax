@@ -12,9 +12,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.action.IActionService;
 import org.metaborg.core.action.ITransformGoal;
-import org.metaborg.core.action.TransformActionContribution;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.analysis.AnalysisResult;
@@ -47,6 +45,7 @@ import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.TransformException;
 import org.metaborg.core.transform.TransformResult;
+import org.metaborg.core.transform.TransformResults;
 import org.metaborg.util.RefBool;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
@@ -81,7 +80,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<P> syntaxService;
     private final IAnalysisService<P, A> analysisService;
-    private final IActionService actionService;
     private final ITransformService<P, A, T> transformService;
 
     private final IParseResultUpdater<P> parseResultProcessor;
@@ -90,9 +88,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
         ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
-        ISyntaxService<P> syntaxService, IAnalysisService<P, A> analysisService, IActionService actionService,
-        ITransformService<P, A, T> transformService, IParseResultUpdater<P> parseResultProcessor,
-        IAnalysisResultUpdater<P, A> analysisResultProcessor) {
+        ISyntaxService<P> syntaxService, IAnalysisService<P, A> analysisService, ITransformService<P, A, T> transformService,
+        IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
         this.languagePathService = languagePathService;
@@ -100,7 +97,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         this.sourceTextService = sourceTextService;
         this.syntaxService = syntaxService;
         this.analysisService = analysisService;
-        this.actionService = actionService;
         this.transformService = transformService;
 
         this.parseResultProcessor = parseResultProcessor;
@@ -243,7 +239,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         // Transform
         cancel.throwIfCancelled();
-        final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults;
+        final Collection<TransformResult<A, T>> allTransformResults;
         if(input.transform) {
             allTransformResults =
                 transform(input, location, allAnalysisResults, includedResources, pardoned, removedResources,
@@ -363,7 +359,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allAnalysisResults;
     }
 
-    private Collection<TransformResult<AnalysisFileResult<P, A>, T>> transform(BuildInput input, FileObject location,
+    private Collection<TransformResult<A, T>> transform(BuildInput input, FileObject location,
         Iterable<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles, boolean pardoned,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel)
         throws InterruptedException {
@@ -371,7 +367,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
             size += Iterables.size(analysisResult.fileResults);
         }
-        final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
+        final Collection<TransformResult<A, T>> allTransformResults =
             Lists.newArrayListWithCapacity(size);
         if(size == 0) {
             return allTransformResults;
@@ -401,21 +397,15 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     try {
                         for(ITransformGoal goal : input.transformGoals) {
                             cancel.throwIfCancelled();
-                            final ILanguageImpl language = context.language();
-                            if(!actionService.available(language, goal)) {
+                            if(!transformService.available(context, goal)) {
                                 logger.trace("No {} transformation required for {}", goal, context.language());
                                 continue;
                             }
-                            final Iterable<TransformActionContribution> actionContributions =
-                                actionService.actionContribution(language, goal);
-                            for(TransformActionContribution actionContribution : actionContributions) {
-                                final TransformResult<AnalysisFileResult<P, A>, T> result =
-                                    transformService.transform(fileResult, context, actionContribution);
-                                final boolean noErrors =
-                                    printMessages(result.messages, goal + " transformation", input, pardoned);
-                                success.and(noErrors);
-                                allTransformResults.add(result);
-                            }
+                            final TransformResults<A, T> result = transformService.transform(fileResult, context, goal);
+                            final boolean noErrors =
+                                printMessages(result.messages(), goal + " transformation", input, pardoned);
+                            success.and(noErrors);
+                            Iterables.addAll(allTransformResults, result.results);
                         }
                     } catch(TransformException e) {
                         final String message = String.format("Transformation failed unexpectedly for %s", name);
