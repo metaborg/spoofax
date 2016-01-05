@@ -1,5 +1,6 @@
 package org.metaborg.core.editor;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,14 @@ public class DummyEditorRegistry implements IEditorRegistry {
 
 
     @Override public Iterable<IEditor> openEditors() {
-        logger.warn("Using dummy editor registry which always returns an empty iterable. "
+        logger.warn("Using dummy editor registry. "
             + "Bind an actual implementation of IEditorRegistry in your Guice module.");
         return Iterables2.<IEditor>empty();
+    }
+
+
+    @Override public void open(FileObject resource) {
+        logger.warn("Using dummy editor registry. "
+            + "Bind an actual implementation of IEditorRegistry in your Guice module.");
     }
 }

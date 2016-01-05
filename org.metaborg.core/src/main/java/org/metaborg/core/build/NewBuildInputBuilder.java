@@ -1,13 +1,18 @@
 package org
 /**
  * @deprecated Use {@link NewLanguagePathService} instead.
- */.metaborg.core.build;
+ */
+.metaborg.core.build;
 
-import com.google.common.collect.*;
-import com.google.inject.Inject;
+import java.util.Collection;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
@@ -16,12 +21,14 @@ import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.resource.ResourceChange;
-import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.util.resource.ResourceUtils;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Set;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 /**
  * Fluent interface for creating {@link BuildInput} objects.
@@ -49,7 +56,7 @@ public class NewBuildInputBuilder {
 
     private boolean transform;
     private @Nullable FileSelector transformSelector;
-    private Collection<ITransformerGoal> transformGoals;
+    private Collection<ITransformGoal> transformGoals;
 
     private @Nullable IBuildMessagePrinter messagePrinter;
     private boolean throwOnErrors;
@@ -301,7 +308,7 @@ public class NewBuildInputBuilder {
     /**
      * Sets the transform goals to given transform goals.
      */
-    public NewBuildInputBuilder withTransformGoals(Collection<ITransformerGoal> transformGoals) {
+    public NewBuildInputBuilder withTransformGoals(Collection<ITransformGoal> transformGoals) {
         this.transformGoals = transformGoals;
         return this;
     }
@@ -309,7 +316,7 @@ public class NewBuildInputBuilder {
     /**
      * Adds a single transform goal.
      */
-    public NewBuildInputBuilder addTransformGoal(ITransformerGoal goal) {
+    public NewBuildInputBuilder addTransformGoal(ITransformGoal goal) {
         this.transformGoals.add(goal);
         return this;
     }
@@ -384,13 +391,15 @@ public class NewBuildInputBuilder {
 
         if(addDefaultIncludePaths) {
             for(ILanguageImpl language : compileImpls) {
-                addIncludePaths(language, languagePathService.includePaths(this.languageSpec, language.belongsTo().name()));
+                addIncludePaths(language,
+                    languagePathService.includePaths(this.languageSpec, language.belongsTo().name()));
             }
         }
 
         if(addSourcesFromDefaultSourceLocations) {
             for(ILanguageImpl language : compileImpls) {
-                final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(this.languageSpec, language);
+                final Iterable<IdentifiedResource> sources =
+                    languagePathService.sourceFiles(this.languageSpec, language);
                 addIdentifiedSources(sources);
             }
         }
@@ -402,8 +411,8 @@ public class NewBuildInputBuilder {
         }
 
         final BuildInput input =
-            new BuildInput(state, this.languageSpec, sourceChanges, includePaths, new BuildOrder(languages), selector, analyze,
-                analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
+            new BuildInput(state, this.languageSpec, sourceChanges, includePaths, new BuildOrder(languages), selector,
+                analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;
     }

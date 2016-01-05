@@ -1,5 +1,4 @@
 package org.metaborg.spoofax.core.language;
-import org.metaborg.core.MetaborgException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -33,6 +32,8 @@ import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.syntax.ParseFacet;
+import org.metaborg.spoofax.core.action.ActionFacet;
+import org.metaborg.spoofax.core.action.ActionFacetFromESV;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
@@ -41,8 +42,6 @@ import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.metaborg.spoofax.core.menu.MenuFacet;
-import org.metaborg.spoofax.core.menu.MenusFacetFromESV;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
@@ -56,8 +55,6 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.HoverFacet;
 import org.metaborg.spoofax.core.tracing.ResolverFacet;
 import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
-import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
-import org.metaborg.spoofax.core.transform.compile.CompilerFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -249,11 +246,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         if(syntaxFacet != null) {
             request.addFacet(syntaxFacet);
         }
-        
+
         if(ParseFacetFromESV.hasParser(esvTerm)) {
-        	request.addFacet(ParseFacetFromESV.create(esvTerm));
+            request.addFacet(ParseFacetFromESV.create(esvTerm));
         } else {
-        	request.addFacet(new ParseFacet("jsglr"));
+            request.addFacet(new ParseFacet("jsglr"));
         }
 
         if(strategoRuntimeFacet != null) {
@@ -310,14 +307,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         }
 
 
-        final MenuFacet menusFacet = MenusFacetFromESV.create(esvTerm, identifier);
+        final ActionFacet menusFacet = ActionFacetFromESV.create(esvTerm);
         if(menusFacet != null) {
             request.addFacet(menusFacet);
-        }
-
-        final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, identifier);
-        if(compilerFacet != null) {
-            request.addFacet(compilerFacet);
         }
 
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);

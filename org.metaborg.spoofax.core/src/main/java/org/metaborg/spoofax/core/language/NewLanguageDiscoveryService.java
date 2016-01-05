@@ -1,10 +1,12 @@
 package org.metaborg.spoofax.core.language;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
@@ -15,11 +17,24 @@ import org.metaborg.core.context.ContextFacet;
 import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
-import org.metaborg.core.language.*;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.INewLanguageDiscoveryRequest;
+import org.metaborg.core.language.INewLanguageDiscoveryService;
+import org.metaborg.core.language.IdentificationFacet;
+import org.metaborg.core.language.LanguageContributionIdentifier;
+import org.metaborg.core.language.LanguageCreationRequest;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguagePathFacet;
+import org.metaborg.core.language.LanguageVersion;
+import org.metaborg.core.language.ResourceExtensionFacet;
+import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.project.configuration.ILanguageComponentConfig;
 import org.metaborg.core.project.configuration.ILanguageComponentConfigService;
 import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.syntax.ParseFacet;
+import org.metaborg.spoofax.core.action.ActionFacet;
+import org.metaborg.spoofax.core.action.ActionFacetFromESV;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
@@ -28,8 +43,6 @@ import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.metaborg.spoofax.core.menu.MenuFacet;
-import org.metaborg.spoofax.core.menu.MenusFacetFromESV;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
@@ -43,8 +56,6 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.HoverFacet;
 import org.metaborg.spoofax.core.tracing.ResolverFacet;
 import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
-import org.metaborg.spoofax.core.transform.compile.CompilerFacet;
-import org.metaborg.spoofax.core.transform.compile.CompilerFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -54,11 +65,10 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService {
     private static final ILogger logger = LoggerUtils.logger(NewLanguageDiscoveryService.class);
@@ -73,10 +83,9 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
 
 
     @Inject public NewLanguageDiscoveryService(ILanguageService languageService,
-                                               ILanguageComponentConfigService componentConfigService,
-                                               IProjectSettingsService projectSettingsService, ITermFactoryService termFactoryService,
-                                               Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
-                                               Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
+        ILanguageComponentConfigService componentConfigService, IProjectSettingsService projectSettingsService,
+        ITermFactoryService termFactoryService, Map<String, IContextFactory> contextFactories,
+        Map<String, IContextStrategy> contextStrategies, Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
         this.languageService = languageService;
         this.componentConfigService = componentConfigService;
         this.projectSettingsService = projectSettingsService;
@@ -134,11 +143,12 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
             ILanguageComponentConfig config = null;
             try {
                 config = this.componentConfigService.get(languageLocation);
-            } catch (IOException e) {
+            } catch(IOException e) {
                 exceptions.add(e);
             }
             if(config == null) {
-                final String message = logger.format("Cannot retrieve language component configuration at {}", languageLocation);
+                final String message =
+                    logger.format("Cannot retrieve language component configuration at {}", languageLocation);
                 errors.add(message);
                 requests.add(new NewLanguageDiscoveryRequest(languageLocation, errors, exceptions));
                 continue;
@@ -167,7 +177,8 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
             final INewLanguageDiscoveryRequest request;
             if(errors.isEmpty() && exceptions.isEmpty()) {
                 request =
-                    new NewLanguageDiscoveryRequest(languageLocation, config, esvTerm, syntaxFacet, strategoRuntimeFacet);
+                    new NewLanguageDiscoveryRequest(languageLocation, config, esvTerm, syntaxFacet,
+                        strategoRuntimeFacet);
             } else {
                 request = new NewLanguageDiscoveryRequest(languageLocation, errors, exceptions);
             }
@@ -177,18 +188,17 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         return requests;
     }
 
-    @Override
-    public ILanguageComponent discover(INewLanguageDiscoveryRequest request) throws MetaborgException {
+    @Override public ILanguageComponent discover(INewLanguageDiscoveryRequest request) throws MetaborgException {
         return createComponent((NewLanguageDiscoveryRequest) request);
     }
 
-    @Override
-    public Collection<ILanguageComponent> discover(Iterable<INewLanguageDiscoveryRequest> requests) throws MetaborgException {
-            final Collection<ILanguageComponent> components = Lists.newLinkedList();
-            for(INewLanguageDiscoveryRequest request : requests) {
-                components.add(discover(request));
-            }
-            return components;
+    @Override public Collection<ILanguageComponent> discover(Iterable<INewLanguageDiscoveryRequest> requests)
+        throws MetaborgException {
+        final Collection<ILanguageComponent> components = Lists.newLinkedList();
+        for(INewLanguageDiscoveryRequest request : requests) {
+            components.add(discover(request));
+        }
+        return components;
     }
 
     @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
@@ -218,7 +228,7 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
 
         final IStrategoAppl esvTerm = discoveryRequest.esvTerm();
         final ILanguageComponentConfig config = discoveryRequest.config();
-//        final IProjectSettings settings = discoveryRequest.settings;
+        // final IProjectSettings settings = discoveryRequest.settings;
         final SyntaxFacet syntaxFacet = discoveryRequest.syntaxFacet();
         final StrategoRuntimeFacet strategoRuntimeFacet = discoveryRequest.strategoRuntimeFacet();
 
@@ -307,14 +317,9 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         }
 
 
-        final MenuFacet menusFacet = MenusFacetFromESV.create(esvTerm, identifier);
+        final ActionFacet menusFacet = ActionFacetFromESV.create(esvTerm);
         if(menusFacet != null) {
             request.addFacet(menusFacet);
-        }
-
-        final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, identifier);
-        if(compilerFacet != null) {
-            request.addFacet(compilerFacet);
         }
 
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
@@ -340,11 +345,11 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
         request.addFacet(languageComponentsFacet);
 
-//        if(config != null) {
-            final DependencyFacet dependencyFacet =
-                new DependencyFacet(config.compileDependencies(), config.runtimeDependencies());
-            request.addFacet(dependencyFacet);
-//        }
+        // if(config != null) {
+        final DependencyFacet dependencyFacet =
+            new DependencyFacet(config.compileDependencies(), config.runtimeDependencies());
+        request.addFacet(dependencyFacet);
+        // }
 
         return languageService.add(request);
     }
