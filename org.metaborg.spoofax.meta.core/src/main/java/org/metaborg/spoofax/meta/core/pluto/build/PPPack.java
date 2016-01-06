@@ -11,6 +11,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
+import org.metaborg.util.cmd.Arguments;
 import org.strategoxt.tools.main_parse_pp_table_0_0;
 import org.sugarj.common.FileCommands;
 
@@ -27,9 +28,10 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
         public final File ppTermOutput;
 
         public final String sdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
-        public Input(SpoofaxContext context, File ppInput, File ppTermOutput, String sdfModule, String sdfArgs) {
+
+        public Input(SpoofaxContext context, File ppInput, File ppTermOutput, String sdfModule, Arguments sdfArgs) {
             super(context);
             this.ppInput = ppInput;
             this.ppTermOutput = ppTermOutput;
@@ -79,10 +81,23 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
             FileCommands.writeToFile(input.ppTermOutput, "PP-Table([])");
             provide(input.ppTermOutput);
         } else {
-            ExecutionResult result =
-                StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_parse_pp_table_0_0.instance,
-                    "parse-pp-table", newResourceTracker(), "-i", input.ppInput, "-o", input.ppTermOutput);
+            // @formatter:off
+            final Arguments arguments = new Arguments()
+                .addFile("-i", input.ppInput)
+                .addFile("-o", input.ppTermOutput)
+                ;
+            
+            final ExecutionResult result = new StrategoExecutor()
+                .withToolsContext()
+                .withStrategy(main_parse_pp_table_0_0.instance)
+                .withTracker(newResourceTracker())
+                .withName("parse-pp-table")
+                .executeCLI(arguments)
+                ;
+            // @formatter:on 
+
             provide(input.ppTermOutput);
+
             setState(State.finished(result.success));
         }
 

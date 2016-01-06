@@ -21,13 +21,13 @@ import org.metaborg.spoofax.meta.core.pluto.build.PPPack;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg.Input;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.Copy;
+import org.metaborg.util.cmd.Arguments;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.buildjava.JarBuilder;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
@@ -82,7 +82,7 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
             // to load those files from Stratego code.
             // TODO: extract build request/origin creation for these files into separate class to prevent code dup.
             final String sdfModule = settings.sdfName();
-            final String sdfArgs = Joiner.on(' ').join(GenerateSourcesBuilder.sdfArgs(context));
+            final Arguments sdfArgs = GenerateSourcesBuilder.sdfArgs(context);
 
             final Origin.Builder originBuilder = Origin.Builder();
             final FileObject target = settings.getStrCompiledJavaTransDirectory();

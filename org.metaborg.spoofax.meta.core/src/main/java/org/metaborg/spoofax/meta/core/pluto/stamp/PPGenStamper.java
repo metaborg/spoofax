@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -23,10 +23,10 @@ import build.pluto.stamp.ValueStamp;
 public class PPGenStamper implements Stamper {
     private static final long serialVersionUID = 3294157251470549994L;
 
-    private final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf;
+    private final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf;
 
 
-    public PPGenStamper(BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf) {
+    public PPGenStamper(BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf) {
         this.parseSdf = parseSdf;
     }
 
@@ -46,8 +46,7 @@ public class PPGenStamper implements Stamper {
             return LastModifiedStamper.instance.stampOf(p);
         }
 
-        final ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
-        final CFProdExtractor cfProdExtractor = new CFProdExtractor(factory);
+        final CFProdExtractor cfProdExtractor = new CFProdExtractor(parseSdf.input.context.termFactory());
         cfProdExtractor.transform(term.val);
         return new ValueStamp<>(this, cfProdExtractor.getRelevantProds());
     }

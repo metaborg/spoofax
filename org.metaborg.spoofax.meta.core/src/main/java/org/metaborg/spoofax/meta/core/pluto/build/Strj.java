@@ -13,8 +13,9 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
+import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
+import org.metaborg.util.cmd.Arguments;
 import org.sugarj.common.FileCommands;
-import org.sugarj.common.StringCommands;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
@@ -34,13 +35,13 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         public final File[] directoryIncludes;
         public final String[] libraryIncludes;
         public final File cacheDir;
-        public final String[] additionalArgs;
+        public final Arguments additionalArgs;
         public final Origin requiredUnits;
 
 
         public Input(SpoofaxContext context, File inputPath, File outputPath, File depPath, String packageName,
             boolean library, boolean clean, File[] directoryIncludes, String[] libraryIncludes, File cacheDir,
-            String[] additionalArgs, Origin requiredUnits) {
+            Arguments additionalArgs, Origin requiredUnits) {
             super(context);
             this.inputPath = inputPath;
             this.outputPath = outputPath;
@@ -93,34 +94,53 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         final File rtree = FileCommands.replaceExtension(input.outputPath, "rtree");
         final File strdep = FileCommands.addExtension(input.outputPath, "dep");
 
-        final StringBuilder directoryIncludes = new StringBuilder();
+        // @formatter:off            
+        final Arguments arguments = new Arguments()
+            .addFile("-i", input.inputPath)
+            .addFile("-o", input.outputPath)
+            .addLine(input.packageName != null ? "-p " + input.packageName : "")
+            .add(input.library ? "--library" : "")
+            .add(input.clean ? "--clean" : "")
+            ;
+        // @formatter:on
+
         for(File dir : input.directoryIncludes) {
             if(dir != null) {
-                directoryIncludes.append("-I ").append(dir).append(" ");
+                arguments.addFile("-I", dir);
             }
         }
-        final StringBuilder libraryIncludes = new StringBuilder();
         for(String lib : input.libraryIncludes) {
             if(lib != null && !lib.isEmpty()) {
-                directoryIncludes.append("-la ").append(lib).append(" ");
+                arguments.addAll("-la", lib);
             }
         }
+        if(input.cacheDir != null) {
+            arguments.addFile("--cache-dir", input.cacheDir);
+        }
+        arguments.addAll(input.additionalArgs);
 
+        // Delete rtree file to prevent it influencing the build.
         rtree.delete();
-        final ExecutionResult result =
-            StrategoExecutor.runStrategoCLI(
-                StrategoExecutor.strjContext(),
-                org.strategoxt.strj.main_0_0.instance,
-                "strj",
-                newResourceTracker(Pattern.quote("[ strj | info ]") + ".*", Pattern
-                    .quote("[ strj | error ] Compilation failed") + ".*", Pattern
-                    .quote("[ strj | warning ] Nullary constructor") + ".*"), "-i", input.inputPath, "-o",
-                input.outputPath, input.packageName != null ? "-p " + input.packageName : "", input.library
-                    ? "--library" : "", input.clean ? "--clean" : "", directoryIncludes, libraryIncludes,
-                input.cacheDir != null ? "--cache-dir " + input.cacheDir : "", StringCommands.printListSeparated(
-                    input.additionalArgs, " "));
-        rtree.delete();
+
+        // @formatter:off
+        final ResourceAgentTracker tracker = newResourceTracker(
+            Pattern.quote("[ strj | info ]") + ".*"
+          , Pattern.quote("[ strj | error ] Compilation failed") + ".*"
+          , Pattern.quote("[ strj | warning ] Nullary constructor") + ".*"
+        );
         
+        final ExecutionResult result = new StrategoExecutor()
+            .withStrjContext()
+            .withStrategy(org.strategoxt.strj.main_0_0.instance)
+            .withTracker(tracker)
+            .withName("strj")
+            .executeCLI(arguments)
+            ;
+        // @formatter:on 
+
+        // Delete rtree file again to prevent it influencing subsequent builds.
+        rtree.delete();
+
         if(input.depPath.isDirectory()) {
             for(Path sourceFile : FileCommands.listFilesRecursive(input.depPath.toPath())) {
                 provide(sourceFile.toFile());
@@ -129,13 +149,11 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
             provide(input.depPath);
         }
         provide(strdep);
-
         if(FileCommands.exists(strdep)) {
             registerUsedPaths(strdep);
         }
 
         setState(State.finished(result.success));
-
         return None.val;
     }
 

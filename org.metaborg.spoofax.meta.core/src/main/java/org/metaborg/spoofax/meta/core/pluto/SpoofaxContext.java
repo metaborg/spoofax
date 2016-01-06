@@ -7,12 +7,18 @@ import java.io.Serializable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
+import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
+import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
+import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.Builder;
@@ -28,8 +34,13 @@ public class SpoofaxContext implements Serializable {
 
     private static Injector injector;
     private static IResourceService resourceService;
+    private static ILanguageService languageService;
+    private static ILanguageIdentifierService languageIdentifierService;
     private static ILanguagePathService languagePathService;
     private static IProjectService projectService;
+    private static ISourceTextService sourceTextService;
+    private static ISpoofaxSyntaxService syntaxService;
+    private static ITermFactoryService termFactoryService;
 
     public final SpoofaxProjectSettings settings;
     public final File baseDir;
@@ -46,8 +57,13 @@ public class SpoofaxContext implements Serializable {
 
         injector = newInjector;
         resourceService = newInjector.getInstance(IResourceService.class);
+        languageService = newInjector.getInstance(ILanguageService.class);
+        languageIdentifierService = newInjector.getInstance(ILanguageIdentifierService.class);
         languagePathService = newInjector.getInstance(ILanguagePathService.class);
         projectService = newInjector.getInstance(IProjectService.class);
+        sourceTextService = newInjector.getInstance(ISourceTextService.class);
+        syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);
+        termFactoryService = newInjector.getInstance(ITermFactoryService.class);
     }
 
 
@@ -98,9 +114,32 @@ public class SpoofaxContext implements Serializable {
         return tracker;
     }
 
+    public ILanguageService languageService() {
+        return languageService;
+    }
+
+    public ILanguageIdentifierService languageIdentifierService() {
+        return languageIdentifierService;
+    }
 
     public ILanguagePathService languagePathService() {
         return languagePathService;
+    }
+
+    public ISourceTextService sourceTextService() {
+        return sourceTextService;
+    }
+
+    public ISpoofaxSyntaxService syntaxService() {
+        return syntaxService;
+    }
+
+    public ITermFactoryService termFactoryService() {
+        return termFactoryService;
+    }
+
+    public ITermFactory termFactory() {
+        return termFactoryService.getGeneric();
     }
 
 

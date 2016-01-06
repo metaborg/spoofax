@@ -132,7 +132,7 @@ public class DialectProcessor implements IDialectProcessor {
 
     private void add(String name, FileObject location, ILanguageImpl base, IFacet syntaxFacet) {
         if(dialectService.hasDialect(name)) {
-            logger.warn("Trying to create dialect {} that already exists, from {}", name, location);
+            logger.debug("Trying to create dialect {} that already exists, from {}", name, location);
             return;
         }
         dialectService.add(name, location, base, syntaxFacet);

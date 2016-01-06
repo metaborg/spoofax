@@ -10,6 +10,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
+import org.metaborg.util.cmd.Arguments;
 import org.strategoxt.tools.main_rtg2sig_0_0;
 
 import build.pluto.BuildUnit.State;
@@ -22,9 +23,10 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
         private static final long serialVersionUID = -8305692591357842018L;
 
         public final String sdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
-        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
+
+        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
@@ -65,11 +67,24 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
             final File inputPath = toFile(context.settings.getRtgFile(input.sdfModule));
             final File outputPath = toFile(context.settings.getStrCompiledSigFile(input.sdfModule));
 
-            require(inputPath);
-            final ExecutionResult result =
-                StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_rtg2sig_0_0.instance, "rtg2sig",
-                    newResourceTracker(), "-i", inputPath, "--module", input.sdfModule, "-o", outputPath);
+            // @formatter:off
+            final Arguments arguments = new Arguments()
+                .addFile("-i", inputPath)
+                .addAll("--module", input.sdfModule)
+                .addFile("-o", outputPath)
+                ;
+            
+            final ExecutionResult result = new StrategoExecutor()
+                .withToolsContext()
+                .withStrategy(main_rtg2sig_0_0.instance)
+                .withTracker(newResourceTracker())
+                .withName("rtg2sig")
+                .executeCLI(arguments)
+                ;
+            // @formatter:on 
+
             provide(outputPath);
+
             setState(State.finished(result.success));
         }
 

@@ -11,6 +11,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle.Output;
+import org.metaborg.util.cmd.Arguments;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
@@ -23,10 +24,10 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         private static final long serialVersionUID = -2379365089609792204L;
 
         public final String sdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
 
-        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
+        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
@@ -71,11 +72,13 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         final File outputPath = toFile(context.settings.getSdfCompiledTableFile(input.sdfModule));
 
         require(inputPath);
+
         final ExecutionResult result =
             commands.sdf2table.run("-t", "-i", inputPath.getAbsolutePath(), "-m", input.sdfModule, "-o",
                 outputPath.getAbsolutePath());
 
         provide(outputPath);
+
         setState(State.finished(result.success));
         return OutputPersisted.of(outputPath);
     }

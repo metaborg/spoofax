@@ -11,8 +11,9 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdf;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
 import org.metaborg.spoofax.meta.core.pluto.stamp.Sdf2RtgStamper;
+import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_sdf2rtg_0_0;
 
@@ -27,9 +28,10 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
         private static final long serialVersionUID = -4487049822305558202L;
 
         public final String sdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
-        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
+
+        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
@@ -71,20 +73,34 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
         final File outputPath = toFile(context.settings.getRtgFile(input.sdfModule));
 
         if(SpoofaxContext.BETTER_STAMPERS) {
-            final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
-                ParseSdf.request(new ParseSdf.Input(context, inputPath, packSdf));
+            final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
+                ParseFile.request(new ParseFile.Input(context, inputPath, packSdf));
             require(inputPath, new Sdf2RtgStamper(parseSdf));
         } else {
             require(inputPath);
         }
 
-        final ExecutionResult result =
-            StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_sdf2rtg_0_0.instance, "sdf2rtg",
-                newResourceTracker(Pattern.quote("Invoking native tool") + ".*"), "-i", inputPath, "-m",
-                input.sdfModule, "-o", outputPath, "--ignore-missing-cons");
-        provide(outputPath);
-        setState(State.finished(result.success));
+        // @formatter:off
+        // TODO: set nativepath to the native bundle, so that sdf2table can be found?
+        final Arguments arguments = new Arguments()
+            .addFile("-i", inputPath)
+            .addAll("-m", input.sdfModule)
+            .addFile("-o", outputPath)
+            .add("--ignore-missing-cons")
+            ;
+        
+        final ExecutionResult result = new StrategoExecutor()
+            .withToolsContext()
+            .withStrategy(main_sdf2rtg_0_0.instance)
+            .withTracker(newResourceTracker(Pattern.quote("Invoking native tool") + ".*"))
+            .withName("sdf2rtg")
+            .executeCLI(arguments)
+            ;
+        // @formatter:on 
 
+        provide(outputPath);
+
+        setState(State.finished(result.success));
         return None.val;
     }
 }

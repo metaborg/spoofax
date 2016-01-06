@@ -12,8 +12,9 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdf;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
 import org.metaborg.spoofax.meta.core.pluto.stamp.Sdf2ParenthesizeStamper;
+import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_sdf2parenthesize_0_0;
 import org.sugarj.common.FileCommands;
@@ -28,9 +29,10 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
         private static final long serialVersionUID = 6177130857266733408L;
 
         public final String sdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
-        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
+
+        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
@@ -74,29 +76,38 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
         final String outputmodule = "include/" + input.sdfModule + "-parenthesize";
 
         if(SpoofaxContext.BETTER_STAMPERS) {
-            final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
-                ParseSdf.request(new ParseSdf.Input(context, inputPath, packSdf));
+            final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
+                ParseFile.request(new ParseFile.Input(context, inputPath, packSdf));
             require(inputPath, new Sdf2ParenthesizeStamper(parseSdf));
-        } else
+        } else {
             require(inputPath);
-
-        // TODO: avoid redundant call to sdf2table
-        // TODO: set nativepath to the native bundle, so that sdf2table can be found
-        final ExecutionResult result =
-            StrategoExecutor.runStrategoCLI(
-                StrategoExecutor.toolsContext(),
-                main_sdf2parenthesize_0_0.instance,
-                "sdf2parenthesize",
-                newResourceTracker(Pattern.quote("[ sdf2parenthesize | info ]") + ".*",
-                    Pattern.quote("Invoking native tool") + ".*"), "-i", inputPath, "-m", input.sdfModule, "--lang",
-                input.sdfModule, "--omod", outputmodule, "-o", outputPath, "--main-strategy", "io-" + input.sdfModule
-                    + "-parenthesize", "--rule-prefix", input.sdfModule, "--sig-module", SpoofaxConstants.DIR_INCLUDE
-                    + "/" + input.sdfModule);
-
-        if(!result.success) {
-            FileCommands.writeToFile(outputPath, "module include/" + input.sdfModule
-                + "-parenthesize rules parenthesize-" + input.sdfModule + " = id");
         }
+
+        // @formatter:off
+        // TODO: set nativepath to the native bundle, so that sdf2table can be found?
+        final Arguments arguments = new Arguments()
+            .addFile("-i", inputPath)
+            .addAll("-m", input.sdfModule)
+            .addAll("--lang", input.sdfModule)
+            .addAll("--omod", outputmodule)
+            .addFile("-o", outputPath)
+            .addAll("--main-strategy", "io-" + input.sdfModule + "-parenthesize")
+            .addAll("--rule-prefix", input.sdfModule)
+            .addAll( "--sig-module", SpoofaxConstants.DIR_INCLUDE + "/" + input.sdfModule)
+            ;
+        
+        final ExecutionResult result = new StrategoExecutor()
+            .withToolsContext()
+            .withStrategy(main_sdf2parenthesize_0_0.instance)
+            .withTracker(newResourceTracker(Pattern.quote("[ sdf2parenthesize | info ]") + ".*", Pattern.quote("Invoking native tool") + ".*"))
+            .withName("sdf2parenthesize")
+            .executeCLI(arguments)
+            ;
+        
+        if(!result.success) {
+            FileCommands.writeToFile(outputPath, "module include/" + input.sdfModule + "-parenthesize rules parenthesize-" + input.sdfModule + " = id");
+        }
+        // @formatter:on 
 
         provide(outputPath);
 

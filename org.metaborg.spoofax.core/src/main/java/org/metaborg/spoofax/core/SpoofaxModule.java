@@ -106,6 +106,7 @@ import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.style.CategorizerService;
 import org.metaborg.spoofax.core.style.StylerService;
+import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.syntax.JSGLRParseService;
 import org.metaborg.spoofax.core.syntax.SpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -235,6 +236,7 @@ public class SpoofaxModule extends MetaborgModule {
         languageCacheBinder.addBinding().to(JSGLRParseService.class);
 
         bind(SpoofaxSyntaxService.class).in(Singleton.class);
+        bind(ISpoofaxSyntaxService.class).to(SpoofaxSyntaxService.class);
         bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(SpoofaxSyntaxService.class);
         bind(new TypeLiteral<ISyntaxService<?>>() {}).to(SpoofaxSyntaxService.class);
 

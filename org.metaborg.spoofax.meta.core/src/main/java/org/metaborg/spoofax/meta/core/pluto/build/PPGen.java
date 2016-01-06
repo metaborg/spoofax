@@ -11,8 +11,10 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseSdf;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
 import org.metaborg.spoofax.meta.core.pluto.stamp.PPGenStamper;
+import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
+import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_pp_pp_table_0_0;
 import org.strategoxt.tools.main_ppgen_0_0;
@@ -29,10 +31,10 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
         private static final long serialVersionUID = -6752720592940603183L;
 
         public final String sdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
 
-        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
+        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
@@ -79,24 +81,52 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
         final File afOutputPath = toFile(context.settings.getGenPpAfCompiledFile(input.sdfModule));
 
         if(SpoofaxContext.BETTER_STAMPERS) {
-            final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
-                ParseSdf.request(new ParseSdf.Input(context, inputPath, packSdf));
+            final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
+                ParseFile.request(new ParseFile.Input(context, inputPath, packSdf));
             require(inputPath, new PPGenStamper(parseSdf));
         } else {
             require(inputPath);
         }
 
-        final ExecutionResult afResult =
-            StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_ppgen_0_0.instance, "main-ppgen",
-                newResourceTracker(Pattern.quote("[ main-ppgen | warning ]") + ".*"), "-i", inputPath, "-t", "-b",
-                "-o", afOutputPath);
+        // @formatter:off
+        final Arguments afArguments = new Arguments()
+            .addFile("-i", inputPath)
+            .add("-t")
+            .add("-b")
+            .addFile("-o", afOutputPath)
+            ;
+
+        final ResourceAgentTracker tracker = newResourceTracker(
+            Pattern.quote("[ pp-gen | warning ]") + ".*"
+          , Pattern.quote("{prefer,") + ".*"
+        );
+
+        final ExecutionResult afResult = new StrategoExecutor()
+            .withToolsContext()
+            .withStrategy(main_ppgen_0_0.instance)
+            .withTracker(tracker)
+            .withName("pp-gen")
+            .executeCLI(afArguments)
+            ;
+        // @formatter:on 
+
         provide(afOutputPath);
 
-        // TODO: not needed to require something that was provided before?
-        // require(afOutputPath);
-        final ExecutionResult ppResult =
-            StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_pp_pp_table_0_0.instance,
-                "main-pp-pp-table", newResourceTracker(), "-i", afOutputPath, "-o", ppOutputPath);
+        // @formatter:off
+        final Arguments ppArguments = new Arguments()
+            .addFile("-i", afOutputPath)
+            .addFile("-o", ppOutputPath)
+            ;
+
+        final ExecutionResult ppResult = new StrategoExecutor()
+            .withToolsContext()
+            .withStrategy(main_pp_pp_table_0_0.instance)
+            .withTracker(newResourceTracker())
+            .withName("pp-table")
+            .executeCLI(ppArguments)
+            ;
+        // @formatter:on 
+
         provide(ppOutputPath);
 
         if(!FileCommands.exists(afOutputPath)) {
@@ -105,7 +135,6 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
         }
 
         setState(State.finished(afResult.success && ppResult.success));
-
         return None.val;
     }
 }

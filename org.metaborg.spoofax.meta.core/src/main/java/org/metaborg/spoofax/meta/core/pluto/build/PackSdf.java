@@ -16,6 +16,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
+import org.metaborg.util.cmd.Arguments;
 import org.strategoxt.tools.main_pack_sdf_0_0;
 import org.sugarj.common.FileCommands;
 
@@ -30,10 +31,10 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
         private static final long serialVersionUID = 2058684747897720328L;
 
         public final String sdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
 
-        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
+        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
@@ -84,17 +85,29 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
         final File outputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
 
         require(inputPath);
-        final ExecutionResult result =
-            StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), main_pack_sdf_0_0.instance, "pack-sdf",
-                newResourceTracker(Pattern.quote("  including ") + ".*"), "-i", inputPath, "-o", outputPath,
-                input.sdfArgs);
+
+        // @formatter:off
+        final Arguments arguments = new Arguments()
+            .addFile("-i", inputPath)
+            .addFile("-o", outputPath)
+            .addAll(input.sdfArgs)
+            ;
+        
+        final ExecutionResult result = new StrategoExecutor()
+            .withToolsContext()
+            .withStrategy(main_pack_sdf_0_0.instance)
+            .withTracker(newResourceTracker(Pattern.quote("  including ") + ".*"))
+            .withName("pack-sdf")
+            .executeCLI(arguments)
+            ;
+        // @formatter:on 
+
         provide(outputPath);
         for(File required : extractRequiredPaths(result.errLog)) {
             require(required);
         }
 
         setState(State.finished(result.success));
-
         return None.val;
     }
 

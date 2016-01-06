@@ -64,7 +64,7 @@ public class ResourceAgent extends IOAgent {
     }
     
     public static OutputStream defaultStderr(String... excludePatterns) {
-        return LoggerUtils.stream(LoggerUtils.logger("stderr"), Level.Error, excludePatterns);
+        return LoggerUtils.stream(LoggerUtils.logger("stderr"), Level.Info, excludePatterns);
     }
     
     

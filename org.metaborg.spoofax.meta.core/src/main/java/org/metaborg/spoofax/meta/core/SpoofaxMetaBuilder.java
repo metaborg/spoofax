@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
+import build.pluto.builder.RequiredBuilderFailed;
 import build.pluto.output.Output;
 import build.pluto.xattr.Xattr;
 

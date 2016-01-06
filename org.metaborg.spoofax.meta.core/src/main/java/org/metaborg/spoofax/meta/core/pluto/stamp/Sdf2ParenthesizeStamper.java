@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -25,14 +25,14 @@ import build.pluto.stamp.ValueStamp;
 public class Sdf2ParenthesizeStamper implements Stamper {
     private static final long serialVersionUID = 3294157251470549994L;
 
-    private final BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf;
+    private final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf;
 
-    
-    public Sdf2ParenthesizeStamper(BuildRequest<?, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf) {
+
+    public Sdf2ParenthesizeStamper(BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf) {
         this.parseSdf = parseSdf;
     }
 
-    
+
     @Override public Stamp stampOf(File p) {
         if(!FileCommands.exists(p))
             return new ValueStamp<>(this, null);
@@ -48,13 +48,12 @@ public class Sdf2ParenthesizeStamper implements Stamper {
             return LastModifiedStamper.instance.stampOf(p);
         }
 
-        final ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
-        final ParenExtractor parenExtractor = new ParenExtractor(factory);
+        final ParenExtractor parenExtractor = new ParenExtractor(parseSdf.input.context.termFactory());
         parenExtractor.visit(term.val);
         return new ValueStamp<>(this, Pair.create(parenExtractor.getRelevantProds(), parenExtractor.getPriorities()));
     }
 
-    
+
     private static class ParenExtractor extends TermVisitor {
         private final Set<IStrategoTerm> relevantProds;
         private final Set<IStrategoTerm> priorities;

@@ -14,7 +14,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-public class SpoofaxSyntaxService extends SyntaxService<IStrategoTerm> {
+public class SpoofaxSyntaxService extends SyntaxService<IStrategoTerm> implements ISpoofaxSyntaxService {
     @Inject public SpoofaxSyntaxService(Map<String, IParseService<IStrategoTerm>> parsers) {
         super(parsers);
     }

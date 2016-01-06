@@ -11,6 +11,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
+import org.metaborg.util.cmd.Arguments;
 import org.strategoxt.permissivegrammars.make_permissive;
 
 import build.pluto.BuildUnit.State;
@@ -23,10 +24,10 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
         private static final long serialVersionUID = 4381601872931676757L;
 
         public final String sdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
 
-        public Input(SpoofaxContext context, String sdfModule, String sdfArgs) {
+        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
@@ -68,16 +69,26 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
         final File outputPath = toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
 
         require(inputPath);
+        
+        // @formatter:off
+        final Arguments arguments = new Arguments()
+            .addFile("-i", inputPath)
+            .addFile("-o", outputPath)
+            .addLine("--optimize on")
+            ;
 
-        final ExecutionResult result =
-            StrategoExecutor.runStrategoCLI(StrategoExecutor.permissiveGrammarsContext(),
-                make_permissive.getMainStrategy(), "make-permissive",
-                newResourceTracker(Pattern.quote("[ make-permissive | info ]") + ".*"), "-i", inputPath, "-o",
-                outputPath, "--optimize", "on");
+        final ExecutionResult result = new StrategoExecutor()
+            .withPermissiveGrammarsContext()
+            .withStrategy(make_permissive.getMainStrategy())
+            .withTracker(newResourceTracker(Pattern.quote("[ make-permissive | info ]") + ".*"))
+            .withName("make-permissive")
+            .executeCLI(arguments)
+            ;
+        // @formatter:on 
 
         provide(outputPath);
-        setState(State.finished(result.success));
 
+        setState(State.finished(result.success));
         return None.val;
     }
 }

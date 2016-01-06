@@ -10,6 +10,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
+import org.metaborg.util.cmd.Arguments;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.BuildRequest;
@@ -23,10 +24,10 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input, None> {
         private static final long serialVersionUID = -3179663405417276186L;
 
         public final String metaSdfModule;
-        public final String sdfArgs;
+        public final Arguments sdfArgs;
 
 
-        public Input(SpoofaxContext context, String metaModule, String sdfArgs) {
+        public Input(SpoofaxContext context, String metaModule, Arguments sdfArgs) {
             super(context);
             this.metaSdfModule = metaModule;
             this.sdfArgs = sdfArgs;
@@ -71,7 +72,8 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input, None> {
             final File strategoMixFile = toFileReplicate(strategoMixPath);
             provide(strategoMixFile);
 
-            final String sdfArgs = "-Idef " + strategoMixFile + " " + input.sdfArgs;
+
+            final Arguments sdfArgs = new Arguments().addFile("-Idef", strategoMixFile).addAll(input.sdfArgs);
             requireBuild(Sdf2Table.factory, new Sdf2Table.Input(context, input.metaSdfModule, sdfArgs));
         }
 
