@@ -88,10 +88,10 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                  * check before is disjunct.
                  */
                 if(index == null) {
-                    index = initIndex();
+                    index = loadIndex();
                 }
                 if(taskEngine == null) {
-                    taskEngine = initTaskEngine();
+                    taskEngine = loadTaskEngine();
                 }
             }
         }
