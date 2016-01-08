@@ -17,26 +17,31 @@ import org.strategoxt.permissivegrammars.make_permissive;
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
-import build.pluto.output.None;
+import build.pluto.output.OutputPersisted;
 
-public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
+public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 4381601872931676757L;
 
-        public final String sdfModule;
-        public final Arguments sdfArgs;
+        public final File outputPath;
+        public final PackSdf.Input packSdfInput;
 
 
-        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
+        public Input(SpoofaxContext context, File outputPath, PackSdf.Input packSdfInput) {
             super(context);
-            this.sdfModule = sdfModule;
-            this.sdfArgs = sdfArgs;
+            this.outputPath = outputPath;
+            this.packSdfInput = packSdfInput;
+        }
+        
+        
+        public String sdfModule() {
+            return packSdfInput.sdfModule;
         }
     }
 
 
-    public static SpoofaxBuilderFactory<Input, None, MakePermissive> factory = SpoofaxBuilderFactoryFactory.of(
-        MakePermissive.class, Input.class);
+    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, MakePermissive> factory =
+        SpoofaxBuilderFactoryFactory.of(MakePermissive.class, Input.class);
 
 
     public MakePermissive(Input input) {
@@ -44,7 +49,8 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
     }
 
 
-    public static BuildRequest<Input, None, MakePermissive, SpoofaxBuilderFactory<Input, None, MakePermissive>>
+    public static
+        BuildRequest<Input, OutputPersisted<File>, MakePermissive, SpoofaxBuilderFactory<Input, OutputPersisted<File>, MakePermissive>>
         request(Input input) {
         return new BuildRequest<>(factory, input);
     }
@@ -62,18 +68,16 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
         return context.depPath("make-permissive." + context.settings.sdfName() + ".dep");
     }
 
-    @Override public None build(Input input) throws IOException {
-        requireBuild(PackSdf.factory, new PackSdf.Input(context, input.sdfModule, input.sdfArgs));
-
-        final File inputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-        final File outputPath = toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
+    @Override public OutputPersisted<File> build(Input input) throws IOException {
+        final OutputPersisted<File> out = requireBuild(PackSdf.factory, input.packSdfInput);
+        final File inputPath = out.val();
 
         require(inputPath);
-        
+
         // @formatter:off
         final Arguments arguments = new Arguments()
             .addFile("-i", inputPath)
-            .addFile("-o", outputPath)
+            .addFile("-o", input.outputPath)
             .addLine("--optimize on")
             ;
 
@@ -86,9 +90,9 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
             ;
         // @formatter:on 
 
-        provide(outputPath);
+        provide(input.outputPath);
 
         setState(State.finished(result.success));
-        return None.val;
+        return OutputPersisted.of(input.outputPath);
     }
 }

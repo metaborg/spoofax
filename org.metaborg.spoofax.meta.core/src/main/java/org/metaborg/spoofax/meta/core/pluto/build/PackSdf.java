@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
@@ -23,27 +25,34 @@ import org.sugarj.common.FileCommands;
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
-import build.pluto.output.None;
+import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.LastModifiedStamper;
 
-public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
+public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 2058684747897720328L;
 
         public final String sdfModule;
         public final Arguments sdfArgs;
+        public final @Nullable File externalDef;
+        public final File inputPath;
+        public final File outputPath;
 
 
-        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
+        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs, @Nullable File externalDef,
+            File inputPath, File outputPath) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
+            this.externalDef = externalDef;
+            this.inputPath = inputPath;
+            this.outputPath = outputPath;
         }
     }
 
 
-    public static SpoofaxBuilderFactory<Input, None, PackSdf> factory = SpoofaxBuilderFactoryFactory.of(PackSdf.class,
-        Input.class);
+    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, PackSdf> factory = SpoofaxBuilderFactoryFactory
+        .of(PackSdf.class, Input.class);
 
 
     public PackSdf(Input input) {
@@ -51,7 +60,9 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
     }
 
 
-    public static BuildRequest<Input, None, PackSdf, SpoofaxBuilderFactory<Input, None, PackSdf>> request(Input input) {
+    public static
+        BuildRequest<Input, OutputPersisted<File>, PackSdf, SpoofaxBuilderFactory<Input, OutputPersisted<File>, PackSdf>>
+        request(Input input) {
         return new BuildRequest<>(factory, input);
     }
 
@@ -68,28 +79,22 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
         return context.depPath("pack-sdf." + input.sdfModule + ".dep");
     }
 
-    @Override public None build(Input input) throws IOException {
-        final String externalDef = context.settings.externalDef();
-        if(externalDef != null) {
-            final File externalDefFile = new File(externalDef);
-            final File target = toFile(context.settings.getIncludeDirectory().resolveFile(input.sdfModule + ".def"));
-            require(externalDefFile, LastModifiedStamper.instance);
-            FileCommands.copyFile(externalDefFile, target, StandardCopyOption.COPY_ATTRIBUTES);
-            provide(target);
-            return None.val;
+    @Override public OutputPersisted<File> build(Input input) throws IOException {
+        if(input.externalDef != null) {
+            require(input.externalDef, LastModifiedStamper.instance);
+            FileCommands.copyFile(input.externalDef, input.outputPath, StandardCopyOption.COPY_ATTRIBUTES);
+            provide(input.outputPath);
+            return OutputPersisted.of(input.outputPath);
         }
 
         copySdf2();
 
-        final File inputPath = toFile(context.settings.getSdfMainFile(input.sdfModule));
-        final File outputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-
-        require(inputPath);
+        require(input.inputPath);
 
         // @formatter:off
         final Arguments arguments = new Arguments()
-            .addFile("-i", inputPath)
-            .addFile("-o", outputPath)
+            .addFile("-i", input.inputPath)
+            .addFile("-o", input.outputPath)
             .addAll(input.sdfArgs)
             ;
         
@@ -102,13 +107,13 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
             ;
         // @formatter:on 
 
-        provide(outputPath);
+        provide(input.outputPath);
         for(File required : extractRequiredPaths(result.errLog)) {
             require(required);
         }
 
         setState(State.finished(result.success));
-        return None.val;
+        return OutputPersisted.of(input.outputPath);
     }
 
 

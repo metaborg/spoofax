@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
-import build.pluto.builder.RequiredBuilderFailed;
 import build.pluto.output.Output;
 import build.pluto.xattr.Xattr;
 
@@ -115,7 +114,8 @@ public class SpoofaxMetaBuilder {
 
         initPluto();
         try {
-            plutoBuild(GenerateSourcesBuilder.request(new SpoofaxInput(new SpoofaxContext(input.settings))));
+            plutoBuild(GenerateSourcesBuilder.request(new GenerateSourcesBuilder.Input(new SpoofaxContext(
+                input.settings))));
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable e) {

@@ -18,31 +18,29 @@ import org.sugarj.common.FileCommands;
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
-import build.pluto.output.None;
+import build.pluto.output.OutputPersisted;
 
-public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
+public class PPPack extends SpoofaxBuilder<PPPack.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -5786344696509159033L;
 
-        public final File ppInput;
-        public final File ppTermOutput;
+        public final File inputPath;
+        public final File outputPath;
 
-        public final String sdfModule;
-        public final Arguments sdfArgs;
+        public final Origin origin;
 
 
-        public Input(SpoofaxContext context, File ppInput, File ppTermOutput, String sdfModule, Arguments sdfArgs) {
+        public Input(SpoofaxContext context, File ppInput, File ppTermOutput, Origin origin) {
             super(context);
-            this.ppInput = ppInput;
-            this.ppTermOutput = ppTermOutput;
-            this.sdfModule = sdfModule;
-            this.sdfArgs = sdfArgs;
+            this.inputPath = ppInput;
+            this.outputPath = ppTermOutput;
+            this.origin = origin;
         }
     }
 
 
-    public static SpoofaxBuilderFactory<Input, None, PPPack> factory = SpoofaxBuilderFactoryFactory.of(PPPack.class,
-        Input.class);
+    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, PPPack> factory = SpoofaxBuilderFactoryFactory
+        .of(PPPack.class, Input.class);
 
 
     public PPPack(Input input) {
@@ -50,7 +48,9 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
     }
 
 
-    public static BuildRequest<Input, None, PPPack, SpoofaxBuilderFactory<Input, None, PPPack>> request(Input input) {
+    public static
+        BuildRequest<Input, OutputPersisted<File>, PPPack, SpoofaxBuilderFactory<Input, OutputPersisted<File>, PPPack>>
+        request(Input input) {
         return new BuildRequest<>(factory, input);
     }
 
@@ -64,27 +64,23 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
     }
 
     @Override public File persistentPath(Input input) {
-        Path rel = FileCommands.getRelativePath(context.baseDir, input.ppTermOutput);
+        Path rel = FileCommands.getRelativePath(context.baseDir, input.outputPath);
         String relname = rel.toString().replace(File.separatorChar, '_');
         return context.depPath("pp-pack." + relname + ".dep");
     }
 
-    @Override public None build(Input input) throws IOException {
-        if(!context.isBuildStrategoEnabled(this)) {
-            return None.val;
-        }
+    @Override public OutputPersisted<File> build(Input input) throws IOException {
+        requireBuild(input.origin);
 
-        requireBuild(PackSdf.factory, new PackSdf.Input(context, input.sdfModule, input.sdfArgs));
-
-        require(input.ppInput);
-        if(!FileCommands.exists(input.ppInput)) {
-            FileCommands.writeToFile(input.ppTermOutput, "PP-Table([])");
-            provide(input.ppTermOutput);
+        require(input.inputPath);
+        if(!FileCommands.exists(input.inputPath)) {
+            FileCommands.writeToFile(input.outputPath, "PP-Table([])");
+            provide(input.outputPath);
         } else {
             // @formatter:off
             final Arguments arguments = new Arguments()
-                .addFile("-i", input.ppInput)
-                .addFile("-o", input.ppTermOutput)
+                .addFile("-i", input.inputPath)
+                .addFile("-o", input.outputPath)
                 ;
             
             final ExecutionResult result = new StrategoExecutor()
@@ -96,11 +92,11 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
                 ;
             // @formatter:on 
 
-            provide(input.ppTermOutput);
+            provide(input.outputPath);
 
             setState(State.finished(result.success));
         }
 
-        return None.val;
+        return OutputPersisted.of(input.outputPath);
     }
 }

@@ -17,19 +17,25 @@ import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
+import build.pluto.output.OutputPersisted;
 
 public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -8305692591357842018L;
 
-        public final String sdfModule;
-        public final Arguments sdfArgs;
+        public final File outputPath;
+        public final Sdf2Rtg.Input sdf2RtgInput;
 
 
-        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
+        public Input(SpoofaxContext context, File outputPath, Sdf2Rtg.Input sdf2RtgInput) {
             super(context);
-            this.sdfModule = sdfModule;
-            this.sdfArgs = sdfArgs;
+            this.outputPath = outputPath;
+            this.sdf2RtgInput = sdf2RtgInput;
+        }
+
+
+        public String sdfModule() {
+            return sdf2RtgInput.sdfModule;
         }
     }
 
@@ -57,21 +63,19 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
     }
 
     @Override public File persistentPath(Input input) {
-        return context.depPath("rtg2sig." + input.sdfModule + ".dep");
+        return context.depPath("rtg2sig." + input.sdfModule() + ".dep");
     }
 
     @Override public None build(Input input) throws IOException {
         if(context.isBuildStrategoEnabled(this)) {
-            requireBuild(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfModule, input.sdfArgs));
-
-            final File inputPath = toFile(context.settings.getRtgFile(input.sdfModule));
-            final File outputPath = toFile(context.settings.getStrCompiledSigFile(input.sdfModule));
+            final OutputPersisted<File> out = requireBuild(Sdf2Rtg.factory, input.sdf2RtgInput);
+            final File inputPath = out.val;
 
             // @formatter:off
             final Arguments arguments = new Arguments()
                 .addFile("-i", inputPath)
-                .addAll("--module", input.sdfModule)
-                .addFile("-o", outputPath)
+                .addAll("--module", input.sdfModule())
+                .addFile("-o", input.outputPath)
                 ;
             
             final ExecutionResult result = new StrategoExecutor()
@@ -83,7 +87,7 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
                 ;
             // @formatter:on 
 
-            provide(outputPath);
+            provide(input.outputPath);
 
             setState(State.finished(result.success));
         }

@@ -23,27 +23,34 @@ import org.sugarj.common.FileCommands;
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
-import build.pluto.output.None;
 import build.pluto.output.OutputPersisted;
 
-public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
+public class PPGen extends SpoofaxBuilder<PPGen.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -6752720592940603183L;
 
+        public final File inputPath;
+        public final File ppOutputPath;
+        public final File afOutputPath;
         public final String sdfModule;
-        public final Arguments sdfArgs;
+
+        public final Origin origin;
 
 
-        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
+        public Input(SpoofaxContext context, File inputPath, File ppOutputPath, File afOutputPath, String sdfModule,
+            Origin origin) {
             super(context);
+            this.inputPath = inputPath;
+            this.ppOutputPath = ppOutputPath;
+            this.afOutputPath = afOutputPath;
             this.sdfModule = sdfModule;
-            this.sdfArgs = sdfArgs;
+            this.origin = origin;
         }
     }
 
 
-    public static SpoofaxBuilderFactory<Input, None, PPGen> factory = SpoofaxBuilderFactoryFactory.of(PPGen.class,
-        PPGen.Input.class);
+    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, PPGen> factory = SpoofaxBuilderFactoryFactory.of(
+        PPGen.class, PPGen.Input.class);
 
 
     public PPGen(Input context) {
@@ -51,7 +58,9 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
     }
 
 
-    public static BuildRequest<Input, None, PPGen, SpoofaxBuilderFactory<Input, None, PPGen>> request(Input input) {
+    public static
+        BuildRequest<Input, OutputPersisted<File>, PPGen, SpoofaxBuilderFactory<Input, OutputPersisted<File>, PPGen>>
+        request(Input input) {
         return new BuildRequest<>(factory, input);
     }
 
@@ -68,32 +77,23 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
         return input.context.depPath("pp-gen." + input.sdfModule + ".dep");
     }
 
-    @Override public None build(Input input) throws IOException {
-        if(!context.isBuildStrategoEnabled(this)) {
-            return None.val;
-        }
-
-        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, input.sdfArgs));
-        requireBuild(packSdf);
-
-        final File inputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-        final File ppOutputPath = toFile(context.settings.getGenPpCompiledFile(input.sdfModule));
-        final File afOutputPath = toFile(context.settings.getGenPpAfCompiledFile(input.sdfModule));
+    @Override public OutputPersisted<File> build(Input input) throws IOException {
+        requireBuild(input.origin);
 
         if(SpoofaxContext.BETTER_STAMPERS) {
             final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
-                ParseFile.request(new ParseFile.Input(context, inputPath, packSdf));
-            require(inputPath, new PPGenStamper(parseSdf));
+                ParseFile.request(new ParseFile.Input(context, input.inputPath, input.origin));
+            require(input.inputPath, new PPGenStamper(parseSdf));
         } else {
-            require(inputPath);
+            require(input.inputPath);
         }
 
         // @formatter:off
         final Arguments afArguments = new Arguments()
-            .addFile("-i", inputPath)
+            .addFile("-i", input.inputPath)
             .add("-t")
             .add("-b")
-            .addFile("-o", afOutputPath)
+            .addFile("-o", input.afOutputPath)
             ;
 
         final ResourceAgentTracker tracker = newResourceTracker(
@@ -110,12 +110,12 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
             ;
         // @formatter:on 
 
-        provide(afOutputPath);
+        provide(input.afOutputPath);
 
         // @formatter:off
         final Arguments ppArguments = new Arguments()
-            .addFile("-i", afOutputPath)
-            .addFile("-o", ppOutputPath)
+            .addFile("-i", input.afOutputPath)
+            .addFile("-o", input.ppOutputPath)
             ;
 
         final ExecutionResult ppResult = new StrategoExecutor()
@@ -127,14 +127,14 @@ public class PPGen extends SpoofaxBuilder<PPGen.Input, None> {
             ;
         // @formatter:on 
 
-        provide(ppOutputPath);
+        provide(input.ppOutputPath);
 
-        if(!FileCommands.exists(afOutputPath)) {
-            FileCommands.writeToFile(afOutputPath, "PP-Table([])");
-            provide(afOutputPath);
+        if(!FileCommands.exists(input.afOutputPath)) {
+            FileCommands.writeToFile(input.afOutputPath, "PP-Table([])");
+            provide(input.afOutputPath);
         }
 
         setState(State.finished(afResult.success && ppResult.success));
-        return None.val;
+        return OutputPersisted.of(input.afOutputPath);
     }
 }

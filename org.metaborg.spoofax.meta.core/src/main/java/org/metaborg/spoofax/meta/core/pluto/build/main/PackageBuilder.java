@@ -18,6 +18,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.PPGen;
 import org.metaborg.spoofax.meta.core.pluto.build.PPPack;
+import org.metaborg.spoofax.meta.core.pluto.build.PackSdf;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg.Input;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.Copy;
@@ -83,30 +84,30 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
             // TODO: extract build request/origin creation for these files into separate class to prevent code dup.
             final String sdfModule = settings.sdfName();
             final Arguments sdfArgs = GenerateSourcesBuilder.sdfArgs(context);
+            final PackSdf.Input packSdfInput = GenerateSourcesBuilder.packSdfInput(context, sdfModule, sdfArgs);
+            final Origin packSdf = PackSdf.origin(packSdfInput);
 
             final Origin.Builder originBuilder = Origin.Builder();
             final FileObject target = settings.getStrCompiledJavaTransDirectory();
 
-            final File ppPackInputPath = toFile(settings.getPpFile(sdfModule));
-            final File ppPackOutputPath = toFile(settings.getPpAfCompiledFile(sdfModule));
-            final File ppAfFile = toFile(settings.getPpAfCompiledFile(sdfModule));
+            final PPPack.Input ppPackInput = GenerateSourcesBuilder.ppPackInput(context, sdfModule, packSdf);
+            final File ppAfFile = requireBuild(PPPack.factory, ppPackInput).val;
             final File targetPpAfFile = toFile(target.resolveFile(settings.getPpAfName(sdfModule)));
-            final Origin ppAfOrigin =
-                PPPack.origin(new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, sdfModule, sdfArgs));
-            originBuilder.add(Copy.origin(new Copy.Input(ppAfFile, targetPpAfFile, ppAfOrigin, context.baseDir,
-                context.depDir)));
+            originBuilder.add(Copy.origin(new Copy.Input(ppAfFile, targetPpAfFile, Origin.from(PPPack
+                .request(ppPackInput)), context.baseDir, context.depDir)));
 
-            final File genPpAfFile = toFile(settings.getGenPpAfCompiledFile(sdfModule));
+            final PPGen.Input ppGenInput = GenerateSourcesBuilder.ppGenInput(context, sdfModule, packSdf);
+            final File ppGenFile = requireBuild(PPGen.factory, ppGenInput).val;
             final File targetGenPpAfFile = toFile(target.resolveFile(settings.getGenPpAfName(sdfModule)));
-            final Origin genPpAfOrigin = PPGen.origin(new PPGen.Input(context, sdfModule, sdfArgs));
-            originBuilder.add(Copy.origin(new Copy.Input(genPpAfFile, targetGenPpAfFile, genPpAfOrigin,
-                context.baseDir, context.depDir)));
+            originBuilder.add(Copy.origin(new Copy.Input(ppGenFile, targetGenPpAfFile, Origin.from(PPGen
+                .request(ppGenInput)), context.baseDir, context.depDir)));
 
-            final File tblFile = toFile(settings.getSdfCompiledTableFile(sdfModule));
+            final Sdf2Table.Input sdf2TableInput =
+                GenerateSourcesBuilder.sdf2TableInput(context, sdfModule, packSdfInput);
+            final File tblFile = requireBuild(Sdf2Table.factory, sdf2TableInput).val;
             final File targeTblFile = toFile(target.resolveFile(settings.getSdfTableName(sdfModule)));
-            final Origin tblOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, sdfModule, sdfArgs));
-            originBuilder.add(Copy.origin(new Copy.Input(tblFile, targeTblFile, tblOrigin, context.baseDir,
-                context.depDir)));
+            originBuilder.add(Copy.origin(new Copy.Input(tblFile, targeTblFile, Origin.from(Sdf2Table
+                .request(sdf2TableInput)), context.baseDir, context.depDir)));
 
             final Origin origin = originBuilder.get();
             requireBuild(origin);

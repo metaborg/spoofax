@@ -28,14 +28,22 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 6177130857266733408L;
 
+        public final File inputPath;
+        public final File outputPath;
+        public final String outputModule;
         public final String sdfModule;
-        public final Arguments sdfArgs;
+
+        public final Origin origin;
 
 
-        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
+        public Input(SpoofaxContext context, File inputPath, File outputPath, String outputModule, String sdfModule,
+            Origin origin) {
             super(context);
+            this.inputPath = inputPath;
+            this.outputPath = outputPath;
+            this.outputModule = outputModule;
             this.sdfModule = sdfModule;
-            this.sdfArgs = sdfArgs;
+            this.origin = origin;
         }
     }
 
@@ -68,29 +76,24 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
     }
 
     @Override public None build(Input input) throws IOException {
-        final Origin packSdf = PackSdf.origin(new PackSdf.Input(context, input.sdfModule, input.sdfArgs));
-        requireBuild(packSdf);
-
-        final File inputPath = toFile(context.settings.getSdfCompiledDefFile(input.sdfModule));
-        final File outputPath = toFile(context.settings.getStrCompiledParenthesizerFile(input.sdfModule));
-        final String outputmodule = "include/" + input.sdfModule + "-parenthesize";
+        requireBuild(input.origin);
 
         if(SpoofaxContext.BETTER_STAMPERS) {
             final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
-                ParseFile.request(new ParseFile.Input(context, inputPath, packSdf));
-            require(inputPath, new Sdf2ParenthesizeStamper(parseSdf));
+                ParseFile.request(new ParseFile.Input(context, input.inputPath, input.origin));
+            require(input.inputPath, new Sdf2ParenthesizeStamper(parseSdf));
         } else {
-            require(inputPath);
+            require(input.inputPath);
         }
 
         // @formatter:off
         // TODO: set nativepath to the native bundle, so that sdf2table can be found?
         final Arguments arguments = new Arguments()
-            .addFile("-i", inputPath)
+            .addFile("-i", input.inputPath)
             .addAll("-m", input.sdfModule)
             .addAll("--lang", input.sdfModule)
-            .addAll("--omod", outputmodule)
-            .addFile("-o", outputPath)
+            .addAll("--omod", input.outputModule)
+            .addFile("-o", input.outputPath)
             .addAll("--main-strategy", "io-" + input.sdfModule + "-parenthesize")
             .addAll("--rule-prefix", input.sdfModule)
             .addAll( "--sig-module", SpoofaxConstants.DIR_INCLUDE + "/" + input.sdfModule)
@@ -105,11 +108,11 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
             ;
         
         if(!result.success) {
-            FileCommands.writeToFile(outputPath, "module include/" + input.sdfModule + "-parenthesize rules parenthesize-" + input.sdfModule + " = id");
+            FileCommands.writeToFile(input.outputPath, "module include/" + input.sdfModule + "-parenthesize rules parenthesize-" + input.sdfModule + " = id");
         }
         // @formatter:on 
 
-        provide(outputPath);
+        provide(input.outputPath);
 
         return None.val;
     }

@@ -23,14 +23,27 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final String sdfModule;
-        public final Arguments sdfArgs;
+        public final File outputPath;
+        public final MakePermissive.Input makePermissiveInput;
 
 
-        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs) {
+        public Input(SpoofaxContext context, File outputPath, MakePermissive.Input makePermissiveInput) {
             super(context);
-            this.sdfModule = sdfModule;
-            this.sdfArgs = sdfArgs;
+            this.outputPath = outputPath;
+            this.makePermissiveInput = makePermissiveInput;
+        }
+
+
+        public String sdfModule() {
+            return makePermissiveInput.sdfModule();
+        }
+
+        public File inputModule() {
+            return makePermissiveInput.packSdfInput.inputPath;
+        }
+
+        public Arguments sdfArgs() {
+            return makePermissiveInput.packSdfInput.sdfArgs;
         }
     }
 
@@ -60,26 +73,29 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
     }
 
     @Override public File persistentPath(Input input) {
-        return context.depPath("sdf2table." + input.sdfModule + ".dep");
+        return context.depPath("sdf2table." + input.sdfModule() + ".dep");
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
-        requireBuild(MakePermissive.factory, new MakePermissive.Input(context, input.sdfModule, input.sdfArgs));
+        final OutputPersisted<File> makePermissiveOutput =
+            requireBuild(MakePermissive.factory, input.makePermissiveInput);
         final OutputTransient<Output> commandsOutput = requireBuild(PrepareNativeBundle.factory, input);
         final Output commands = commandsOutput.val();
 
-        final File inputPath = toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
-        final File outputPath = toFile(context.settings.getSdfCompiledTableFile(input.sdfModule));
+
+        final File inputPath = makePermissiveOutput.val;
+        // final File inputPath = toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
+        // final File outputPath = toFile(context.settings.getSdfCompiledTableFile(input.sdfModule));
 
         require(inputPath);
 
         final ExecutionResult result =
-            commands.sdf2table.run("-t", "-i", inputPath.getAbsolutePath(), "-m", input.sdfModule, "-o",
-                outputPath.getAbsolutePath());
+            commands.sdf2table.run("-t", "-i", inputPath.getAbsolutePath(), "-m", input.sdfModule(), "-o",
+                input.outputPath.getAbsolutePath());
 
-        provide(outputPath);
+        provide(input.outputPath);
 
         setState(State.finished(result.success));
-        return OutputPersisted.of(outputPath);
+        return OutputPersisted.of(input.outputPath);
     }
 }
