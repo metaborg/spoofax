@@ -19,20 +19,17 @@
 
 package org.metaborg.core.project.configuration;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import java.io.IOException;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.LanguageContributionIdentifier;
-import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
+import com.google.inject.Inject;
 
 /**
  * @deprecated This class is only used for the configuration system migration.

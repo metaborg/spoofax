@@ -1,10 +1,11 @@
 package org.metaborg.core.language;
 
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.configuration.ILanguageComponentConfig;
+import java.util.Collection;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
+
+import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.project.configuration.ILanguageComponentConfig;
 
 /**
  * Request for language discovery.

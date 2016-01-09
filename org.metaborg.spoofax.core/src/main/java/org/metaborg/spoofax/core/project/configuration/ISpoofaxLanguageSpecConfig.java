@@ -1,10 +1,10 @@
 package org.metaborg.spoofax.core.project.configuration;
 
+import javax.annotation.Nullable;
+
 import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.project.settings.Format;
-
-import javax.annotation.Nullable;
 
 /**
  * Spoofax-specific configuration for a language specification.

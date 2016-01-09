@@ -17,8 +17,8 @@ import org.metaborg.core.syntax.ParseException;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.iterators.Iterables2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.NotImplementedException;
@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
 public class JSGLRParseService implements IParseService<IStrategoTerm>, ILanguageCache {
-    private static final Logger logger = LoggerFactory.getLogger(JSGLRParseService.class);
+    private static final ILogger logger = LoggerUtils.logger(JSGLRParseService.class);
 
     private final IDialectService dialectService;
     private final ITermFactoryService termFactoryService;

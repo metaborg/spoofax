@@ -18,8 +18,8 @@ import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P, A> {
-    private static final Logger logger = LoggerFactory.getLogger(AnalysisResultProcessor.class);
+    private static final ILogger logger = LoggerUtils.logger(AnalysisResultProcessor.class);
 
     // private final IResourceService resourceService;
     private final IAnalysisService<P, A> analysisService;

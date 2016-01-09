@@ -1,5 +1,9 @@
 package org.metaborg.core.project.configuration;
 
+import java.io.IOException;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -7,9 +11,6 @@ import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
 
 /**
  * Stores and retrieves configurations

@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.generator;
 
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.generator.util.MustacheWriter;
 import org.metaborg.util.file.FileAccess;
 

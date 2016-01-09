@@ -1,16 +1,15 @@
 package org.metaborg.spoofax.core.project.configuration;
 
-import com.google.inject.Inject;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.ILanguageSpecPaths;
-import org.metaborg.core.project.ILanguageSpecPathsService;
 import org.metaborg.core.project.configuration.ConfigurationBasedConfigService;
-import org.metaborg.core.project.configuration.IConfigurationBasedConfig;
 import org.metaborg.core.project.configuration.ConfigurationReaderWriter;
+import org.metaborg.core.project.configuration.IConfigurationBasedConfig;
+
+import com.google.inject.Inject;
 
 public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends ConfigurationBasedConfigService<ILanguageSpec, ISpoofaxLanguageSpecConfig> implements ISpoofaxLanguageSpecConfigService, ISpoofaxLanguageSpecConfigWriter {
 

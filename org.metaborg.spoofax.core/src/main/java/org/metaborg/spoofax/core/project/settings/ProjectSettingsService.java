@@ -11,14 +11,14 @@ import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
 import org.metaborg.spoofax.core.project.IMavenProjectService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.inject.Inject;
 
 @Deprecated
 public class ProjectSettingsService implements IProjectSettingsService {
-    private static final Logger logger = LoggerFactory.getLogger(ProjectSettingsService.class);
+    private static final ILogger logger = LoggerUtils.logger(ProjectSettingsService.class);
 
     private final IMavenProjectService mavenProjectService;
 

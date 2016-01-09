@@ -1,10 +1,9 @@
 package org.metaborg.core.project.configuration;
 
-import org.apache.commons.vfs2.FileObject;
+import java.util.Collection;
+
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-
-import java.util.Collection;
 
 /**
  * Configuration of a language specification.

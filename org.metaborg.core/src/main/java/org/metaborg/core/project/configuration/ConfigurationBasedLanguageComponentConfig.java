@@ -1,16 +1,17 @@
 package org.metaborg.core.project.configuration;
 
-import com.google.common.base.Preconditions;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.ImmutableConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.metaborg.core.language.LanguageContributionIdentifier;
-import org.metaborg.core.language.LanguageIdentifier;
-
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import javax.annotation.Nullable;
+
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.ImmutableConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.metaborg.core.language.LanguageIdentifier;
+
+import com.google.common.base.Preconditions;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface

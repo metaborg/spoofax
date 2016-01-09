@@ -1,9 +1,8 @@
 package org.metaborg.spoofax.core.project.configuration;
 
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.configuration.ILanguageSpecConfig;
-
 import java.io.IOException;
+
+import org.metaborg.core.project.ILanguageSpec;
 
 /**
  * Writes a configuration for the specified {@link ILanguageSpec}.

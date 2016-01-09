@@ -25,8 +25,8 @@ import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.iterators.Iterables2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
@@ -45,7 +45,7 @@ import fj.P2;
 public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     public static final String name = "stratego";
 
-    private static final Logger logger = LoggerFactory.getLogger(StrategoAnalyzer.class);
+    private static final ILogger logger = LoggerUtils.logger(StrategoAnalyzer.class);
 
     private final IResourceService resourceService;
     private final ITermFactoryService termFactoryService;

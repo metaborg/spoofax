@@ -17,8 +17,8 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -30,7 +30,7 @@ import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 public class StrategoRuntimeService implements IStrategoRuntimeService {
-    private static final Logger logger = LoggerFactory.getLogger(StrategoRuntimeService.class);
+    private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeService.class);
 
     private final IResourceService resourceService;
     private final ITermFactoryService termFactoryService;

@@ -19,11 +19,12 @@
 
 package org.metaborg.core.project.configuration;
 
-import com.google.common.collect.Lists;
+import java.util.Collection;
+
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.settings.IProjectSettings;
 
-import java.util.Collection;
+import com.google.common.collect.Lists;
 
 @Deprecated
 public class LegacyLanguageComponentConfig implements ILanguageComponentConfig {

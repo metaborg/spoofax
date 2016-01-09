@@ -1,9 +1,8 @@
 package org.metaborg.core.project.configuration;
 
-import org.metaborg.core.language.LanguageContributionIdentifier;
-import org.metaborg.core.language.LanguageIdentifier;
-
 import java.util.Collection;
+
+import org.metaborg.core.language.LanguageIdentifier;
 
 /**
  * Configuration of a language component.

@@ -16,8 +16,8 @@ import org.metaborg.core.menu.Menu;
 import org.metaborg.core.menu.MenuAction;
 import org.metaborg.core.menu.Separator;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 public class ActionFacetFromESV {
-    private static final Logger logger = LoggerFactory.getLogger(ActionFacetFromESV.class);
+    private static final ILogger logger = LoggerUtils.logger(ActionFacetFromESV.class);
 
 
     public static @Nullable ActionFacet create(IStrategoAppl esv) {

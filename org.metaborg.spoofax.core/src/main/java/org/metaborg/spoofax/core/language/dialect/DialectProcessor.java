@@ -17,16 +17,16 @@ import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ExtensionFileSelector;
 import org.metaborg.util.resource.FileSelectorUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 public class DialectProcessor implements IDialectProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(DialectProcessor.class);
+    private static final ILogger logger = LoggerUtils.logger(DialectProcessor.class);
 
     private final ILanguageService languageService;
     private final IDialectService dialectService;

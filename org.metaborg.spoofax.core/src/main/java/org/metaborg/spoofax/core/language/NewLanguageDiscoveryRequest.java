@@ -1,6 +1,10 @@
 package org.metaborg.spoofax.core.language;
 
-import com.google.common.collect.Iterables;
+import java.util.Collection;
+import java.util.Collections;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.INewLanguageDiscoveryRequest;
@@ -9,9 +13,7 @@ import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
+import com.google.common.collect.Iterables;
 
 public class NewLanguageDiscoveryRequest implements INewLanguageDiscoveryRequest {
 

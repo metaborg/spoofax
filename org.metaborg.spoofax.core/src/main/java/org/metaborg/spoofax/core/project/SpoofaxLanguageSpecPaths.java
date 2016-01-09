@@ -1,8 +1,6 @@
 package org.metaborg.spoofax.core.project;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.LanguageSpecPaths;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 

@@ -1,9 +1,8 @@
 package org.metaborg.core.project.configuration;
 
-import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.project.ILanguageSpec;
-
 import java.io.IOException;
+
+import org.metaborg.core.language.ILanguageComponent;
 
 /**
  * Writes a configuration for the specified {@link ILanguageComponent}.

@@ -2,8 +2,8 @@ package org.metaborg.spoofax.core.project;
 
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.project.IProject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 /**
  * Dummy Maven project service that gets bound by default, to display sane warnings when nothing else is bound to
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  */
 @Deprecated
 public class DummyMavenProjectService implements IMavenProjectService {
-    private static final Logger logger = LoggerFactory.getLogger(DummyMavenProjectService.class);
+    private static final ILogger logger = LoggerUtils.logger(DummyMavenProjectService.class);
 
 
     @Override public MavenProject get(IProject project) {

@@ -13,7 +13,11 @@ import com.google.common.collect.Lists;
 
 public class ResourceUtils {
     public static Iterable<FileObject> find(FileObject base, FileSelector selector) throws FileSystemException {
-        return Iterables2.from(base.findFiles(selector));
+        final FileObject[] files = base.findFiles(selector);
+        if(files == null) {
+            return Iterables2.empty();
+        }
+        return Iterables2.from(files);
     }
 
     public static Iterable<FileObject> find(FileObject base) throws FileSystemException {

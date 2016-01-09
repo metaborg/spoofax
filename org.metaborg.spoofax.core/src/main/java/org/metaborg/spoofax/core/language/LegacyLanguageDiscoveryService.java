@@ -1,12 +1,13 @@
 package org.metaborg.spoofax.core.language;
 
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.inject.Inject;
 
 /**
  * Forwards the implementation to the new implementation.

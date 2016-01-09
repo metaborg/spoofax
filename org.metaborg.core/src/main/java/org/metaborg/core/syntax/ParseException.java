@@ -1,10 +1,10 @@
 package org.metaborg.core.syntax;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageImpl;
-
-import javax.annotation.Nullable;
 
 public class ParseException extends MetaborgException {
     private static final long serialVersionUID = 794040128416462015L;

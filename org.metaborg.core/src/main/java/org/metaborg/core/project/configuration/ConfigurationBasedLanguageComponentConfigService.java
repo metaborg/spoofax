@@ -1,19 +1,16 @@
 package org.metaborg.core.project.configuration;
 
-import com.google.inject.Inject;
+import java.io.IOException;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.ILanguageSpecPaths;
-import org.metaborg.core.project.ILanguageSpecPathsService;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
+import com.google.inject.Inject;
 
 public class ConfigurationBasedLanguageComponentConfigService extends ConfigurationBasedConfigService<ILanguageComponent, ILanguageComponentConfig> implements ILanguageComponentConfigService, ILanguageComponentConfigWriter {
 

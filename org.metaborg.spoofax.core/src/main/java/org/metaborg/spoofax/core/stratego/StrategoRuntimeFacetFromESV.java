@@ -7,14 +7,14 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Sets;
 
 public class StrategoRuntimeFacetFromESV {
-    private static final Logger logger = LoggerFactory.getLogger(StrategoRuntimeFacetFromESV.class);
+    private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeFacetFromESV.class);
 
 
     public static @Nullable StrategoRuntimeFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {

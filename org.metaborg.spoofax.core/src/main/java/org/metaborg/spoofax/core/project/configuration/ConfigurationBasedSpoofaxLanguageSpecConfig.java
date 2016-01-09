@@ -1,5 +1,11 @@
 package org.metaborg.spoofax.core.project.configuration;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -8,11 +14,6 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.configuration.ConfigurationBasedLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.settings.Format;
-
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * An implementation of the {@link ISpoofaxLanguageSpecConfig} interface

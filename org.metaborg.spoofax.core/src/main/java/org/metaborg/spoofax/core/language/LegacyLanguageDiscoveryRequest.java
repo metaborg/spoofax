@@ -1,11 +1,10 @@
 package org.metaborg.spoofax.core.language;
 
-import org.apache.commons.configuration2.convert.LegacyListDelimiterHandler;
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.core.language.INewLanguageDiscoveryRequest;
-
-import javax.annotation.Nullable;
 
 /**
  * Forwards the implementation to the new implementation.

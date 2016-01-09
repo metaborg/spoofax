@@ -1,14 +1,15 @@
 package org.metaborg.core.project.configuration;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
+import org.metaborg.core.language.LanguageIdentifier;
+
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
-import org.metaborg.core.language.LanguageContributionIdentifier;
-import org.metaborg.core.language.LanguageIdentifier;
-
-import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Configuration-based builder for {@link ILanguageComponentConfig} objects.

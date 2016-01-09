@@ -1,6 +1,5 @@
 package org.metaborg.core.project;
 
-import org.apache.commons.vfs2.FileObject;
 
 /**
  * A language specification project.

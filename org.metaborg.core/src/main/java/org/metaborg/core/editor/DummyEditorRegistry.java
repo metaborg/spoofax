@@ -2,8 +2,8 @@ package org.metaborg.core.editor;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.util.iterators.Iterables2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 /**
  * Dummy editor registry that gets bound by default, to display sane warnings when nothing else is bound to
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * warning.
  */
 public class DummyEditorRegistry implements IEditorRegistry {
-    private static final Logger logger = LoggerFactory.getLogger(DummyEditorRegistry.class);
+    private static final ILogger logger = LoggerUtils.logger(DummyEditorRegistry.class);
 
 
     @Override public Iterable<IEditor> openEditors() {

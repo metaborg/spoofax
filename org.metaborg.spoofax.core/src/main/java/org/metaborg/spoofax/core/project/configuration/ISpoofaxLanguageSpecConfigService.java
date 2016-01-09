@@ -1,12 +1,11 @@
 package org.metaborg.spoofax.core.project.configuration;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.configuration.ILanguageSpecConfig;
-import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
+import java.io.IOException;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
+
+import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 
 /**
  * Stores and retrieves Spoofax language specification configurations.

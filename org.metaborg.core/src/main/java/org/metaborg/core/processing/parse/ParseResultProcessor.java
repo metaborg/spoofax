@@ -11,8 +11,8 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.core.syntax.ParseResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -25,7 +25,7 @@ import com.google.inject.Inject;
 
 
 public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
-    private static final Logger logger = LoggerFactory.getLogger(ParseResultProcessor.class);
+    private static final ILogger logger = LoggerUtils.logger(ParseResultProcessor.class);
 
     private final ISyntaxService<P> syntaxService;
 

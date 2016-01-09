@@ -11,8 +11,8 @@ import org.metaborg.core.style.IRegionCategory;
 import org.metaborg.core.style.RegionCategory;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
@@ -24,7 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class CategorizerService implements ICategorizerService<IStrategoTerm, IStrategoTerm> {
-    private static final Logger logger = LoggerFactory.getLogger(CategorizerService.class);
+    private static final ILogger logger = LoggerUtils.logger(CategorizerService.class);
 
 
     @Inject public CategorizerService() {

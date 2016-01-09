@@ -1,10 +1,11 @@
 package org.metaborg.core.build.dependency;
 
-import com.google.inject.Inject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProject;
+
+import com.google.inject.Inject;
 
 /**
  * Forwards the implementation to the new dependency service.

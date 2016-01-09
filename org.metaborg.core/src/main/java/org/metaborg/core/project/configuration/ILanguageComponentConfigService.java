@@ -1,11 +1,11 @@
 package org.metaborg.core.project.configuration;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguageComponent;
+import java.io.IOException;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
+
+import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.language.ILanguageComponent;
 
 /**
  * Stores and retrieves language component configurations.

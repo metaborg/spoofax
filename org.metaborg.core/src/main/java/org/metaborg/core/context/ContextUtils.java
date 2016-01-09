@@ -3,15 +3,15 @@ package org.metaborg.core.context;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageIdentifierService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Sets;
 
 public class ContextUtils {
-    private static final Logger logger = LoggerFactory.getLogger(ContextUtils.class);
+    private static final ILogger logger = LoggerUtils.logger(ContextUtils.class);
 
     /**
      * Gets a set of all contexts for given resources.

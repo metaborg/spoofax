@@ -1,10 +1,11 @@
 package org.metaborg.core.project.configuration;
 
-import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 
-import javax.annotation.Nullable;
+import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 
 /**
  * Reads/writes configurations in YAML files.

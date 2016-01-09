@@ -19,17 +19,11 @@
 
 package org.metaborg.spoofax.core.project.configuration;
 
-import com.google.common.collect.Lists;
-import org.metaborg.core.language.LanguageContributionIdentifier;
-import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.configuration.ILanguageSpecConfig;
+import javax.annotation.Nullable;
+
 import org.metaborg.core.project.configuration.LegacyLanguageSpecConfig;
-import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-
-import javax.annotation.Nullable;
-import java.util.Collection;
 
 @Deprecated
 public class LegacySpoofaxLanguageSpecConfig extends LegacyLanguageSpecConfig implements ISpoofaxLanguageSpecConfig {

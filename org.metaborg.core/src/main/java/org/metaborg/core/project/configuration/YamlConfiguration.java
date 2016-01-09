@@ -1,9 +1,10 @@
 package org.metaborg.core.project.configuration;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 
 /**
  * Configuration that uses YAML files.

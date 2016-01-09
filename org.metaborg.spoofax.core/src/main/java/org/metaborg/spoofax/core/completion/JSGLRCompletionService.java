@@ -12,8 +12,8 @@ import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.jsglr.client.CompletionStateSet;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.State;
@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class JSGLRCompletionService implements ICompletionService {
-    private static final Logger logger = LoggerFactory.getLogger(JSGLRCompletionService.class);
+    private static final ILogger logger = LoggerUtils.logger(JSGLRCompletionService.class);
 
     private final ISyntaxService<?> syntaxService;
 

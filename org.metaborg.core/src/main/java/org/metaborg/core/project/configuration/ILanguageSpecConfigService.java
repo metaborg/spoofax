@@ -1,9 +1,10 @@
 package org.metaborg.core.project.configuration;
 
-import org.metaborg.core.project.ILanguageSpec;
+import java.io.IOException;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
+
+import org.metaborg.core.project.ILanguageSpec;
 
 /**
  * Stores and retrieves language specification configurations.

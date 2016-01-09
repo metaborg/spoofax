@@ -1,15 +1,13 @@
 package org.metaborg.spoofax.core.project;
 
-import com.google.inject.Inject;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import java.io.IOException;
+
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.ILanguageSpecPathsService;
-import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
 
-import java.io.IOException;
+import com.google.inject.Inject;
 
 public class SpoofaxLanguageSpecPathsService implements ISpoofaxLanguageSpecPathsService {
 

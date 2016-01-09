@@ -1,13 +1,14 @@
 package org.metaborg.core.project.settings;
 
+import java.io.IOException;
+
+import org.metaborg.core.language.LanguageIdentifier;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import org.metaborg.core.language.LanguageIdentifier;
-
-import java.io.IOException;
 
 /**
  * Deserializer for the {@link LanguageIdentifier} class.

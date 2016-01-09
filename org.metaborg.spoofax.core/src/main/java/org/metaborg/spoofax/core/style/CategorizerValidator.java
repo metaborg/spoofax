@@ -4,13 +4,13 @@ import java.util.Collection;
 
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.style.IRegionCategory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Lists;
 
 public class CategorizerValidator {
-    private static final Logger logger = LoggerFactory.getLogger(CategorizerValidator.class);
+    private static final ILogger logger = LoggerUtils.logger(CategorizerValidator.class);
 
     public static <T> Iterable<IRegionCategory<T>> validate(Iterable<IRegionCategory<T>> categorization) {
         int offset = -1;

@@ -2,7 +2,6 @@ package org.metaborg.core.project.configuration;
 
 import org.apache.commons.configuration2.convert.DefaultConversionHandler;
 import org.apache.commons.configuration2.interpol.ConfigurationInterpolator;
-import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 /**

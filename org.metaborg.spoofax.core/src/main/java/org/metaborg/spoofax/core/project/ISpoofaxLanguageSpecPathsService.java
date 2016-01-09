@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.project;
 
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.ILanguageSpecPaths;
 import org.metaborg.core.project.ILanguageSpecPathsService;
 
 /**

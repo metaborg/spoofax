@@ -1,9 +1,9 @@
 package org.metaborg.core.build.dependency;
 
+import java.util.Collection;
+
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.ILanguageSpec;
-
-import java.util.Collection;
 
 /**
  * Interface for a service that returns compile-time and runtime dependencies

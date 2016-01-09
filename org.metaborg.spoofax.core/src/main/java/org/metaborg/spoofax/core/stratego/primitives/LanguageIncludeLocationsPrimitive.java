@@ -9,8 +9,8 @@ import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class LanguageIncludeLocationsPrimitive extends AbstractPrimitive {
-    private static final Logger logger = LoggerFactory.getLogger(LanguageIncludeLocationsPrimitive.class);
+    private static final ILogger logger = LoggerUtils.logger(LanguageIncludeLocationsPrimitive.class);
 
     private final IResourceService resourceService;
     private final ILanguagePathService languagePathService;

@@ -1,28 +1,29 @@
 package org.metaborg.core.build.dependency;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+
+import javax.annotation.Nullable;
+
 import org.metaborg.core.MessageFormatter;
 import org.metaborg.core.language.*;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 /**
  * Default implementation of the {@link INewDependencyService} interface.
  */
 public final class DefaultDependencyService implements INewDependencyService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultDependencyService.class);
+    private static final ILogger logger = LoggerUtils.logger(DefaultDependencyService.class);
 
     private final ILanguageService languageService;
     private final ILanguageSpecConfigService languageSpecConfigService;

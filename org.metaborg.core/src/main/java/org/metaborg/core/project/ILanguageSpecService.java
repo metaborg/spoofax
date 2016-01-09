@@ -1,8 +1,5 @@
 package org.metaborg.core.project;
 
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.IProject;
-
 import javax.annotation.Nullable;
 
 /**

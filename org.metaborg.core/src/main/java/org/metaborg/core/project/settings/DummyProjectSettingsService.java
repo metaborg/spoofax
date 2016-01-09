@@ -2,12 +2,12 @@ package org.metaborg.core.project.settings;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.IProject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 @Deprecated
 public class DummyProjectSettingsService implements IProjectSettingsService {
-    private static final Logger logger = LoggerFactory.getLogger(DummyProjectSettingsService.class);
+    private static final ILogger logger = LoggerUtils.logger(DummyProjectSettingsService.class);
 
 
     @Override public IProjectSettings get(IProject project) {
