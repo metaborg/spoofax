@@ -103,20 +103,4 @@ public interface ILanguageSpecConfigBuilder { //extends IObjectBuilder<ILanguage
      */
     ILanguageSpecConfigBuilder addLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
 
-    /**
-     * Sets the pardoned languages.
-     *
-     * @param languages The languages.
-     * @return This builder.
-     */
-    ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages);
-
-    /**
-     * Adds pardoned languages.
-     *
-     * @param languages The languages.
-     * @return This builder.
-     */
-    ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages);
-
 }

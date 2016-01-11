@@ -21,12 +21,14 @@ import org.metaborg.spoofax.core.project.settings.Format;
  */
 public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBasedLanguageSpecConfig implements ISpoofaxLanguageSpecConfig {
 
+    private static final long serialVersionUID = -2143964605340506212L;
     /* package private */ static final String PROP_FORMAT = "format";
     /* package private */ static final String PROP_EXTERNAL_DEF = "externalDef";
     /* package private */ static final String PROP_EXTERNAL_JAR = "externalJar.name";
     /* package private */ static final String PROP_EXTERNAL_JAR_FLAGS = "externalJar.flags";
     /* package private */ static final String PROP_SDF_ARGS = "language.sdf.args";
     /* package private */ static final String PROP_STRATEGO_ARGS = "language.stratego.args";
+    /* package private */ static final String PROP_PARDONED_LANGUAGES = "pardonedLanguages";
 
     /**
      * Initializes a new instance of the {@link ConfigurationBasedSpoofaxLanguageSpecConfig} class.
@@ -59,7 +61,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
             final Iterable<String> sdfArgs,
             final Iterable<String> strategoArgs
     ) {
-        super(configuration, identifier, name, compileDependencies, runtimeDependencies, languageContributions, pardonedLanguages);
+        super(configuration, identifier, name, compileDependencies, runtimeDependencies, languageContributions);
+        configuration.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
         configuration.setProperty(PROP_FORMAT, format);
         configuration.setProperty(PROP_EXTERNAL_DEF, externalDef);
         configuration.setProperty(PROP_EXTERNAL_JAR, externalJar);
@@ -71,10 +74,31 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
     /**
      * {@inheritDoc}
      */
+    @Override
+    public Collection<String> pardonedLanguages() {
+        @Nullable final List<String> value = this.config.getList(String.class, PROP_PARDONED_LANGUAGES);
+        return value != null ? value : Collections.<String>emptyList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public Format format() {
         @Nullable String value = this.config.getString(PROP_FORMAT);
         return value != null ? Format.valueOf(value) : Format.ctree;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String sdfName() { return name(); }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String metaSdfName() { return sdfName() + "-Stratego"; }
 
     /**
      * {@inheritDoc}
@@ -140,8 +164,12 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
     /**
      * {@inheritDoc}
      */
-    public String packagePath() {
-        return packageName().replace('.', '/');
-    }
+    @Override
+    public String strategiesPackageName() { return packageName() + ".strategies"; }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String esvName() { return name(); }
 }

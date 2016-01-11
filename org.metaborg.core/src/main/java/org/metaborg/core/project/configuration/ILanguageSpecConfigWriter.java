@@ -1,5 +1,9 @@
 package org.metaborg.core.project.configuration;
 
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.project.ILanguageSpec;
 import java.io.IOException;
 
 import org.metaborg.core.project.ILanguageSpec;
@@ -16,5 +20,14 @@ public interface ILanguageSpecConfigWriter {
      * @param config The configuration to write.
      */
     void write(ILanguageSpec languageSpec, ILanguageSpecConfig config) throws IOException;
+
+    /**
+     * Gets the configuration file where the configuration is stored.
+     *
+     * @param languageSpec The language specification.
+     * @return The configuration file; or <code>null</code> if the configuration
+     * is not stored in a file.
+     */
+    FileObject getConfigFile(ILanguageSpec languageSpec) throws FileSystemException;
 
 }

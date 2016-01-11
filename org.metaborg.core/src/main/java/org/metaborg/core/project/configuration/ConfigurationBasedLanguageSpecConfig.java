@@ -11,7 +11,7 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-
+import java.util.ArrayList;
 import com.google.common.base.Preconditions;
 
 /**
@@ -20,13 +20,15 @@ import com.google.common.base.Preconditions;
  */
 public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig, IConfigurationBasedConfig {
 
+    private static final long serialVersionUID = -7053551901853301773L;
     private static final String PROP_IDENTIFIER = "id";
     private static final String PROP_NAME = "name";
     private static final String PROP_COMPILE_DEPENDENCIES = "compileDependencies";
     private static final String PROP_RUNTIME_DEPENDENCIES = "runtimeDependencies";
-    private static final String PROP_PARDONED_LANGUAGES = "pardonedLanguages";
-    private static final String PROP_LANGUAGE_CONTRIBUTIONS_NAME = "contributions.name";
-    private static final String PROP_LANGUAGE_CONTRIBUTIONS_ID = "contributions.id";
+    private static final String PROP_LANGUAGE_CONTRIBUTIONS_IDX_NAME = "contributions(%d).name";
+    private static final String PROP_LANGUAGE_CONTRIBUTIONS_IDX_ID = "contributions(%d).id";
+    private static final String PROP_LANGUAGE_CONTRIBUTIONS_LAST_NAME = "contributions.name";
+    private static final String PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID = "contributions.id";
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
     /**
@@ -61,16 +63,18 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
             final String name,
             final Collection<LanguageIdentifier> compileDependencies,
             final Collection<LanguageIdentifier> runtimeDependencies,
-            final Collection<LanguageContributionIdentifier> languageContributions,
-            final Collection<String> pardonedLanguages
+            final Collection<LanguageContributionIdentifier> languageContributions
     ) {
         this(configuration);
         configuration.setProperty(PROP_NAME, name);
         configuration.setProperty(PROP_IDENTIFIER, identifier);
         configuration.setProperty(PROP_COMPILE_DEPENDENCIES, compileDependencies);
         configuration.setProperty(PROP_RUNTIME_DEPENDENCIES, runtimeDependencies);
-        // TODO: languageContributions
-        configuration.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
+
+        for (LanguageContributionIdentifier lcid : languageContributions) {
+            configuration.addProperty(String.format(PROP_LANGUAGE_CONTRIBUTIONS_IDX_ID, -1), lcid.identifier);
+            configuration.addProperty(PROP_LANGUAGE_CONTRIBUTIONS_LAST_NAME, lcid.name);
+        }
     }
 
     /**
@@ -110,17 +114,17 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
      * {@inheritDoc}
      */
     @Override public Collection<LanguageContributionIdentifier> languageContributions() {
-        // TODO: Implement!
-        return Collections.emptyList();
-    }
+        @Nullable final List<LanguageIdentifier> ids = this.config.getList(LanguageIdentifier.class, PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID);
+        if (ids == null)
+            return Collections.<LanguageContributionIdentifier>emptyList();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<String> pardonedLanguages() {
-        @Nullable final List<String> value = this.config.getList(String.class, PROP_PARDONED_LANGUAGES);
-        return value != null ? value : Collections.<String>emptyList();
+        final List<LanguageContributionIdentifier> lcids = new ArrayList<>(ids.size());
+        for (int i = 0; i < ids.size(); i++) {
+            LanguageIdentifier identifier = ids.get(i);
+            String name = this.config.getString(String.format(PROP_LANGUAGE_CONTRIBUTIONS_IDX_NAME, i));
+            lcids.add(new LanguageContributionIdentifier(identifier, name));
+        }
+        return lcids;
     }
 
 }

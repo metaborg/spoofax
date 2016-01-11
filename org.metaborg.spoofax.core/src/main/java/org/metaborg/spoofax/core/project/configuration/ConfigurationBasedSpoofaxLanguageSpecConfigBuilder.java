@@ -9,8 +9,10 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.configuration.ConfigurationBasedLanguageSpecConfigBuilder;
 import org.metaborg.core.project.configuration.ConfigurationReaderWriter;
-import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.spoofax.core.project.settings.Format;
+import java.util.HashSet;
+import java.util.Set;
+import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -21,6 +23,7 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
  */
 public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends ConfigurationBasedLanguageSpecConfigBuilder implements ISpoofaxLanguageSpecConfigBuilder {
 
+    protected final Set<String> pardonedLanguages = new HashSet<>();
     @Nullable protected Format format = null;
     @Nullable protected String externalDef = null;
     @Nullable protected String externalJar = null;
@@ -80,6 +83,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
     public ISpoofaxLanguageSpecConfigBuilder reset() {
         super.reset();
 
+        this.pardonedLanguages.clear();
         this.format = null;
         this.sdfArgs.clear();
         this.strategoArgs.clear();
@@ -96,6 +100,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
     public ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig config) {
         super.copyFrom(config);
 
+        withPardonedLanguages(config.pardonedLanguages());
         withFormat(config.format());
         withExternalDef(config.externalDef());
         withExternalJar(config.externalJar());
@@ -156,7 +161,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
      */
     @Override
     public ISpoofaxLanguageSpecConfigBuilder addRuntimeDependencies(Iterable<LanguageIdentifier> dependencies) {
-        super.withRuntimeDependencies(dependencies);
+        super.addRuntimeDependencies(dependencies);
         return this;
     }
 
@@ -183,8 +188,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
      */
     @Override
     public ISpoofaxLanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages) {
-        super.withPardonedLanguages(languages);
-        return this;
+        this.pardonedLanguages.clear();
+        return addPardonedLanguages(languages);
     }
 
     /**
@@ -192,7 +197,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
      */
     @Override
     public ISpoofaxLanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages) {
-        super.addPardonedLanguages(languages);
+        this.pardonedLanguages.addAll(Lists.newArrayList(languages));
         return this;
     }
 

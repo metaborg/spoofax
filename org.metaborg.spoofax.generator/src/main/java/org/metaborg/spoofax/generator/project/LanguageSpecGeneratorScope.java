@@ -8,6 +8,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.settings.Format;
 
@@ -17,9 +18,10 @@ import org.metaborg.spoofax.core.project.settings.Format;
 public class LanguageSpecGeneratorScope {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
+    private final ISpoofaxLanguageSpecPaths paths;
 
 
-    public LanguageSpecGeneratorScope(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
+    public LanguageSpecGeneratorScope(ISpoofaxLanguageSpecPaths paths, ISpoofaxLanguageSpecConfig config) throws ProjectException {
 
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());
@@ -46,7 +48,9 @@ public class LanguageSpecGeneratorScope {
                 throw new ProjectException("Invalid language contribution name: " + config.name());
             }
         }
-        this.location = location;
+
+        this.paths = paths;
+        this.location = this.paths.rootFolder();
         this.config = config;
     }
 
@@ -122,6 +126,6 @@ public class LanguageSpecGeneratorScope {
     }
 
     public String packagePath() {
-        return this.config.packagePath();
+        return this.paths.packagePath();
     }
 }

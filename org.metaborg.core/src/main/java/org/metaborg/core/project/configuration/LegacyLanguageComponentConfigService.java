@@ -55,19 +55,19 @@ public class LegacyLanguageComponentConfigService implements ILanguageComponentC
         // Try get a configuration.
         @Nullable ILanguageComponentConfig config = this.configurationBasedLanguageComponentConfigService.get(languageComponent);
 
-        // If this fails, try get project settings.
-        if (config == null) {
-            final IProjectSettings settings = this.settingsService.get(new IProject() {
-                @Override
-                public FileObject location() {
-                    return languageComponent.location();
-                }
-            });
-            if (settings != null) {
-                // Convert the settings to a configuration
-                config = new LegacyLanguageComponentConfig(settings);
-            }
-        }
+//        // If this fails, try get project settings.
+//        if (config == null) {
+//            final IProjectSettings settings = this.settingsService.get(new IProject() {
+//                @Override
+//                public FileObject location() {
+//                    return languageComponent.location();
+//                }
+//            });
+//            if (settings != null) {
+//                // Convert the settings to a configuration
+//                config = new LegacyLanguageComponentConfig(settings);
+//            }
+//        }
         return config;
     }
 

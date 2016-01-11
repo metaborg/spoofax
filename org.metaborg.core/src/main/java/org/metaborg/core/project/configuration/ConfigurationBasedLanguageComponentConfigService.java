@@ -27,7 +27,7 @@ public class ConfigurationBasedLanguageComponentConfigService extends Configurat
      * {@inheritDoc}
      */
     @Override
-    protected FileObject getConfigFile(ILanguageComponent languageComponent) throws FileSystemException {
+    public FileObject getConfigFile(ILanguageComponent languageComponent) throws FileSystemException {
         return getConfigFile(languageComponent.location());
     }
 

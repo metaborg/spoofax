@@ -27,9 +27,9 @@ import org.metaborg.core.project.settings.IProjectSettings;
 
 import com.google.common.collect.Lists;
 
-@Deprecated
 public class LegacyLanguageSpecConfig implements ILanguageSpecConfig {
 
+    private static final long serialVersionUID = 4321718437339177753L;
     private final IProjectSettings settings;
 
     public LegacyLanguageSpecConfig(final IProjectSettings settings) {
@@ -62,9 +62,4 @@ public class LegacyLanguageSpecConfig implements ILanguageSpecConfig {
         return Lists.newArrayList(this.settings.languageContributions());
     }
 
-    @Override
-    public Collection<String> pardonedLanguages() {
-        // TODO: Implement!
-        throw new RuntimeException();
-    }
 }

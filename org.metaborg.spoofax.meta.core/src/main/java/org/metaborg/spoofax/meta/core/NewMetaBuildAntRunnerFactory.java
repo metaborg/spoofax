@@ -61,7 +61,7 @@ class NewMetaBuildAntRunnerFactory {
         properties.put("lang.strname", config.strategoName());
         properties.put("lang.format", config.format().name());
         properties.put("lang.package.name", config.packageName());
-        properties.put("lang.package.path", config.packagePath());
+//        properties.put("lang.package.path", config.packagePath());
 
         properties.put("sdf.args", formatArgs(buildSdfArgs(input)));
         if(config.externalDef() != null) {

@@ -57,12 +57,7 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
 
         // If this fails, try get project settings.
         if (config == null) {
-            final IProjectSettings settings = this.settingsService.get(new IProject() {
-                @Override
-                public FileObject location() {
-                    return languageSpec.location();
-                }
-            });
+            final IProjectSettings settings = this.settingsService.get(languageSpec);
             if (settings != null) {
                 // Convert the settings to a configuration
                 config = new LegacyLanguageSpecConfig(settings);

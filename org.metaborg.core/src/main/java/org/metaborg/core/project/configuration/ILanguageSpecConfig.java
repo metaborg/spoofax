@@ -4,13 +4,13 @@ import java.util.Collection;
 
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-
+import java.io.Serializable;
 /**
  * Configuration of a language specification.
  *
  * To create a new instance of this interface, use the {@link ILanguageSpecConfigBuilder} interface.
  */
-public interface ILanguageSpecConfig {
+public interface ILanguageSpecConfig extends Serializable {
 
     /**
      * Gets the language identifier.
@@ -46,12 +46,5 @@ public interface ILanguageSpecConfig {
      * @return The language contributions.
      */
     Collection<LanguageContributionIdentifier> languageContributions();
-
-    /**
-     * Gets a sequence of languages whose errors are ignored.
-     *
-     * @return The pardoned languages.
-     */
-    Collection<String> pardonedLanguages();
 
 }

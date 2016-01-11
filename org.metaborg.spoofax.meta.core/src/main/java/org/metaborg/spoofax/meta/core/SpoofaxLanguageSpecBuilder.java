@@ -9,6 +9,7 @@ import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.NewBuildInputBuilder;
@@ -22,12 +23,15 @@ import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfi
 import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
+import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
 public class SpoofaxLanguageSpecBuilder {
+    /*
     private static final Logger log = LoggerFactory.getLogger(SpoofaxLanguageSpecBuilder.class);
 
     private final INewDependencyService dependencyService;
@@ -54,17 +58,16 @@ public class SpoofaxLanguageSpecBuilder {
 
     public void initialize(LanguageSpecBuildInput input) throws FileSystemException {
         ISpoofaxLanguageSpecPaths paths = this.languageSpecPathsService.get(input.languageSpec);
-
-        paths.outputFolder().createFolder();
-        paths.libDirectory().createFolder();
-        paths.generatedSourceDirectory().createFolder();
-        paths.generatedSyntaxDirectory().createFolder();
+        paths.includeFolder().createFolder();
+        paths.libFolder().createFolder();
+        paths.generatedSourceFolder().createFolder();
+        paths.generatedSyntaxFolder().createFolder();
     }
 
     public void generateSources(LanguageSpecBuildInput input, ISpoofaxLanguageSpecPaths paths) throws Exception {
         log.debug("Generating sources for {}", input.languageSpec.location());
 
-        final LanguageSpecGenerator generator = new LanguageSpecGenerator(new LanguageSpecGeneratorScope(input.languageSpec.location(), input.config));
+        final LanguageSpecGenerator generator = new LanguageSpecGenerator(new LanguageSpecGeneratorScope(paths, input.config));
         generator.generateAll();
 
         // Store the configuration.
@@ -88,8 +91,22 @@ public class SpoofaxLanguageSpecBuilder {
         @Nullable ICancellationToken cancellationToken) throws Exception {
         log.debug("Running pre-Java build for {}", input.languageSpec.location());
 
-        final IAntRunner runner = antRunner.create(input, classpaths, listener);
-        runner.execute("generate-sources", cancellationToken);
+        for(IBuildStep buildStep : buildSteps) {
+            buildStep.compilePreJava(input);
+        }
+
+        // final IAntRunner runner = antRunner.create(input, classpaths, listener);
+        // runner.execute("generate-sources", cancellationToken);
+
+        initPluto();
+        try {
+            plutoBuild(GenerateSourcesBuilder.request(new GenerateSourcesBuilder.Input(new SpoofaxContext(
+                    input.settings))));
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Throwable e) {
+            throw new MetaborgException("Build failed", e);
+        }
     }
 
     public void compilePostJava(LanguageSpecBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
@@ -109,4 +126,5 @@ public class SpoofaxLanguageSpecBuilder {
         paths.generatedSourceDirectory().delete(selector);
         paths.cacheDirectory().delete(selector);
     }
+    */
 }

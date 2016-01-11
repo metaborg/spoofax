@@ -6,6 +6,8 @@ import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.project.settings.Format;
 
+import java.util.Collection;
+
 /**
  * Spoofax-specific configuration for a language specification.
  *
@@ -14,11 +16,32 @@ import org.metaborg.spoofax.core.project.settings.Format;
 public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
 
     /**
+     * Gets a sequence of languages whose errors are ignored.
+     *
+     * @return The pardoned languages.
+     */
+    Collection<String> pardonedLanguages();
+
+    /**
      * Gets the project artifact format.
      *
      * @return A member of the {@link Format} enumeration.
      */
     Format format();
+
+    /**
+     * Gets the SDF name.
+     *
+     * @return The SDF name.
+     */
+    String sdfName();
+
+    /**
+     * Gets the meta SDF name.
+     *
+     * @return The meta SDF name.
+     */
+    String metaSdfName();
 
     /**
      * Gets SDF arguments.
@@ -80,93 +103,17 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     String packageName();
 
     /**
-     * Gets the package path.
+     * Gets the strategies package name.
      *
-     * @return The package path.
+     * @return The strategies package name.
      */
-    String packagePath();
+    String strategiesPackageName();
 
-//    /**
-//     * Gets the generated source directory.
-//     *
-//     * @return The generated source directory.
-//     */
-//    FileObject getGeneratedSourceDirectory();
-//
-//    /**
-//     * Gets the output directory.
-//     *
-//     * @return The output directory.
-//     */
-//    FileObject getOutputDirectory();
-//
-//    /**
-//     * Gets the icons directory.
-//     *
-//     * @return The icons directory.
-//     */
-//    FileObject getIconsDirectory();
-//
-//    /**
-//     * Gets the lib directory.
-//     *
-//     * @return The lib directory.
-//     */
-//    FileObject getLibDirectory();
-//
-//    /**
-//     * Gets the syntax directory.
-//     *
-//     * @return The syntax directory.
-//     */
-//    FileObject getSyntaxDirectory();
-//
-//    /**
-//     * Gets the editor directory.
-//     *
-//     * @return The editor directory.
-//     */
-//    FileObject getEditorDirectory();
-//
-//    /**
-//     * Gets the Java directory.
-//     *
-//     * @return The Java directory.
-//     */
-//    FileObject getJavaDirectory();
-//
-//    /**
-//     * Gets the Java trans directory.
-//     *
-//     * @return The Java trans directory.
-//     */
-//    FileObject getJavaTransDirectory();
-//
-//    /**
-//     * Gets the generated syntax directory.
-//     *
-//     * @return The generated syntax directory.
-//     */
-//    FileObject getGeneratedSyntaxDirectory();
-//
-//    /**
-//     * Gets the trans directory.
-//     *
-//     * @return The trans directory.
-//     */
-//    FileObject getTransDirectory();
-//
-//    /**
-//     * Gets the cache directory.
-//     *
-//     * @return The cache directory.
-//     */
-//    FileObject getCacheDirectory();
-//
-//    /**
-//     * Gets the main ESV file.
-//     *
-//     * @return The main ESV file.
-//     */
-//    FileObject getMainESVFile();
+    /**
+     * Gets the ESV name.
+     *
+     * @return The ESV name.
+     */
+    String esvName();
+
 }

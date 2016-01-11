@@ -84,7 +84,7 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      * @return The configuration file.
      * @throws FileSystemException
      */
-    protected abstract FileObject getConfigFile(TSubject subject) throws FileSystemException;
+    public abstract FileObject getConfigFile(TSubject subject) throws FileSystemException;
 
     /**
      * Creates a new instance of the config type for the specified configuration.

@@ -24,7 +24,6 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
     protected final Set<LanguageIdentifier> compileDependencies = new HashSet<>();
     protected final Set<LanguageIdentifier> runtimeDependencies = new HashSet<>();
     protected final Set<LanguageContributionIdentifier> languageContributions = new HashSet<>();
-    protected final Set<String> pardonedLanguages = new HashSet<>();
 
     /**
      * Initializes a new instance of the {@link ConfigurationBasedLanguageSpecConfigBuilder} class.
@@ -52,8 +51,7 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
                 this.name,
                 this.compileDependencies,
                 this.runtimeDependencies,
-                this.languageContributions,
-                this.pardonedLanguages);
+                this.languageContributions);
     }
 
     /**
@@ -98,7 +96,6 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
         this.compileDependencies.clear();
         this.runtimeDependencies.clear();
         this.languageContributions.clear();
-        this.pardonedLanguages.clear();
 
         return this;
     }
@@ -113,7 +110,6 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
         withCompileDependencies(config.compileDependencies());
         withRuntimeDependencies(config.runtimeDependencies());
         withLanguageContributions(config.languageContributions());
-        withPardonedLanguages(config.pardonedLanguages());
 
         return this;
     }
@@ -187,24 +183,6 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
     @Override
     public ILanguageSpecConfigBuilder addLanguageContributions(Iterable<LanguageContributionIdentifier> contributions) {
         this.languageContributions.addAll(Lists.newArrayList(contributions));
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages) {
-        this.pardonedLanguages.clear();
-        return addPardonedLanguages(languages);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages) {
-        this.pardonedLanguages.addAll(Lists.newArrayList(languages));
         return this;
     }
 }

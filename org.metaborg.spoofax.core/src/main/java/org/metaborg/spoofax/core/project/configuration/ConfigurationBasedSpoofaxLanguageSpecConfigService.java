@@ -27,7 +27,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends Configur
      * {@inheritDoc}
      */
     @Override
-    protected FileObject getConfigFile(ILanguageSpec languageSpec) throws FileSystemException {
+    public FileObject getConfigFile(ILanguageSpec languageSpec) throws FileSystemException {
         return getConfigFile(languageSpec.location());
     }
 
