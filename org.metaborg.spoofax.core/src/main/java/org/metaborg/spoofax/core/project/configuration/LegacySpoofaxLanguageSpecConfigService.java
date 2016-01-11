@@ -53,11 +53,12 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
                 throw new RuntimeException(e);
             }
             if (settings != null) {
-                // Convert the settings to a configuration
-                config = new LegacySpoofaxLanguageSpecConfig(settings);
-
-                // Write the configuration to file.
-                this.configWriter.write(languageSpec, config);
+                // TODO: This is for migration.
+//                // Convert the settings to a configuration
+//                config = new LegacySpoofaxLanguageSpecConfig(settings);
+//
+//                // Write the configuration to file.
+//                this.configWriter.write(languageSpec, config, null);
             }
         }
         return config;

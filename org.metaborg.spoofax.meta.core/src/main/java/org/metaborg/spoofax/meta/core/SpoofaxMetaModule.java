@@ -13,7 +13,7 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         bind(SpoofaxMetaBuilder.class).in(Singleton.class);
 
 //        bind(SpoofaxLanguageSpecBuilder.class).in(Singleton.class);
-        bind(NewMetaBuildAntRunnerFactory.class).in(Singleton.class);
+//        bind(NewMetaBuildAntRunnerFactory.class).in(Singleton.class);
 
         Multibinder.newSetBinder(binder(), IBuildStep.class);
 

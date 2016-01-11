@@ -30,7 +30,7 @@ import com.google.common.collect.Lists;
 public class LegacyLanguageSpecConfig implements ILanguageSpecConfig {
 
     private static final long serialVersionUID = 4321718437339177753L;
-    private final IProjectSettings settings;
+    public final IProjectSettings settings;
 
     public LegacyLanguageSpecConfig(final IProjectSettings settings) {
         this.settings = settings;

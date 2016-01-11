@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class SpoofaxLanguageSpecBuilder {
     /*
+public class SpoofaxLanguageSpecBuilder {
     private static final Logger log = LoggerFactory.getLogger(SpoofaxLanguageSpecBuilder.class);
 
     private final INewDependencyService dependencyService;
@@ -126,5 +126,5 @@ public class SpoofaxLanguageSpecBuilder {
         paths.generatedSourceDirectory().delete(selector);
         paths.cacheDirectory().delete(selector);
     }
-    */
 }
+    */

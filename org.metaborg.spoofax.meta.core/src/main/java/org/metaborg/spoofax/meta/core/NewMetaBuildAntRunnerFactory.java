@@ -26,7 +26,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
+@Deprecated
 class NewMetaBuildAntRunnerFactory {
+    /*
     private final IResourceService resourceService;
     private final ILanguagePathService languagePathService;
     private final IAntRunnerService antRunnerService;
@@ -141,4 +143,5 @@ class NewMetaBuildAntRunnerFactory {
             }
         }
     }
+    */
 }

@@ -63,7 +63,7 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
                 config = new LegacyLanguageSpecConfig(settings);
 
                 // Write the configuration to file.
-                this.configWriter.write(languageSpec, config);
+                this.configWriter.write(languageSpec, config, null);
             }
         }
         return config;

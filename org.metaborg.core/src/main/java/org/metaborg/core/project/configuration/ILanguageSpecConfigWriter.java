@@ -7,6 +7,9 @@ import org.metaborg.core.project.ILanguageSpec;
 import java.io.IOException;
 
 import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.util.file.FileAccess;
+
+import javax.annotation.Nullable;
 
 /**
  * Writes a configuration for the specified {@link ILanguageSpec}.
@@ -18,8 +21,9 @@ public interface ILanguageSpecConfigWriter {
      *
      * @param languageSpec The language specification.
      * @param config The configuration to write.
+     * @param access
      */
-    void write(ILanguageSpec languageSpec, ILanguageSpecConfig config) throws IOException;
+    void write(ILanguageSpec languageSpec, ILanguageSpecConfig config, @Nullable FileAccess access) throws IOException;
 
     /**
      * Gets the configuration file where the configuration is stored.

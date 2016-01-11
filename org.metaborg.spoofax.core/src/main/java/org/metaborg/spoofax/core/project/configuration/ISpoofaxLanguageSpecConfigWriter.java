@@ -3,7 +3,9 @@ package org.metaborg.spoofax.core.project.configuration;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.util.file.FileAccess;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
@@ -16,8 +18,9 @@ public interface ISpoofaxLanguageSpecConfigWriter {
      *
      * @param languageSpec The language specification.
      * @param config The configuration to write.
+     * @param access
      */
-    void write(ILanguageSpec languageSpec, ISpoofaxLanguageSpecConfig config) throws IOException;
+    void write(ILanguageSpec languageSpec, ISpoofaxLanguageSpecConfig config, @Nullable FileAccess access) throws IOException;
 
     /**
      * Gets the configuration file where the configuration is stored.

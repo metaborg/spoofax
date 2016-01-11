@@ -11,6 +11,7 @@ import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.util.file.FileAccess;
 
 /**
  * Stores and retrieves configurations
@@ -66,8 +67,9 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      *
      * @param subject The subject to set the configuration for.
      * @param config The configuration; or <code>null</code> to remove an existing configuration.
+     * @param access
      */
-    public void write(TSubject subject, TConfig config) throws IOException {
+    public void write(TSubject subject, TConfig config, @Nullable FileAccess access) throws IOException {
         FileObject configFile = getConfigFile(subject);
         HierarchicalConfiguration<ImmutableNode> configuration = fromConfig(config);
         try {
@@ -75,6 +77,8 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
         } catch (ConfigurationException e) {
             throw new ConfigurationRuntimeException(e);
         }
+        if (access != null)
+            access.addWrite(configFile);
     }
 
     /**

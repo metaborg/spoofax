@@ -15,7 +15,7 @@ import java.util.Collection;
 public class LegacySpoofaxLanguageSpecConfig extends LegacyLanguageSpecConfig implements ISpoofaxLanguageSpecConfig {
 
     private static final long serialVersionUID = -5913973186313150350L;
-    private final SpoofaxProjectSettings settings;
+    public final SpoofaxProjectSettings settings;
 
     public LegacySpoofaxLanguageSpecConfig(final SpoofaxProjectSettings settings) {
         super(settings.settings());

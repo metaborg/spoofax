@@ -75,12 +75,7 @@ import org.metaborg.spoofax.core.project.DummyMavenProjectService;
 import org.metaborg.spoofax.core.project.IMavenProjectService;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
 import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPathsService;
-import org.metaborg.spoofax.core.project.configuration.ConfigurationBasedSpoofaxLanguageSpecConfigBuilder;
-import org.metaborg.spoofax.core.project.configuration.ConfigurationBasedSpoofaxLanguageSpecConfigService;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigBuilder;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
-import org.metaborg.spoofax.core.project.configuration.LegacySpoofaxLanguageSpecConfigService;
+import org.metaborg.spoofax.core.project.configuration.*;
 import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.project.settings.ProjectSettingsService;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettingsService;
@@ -206,18 +201,21 @@ public class SpoofaxModule extends MetaborgModule {
 
     @Override protected void bindLanguageSpecConfig() {
         bind(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
+//        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
 
         bind(LegacySpoofaxLanguageSpecConfigService.class).in(Singleton.class);
+        bind(LegacySpoofaxLanguageSpecConfigWriter.class).in(Singleton.class);
         bind(ILanguageSpecConfigService.class).to(LegacySpoofaxLanguageSpecConfigService.class).in(Singleton.class);
         bind(ISpoofaxLanguageSpecConfigService.class).to(LegacySpoofaxLanguageSpecConfigService.class).in(
             Singleton.class);
+        bind(ISpoofaxLanguageSpecConfigWriter.class).to(LegacySpoofaxLanguageSpecConfigWriter.class).in(
+                Singleton.class);
 
-        bind(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
+//        bind(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
         // bind(ILanguageSpecConfigService.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
         // bind(ISpoofaxLanguageSpecConfigService.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
-        bind(ISpoofaxLanguageSpecConfigWriter.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(
-            Singleton.class);
+//        bind(ISpoofaxLanguageSpecConfigWriter.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(
+//            Singleton.class);
 
         bind(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class).in(Singleton.class);
         bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class).in(
