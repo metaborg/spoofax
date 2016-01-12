@@ -23,7 +23,6 @@ import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.language.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
@@ -33,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
+import build.pluto.builder.RequiredBuilderFailed;
 import build.pluto.output.Output;
 import build.pluto.xattr.Xattr;
 
@@ -45,6 +45,8 @@ import com.google.inject.Injector;
 @Deprecated
 public class SpoofaxMetaBuilder {
     private static final Logger log = LoggerFactory.getLogger(SpoofaxMetaBuilder.class);
+    private static final String failingRebuildMessage =
+        "Previous build failed and no change in the build input has been observed, not rebuilding. Fix the problem, or clean and rebuild the project to force a rebuild";
 
     private final Injector injector;
     private final IDependencyService dependencyService;
@@ -109,16 +111,18 @@ public class SpoofaxMetaBuilder {
             buildStep.compilePreJava(input);
         }
 
-        // final IAntRunner runner = antRunner.create(input, classpaths, listener);
-        // runner.execute("generate-sources", cancellationToken);
-
         initPluto();
         try {
             plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)));
+        } catch(RequiredBuilderFailed e) {
+            if(e.getMessage().contains("no rebuild of failing builder")) {
+                throw new MetaborgException(failingRebuildMessage);
+            }
+            throw new MetaborgException();
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable e) {
-            throw new MetaborgException("Build failed", e);
+            throw new MetaborgException(e);
         }
     }
 
@@ -133,10 +137,15 @@ public class SpoofaxMetaBuilder {
         initPluto();
         try {
             plutoBuild(PackageBuilder.request(packageBuilderInput(input)));
+        } catch(RequiredBuilderFailed e) {
+            if(e.getMessage().contains("no rebuild of failing builder")) {
+                throw new MetaborgException(failingRebuildMessage);
+            }
+            throw new MetaborgException();
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable e) {
-            throw new MetaborgException("Build failed", e);
+            throw new MetaborgException(e);
         }
     }
 
@@ -160,13 +169,10 @@ public class SpoofaxMetaBuilder {
     }
 
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(MetaBuildInput input) {
-        return new GenerateSourcesBuilder.Input(new SpoofaxContext(
-                input.settings));
+        return new GenerateSourcesBuilder.Input(new SpoofaxContext(input.settings));
     }
 
-
     private PackageBuilder.Input packageBuilderInput(MetaBuildInput input) {
-        return new PackageBuilder.Input(new SpoofaxContext(
-                input.settings));
+        return new PackageBuilder.Input(new SpoofaxContext(input.settings));
     }
 }
