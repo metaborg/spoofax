@@ -75,7 +75,8 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
             // TODO: get javajar-includes from project settings?
             // String[] paths = context.props.getOrElse("javajar-includes",
             // context.settings.packageStrategiesPath()).split("[\\s]+");
-            jar(output, baseDir, null, settings.getStrCompiledJavaStrategiesDirectory());
+            jar(output, baseDir, null, settings.getStrCompiledJavaStrategiesDirectory(),
+                settings.getDsGeneratedInterpreterCompiledJava(), settings.getDsManualInterpreterCompiledJava());
         }
 
         if(settings.format() == Format.jar) {
