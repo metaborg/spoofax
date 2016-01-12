@@ -317,6 +317,15 @@ public class SpoofaxProjectSettings implements Serializable {
     }
     
     
+    public FileObject getDsGeneratedInterpreterCompiledJava() {
+        return resolve(getOutputClassesDirectory(), "ds/generated/interpreter");
+    }
+    
+    public FileObject getDsManualInterpreterCompiledJava() {
+        return resolve(getOutputClassesDirectory(), "ds/manual/interpreter");
+    }
+    
+    
     public FileObject getPackedEsv() {
         return resolve(getIncludeDirectory(), esvName() + ".packed.esv");
     }
