@@ -150,6 +150,16 @@ public class LegacySpoofaxLanguageSpecPaths implements ISpoofaxLanguageSpecPaths
     }
 
     @Override
+    public FileObject dsGeneratedInterpreterCompiledJavaFolder() {
+        return this.settings.getDsGeneratedIntepreterCompiledJava();
+    }
+
+    @Override
+    public FileObject dsManualInterpreterCompiledJavaFolder() {
+        return this.settings.getDsManualIntepreterCompiledJava();
+    }
+
+    @Override
     public String getSdfTableFilename(String sdfName) {
         return this.settings.getSdfTableName(sdfName);
     }

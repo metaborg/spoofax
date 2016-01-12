@@ -133,7 +133,9 @@ public interface ISpoofaxLanguageSpecPaths extends ILanguageSpecPaths {
 
     FileObject strCompiledCtreeFile();
 
+    FileObject dsGeneratedInterpreterCompiledJavaFolder();
 
+    FileObject dsManualInterpreterCompiledJavaFolder();
 
     /**
      * Gets the SDF table filename.

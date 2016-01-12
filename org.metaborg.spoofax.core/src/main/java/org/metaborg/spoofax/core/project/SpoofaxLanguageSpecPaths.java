@@ -154,6 +154,16 @@ public class SpoofaxLanguageSpecPaths extends LanguageSpecPaths implements ISpoo
         return resolve(includeFolder(), this.config.strategoName() + ".ctree");
     }
 
+    @Override
+    public FileObject dsGeneratedInterpreterCompiledJavaFolder() {
+        return resolve(outputClassesFolder(), "ds/generated/interpreter");
+    }
+
+    @Override
+    public FileObject dsManualInterpreterCompiledJavaFolder() {
+        return resolve(outputClassesFolder(), "ds/manual/interpreter");
+    }
+
 
     @Override
     public String packagePath() {
