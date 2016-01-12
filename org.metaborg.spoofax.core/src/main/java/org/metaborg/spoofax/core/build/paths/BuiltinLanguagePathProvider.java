@@ -26,7 +26,7 @@ public class BuiltinLanguagePathProvider implements ILanguagePathProvider {
         .putAll(LANG_SDF3_NAME, ROOT, DIR_SYNTAX)
         .putAll(LANG_NABL_NAME, ROOT)
         .putAll(LANG_TS_NAME, ROOT)
-        .putAll(LANG_DYNSEM_NAME, ROOT, DIR_TRANS, DIR_LIB)
+        .putAll(LANG_DYNSEM_NAME, ROOT, DIR_TRANS, DIR_LIB, DIR_SRCGEN)
         .build();
     // @formatter:on
 
