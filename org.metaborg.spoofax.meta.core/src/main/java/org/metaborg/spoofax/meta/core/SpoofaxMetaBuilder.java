@@ -164,6 +164,13 @@ public class SpoofaxMetaBuilder {
         // input.settings.sdfName() as module
         // input.settings as settings
 
+        final File ppGenInputPath = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
+        final File ppGenOutputPath = context.toFile(input.settings.getGenPpCompiledFile(input.settings.sdfName()));
+        final File afGenOutputPath = context.toFile(input.settings.getGenPpAfCompiledFile(input.settings.sdfName()));
+
+        final File ppPackInputPath = context.toFile(input.settings.getPpFile(input.settings.sdfName()));
+        final File ppPackOutputPath = context.toFile(input.settings.getPpAfCompiledFile(input.settings.sdfName()));
+
         final File sdf2ParenthesizeInputFile = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
         final File sdf2ParenthesizeOutputFile = context.toFile(input.settings.getStrCompiledParenthesizerFile(input.settings.sdfName()));
         final String sdf2ParenthesizeOutputModule = "include/" + input.settings.sdfName() + "-parenthesize";
@@ -219,12 +226,31 @@ public class SpoofaxMetaBuilder {
                 sdf2RtgOutputFile,
                 sdf2ParenthesizeInputFile,
                 sdf2ParenthesizeOutputFile,
-                sdf2ParenthesizeOutputModule);
+                sdf2ParenthesizeOutputModule,
+                ppPackInputPath,
+                ppPackOutputPath,
+                ppGenInputPath,
+                ppGenOutputPath,
+                afGenOutputPath);
     }
 
 
     private PackageBuilder.Input packageBuilderInput(MetaBuildInput input) {
-        return new PackageBuilder.Input(new SpoofaxContext(
-                input.settings));
+        final SpoofaxContext context = new SpoofaxContext(input.settings);
+
+        final File ppGenInputPath = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
+        final File ppGenOutputPath = context.toFile(input.settings.getGenPpCompiledFile(input.settings.sdfName()));
+        final File afGenOutputPath = context.toFile(input.settings.getGenPpAfCompiledFile(input.settings.sdfName()));
+
+        final File ppPackInputPath = context.toFile(input.settings.getPpFile(input.settings.sdfName()));
+        final File ppPackOutputPath = context.toFile(input.settings.getPpAfCompiledFile(input.settings.sdfName()));
+
+        return new PackageBuilder.Input(
+                new SpoofaxContext(input.settings),
+                ppPackInputPath,
+                ppPackOutputPath,
+                ppGenInputPath,
+                ppGenOutputPath,
+                afGenOutputPath);
     }
 }

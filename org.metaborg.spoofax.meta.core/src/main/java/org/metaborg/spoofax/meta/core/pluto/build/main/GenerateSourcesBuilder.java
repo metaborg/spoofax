@@ -63,11 +63,21 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final File sdf2ParenthesizeInputFile;
         public final File sdf2ParenthesizeOutputFile;
         public final String sdf2ParenthesizeOutputModule;
+        public final File ppPackInputPath;
+        public final File ppPackOutputPath;
+        public final File ppGenInputPath;
+        public final File ppGenOutputPath;
+        public final File afGenOutputPath;
 
         public Input(SpoofaxContext context, String sdfName, String metaSdfName, File externalJar, File strjTarget, File strjInputFile, File strjOutputFile, File strjDepFile, File strjCacheDir, Iterable<String> strategoArgs, Format format, String strategiesPackageName, String externalJarFlags, File rtg2SigOutputFile, File sdf2RtgInputFile, File sdf2RtgOutputFile,
                      File sdf2ParenthesizeInputFile,
                      File sdf2ParenthesizeOutputFile,
-                     String sdf2ParenthesizeOutputModule) {
+                     String sdf2ParenthesizeOutputModule,
+                     File ppPackInputPath,
+                     File ppPackOutputPath,
+                     File ppGenInputPath,
+                     File ppGenOutputPath,
+                     File afGenOutputPath) {
             super(context);
             this.sdfName = sdfName;
             this.metaSdfName = metaSdfName;
@@ -87,6 +97,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.sdf2ParenthesizeInputFile = sdf2ParenthesizeInputFile;
             this.sdf2ParenthesizeOutputFile = sdf2ParenthesizeOutputFile;
             this.sdf2ParenthesizeOutputModule = sdf2ParenthesizeOutputModule;
+            this.ppPackInputPath = ppPackInputPath;
+            this.ppPackOutputPath = ppPackOutputPath;
+            this.ppGenInputPath = ppGenInputPath;
+            this.ppGenOutputPath = ppGenOutputPath;
+            this.afGenOutputPath = afGenOutputPath;
         }
     }
 
@@ -131,13 +146,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         sdf2Table(sdfModule, input.sdfName, packSdfInput);
         metaSdf2Table(input.sdfName, input.metaSdfName, sdfArgs);
-        ppGen(sdfModule, packSdfOrigin);
-        ppPack(sdfModule, packSdfOrigin);
-        final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, sdfModule, packSdfOrigin));
+        ppGen(ppGenInput(context, input.ppGenInputPath, input.ppGenOutputPath, input.afGenOutputPath, input.sdfName, packSdfOrigin));
+        ppPack(ppPackInput(context, input.ppPackInputPath, input.ppPackOutputPath, packSdfOrigin));
+        final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, input, packSdfOrigin));
+//        final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, sdfModule, packSdfOrigin));
 //        final Origin sdf2Parenthesize = sdf2Parenthesize(settings, sdfModule, packSdfOrigin);
-        final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(input, packSdfOrigin);
+        final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(context, input, packSdfOrigin);
 //        final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(settings, sdfModule, packSdfOrigin);
-        final Origin rtg2Sig = rtg2Sig(input, sdf2RtgInput);
+        final Origin rtg2Sig = rtg2Sig(rtg2SigInput(context, input, sdf2RtgInput));
 //        final Origin rtg2Sig = rtg2Sig(settings, sdfModule, input.sdf2RtgInput);
 
         // Stratego
@@ -231,56 +247,56 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
     }
 
-    public static PPGen.Input ppGenInput(SpoofaxContext context, String module, Origin origin) {
-        final SpoofaxProjectSettings settings = context.settings;
-        final File inputPath = context.toFile(settings.getSdfCompiledDefFile(module));
-        final File ppOutputPath = context.toFile(settings.getGenPpCompiledFile(module));
-        final File afOutputPath = context.toFile(settings.getGenPpAfCompiledFile(module));
-        return new PPGen.Input(context, inputPath, ppOutputPath, afOutputPath, module, origin);
+    public static PPGen.Input ppGenInput(SpoofaxContext context, File ppGenInputPath, File ppGenOutputPath, File afGenOutputPath, String module, Origin origin) {
+//        final SpoofaxProjectSettings settings = context.settings;
+//        final String module = input.sdfName;
+//        final File inputPath = context.toFile(settings.getSdfCompiledDefFile(module));
+//        final File ppOutputPath = context.toFile(settings.getGenPpCompiledFile(module));
+//        final File afOutputPath = context.toFile(settings.getGenPpAfCompiledFile(module));
+        return new PPGen.Input(context, ppGenInputPath, ppGenOutputPath, afGenOutputPath, module, origin);
+//        return new PPGen.Input(context, inputPath, ppOutputPath, afOutputPath, module, origin);
     }
 
-    private void ppGen(String module, Origin origin) throws IOException {
-        requireBuild(PPGen.factory, ppGenInput(context, module, origin));
+    private void ppGen(PPGen.Input input) throws IOException {
+        requireBuild(PPGen.factory, input);
     }
 
-    public static PPPack.Input ppPackInput(SpoofaxContext context, String module, Origin origin) {
-        final SpoofaxProjectSettings settings = context.settings;
-        final File inputPath = context.toFile(settings.getPpFile(module));
-        final File outputPath = context.toFile(settings.getPpAfCompiledFile(module));
-        return new PPPack.Input(context, inputPath, outputPath, origin);
+    public static PPPack.Input ppPackInput(SpoofaxContext context, File ppPackInputPath, File ppPackOutputPath, /*String module,*/ Origin origin) {
+//        final SpoofaxProjectSettings settings = context.settings;
+//        final File inputPath = context.toFile(settings.getPpFile(module));
+//        final File outputPath = context.toFile(settings.getPpAfCompiledFile(module));
+        return new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, origin);
     }
 
-    private void ppPack(String module, Origin origin) throws IOException {
-        requireBuild(PPPack.factory, ppPackInput(context, module, origin));
+    private void ppPack(PPPack.Input input) throws IOException {
+        requireBuild(PPPack.factory, input);
     }
 
-    public static Sdf2Parenthesize.Input sdf2ParenthesizeInput(SpoofaxContext context, String module, Origin origin) {
-        final SpoofaxProjectSettings settings = context.settings;
-        final File inputPath = context.toFile(settings.getSdfCompiledDefFile(module));
-        final File outputPath = context.toFile(settings.getStrCompiledParenthesizerFile(module));
-        final String outputModule = "include/" + module + "-parenthesize";
-        return new Sdf2Parenthesize.Input(context, inputPath, outputPath, outputModule, module,
-                origin);
+    public static Sdf2Parenthesize.Input sdf2ParenthesizeInput(SpoofaxContext context, Input input,/* SpoofaxContext context, String module,*/ Origin origin) {
+//        final SpoofaxProjectSettings settings = context.settings;
+//        final File inputPath = context.toFile(settings.getSdfCompiledDefFile(module));
+//        final File outputPath = context.toFile(settings.getStrCompiledParenthesizerFile(module));
+//        final String outputModule = "include/" + module + "-parenthesize";
+        return new Sdf2Parenthesize.Input(context, input.sdf2ParenthesizeInputFile, input.sdf2ParenthesizeOutputFile, input.sdf2ParenthesizeOutputModule, input.sdfName, origin);
     }
 
     private Origin sdf2Parenthesize(Sdf2Parenthesize.Input input) {
         return Sdf2Parenthesize.origin(input);
     }
 
-    private Sdf2Rtg.Input sdf2Rtg(Input input, /*SpoofaxProjectSettings settings, String module,*/ Origin origin) {
-//        final File inputPath = toFile(settings.getSdfCompiledDefFile(module));
-//        final File outputPath = toFile(settings.getRtgFile(module));
-        
+    public static Sdf2Rtg.Input sdf2Rtg(SpoofaxContext context, Input input, Origin origin) {
         return new Sdf2Rtg.Input(context, input.sdf2RtgInputFile, input.sdf2RtgOutputFile, input.sdfName, origin);
     }
 
-    private Origin rtg2Sig(Input input, /*final SpoofaxProjectSettings settings, final String module,*/ final Sdf2Rtg.Input sdf2RtgInput) {
-//        final File outputPath = toFile(settings.getStrCompiledSigFile(module));
-        return Rtg2Sig.origin(new Rtg2Sig.Input(context, input.rtg2SigOutputFile, sdf2RtgInput));
+    public static Rtg2Sig.Input rtg2SigInput(SpoofaxContext context, Input input, final Sdf2Rtg.Input sdf2RtgInput) {
+        return new Rtg2Sig.Input(context, input.rtg2SigOutputFile, sdf2RtgInput);
+    }
+
+    private Origin rtg2Sig(Rtg2Sig.Input input) {
+        return Rtg2Sig.origin(input);
     }
 
     private void strj(Input input, Origin origin) throws IOException {
-
         requireBuild(CopyJar.factory, new CopyJar.Input(context, input.externalJar, input.strjTarget));
 
         final Iterable<FileObject> paths =

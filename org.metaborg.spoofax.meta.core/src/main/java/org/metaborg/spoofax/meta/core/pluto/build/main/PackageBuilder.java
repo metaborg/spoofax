@@ -33,9 +33,24 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
+        public final File ppPackInputPath;
+        public final File ppPackOutputPath;
+        public final File ppGenInputPath;
+        public final File ppGenOutputPath;
+        public final File afGenOutputPath;
 
-        public Input(SpoofaxContext context) {
+        public Input(SpoofaxContext context,
+                     File ppPackInputPath,
+                     File ppPackOutputPath,
+                     File ppGenInputPath,
+                     File ppGenOutputPath,
+                     File afGenOutputPath) {
             super(context);
+            this.ppPackInputPath = ppPackInputPath;
+            this.ppPackOutputPath = ppPackOutputPath;
+            this.ppGenInputPath = ppGenInputPath;
+            this.ppGenOutputPath = ppGenOutputPath;
+            this.afGenOutputPath = afGenOutputPath;
         }
     }
 
@@ -98,13 +113,13 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             final Origin.Builder originBuilder = Origin.Builder();
             final FileObject target = settings.getStrCompiledJavaTransDirectory();
 
-            final PPPack.Input ppPackInput = GenerateSourcesBuilder.ppPackInput(context, sdfModule, packSdf);
+            final PPPack.Input ppPackInput = GenerateSourcesBuilder.ppPackInput(context, input.ppPackInputPath, input.ppPackOutputPath, packSdf);
             final File ppAfFile = requireBuild(PPPack.factory, ppPackInput).val;
             final File targetPpAfFile = toFile(target.resolveFile(settings.getPpAfName(sdfModule)));
             originBuilder.add(Copy.origin(new Copy.Input(ppAfFile, targetPpAfFile, Origin.from(PPPack
                 .request(ppPackInput)), context.baseDir, context.depDir)));
 
-            final PPGen.Input ppGenInput = GenerateSourcesBuilder.ppGenInput(context, sdfModule, packSdf);
+            final PPGen.Input ppGenInput = GenerateSourcesBuilder.ppGenInput(context, input.ppGenInputPath, input.ppGenOutputPath, input.afGenOutputPath, sdfModule, packSdf);
             final File ppGenFile = requireBuild(PPGen.factory, ppGenInput).val;
             final File targetGenPpAfFile = toFile(target.resolveFile(settings.getGenPpAfName(sdfModule)));
             originBuilder.add(Copy.origin(new Copy.Input(ppGenFile, targetGenPpAfFile, Origin.from(PPGen
