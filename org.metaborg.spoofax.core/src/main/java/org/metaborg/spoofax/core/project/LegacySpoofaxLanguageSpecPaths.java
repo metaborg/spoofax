@@ -151,12 +151,12 @@ public class LegacySpoofaxLanguageSpecPaths implements ISpoofaxLanguageSpecPaths
 
     @Override
     public FileObject dsGeneratedInterpreterCompiledJavaFolder() {
-        return this.settings.getDsGeneratedIntepreterCompiledJava();
+        return this.settings.getDsGeneratedInterpreterCompiledJava();
     }
 
     @Override
     public FileObject dsManualInterpreterCompiledJavaFolder() {
-        return this.settings.getDsManualIntepreterCompiledJava();
+        return this.settings.getDsManualInterpreterCompiledJava();
     }
 
     @Override
