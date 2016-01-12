@@ -161,6 +161,17 @@ public class SpoofaxMetaBuilder {
 
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(MetaBuildInput input) {
         final SpoofaxContext context = new SpoofaxContext(input.settings);
+        // input.settings.sdfName() as module
+        // input.settings as settings
+
+        final File sdf2ParenthesizeInputFile = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
+        final File sdf2ParenthesizeOutputFile = context.toFile(input.settings.getStrCompiledParenthesizerFile(input.settings.sdfName()));
+        final String sdf2ParenthesizeOutputModule = "include/" + input.settings.sdfName() + "-parenthesize";
+
+        final File sdf2RtgInputFile = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
+        final File sdf2RtgOutputFile = context.toFile(input.settings.getRtgFile(input.settings.sdfName()));
+
+        final File rtg2SigOutputPath = context.toFile(input.settings.getStrCompiledSigFile(input.settings.sdfName()));
 
         @Nullable final File externalJar;
         @Nullable final File target;
@@ -177,17 +188,17 @@ public class SpoofaxMetaBuilder {
             target = null;
         }
 
-        final File inputFile = context.toFile(input.settings.getStrMainFile());
-        final File outputFile;
-        final File depFile;
+        final File strjInputFile = context.toFile(input.settings.getStrMainFile());
+        final File strjOutputFile;
+        final File strjDepFile;
         if(input.settings.format() == Format.ctree) {
-            outputFile = context.toFile(input.settings.getStrCompiledCtreeFile());
-            depFile = outputFile;
+            strjOutputFile = context.toFile(input.settings.getStrCompiledCtreeFile());
+            strjDepFile = strjOutputFile;
         } else {
-            outputFile = context.toFile(input.settings.getStrJavaMainFile());
-            depFile = context.toFile(input.settings.getStrJavaTransDirectory());
+            strjOutputFile = context.toFile(input.settings.getStrJavaMainFile());
+            strjDepFile = context.toFile(input.settings.getStrJavaTransDirectory());
         }
-        final File cacheDir = context.toFile(input.settings.getCacheDirectory());
+        final File strjCacheDir = context.toFile(input.settings.getCacheDirectory());
 
         return new GenerateSourcesBuilder.Input(
                 new SpoofaxContext(input.settings),
@@ -195,13 +206,20 @@ public class SpoofaxMetaBuilder {
                 input.settings.metaSdfName(),
                 externalJar,
                 target,
-                inputFile,
-                outputFile,
-                depFile,
-                cacheDir,
+                strjInputFile,
+                strjOutputFile,
+                strjDepFile,
+                strjCacheDir,
+                input.settings.strategoArgs(),
                 input.settings.format(),
                 input.settings.strategiesPackageName(),
-                input.settings.externalJarFlags());
+                input.settings.externalJarFlags(),
+                rtg2SigOutputPath,
+                sdf2RtgInputFile,
+                sdf2RtgOutputFile,
+                sdf2ParenthesizeInputFile,
+                sdf2ParenthesizeOutputFile,
+                sdf2ParenthesizeOutputModule);
     }
 
 

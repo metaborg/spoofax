@@ -53,11 +53,21 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final File strjOutputFile;
         public final File strjDepFile;
         public final File strjCacheDir;
+        public final Iterable<String> strategoArgs;
         public final Format format;
         public final String strategiesPackageName;
         public final String externalJarFlags;
+        public final File rtg2SigOutputFile;
+        public final File sdf2RtgInputFile;
+        public final File sdf2RtgOutputFile;
+        public final File sdf2ParenthesizeInputFile;
+        public final File sdf2ParenthesizeOutputFile;
+        public final String sdf2ParenthesizeOutputModule;
 
-        public Input(SpoofaxContext context, String sdfName, String metaSdfName, File externalJar, File strjTarget, File strjInputFile, File strjOutputFile, File strjDepFile, File strjCacheDir, Format format, String strategiesPackageName, String externalJarFlags) {
+        public Input(SpoofaxContext context, String sdfName, String metaSdfName, File externalJar, File strjTarget, File strjInputFile, File strjOutputFile, File strjDepFile, File strjCacheDir, Iterable<String> strategoArgs, Format format, String strategiesPackageName, String externalJarFlags, File rtg2SigOutputFile, File sdf2RtgInputFile, File sdf2RtgOutputFile,
+                     File sdf2ParenthesizeInputFile,
+                     File sdf2ParenthesizeOutputFile,
+                     String sdf2ParenthesizeOutputModule) {
             super(context);
             this.sdfName = sdfName;
             this.metaSdfName = metaSdfName;
@@ -67,9 +77,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strjOutputFile = strjOutputFile;
             this.strjDepFile = strjDepFile;
             this.strjCacheDir = strjCacheDir;
+            this.strategoArgs = strategoArgs;
             this.format = format;
             this.strategiesPackageName = strategiesPackageName;
             this.externalJarFlags = externalJarFlags;
+            this.rtg2SigOutputFile = rtg2SigOutputFile;
+            this.sdf2RtgInputFile = sdf2RtgInputFile;
+            this.sdf2RtgOutputFile = sdf2RtgOutputFile;
+            this.sdf2ParenthesizeInputFile = sdf2ParenthesizeInputFile;
+            this.sdf2ParenthesizeOutputFile = sdf2ParenthesizeOutputFile;
+            this.sdf2ParenthesizeOutputModule = sdf2ParenthesizeOutputModule;
         }
     }
 
@@ -118,8 +135,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         ppPack(sdfModule, packSdfOrigin);
         final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, sdfModule, packSdfOrigin));
 //        final Origin sdf2Parenthesize = sdf2Parenthesize(settings, sdfModule, packSdfOrigin);
-        final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(settings, sdfModule, packSdfOrigin);
-        final Origin rtg2Sig = rtg2Sig(settings, sdfModule, sdf2RtgInput);
+        final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(input, packSdfOrigin);
+//        final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(settings, sdfModule, packSdfOrigin);
+        final Origin rtg2Sig = rtg2Sig(input, sdf2RtgInput);
 //        final Origin rtg2Sig = rtg2Sig(settings, sdfModule, input.sdf2RtgInput);
 
         // Stratego
@@ -249,46 +267,21 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return Sdf2Parenthesize.origin(input);
     }
 
-    private Sdf2Rtg.Input sdf2Rtg(SpoofaxProjectSettings settings, String module, Origin origin) {
-        final File inputPath = toFile(settings.getSdfCompiledDefFile(module));
-        final File outputPath = toFile(settings.getRtgFile(module));
-        return new Sdf2Rtg.Input(context, inputPath, outputPath, module, origin);
+    private Sdf2Rtg.Input sdf2Rtg(Input input, /*SpoofaxProjectSettings settings, String module,*/ Origin origin) {
+//        final File inputPath = toFile(settings.getSdfCompiledDefFile(module));
+//        final File outputPath = toFile(settings.getRtgFile(module));
+        
+        return new Sdf2Rtg.Input(context, input.sdf2RtgInputFile, input.sdf2RtgOutputFile, input.sdfName, origin);
     }
 
-    private Origin rtg2Sig(final SpoofaxProjectSettings settings, final String module, final Sdf2Rtg.Input input) {
-        final File outputPath = toFile(settings.getStrCompiledSigFile(module));
-        return Rtg2Sig.origin(new Rtg2Sig.Input(context, outputPath, input));
+    private Origin rtg2Sig(Input input, /*final SpoofaxProjectSettings settings, final String module,*/ final Sdf2Rtg.Input sdf2RtgInput) {
+//        final File outputPath = toFile(settings.getStrCompiledSigFile(module));
+        return Rtg2Sig.origin(new Rtg2Sig.Input(context, input.rtg2SigOutputFile, sdf2RtgInput));
     }
 
-
-    private void strj(
-            Input input,
-            Origin origin) throws IOException {
-//        final File externalJar;
-//        final File target;
-//        final String externalJarFilename = settings.externalJar();
-//        if (externalJarFilename != null) {
-//            externalJar = new File(externalJarFilename);
-//            target = toFile(settings.getIncludeDirectory().resolveFile(externalJar.getName()));
-//        } else {
-//            externalJar = null;
-//            target = null;
-//        }
+    private void strj(Input input, Origin origin) throws IOException {
 
         requireBuild(CopyJar.factory, new CopyJar.Input(context, input.externalJar, input.strjTarget));
-
-//        final File inputFile = toFile(context.settings.getStrMainFile());
-//        final File outputFile;
-//        final File depFile;
-//        if(context.settings.format() == Format.ctree) {
-//        if(format == Format.ctree) {
-//            outputFile = toFile(settings.getStrCompiledCtreeFile());
-//            depFile = outputFile;
-//        } else {
-//            outputFile = toFile(settings.getStrJavaMainFile());
-//            depFile = toFile(settings.getStrJavaTransDirectory());
-//        }
-//        final File cacheDir = toFile(settings.getCacheDirectory());
 
         final Iterable<FileObject> paths =
             context.languagePathService().sourceAndIncludePaths(context.project, SpoofaxConstants.LANG_STRATEGO_NAME);
@@ -298,17 +291,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             includeDirs.add(file);
         }
 
-        final Arguments strategoArgs = strategoArgs(input.format, input.strategiesPackageName, input.externalJarFlags);
-//        final Arguments strategoArgs = strategoArgs(settings.format(), settings.strategiesPackageName(), settings.externalJarFlags());
+        final Arguments strategoArgs = strategoArgs(input.strategoArgs, input.format, input.strategiesPackageName, input.externalJarFlags);
 
         requireBuild(Strj.factory, new Strj.Input(context, input.strjInputFile, input.strjOutputFile, input.strjDepFile, "trans", true, true,
             Iterables.toArray(includeDirs, File.class), new String[0], input.strjCacheDir, strategoArgs, origin));
     }
 
-
-    public Arguments strategoArgs(Format format, String strategiesPackageName, @Nullable String externalJarFlags) {
+    private Arguments strategoArgs(Iterable<String> strategoArgs, Format format, String strategiesPackageName, @Nullable String externalJarFlags) {
         final Arguments args = new Arguments();
-        args.addAll(context.settings.strategoArgs());
+        args.addAll(strategoArgs);
 
         if(format == Format.ctree) {
             args.add("-F");
