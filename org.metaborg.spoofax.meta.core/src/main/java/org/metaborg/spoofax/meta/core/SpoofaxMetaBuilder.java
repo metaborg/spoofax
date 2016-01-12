@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.meta.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Set;
@@ -19,6 +20,7 @@ import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.processing.ICancellationToken;
 import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
+import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.language.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
@@ -27,6 +29,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
+import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.FileAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +42,7 @@ import build.pluto.xattr.Xattr;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-/**
- * @deprecated Use {@link SpoofaxLanguageSpecBuilder instead}.
- */
-@Deprecated
+// TODO Rename to: SpoofaxLanguageSpecBuilder
 public class SpoofaxMetaBuilder {
     private static final Logger log = LoggerFactory.getLogger(SpoofaxMetaBuilder.class);
 
@@ -160,8 +160,48 @@ public class SpoofaxMetaBuilder {
     }
 
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(MetaBuildInput input) {
-        return new GenerateSourcesBuilder.Input(new SpoofaxContext(
-                input.settings));
+        final SpoofaxContext context = new SpoofaxContext(input.settings);
+
+        @Nullable final File externalJar;
+        @Nullable final File target;
+        @Nullable final String externalJarFilename = input.settings.externalJar();
+        if (externalJarFilename != null) {
+            externalJar = new File(externalJarFilename);
+            try {
+                target = context.toFile(input.settings.getIncludeDirectory().resolveFile(externalJar.getName()));
+            } catch (FileSystemException e) {
+                throw new RuntimeException("Unexpected exception.", e);
+            }
+        } else {
+            externalJar = null;
+            target = null;
+        }
+
+        final File inputFile = context.toFile(input.settings.getStrMainFile());
+        final File outputFile;
+        final File depFile;
+        if(input.settings.format() == Format.ctree) {
+            outputFile = context.toFile(input.settings.getStrCompiledCtreeFile());
+            depFile = outputFile;
+        } else {
+            outputFile = context.toFile(input.settings.getStrJavaMainFile());
+            depFile = context.toFile(input.settings.getStrJavaTransDirectory());
+        }
+        final File cacheDir = context.toFile(input.settings.getCacheDirectory());
+
+        return new GenerateSourcesBuilder.Input(
+                new SpoofaxContext(input.settings),
+                input.settings.sdfName(),
+                input.settings.metaSdfName(),
+                externalJar,
+                target,
+                inputFile,
+                outputFile,
+                depFile,
+                cacheDir,
+                input.settings.format(),
+                input.settings.strategiesPackageName(),
+                input.settings.externalJarFlags());
     }
 
 

@@ -39,13 +39,37 @@ import build.pluto.stamp.LastModifiedStamper;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+import javax.annotation.Nullable;
+
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
+        public final String sdfName;
+        public final String metaSdfName;
+        public final @Nullable File externalJar;
+        public final @Nullable File strjTarget;
+        public final File strjInputFile;
+        public final File strjOutputFile;
+        public final File strjDepFile;
+        public final File strjCacheDir;
+        public final Format format;
+        public final String strategiesPackageName;
+        public final String externalJarFlags;
 
-        public Input(SpoofaxContext context) {
+        public Input(SpoofaxContext context, String sdfName, String metaSdfName, File externalJar, File strjTarget, File strjInputFile, File strjOutputFile, File strjDepFile, File strjCacheDir, Format format, String strategiesPackageName, String externalJarFlags) {
             super(context);
+            this.sdfName = sdfName;
+            this.metaSdfName = metaSdfName;
+            this.externalJar = externalJar;
+            this.strjTarget = strjTarget;
+            this.strjInputFile = strjInputFile;
+            this.strjOutputFile = strjOutputFile;
+            this.strjDepFile = strjDepFile;
+            this.strjCacheDir = strjCacheDir;
+            this.format = format;
+            this.strategiesPackageName = strategiesPackageName;
+            this.externalJarFlags = externalJarFlags;
         }
     }
 
@@ -81,20 +105,22 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final SpoofaxProjectSettings settings = context.settings;
 
         // SDF
-        final String sdfModule = settings.sdfName();
+        final String sdfModule = input.sdfName;
         final Arguments sdfArgs = sdfArgs(context);
 
         final PackSdf.Input packSdfInput = packSdfInput(context, sdfModule, sdfArgs);
         final Origin packSdfOrigin = PackSdf.origin(packSdfInput);
 
 
-        sdf2Table(sdfModule, settings.sdfName(), packSdfInput);
-        metaSdf2Table(sdfArgs);
+        sdf2Table(sdfModule, input.sdfName, packSdfInput);
+        metaSdf2Table(input.sdfName, input.metaSdfName, sdfArgs);
         ppGen(sdfModule, packSdfOrigin);
         ppPack(sdfModule, packSdfOrigin);
-        final Origin sdf2Parenthesize = sdf2Parenthesize(settings, sdfModule, packSdfOrigin);
+        final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, sdfModule, packSdfOrigin));
+//        final Origin sdf2Parenthesize = sdf2Parenthesize(settings, sdfModule, packSdfOrigin);
         final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(settings, sdfModule, packSdfOrigin);
         final Origin rtg2Sig = rtg2Sig(settings, sdfModule, sdf2RtgInput);
+//        final Origin rtg2Sig = rtg2Sig(settings, sdfModule, input.sdf2RtgInput);
 
         // Stratego
         if(!context.isBuildStrategoEnabled(this)) {
@@ -108,7 +134,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             .get()
             ;
         // @formatter:on
-        strj(settings, requiredUnits);
+        strj(input, requiredUnits);
+//        strj(settings, requiredUnits);
 
         return None.val;
     }
@@ -170,12 +197,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         requireBuild(Sdf2Table.factory, input);
     }
 
-    private void metaSdf2Table(Arguments sdfArgs) throws IOException {
-        final SpoofaxProjectSettings settings = context.settings;
-        final String module = settings.metaSdfName();
+    private void metaSdf2Table(String sdfName, String metaSdfName, Arguments sdfArgs) throws IOException {
+        final String module = metaSdfName;
         final Arguments args = new Arguments(sdfArgs);
         final PackSdf.Input packInput = packSdfInput(context, module, args);
-        final Sdf2Table.Input tableInput = sdf2TableInput(context, module, settings.sdfName(), packInput);
+        final Sdf2Table.Input tableInput = sdf2TableInput(context, module, sdfName, packInput);
         require(tableInput.inputModule(), SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
             : LastModifiedStamper.instance);
         if(FileCommands.exists(tableInput.inputModule())) {
@@ -210,12 +236,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         requireBuild(PPPack.factory, ppPackInput(context, module, origin));
     }
 
-    private Origin sdf2Parenthesize(SpoofaxProjectSettings settings, String module, Origin origin) {
-        final File inputPath = toFile(settings.getSdfCompiledDefFile(module));
-        final File outputPath = toFile(settings.getStrCompiledParenthesizerFile(module));
+    public static Sdf2Parenthesize.Input sdf2ParenthesizeInput(SpoofaxContext context, String module, Origin origin) {
+        final SpoofaxProjectSettings settings = context.settings;
+        final File inputPath = context.toFile(settings.getSdfCompiledDefFile(module));
+        final File outputPath = context.toFile(settings.getStrCompiledParenthesizerFile(module));
         final String outputModule = "include/" + module + "-parenthesize";
-        return Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, inputPath, outputPath, outputModule, module,
-            origin));
+        return new Sdf2Parenthesize.Input(context, inputPath, outputPath, outputModule, module,
+                origin);
+    }
+
+    private Origin sdf2Parenthesize(Sdf2Parenthesize.Input input) {
+        return Sdf2Parenthesize.origin(input);
     }
 
     private Sdf2Rtg.Input sdf2Rtg(SpoofaxProjectSettings settings, String module, Origin origin) {
@@ -230,30 +261,34 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
 
-    private void strj(SpoofaxProjectSettings settings, Origin origin) throws IOException {
-        final File externalJar;
-        final File target;
-        if (settings.externalJar() != null) {
-            externalJar = new File(settings.externalJar());
-            target = toFile(settings.getIncludeDirectory().resolveFile(externalJar.getName()));
-        } else {
-            externalJar = null;
-            target = null;
-        }
+    private void strj(
+            Input input,
+            Origin origin) throws IOException {
+//        final File externalJar;
+//        final File target;
+//        final String externalJarFilename = settings.externalJar();
+//        if (externalJarFilename != null) {
+//            externalJar = new File(externalJarFilename);
+//            target = toFile(settings.getIncludeDirectory().resolveFile(externalJar.getName()));
+//        } else {
+//            externalJar = null;
+//            target = null;
+//        }
 
-        requireBuild(CopyJar.factory, new CopyJar.Input(context, externalJar, target));
+        requireBuild(CopyJar.factory, new CopyJar.Input(context, input.externalJar, input.strjTarget));
 
-        final File inputFile = toFile(context.settings.getStrMainFile());
-        final File outputFile;
-        final File depFile;
-        if(context.settings.format() == Format.ctree) {
-            outputFile = toFile(settings.getStrCompiledCtreeFile());
-            depFile = outputFile;
-        } else {
-            outputFile = toFile(settings.getStrJavaMainFile());
-            depFile = toFile(settings.getStrJavaTransDirectory());
-        }
-        final File cacheDir = toFile(settings.getCacheDirectory());
+//        final File inputFile = toFile(context.settings.getStrMainFile());
+//        final File outputFile;
+//        final File depFile;
+//        if(context.settings.format() == Format.ctree) {
+//        if(format == Format.ctree) {
+//            outputFile = toFile(settings.getStrCompiledCtreeFile());
+//            depFile = outputFile;
+//        } else {
+//            outputFile = toFile(settings.getStrJavaMainFile());
+//            depFile = toFile(settings.getStrJavaTransDirectory());
+//        }
+//        final File cacheDir = toFile(settings.getCacheDirectory());
 
         final Iterable<FileObject> paths =
             context.languagePathService().sourceAndIncludePaths(context.project, SpoofaxConstants.LANG_STRATEGO_NAME);
@@ -263,29 +298,27 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             includeDirs.add(file);
         }
 
-        final Arguments strategoArgs = strategoArgs();
+        final Arguments strategoArgs = strategoArgs(input.format, input.strategiesPackageName, input.externalJarFlags);
+//        final Arguments strategoArgs = strategoArgs(settings.format(), settings.strategiesPackageName(), settings.externalJarFlags());
 
-        requireBuild(Strj.factory, new Strj.Input(context, inputFile, outputFile, depFile, "trans", true, true,
-            Iterables.toArray(includeDirs, File.class), new String[0], cacheDir, strategoArgs, origin));
+        requireBuild(Strj.factory, new Strj.Input(context, input.strjInputFile, input.strjOutputFile, input.strjDepFile, "trans", true, true,
+            Iterables.toArray(includeDirs, File.class), new String[0], input.strjCacheDir, strategoArgs, origin));
     }
 
 
-    public Arguments strategoArgs() {
-        final SpoofaxProjectSettings settings = context.settings;
-
+    public Arguments strategoArgs(Format format, String strategiesPackageName, @Nullable String externalJarFlags) {
         final Arguments args = new Arguments();
         args.addAll(context.settings.strategoArgs());
 
-        if(settings.format() == Format.ctree) {
+        if(format == Format.ctree) {
             args.add("-F");
         } else {
             args.addAll("-la", "java-front");
             if(context.isJavaJarEnabled(this)) {
-                args.addAll("-la", settings.strategiesPackageName());
+                args.addAll("-la", strategiesPackageName);
             }
         }
 
-        final String externalJarFlags = settings.externalJarFlags();
         if(externalJarFlags != null) {
             args.addLine(externalJarFlags);
         }
