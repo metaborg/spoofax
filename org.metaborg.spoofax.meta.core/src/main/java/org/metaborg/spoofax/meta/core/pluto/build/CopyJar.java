@@ -23,10 +23,12 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input, None> {
 
         public final File externalJar;
 
+        public final File target;
 
-        public Input(SpoofaxContext context, File externaljar) {
+        public Input(SpoofaxContext context, File externalJar, File target) {
             super(context);
-            this.externalJar = externaljar;
+            this.externalJar = externalJar;
+            this.target = target;
         }
     }
 
@@ -64,10 +66,9 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input, None> {
 
     @Override public None build(Input input) throws IOException {
         if(input.externalJar != null) {
-            final File target = toFile(context.settings.getIncludeDirectory().resolveFile(input.externalJar.getName()));
             require(input.externalJar, LastModifiedStamper.instance);
-            FileCommands.copyFile(input.externalJar, target, StandardCopyOption.COPY_ATTRIBUTES);
-            provide(target);
+            FileCommands.copyFile(input.externalJar, input.target, StandardCopyOption.COPY_ATTRIBUTES);
+            provide(input.target);
         }
         return None.val;
     }

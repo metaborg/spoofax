@@ -38,15 +38,19 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
         public final File inputPath;
         public final File outputPath;
 
+        public final File syntaxFolder;
+        public final File genSyntaxFolder;
 
         public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs, @Nullable File externalDef,
-            File inputPath, File outputPath) {
+            File inputPath, File outputPath, File syntaxFolder, File genSyntaxFolder) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfArgs = sdfArgs;
             this.externalDef = externalDef;
             this.inputPath = inputPath;
             this.outputPath = outputPath;
+            this.syntaxFolder = syntaxFolder;
+            this.genSyntaxFolder = genSyntaxFolder;
         }
     }
 
@@ -87,7 +91,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
             return OutputPersisted.of(input.outputPath);
         }
 
-        copySdf2();
+        copySdf2(input);
 
         require(input.inputPath);
 
@@ -141,16 +145,13 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
     /**
      * Copy SDF2 files from syntax/ to src-gen/syntax, to support projects that do not use SDF3.
      */
-    private void copySdf2() {
-        final File syntaxDir = toFile(context.settings.getSyntaxDirectory());
-        final File genSyntaxDir = toFile(context.settings.getGenSyntaxDirectory());
-
+    private void copySdf2(Input input) {
         // TODO: identify sdf2 files using Spoofax core
-        List<Path> srcSdfFiles = FileCommands.listFilesRecursive(syntaxDir.toPath(), new SuffixFileFilter("sdf"));
+        List<Path> srcSdfFiles = FileCommands.listFilesRecursive(input.syntaxFolder.toPath(), new SuffixFileFilter("sdf"));
         for(Path p : srcSdfFiles) {
             require(p.toFile(), LastModifiedStamper.instance);
             File target =
-                FileCommands.copyFile(syntaxDir, genSyntaxDir, p.toFile(), StandardCopyOption.COPY_ATTRIBUTES);
+                FileCommands.copyFile(input.syntaxFolder, input.genSyntaxFolder, p.toFile(), StandardCopyOption.COPY_ATTRIBUTES);
             provide(target);
         }
     }

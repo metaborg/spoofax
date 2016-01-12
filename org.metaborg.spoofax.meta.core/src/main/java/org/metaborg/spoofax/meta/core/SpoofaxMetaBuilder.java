@@ -114,8 +114,7 @@ public class SpoofaxMetaBuilder {
 
         initPluto();
         try {
-            plutoBuild(GenerateSourcesBuilder.request(new GenerateSourcesBuilder.Input(new SpoofaxContext(
-                input.settings))));
+            plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)));
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable e) {
@@ -133,7 +132,7 @@ public class SpoofaxMetaBuilder {
 
         initPluto();
         try {
-            plutoBuild(PackageBuilder.request(new SpoofaxInput(new SpoofaxContext(input.settings))));
+            plutoBuild(PackageBuilder.request(packageBuilderInput(input)));
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable e) {
@@ -158,5 +157,16 @@ public class SpoofaxMetaBuilder {
 
     private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest) throws Throwable {
         return BuildManagers.build(buildRequest, new SpoofaxReporting());
+    }
+
+    private GenerateSourcesBuilder.Input generateSourcesBuilderInput(MetaBuildInput input) {
+        return new GenerateSourcesBuilder.Input(new SpoofaxContext(
+                input.settings));
+    }
+
+
+    private PackageBuilder.Input packageBuilderInput(MetaBuildInput input) {
+        return new PackageBuilder.Input(new SpoofaxContext(
+                input.settings));
     }
 }

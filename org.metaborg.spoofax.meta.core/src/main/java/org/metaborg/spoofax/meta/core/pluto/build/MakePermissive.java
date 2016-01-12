@@ -24,12 +24,13 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, OutputP
         private static final long serialVersionUID = 4381601872931676757L;
 
         public final File outputPath;
+        public final String depFilename;
         public final PackSdf.Input packSdfInput;
 
-
-        public Input(SpoofaxContext context, File outputPath, PackSdf.Input packSdfInput) {
+        public Input(SpoofaxContext context, File outputPath, String depFilename, PackSdf.Input packSdfInput) {
             super(context);
             this.outputPath = outputPath;
+            this.depFilename = depFilename;
             this.packSdfInput = packSdfInput;
         }
         
@@ -65,7 +66,7 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, OutputP
     }
 
     @Override public File persistentPath(Input input) {
-        return context.depPath("make-permissive." + context.settings.sdfName() + ".dep");
+        return context.depPath(input.depFilename);
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {

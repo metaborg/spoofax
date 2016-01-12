@@ -12,10 +12,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.*;
 import org.metaborg.spoofax.meta.core.pluto.build.PPGen;
 import org.metaborg.spoofax.meta.core.pluto.build.PPPack;
 import org.metaborg.spoofax.meta.core.pluto.build.PackSdf;
@@ -31,19 +28,28 @@ import build.pluto.output.None;
 
 import com.google.common.collect.Lists;
 
-public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
-    public static SpoofaxBuilderFactory<SpoofaxInput, None, PackageBuilder> factory = SpoofaxBuilderFactoryFactory.of(
-        PackageBuilder.class, SpoofaxInput.class);
+public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
+    public static class Input extends SpoofaxInput {
+        private static final long serialVersionUID = -2379365089609792204L;
 
 
-    public PackageBuilder(SpoofaxInput input) {
+        public Input(SpoofaxContext context) {
+            super(context);
+        }
+    }
+
+    public static SpoofaxBuilderFactory<Input, None, PackageBuilder> factory = SpoofaxBuilderFactoryFactory.of(
+        PackageBuilder.class, Input.class);
+
+
+    public PackageBuilder(Input input) {
         super(input);
     }
 
 
     public static
-        BuildRequest<SpoofaxInput, None, PackageBuilder, SpoofaxBuilderFactory<SpoofaxInput, None, PackageBuilder>>
-        request(SpoofaxInput input) {
+        BuildRequest<Input, None, PackageBuilder, SpoofaxBuilderFactory<Input, None, PackageBuilder>>
+        request(Input input) {
         return new BuildRequest<>(factory, input);
     }
 
@@ -52,15 +58,15 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
     }
 
 
-    @Override protected String description(SpoofaxInput input) {
+    @Override protected String description(Input input) {
         return "Package";
     }
 
-    @Override public File persistentPath(SpoofaxInput input) {
+    @Override public File persistentPath(Input input) {
         return context.depPath("package.dep");
     }
 
-    @Override protected None build(SpoofaxInput input) throws Throwable {
+    @Override protected None build(Input input) throws Throwable {
         final SpoofaxProjectSettings settings = context.settings;
 
         // TODO: build Java code with Pluto.
@@ -103,7 +109,7 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
                 .request(ppGenInput)), context.baseDir, context.depDir)));
 
             final Sdf2Table.Input sdf2TableInput =
-                GenerateSourcesBuilder.sdf2TableInput(context, sdfModule, packSdfInput);
+                GenerateSourcesBuilder.sdf2TableInput(context, sdfModule, settings.sdfName(), packSdfInput);
             final File tblFile = requireBuild(Sdf2Table.factory, sdf2TableInput).val;
             final File targeTblFile = toFile(target.resolveFile(settings.getSdfTableName(sdfModule)));
             originBuilder.add(Copy.origin(new Copy.Input(tblFile, targeTblFile, Origin.from(Sdf2Table

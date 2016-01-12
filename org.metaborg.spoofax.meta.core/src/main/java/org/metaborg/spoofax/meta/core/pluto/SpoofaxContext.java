@@ -43,6 +43,7 @@ public class SpoofaxContext implements Serializable {
     private static ITermFactoryService termFactoryService;
 
     public final SpoofaxProjectSettings settings;
+//    private final SpoofaxProjectSettings settings;
     public final File baseDir;
     public final File depDir;
 

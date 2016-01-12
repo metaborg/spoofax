@@ -88,7 +88,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final Origin packSdfOrigin = PackSdf.origin(packSdfInput);
 
 
-        sdf2Table(sdfModule, packSdfInput);
+        sdf2Table(sdfModule, settings.sdfName(), packSdfInput);
         metaSdf2Table(sdfArgs);
         ppGen(sdfModule, packSdfOrigin);
         ppPack(sdfModule, packSdfOrigin);
@@ -147,22 +147,26 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
         final File packSdfInputPath = context.toFile(settings.getSdfMainFile(module));
         final File packSdfOutputPath = context.toFile(settings.getSdfCompiledDefFile(module));
-        return new PackSdf.Input(context, module, args, externalDef, packSdfInputPath, packSdfOutputPath);
+        final File syntaxFolder = context.toFile(settings.getSyntaxDirectory());
+        final File genSyntaxFolder = context.toFile(settings.getGenSyntaxDirectory());
+
+        return new PackSdf.Input(context, module, args, externalDef, packSdfInputPath, packSdfOutputPath, syntaxFolder, genSyntaxFolder);
     }
 
-    public static Sdf2Table.Input sdf2TableInput(SpoofaxContext context, String module, PackSdf.Input packSdfInput) {
+    public static Sdf2Table.Input sdf2TableInput(SpoofaxContext context, String module, String sdfName, PackSdf.Input packSdfInput) {
         final SpoofaxProjectSettings settings = context.settings;
         final File makePermissiveOutputPath = context.toFile(settings.getSdfCompiledPermissiveDefFile(module));
+        final String depFilename = "make-permissive." + sdfName + ".dep";
         final MakePermissive.Input makePermissiveInput =
-            new MakePermissive.Input(context, makePermissiveOutputPath, packSdfInput);
+            new MakePermissive.Input(context, makePermissiveOutputPath, depFilename, packSdfInput);
 
         final File sdf2tableOutputPath = context.toFile(settings.getSdfCompiledTableFile(module));
         final Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, sdf2tableOutputPath, makePermissiveInput);
         return sdf2TableInput;
     }
 
-    private void sdf2Table(String sdfModule, PackSdf.Input packSdfInput) throws IOException {
-        final Sdf2Table.Input input = sdf2TableInput(context, sdfModule, packSdfInput);
+    private void sdf2Table(String sdfModule, String sdfName, PackSdf.Input packSdfInput) throws IOException {
+        final Sdf2Table.Input input = sdf2TableInput(context, sdfModule, sdfName, packSdfInput);
         requireBuild(Sdf2Table.factory, input);
     }
 
@@ -171,7 +175,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final String module = settings.metaSdfName();
         final Arguments args = new Arguments(sdfArgs);
         final PackSdf.Input packInput = packSdfInput(context, module, args);
-        final Sdf2Table.Input tableInput = sdf2TableInput(context, module, packInput);
+        final Sdf2Table.Input tableInput = sdf2TableInput(context, module, settings.sdfName(), packInput);
         require(tableInput.inputModule(), SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
             : LastModifiedStamper.instance);
         if(FileCommands.exists(tableInput.inputModule())) {
@@ -227,9 +231,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
 
     private void strj(SpoofaxProjectSettings settings, Origin origin) throws IOException {
-        final File externalJar = settings.externalJar() != null ? new File(settings.externalJar()) : null;
+        final File externalJar;
+        final File target;
+        if (settings.externalJar() != null) {
+            externalJar = new File(settings.externalJar());
+            target = toFile(settings.getIncludeDirectory().resolveFile(externalJar.getName()));
+        } else {
+            externalJar = null;
+            target = null;
+        }
 
-        requireBuild(CopyJar.factory, new CopyJar.Input(context, externalJar));
+        requireBuild(CopyJar.factory, new CopyJar.Input(context, externalJar, target));
 
         final File inputFile = toFile(context.settings.getStrMainFile());
         final File outputFile;
