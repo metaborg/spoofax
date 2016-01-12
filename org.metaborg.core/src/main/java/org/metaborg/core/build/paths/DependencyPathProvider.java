@@ -54,6 +54,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
                 }
             }
 
+            // HACK: transitive dependencies do not work with Maven, disable them for now.
             // final Iterable<ILanguageComponent> transitiveDeps = dependencyService.compileDependencies(dependency);
             // for(ILanguageComponent transitiveDep : transitiveDeps) {
             // final Iterable<FacetContribution<LanguagePathFacet>> transFacets =
