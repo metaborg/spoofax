@@ -22,6 +22,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.PackSdf;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg.Input;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.Copy;
+import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryLastModifiedStamper;
 import org.metaborg.util.cmd.Arguments;
 
 import build.pluto.builder.BuildRequest;
@@ -126,6 +127,8 @@ public class PackageBuilder extends SpoofaxBuilder<SpoofaxInput, None> {
         final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
 
         for(FileObject path : paths) {
+            final File pathFile = toFile(path);
+            require(pathFile, new DirectoryLastModifiedStamper());
             final FileObject[] files = path.findFiles(new AllFileSelector());
             if(files == null) {
                 continue;
