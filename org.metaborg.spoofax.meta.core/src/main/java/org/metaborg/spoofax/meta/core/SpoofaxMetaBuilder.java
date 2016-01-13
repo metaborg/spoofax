@@ -169,33 +169,51 @@ public class SpoofaxMetaBuilder {
     }
 
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(MetaBuildInput input) {
-        final SpoofaxContext context = new SpoofaxContext(input.settings);
-        // input.settings.sdfName() as module
-        // input.settings as settings
+        final SpoofaxProjectSettings settings = input.settings;
+        final SpoofaxContext context = new SpoofaxContext(settings);
 
-        final File ppGenInputPath = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
-        final File ppGenOutputPath = context.toFile(input.settings.getGenPpCompiledFile(input.settings.sdfName()));
-        final File afGenOutputPath = context.toFile(input.settings.getGenPpAfCompiledFile(input.settings.sdfName()));
+        final String module = settings.sdfName();
+        final String metaModule = settings.metaSdfName();
 
-        final File ppPackInputPath = context.toFile(input.settings.getPpFile(input.settings.sdfName()));
-        final File ppPackOutputPath = context.toFile(input.settings.getPpAfCompiledFile(input.settings.sdfName()));
+        @Nullable final File externalDef;
+        if(settings.externalDef() != null) {
+            externalDef = context.toFile(context.resourceService().resolve(settings.externalDef()));
+        } else {
+            externalDef = null;
+        }
+        final File packSdfInputPath = context.toFile(settings.getSdfMainFile(module));
+        final File packSdfOutputPath = context.toFile(settings.getSdfCompiledDefFile(module));
+        final File packMetaSdfInputPath = context.toFile(settings.getSdfMainFile(metaModule));
+        final File packMetaSdfOutputPath = context.toFile(settings.getSdfCompiledDefFile(metaModule));
+        final File syntaxFolder = context.toFile(settings.getSyntaxDirectory());
+        final File genSyntaxFolder = context.toFile(settings.getGenSyntaxDirectory());
 
-        final File sdf2ParenthesizeInputFile = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
-        final File sdf2ParenthesizeOutputFile = context.toFile(input.settings.getStrCompiledParenthesizerFile(input.settings.sdfName()));
-        final String sdf2ParenthesizeOutputModule = "include/" + input.settings.sdfName() + "-parenthesize";
+        final File makePermissiveOutputPath = context.toFile(settings.getSdfCompiledPermissiveDefFile(module));
+        final File sdf2tableOutputPath = context.toFile(settings.getSdfCompiledTableFile(module));
 
-        final File sdf2RtgInputFile = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
-        final File sdf2RtgOutputFile = context.toFile(input.settings.getRtgFile(input.settings.sdfName()));
+        final File ppGenInputPath = context.toFile(settings.getSdfCompiledDefFile(module));
+        final File ppGenOutputPath = context.toFile(settings.getGenPpCompiledFile(module));
+        final File afGenOutputPath = context.toFile(settings.getGenPpAfCompiledFile(module));
 
-        final File rtg2SigOutputPath = context.toFile(input.settings.getStrCompiledSigFile(input.settings.sdfName()));
+        final File ppPackInputPath = context.toFile(settings.getPpFile(module));
+        final File ppPackOutputPath = context.toFile(settings.getPpAfCompiledFile(module));
+
+        final File sdf2ParenthesizeInputFile = context.toFile(settings.getSdfCompiledDefFile(module));
+        final File sdf2ParenthesizeOutputFile = context.toFile(settings.getStrCompiledParenthesizerFile(module));
+        final String sdf2ParenthesizeOutputModule = "include/" + module + "-parenthesize";
+
+        final File sdf2RtgInputFile = context.toFile(settings.getSdfCompiledDefFile(module));
+        final File sdf2RtgOutputFile = context.toFile(settings.getRtgFile(module));
+
+        final File rtg2SigOutputPath = context.toFile(settings.getStrCompiledSigFile(module));
 
         @Nullable final File externalJar;
         @Nullable final File target;
-        @Nullable final String externalJarFilename = input.settings.externalJar();
+        @Nullable final String externalJarFilename = settings.externalJar();
         if (externalJarFilename != null) {
             externalJar = new File(externalJarFilename);
             try {
-                target = context.toFile(input.settings.getIncludeDirectory().resolveFile(externalJar.getName()));
+                target = context.toFile(settings.getIncludeDirectory().resolveFile(externalJar.getName()));
             } catch (FileSystemException e) {
                 throw new RuntimeException("Unexpected exception.", e);
             }
@@ -204,32 +222,32 @@ public class SpoofaxMetaBuilder {
             target = null;
         }
 
-        final File strjInputFile = context.toFile(input.settings.getStrMainFile());
+        final File strjInputFile = context.toFile(settings.getStrMainFile());
         final File strjOutputFile;
         final File strjDepFile;
-        if(input.settings.format() == Format.ctree) {
-            strjOutputFile = context.toFile(input.settings.getStrCompiledCtreeFile());
+        if(settings.format() == Format.ctree) {
+            strjOutputFile = context.toFile(settings.getStrCompiledCtreeFile());
             strjDepFile = strjOutputFile;
         } else {
-            strjOutputFile = context.toFile(input.settings.getStrJavaMainFile());
-            strjDepFile = context.toFile(input.settings.getStrJavaTransDirectory());
+            strjOutputFile = context.toFile(settings.getStrJavaMainFile());
+            strjDepFile = context.toFile(settings.getStrJavaTransDirectory());
         }
-        final File strjCacheDir = context.toFile(input.settings.getCacheDirectory());
+        final File strjCacheDir = context.toFile(settings.getCacheDirectory());
 
         return new GenerateSourcesBuilder.Input(
-                new SpoofaxContext(input.settings),
-                input.settings.sdfName(),
-                input.settings.metaSdfName(),
+                new SpoofaxContext(settings),
+                module,
+                settings.metaSdfName(),
                 externalJar,
                 target,
                 strjInputFile,
                 strjOutputFile,
                 strjDepFile,
                 strjCacheDir,
-                input.settings.strategoArgs(),
-                input.settings.format(),
-                input.settings.strategiesPackageName(),
-                input.settings.externalJarFlags(),
+                settings.strategoArgs(),
+                settings.format(),
+                settings.strategiesPackageName(),
+                settings.externalJarFlags(),
                 rtg2SigOutputPath,
                 sdf2RtgInputFile,
                 sdf2RtgOutputFile,
@@ -240,11 +258,34 @@ public class SpoofaxMetaBuilder {
                 ppPackOutputPath,
                 ppGenInputPath,
                 ppGenOutputPath,
-                afGenOutputPath);
+                afGenOutputPath,
+                makePermissiveOutputPath,
+                sdf2tableOutputPath,
+                externalDef,
+                packSdfInputPath,
+                packSdfOutputPath,
+                packMetaSdfInputPath,
+                packMetaSdfOutputPath,
+                syntaxFolder,
+                genSyntaxFolder);
     }
 
     private PackageBuilder.Input packageBuilderInput(MetaBuildInput input) {
         final SpoofaxContext context = new SpoofaxContext(input.settings);
+
+        @Nullable final File externalDef;
+        if(input.settings.externalDef() != null) {
+            externalDef = context.toFile(context.resourceService().resolve(input.settings.externalDef()));
+        } else {
+            externalDef = null;
+        }
+        final File packSdfInputPath = context.toFile(input.settings.getSdfMainFile(input.settings.sdfName()));
+        final File packSdfOutputPath = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
+        final File syntaxFolder = context.toFile(input.settings.getSyntaxDirectory());
+        final File genSyntaxFolder = context.toFile(input.settings.getGenSyntaxDirectory());
+
+        final File makePermissiveOutputPath = context.toFile(input.settings.getSdfCompiledPermissiveDefFile(input.settings.sdfName()));
+        final File sdf2tableOutputPath = context.toFile(input.settings.getSdfCompiledTableFile(input.settings.sdfName()));
 
         final File ppGenInputPath = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
         final File ppGenOutputPath = context.toFile(input.settings.getGenPpCompiledFile(input.settings.sdfName()));
@@ -259,6 +300,13 @@ public class SpoofaxMetaBuilder {
                 ppPackOutputPath,
                 ppGenInputPath,
                 ppGenOutputPath,
-                afGenOutputPath);
+                afGenOutputPath,
+                makePermissiveOutputPath,
+                sdf2tableOutputPath,
+                externalDef,
+                packSdfInputPath,
+                packSdfOutputPath,
+                syntaxFolder,
+                genSyntaxFolder);
     }
 }

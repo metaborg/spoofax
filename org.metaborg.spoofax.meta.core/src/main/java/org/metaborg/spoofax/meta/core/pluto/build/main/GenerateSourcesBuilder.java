@@ -68,6 +68,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final File ppGenInputPath;
         public final File ppGenOutputPath;
         public final File afGenOutputPath;
+        @Nullable public final File externalDef;
+        public final File packSdfInputPath;
+        public final File packSdfOutputPath;
+        public final File packMetaSdfInputPath;
+        public final File packMetaSdfOutputPath;
+        public final File syntaxFolder;
+        public final File genSyntaxFolder;
+        public final File makePermissiveOutputPath;
+        public final File sdf2tableOutputPath;
 
         public Input(SpoofaxContext context, String sdfName, String metaSdfName, File externalJar, File strjTarget, File strjInputFile, File strjOutputFile, File strjDepFile, File strjCacheDir, Iterable<String> strategoArgs, Format format, String strategiesPackageName, String externalJarFlags, File rtg2SigOutputFile, File sdf2RtgInputFile, File sdf2RtgOutputFile,
                      File sdf2ParenthesizeInputFile,
@@ -77,7 +86,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                      File ppPackOutputPath,
                      File ppGenInputPath,
                      File ppGenOutputPath,
-                     File afGenOutputPath) {
+                     File afGenOutputPath,
+                     File makePermissiveOutputPath,
+                     File sdf2tableOutputPath,
+                     @Nullable File externalDef,
+                     File packSdfInputPath,
+                     File packSdfOutputPath,
+                     File packMetaSdfInputPath,
+                     File packMetaSdfOutputPath,
+                     File syntaxFolder,
+                     File genSyntaxFolder) {
             super(context);
             this.sdfName = sdfName;
             this.metaSdfName = metaSdfName;
@@ -102,6 +120,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.ppGenInputPath = ppGenInputPath;
             this.ppGenOutputPath = ppGenOutputPath;
             this.afGenOutputPath = afGenOutputPath;
+            this.makePermissiveOutputPath = makePermissiveOutputPath;
+            this.sdf2tableOutputPath = sdf2tableOutputPath;
+            this.externalDef = externalDef;
+            this.packSdfInputPath = packSdfInputPath;
+            this.packSdfOutputPath = packSdfOutputPath;
+            this.packMetaSdfInputPath = packMetaSdfInputPath;
+            this.packMetaSdfOutputPath = packMetaSdfOutputPath;
+            this.syntaxFolder = syntaxFolder;
+            this.genSyntaxFolder = genSyntaxFolder;
         }
     }
 
@@ -140,12 +167,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final String sdfModule = input.sdfName;
         final Arguments sdfArgs = sdfArgs(context);
 
-        final PackSdf.Input packSdfInput = packSdfInput(context, sdfModule, sdfArgs);
+        final PackSdf.Input packSdfInput = packSdfInput(context, sdfModule, sdfArgs, input.externalDef, input.packSdfInputPath, input.packSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
         final Origin packSdfOrigin = PackSdf.origin(packSdfInput);
+        final PackSdf.Input metaPackSdfInput = packSdfInput(context, input.metaSdfName, new Arguments(sdfArgs), input.externalDef, input.packMetaSdfInputPath, input.packMetaSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
 
-
-        sdf2Table(sdfModule, input.sdfName, packSdfInput);
-        metaSdf2Table(input.sdfName, input.metaSdfName, sdfArgs);
+        sdf2Table(/*sdfModule, input.sdfName, packSdfInput,*/ sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, sdfModule, input.sdfName, packSdfInput));
+        metaSdf2Table(/*input.sdfName, input.metaSdfName, sdfArgs,*/ sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, input.sdfName, input.metaSdfName, metaPackSdfInput));
         ppGen(ppGenInput(context, input.ppGenInputPath, input.ppGenOutputPath, input.afGenOutputPath, input.sdfName, packSdfOrigin));
         ppPack(ppPackInput(context, input.ppPackInputPath, input.ppPackOutputPath, packSdfOrigin));
         final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, input, packSdfOrigin));
@@ -198,73 +225,64 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return args;
     }
 
-    public static PackSdf.Input packSdfInput(SpoofaxContext context, String module, Arguments args) {
-        final SpoofaxProjectSettings settings = context.settings;
-        final File externalDef;
-        if(settings.externalDef() != null) {
-            externalDef = context.toFile(context.resourceService().resolve(settings.externalDef()));
-        } else {
-            externalDef = null;
-        }
-        final File packSdfInputPath = context.toFile(settings.getSdfMainFile(module));
-        final File packSdfOutputPath = context.toFile(settings.getSdfCompiledDefFile(module));
-        final File syntaxFolder = context.toFile(settings.getSyntaxDirectory());
-        final File genSyntaxFolder = context.toFile(settings.getGenSyntaxDirectory());
+    public static PackSdf.Input packSdfInput(SpoofaxContext context, String module, Arguments args, File externalDef, File packSdfInputPath, File packSdfOutputPath, File syntaxFolder, File genSyntaxFolder) {
+//        final SpoofaxProjectSettings settings = context.settings;
+//        final File externalDef;
+//        if(settings.externalDef() != null) {
+//            externalDef = context.toFile(context.resourceService().resolve(settings.externalDef()));
+//        } else {
+//            externalDef = null;
+//        }
+//        final File packSdfInputPath = context.toFile(settings.getSdfMainFile(module));
+//        final File packSdfOutputPath = context.toFile(settings.getSdfCompiledDefFile(module));
+//        final File syntaxFolder = context.toFile(settings.getSyntaxDirectory());
+//        final File genSyntaxFolder = context.toFile(settings.getGenSyntaxDirectory());
 
         return new PackSdf.Input(context, module, args, externalDef, packSdfInputPath, packSdfOutputPath, syntaxFolder, genSyntaxFolder);
     }
 
-    public static Sdf2Table.Input sdf2TableInput(SpoofaxContext context, String module, String sdfName, PackSdf.Input packSdfInput) {
-        final SpoofaxProjectSettings settings = context.settings;
-        final File makePermissiveOutputPath = context.toFile(settings.getSdfCompiledPermissiveDefFile(module));
+    public static Sdf2Table.Input sdf2TableInput(SpoofaxContext context, File sdf2tableOutputPath, File makePermissiveOutputPath, String module, String sdfName, PackSdf.Input packSdfInput) {
+//        final SpoofaxProjectSettings settings = context.settings;
+//        final File makePermissiveOutputPath = context.toFile(settings.getSdfCompiledPermissiveDefFile(module));
         final String depFilename = "make-permissive." + sdfName + ".dep";
         final MakePermissive.Input makePermissiveInput =
             new MakePermissive.Input(context, makePermissiveOutputPath, depFilename, packSdfInput);
 
-        final File sdf2tableOutputPath = context.toFile(settings.getSdfCompiledTableFile(module));
+//        final File sdf2tableOutputPath = context.toFile(settings.getSdfCompiledTableFile(module));
         final Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, sdf2tableOutputPath, makePermissiveInput);
         return sdf2TableInput;
     }
 
-    private void sdf2Table(String sdfModule, String sdfName, PackSdf.Input packSdfInput) throws IOException {
-        final Sdf2Table.Input input = sdf2TableInput(context, sdfModule, sdfName, packSdfInput);
-        requireBuild(Sdf2Table.factory, input);
+    private void sdf2Table(/*String sdfModule, String sdfName, PackSdf.Input packSdfInput,*/ Sdf2Table.Input sdf2TableInput) throws IOException {
+//        final Sdf2Table.Input input = sdf2TableInput(context, sdfModule, sdfName, packSdfInput);
+        requireBuild(Sdf2Table.factory, sdf2TableInput);
     }
 
-    private void metaSdf2Table(String sdfName, String metaSdfName, Arguments sdfArgs) throws IOException {
-        final String module = metaSdfName;
-        final Arguments args = new Arguments(sdfArgs);
-        final PackSdf.Input packInput = packSdfInput(context, module, args);
-        final Sdf2Table.Input tableInput = sdf2TableInput(context, module, sdfName, packInput);
-        require(tableInput.inputModule(), SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
+    private void metaSdf2Table(/*String sdfName, String metaSdfName, Arguments sdfArgs,*/ Sdf2Table.Input sdf2TableInput) throws IOException {
+//        final String module = metaSdfName;
+//        final Arguments args = new Arguments(sdfArgs);
+//        final PackSdf.Input packInput = packSdfInput(context, module, args);
+//        final Sdf2Table.Input tableInput = sdf2TableInput(context, module, sdfName, packInput);
+        require(sdf2TableInput.inputModule(), SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
             : LastModifiedStamper.instance);
-        if(FileCommands.exists(tableInput.inputModule())) {
+        if(FileCommands.exists(sdf2TableInput.inputModule())) {
             final FileObject strategoMixPath = context.resourceService().resolve(NativeBundle.getStrategoMix());
             final File strategoMixFile = toFileReplicate(strategoMixPath);
-            tableInput.sdfArgs().addFile("-Idef", strategoMixFile);
+            sdf2TableInput.sdfArgs().addFile("-Idef", strategoMixFile);
             provide(strategoMixFile);
-            requireBuild(Sdf2Table.factory, tableInput);
+            requireBuild(Sdf2Table.factory, sdf2TableInput);
         }
     }
 
     public static PPGen.Input ppGenInput(SpoofaxContext context, File ppGenInputPath, File ppGenOutputPath, File afGenOutputPath, String module, Origin origin) {
-//        final SpoofaxProjectSettings settings = context.settings;
-//        final String module = input.sdfName;
-//        final File inputPath = context.toFile(settings.getSdfCompiledDefFile(module));
-//        final File ppOutputPath = context.toFile(settings.getGenPpCompiledFile(module));
-//        final File afOutputPath = context.toFile(settings.getGenPpAfCompiledFile(module));
         return new PPGen.Input(context, ppGenInputPath, ppGenOutputPath, afGenOutputPath, module, origin);
-//        return new PPGen.Input(context, inputPath, ppOutputPath, afOutputPath, module, origin);
     }
 
     private void ppGen(PPGen.Input input) throws IOException {
         requireBuild(PPGen.factory, input);
     }
 
-    public static PPPack.Input ppPackInput(SpoofaxContext context, File ppPackInputPath, File ppPackOutputPath, /*String module,*/ Origin origin) {
-//        final SpoofaxProjectSettings settings = context.settings;
-//        final File inputPath = context.toFile(settings.getPpFile(module));
-//        final File outputPath = context.toFile(settings.getPpAfCompiledFile(module));
+    public static PPPack.Input ppPackInput(SpoofaxContext context, File ppPackInputPath, File ppPackOutputPath, Origin origin) {
         return new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, origin);
     }
 
@@ -272,11 +290,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         requireBuild(PPPack.factory, input);
     }
 
-    public static Sdf2Parenthesize.Input sdf2ParenthesizeInput(SpoofaxContext context, Input input,/* SpoofaxContext context, String module,*/ Origin origin) {
-//        final SpoofaxProjectSettings settings = context.settings;
-//        final File inputPath = context.toFile(settings.getSdfCompiledDefFile(module));
-//        final File outputPath = context.toFile(settings.getStrCompiledParenthesizerFile(module));
-//        final String outputModule = "include/" + module + "-parenthesize";
+    public static Sdf2Parenthesize.Input sdf2ParenthesizeInput(SpoofaxContext context, Input input, Origin origin) {
         return new Sdf2Parenthesize.Input(context, input.sdf2ParenthesizeInputFile, input.sdf2ParenthesizeOutputFile, input.sdf2ParenthesizeOutputModule, input.sdfName, origin);
     }
 

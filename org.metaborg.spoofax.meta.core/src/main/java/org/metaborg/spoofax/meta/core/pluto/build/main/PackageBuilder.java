@@ -38,19 +38,40 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         public final File ppGenInputPath;
         public final File ppGenOutputPath;
         public final File afGenOutputPath;
+        @Nullable public final File externalDef;
+        public final File packSdfInputPath;
+        public final File packSdfOutputPath;
+        public final File syntaxFolder;
+        public final File genSyntaxFolder;
+        public final File makePermissiveOutputPath;
+        public final File sdf2tableOutputPath;
 
         public Input(SpoofaxContext context,
                      File ppPackInputPath,
                      File ppPackOutputPath,
                      File ppGenInputPath,
                      File ppGenOutputPath,
-                     File afGenOutputPath) {
+                     File afGenOutputPath,
+                     File makePermissiveOutputPath,
+                     File sdf2tableOutputPath,
+                     @Nullable File externalDef,
+                     File packSdfInputPath,
+                     File packSdfOutputPath,
+                     File syntaxFolder,
+                     File genSyntaxFolder) {
             super(context);
             this.ppPackInputPath = ppPackInputPath;
             this.ppPackOutputPath = ppPackOutputPath;
             this.ppGenInputPath = ppGenInputPath;
             this.ppGenOutputPath = ppGenOutputPath;
             this.afGenOutputPath = afGenOutputPath;
+            this.makePermissiveOutputPath = makePermissiveOutputPath;
+            this.sdf2tableOutputPath = sdf2tableOutputPath;
+            this.externalDef = externalDef;
+            this.packSdfInputPath = packSdfInputPath;
+            this.packSdfOutputPath = packSdfOutputPath;
+            this.syntaxFolder = syntaxFolder;
+            this.genSyntaxFolder = genSyntaxFolder;
         }
     }
 
@@ -107,7 +128,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             // TODO: extract build request/origin creation for these files into separate class to prevent code dup.
             final String sdfModule = settings.sdfName();
             final Arguments sdfArgs = GenerateSourcesBuilder.sdfArgs(context);
-            final PackSdf.Input packSdfInput = GenerateSourcesBuilder.packSdfInput(context, sdfModule, sdfArgs);
+            final PackSdf.Input packSdfInput = GenerateSourcesBuilder.packSdfInput(context, sdfModule, sdfArgs, input.externalDef, input.packSdfInputPath, input.packSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
             final Origin packSdf = PackSdf.origin(packSdfInput);
 
             final Origin.Builder originBuilder = Origin.Builder();
@@ -126,7 +147,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
                 .request(ppGenInput)), context.baseDir, context.depDir)));
 
             final Sdf2Table.Input sdf2TableInput =
-                GenerateSourcesBuilder.sdf2TableInput(context, sdfModule, settings.sdfName(), packSdfInput);
+                GenerateSourcesBuilder.sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, sdfModule, settings.sdfName(), packSdfInput);
             final File tblFile = requireBuild(Sdf2Table.factory, sdf2TableInput).val;
             final File targeTblFile = toFile(target.resolveFile(settings.getSdfTableName(sdfModule)));
             originBuilder.add(Copy.origin(new Copy.Input(tblFile, targeTblFile, Origin.from(Sdf2Table
