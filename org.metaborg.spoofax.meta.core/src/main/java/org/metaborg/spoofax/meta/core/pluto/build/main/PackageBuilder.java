@@ -147,7 +147,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
                 .request(ppGenInput)), context.baseDir, context.depDir)));
 
             final Sdf2Table.Input sdf2TableInput =
-                GenerateSourcesBuilder.sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, sdfModule, settings.sdfName(), packSdfInput);
+                GenerateSourcesBuilder.sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, sdfModule, packSdfInput);
             final File tblFile = requireBuild(Sdf2Table.factory, sdf2TableInput).val;
             final File targeTblFile = toFile(target.resolveFile(settings.getSdfTableName(sdfModule)));
             originBuilder.add(Copy.origin(new Copy.Input(tblFile, targeTblFile, Origin.from(Sdf2Table

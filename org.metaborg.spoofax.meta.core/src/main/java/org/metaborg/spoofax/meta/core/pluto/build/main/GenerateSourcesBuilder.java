@@ -161,27 +161,20 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     @Override public None build(Input input) throws IOException {
-        final SpoofaxProjectSettings settings = context.settings;
-
         // SDF
-        final String sdfModule = input.sdfName;
         final Arguments sdfArgs = sdfArgs(context);
 
-        final PackSdf.Input packSdfInput = packSdfInput(context, sdfModule, sdfArgs, input.externalDef, input.packSdfInputPath, input.packSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
+        final PackSdf.Input packSdfInput = packSdfInput(context, input.sdfName, sdfArgs, input.externalDef, input.packSdfInputPath, input.packSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
         final Origin packSdfOrigin = PackSdf.origin(packSdfInput);
         final PackSdf.Input metaPackSdfInput = packSdfInput(context, input.metaSdfName, new Arguments(sdfArgs), input.externalDef, input.packMetaSdfInputPath, input.packMetaSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
 
-        sdf2Table(/*sdfModule, input.sdfName, packSdfInput,*/ sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, sdfModule, input.sdfName, packSdfInput));
-        metaSdf2Table(/*input.sdfName, input.metaSdfName, sdfArgs,*/ sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, input.sdfName, input.metaSdfName, metaPackSdfInput));
+        sdf2Table(sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, input.sdfName, packSdfInput));
+        metaSdf2Table(sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, input.metaSdfName, metaPackSdfInput));
         ppGen(ppGenInput(context, input.ppGenInputPath, input.ppGenOutputPath, input.afGenOutputPath, input.sdfName, packSdfOrigin));
         ppPack(ppPackInput(context, input.ppPackInputPath, input.ppPackOutputPath, packSdfOrigin));
         final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, input, packSdfOrigin));
-//        final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, sdfModule, packSdfOrigin));
-//        final Origin sdf2Parenthesize = sdf2Parenthesize(settings, sdfModule, packSdfOrigin);
         final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(context, input, packSdfOrigin);
-//        final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(settings, sdfModule, packSdfOrigin);
         final Origin rtg2Sig = rtg2Sig(rtg2SigInput(context, input, sdf2RtgInput));
-//        final Origin rtg2Sig = rtg2Sig(settings, sdfModule, input.sdf2RtgInput);
 
         // Stratego
         if(!context.isBuildStrategoEnabled(this)) {
@@ -196,7 +189,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             ;
         // @formatter:on
         strj(input, requiredUnits);
-//        strj(settings, requiredUnits);
 
         return None.val;
     }
@@ -226,43 +218,22 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     public static PackSdf.Input packSdfInput(SpoofaxContext context, String module, Arguments args, File externalDef, File packSdfInputPath, File packSdfOutputPath, File syntaxFolder, File genSyntaxFolder) {
-//        final SpoofaxProjectSettings settings = context.settings;
-//        final File externalDef;
-//        if(settings.externalDef() != null) {
-//            externalDef = context.toFile(context.resourceService().resolve(settings.externalDef()));
-//        } else {
-//            externalDef = null;
-//        }
-//        final File packSdfInputPath = context.toFile(settings.getSdfMainFile(module));
-//        final File packSdfOutputPath = context.toFile(settings.getSdfCompiledDefFile(module));
-//        final File syntaxFolder = context.toFile(settings.getSyntaxDirectory());
-//        final File genSyntaxFolder = context.toFile(settings.getGenSyntaxDirectory());
-
         return new PackSdf.Input(context, module, args, externalDef, packSdfInputPath, packSdfOutputPath, syntaxFolder, genSyntaxFolder);
     }
 
-    public static Sdf2Table.Input sdf2TableInput(SpoofaxContext context, File sdf2tableOutputPath, File makePermissiveOutputPath, String module, String sdfName, PackSdf.Input packSdfInput) {
-//        final SpoofaxProjectSettings settings = context.settings;
-//        final File makePermissiveOutputPath = context.toFile(settings.getSdfCompiledPermissiveDefFile(module));
+    public static Sdf2Table.Input sdf2TableInput(SpoofaxContext context, File sdf2tableOutputPath, File makePermissiveOutputPath, String sdfName, PackSdf.Input packSdfInput) {
         final String depFilename = "make-permissive." + sdfName + ".dep";
         final MakePermissive.Input makePermissiveInput =
             new MakePermissive.Input(context, makePermissiveOutputPath, depFilename, packSdfInput);
 
-//        final File sdf2tableOutputPath = context.toFile(settings.getSdfCompiledTableFile(module));
-        final Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, sdf2tableOutputPath, makePermissiveInput);
-        return sdf2TableInput;
+        return new Sdf2Table.Input(context, sdf2tableOutputPath, makePermissiveInput);
     }
 
-    private void sdf2Table(/*String sdfModule, String sdfName, PackSdf.Input packSdfInput,*/ Sdf2Table.Input sdf2TableInput) throws IOException {
-//        final Sdf2Table.Input input = sdf2TableInput(context, sdfModule, sdfName, packSdfInput);
+    private void sdf2Table(Sdf2Table.Input sdf2TableInput) throws IOException {
         requireBuild(Sdf2Table.factory, sdf2TableInput);
     }
 
-    private void metaSdf2Table(/*String sdfName, String metaSdfName, Arguments sdfArgs,*/ Sdf2Table.Input sdf2TableInput) throws IOException {
-//        final String module = metaSdfName;
-//        final Arguments args = new Arguments(sdfArgs);
-//        final PackSdf.Input packInput = packSdfInput(context, module, args);
-//        final Sdf2Table.Input tableInput = sdf2TableInput(context, module, sdfName, packInput);
+    private void metaSdf2Table(Sdf2Table.Input sdf2TableInput) throws IOException {
         require(sdf2TableInput.inputModule(), SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
             : LastModifiedStamper.instance);
         if(FileCommands.exists(sdf2TableInput.inputModule())) {
