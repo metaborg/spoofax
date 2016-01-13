@@ -175,10 +175,14 @@ public class SpoofaxMetaBuilder {
 
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(MetaBuildInput input) {
         final SpoofaxProjectSettings settings = input.settings;
-        final SpoofaxContext context = new SpoofaxContext(settings);
+        final SpoofaxContext context = new SpoofaxContext(
+                settings.location(),
+                settings.getBuildDirectory());
 
         final String module = settings.sdfName();
         final String metaModule = settings.metaSdfName();
+        final File strategoMainFile = context.toFile(settings.getStrMainFile());
+        final File strategoJavaStrategiesMainFile = context.toFile(settings.getStrJavaStrategiesMainFile());
 
         @Nullable final File externalDef;
         if(settings.externalDef() != null) {
@@ -240,9 +244,12 @@ public class SpoofaxMetaBuilder {
         final File strjCacheDir = context.toFile(settings.getCacheDirectory());
 
         return new GenerateSourcesBuilder.Input(
-                new SpoofaxContext(settings),
+                context,
+                strategoMainFile,
+                strategoJavaStrategiesMainFile,
                 module,
                 settings.metaSdfName(),
+                input.settings.sdfArgs(),
                 externalJar,
                 target,
                 strjInputFile,
@@ -276,48 +283,71 @@ public class SpoofaxMetaBuilder {
     }
 
     private PackageBuilder.Input packageBuilderInput(MetaBuildInput input) throws FileSystemException {
-        final SpoofaxContext context = new SpoofaxContext(input.settings);
+        final SpoofaxProjectSettings settings = input.settings;
+        final SpoofaxContext context = new SpoofaxContext(
+                settings.location(),
+                settings.getBuildDirectory());
 
-//        final FileObject baseDir = input.settings.getOutputClassesDirectory();
-//        final Collection<File> jarPaths = Lists.newArrayList();
-//        final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
-//
-//        for(FileObject path : paths) {
-//            final File pathFile = context.toFile(path);
-//            jarPaths.add(pathFile);
-//            final FileObject[] files = path.findFiles(new AllFileSelector());
-//            for(FileObject file : files) {
-//                final File javaFile = context.toFile(file);
-//                final String relative = relativize(file, baseDir);
-//                if(relative != null) { // Ignore files that are not relative to the base directory.
-//                    fileEntries.add(new JarBuilder.Entry(relative, javaFile));
-//                }
-//            }
-//        }
+        final File strategoMainFile = context.toFile(settings.getStrMainFile());
+        final File strategoJavaStrategiesMainFile = context.toFile(settings.getStrJavaStrategiesMainFile());
+
+        final String sdfName = settings.sdfName();
+
+        final File baseDir = context.toFile(settings.getOutputClassesDirectory());
 
         @Nullable final File externalDef;
-        if(input.settings.externalDef() != null) {
-            externalDef = context.toFile(context.resourceService().resolve(input.settings.externalDef()));
+        if(settings.externalDef() != null) {
+            externalDef = context.toFile(context.resourceService().resolve(settings.externalDef()));
         } else {
             externalDef = null;
         }
-        final File packSdfInputPath = context.toFile(input.settings.getSdfMainFile(input.settings.sdfName()));
-        final File packSdfOutputPath = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
-        final File syntaxFolder = context.toFile(input.settings.getSyntaxDirectory());
-        final File genSyntaxFolder = context.toFile(input.settings.getGenSyntaxDirectory());
+        final File packSdfInputPath = context.toFile(settings.getSdfMainFile(settings.sdfName()));
+        final File packSdfOutputPath = context.toFile(settings.getSdfCompiledDefFile(settings.sdfName()));
+        final File syntaxFolder = context.toFile(settings.getSyntaxDirectory());
+        final File genSyntaxFolder = context.toFile(settings.getGenSyntaxDirectory());
 
-        final File makePermissiveOutputPath = context.toFile(input.settings.getSdfCompiledPermissiveDefFile(input.settings.sdfName()));
-        final File sdf2tableOutputPath = context.toFile(input.settings.getSdfCompiledTableFile(input.settings.sdfName()));
+        final File makePermissiveOutputPath = context.toFile(settings.getSdfCompiledPermissiveDefFile(settings.sdfName()));
+        final File sdf2tableOutputPath = context.toFile(settings.getSdfCompiledTableFile(settings.sdfName()));
 
-        final File ppGenInputPath = context.toFile(input.settings.getSdfCompiledDefFile(input.settings.sdfName()));
-        final File ppGenOutputPath = context.toFile(input.settings.getGenPpCompiledFile(input.settings.sdfName()));
-        final File afGenOutputPath = context.toFile(input.settings.getGenPpAfCompiledFile(input.settings.sdfName()));
+        final File ppGenInputPath = context.toFile(settings.getSdfCompiledDefFile(settings.sdfName()));
+        final File ppGenOutputPath = context.toFile(settings.getGenPpCompiledFile(settings.sdfName()));
+        final File afGenOutputPath = context.toFile(settings.getGenPpAfCompiledFile(settings.sdfName()));
 
-        final File ppPackInputPath = context.toFile(input.settings.getPpFile(input.settings.sdfName()));
-        final File ppPackOutputPath = context.toFile(input.settings.getPpAfCompiledFile(input.settings.sdfName()));
+        final File ppPackInputPath = context.toFile(settings.getPpFile(settings.sdfName()));
+        final File ppPackOutputPath = context.toFile(settings.getPpAfCompiledFile(settings.sdfName()));
+
+        final File javaJarOutput = context.toFile(settings.getStrCompiledJavaJarFile());
+        // TODO: get javajar-includes from project settings?
+        // String[] paths = context.props.getOrElse("javajar-includes",
+        // context.settings.packageStrategiesPath()).split("[\\s]+");
+        final Collection<File> javaJarPaths = Lists.newArrayList(
+                context.toFile(settings.getStrCompiledJavaStrategiesDirectory()),
+                context.toFile(settings.getDsGeneratedInterpreterCompiledJava()),
+                context.toFile(settings.getDsManualInterpreterCompiledJava()));
+
+        final FileObject target = settings.getStrCompiledJavaTransDirectory();
+        final File jarTarget = context.toFile(target);
+        final File jarOutput = context.toFile(settings.getStrCompiledJarFile());
+
+        final File targetPpAfFile = context.toFile(target.resolveFile(settings.getPpAfName(settings.sdfName())));
+        final File targetGenPpAfFile = context.toFile(target.resolveFile(settings.getGenPpAfName(settings.sdfName())));
+        final File targetTblFile = context.toFile(target.resolveFile(settings.getSdfTableName(settings.sdfName())));
 
         return new PackageBuilder.Input(
-                new SpoofaxContext(input.settings),
+                context,
+                strategoMainFile,
+                strategoJavaStrategiesMainFile,
+                settings.sdfArgs(),
+                baseDir,
+                settings.format(),
+                javaJarPaths,
+                javaJarOutput,
+                sdfName,
+                jarTarget,
+                jarOutput,
+                targetPpAfFile,
+                targetGenPpAfFile,
+                targetTblFile,
                 ppPackInputPath,
                 ppPackOutputPath,
                 ppGenInputPath,

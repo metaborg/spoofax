@@ -24,12 +24,14 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
         private static final long serialVersionUID = -8305692591357842018L;
 
         public final File outputPath;
+        public final File strategoMainFile;
         public final Sdf2Rtg.Input sdf2RtgInput;
 
 
-        public Input(SpoofaxContext context, File outputPath, Sdf2Rtg.Input sdf2RtgInput) {
+        public Input(SpoofaxContext context, File outputPath, File strategoMainFile, Sdf2Rtg.Input sdf2RtgInput) {
             super(context);
             this.outputPath = outputPath;
+            this.strategoMainFile = strategoMainFile;
             this.sdf2RtgInput = sdf2RtgInput;
         }
 
@@ -67,7 +69,7 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
     }
 
     @Override public None build(Input input) throws IOException {
-        if(context.isBuildStrategoEnabled(this)) {
+        if(context.isBuildStrategoEnabled(this, input.strategoMainFile)) {
             final OutputPersisted<File> out = requireBuild(Sdf2Rtg.factory, input.sdf2RtgInput);
             final File inputPath = out.val;
 

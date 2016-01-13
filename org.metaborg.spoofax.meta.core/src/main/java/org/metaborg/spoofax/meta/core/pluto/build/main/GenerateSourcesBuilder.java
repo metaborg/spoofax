@@ -45,8 +45,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
+        public final File strategoMainFile;
+        public final File strategoJavaStrategiesMainFile;
         public final String sdfName;
         public final String metaSdfName;
+        public final Iterable<String> sdfArgs;
         public final @Nullable File externalJar;
         public final @Nullable File strjTarget;
         public final File strjInputFile;
@@ -78,7 +81,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final File makePermissiveOutputPath;
         public final File sdf2tableOutputPath;
 
-        public Input(SpoofaxContext context, String sdfName, String metaSdfName, File externalJar, File strjTarget, File strjInputFile, File strjOutputFile, File strjDepFile, File strjCacheDir, Iterable<String> strategoArgs, Format format, String strategiesPackageName, String externalJarFlags, File rtg2SigOutputFile, File sdf2RtgInputFile, File sdf2RtgOutputFile,
+        public Input(SpoofaxContext context,
+                     File strategoMainFile,
+                     File strategoJavaStrategiesMainFile,
+                     String sdfName, String metaSdfName, Iterable<String> sdfArgs, File externalJar, File strjTarget, File strjInputFile, File strjOutputFile, File strjDepFile, File strjCacheDir, Iterable<String> strategoArgs, Format format, String strategiesPackageName, String externalJarFlags, File rtg2SigOutputFile, File sdf2RtgInputFile, File sdf2RtgOutputFile,
                      File sdf2ParenthesizeInputFile,
                      File sdf2ParenthesizeOutputFile,
                      String sdf2ParenthesizeOutputModule,
@@ -97,8 +103,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                      File syntaxFolder,
                      File genSyntaxFolder) {
             super(context);
+            this.strategoMainFile = strategoMainFile;
+            this.strategoJavaStrategiesMainFile = strategoJavaStrategiesMainFile;
             this.sdfName = sdfName;
             this.metaSdfName = metaSdfName;
+            this.sdfArgs = sdfArgs;
             this.externalJar = externalJar;
             this.strjTarget = strjTarget;
             this.strjInputFile = strjInputFile;
@@ -162,7 +171,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     @Override public None build(Input input) throws IOException {
         // SDF
-        final Arguments sdfArgs = sdfArgs(context);
+        final Arguments sdfArgs = sdfArgs(context, input.sdfArgs);
 
         final PackSdf.Input packSdfInput = packSdfInput(context, input.sdfName, sdfArgs, input.externalDef, input.packSdfInputPath, input.packSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
         final Origin packSdfOrigin = PackSdf.origin(packSdfInput);
@@ -177,7 +186,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final Origin rtg2Sig = rtg2Sig(rtg2SigInput(context, input, sdf2RtgInput));
 
         // Stratego
-        if(!context.isBuildStrategoEnabled(this)) {
+        if(!context.isBuildStrategoEnabled(this, input.strategoMainFile)) {
             return None.val;
         }
 
@@ -194,9 +203,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
 
-    public static Arguments sdfArgs(SpoofaxContext context) {
+    public static Arguments sdfArgs(SpoofaxContext context, Iterable<String> sdfArgs) {
         final Arguments args = new Arguments();
-        args.addAll(context.settings.sdfArgs());
+        args.addAll(sdfArgs);
+//        args.addAll(context.settings.sdfArgs());
 
         final Iterable<FileObject> paths =
             context.languagePathService().sourceAndIncludePaths(context.project, LANG_SDF_NAME);
@@ -274,7 +284,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     public static Rtg2Sig.Input rtg2SigInput(SpoofaxContext context, Input input, final Sdf2Rtg.Input sdf2RtgInput) {
-        return new Rtg2Sig.Input(context, input.rtg2SigOutputFile, sdf2RtgInput);
+        return new Rtg2Sig.Input(context, input.rtg2SigOutputFile, input.strategoMainFile, sdf2RtgInput);
     }
 
     private Origin rtg2Sig(Rtg2Sig.Input input) {
@@ -292,13 +302,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             includeDirs.add(file);
         }
 
-        final Arguments strategoArgs = strategoArgs(input.strategoArgs, input.format, input.strategiesPackageName, input.externalJarFlags);
+        final Arguments strategoArgs = strategoArgs(input.strategoArgs, input.format, input.strategiesPackageName, input.externalJarFlags, input.strategoJavaStrategiesMainFile);
 
         requireBuild(Strj.factory, new Strj.Input(context, input.strjInputFile, input.strjOutputFile, input.strjDepFile, "trans", true, true,
             Iterables.toArray(includeDirs, File.class), new String[0], input.strjCacheDir, strategoArgs, origin));
     }
 
-    private Arguments strategoArgs(Iterable<String> strategoArgs, Format format, String strategiesPackageName, @Nullable String externalJarFlags) {
+    private Arguments strategoArgs(Iterable<String> strategoArgs, Format format, String strategiesPackageName, @Nullable String externalJarFlags, File strategoJavaStrategiesMainFile) {
         final Arguments args = new Arguments();
         args.addAll(strategoArgs);
 
@@ -306,7 +316,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             args.add("-F");
         } else {
             args.addAll("-la", "java-front");
-            if(context.isJavaJarEnabled(this)) {
+            if(context.isJavaJarEnabled(this, strategoJavaStrategiesMainFile)) {
                 args.addAll("-la", strategiesPackageName);
             }
         }

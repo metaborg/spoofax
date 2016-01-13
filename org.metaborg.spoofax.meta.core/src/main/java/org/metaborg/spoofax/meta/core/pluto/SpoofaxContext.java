@@ -32,6 +32,10 @@ public class SpoofaxContext implements Serializable {
 
     public final static boolean BETTER_STAMPERS = true;
 
+    // NOTE: This class should only contain static or transient fields.
+    // If non-transient fields are required, they must be Serializable,
+    // (so FileObject is out of the question).
+
     private static Injector injector;
     private static IResourceService resourceService;
     private static ILanguageService languageService;
@@ -42,8 +46,6 @@ public class SpoofaxContext implements Serializable {
     private static ISpoofaxSyntaxService syntaxService;
     private static ITermFactoryService termFactoryService;
 
-    public final SpoofaxProjectSettings settings;
-//    private final SpoofaxProjectSettings settings;
     public final File baseDir;
     public final File depDir;
 
@@ -68,22 +70,24 @@ public class SpoofaxContext implements Serializable {
     }
 
 
-    public SpoofaxContext(SpoofaxProjectSettings settings) {
+    public SpoofaxContext(FileObject baseDir, FileObject depDir) {//SpoofaxProjectSettings settings) {
         if(injector == null) {
             throw new RuntimeException("Creating context while injector has not been set");
         }
 
-        this.settings = settings;
-        this.baseDir = toFile(settings.location());
-        this.depDir = toFile(settings.getBuildDirectory());
+//        this.settings = settings;
+//        this.baseDir = toFile(settings.location());
+//        this.depDir = toFile(settings.getBuildDirectory());
+        this.baseDir = toFile(baseDir);
+        this.depDir = toFile(depDir);
 
         init();
     }
 
     public void init() {
-        final FileObject location = settings.location();
-        this.base = location;
-        this.project = projectService.get(location);
+//        final FileObject location = settings.location();
+        this.base = this.resourceService().resolve(this.baseDir);
+        this.project = projectService.get(this.base);
     }
 
 
@@ -144,16 +148,17 @@ public class SpoofaxContext implements Serializable {
     }
 
 
-    public boolean isBuildStrategoEnabled(Builder<?, ?> result) {
-        final File strategoPath = toFile(settings.getStrMainFile());
+    public boolean isBuildStrategoEnabled(Builder<?, ?> result, File strategoMainFile) {
+        final File strategoPath = strategoMainFile;
+//        final File strategoPath = toFile(settings.getStrMainFile());
         result.require(strategoPath, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
             : LastModifiedStamper.instance);
-        boolean buildStrategoEnabled = FileCommands.exists(strategoPath);
-        return buildStrategoEnabled;
+        return FileCommands.exists(strategoPath);
     }
 
-    public boolean isJavaJarEnabled(Builder<?, ?> result) {
-        final File mainFile = toFile(settings.getStrJavaStrategiesMainFile());
+    public boolean isJavaJarEnabled(Builder<?, ?> result, File strategoJavaStrategiesMainFile) {
+        final File mainFile = strategoJavaStrategiesMainFile;
+//        final File mainFile = toFile(settings.getStrJavaStrategiesMainFile());
         result.require(mainFile, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
             : LastModifiedStamper.instance);
         return FileCommands.exists(mainFile);
@@ -162,7 +167,7 @@ public class SpoofaxContext implements Serializable {
 
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
         in.defaultReadObject();
-        settings.initAfterDeserialization(resourceService);
+//        settings.initAfterDeserialization(resourceService);
         init();
     }
 }

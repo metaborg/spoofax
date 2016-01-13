@@ -37,6 +37,19 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
+        public final File strategoMainFile;
+        public final File strategoJavaStrategiesMainFile;
+        public final File baseDir;
+        public final Iterable<String> sdfArgs;
+        public final Format format;
+        public final Collection<File> javaJarPaths;
+        public final File javaJarOutput;
+        public final String sdfName;
+        public final File jarTarget;
+        public final File jarOutput;
+        public final File targetPpAfFile;
+        public final File targetGenPpAfFile;
+        public final File targetTblFile;
         public final File ppPackInputPath;
         public final File ppPackOutputPath;
         public final File ppGenInputPath;
@@ -51,6 +64,19 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         public final File sdf2tableOutputPath;
 
         public Input(SpoofaxContext context,
+                     File strategoMainFile,
+                     File strategoJavaStrategiesMainFile,
+                     Iterable<String> sdfArgs,
+                     File baseDir,
+                     Format format,
+                     Collection<File> javaJarPaths,
+                     File javaJarOutput,
+                     String sdfName,
+                     File jarTarget,
+                     File jarOutput,
+                     File targetPpAfFile,
+                     File targetGenPpAfFile,
+                     File targetTblFile,
                      File ppPackInputPath,
                      File ppPackOutputPath,
                      File ppGenInputPath,
@@ -64,6 +90,19 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
                      File syntaxFolder,
                      File genSyntaxFolder) {
             super(context);
+            this.strategoMainFile = strategoMainFile;
+            this.strategoJavaStrategiesMainFile = strategoJavaStrategiesMainFile;
+            this.sdfArgs = sdfArgs;
+            this.baseDir = baseDir;
+            this.format = format;
+            this.javaJarPaths = javaJarPaths;
+            this.javaJarOutput = javaJarOutput;
+            this.sdfName = sdfName;
+            this.jarTarget = jarTarget;
+            this.jarOutput = jarOutput;
+            this.targetPpAfFile = targetPpAfFile;
+            this.targetGenPpAfFile = targetGenPpAfFile;
+            this.targetTblFile = targetTblFile;
             this.ppPackInputPath = ppPackInputPath;
             this.ppPackOutputPath = ppPackOutputPath;
             this.ppGenInputPath = ppGenInputPath;
@@ -108,74 +147,64 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     }
 
     @Override protected None build(Input input) throws Throwable {
-        final SpoofaxProjectSettings settings = context.settings;
-
         // TODO: build Java code with Pluto.
         // BuildRequest<CompileJavaCode.Input, None, CompileJavaCode, ?> compileJavaCode =
         // new BuildRequest<>(CompileJavaCode.factory, new CompileJavaCode.Input(context,
         // new BuildRequest<?, ?, ?, ?>[] { strategoCtree }));
         // requireBuild(compileJavaCode);
 
-        final FileObject baseDir = settings.getOutputClassesDirectory();
-        if(context.isJavaJarEnabled(this)) {
-            final FileObject output = settings.getStrCompiledJavaJarFile();
-            // TODO: get javajar-includes from project settings?
-            // String[] paths = context.props.getOrElse("javajar-includes",
-            // context.settings.packageStrategiesPath()).split("[\\s]+");
-            jar(toFile(output), baseDir, null, settings.getStrCompiledJavaStrategiesDirectory(),
-                settings.getDsGeneratedInterpreterCompiledJava(), settings.getDsManualInterpreterCompiledJava());
+        if(context.isJavaJarEnabled(this, input.strategoJavaStrategiesMainFile)) {
+            jar(input.javaJarOutput, input.baseDir, null, input.javaJarPaths);
         }
 
-        if(settings.format() == Format.jar) {
+        if(input.format == Format.jar) {
             // Copy .pp.af and .tbl to trans, so that they get included in the JAR file. Required for being able
             // to load those files from Stratego code.
             // TODO: extract build request/origin creation for these files into separate class to prevent code dup.
-            final String sdfModule = settings.sdfName();
-            final Arguments sdfArgs = GenerateSourcesBuilder.sdfArgs(context);
+            final String sdfModule = input.sdfName;
+            final Arguments sdfArgs = GenerateSourcesBuilder.sdfArgs(context, input.sdfArgs);
             final PackSdf.Input packSdfInput = GenerateSourcesBuilder.packSdfInput(context, sdfModule, sdfArgs, input.externalDef, input.packSdfInputPath, input.packSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
             final Origin packSdf = PackSdf.origin(packSdfInput);
 
             final Origin.Builder originBuilder = Origin.Builder();
-            final FileObject target = settings.getStrCompiledJavaTransDirectory();
 
             final PPPack.Input ppPackInput = GenerateSourcesBuilder.ppPackInput(context, input.ppPackInputPath, input.ppPackOutputPath, packSdf);
             final File ppAfFile = requireBuild(PPPack.factory, ppPackInput).val;
-            final File targetPpAfFile = toFile(target.resolveFile(settings.getPpAfName(sdfModule)));
-            originBuilder.add(Copy.origin(new Copy.Input(ppAfFile, targetPpAfFile, Origin.from(PPPack
+            originBuilder.add(Copy.origin(new Copy.Input(ppAfFile, input.targetPpAfFile, Origin.from(PPPack
                 .request(ppPackInput)), context.baseDir, context.depDir)));
 
             final PPGen.Input ppGenInput = GenerateSourcesBuilder.ppGenInput(context, input.ppGenInputPath, input.ppGenOutputPath, input.afGenOutputPath, sdfModule, packSdf);
             final File ppGenFile = requireBuild(PPGen.factory, ppGenInput).val;
-            final File targetGenPpAfFile = toFile(target.resolveFile(settings.getGenPpAfName(sdfModule)));
-            originBuilder.add(Copy.origin(new Copy.Input(ppGenFile, targetGenPpAfFile, Origin.from(PPGen
+            originBuilder.add(Copy.origin(new Copy.Input(ppGenFile, input.targetGenPpAfFile, Origin.from(PPGen
                 .request(ppGenInput)), context.baseDir, context.depDir)));
 
             final Sdf2Table.Input sdf2TableInput =
                 GenerateSourcesBuilder.sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, sdfModule, packSdfInput);
             final File tblFile = requireBuild(Sdf2Table.factory, sdf2TableInput).val;
-            final File targeTblFile = toFile(target.resolveFile(settings.getSdfTableName(sdfModule)));
-            originBuilder.add(Copy.origin(new Copy.Input(tblFile, targeTblFile, Origin.from(Sdf2Table
+            originBuilder.add(Copy.origin(new Copy.Input(tblFile, input.targetTblFile, Origin.from(Sdf2Table
                 .request(sdf2TableInput)), context.baseDir, context.depDir)));
 
             final Origin origin = originBuilder.get();
             requireBuild(origin);
 
             // Jar
-            final FileObject output = settings.getStrCompiledJarFile();
-            jar(toFile(output), baseDir, origin, target);
+            jar(input.jarOutput, input.baseDir, origin, input.jarTarget);
         }
 
         return None.val;
     }
 
-    public void jar2(File jarFile, File baseDir, @Nullable Origin origin, File... paths) throws IOException {
+    public void jar(File jarFile, File baseDir, @Nullable Origin origin, File... paths) throws IOException {
+        jar(jarFile, baseDir, origin, Lists.newArrayList(paths));
+    }
+    public void jar(File jarFile, File baseDir, @Nullable Origin origin, Collection<File> paths) throws IOException {
         final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
 
         for (File path : paths) {
             require(path, new DirectoryLastModifiedStamper());
             final Collection<File> files = findFiles(path);
             for (final File javaFile : files) {
-                final String relative = relativize2(javaFile, baseDir);
+                final String relative = relativize(javaFile, baseDir);
 
                 if (relative != null) { // Ignore files that are not relative to the base directory.
                     fileEntries.add(new JarBuilder.Entry(relative, javaFile));
@@ -186,56 +215,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         requireBuild(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin));
     }
 
-    public void jar(File jarFile, FileObject baseDir, @Nullable Origin origin, FileObject... paths)
-        throws IOException {
-        final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
-
-        for(FileObject path : paths) {
-            final File pathFile = toFile(path);
-            require(pathFile, new DirectoryLastModifiedStamper());
-            final FileObject[] files = path.findFiles(new AllFileSelector());
-            if(files == null) {
-                continue;
-            }
-            for(FileObject file : files) {
-                final File javaFile = toFile(file);
-                final String relative = relativize(file, baseDir);
-
-                if(relative != null) { // Ignore files that are not relative to the base directory.
-                    fileEntries.add(new JarBuilder.Entry(relative, javaFile));
-                }
-            }
-        }
-
-        final Collection<JarBuilder.Entry> fileEntries2 = Lists.newLinkedList();
-
-        for (FileObject path : paths) {
-            final File pathFile = toFile(path);
-            final Collection<File> files = findFiles(pathFile);
-            for (final File javaFile : files) {
-                final String relative = relativize2(javaFile, toFile(baseDir));
-
-                if (relative != null) { // Ignore files that are not relative to the base directory.
-                    fileEntries2.add(new JarBuilder.Entry(relative, javaFile));
-                }
-            }
-        }
-
-        compare(fileEntries, fileEntries2);
-
-        requireBuild(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin));
-    }
-
-    private @Nullable String relativize(FileObject path, FileObject base) throws FileSystemException {
-        final FileName pathName = path.getName();
-        final FileName baseName = base.getName();
-        if(!baseName.isDescendent(pathName)) {
-            return null;
-        }
-        return baseName.getRelativeName(pathName);
-    }
-
-    private @Nullable String relativize2(File path, File base) {
+    private @Nullable String relativize(File path, File base) {
         @Nullable String relative = FilenameUtils.normalize(base.toPath().relativize(path.toPath()).toString());
         if (relative == null || relative.equals(""))
             return null;
@@ -248,38 +228,4 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         return FileUtils.listFilesAndDirs(directory, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
     }
 
-    private void compare(Collection<JarBuilder.Entry> fileEntries, Collection<JarBuilder.Entry> fileEntries2) {
-        Set<JarBuilder.Entry> entries1 = new HashSet<JarBuilder.Entry>(fileEntries);
-        Set<JarBuilder.Entry> entries2 = new HashSet<JarBuilder.Entry>(fileEntries2);
-//        final Comparator<JarBuilder.Entry> comparator = new Comparator<JarBuilder.Entry>() {
-//
-//            @Override
-//            public int compare(JarBuilder.Entry o1, JarBuilder.Entry o2) {
-//                return o1.file.getPath().compareTo(o2.file.getPath());
-//            }
-//        };
-//        Collections.sort(entries1, comparator);
-//        Collections.sort(entries2, comparator);
-
-        final Sets.SetView<JarBuilder.Entry> difference = Sets.difference(entries1, entries2);
-        if (difference.size() != 0) {
-//            final HashSet<JarBuilder.Entry> entries1remaining = new HashSet<>(entries1);
-//            entries1remaining.removeAll(entries2);
-            StringBuilder sb1 = new StringBuilder();
-            for (JarBuilder.Entry entry : entries1) {
-                sb1.append(entry.file + " (" + (entry.file.isDirectory() ? "DIR" : "FILE") + ")");
-                sb1.append("; ");
-            }
-
-//            final HashSet<JarBuilder.Entry> entries2remaining = new HashSet<>(entries2);
-//            entries2remaining.removeAll(entries1);
-            StringBuilder sb2 = new StringBuilder();
-            for (JarBuilder.Entry entry : entries2) {
-                sb1.append(entry.file + " (" + (entry.file.isDirectory() ? "DIR" : "FILE") + ")");
-                sb2.append("; ");
-            }
-
-            throw new RuntimeException("Sets not equal. Original entries ("+entries1.size()+"): " + sb1.toString() + ". New entries ("+entries2.size()+"): " + sb2.toString());
-        }
-    }
 }
