@@ -51,7 +51,7 @@ import com.google.inject.Injector;
 public class SpoofaxMetaBuilder {
     private static final Logger log = LoggerFactory.getLogger(SpoofaxMetaBuilder.class);
     private static final String failingRebuildMessage =
-        "Previous build failed and no change in the build input has been observed, not rebuilding. Fix the problem, or clean and rebuild the project to force a rebuild";
+            "Previous build failed and no change in the build input has been observed, not rebuilding. Fix the problem, or clean and rebuild the project to force a rebuild";
 
     private final Injector injector;
     private final IDependencyService dependencyService;
@@ -61,9 +61,10 @@ public class SpoofaxMetaBuilder {
     private final Set<IBuildStep> buildSteps;
 
 
-    @Inject public SpoofaxMetaBuilder(Injector injector, IDependencyService dependencyService,
-        ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner,
-        Set<IBuildStep> buildSteps) {
+    @Inject
+    public SpoofaxMetaBuilder(Injector injector, IDependencyService dependencyService,
+                              ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner,
+                              Set<IBuildStep> buildSteps) {
         this.injector = injector;
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
@@ -88,20 +89,20 @@ public class SpoofaxMetaBuilder {
         generator.generateAll();
 
         final FileObject settingsFile =
-            input.project.location().resolveFile("src-gen").resolveFile("metaborg.generated.yaml");
+                input.project.location().resolveFile("src-gen").resolveFile("metaborg.generated.yaml");
         settingsFile.createFile();
         YAMLProjectSettingsSerializer.write(settingsFile, input.settings.settings());
         access.addWrite(settingsFile);
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
         final FileObject mainEsvFile = input.settings.getMainESVFile();
-        if(mainEsvFile.exists()) {
+        if (mainEsvFile.exists()) {
             // @formatter:off
             final BuildInput buildInput =
-                new BuildInputBuilder(input.project)
-                .addSource(mainEsvFile)
-                .addTransformGoal(new CompileGoal())
-                .build(dependencyService, languagePathService);
+                    new BuildInputBuilder(input.project)
+                            .addSource(mainEsvFile)
+                            .addTransformGoal(new CompileGoal())
+                            .build(dependencyService, languagePathService);
             // @formatter:on
             runner.build(buildInput, null, null).schedule().block();
         }
@@ -109,47 +110,47 @@ public class SpoofaxMetaBuilder {
     }
 
     public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
-        @Nullable ICancellationToken cancellationToken) throws MetaborgException {
+                               @Nullable ICancellationToken cancellationToken) throws MetaborgException {
         log.debug("Running pre-Java build for {}", input.project.location());
 
-        for(IBuildStep buildStep : buildSteps) {
+        for (IBuildStep buildStep : buildSteps) {
             buildStep.compilePreJava(input);
         }
 
         initPluto();
         try {
             plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)));
-        } catch(RequiredBuilderFailed e) {
-            if(e.getMessage().contains("no rebuild of failing builder")) {
+        } catch (RequiredBuilderFailed e) {
+            if (e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
             }
             throw new MetaborgException();
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new MetaborgException(e);
         }
     }
 
     public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
-        @Nullable ICancellationToken cancellationToken) throws MetaborgException {
+                                @Nullable ICancellationToken cancellationToken) throws MetaborgException {
         log.debug("Running post-Java build for {}", input.project.location());
 
-        for(IBuildStep buildStep : buildSteps) {
+        for (IBuildStep buildStep : buildSteps) {
             buildStep.compilePostJava(input);
         }
 
         initPluto();
         try {
             plutoBuild(PackageBuilder.request(packageBuilderInput(input)));
-        } catch(RequiredBuilderFailed e) {
-            if(e.getMessage().contains("no rebuild of failing builder")) {
+        } catch (RequiredBuilderFailed e) {
+            if (e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
             }
             throw new MetaborgException();
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw new MetaborgException(e);
         }
     }
@@ -185,7 +186,7 @@ public class SpoofaxMetaBuilder {
         final File strategoJavaStrategiesMainFile = context.toFile(settings.getStrJavaStrategiesMainFile());
 
         @Nullable final File externalDef;
-        if(settings.externalDef() != null) {
+        if (settings.externalDef() != null) {
             externalDef = context.toFile(context.resourceService().resolve(settings.externalDef()));
         } else {
             externalDef = null;
@@ -234,7 +235,7 @@ public class SpoofaxMetaBuilder {
         final File strjInputFile = context.toFile(settings.getStrMainFile());
         final File strjOutputFile;
         final File strjDepFile;
-        if(settings.format() == Format.ctree) {
+        if (settings.format() == Format.ctree) {
             strjOutputFile = context.toFile(settings.getStrCompiledCtreeFile());
             strjDepFile = strjOutputFile;
         } else {
@@ -296,7 +297,7 @@ public class SpoofaxMetaBuilder {
         final File baseDir = context.toFile(settings.getOutputClassesDirectory());
 
         @Nullable final File externalDef;
-        if(settings.externalDef() != null) {
+        if (settings.externalDef() != null) {
             externalDef = context.toFile(context.resourceService().resolve(settings.externalDef()));
         } else {
             externalDef = null;
@@ -362,10 +363,12 @@ public class SpoofaxMetaBuilder {
                 genSyntaxFolder);
     }
 
-    private static @Nullable String relativize(FileObject path, FileObject base) throws FileSystemException {
+    private static
+    @Nullable
+    String relativize(FileObject path, FileObject base) throws FileSystemException {
         final FileName pathName = path.getName();
         final FileName baseName = base.getName();
-        if(!baseName.isDescendent(pathName)) {
+        if (!baseName.isDescendent(pathName)) {
             return null;
         }
         return baseName.getRelativeName(pathName);

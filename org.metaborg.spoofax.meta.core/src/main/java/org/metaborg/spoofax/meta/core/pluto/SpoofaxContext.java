@@ -54,7 +54,7 @@ public class SpoofaxContext implements Serializable {
 
 
     public static void init(Injector newInjector) {
-        if(injector != null) {
+        if (injector != null) {
             return;
         }
 
@@ -70,14 +70,11 @@ public class SpoofaxContext implements Serializable {
     }
 
 
-    public SpoofaxContext(FileObject baseDir, FileObject depDir) {//SpoofaxProjectSettings settings) {
-        if(injector == null) {
+    public SpoofaxContext(FileObject baseDir, FileObject depDir) {
+        if (injector == null) {
             throw new RuntimeException("Creating context while injector has not been set");
         }
 
-//        this.settings = settings;
-//        this.baseDir = toFile(settings.location());
-//        this.depDir = toFile(settings.getBuildDirectory());
         this.baseDir = toFile(baseDir);
         this.depDir = toFile(depDir);
 
@@ -85,7 +82,6 @@ public class SpoofaxContext implements Serializable {
     }
 
     public void init() {
-//        final FileObject location = settings.location();
         this.base = this.resourceService().resolve(this.baseDir);
         this.project = projectService.get(this.base);
     }
@@ -150,24 +146,21 @@ public class SpoofaxContext implements Serializable {
 
     public boolean isBuildStrategoEnabled(Builder<?, ?> result, File strategoMainFile) {
         final File strategoPath = strategoMainFile;
-//        final File strategoPath = toFile(settings.getStrMainFile());
         result.require(strategoPath, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
-            : LastModifiedStamper.instance);
+                : LastModifiedStamper.instance);
         return FileCommands.exists(strategoPath);
     }
 
     public boolean isJavaJarEnabled(Builder<?, ?> result, File strategoJavaStrategiesMainFile) {
         final File mainFile = strategoJavaStrategiesMainFile;
-//        final File mainFile = toFile(settings.getStrJavaStrategiesMainFile());
         result.require(mainFile, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance
-            : LastModifiedStamper.instance);
+                : LastModifiedStamper.instance);
         return FileCommands.exists(mainFile);
     }
 
 
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
         in.defaultReadObject();
-//        settings.initAfterDeserialization(resourceService);
         init();
     }
 }
