@@ -42,12 +42,12 @@ public class SpoofaxReporting implements IReporting {
     }
 
     @Override public <O extends Output> void canceledBuilderFailure(BuildRequest<?, O, ?, ?> req, BuildUnit<O> unit) {
-        log.error("Builder failed");
+        
     }
 
     @Override public <O extends Output> void canceledBuilderException(BuildRequest<?, O, ?, ?> req, BuildUnit<O> unit,
         Throwable t) {
-        log.error("Builder failed", t);
+        log.error("Builder failed unexpectedly", t);
     }
 
     @Override public <O extends Output> void canceledBuilderCycle(BuildRequest<?, O, ?, ?> req, BuildUnit<O> unit,
@@ -61,7 +61,9 @@ public class SpoofaxReporting implements IReporting {
 
     @Override public <O extends Output> void canceledBuilderRequiredBuilderFailed(BuildRequest<?, O, ?, ?> req,
         BuildUnit<O> unit, RequiredBuilderFailed e) {
-        log.error("Required builder failed", e.getCause());
+        if(!e.getCause().getMessage().equals("Builder failed")) {
+            log.error("Required builder failed", e.getCause());
+        }
     }
 
     @Override public void startBuildCycle(BuildCycle cycle, CycleHandler cycleSupport) {
@@ -89,6 +91,10 @@ public class SpoofaxReporting implements IReporting {
     }
 
     @Override public void messageFromSystem(String message, boolean isError, int verbosity) {
+        if(message.contains("Incrementally rebuild inconsistent units")) {
+            return;
+        }
+        
         if(verbosity <= 3) {
             log.info(message);
         } else {
