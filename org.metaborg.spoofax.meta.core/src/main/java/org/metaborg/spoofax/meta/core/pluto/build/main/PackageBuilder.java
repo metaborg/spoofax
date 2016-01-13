@@ -2,10 +2,14 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.*;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.Sets;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -118,7 +122,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             // TODO: get javajar-includes from project settings?
             // String[] paths = context.props.getOrElse("javajar-includes",
             // context.settings.packageStrategiesPath()).split("[\\s]+");
-            jar(output, baseDir, null, settings.getStrCompiledJavaStrategiesDirectory(),
+            jar(toFile(output), baseDir, null, settings.getStrCompiledJavaStrategiesDirectory(),
                 settings.getDsGeneratedInterpreterCompiledJava(), settings.getDsManualInterpreterCompiledJava());
         }
 
@@ -158,13 +162,31 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
 
             // Jar
             final FileObject output = settings.getStrCompiledJarFile();
-            jar(output, baseDir, origin, target);
+            jar(toFile(output), baseDir, origin, target);
         }
 
         return None.val;
     }
 
-    public void jar(FileObject jarPath, FileObject baseDir, @Nullable Origin origin, FileObject... paths)
+    public void jar2(File jarFile, File baseDir, @Nullable Origin origin, File... paths) throws IOException {
+        final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
+
+        for (File path : paths) {
+            require(path, new DirectoryLastModifiedStamper());
+            final Collection<File> files = findFiles(path);
+            for (final File javaFile : files) {
+                final String relative = relativize2(javaFile, baseDir);
+
+                if (relative != null) { // Ignore files that are not relative to the base directory.
+                    fileEntries.add(new JarBuilder.Entry(relative, javaFile));
+                }
+            }
+        }
+
+        requireBuild(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin));
+    }
+
+    public void jar(File jarFile, FileObject baseDir, @Nullable Origin origin, FileObject... paths)
         throws IOException {
         final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
 
@@ -178,13 +200,28 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             for(FileObject file : files) {
                 final File javaFile = toFile(file);
                 final String relative = relativize(file, baseDir);
+
                 if(relative != null) { // Ignore files that are not relative to the base directory.
                     fileEntries.add(new JarBuilder.Entry(relative, javaFile));
                 }
             }
         }
 
-        final File jarFile = toFile(jarPath);
+        final Collection<JarBuilder.Entry> fileEntries2 = Lists.newLinkedList();
+
+        for (FileObject path : paths) {
+            final File pathFile = toFile(path);
+            final Collection<File> files = findFiles(pathFile);
+            for (final File javaFile : files) {
+                final String relative = relativize2(javaFile, toFile(baseDir));
+
+                if (relative != null) { // Ignore files that are not relative to the base directory.
+                    fileEntries2.add(new JarBuilder.Entry(relative, javaFile));
+                }
+            }
+        }
+
+        compare(fileEntries, fileEntries2);
 
         requireBuild(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin));
     }
@@ -196,5 +233,53 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             return null;
         }
         return baseName.getRelativeName(pathName);
+    }
+
+    private @Nullable String relativize2(File path, File base) {
+        @Nullable String relative = FilenameUtils.normalize(base.toPath().relativize(path.toPath()).toString());
+        if (relative == null || relative.equals(""))
+            return null;
+        return relative;
+    }
+
+    private Collection<File> findFiles(File directory) {
+        if (!directory.isDirectory())
+            return Collections.emptyList();
+        return FileUtils.listFilesAndDirs(directory, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+    }
+
+    private void compare(Collection<JarBuilder.Entry> fileEntries, Collection<JarBuilder.Entry> fileEntries2) {
+        Set<JarBuilder.Entry> entries1 = new HashSet<JarBuilder.Entry>(fileEntries);
+        Set<JarBuilder.Entry> entries2 = new HashSet<JarBuilder.Entry>(fileEntries2);
+//        final Comparator<JarBuilder.Entry> comparator = new Comparator<JarBuilder.Entry>() {
+//
+//            @Override
+//            public int compare(JarBuilder.Entry o1, JarBuilder.Entry o2) {
+//                return o1.file.getPath().compareTo(o2.file.getPath());
+//            }
+//        };
+//        Collections.sort(entries1, comparator);
+//        Collections.sort(entries2, comparator);
+
+        final Sets.SetView<JarBuilder.Entry> difference = Sets.difference(entries1, entries2);
+        if (difference.size() != 0) {
+//            final HashSet<JarBuilder.Entry> entries1remaining = new HashSet<>(entries1);
+//            entries1remaining.removeAll(entries2);
+            StringBuilder sb1 = new StringBuilder();
+            for (JarBuilder.Entry entry : entries1) {
+                sb1.append(entry.file + " (" + (entry.file.isDirectory() ? "DIR" : "FILE") + ")");
+                sb1.append("; ");
+            }
+
+//            final HashSet<JarBuilder.Entry> entries2remaining = new HashSet<>(entries2);
+//            entries2remaining.removeAll(entries1);
+            StringBuilder sb2 = new StringBuilder();
+            for (JarBuilder.Entry entry : entries2) {
+                sb1.append(entry.file + " (" + (entry.file.isDirectory() ? "DIR" : "FILE") + ")");
+                sb2.append("; ");
+            }
+
+            throw new RuntimeException("Sets not equal. Original entries ("+entries1.size()+"): " + sb1.toString() + ". New entries ("+entries2.size()+"): " + sb2.toString());
+        }
     }
 }

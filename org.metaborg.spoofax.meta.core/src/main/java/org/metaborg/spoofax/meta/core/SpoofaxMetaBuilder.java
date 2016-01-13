@@ -3,11 +3,15 @@ package org.metaborg.spoofax.meta.core;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import build.pluto.buildjava.JarBuilder;
+import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.AllFileSelector;
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
@@ -28,6 +32,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
+import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryLastModifiedStamper;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.FileAccess;
 import org.slf4j.Logger;
@@ -270,8 +275,25 @@ public class SpoofaxMetaBuilder {
                 genSyntaxFolder);
     }
 
-    private PackageBuilder.Input packageBuilderInput(MetaBuildInput input) {
+    private PackageBuilder.Input packageBuilderInput(MetaBuildInput input) throws FileSystemException {
         final SpoofaxContext context = new SpoofaxContext(input.settings);
+
+//        final FileObject baseDir = input.settings.getOutputClassesDirectory();
+//        final Collection<File> jarPaths = Lists.newArrayList();
+//        final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
+//
+//        for(FileObject path : paths) {
+//            final File pathFile = context.toFile(path);
+//            jarPaths.add(pathFile);
+//            final FileObject[] files = path.findFiles(new AllFileSelector());
+//            for(FileObject file : files) {
+//                final File javaFile = context.toFile(file);
+//                final String relative = relativize(file, baseDir);
+//                if(relative != null) { // Ignore files that are not relative to the base directory.
+//                    fileEntries.add(new JarBuilder.Entry(relative, javaFile));
+//                }
+//            }
+//        }
 
         @Nullable final File externalDef;
         if(input.settings.externalDef() != null) {
@@ -308,5 +330,14 @@ public class SpoofaxMetaBuilder {
                 packSdfOutputPath,
                 syntaxFolder,
                 genSyntaxFolder);
+    }
+
+    private static @Nullable String relativize(FileObject path, FileObject base) throws FileSystemException {
+        final FileName pathName = path.getName();
+        final FileName baseName = base.getName();
+        if(!baseName.isDescendent(pathName)) {
+            return null;
+        }
+        return baseName.getRelativeName(pathName);
     }
 }
