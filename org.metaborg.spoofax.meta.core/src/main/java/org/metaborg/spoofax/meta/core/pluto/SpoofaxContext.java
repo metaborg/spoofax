@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.net.URI;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -13,11 +14,11 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
+import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.sugarj.common.FileCommands;
 
@@ -47,6 +48,7 @@ public class SpoofaxContext implements Serializable {
     private static ITermFactoryService termFactoryService;
 
     public final File baseDir;
+    public final URI baseURI;
     public final File depDir;
 
     public transient FileObject base;
@@ -75,14 +77,16 @@ public class SpoofaxContext implements Serializable {
             throw new RuntimeException("Creating context while injector has not been set");
         }
 
+        
         this.baseDir = toFile(baseDir);
+        this.baseURI = FileUtils.toURI(baseDir);
         this.depDir = toFile(depDir);
 
         init();
     }
 
     public void init() {
-        this.base = this.resourceService().resolve(this.baseDir);
+        this.base = this.resourceService().resolve(this.baseURI);
         this.project = projectService.get(this.base);
     }
 
