@@ -9,7 +9,9 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import build.pluto.buildjava.JarBuilder;
+
 import com.google.common.collect.Lists;
+
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -97,22 +99,6 @@ public class SpoofaxMetaBuilder {
         settingsFile.createFile();
         YAMLProjectSettingsSerializer.write(settingsFile, input.settings.settings());
         access.addWrite(settingsFile);
-
-        // HACK: compile the main ESV file to make sure that packed.esv file is always available.
-        final FileObject mainEsvFile = input.settings.getMainESVFile();
-        if(mainEsvFile.exists()) {
-            logger.info("Compiling ESV file {}", mainEsvFile);
-            // @formatter:off
-            final BuildInput buildInput =
-                new BuildInputBuilder(input.project)
-                .addSource(mainEsvFile)
-                .addTransformGoal(new CompileGoal())
-                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
-                .build(dependencyService, languagePathService);
-            // @formatter:on
-            runner.build(buildInput, null, null).schedule().block();
-        }
-        access.addWrite(mainEsvFile);
     }
 
     public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
@@ -137,6 +123,28 @@ public class SpoofaxMetaBuilder {
             throw new MetaborgException(e);
         }
 
+        // HACK: compile the main ESV file to make sure that packed.esv file is always available.
+        final FileObject mainEsvFile = input.settings.getMainESVFile();
+        try {
+            if(mainEsvFile.exists()) {
+                logger.info("Compiling ESV file {}", mainEsvFile);
+                // @formatter:off
+                final BuildInput buildInput =
+                    new BuildInputBuilder(input.project)
+                    .addSource(mainEsvFile)
+                    .addTransformGoal(new CompileGoal())
+                    .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
+                    .build(dependencyService, languagePathService);
+                // @formatter:on
+                runner.build(buildInput, null, null).schedule().block();
+            }
+        } catch(FileSystemException e) {
+            final String message = logger.format("Could not compile ESV file {}", mainEsvFile);
+            throw new MetaborgException(message, e);
+        } catch(InterruptedException e) {
+            // Ignore
+        }
+        
         // HACK: compile the main DS file if available, after generating sources (because ds can depend on Stratego
         // strategies), to generate an interpreter.
         final FileObject mainDsFile = input.settings.getMainDsFile();
