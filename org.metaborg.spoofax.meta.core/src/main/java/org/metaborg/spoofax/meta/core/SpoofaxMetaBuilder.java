@@ -61,19 +61,17 @@ public class SpoofaxMetaBuilder {
     private final IDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
-    private final MetaBuildAntRunnerFactory antRunner;
     private final Set<IBuildStep> buildSteps;
 
 
     @Inject public SpoofaxMetaBuilder(Injector injector, ISourceTextService sourceTextService, IDependencyService dependencyService,
-        ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner,
+        ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner,
         Set<IBuildStep> buildSteps) {
         this.injector = injector;
         this.sourceTextService = sourceTextService;
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
         this.runner = runner;
-        this.antRunner = antRunner;
         this.buildSteps = buildSteps;
     }
 
@@ -115,8 +113,7 @@ public class SpoofaxMetaBuilder {
         access.addWrite(mainEsvFile);
     }
 
-    public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
-        @Nullable ICancellationToken cancellationToken) throws MetaborgException {
+    public void compilePreJava(MetaBuildInput input) throws MetaborgException {
         logger.debug("Running pre-Java build for {}", input.project.location());
 
         for(IBuildStep buildStep : buildSteps) {
@@ -161,8 +158,7 @@ public class SpoofaxMetaBuilder {
         }
     }
 
-    public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
-        @Nullable ICancellationToken cancellationToken) throws MetaborgException {
+    public void compilePostJava(MetaBuildInput input) throws MetaborgException {
         logger.debug("Running post-Java build for {}", input.project.location());
 
         for(IBuildStep buildStep : buildSteps) {
@@ -390,16 +386,5 @@ public class SpoofaxMetaBuilder {
                 packSdfOutputPath,
                 syntaxFolder,
                 genSyntaxFolder);
-    }
-
-    private static
-    @Nullable
-    String relativize(FileObject path, FileObject base) throws FileSystemException {
-        final FileName pathName = path.getName();
-        final FileName baseName = base.getName();
-        if (!baseName.isDescendent(pathName)) {
-            return null;
-        }
-        return baseName.getRelativeName(pathName);
     }
 }
