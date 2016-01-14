@@ -42,6 +42,7 @@ import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.FileSelectorUtils;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
@@ -199,6 +200,7 @@ public class SpoofaxMetaBuilder {
         settings.getIncludeDirectory().delete(selector);
         settings.getGenSourceDirectory().delete(selector);
         settings.getCacheDirectory().delete(selector);
+        settings.getDsGeneratedInterpreterJava().delete(FileSelectorUtils.extension("java"));
         Xattr.getDefault().clear();
     }
 
