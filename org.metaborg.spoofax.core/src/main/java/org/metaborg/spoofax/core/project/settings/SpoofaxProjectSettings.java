@@ -329,6 +329,11 @@ public class SpoofaxProjectSettings implements Serializable {
     public FileObject getPackedEsv() {
         return resolve(getIncludeDirectory(), esvName() + ".packed.esv");
     }
+    
+    public FileObject getMainDsFile() {
+        return resolve(getTransDirectory(), strategoName() + ".ds");
+    }
+    
 
 
     private FileObject resolve(String name) {

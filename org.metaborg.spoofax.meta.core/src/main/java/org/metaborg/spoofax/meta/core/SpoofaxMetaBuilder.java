@@ -17,12 +17,15 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.action.CompileGoal;
+import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.processing.ICancellationToken;
 import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
+import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
@@ -35,8 +38,8 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryLastModifiedStamper;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.FileAccess;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
@@ -49,11 +52,12 @@ import com.google.inject.Injector;
 
 // TODO Rename to: SpoofaxLanguageSpecBuilder
 public class SpoofaxMetaBuilder {
-    private static final Logger log = LoggerFactory.getLogger(SpoofaxMetaBuilder.class);
+    private static final ILogger logger = LoggerUtils.logger(SpoofaxMetaBuilder.class);
     private static final String failingRebuildMessage =
-            "Previous build failed and no change in the build input has been observed, not rebuilding. Fix the problem, or clean and rebuild the project to force a rebuild";
+        "Previous build failed and no change in the build input has been observed, not rebuilding. Fix the problem, or clean and rebuild the project to force a rebuild";
 
     private final Injector injector;
+    private final ISourceTextService sourceTextService;
     private final IDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
@@ -61,11 +65,11 @@ public class SpoofaxMetaBuilder {
     private final Set<IBuildStep> buildSteps;
 
 
-    @Inject
-    public SpoofaxMetaBuilder(Injector injector, IDependencyService dependencyService,
-                              ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner,
-                              Set<IBuildStep> buildSteps) {
+    @Inject public SpoofaxMetaBuilder(Injector injector, ISourceTextService sourceTextService, IDependencyService dependencyService,
+        ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, MetaBuildAntRunnerFactory antRunner,
+        Set<IBuildStep> buildSteps) {
         this.injector = injector;
+        this.sourceTextService = sourceTextService;
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
         this.runner = runner;
@@ -83,26 +87,28 @@ public class SpoofaxMetaBuilder {
     }
 
     public void generateSources(MetaBuildInput input, FileAccess access) throws Exception {
-        log.debug("Generating sources for {}", input.project.location());
+        logger.debug("Generating sources for {}", input.project.location());
 
         final ProjectGenerator generator = new ProjectGenerator(new GeneratorProjectSettings(input.settings), access);
         generator.generateAll();
 
         final FileObject settingsFile =
-                input.project.location().resolveFile("src-gen").resolveFile("metaborg.generated.yaml");
+            input.project.location().resolveFile("src-gen").resolveFile("metaborg.generated.yaml");
         settingsFile.createFile();
         YAMLProjectSettingsSerializer.write(settingsFile, input.settings.settings());
         access.addWrite(settingsFile);
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
         final FileObject mainEsvFile = input.settings.getMainESVFile();
-        if (mainEsvFile.exists()) {
+        if(mainEsvFile.exists()) {
+            logger.info("Compiling ESV file {}", mainEsvFile);
             // @formatter:off
             final BuildInput buildInput =
-                    new BuildInputBuilder(input.project)
-                            .addSource(mainEsvFile)
-                            .addTransformGoal(new CompileGoal())
-                            .build(dependencyService, languagePathService);
+                new BuildInputBuilder(input.project)
+                .addSource(mainEsvFile)
+                .addTransformGoal(new CompileGoal())
+                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
+                .build(dependencyService, languagePathService);
             // @formatter:on
             runner.build(buildInput, null, null).schedule().block();
         }
@@ -110,53 +116,76 @@ public class SpoofaxMetaBuilder {
     }
 
     public void compilePreJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
-                               @Nullable ICancellationToken cancellationToken) throws MetaborgException {
-        log.debug("Running pre-Java build for {}", input.project.location());
+        @Nullable ICancellationToken cancellationToken) throws MetaborgException {
+        logger.debug("Running pre-Java build for {}", input.project.location());
 
-        for (IBuildStep buildStep : buildSteps) {
+        for(IBuildStep buildStep : buildSteps) {
             buildStep.compilePreJava(input);
         }
 
         initPluto();
         try {
             plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)));
-        } catch (RequiredBuilderFailed e) {
-            if (e.getMessage().contains("no rebuild of failing builder")) {
+        } catch(RequiredBuilderFailed e) {
+            if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
             }
             throw new MetaborgException();
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             throw e;
-        } catch (Throwable e) {
+        } catch(Throwable e) {
             throw new MetaborgException(e);
+        }
+
+        // HACK: compile the main DS file if available, after generating sources (because ds can depend on Stratego
+        // strategies), to generate an interpreter.
+        final FileObject mainDsFile = input.settings.getMainDsFile();
+        try {
+            if(mainDsFile.exists()) {
+                logger.info("Compiling DynSem file {}", mainDsFile);
+                // @formatter:off
+                final BuildInput buildInput =
+                    new BuildInputBuilder(input.project)
+                    .addSource(mainDsFile)
+                    .addTransformGoal(new EndNamedGoal("All to Java"))
+                    .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
+                    .build(dependencyService, languagePathService);
+                // @formatter:on
+                runner.build(buildInput, null, null).schedule().block();
+            }
+        } catch(FileSystemException e) {
+            final String message = logger.format("Could not compile DynSem file {}", mainDsFile);
+            throw new MetaborgException(message, e);
+        } catch(InterruptedException e) {
+            // Ignore
         }
     }
 
     public void compilePostJava(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener,
-                                @Nullable ICancellationToken cancellationToken) throws MetaborgException {
-        log.debug("Running post-Java build for {}", input.project.location());
+        @Nullable ICancellationToken cancellationToken) throws MetaborgException {
+        logger.debug("Running post-Java build for {}", input.project.location());
 
-        for (IBuildStep buildStep : buildSteps) {
+        for(IBuildStep buildStep : buildSteps) {
             buildStep.compilePostJava(input);
         }
 
         initPluto();
         try {
             plutoBuild(PackageBuilder.request(packageBuilderInput(input)));
-        } catch (RequiredBuilderFailed e) {
-            if (e.getMessage().contains("no rebuild of failing builder")) {
+        } catch(RequiredBuilderFailed e) {
+            if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
             }
             throw new MetaborgException();
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             throw e;
-        } catch (Throwable e) {
+        } catch(Throwable e) {
             throw new MetaborgException(e);
         }
     }
 
     public void clean(SpoofaxProjectSettings settings) throws IOException {
-        log.debug("Cleaning {}", settings.location());
+        logger.debug("Cleaning {}", settings.location());
         final AllFileSelector selector = new AllFileSelector();
         settings.getStrJavaTransDirectory().delete(selector);
         settings.getIncludeDirectory().delete(selector);
