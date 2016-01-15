@@ -2,6 +2,7 @@
 <project name="build">
 	<!-- Key input modules -->
 	<property name="sdfmodule" value="${lang.name}" />
+	<property name="sdfmodule-permissive" value="${sdfmodule}-Permissive-Custom" />
 	<property name="metasdfmodule" value="Stratego-${lang.name}" />
 	<property name="esvmodule" value="${lang.name}" />
 	<property name="strmodule" value="${lang.strname}" />
@@ -87,7 +88,7 @@
 		</copy>
 	</target>
 
-	<target name="sdf2table" depends="make-permissive">
+	<target name="sdf2table" depends="make-permissive, sdf2table-custom-permissive">
 		<for param="input">
 			<path>
 				<fileset dir="${include}" includes="*-Permissive.def" />
@@ -99,6 +100,18 @@
 			</sequential>
 		</for>
 	</target>
+
+	<target name="sdf2table-custom-permissive" depends="pack-sdf-custom-permissive">
+		<trycatch>
+			<try>
+				<sdf2table input="${include}/${sdfmodule-permissive}.def" main="${sdfmodule-permissive}" output="${include}/${sdfmodule-permissive}.tbl" />
+			</try>
+			<catch>
+				<echo message="Custom permissive parse table could not be generated." />
+			</catch>
+		</trycatch>
+	</target>
+
 
 	<target name="meta-sdf2table" if="metasdfmodule.available">
 		<antcall target="sdf2table">
@@ -131,6 +144,31 @@
 				<arg line="${build.sdf.imports}" />
 			</args>
 		</pack-sdf>
+	</target>
+
+	<target name="pack-sdf-custom-permissive" unless="externaldef" depends="copy-sdf2">
+		<trycatch>
+			<try>
+				<pack-sdf input="${syntax.rel}/${sdfmodule-permissive}.sdf" output="${include.rel}/${sdfmodule-permissive}.def">
+					<sdf-deps>
+						<srcfiles dir="${basedir}" includes="**/*.sdf" />
+						<srcfiles dir="${lib}" includes="**/*.def" />
+						<srcfiles dir="${include}" includes="${sdfmodule}.def" />
+					</sdf-deps>
+
+					<args>
+						<arg value="-I" />
+						<arg value="${syntax}" />
+						<arg value="-I" />
+						<arg value="${lib}" />
+						<arg line="${build.sdf.imports}" />
+					</args>
+				</pack-sdf>
+			</try>
+			<catch>
+				<echo message="Custom permissive grammar could not be packed." />
+			</catch>
+		</trycatch>
 	</target>
 
 	<target name="copy-sdf" if="externaldef">

@@ -15,13 +15,21 @@ public class JSGLRSourceRegionFactory {
             right.getEndLine(), right.getEndColumn());
     }
     
-    public static ISourceRegion fromTokensLayout(IToken left, IToken right) {
+    public static ISourceRegion fromTokensLayout(IToken left, IToken right, boolean isList) {
         int leftStartOffset = left.getStartOffset();
         int rightStartOffset = right.getStartOffset();
         int rightEndOffset = right.getEndOffset();
         
-        if (rightEndOffset < rightStartOffset) 
+        
+        if(rightEndOffset < rightStartOffset) 
             rightEndOffset = rightStartOffset;
+                
+        // To fix the difference between offset and cursor position        
+        if(left.getKind() != IToken.TK_LAYOUT && !isList) 
+            leftStartOffset++;
+        
+        if(right.getKind() == IToken.TK_LAYOUT || isList)
+            rightEndOffset++;
         
         return new SourceRegion(leftStartOffset, left.getLine(), left.getColumn(), rightEndOffset,
             right.getEndLine(), right.getEndColumn());
