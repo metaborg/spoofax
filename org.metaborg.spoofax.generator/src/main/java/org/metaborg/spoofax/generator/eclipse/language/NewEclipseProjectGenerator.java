@@ -8,7 +8,10 @@ import org.metaborg.util.file.FileAccess;
 
 /**
  * Generates Eclipse support files for language projects.
+ *
+ * @deprecated To remove.
  */
+@Deprecated
 public class NewEclipseProjectGenerator extends NewBaseGenerator {
     public NewEclipseProjectGenerator(LanguageSpecGeneratorScope scope, FileAccess access) {
         super(scope, access);

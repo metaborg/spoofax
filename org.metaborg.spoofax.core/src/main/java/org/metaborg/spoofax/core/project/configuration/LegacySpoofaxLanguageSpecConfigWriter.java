@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.project.configuration;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.settings.ProjectSettings;
 import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.util.file.FileAccess;
@@ -14,11 +15,9 @@ public class LegacySpoofaxLanguageSpecConfigWriter implements ISpoofaxLanguageSp
 
     @Override
     public void write(ILanguageSpec languageSpec, ISpoofaxLanguageSpecConfig config, @Nullable FileAccess access) throws IOException {
-        FileObject settingsFile = getConfigFile(languageSpec);
-        if (!(config instanceof LegacySpoofaxLanguageSpecConfig))
-            throw new RuntimeException("This class can only deal with LegacySpoofaxLanguageSpecConfig configurations.");
+        final SpoofaxProjectSettings settings = getSettings(languageSpec.location(), config);
 
-        final SpoofaxProjectSettings settings = ((LegacySpoofaxLanguageSpecConfig) config).settings;
+        FileObject settingsFile = getConfigFile(languageSpec);
         settingsFile.createFile();
         YAMLProjectSettingsSerializer.write(settingsFile, settings.settings());
         if (access != null)
@@ -28,5 +27,19 @@ public class LegacySpoofaxLanguageSpecConfigWriter implements ISpoofaxLanguageSp
     @Override
     public FileObject getConfigFile(ILanguageSpec languageSpec) throws FileSystemException {
         return languageSpec.location().resolveFile("src-gen").resolveFile("metaborg.generated.yaml");
+    }
+
+    private SpoofaxProjectSettings getSettings(FileObject location, ISpoofaxLanguageSpecConfig config) {
+        if (config instanceof LegacySpoofaxLanguageSpecConfig) {
+            return ((LegacySpoofaxLanguageSpecConfig) config).settings;
+        } else {
+            return new SpoofaxProjectSettings(new ProjectSettings(
+                    config.identifier(),
+                    config.name(),
+                    config.compileDependencies(),
+                    config.runtimeDependencies(),
+                    config.languageContributions()
+            ), location);
+        }
     }
 }
