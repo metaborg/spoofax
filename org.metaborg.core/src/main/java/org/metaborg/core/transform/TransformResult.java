@@ -1,56 +1,56 @@
 package org.metaborg.core.transform;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.List;
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.IResult;
+import org.metaborg.core.action.TransformActionContribution;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.resource.ResourceService;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Lists;
-
-public class TransformResult<PrevT, TransT> implements Serializable {
-    private static final long serialVersionUID = 9088183760418269222L;
-
-    public final TransT result;
+public class TransformResult<V, T> implements IResult<T> {
+    public final T result;
     public final Iterable<IMessage> messages;
-    public transient Iterable<FileObject> sources;
+    public final FileObject source;
+    public final @Nullable FileObject output;
     public final IContext context;
     public final long duration;
-    public final PrevT previousResult;
+    public final TransformActionContribution action;
+    public final IResult<V> prevResult;
 
 
-    public TransformResult(TransT result, Iterable<IMessage> messages, Iterable<FileObject> sources, IContext context,
-        long duration, PrevT previousResult) {
+    public TransformResult(T result, Iterable<IMessage> messages, FileObject source, @Nullable FileObject output,
+        IContext context, long duration, TransformActionContribution action, IResult<V> prevResult) {
         this.result = result;
         this.messages = messages;
-        this.sources = sources;
+        this.source = source;
+        this.output = output;
         this.context = context;
         this.duration = duration;
-        this.previousResult = previousResult;
+        this.action = action;
+        this.prevResult = prevResult;
+    }
+
+    public TransformResult(T result, FileObject source, @Nullable FileObject output, IContext context, long duration,
+        TransformActionContribution action, IResult<V> prevResult) {
+        this(result, Iterables2.<IMessage>empty(), source, output, context, duration, action, prevResult);
+    }
+    
+    public TransformResult(TransformResult<?, T> result, IResult<V> prevResult) {
+        this(result.result, result.source, result.output, result.context, result.duration, result.action, prevResult);
     }
 
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-
-        List<FileObject> ctreeList = Lists.newArrayList(sources);
-        out.writeInt(ctreeList.size());
-        for(FileObject fo : ctreeList)
-            ResourceService.writeFileObject(fo, out);
+    @Override public T value() {
+        return result;
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
+    @Override public Iterable<IMessage> messages() {
+        return messages;
+    }
 
-        List<FileObject> sourceList = Lists.newArrayList();
-        int sourceCount = in.readInt();
-        for(int i = 0; i < sourceCount; i++)
-            sourceList.add(ResourceService.readFileObject(in));
-        this.sources = sourceList;
+    @Override public long duration() {
+        return duration;
     }
 }

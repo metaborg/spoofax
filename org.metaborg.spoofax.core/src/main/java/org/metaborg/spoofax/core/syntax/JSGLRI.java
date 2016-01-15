@@ -28,6 +28,7 @@ public class JSGLRI {
     private final ITermFactory termFactory;
     private final ILanguageImpl language;
     private final ILanguageImpl dialect;
+    @Nullable
     private final FileObject resource;
     private final String input;
 
@@ -35,7 +36,7 @@ public class JSGLRI {
 
 
     public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
-        FileObject resource, String input) throws IOException {
+                  @Nullable FileObject resource, String input) throws IOException {
         this.config = config;
         this.termFactory = termFactory;
         this.language = language;
@@ -54,7 +55,7 @@ public class JSGLRI {
             configuration = new JSGLRParserConfiguration();
         }
 
-        final String fileName = resource.getName().getPath();
+        final String fileName = resource != null ? resource.getName().getPath() : null;
 
         final JSGLRParseErrorHandler errorHandler =
             new JSGLRParseErrorHandler(this, resource, config.getParseTableProvider().parseTable().hasRecovers());
@@ -88,7 +89,7 @@ public class JSGLRI {
             dialect, result);
     }
 
-    public SGLRParseResult actuallyParse(String text, String filename, @Nullable JSGLRParserConfiguration parserConfig)
+    public SGLRParseResult actuallyParse(String text, @Nullable String filename, @Nullable JSGLRParserConfiguration parserConfig)
         throws SGLRException, InterruptedException {
         if(!parserConfig.implode) {
             // GTODO: copied from existing code. Is this correct? Seems like this should be the tree builder when

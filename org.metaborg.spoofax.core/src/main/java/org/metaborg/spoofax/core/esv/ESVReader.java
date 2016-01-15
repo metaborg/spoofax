@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.esv;
 
-import com.google.common.collect.Lists;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
 import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
@@ -9,12 +8,15 @@ import static org.spoofax.terms.Term.tryGetName;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+
+import com.google.common.collect.Lists;
 
 /**
  * Term reading utility class for ESV abstract syntax.

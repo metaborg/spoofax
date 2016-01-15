@@ -6,7 +6,10 @@ import org.apache.commons.vfs2.FileObject;
 
 /**
  * Request for language discovery.
+ *
+ * @deprecated Use {@link INewLanguageDiscoveryRequest} instead.
  */
+@Deprecated
 public interface ILanguageDiscoveryRequest {
     /**
      * A request is available when all required files exist, such as the parse table and JAR files, and all

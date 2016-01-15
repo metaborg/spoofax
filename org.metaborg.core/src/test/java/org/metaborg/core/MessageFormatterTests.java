@@ -1,8 +1,8 @@
 package org.metaborg.core;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public final class MessageFormatterTests {
 

@@ -1,17 +1,9 @@
 package org.metaborg.spoofax.core.project.settings;
 
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_CACHE;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_EDITOR;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_ICONS;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_INCLUDE;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_JAVA;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_JAVA_TRANS;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_LIB;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_SRCGEN;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_SRCGEN_SYNTAX;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_SYNTAX;
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_TRANS;
+import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
+import java.io.Serializable;
+import java.net.URI;
 import java.util.Collection;
 
 import javax.annotation.Nullable;
@@ -21,12 +13,18 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.util.file.FileUtils;
 
 import com.google.common.collect.Lists;
 
-public class SpoofaxProjectSettings {
+@Deprecated
+public class SpoofaxProjectSettings implements Serializable {
+    private static final long serialVersionUID = 7439146986768086591L;
+    
     private final IProjectSettings settings;
-    private final FileObject location;
+    private final URI locationPath;
+    private transient FileObject location;
 
     private Collection<String> pardonedLanguages = Lists.newLinkedList();
     private Format format = Format.ctree;
@@ -39,7 +37,13 @@ public class SpoofaxProjectSettings {
 
     public SpoofaxProjectSettings(IProjectSettings settings, FileObject location) {
         this.settings = settings;
+        this.locationPath = FileUtils.toURI(location);
         this.location = location;
+    }
+    
+    
+    public void initAfterDeserialization(IResourceService resourceService) {
+        location = resourceService.resolve(locationPath);
     }
 
 
@@ -111,6 +115,18 @@ public class SpoofaxProjectSettings {
         this.externalJarFlags = externalJarFlags;
     }
 
+    
+    public String sdfName() {
+        return settings.name();
+    }
+    
+    public String metaSdfName() {
+        return sdfName() + "-Statego";
+    }
+    
+    public String esvName() {
+        return settings.name();
+    }
 
     public String strategoName() {
         return NameUtil.toJavaId(settings.name().toLowerCase());
@@ -128,15 +144,35 @@ public class SpoofaxProjectSettings {
         return packageName().replace('.', '/');
     }
 
+    public String strategiesPackageName() {
+        return packageName() + ".strategies";
+    }
+    
+    public String packageStrategiesPath() {
+        return strategiesPackageName().replace('.', '/');
+    }
+    
 
-    public FileObject getGeneratedSourceDirectory() {
+    public FileObject getGenSourceDirectory() {
         return resolve(DIR_SRCGEN);
     }
 
-    public FileObject getOutputDirectory() {
+    public FileObject getIncludeDirectory() {
         return resolve(DIR_INCLUDE);
     }
+    
+    public FileObject getOutputDirectory() {
+        return resolve(DIR_OUTPUT);
+    }
+    
+    public FileObject getOutputClassesDirectory() {
+        return resolve(DIR_CLASSES);
+    }
 
+    public FileObject getBuildDirectory() {
+        return resolve(DIR_BUILD);
+    }
+    
     public FileObject getIconsDirectory() {
         return resolve(DIR_ICONS);
     }
@@ -153,15 +189,7 @@ public class SpoofaxProjectSettings {
         return resolve(DIR_EDITOR);
     }
 
-    public FileObject getJavaDirectory() {
-        return resolve(DIR_JAVA);
-    }
-
-    public FileObject getJavaTransDirectory() {
-        return resolve(DIR_JAVA_TRANS);
-    }
-
-    public FileObject getGeneratedSyntaxDirectory() {
+    public FileObject getGenSyntaxDirectory() {
         return resolve(DIR_SRCGEN_SYNTAX);
     }
 
@@ -173,14 +201,18 @@ public class SpoofaxProjectSettings {
         return resolve(DIR_CACHE);
     }
 
-    public FileObject getMainESVFile() {
-        return resolve(DIR_EDITOR + "/" + settings.name() + ".main.esv");
-    }
-
 
     private FileObject resolve(String directory) {
         try {
-            return location.resolveFile(directory);
+            return location.resolveFile(name);
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException(e);
+        }
+    }
+
+    private FileObject resolve(FileObject file, String name) {
+        try {
+            return file.resolveFile(name);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }

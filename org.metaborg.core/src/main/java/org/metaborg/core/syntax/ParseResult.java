@@ -1,14 +1,17 @@
 package org.metaborg.core.syntax;
 
+import java.util.Objects;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.IResult;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 
 import com.google.common.collect.Lists;
 
-public class ParseResult<T> {
+public class ParseResult<P> implements IResult<P> {
     /**
      * Parser input string.
      */
@@ -17,12 +20,12 @@ public class ParseResult<T> {
     /**
      * Parser output, or null if parsing failed.
      */
-    public final @Nullable T result;
+    public final @Nullable P result;
 
     /**
      * Resource that was parsed.
      */
-    public final FileObject source;
+    public final @Nullable FileObject source;
 
     /**
      * Messages produced during parsing.
@@ -50,7 +53,7 @@ public class ParseResult<T> {
     public final @Nullable Object parserSpecificData;
 
 
-    public ParseResult(String input, @Nullable T result, FileObject source, Iterable<IMessage> messages, long duration,
+    public ParseResult(String input, @Nullable P result, @Nullable FileObject source, Iterable<IMessage> messages, long duration,
         ILanguageImpl language, @Nullable ILanguageImpl dialect, Object parserSpecificData) {
         this.input = input;
         this.result = result;
@@ -62,11 +65,25 @@ public class ParseResult<T> {
         this.parserSpecificData = parserSpecificData;
     }
 
+    
+    @Override public @Nullable P value() {
+        return result;
+    }
+
+    @Override public Iterable<IMessage> messages() {
+        return messages;
+    }
+
+    @Override public long duration() {
+        return duration;
+    }
+
+
     @Override public int hashCode() {
         final int prime = 31;
         int hashResult = 1;
         hashResult = prime * hashResult + ((this.result == null) ? 0 : result.hashCode());
-        hashResult = prime * hashResult + source.hashCode();
+        hashResult = prime * hashResult + ((this.source != null) ? source.hashCode() : 0);
         return hashResult;
     }
 
@@ -84,10 +101,8 @@ public class ParseResult<T> {
                 return false;
         } else if(!result.equals(other.result))
             return false;
-        if(!source.equals(other.source))
-            return false;
 
-        return true;
+        return Objects.equals(this.source, other.source);
     }
 
     @Override public String toString() {

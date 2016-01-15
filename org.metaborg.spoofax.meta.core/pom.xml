@@ -24,6 +24,11 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.meta.core</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.spoofax.core</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
@@ -42,7 +47,17 @@
       <artifactId>org.metaborg.util</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
-    
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>strategoxt-min-jar</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>make-permissive</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+
     <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
@@ -54,16 +69,31 @@
     <dependency>
       <groupId>org.apache.ant</groupId>
       <artifactId>ant</artifactId>
-      <version>1.9.2</version>
+      <version>1.9.6</version>
     </dependency>
     <dependency>
       <groupId>ant-contrib</groupId>
       <artifactId>ant-contrib</artifactId>
       <version>1.0b3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>ant</groupId>
+          <artifactId>ant</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>build.pluto</groupId>
+      <artifactId>pluto</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>build.pluto</groupId>
+      <artifactId>build-java</artifactId>
     </dependency>
   </dependencies>
 

@@ -8,8 +8,8 @@ import javax.annotation.Nullable;
 import org.metaborg.core.style.IStyle;
 import org.metaborg.core.style.Style;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -18,7 +18,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
 public class StylerFacetFromESV {
-    private static final Logger logger = LoggerFactory.getLogger(StylerFacetFromESV.class);
+    private static final ILogger logger = LoggerUtils.logger(StylerFacetFromESV.class);
 
 
     public static @Nullable StylerFacet create(IStrategoAppl esv) {

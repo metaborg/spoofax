@@ -16,8 +16,8 @@ import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -27,7 +27,7 @@ import org.spoofax.terms.io.binary.TermReader;
 import com.google.inject.Inject;
 
 public class DialectIdentifier implements IDialectIdentifier {
-    private static final Logger logger = LoggerFactory.getLogger(DialectIdentifier.class);
+    private static final ILogger logger = LoggerUtils.logger(DialectIdentifier.class);
 
     private final ILanguageService languageService;
     private final IDialectService dialectService;

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
@@ -30,6 +32,7 @@ public class JSGLRParseErrorHandler {
         "Region could not be parsed because of subsequent syntax error(s) indicated below";
 
     private final JSGLRI parser;
+    @Nullable
     private final FileObject resource;
     private final boolean hasRecoveryRules;
     private final Collection<IMessage> messages = Lists.newArrayList();
@@ -37,7 +40,7 @@ public class JSGLRParseErrorHandler {
     private boolean recoveryFailed;
 
 
-    public JSGLRParseErrorHandler(JSGLRI parser, FileObject resource, boolean hasRecoveryRules) {
+    public JSGLRParseErrorHandler(JSGLRI parser, @Nullable FileObject resource, boolean hasRecoveryRules) {
         this.parser = parser;
         this.resource = resource;
         this.hasRecoveryRules = hasRecoveryRules;

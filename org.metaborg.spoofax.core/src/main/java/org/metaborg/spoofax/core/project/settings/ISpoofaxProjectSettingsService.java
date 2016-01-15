@@ -4,10 +4,14 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ProjectException;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
 
 /**
  * Interface for getting Spoofax-specific project settings.
+ *
+ * @deprecated Use {@link ISpoofaxLanguageSpecConfigService} instead.
  */
+@Deprecated
 public interface ISpoofaxProjectSettingsService {
     /**
      * Retrieves Spoofax-specific project settings given a project.

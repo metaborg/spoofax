@@ -12,14 +12,14 @@ import org.metaborg.core.style.IStyle;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.style.RegionStyle;
 import org.metaborg.util.iterators.Iterables2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
 
 public class StylerService implements IStylerService<IStrategoTerm, IStrategoTerm> {
-    private static final Logger logger = LoggerFactory.getLogger(StylerService.class);
+    private static final ILogger logger = LoggerUtils.logger(StylerService.class);
 
 
     @Override public Iterable<IRegionStyle<IStrategoTerm>> styleParsed(ILanguageImpl language,

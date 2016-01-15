@@ -25,6 +25,9 @@
 	<property name="trans.rel" location="trans" relative="yes" />
 	<property name="include.rel" location="${include}" relative="yes" />
 	<property name="lib-gen.rel" location="${lib-gen}" relative="yes" />
+	
+	<property name="javajar-includes" value="${lang.package.path}/strategies/, ds/**"/>
+
 
 	<!-- Imports -->
 	<property name="build.sdf.imports" value="${sdf.args}" />
@@ -71,9 +74,7 @@
 	<condition property="src-dirs" value="${src-dirs}" else="${src-gen}">
 		<isset property="src-dirs" />
 	</condition>
-	<condition property="javajar-includes" value="${javajar-includes}" else="${lang.package.path}/strategies/">
-		<isset property="javajar-includes" />
-	</condition>
+
 
 	<mkdir dir="${build}" />
 	<mkdir dir="${src-gen}" />

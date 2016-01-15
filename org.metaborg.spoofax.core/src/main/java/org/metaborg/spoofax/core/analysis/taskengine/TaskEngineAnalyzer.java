@@ -26,8 +26,8 @@ import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -46,7 +46,7 @@ import com.google.inject.Inject;
 public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     public static final String name = "taskengine";
 
-    private static final Logger logger = LoggerFactory.getLogger(TaskEngineAnalyzer.class);
+    private static final ILogger logger = LoggerUtils.logger(TaskEngineAnalyzer.class);
 
     private final IResourceService resourceService;
     private final ITermFactoryService termFactoryService;

@@ -12,15 +12,15 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.iterators.Iterables2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
@@ -44,7 +44,7 @@ import com.google.inject.Inject;
  * </ul>
  */
 public class DialectService implements IDialectService {
-    private static final Logger logger = LoggerFactory.getLogger(DialectService.class);
+    private static final ILogger logger = LoggerUtils.logger(DialectService.class);
 
     private final ILanguageService languageService;
 

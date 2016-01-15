@@ -5,12 +5,20 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.util.file.FileAccess;
 
 /**
  * Generates a new Eclipse plugin companion project for a language project, that lifts a language project into an
  * Eclipse plugin that can be installed into Eclipse.
+ *
+ * @deprecated Use {@link NewEclipsePluginProjectGenerator} instead.
  */
+@Deprecated
 public class EclipsePluginProjectGenerator extends BaseGenerator {
+    public EclipsePluginProjectGenerator(GeneratorProjectSettings settings, FileAccess access) {
+        super(settings, access);
+    }
+    
     public EclipsePluginProjectGenerator(GeneratorProjectSettings settings) {
         super(settings);
     }

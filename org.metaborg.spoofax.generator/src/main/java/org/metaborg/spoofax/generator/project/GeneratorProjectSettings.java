@@ -12,6 +12,10 @@ import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 
+/**
+ * @deprecated Use {@link LanguageSpecGeneratorScope} instead.
+ */
+@Deprecated
 public class GeneratorProjectSettings {
     private final SpoofaxProjectSettings settings;
 

@@ -6,7 +6,10 @@ import org.metaborg.core.MetaborgException;
 /**
  * Interface for a language discovery service that finds and adds all language components, at a given location, to the
  * language service.
+ *
+ * @deprecated Use {@link INewLanguageDiscoveryService} instead.
  */
+@Deprecated
 public interface ILanguageDiscoveryService {
     /**
      * Request language discovery at given location. Returns language discovery requests which can be checked for

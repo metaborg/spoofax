@@ -17,6 +17,8 @@ import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.util.file.FileUtils;
+import org.metaborg.util.file.URIEncode;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -49,7 +51,8 @@ public class ResourceService implements IResourceService {
 
     @Override public FileObject resolve(String uri) {
         try {
-            return fileSystemManager.resolveFile(uri, fileSystemOptions);
+            final String uriEncoded = URIEncode.encode(uri);
+            return fileSystemManager.resolveFile(uriEncoded, fileSystemOptions);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }
@@ -112,7 +115,7 @@ public class ResourceService implements IResourceService {
 
     @Override public File localPath(FileObject resource) {
         if(resource instanceof LocalFile) {
-            return new File(resource.getName().getPath());
+            return FileUtils.toFile(resource);
         }
         return null;
     }

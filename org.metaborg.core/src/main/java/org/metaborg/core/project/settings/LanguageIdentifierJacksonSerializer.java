@@ -1,15 +1,17 @@
 package org.metaborg.core.project.settings;
 
+import java.io.IOException;
+
+import org.metaborg.core.language.LanguageIdentifier;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import org.metaborg.core.language.LanguageIdentifier;
-
-import java.io.IOException;
 
 /**
  * Serializer for the {@link LanguageIdentifier} class.
  */
+@Deprecated
 public final class LanguageIdentifierJacksonSerializer extends StdSerializer<LanguageIdentifier> {
 
     public LanguageIdentifierJacksonSerializer() {

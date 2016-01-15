@@ -5,6 +5,9 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public class Style implements IStyle {
     private static final long serialVersionUID = -8435127070824031921L;
     

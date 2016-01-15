@@ -19,6 +19,7 @@ import org.metaborg.runtime.task.engine.TaskManager;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
+import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.library.index.IIndex;
@@ -35,6 +36,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
     private final ITermFactory termFactory;
     private final ReadWriteLock lock;
+    private final String cachePath;
 
     private final ContextIdentifier identifier;
 
@@ -47,7 +49,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
         this.termFactory = termFactoryService.get(identifier.language);
         this.lock = new ReentrantReadWriteLock(true);
-
+        this.cachePath = ".cache/" + FileUtils.sanitize(identifier.language.id().toString());
         this.identifier = identifier;
     }
 
@@ -88,10 +90,10 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                  * check before is disjunct.
                  */
                 if(index == null) {
-                    index = initIndex();
+                    index = loadIndex();
                 }
                 if(taskEngine == null) {
-                    taskEngine = initTaskEngine();
+                    taskEngine = loadTaskEngine();
                 }
             }
         }
@@ -207,7 +209,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
 
     private FileObject indexFile() throws FileSystemException {
-        return IndexManager.cacheFile(identifier.location);
+        return identifier.location.resolveFile(cachePath).resolveFile("index");
     }
 
     private IIndex initIndex() {
@@ -248,7 +250,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
 
     private FileObject taskEngineFile() throws FileSystemException {
-        return TaskManager.cacheFile(identifier.location);
+        return identifier.location.resolveFile(cachePath).resolveFile("tasks");
     }
 
     private ITaskEngine initTaskEngine() {

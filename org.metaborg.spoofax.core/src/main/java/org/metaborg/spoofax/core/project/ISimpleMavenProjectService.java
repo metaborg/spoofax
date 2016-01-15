@@ -8,6 +8,7 @@ import org.metaborg.core.project.IProject;
  * Specialization of the {@link IMavenProjectService} that supports creating and removing Maven projects. Maven project
  * instances are returned based on their project.
  */
+@Deprecated
 public interface ISimpleMavenProjectService extends IMavenProjectService {
     /**
      * Adds a Maven project for given Metaborg project.

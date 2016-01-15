@@ -14,15 +14,15 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.util.iterators.Iterables2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-
+@Deprecated
 public class DependencyService implements IDependencyService {
-    private static final Logger logger = LoggerFactory.getLogger(DependencyService.class);
+    private static final ILogger logger = LoggerUtils.logger(DependencyService.class);
 
     private final ILanguageService languageService;
     private final IProjectSettingsService projectSettingsService;

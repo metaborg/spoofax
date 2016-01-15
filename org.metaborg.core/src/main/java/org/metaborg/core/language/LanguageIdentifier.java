@@ -1,21 +1,26 @@
 package org.metaborg.core.language;
 
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.metaborg.core.project.settings.LanguageIdentifierJacksonDeserializer;
+import org.metaborg.core.project.settings.LanguageIdentifierJacksonSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ComparisonChain;
-import org.metaborg.core.project.settings.LanguageIdentifierJacksonDeserializer;
-import org.metaborg.core.project.settings.LanguageIdentifierJacksonSerializer;
 
 @JsonSerialize(using = LanguageIdentifierJacksonSerializer.class)
 @JsonDeserialize(using = LanguageIdentifierJacksonDeserializer.class)
-public class LanguageIdentifier implements Comparable<LanguageIdentifier> {
+public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Serializable {
+    private static final long serialVersionUID = 8892997161544718124L;
+    
     private static final Pattern idPattern = Pattern.compile("[A-Za-z0-9._\\-]+");
     public static final String errorDescription = "may only contain characters, numbers, and _ - .";
     private static final Pattern fullPattern = Pattern.compile("(?:(" + idPattern + "):)?(" + idPattern + ")(?::(.+))?");
-
+    public static final LanguageIdentifier EMPTY = new LanguageIdentifier("", "", LanguageVersion.BASELINE_VERSION);
+    
     public final String groupId;
     public final String id;
     public final LanguageVersion version;

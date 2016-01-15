@@ -6,7 +6,8 @@ public interface IMenuItem {
     /**
      * Accepts the specified visitor.
      *
-     * @param visitor The visitor.
+     * @param visitor
+     *            The visitor.
      */
     void accept(IMenuItemVisitor visitor);
 }

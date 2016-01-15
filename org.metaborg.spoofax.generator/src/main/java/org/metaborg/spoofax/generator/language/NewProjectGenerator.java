@@ -11,22 +11,16 @@ import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 /**
  * Generates language project files that are only generated once when a new language project is created. Files are not
  * specific to an IDE.
+ *
+ * @deprecated Use {@link NewLanguageSpecGenerator} instead.
  */
+@Deprecated
 public class NewProjectGenerator extends BaseGenerator {
     private final String[] fileExtensions;
     private final AnalysisType analysisType;
 
 
-    public NewProjectGenerator(GeneratorProjectSettings settings) throws ProjectException {
-        this(settings, new String[0]);
-    }
-
-    public NewProjectGenerator(GeneratorProjectSettings settings, String[] fileExtensions) throws ProjectException {
-        this(settings, fileExtensions, AnalysisType.NaBL_TS);
-    }
-
-    public NewProjectGenerator(GeneratorProjectSettings settings, String[] fileExtensions, AnalysisType analysisType)
-        throws ProjectException {
+    public NewProjectGenerator(GeneratorProjectSettings settings, String[] fileExtensions, AnalysisType analysisType) throws ProjectException {
         super(settings);
 
         for(String ext : fileExtensions) {
@@ -38,7 +32,11 @@ public class NewProjectGenerator extends BaseGenerator {
         this.analysisType = analysisType;
     }
 
-
+    public NewProjectGenerator(GeneratorProjectSettings settings, AnalysisType analysisType) throws ProjectException {
+        this(settings, new String[0], analysisType);
+    }
+    
+    
     public String fileExtensions() {
         if(fileExtensions.length == 0) {
             return null;

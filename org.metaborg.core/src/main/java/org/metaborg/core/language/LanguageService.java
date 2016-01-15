@@ -10,8 +10,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -25,7 +25,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 
 public class LanguageService implements ILanguageService {
-    private static final Logger logger = LoggerFactory.getLogger(LanguageService.class);
+    private static final ILogger logger = LoggerUtils.logger(LanguageService.class);
 
     private final AtomicInteger sequenceIdGenerator = new AtomicInteger(0);
 
@@ -43,6 +43,18 @@ public class LanguageService implements ILanguageService {
 
     @Override public @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier) {
         return identifierToComponent.get(identifier);
+    }
+
+    @Nullable
+    @Override
+    public ILanguageComponent getComponentOrBaseline(LanguageIdentifier identifier) {
+        ILanguageComponent component = getComponent(identifier);
+        if(component == null) {
+            // BOOTSTRAPPING: baseline languages have version 0.0.0, try to get impl with that version.
+            final LanguageIdentifier baselineIdentifier = new LanguageIdentifier(identifier, LanguageVersion.BASELINE_VERSION);
+            component = getComponent(baselineIdentifier);
+        }
+        return component;
     }
 
     @Override public ILanguageComponent getComponent(FileName location) {

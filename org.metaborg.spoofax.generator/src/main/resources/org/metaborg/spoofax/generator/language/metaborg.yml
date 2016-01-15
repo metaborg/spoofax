@@ -1,0 +1,15 @@
+---
+id: {{groupId}}:{{id}}:{{version}}
+name: {{name}}
+compileDependencies:
+- org.metaborg:org.metaborg.meta.lib.analysis:{{metaborgVersion}}
+- org.metaborg:org.metaborg.meta.lang.esv:{{metaborgVersion}}
+- org.metaborg:org.metaborg.meta.lang.template:{{metaborgVersion}}
+- org.metaborg:org.metaborg.meta.lang.nabl:{{metaborgVersion}}
+- org.metaborg:org.metaborg.meta.lang.ts:{{metaborgVersion}}
+runtimeDependencies:
+- org.metaborg:org.metaborg.meta.lib.analysis:{{metaborgVersion}}
+- org.metaborg:org.metaborg.meta.lang.esv:{{metaborgVersion}}
+- org.metaborg:org.metaborg.meta.lang.template:{{metaborgVersion}}
+- org.metaborg:org.metaborg.meta.lang.nabl:{{metaborgVersion}}
+- org.metaborg:org.metaborg.meta.lang.ts:{{metaborgVersion}}

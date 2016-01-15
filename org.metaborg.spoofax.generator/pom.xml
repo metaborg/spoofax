@@ -46,6 +46,12 @@
       <organization>Delft University of Technology</organization>
       <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
     </developer>
+    <developer>
+      <name>Gabriël Konat</name>
+      <email>g.d.p.konat@tudelft.nl</email>
+      <organization>Delft University of Technology</organization>
+      <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+    </developer>
   </developers>
 
   <scm>
