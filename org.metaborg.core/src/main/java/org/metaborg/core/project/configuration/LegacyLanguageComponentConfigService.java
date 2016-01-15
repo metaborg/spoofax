@@ -39,14 +39,14 @@ public class LegacyLanguageComponentConfigService implements ILanguageComponentC
 
     private final ConfigurationBasedLanguageComponentConfigService configurationBasedLanguageComponentConfigService;
     private final IProjectSettingsService settingsService;
-    private final ILanguageComponentConfigWriter configWriter;
+//    private final ILanguageComponentConfigWriter configWriter;
 
     @Inject
     public LegacyLanguageComponentConfigService(final ConfigurationBasedLanguageComponentConfigService configurationBasedLanguageComponentConfigService,
-                                                final IProjectSettingsService settingsService, final ILanguageComponentConfigWriter configWriter) {
+                                                final IProjectSettingsService settingsService) { //}, final ILanguageComponentConfigWriter configWriter) {
         this.configurationBasedLanguageComponentConfigService = configurationBasedLanguageComponentConfigService;
         this.settingsService = settingsService;
-        this.configWriter = configWriter;
+//        this.configWriter = configWriter;
     }
 
     @Nullable

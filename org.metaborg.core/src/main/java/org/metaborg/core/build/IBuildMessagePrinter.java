@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 
 /**
@@ -28,6 +29,19 @@ public interface IBuildMessagePrinter {
     public abstract void print(FileObject resource, String message, @Nullable Throwable e, boolean pardoned);
 
     /**
+     * Prints given message and exception, located at a language specification. Used if the source location or resource is not
+     * available.
+     *
+     * @param languageSpec
+     *            Language specification the message occured in.
+     * @param message
+     *            Message to print.
+     * @param e
+     *            Exception to print, or null if there is no exception.
+     */
+    public abstract void print(ILanguageSpec languageSpec, String message, @Nullable Throwable e, boolean pardoned);
+
+    /**
      * Prints given message and exception, located at a project. Used if the source location or resource is not
      * available.
      * 
@@ -38,6 +52,7 @@ public interface IBuildMessagePrinter {
      * @param e
      *            Exception to print, or null if there is no exception.
      */
+    @Deprecated
     public abstract void print(IProject project, String message, @Nullable Throwable e, boolean pardoned);
 
     /**

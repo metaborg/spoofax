@@ -9,6 +9,10 @@ import rx.subjects.PublishSubject;
 
 import com.google.inject.Inject;
 
+/**
+ * @deprecated Not used.
+ */
+@Deprecated
 public class OfflineResourceChangeService implements IResourceChangeService {
     private final PublishSubject<ResourceChange> subject = PublishSubject.create();
 

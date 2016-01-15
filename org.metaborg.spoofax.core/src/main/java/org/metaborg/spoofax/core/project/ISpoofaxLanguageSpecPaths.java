@@ -133,6 +133,8 @@ public interface ISpoofaxLanguageSpecPaths extends ILanguageSpecPaths {
 
     FileObject strCompiledCtreeFile();
 
+    FileObject dsMainFile();
+
     FileObject dsGeneratedInterpreterCompiledJavaFolder();
 
     FileObject dsManualInterpreterCompiledJavaFolder();
@@ -182,7 +184,6 @@ public interface ISpoofaxLanguageSpecPaths extends ILanguageSpecPaths {
     FileObject getPpAfCompiledFile(String sdfName);
 
     FileObject getGeneratedPpAfCompiledFile(String sdfName);
-
 
 
     /**

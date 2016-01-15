@@ -15,6 +15,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
@@ -377,7 +378,7 @@ public class NewBuildInputBuilder {
      * @throws MetaborgException
      *             When {@link INewDependencyService#compileDependencies} throws.
      */
-    public BuildInput build(INewDependencyService dependencyService, ILanguagePathService languagePathService)
+    public BuildInput build(INewDependencyService dependencyService, INewLanguagePathService languagePathService)
         throws MetaborgException {
         if(state == null) {
             state = new BuildState();

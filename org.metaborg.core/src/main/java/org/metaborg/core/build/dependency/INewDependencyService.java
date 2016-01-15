@@ -51,7 +51,6 @@ public interface INewDependencyService {
      * @param languageSpec The language specification to check the dependencies for.
      * @return The missing compile-time and runtime dependencies.
      */
-    @Deprecated /* Is this ever used? */
     MissingDependencies checkDependencies(ILanguageSpec languageSpec);
 
 }

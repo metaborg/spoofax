@@ -21,7 +21,7 @@ public class LanguageSpecGeneratorScope {
     private final ISpoofaxLanguageSpecPaths paths;
 
 
-    public LanguageSpecGeneratorScope(ISpoofaxLanguageSpecPaths paths, ISpoofaxLanguageSpecConfig config) throws ProjectException {
+    public LanguageSpecGeneratorScope(ISpoofaxLanguageSpecConfig config, ISpoofaxLanguageSpecPaths paths) throws ProjectException {
 
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());

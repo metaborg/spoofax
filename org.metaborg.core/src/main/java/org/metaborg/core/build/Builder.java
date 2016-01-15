@@ -113,7 +113,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         final Multimap<ILanguageImpl, IdentifiedResourceChange> changes = ArrayListMultimap.create();
 
         final FileSelector selector = input.selector;
-        final FileObject location = input.project.location();
+        final FileObject location = input.languageSpec.location();
         for(ResourceChange change : input.sourceChanges) {
             cancel.throwIfCancelled();
 
@@ -142,7 +142,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             return new BuildOutput<>(input.state);
         }
 
-        logger.info("Building " + input.project.location());
+        logger.info("Building " + input.languageSpec.location());
 
         cancel.throwIfCancelled();
 
@@ -185,7 +185,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         for(IdentifiedResourceChange includeChange : includeChanges) {
             includedResources.add(includeChange.change.resource.getName());
         }
-        final FileObject location = input.project.location();
+        final FileObject location = input.languageSpec.location();
         final Collection<FileObject> changedResources = Sets.newHashSet();
         final Set<FileName> removedResources = Sets.newHashSet();
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
@@ -452,7 +452,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     private boolean printMessage(String message, @Nullable Throwable e, BuildInput input, boolean pardoned) {
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
-            printer.print(input.project, message, e, pardoned);
+            printer.print(input.languageSpec, message, e, pardoned);
         }
 
         if(input.throwOnErrors && !pardoned) {
@@ -464,7 +464,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     @Override public void clean(CleanInput input, IProgressReporter progressReporter,
         ICancellationToken cancellationToken) throws InterruptedException {
-        final FileObject location = input.project.location();
+        final FileObject location = input.languageSpec.location();
         logger.debug("Cleaning {}", location);
 
         FileSelector selector = new LanguagesFileSelector(languageIdentifier, input.languages);

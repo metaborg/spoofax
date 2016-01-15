@@ -1,15 +1,9 @@
 package org.metaborg.spoofax.core.project.configuration;
 
 import com.google.inject.Inject;
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.core.project.configuration.*;
-import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.core.project.settings.IProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettings;
 import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 
@@ -39,28 +33,27 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
         // Try get a configuration.
         @Nullable ISpoofaxLanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
 
+        if (config != null)
+            return config;
+
         // If this fails, try get project settings.
-        if (config == null) {
-            final SpoofaxProjectSettings settings;
+        SpoofaxProjectSettings settings = null;
+        if (languageSpec instanceof IProject) {
             try {
-                settings = this.settingsService.get(languageSpec);/*new IProject() {
-                    @Override
-                    public FileObject location() {
-                        return languageSpec.location();
-                    }
-                });*/
+                settings = this.settingsService.get((IProject) languageSpec);
             } catch (ProjectException e) {
                 throw new RuntimeException(e);
             }
-            if (settings != null) {
-                // TODO: This is for migration.
-//                // Convert the settings to a configuration
-//                config = new LegacySpoofaxLanguageSpecConfig(settings);
-//
+        }
+
+        if (settings != null) {
+            // Convert the settings to a configuration
+            return new LegacySpoofaxLanguageSpecConfig(settings);
+            // TODO: This is for migration.
 //                // Write the configuration to file.
 //                this.configWriter.write(languageSpec, config, null);
-            }
         }
-        return config;
+
+        return null;
     }
 }

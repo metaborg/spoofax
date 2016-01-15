@@ -10,11 +10,13 @@ import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguageUtils;
+import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.util.resource.ResourceUtils;
@@ -407,7 +409,7 @@ public class BuildInputBuilder {
         }
 
         final BuildInput input =
-            new BuildInput(state, project, sourceChanges, includePaths, new BuildOrder(languages), selector, analyze,
+            new BuildInput(state, (ILanguageSpec)project, sourceChanges, includePaths, new BuildOrder(languages), selector, analyze,
                 analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;

@@ -31,7 +31,7 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
     @Test public void discoverLanguage() throws Exception {
         final FileObject location = resourceService.resolve("res:");
 
-        final Iterable<ILanguageComponent> languages = languageDiscoveryService.discover(location);
+        final Iterable<ILanguageComponent> languages = languageDiscoveryService.discover(languageDiscoveryService.request(location));
 
         assertEquals(1, Iterables.size(languages));
 

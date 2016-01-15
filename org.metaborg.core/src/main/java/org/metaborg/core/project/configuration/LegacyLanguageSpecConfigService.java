@@ -56,8 +56,8 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
         @Nullable ILanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
 
         // If this fails, try get project settings.
-        if (config == null) {
-            final IProjectSettings settings = this.settingsService.get(languageSpec);
+        if (config == null && languageSpec instanceof IProject) {
+            final IProjectSettings settings = this.settingsService.get((IProject)languageSpec);
             if (settings != null) {
                 // Convert the settings to a configuration
                 config = new LegacyLanguageSpecConfig(settings);

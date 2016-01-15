@@ -79,6 +79,7 @@ public class MetaborgModule extends AbstractModule {
         bindLanguagePath();
         bindLanguageSpecPath();
         bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
+        bindNewLanguagePathProviders(Multibinder.newSetBinder(binder(), INewLanguagePathProvider.class));
         bindLanguageSpec();
         bindContext();
         bindContextFactories(MapBinder.newMapBinder(binder(), String.class, IContextFactory.class));
@@ -112,7 +113,7 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindLanguagePath() {
         bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
-//        bind(INewLanguagePathService.class).to(NewLanguagePathService.class).in(Singleton.class);
+        bind(INewLanguagePathService.class).to(NewLanguagePathService.class).in(Singleton.class);
     }
 
     protected void bindLanguageSpecPath() {
@@ -121,6 +122,10 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
         binder.addBinding().to(DependencyPathProvider.class);
+    }
+
+    protected void bindNewLanguagePathProviders(Multibinder<INewLanguagePathProvider> binder) {
+        binder.addBinding().to(NewDependencyPathProvider.class);
     }
 
     /**
@@ -163,8 +168,10 @@ public class MetaborgModule extends AbstractModule {
         bind(ILanguageSpecConfigService.class).to(LegacyLanguageSpecConfigService.class).in(Singleton.class);
 
         bind(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
+        bind(LegacyLanguageSpecConfigWriter.class).in(Singleton.class);
 //        bind(ILanguageSpecConfigService.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
+//        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
+        bind(ILanguageSpecConfigWriter.class).to(LegacyLanguageSpecConfigWriter.class).in(Singleton.class);
 
         bind(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
         bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
@@ -176,7 +183,7 @@ public class MetaborgModule extends AbstractModule {
 
         bind(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
 //        bind(ILanguageComponentConfigService.class).to(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
-        bind(ILanguageComponentConfigWriter.class).to(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
+//        bind(ILanguageComponentConfigWriter.class).to(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
 
         bind(ConfigurationBasedLanguageComponentConfigBuilder.class).in(Singleton.class);
         bind(ILanguageComponentConfigBuilder.class).to(ConfigurationBasedLanguageComponentConfigBuilder.class).in(Singleton.class);

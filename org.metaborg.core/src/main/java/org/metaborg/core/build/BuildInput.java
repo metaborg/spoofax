@@ -8,6 +8,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
@@ -25,9 +26,9 @@ public class BuildInput {
     public final BuildState state;
 
     /**
-     * Project to build.
+     * Language specification to build.
      */
-    public final IProject project;
+    public final ILanguageSpec languageSpec;
 
     /**
      * Sources that have changed.
@@ -94,13 +95,13 @@ public class BuildInput {
     public final Set<ILanguageImpl> pardonedLanguages;
 
 
-    public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
-        Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
-        boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
-        Iterable<ITransformGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors,
-        Set<ILanguageImpl> pardonedLanguages) {
+    public BuildInput(BuildState state, ILanguageSpec languageSpec, Iterable<ResourceChange> resourceChanges,
+                      Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
+                      boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
+                      Iterable<ITransformGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors,
+                      Set<ILanguageImpl> pardonedLanguages) {
         this.state = state;
-        this.project = project;
+        this.languageSpec = languageSpec;
         this.sourceChanges = resourceChanges;
         this.includePaths = includePaths;
         this.buildOrder = buildOrder;

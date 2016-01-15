@@ -1,52 +1,48 @@
 package org.metaborg.core.build.paths;
 
-import java.util.Collection;
-
-import javax.annotation.Nullable;
-
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.LanguagePathFacet;
+import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import javax.annotation.Nullable;
+import java.util.Collection;
 
-/**
- * @deprecated Use {@link NewDependencyPathProvider} instead.
- */
-@Deprecated
-public class DependencyPathProvider implements ILanguagePathProvider {
-    private final IDependencyService dependencyService;
+public class NewDependencyPathProvider implements INewLanguagePathProvider {
+    private final INewDependencyService dependencyService;
 
 
-    @Inject public DependencyPathProvider(IDependencyService dependencyService) {
+    @Inject public NewDependencyPathProvider(INewDependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 
 
-    @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) throws MetaborgException {
-        final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(project);
+    @Override public Iterable<FileObject> sourcePaths(ILanguageSpec languageSpec, String languageName) throws MetaborgException {
+        final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);
         final Collection<FileObject> sources = Lists.newArrayList();
         for(ILanguageComponent dependency : dependencies) {
             final Iterable<LanguagePathFacet> facets = dependency.facets(LanguagePathFacet.class);
             for(LanguagePathFacet facet : facets) {
                 final Collection<String> paths = facet.sources.get(languageName);
                 if(paths != null) {
-                    resolve(project.location(), paths, sources);
+                    resolve(languageSpec.location(), paths, sources);
                 }
             }
         }
         return sources;
     }
 
-    @Override public Iterable<FileObject> includePaths(IProject project, String languageName) throws MetaborgException {
-        final Iterable<ILanguageComponent> dependencies = dependencyService.runtimeDependencies(project);
+    @Override public Iterable<FileObject> includePaths(ILanguageSpec languageSpec, String languageName) throws MetaborgException {
+        final Iterable<ILanguageComponent> dependencies = dependencyService.runtimeDependencies(languageSpec);
         final Collection<FileObject> includes = Lists.newArrayList();
         for(ILanguageComponent dependency : dependencies) {
             final Iterable<FacetContribution<LanguagePathFacet>> facets =

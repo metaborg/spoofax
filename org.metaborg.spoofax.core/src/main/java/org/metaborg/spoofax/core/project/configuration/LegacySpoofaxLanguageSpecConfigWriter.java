@@ -19,6 +19,7 @@ public class LegacySpoofaxLanguageSpecConfigWriter implements ISpoofaxLanguageSp
             throw new RuntimeException("This class can only deal with LegacySpoofaxLanguageSpecConfig configurations.");
 
         final SpoofaxProjectSettings settings = ((LegacySpoofaxLanguageSpecConfig) config).settings;
+        settingsFile.createFile();
         YAMLProjectSettingsSerializer.write(settingsFile, settings.settings());
         if (access != null)
             access.addWrite(settingsFile);
