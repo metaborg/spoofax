@@ -227,7 +227,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         args.addAll(sdfArgs);
 
         final Iterable<FileObject> paths =
-                context.languagePathService().sourceAndIncludePaths(context.project, LANG_SDF_NAME);
+                context.languagePathService().sourceAndIncludePaths(context.languageSpec, LANG_SDF_NAME);
         for (FileObject path : paths) {
             try {
                 if (path.exists()) {
@@ -313,7 +313,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         requireBuild(CopyJar.factory, new CopyJar.Input(context, input.externalJar, input.strjTarget));
 
         final Iterable<FileObject> paths =
-                context.languagePathService().sourceAndIncludePaths(context.project, SpoofaxConstants.LANG_STRATEGO_NAME);
+                context.languagePathService().sourceAndIncludePaths(context.languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
         final Collection<File> includeDirs = Lists.newLinkedList();
         for (FileObject path : paths) {
             final File file = toFileReplicate(path);

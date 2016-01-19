@@ -1,62 +1,45 @@
 package org.metaborg.spoofax.meta.core;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
-import build.pluto.buildjava.JarBuilder;
+import build.pluto.builder.BuildManagers;
+import build.pluto.builder.BuildRequest;
+import build.pluto.builder.RequiredBuilderFailed;
+import build.pluto.output.Output;
+import build.pluto.xattr.Xattr;
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.commons.vfs2.AllFileSelector;
-import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.tools.ant.BuildListener;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.NewBuildInputBuilder;
-import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.dependency.INewDependencyService;
-import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.INewLanguagePathService;
-import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.core.project.settings.Format;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
-import org.metaborg.spoofax.generator.language.ProjectGenerator;
-import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
-import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryLastModifiedStamper;
-import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import build.pluto.builder.BuildManagers;
-import build.pluto.builder.BuildRequest;
-import build.pluto.builder.RequiredBuilderFailed;
-import build.pluto.output.Output;
-import build.pluto.xattr.Xattr;
-
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Set;
 
 // TODO Rename to: SpoofaxLanguageSpecBuilder
 public class SpoofaxMetaBuilder {

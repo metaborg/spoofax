@@ -14,7 +14,6 @@ import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.dependency.INewDependencyService;
-import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;

@@ -1,45 +1,45 @@
 package org.metaborg.spoofax.meta.core;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
-import org.apache.commons.vfs2.AllFileSelector;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.tools.ant.BuildListener;
-import org.metaborg.core.MetaborgException;
-import org.metaborg.core.action.CompileGoal;
-import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.BuildInputBuilder;
-import org.metaborg.core.build.dependency.IDependencyService;
-import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
-import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.generator.language.ProjectGenerator;
-import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
-import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
-import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
-import org.metaborg.util.file.FileAccess;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import build.pluto.builder.BuildManagers;
-import build.pluto.builder.BuildRequest;
-import build.pluto.output.Output;
-import build.pluto.xattr.Xattr;
-
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+//
+//import java.io.IOException;
+//import java.net.URL;
+//import java.util.Set;
+//
+//import javax.annotation.Nullable;
+//
+//import org.apache.commons.vfs2.AllFileSelector;
+//import org.apache.commons.vfs2.FileObject;
+//import org.apache.commons.vfs2.FileSystemException;
+//import org.apache.tools.ant.BuildListener;
+//import org.metaborg.core.MetaborgException;
+//import org.metaborg.core.action.CompileGoal;
+//import org.metaborg.core.build.BuildInput;
+//import org.metaborg.core.build.BuildInputBuilder;
+//import org.metaborg.core.build.dependency.IDependencyService;
+//import org.metaborg.core.build.paths.ILanguagePathService;
+//import org.metaborg.core.processing.ICancellationToken;
+//import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
+//import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
+//import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
+//import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
+//import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+//import org.metaborg.spoofax.generator.language.ProjectGenerator;
+//import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+//import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
+//import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+//import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
+//import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
+//import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
+//import org.metaborg.util.file.FileAccess;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+//
+//import build.pluto.builder.BuildManagers;
+//import build.pluto.builder.BuildRequest;
+//import build.pluto.output.Output;
+//import build.pluto.xattr.Xattr;
+//
+//import com.google.inject.Inject;
+//import com.google.inject.Injector;
 
 /*
 // TODO: Rename to SpoofaxLanguageSpecBuilder

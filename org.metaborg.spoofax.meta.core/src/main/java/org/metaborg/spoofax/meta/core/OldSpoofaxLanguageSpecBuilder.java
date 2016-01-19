@@ -1,34 +1,34 @@
 package org.metaborg.spoofax.meta.core;
-
-import java.io.IOException;
-import java.net.URL;
-
-import javax.annotation.Nullable;
-
-import org.apache.commons.vfs2.AllFileSelector;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.tools.ant.BuildListener;
-import org.metaborg.core.MetaborgException;
-import org.metaborg.core.action.CompileGoal;
-import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.NewBuildInputBuilder;
-import org.metaborg.core.build.dependency.INewDependencyService;
-import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
-import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
-import org.metaborg.spoofax.meta.core.ant.IAntRunner;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
-import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.Inject;
+//
+//import java.io.IOException;
+//import java.net.URL;
+//
+//import javax.annotation.Nullable;
+//
+//import org.apache.commons.vfs2.AllFileSelector;
+//import org.apache.commons.vfs2.FileObject;
+//import org.apache.commons.vfs2.FileSystemException;
+//import org.apache.tools.ant.BuildListener;
+//import org.metaborg.core.MetaborgException;
+//import org.metaborg.core.action.CompileGoal;
+//import org.metaborg.core.build.BuildInput;
+//import org.metaborg.core.build.NewBuildInputBuilder;
+//import org.metaborg.core.build.dependency.INewDependencyService;
+//import org.metaborg.core.build.paths.ILanguagePathService;
+//import org.metaborg.core.processing.ICancellationToken;
+//import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
+//import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
+//import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
+//import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
+//import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
+//import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
+//import org.metaborg.spoofax.meta.core.ant.IAntRunner;
+//import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
+//import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+//
+//import com.google.inject.Inject;
 
     /*
 public class SpoofaxLanguageSpecBuilder {
