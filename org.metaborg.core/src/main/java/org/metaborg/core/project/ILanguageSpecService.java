@@ -10,11 +10,11 @@ public interface ILanguageSpecService {
     /**
      * Gets a language specification from the specified project.
      *
-     * @param project The project.
+     * @param project The project; or <code>null</code>.
      * @return The language specification; or <code>null</code>
-     * when the project is not a language specification project.
+     * when the project is not a language specification project or <code>null</code>.
      */
     @Nullable
-    ILanguageSpec get(IProject project);
+    ILanguageSpec get(@Nullable IProject project);
 
 }

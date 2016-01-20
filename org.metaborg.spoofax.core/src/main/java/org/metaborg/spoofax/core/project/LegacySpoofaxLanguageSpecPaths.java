@@ -10,6 +10,7 @@ import java.net.URI;
 /**
  * This class is used to temporarily bridge between the old and new configuration systems.
  */
+@SuppressWarnings("deprecation")
 public class LegacySpoofaxLanguageSpecPaths implements ISpoofaxLanguageSpecPaths {
     private static final long serialVersionUID = -1830431450114231566L;
 

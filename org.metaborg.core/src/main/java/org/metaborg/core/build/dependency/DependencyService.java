@@ -20,6 +20,7 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
+@SuppressWarnings("deprecation")
 @Deprecated
 public class DependencyService implements IDependencyService {
     private static final ILogger logger = LoggerUtils.logger(DependencyService.class);

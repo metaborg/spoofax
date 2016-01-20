@@ -9,6 +9,8 @@ import org.metaborg.util.file.FileAccess;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
+
+@SuppressWarnings("deprecation")
 public class LegacyLanguageSpecConfigWriter implements ILanguageSpecConfigWriter {
 
     @Override

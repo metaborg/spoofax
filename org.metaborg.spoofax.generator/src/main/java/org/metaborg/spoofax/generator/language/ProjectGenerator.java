@@ -11,6 +11,7 @@ import org.metaborg.util.file.FileAccess;
  *
  * @deprecated Use {@link LanguageSpecGenerator} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public class ProjectGenerator extends BaseGenerator {
     public ProjectGenerator(GeneratorProjectSettings settings, FileAccess access) {

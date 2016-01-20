@@ -18,6 +18,7 @@ import org.metaborg.util.file.FileUtils;
 
 import com.google.common.collect.Lists;
 
+@SuppressWarnings("deprecation")
 @Deprecated
 public class SpoofaxProjectSettings implements Serializable {
     private static final long serialVersionUID = 7439146986768086591L;

@@ -13,6 +13,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Iterables;
 
+@SuppressWarnings("deprecation")
 @Deprecated
 public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
     public final boolean available;

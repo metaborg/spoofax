@@ -9,9 +9,9 @@ import org.metaborg.core.language.INewLanguageDiscoveryRequest;
 /**
  * Forwards the implementation to the new implementation.
  *
- * @deprecated This class is only used for the configuration system migration.
+ * This class is only used for the configuration system migration.
  */
-@Deprecated
+@SuppressWarnings("deprecation")
 public class LegacyLanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
 
     private final INewLanguageDiscoveryRequest newLanguageDiscoveryRequest;

@@ -6,6 +6,7 @@ import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 /**
  * Use {@link LanguageSpecBuildInput} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public class MetaBuildInput {
     public final IProject project;

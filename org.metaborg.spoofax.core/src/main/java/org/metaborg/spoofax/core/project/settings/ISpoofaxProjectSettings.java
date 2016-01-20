@@ -9,6 +9,7 @@ import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfi
  *
  * @deprecated Use {@link ISpoofaxLanguageSpecConfig} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public interface ISpoofaxProjectSettings extends IProjectSettings {
 

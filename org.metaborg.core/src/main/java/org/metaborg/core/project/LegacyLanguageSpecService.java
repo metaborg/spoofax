@@ -9,7 +9,10 @@ import javax.annotation.Nullable;
 public class LegacyLanguageSpecService implements ILanguageSpecService {
     @Nullable
     @Override
-    public ILanguageSpec get(IProject project) {
+    public ILanguageSpec get(@Nullable final IProject project) {
+        if (project == null)
+            return null;
+
         if (project instanceof ILanguageSpec)
             return (ILanguageSpec)project;
         else

@@ -12,7 +12,10 @@ public final class DefaultLanguageSpecService implements ILanguageSpecService {
      */
     @Nullable
     @Override
-    public ILanguageSpec get(final IProject project) {
+    public ILanguageSpec get(@Nullable final IProject project) {
+        if (project == null)
+            return null;
+
         if (project instanceof ILanguageSpec)
             return (ILanguageSpec)project;
         else {

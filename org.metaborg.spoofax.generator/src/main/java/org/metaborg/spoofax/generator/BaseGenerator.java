@@ -7,6 +7,7 @@ import org.metaborg.util.file.FileAccess;
 /**
  * @deprecated Use {@link NewBaseGenerator} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public abstract class BaseGenerator {
     protected final MustacheWriter writer;

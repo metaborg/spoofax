@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;

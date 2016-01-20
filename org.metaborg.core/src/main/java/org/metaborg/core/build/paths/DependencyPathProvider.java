@@ -20,6 +20,7 @@ import com.google.inject.Inject;
 /**
  * @deprecated Use {@link NewDependencyPathProvider} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public class DependencyPathProvider implements ILanguagePathProvider {
     private final IDependencyService dependencyService;

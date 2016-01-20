@@ -13,6 +13,7 @@ import org.metaborg.util.file.FileAccess;
  *
  * @deprecated Use {@link NewEclipsePluginProjectGenerator} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public class EclipsePluginProjectGenerator extends BaseGenerator {
     public EclipsePluginProjectGenerator(GeneratorProjectSettings settings, FileAccess access) {

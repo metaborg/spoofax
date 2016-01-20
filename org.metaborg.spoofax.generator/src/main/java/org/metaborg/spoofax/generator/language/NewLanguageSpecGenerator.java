@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.generator.NewBaseGenerator;
-import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 
 /**

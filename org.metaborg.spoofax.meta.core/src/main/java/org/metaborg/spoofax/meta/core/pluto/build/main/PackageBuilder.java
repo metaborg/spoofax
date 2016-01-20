@@ -6,21 +6,14 @@ import java.util.*;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.vfs2.AllFileSelector;
-import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.project.settings.Format;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.meta.core.pluto.*;
 import org.metaborg.spoofax.meta.core.pluto.build.PPGen;
 import org.metaborg.spoofax.meta.core.pluto.build.PPPack;
 import org.metaborg.spoofax.meta.core.pluto.build.PackSdf;
-import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg.Input;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.Copy;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryLastModifiedStamper;

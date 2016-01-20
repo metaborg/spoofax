@@ -26,7 +26,7 @@ import org.metaborg.core.project.settings.IProjectSettings;
 
 import com.google.common.collect.Lists;
 
-@Deprecated
+@SuppressWarnings("deprecation")
 public class LegacyLanguageComponentConfig implements ILanguageComponentConfig {
 
     private final IProjectSettings settings;

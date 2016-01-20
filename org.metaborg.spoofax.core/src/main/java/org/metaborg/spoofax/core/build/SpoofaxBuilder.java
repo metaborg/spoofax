@@ -2,7 +2,6 @@ package org.metaborg.spoofax.core.build;
 
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
-import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;

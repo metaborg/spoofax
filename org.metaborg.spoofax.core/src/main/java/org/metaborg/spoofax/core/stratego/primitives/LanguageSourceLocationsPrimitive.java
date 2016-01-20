@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.ILanguageSpecService;

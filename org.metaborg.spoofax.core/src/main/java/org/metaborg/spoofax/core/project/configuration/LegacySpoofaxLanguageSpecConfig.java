@@ -12,6 +12,7 @@ import java.util.Collection;
 /**
  * This class is only used for the configuration system migration.
  */
+@SuppressWarnings("deprecation")
 public class LegacySpoofaxLanguageSpecConfig extends LegacyLanguageSpecConfig implements ISpoofaxLanguageSpecConfig {
 
     private static final long serialVersionUID = -5913973186313150350L;

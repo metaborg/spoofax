@@ -2,9 +2,7 @@ package org.metaborg.spoofax.generator.eclipse.language;
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.NewBaseGenerator;
-import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.util.file.FileAccess;
 

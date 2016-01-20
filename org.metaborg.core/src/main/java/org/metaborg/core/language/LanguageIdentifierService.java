@@ -9,10 +9,11 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
-import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -28,14 +29,16 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     private final ILanguageService languageService;
     private final IDialectIdentifier dialectIdentifier;
     private final IProjectService projectService;
-    private final IDependencyService dependencyService;
+    private final ILanguageSpecService languageSpecService;
+    private final INewDependencyService dependencyService;
 
 
     @Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier,
-        IProjectService projectService, IDependencyService dependencyService) {
+        IProjectService projectService, ILanguageSpecService languageSpecService, INewDependencyService dependencyService) {
         this.languageService = languageService;
         this.dialectIdentifier = dialectIdentifier;
         this.projectService = projectService;
+        this.languageSpecService = languageSpecService;
         this.dependencyService = dependencyService;
     }
 
@@ -55,10 +58,10 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
     @Override public @Nullable ILanguageImpl identify(FileObject resource) {
-        final IProject project = projectService.get(resource);
-        if(project != null) {
+        final ILanguageSpec languageSpec = languageSpecService.get(projectService.get(resource));
+        if(languageSpec != null) {
             try {
-                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(project);
+                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);
                 final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(dependencies);
                 ILanguageImpl impl = identify(resource, impls);
                 if(impl == null) {
@@ -80,10 +83,10 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
     
     public Iterable<ILanguageImpl> compileDependencies(FileObject resource) {
-        final IProject project = projectService.get(resource);
-        if(project != null) {
+        final ILanguageSpec languageSpec = languageSpecService.get(projectService.get(resource));
+        if(languageSpec != null) {
             try {
-                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(project);
+                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);
                 final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(dependencies);
                 return impls;
             } catch(MetaborgException e) {

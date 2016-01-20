@@ -11,6 +11,7 @@ import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 /**
  * This class is used to temporarily bridge between the old and new configuration systems.
  */
+@SuppressWarnings("deprecation")
 public class LegacySpoofaxLanguageSpecPathsService implements ISpoofaxLanguageSpecPathsService {
 
     private final ISpoofaxProjectSettingsService settingsService;

@@ -9,6 +9,7 @@ import org.metaborg.spoofax.core.project.IMavenProjectService;
 
 import com.google.inject.Inject;
 
+@SuppressWarnings("deprecation")
 @Deprecated
 public class SpoofaxProjectSettingsService implements ISpoofaxProjectSettingsService {
     private final IMavenProjectService mavenProjectService;

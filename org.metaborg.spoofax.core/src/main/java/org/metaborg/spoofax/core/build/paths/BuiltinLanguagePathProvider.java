@@ -18,6 +18,7 @@ import com.google.common.collect.Multimap;
 /**
  * @deprecated Use {@link NewBuiltinLanguagePathProvider} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public class BuiltinLanguagePathProvider implements ILanguagePathProvider {
     private static final String ROOT = ".";

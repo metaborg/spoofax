@@ -69,6 +69,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
+@SuppressWarnings("deprecation")
 @Deprecated
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private static final ILogger logger = LoggerUtils.logger(LanguageDiscoveryService.class);

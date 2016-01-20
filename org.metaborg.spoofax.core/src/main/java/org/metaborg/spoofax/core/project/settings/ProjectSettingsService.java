@@ -16,6 +16,7 @@ import org.metaborg.util.log.LoggerUtils;
 
 import com.google.inject.Inject;
 
+@SuppressWarnings("deprecation")
 @Deprecated
 public class ProjectSettingsService implements IProjectSettingsService {
     private static final ILogger logger = LoggerUtils.logger(ProjectSettingsService.class);

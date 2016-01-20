@@ -32,9 +32,9 @@ import org.metaborg.core.project.settings.IProjectSettingsService;
 import com.google.inject.Inject;
 
 /**
- * @deprecated This class is only used for the configuration system migration.
+ * This class is only used for the configuration system migration.
  */
-@Deprecated
+@SuppressWarnings("deprecation")
 public class LegacyLanguageComponentConfigService implements ILanguageComponentConfigService {
 
     private final ConfigurationBasedLanguageComponentConfigService configurationBasedLanguageComponentConfigService;

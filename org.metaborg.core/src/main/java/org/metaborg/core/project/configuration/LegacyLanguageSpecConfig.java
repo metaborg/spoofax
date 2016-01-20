@@ -27,6 +27,7 @@ import org.metaborg.core.project.settings.IProjectSettings;
 
 import com.google.common.collect.Lists;
 
+@SuppressWarnings("deprecation")
 public class LegacyLanguageSpecConfig implements ILanguageSpecConfig {
 
     private static final long serialVersionUID = 4321718437339177753L;

@@ -34,6 +34,7 @@ import com.google.inject.Inject;
  * @see BuildInput
  * @deprecated Use {@link NewBuildInputBuilder} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public class BuildInputBuilder {
     private final IProject project;

@@ -15,6 +15,7 @@ import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 /**
  * @deprecated Use {@link LanguageSpecGeneratorScope} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public class GeneratorProjectSettings {
     private final SpoofaxProjectSettings settings;

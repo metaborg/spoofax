@@ -14,6 +14,7 @@ import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
  *
  * @deprecated Use {@link NewLanguageSpecGenerator} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 public class NewProjectGenerator extends BaseGenerator {
     private final String[] fileExtensions;

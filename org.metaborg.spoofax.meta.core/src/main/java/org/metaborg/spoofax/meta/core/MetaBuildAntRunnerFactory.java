@@ -29,6 +29,7 @@ import com.google.inject.Inject;
 /**
  * @deprecated Use {@link NewMetaBuildAntRunnerFactory} instead.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
 class MetaBuildAntRunnerFactory {
     private final IResourceService resourceService;
