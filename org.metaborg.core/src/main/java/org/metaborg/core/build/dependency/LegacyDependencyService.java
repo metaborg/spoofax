@@ -41,7 +41,8 @@ public class LegacyDependencyService implements IDependencyService {
 
     @Override
     public Iterable<ILanguageComponent> compileDependencies(ILanguageComponent component) throws MetaborgException {
-        return this.newDependencyService.compileDependencies(component);
+        throw new UnsupportedOperationException("Language Components cannot have compile dependencies.");
+//        return this.newDependencyService.compileDependencies(component);
     }
 
     @Override

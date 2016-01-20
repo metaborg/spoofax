@@ -167,17 +167,17 @@ public class NewLanguageDiscoveryRequest implements INewLanguageDiscoveryRequest
     @Nullable
     public StrategoRuntimeFacet strategoRuntimeFacet() { return this.strategoRuntimeFacet; }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    @Override
-    public String errorSummary() {
-        if (available) {
-            return "";
-        }
-        return toString();
-    }
+//    /**
+//     * {@inheritDoc}
+//     */
+//    @Deprecated
+//    @Override
+//    public String errorSummary() {
+//        if (available) {
+//            return "";
+//        }
+//        return toString();
+//    }
 
     /**
      * {@inheritDoc}

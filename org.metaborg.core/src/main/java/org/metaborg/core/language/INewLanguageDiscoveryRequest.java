@@ -57,16 +57,16 @@ public interface INewLanguageDiscoveryRequest {
      */
     Collection<Throwable> exceptions();
     
-    /**
-     * Gets a summary of the errors and exceptions in this request.
-     *
-     * The resulting string is empty when {@link #available()} is <code>true</code>.
-     *
-     * @return The summary of errors and exceptions in this request;
-     * or an empty string when the request is available.
-     *
-     * @deprecated Call {@link #toString()} instead.
-     */
-    @Deprecated
-    String errorSummary();
+//    /**
+//     * Gets a summary of the errors and exceptions in this request.
+//     *
+//     * The resulting string is empty when {@link #available()} is <code>true</code>.
+//     *
+//     * @return The summary of errors and exceptions in this request;
+//     * or an empty string when the request is available.
+//     *
+//     * @deprecated Call {@link #toString()} instead.
+//     */
+//    @Deprecated
+//    String errorSummary();
 }

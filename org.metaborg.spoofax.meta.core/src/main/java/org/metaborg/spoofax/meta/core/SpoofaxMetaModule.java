@@ -9,7 +9,7 @@ import com.google.inject.multibindings.Multibinder;
 
 public class SpoofaxMetaModule extends MetaborgMetaModule {
     @Override protected void configure() {
-        bind(MetaBuildAntRunnerFactory.class).in(Singleton.class);
+//        bind(MetaBuildAntRunnerFactory.class).in(Singleton.class);
         bind(SpoofaxMetaBuilder.class).in(Singleton.class);
 
 //        bind(SpoofaxLanguageSpecBuilder.class).in(Singleton.class);

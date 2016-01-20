@@ -31,11 +31,12 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
     @Nullable
     @Override
     public ISpoofaxLanguageSpecConfig get(final ILanguageSpec languageSpec) throws IOException {
-        // Try get a configuration.
-        @Nullable ISpoofaxLanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
-
-        if (config != null)
-            return config;
+        @Nullable ISpoofaxLanguageSpecConfig config = null;
+//        // Try get a configuration.
+//        @Nullable ISpoofaxLanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
+//
+//        if (config != null)
+//            return config;
 
         // If this fails, try get project settings.
         SpoofaxProjectSettings settings = null;

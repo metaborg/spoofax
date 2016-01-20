@@ -41,7 +41,7 @@ public class LegacyLanguageDiscoveryService implements ILanguageDiscoveryService
 
     @Override
     public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
-        return this.newLanguageDiscoveryService.discover(location);
+        return this.newLanguageDiscoveryService.discover(this.newLanguageDiscoveryService.request(location));
     }
 
     private ILanguageDiscoveryRequest convertFromNew(INewLanguageDiscoveryRequest request) {

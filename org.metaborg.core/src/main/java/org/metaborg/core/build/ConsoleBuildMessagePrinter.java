@@ -152,24 +152,24 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         }
     }
 
-    @Override public void print(IProject project, String message, @Nullable Throwable e, boolean pardoned) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("EXCEPTION");
-        if(pardoned) {
-            sb.append(" (pardoned)");
-        }
-        sb.append(" in project ");
-        sb.append(project.location().getName().getPath());
-        sb.append('\n');
-
-        print(sb, message, e, MessageSeverity.ERROR, pardoned);
-
-        if(pardoned) {
-            ++exceptionsPardoned;
-        } else {
-            ++exceptions;
-        }
-    }
+//    @Override public void print(IProject project, String message, @Nullable Throwable e, boolean pardoned) {
+//        final StringBuilder sb = new StringBuilder();
+//        sb.append("EXCEPTION");
+//        if(pardoned) {
+//            sb.append(" (pardoned)");
+//        }
+//        sb.append(" in project ");
+//        sb.append(project.location().getName().getPath());
+//        sb.append('\n');
+//
+//        print(sb, message, e, MessageSeverity.ERROR, pardoned);
+//
+//        if(pardoned) {
+//            ++exceptionsPardoned;
+//        } else {
+//            ++exceptions;
+//        }
+//    }
 
 
     private void print(StringBuilder sb, String message, @Nullable Throwable e, MessageSeverity severity,

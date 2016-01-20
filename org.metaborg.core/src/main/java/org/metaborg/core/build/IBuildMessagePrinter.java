@@ -41,19 +41,19 @@ public interface IBuildMessagePrinter {
      */
     public abstract void print(ILanguageSpec languageSpec, String message, @Nullable Throwable e, boolean pardoned);
 
-    /**
-     * Prints given message and exception, located at a project. Used if the source location or resource is not
-     * available.
-     * 
-     * @param project
-     *            Project the message occured in.
-     * @param message
-     *            Message to print.
-     * @param e
-     *            Exception to print, or null if there is no exception.
-     */
-    @Deprecated
-    public abstract void print(IProject project, String message, @Nullable Throwable e, boolean pardoned);
+//    /**
+//     * Prints given message and exception, located at a project. Used if the source location or resource is not
+//     * available.
+//     *
+//     * @param project
+//     *            Project the message occured in.
+//     * @param message
+//     *            Message to print.
+//     * @param e
+//     *            Exception to print, or null if there is no exception.
+//     */
+//    @Deprecated
+//    public abstract void print(IProject project, String message, @Nullable Throwable e, boolean pardoned);
 
     /**
      * Prints a summary based on printed messages before.

@@ -198,9 +198,9 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         return components;
     }
 
-    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
-        return discover(request(location));
-    }
+//    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
+//        return discover(request(location));
+//    }
 
 
     private IStrategoAppl esvTerm(FileObject location, FileObject esvFile) throws ParseError, IOException,

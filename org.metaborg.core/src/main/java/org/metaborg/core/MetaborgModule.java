@@ -6,6 +6,8 @@ import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.dependency.DefaultDependencyService;
+//import org.metaborg.core.build.dependency.DependencyService;
+//import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.dependency.DependencyService;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.dependency.INewDependencyService;
@@ -78,7 +80,7 @@ public class MetaborgModule extends AbstractModule {
         bindLanguage();
         bindLanguagePath();
         bindLanguageSpecPath();
-        bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
+//        bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
         bindNewLanguagePathProviders(Multibinder.newSetBinder(binder(), INewLanguagePathProvider.class));
         bindLanguageSpec();
         bindContext();
@@ -112,7 +114,7 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindLanguagePath() {
-        bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
+//        bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
         bind(INewLanguagePathService.class).to(NewLanguagePathService.class).in(Singleton.class);
     }
 
@@ -120,9 +122,9 @@ public class MetaborgModule extends AbstractModule {
 
     }
 
-    protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-        binder.addBinding().to(DependencyPathProvider.class);
-    }
+//    protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
+//        binder.addBinding().to(DependencyPathProvider.class);
+//    }
 
     protected void bindNewLanguagePathProviders(Multibinder<INewLanguagePathProvider> binder) {
         binder.addBinding().to(NewDependencyPathProvider.class);

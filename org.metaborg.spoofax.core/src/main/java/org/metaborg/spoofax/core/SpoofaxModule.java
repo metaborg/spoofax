@@ -9,7 +9,6 @@ import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.build.paths.INewLanguagePathProvider;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.context.IContextFactory;
-import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.INewLanguageDiscoveryService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectProcessor;
@@ -48,7 +47,6 @@ import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
-import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.build.paths.NewBuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
@@ -161,7 +159,7 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void bindLanguage() {
         super.bindLanguage();
 
-        bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
+//        bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
         // bind(ILanguageDiscoveryService.class).to(LegacyLanguageDiscoveryService.class).in(Singleton.class);
         bind(INewLanguageDiscoveryService.class).to(NewLanguageDiscoveryService.class).in(Singleton.class);
 
@@ -176,11 +174,11 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ISpoofaxLanguageSpecPathsService.class).to(SpoofaxLanguageSpecPathsService.class).in(Singleton.class);
     }
 
-    @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-        super.bindLanguagePathProviders(binder);
-
-        binder.addBinding().to(BuiltinLanguagePathProvider.class);
-    }
+//    @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
+//        super.bindLanguagePathProviders(binder);
+//
+//        binder.addBinding().to(BuiltinLanguagePathProvider.class);
+//    }
 
     @Override protected void bindNewLanguagePathProviders(Multibinder<INewLanguagePathProvider> binder) {
         super.bindNewLanguagePathProviders(binder);
