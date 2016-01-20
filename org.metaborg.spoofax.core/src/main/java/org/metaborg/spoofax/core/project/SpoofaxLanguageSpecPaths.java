@@ -160,6 +160,11 @@ public class SpoofaxLanguageSpecPaths extends LanguageSpecPaths implements ISpoo
     }
 
     @Override
+    public FileObject dsGeneratedInterpreterJava() {
+        return resolve(DIR_STR_JAVA + "/ds/generated/interpreter");
+    }
+
+    @Override
     public FileObject dsGeneratedInterpreterCompiledJavaFolder() {
         return resolve(outputClassesFolder(), "ds/generated/interpreter");
     }

@@ -34,6 +34,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.FileSelectorUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -83,22 +84,6 @@ public class SpoofaxMetaBuilder {
         generator.generateAll();
 
         this.languageSpecConfigWriter.write(input.languageSpec, input.config, access);
-
-        // HACK: compile the main ESV file to make sure that packed.esv file is always available.
-        final FileObject mainEsvFile = input.paths.mainEsvFile();
-        if(mainEsvFile.exists()) {
-            logger.info("Compiling ESV file {}", mainEsvFile);
-            // @formatter:off
-            final BuildInput buildInput =
-                new NewBuildInputBuilder(input.languageSpec)
-                .addSource(mainEsvFile)
-                .addTransformGoal(new CompileGoal())
-                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
-                .build(dependencyService, languagePathService);
-            // @formatter:on
-            runner.build(buildInput, null, null).schedule().block();
-        }
-        access.addWrite(mainEsvFile);
     }
 
     public void compilePreJava(LanguageSpecBuildInput input) throws MetaborgException {
@@ -122,6 +107,29 @@ public class SpoofaxMetaBuilder {
             throw new MetaborgException(e);
         }
 
+
+        // HACK: compile the main ESV file to make sure that packed.esv file is always available.
+        final FileObject mainEsvFile = input.paths.mainEsvFile();
+        try {
+            if(mainEsvFile.exists()) {
+                logger.info("Compiling ESV file {}", mainEsvFile);
+                // @formatter:off
+                final BuildInput buildInput =
+                        new NewBuildInputBuilder(input.languageSpec)
+                                .addSource(mainEsvFile)
+                                .addTransformGoal(new CompileGoal())
+                                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
+                                .build(dependencyService, languagePathService);
+                // @formatter:on
+                runner.build(buildInput, null, null).schedule().block();
+            }
+        } catch(FileSystemException e) {
+            final String message = logger.format("Could not compile ESV file {}", mainEsvFile);
+            throw new MetaborgException(message, e);
+        } catch(InterruptedException e) {
+            // Ignore
+        }
+        
         // HACK: compile the main DS file if available, after generating sources (because ds can depend on Stratego
         // strategies), to generate an interpreter.
         final FileObject mainDsFile = input.paths.dsMainFile();
@@ -175,6 +183,7 @@ public class SpoofaxMetaBuilder {
         input.paths.includeFolder().delete(selector);
         input.paths.generatedSourceFolder().delete(selector);
         input.paths.cacheFolder().delete(selector);
+        input.paths.dsGeneratedInterpreterJava().delete(FileSelectorUtils.extension("java"));
         Xattr.getDefault().clear();
     }
 

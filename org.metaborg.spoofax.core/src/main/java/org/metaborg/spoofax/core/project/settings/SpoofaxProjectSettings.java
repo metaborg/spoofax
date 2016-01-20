@@ -318,6 +318,10 @@ public class SpoofaxProjectSettings implements Serializable {
     }
     
     
+    public FileObject getDsGeneratedInterpreterJava() {
+        return resolve(DIR_STR_JAVA + "/ds/generated/interpreter");
+    }
+    
     public FileObject getDsGeneratedInterpreterCompiledJava() {
         return resolve(getOutputClassesDirectory(), "ds/generated/interpreter");
     }

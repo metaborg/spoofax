@@ -135,6 +135,8 @@ public interface ISpoofaxLanguageSpecPaths extends ILanguageSpecPaths {
 
     FileObject dsMainFile();
 
+    FileObject dsGeneratedInterpreterJava();
+
     FileObject dsGeneratedInterpreterCompiledJavaFolder();
 
     FileObject dsManualInterpreterCompiledJavaFolder();

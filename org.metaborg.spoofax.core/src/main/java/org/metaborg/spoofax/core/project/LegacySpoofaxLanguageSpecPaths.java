@@ -7,6 +7,8 @@ import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 
 import java.net.URI;
 
+import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_STR_JAVA;
+
 /**
  * This class is used to temporarily bridge between the old and new configuration systems.
  */
@@ -153,6 +155,11 @@ public class LegacySpoofaxLanguageSpecPaths implements ISpoofaxLanguageSpecPaths
     @Override
     public FileObject dsMainFile() {
         return this.settings.getMainDsFile();
+    }
+
+    @Override
+    public FileObject dsGeneratedInterpreterJava() {
+        return this.settings.getDsGeneratedInterpreterJava();
     }
 
     @Override
