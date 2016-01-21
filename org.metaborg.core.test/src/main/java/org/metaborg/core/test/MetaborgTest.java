@@ -3,7 +3,7 @@ package org.metaborg.core.test;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.Before;
-import org.metaborg.core.Metaborg;
+import org.metaborg.core.MetaBorg;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.language.IFacet;
@@ -20,16 +20,12 @@ import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.iterators.Iterables2;
 
-import com.google.inject.Injector;
-
 public class MetaborgTest {
     private final MetaborgModule module;
 
     protected final String groupId = "org.metaborg";
 
-    protected Metaborg metaborg;
-    protected Injector injector;
-
+    protected MetaBorg metaborg;
     protected IResourceService resourceService;
     protected ILanguageService languageService;
     protected ILanguageDiscoveryService languageDiscoveryService;
@@ -42,13 +38,11 @@ public class MetaborgTest {
 
 
     @Before public void beforeTest() throws MetaborgException {
-        metaborg = new Metaborg(module);
-        injector = metaborg.injector();
-
-        resourceService = injector.getInstance(IResourceService.class);
-        languageService = injector.getInstance(ILanguageService.class);
-        languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
-        languageIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
+        metaborg = new MetaBorg(module);
+        resourceService = metaborg.resourceService;
+        languageService = metaborg.languageService;
+        languageDiscoveryService = metaborg.languageDiscoveryService;
+        languageIdentifierService = metaborg.languageIdentifierService;
     }
 
 
@@ -78,7 +72,7 @@ public class MetaborgTest {
     }
 
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location,
-                                          LanguageContributionIdentifier implId, IFacet... facets) {
+        LanguageContributionIdentifier implId, IFacet... facets) {
         return language(identifier, location, Iterables2.singleton(implId), facets);
     }
 

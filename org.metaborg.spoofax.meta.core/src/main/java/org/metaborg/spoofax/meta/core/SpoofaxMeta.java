@@ -1,13 +1,13 @@
 package org.metaborg.spoofax.meta.core;
 
-import org.metaborg.core.Metaborg;
+import org.metaborg.core.MetaBorg;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.meta.core.MetaborgMeta;
 import org.metaborg.spoofax.core.Spoofax;
 
 /**
- * Facade for instantiating and accessing the Metaborg meta API, as an extension of the {@link Metaborg} API,
+ * Facade for instantiating and accessing the Metaborg meta API, as an extension of the {@link MetaBorg} API,
  * instantiated with the Spoofax implementation.
  */
 public class SpoofaxMeta extends MetaborgMeta {
