@@ -168,10 +168,10 @@ public class MetaborgModule extends AbstractModule {
         bind(ILanguageSpecConfigService.class).to(LegacyLanguageSpecConfigService.class).in(Singleton.class);
 
         bind(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-        bind(LegacyLanguageSpecConfigWriter.class).in(Singleton.class);
+//        bind(LegacyLanguageSpecConfigWriter.class).in(Singleton.class);
 //        bind(ILanguageSpecConfigService.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
 //        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-        bind(ILanguageSpecConfigWriter.class).to(LegacyLanguageSpecConfigWriter.class).in(Singleton.class);
+//        bind(ILanguageSpecConfigWriter.class).to(LegacyLanguageSpecConfigWriter.class).in(Singleton.class);
 
         bind(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
         bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);

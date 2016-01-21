@@ -22,8 +22,10 @@ import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.core.project.configuration.ConfigurationBasedSpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
+import org.metaborg.spoofax.core.project.configuration.LegacySpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
@@ -55,9 +57,12 @@ public class SpoofaxMetaBuilder {
     private final ISpoofaxProcessorRunner runner;
     private final Set<IBuildStep> buildSteps;
     private final ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter;
+    // FIXME: This is temporary, until we've moved to the new config system completely.
+    private final LegacySpoofaxLanguageSpecConfigWriter oldLanguageSpecConfigWriter;
 
 
     @Inject public SpoofaxMetaBuilder(Injector injector, ISourceTextService sourceTextService, INewDependencyService dependencyService,
+                                      LegacySpoofaxLanguageSpecConfigWriter oldLanguageSpecConfigWriter,
                                       INewLanguagePathService languagePathService, ISpoofaxProcessorRunner runner, ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter,
         Set<IBuildStep> buildSteps) {
         this.injector = injector;
@@ -66,6 +71,7 @@ public class SpoofaxMetaBuilder {
         this.languagePathService = languagePathService;
         this.runner = runner;
         this.languageSpecConfigWriter = languageSpecConfigWriter;
+        this.oldLanguageSpecConfigWriter = oldLanguageSpecConfigWriter;
         this.buildSteps = buildSteps;
     }
 
@@ -84,6 +90,9 @@ public class SpoofaxMetaBuilder {
         generator.generateAll();
 
         this.languageSpecConfigWriter.write(input.languageSpec, input.config, access);
+
+        // FIXME: This is temporary, until we've moved to the new config system completely.
+        this.oldLanguageSpecConfigWriter.write(input.languageSpec, input.config, access);
     }
 
     public void compilePreJava(LanguageSpecBuildInput input) throws MetaborgException {

@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core;
 
 import java.util.Set;
 
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 
@@ -58,8 +59,6 @@ public class SpoofaxConstants {
     public static final String DIR_OUTPUT = "target";
     public static final String DIR_CLASSES = DIR_OUTPUT + "/classes";
     public static final String DIR_STR_JAVA_CLASSES = DIR_CLASSES + "/trans";
-
-    public static final String FILE_CONFIG = "metaborg.yml";
 
 
     public static boolean isMetaLanguage(ILanguageImpl language) {

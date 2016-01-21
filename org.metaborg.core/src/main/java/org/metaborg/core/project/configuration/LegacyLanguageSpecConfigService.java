@@ -51,21 +51,21 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
     @Nullable
     @Override
     public ILanguageSpecConfig get(final ILanguageSpec languageSpec) throws IOException {
-        @Nullable ILanguageSpecConfig config = null;
-//        // Try get a configuration.
-//        @Nullable ILanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
-//
-//        // If this fails, try get project settings.
-//        if (config == null && languageSpec instanceof IProject) {
-            final ILegacyProjectSettings settings = this.settingsService.get((IProject)languageSpec);
+        // Try get a configuration.
+        @Nullable ILanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
+
+        // If this fails, try get project settings.
+        if (config == null && languageSpec instanceof IProject) {
+            @Nullable final ILegacyProjectSettings settings = this.settingsService.get((IProject)languageSpec);
             if (settings != null) {
                 // Convert the settings to a configuration
                 config = new LegacyLanguageSpecConfig(settings);
 
-                // Write the configuration to file.
-                this.configWriter.write(languageSpec, config, null);
+//                // Write the configuration to file.
+//                // FIXME: This is only for migrating the old settings system to the new.
+//                this.configWriter.write(languageSpec, config, null);
             }
-//        }
+        }
         return config;
     }
 }

@@ -4,6 +4,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.configuration.ConfigurationBasedConfigService;
 import org.metaborg.core.project.configuration.ConfigurationReaderWriter;
@@ -13,7 +14,6 @@ import com.google.inject.Inject;
 
 public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends ConfigurationBasedConfigService<ILanguageSpec, ISpoofaxLanguageSpecConfig> implements ISpoofaxLanguageSpecConfigService, ISpoofaxLanguageSpecConfigWriter {
 
-    public static final String CONFIG_FILE = "metaborg.yml";
     private final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder;
 
     @Inject
@@ -39,7 +39,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends Configur
      * @throws FileSystemException
      */
     private FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
-        return rootFolder.resolveFile(CONFIG_FILE);
+        return rootFolder.resolveFile(MetaborgConstants.FILE_CONFIG);
     }
 
     /**

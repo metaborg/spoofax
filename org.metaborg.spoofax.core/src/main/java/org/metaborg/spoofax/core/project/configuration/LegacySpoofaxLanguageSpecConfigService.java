@@ -31,31 +31,27 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
     @Nullable
     @Override
     public ISpoofaxLanguageSpecConfig get(final ILanguageSpec languageSpec) throws IOException {
-        @Nullable ISpoofaxLanguageSpecConfig config = null;
-//        // Try get a configuration.
-//        @Nullable ISpoofaxLanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
-//
-//        if (config != null)
-//            return config;
+        // Try get a configuration.
+        @Nullable ISpoofaxLanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
 
         // If this fails, try get project settings.
-        LegacySpoofaxProjectSettings settings = null;
-        if (languageSpec instanceof IProject) {
+        if (config == null && languageSpec instanceof IProject) {
+            @Nullable final LegacySpoofaxProjectSettings settings;
             try {
                 settings = this.settingsService.get((IProject) languageSpec);
             } catch (ProjectException e) {
                 throw new RuntimeException(e);
             }
-        }
+            if (settings != null) {
+                // Convert the settings to a configuration
+                config = new LegacySpoofaxLanguageSpecConfig(settings);
 
-        if (settings != null) {
-            // Convert the settings to a configuration
-            return new LegacySpoofaxLanguageSpecConfig(settings);
-            // TODO: This is for migration.
 //                // Write the configuration to file.
+//                // FIXME: This is only for migrating the old settings system to the new.
 //                this.configWriter.write(languageSpec, config, null);
+            }
         }
 
-        return null;
+        return config;
     }
 }
