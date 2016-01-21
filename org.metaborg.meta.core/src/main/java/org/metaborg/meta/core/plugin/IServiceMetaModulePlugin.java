@@ -6,7 +6,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 
 /**
- * Plugin that creates {@link Module}s that are passed to Metaborg meta's Guice {@link Injector} at startup.
+ * Plugin that creates {@link Module}s that are passed to MetaBorg meta's Guice {@link Injector} at startup.
  */
 public interface IServiceMetaModulePlugin extends IServiceModulePlugin {
     /**

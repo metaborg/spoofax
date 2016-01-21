@@ -1,10 +1,15 @@
 package org.metaborg.core;
 
+import javax.annotation.Nullable;
+
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.editor.IEditorRegistry;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.core.plugin.IServiceModulePlugin;
@@ -105,6 +110,28 @@ public class MetaBorg {
      */
     public MetaBorg() throws MetaborgException {
         this(defaultModule(), defaultPluginLoader());
+    }
+
+
+    /**
+     * @see ILanguageDiscoveryService#discover(FileObject)
+     */
+    public Iterable<ILanguageComponent> discoverLanguages(FileObject location) throws MetaborgException {
+        return languageDiscoveryService.discover(location);
+    }
+
+    /**
+     * @see ILanguageIdentifierService#identify(FileObject, ILanguageImpl)
+     */
+    public boolean identifyResource(FileObject resource, ILanguageImpl language) {
+        return languageIdentifierService.identify(resource, language);
+    }
+
+    /**
+     * @see ILanguageIdentifierService#identify(FileObject)
+     */
+    public @Nullable ILanguageImpl identifyResource(FileObject resource) {
+        return languageIdentifierService.identify(resource);
     }
 
 
