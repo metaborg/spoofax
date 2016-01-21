@@ -13,7 +13,7 @@ import com.google.inject.Module;
 /**
  * Facade for instantiating and accessing the MetaBorg meta API, as an extension of the {@link MetaBorg} API.
  */
-public class MetaBorgMetaz {
+public class MetaBorgMeta {
     public final Injector injector;
     public final MetaBorg parent;
 
@@ -30,7 +30,7 @@ public class MetaBorgMetaz {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgMetaz(MetaBorg metaborg, MetaborgMetaModule module, IModulePluginLoader loader)
+    public MetaBorgMeta(MetaBorg metaborg, MetaborgMetaModule module, IModulePluginLoader loader)
         throws MetaborgException {
         final Iterable<Module> modules = InjectorFactory.modules(module, loader);
         this.injector = InjectorFactory.createChild(metaborg.injector, modules);
@@ -47,7 +47,7 @@ public class MetaBorgMetaz {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgMetaz(MetaBorg metaborg, MetaborgMetaModule module) throws MetaborgException {
+    public MetaBorgMeta(MetaBorg metaborg, MetaborgMetaModule module) throws MetaborgException {
         this(metaborg, module, defaultPluginLoader());
     }
 
@@ -61,7 +61,7 @@ public class MetaBorgMetaz {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgMetaz(MetaBorg metaborg, IModulePluginLoader loader) throws MetaborgException {
+    public MetaBorgMeta(MetaBorg metaborg, IModulePluginLoader loader) throws MetaborgException {
         this(metaborg, defaultModule(), loader);
     }
 
@@ -73,7 +73,7 @@ public class MetaBorgMetaz {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgMetaz(MetaBorg metaborg) throws MetaborgException {
+    public MetaBorgMeta(MetaBorg metaborg) throws MetaborgException {
         this(metaborg, defaultModule(), defaultPluginLoader());
     }
 
