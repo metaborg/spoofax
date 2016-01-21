@@ -23,7 +23,7 @@ import com.google.inject.Module;
  * the public final fields to access services directly. All services and operations available in this facade are
  * implemented when using the default {@link MetaborgModule}.
  */
-public class MetaBorg {
+public class MetaBorgz {
     public final Injector injector;
 
     public final IResourceService resourceService;
@@ -53,7 +53,7 @@ public class MetaBorg {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorg(MetaborgModule module, IModulePluginLoader loader) throws MetaborgException {
+    public MetaBorgz(MetaborgModule module, IModulePluginLoader loader) throws MetaborgException {
         final Iterable<Module> modules = InjectorFactory.modules(module, loader);
         this.injector = InjectorFactory.create(modules);
 
@@ -81,7 +81,7 @@ public class MetaBorg {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorg(MetaborgModule module) throws MetaborgException {
+    public MetaBorgz(MetaborgModule module) throws MetaborgException {
         this(module, defaultPluginLoader());
     }
 
@@ -93,7 +93,7 @@ public class MetaBorg {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorg(IModulePluginLoader loader) throws MetaborgException {
+    public MetaBorgz(IModulePluginLoader loader) throws MetaborgException {
         this(defaultModule(), loader);
     }
 
@@ -103,7 +103,7 @@ public class MetaBorg {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorg() throws MetaborgException {
+    public MetaBorgz() throws MetaborgException {
         this(defaultModule(), defaultPluginLoader());
     }
 
