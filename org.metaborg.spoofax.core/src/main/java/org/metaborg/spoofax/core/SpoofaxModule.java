@@ -26,7 +26,7 @@ import org.metaborg.core.project.ILanguageSpecPathsService;
 import org.metaborg.core.project.configuration.ConfigurationBasedLanguageSpecConfigService;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
-import org.metaborg.core.project.settings.IProjectSettingsService;
+import org.metaborg.core.project.settings.ILegacyProjectSettingsService;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.IParseService;
@@ -68,14 +68,14 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
-import org.metaborg.spoofax.core.project.DummyMavenProjectService;
-import org.metaborg.spoofax.core.project.IMavenProjectService;
+import org.metaborg.spoofax.core.project.DummyLegacyMavenProjectService;
+import org.metaborg.spoofax.core.project.ILegacyMavenProjectService;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
 import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPathsService;
 import org.metaborg.spoofax.core.project.configuration.*;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.ProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.ILegacySpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.LegacyProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
@@ -194,12 +194,12 @@ public class SpoofaxModule extends MetaborgModule {
      * Overrides {@link MetaborgModule#bindProjectSettings()} for non-dummy implementation of project settings service.
      */
     @Override protected void bindProjectSettings() {
-        bind(IProjectSettingsService.class).to(ProjectSettingsService.class).in(Singleton.class);
-        bind(ISpoofaxProjectSettingsService.class).to(SpoofaxProjectSettingsService.class).in(Singleton.class);
+        bind(ILegacyProjectSettingsService.class).to(LegacyProjectSettingsService.class).in(Singleton.class);
+        bind(ILegacySpoofaxProjectSettingsService.class).to(LegacySpoofaxProjectSettingsService.class).in(Singleton.class);
     }
 
     @Deprecated protected void bindMavenProject() {
-        bind(IMavenProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
+        bind(ILegacyMavenProjectService.class).to(DummyLegacyMavenProjectService.class).in(Singleton.class);
     }
 
     @Override protected void bindLanguageSpecConfig() {

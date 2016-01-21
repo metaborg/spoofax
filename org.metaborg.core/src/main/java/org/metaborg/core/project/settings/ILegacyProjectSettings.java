@@ -8,7 +8,7 @@ import org.metaborg.core.project.configuration.ILanguageComponentConfig;
  * @deprecated Use {@link ILanguageComponentConfig} instead.
  */
 @Deprecated
-public interface IProjectSettings {
+public interface ILegacyProjectSettings {
     public abstract LanguageIdentifier identifier();
 
     public abstract String name();

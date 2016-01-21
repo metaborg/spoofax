@@ -12,7 +12,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.NameUtil;
-import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.ILegacyProjectSettings;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.file.FileUtils;
 
@@ -20,10 +20,10 @@ import com.google.common.collect.Lists;
 
 @SuppressWarnings("deprecation")
 @Deprecated
-public class SpoofaxProjectSettings implements Serializable {
+public class LegacySpoofaxProjectSettings implements Serializable {
     private static final long serialVersionUID = 7439146986768086591L;
     
-    private final IProjectSettings settings;
+    private final ILegacyProjectSettings settings;
     private final URI locationPath;
     private transient FileObject location;
 
@@ -36,7 +36,7 @@ public class SpoofaxProjectSettings implements Serializable {
     private @Nullable String externalJarFlags;
 
 
-    public SpoofaxProjectSettings(IProjectSettings settings, FileObject location) {
+    public LegacySpoofaxProjectSettings(ILegacyProjectSettings settings, FileObject location) {
         this.settings = settings;
         this.locationPath = FileUtils.toURI(location);
         this.location = location;
@@ -48,7 +48,7 @@ public class SpoofaxProjectSettings implements Serializable {
     }
 
 
-    public IProjectSettings settings() {
+    public ILegacyProjectSettings settings() {
         return settings;
     }
 

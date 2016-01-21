@@ -15,7 +15,7 @@ import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
  * @deprecated Use {@link ILanguageComponentConfigService} instead.
  */
 @Deprecated
-public interface IProjectSettingsService {
+public interface ILegacyProjectSettingsService {
 
     /**
      * Retrieves project settings for given project.
@@ -27,7 +27,8 @@ public interface IProjectSettingsService {
      * @deprecated Use {@link ILanguageSpecConfigService#get(ILanguageSpec)}
      */
     @Deprecated
-    public abstract @Nullable IProjectSettings get(IProject project);
+    public abstract @Nullable
+    ILegacyProjectSettings get(IProject project);
 
     /**
      * Retrieves project settings at given location. Use when a Metaborg project is not available.
@@ -38,5 +39,6 @@ public interface IProjectSettingsService {
      * @deprecated Use {@link ILanguageComponentConfigService#get(ILanguageImpl)}
      */
     @Deprecated
-    public abstract @Nullable IProjectSettings get(FileObject location);
+    public abstract @Nullable
+    ILegacyProjectSettings get(FileObject location);
 }

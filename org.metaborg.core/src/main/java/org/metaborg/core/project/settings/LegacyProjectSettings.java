@@ -7,7 +7,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.iterators.Iterables2;
 
 @Deprecated
-public class ProjectSettings implements IProjectSettings, Serializable {
+public class LegacyProjectSettings implements ILegacyProjectSettings, Serializable {
     private static final long serialVersionUID = 7235470907344393083L;
     
     private final LanguageIdentifier identifier;
@@ -17,14 +17,14 @@ public class ProjectSettings implements IProjectSettings, Serializable {
     private final Iterable<LanguageContributionIdentifier> languageContributions;
 
 
-    public ProjectSettings(LanguageIdentifier identifier, String name) {
+    public LegacyProjectSettings(LanguageIdentifier identifier, String name) {
         this(identifier, name, Iterables2.<LanguageIdentifier>empty(), Iterables2.<LanguageIdentifier>empty(),
             Iterables2.<LanguageContributionIdentifier>empty());
     }
 
-    public ProjectSettings(LanguageIdentifier identifier, String name,
-        Iterable<LanguageIdentifier> compileDependencies, Iterable<LanguageIdentifier> runtimeDependencies,
-        Iterable<LanguageContributionIdentifier> languageContributions) {
+    public LegacyProjectSettings(LanguageIdentifier identifier, String name,
+                                 Iterable<LanguageIdentifier> compileDependencies, Iterable<LanguageIdentifier> runtimeDependencies,
+                                 Iterable<LanguageContributionIdentifier> languageContributions) {
         this.identifier = identifier;
         this.name = name;
         this.compileDependencies = compileDependencies;

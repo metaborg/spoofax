@@ -3,10 +3,9 @@ package org.metaborg.spoofax.core.project;
 import com.google.inject.Inject;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.Project;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.settings.ILegacySpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettings;
 
 /**
  * This class is used to temporarily bridge between the old and new configuration systems.
@@ -14,10 +13,10 @@ import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 @SuppressWarnings("deprecation")
 public class LegacySpoofaxLanguageSpecPathsService implements ISpoofaxLanguageSpecPathsService {
 
-    private final ISpoofaxProjectSettingsService settingsService;
+    private final ILegacySpoofaxProjectSettingsService settingsService;
 
     @Inject
-    public LegacySpoofaxLanguageSpecPathsService(final ISpoofaxProjectSettingsService settingsService) {
+    public LegacySpoofaxLanguageSpecPathsService(final ILegacySpoofaxProjectSettingsService settingsService) {
         this.settingsService = settingsService;
     }
 
@@ -28,7 +27,7 @@ public class LegacySpoofaxLanguageSpecPathsService implements ISpoofaxLanguageSp
 
     public ISpoofaxLanguageSpecPaths get(IProject project) {
         try {
-            final SpoofaxProjectSettings settings = this.settingsService.get(project);
+            final LegacySpoofaxProjectSettings settings = this.settingsService.get(project);
             return new LegacySpoofaxLanguageSpecPaths(settings);
         } catch (ProjectException e) {
             throw new RuntimeException(e);

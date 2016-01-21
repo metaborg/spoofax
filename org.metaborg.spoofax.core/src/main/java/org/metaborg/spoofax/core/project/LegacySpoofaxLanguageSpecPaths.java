@@ -1,13 +1,8 @@
 package org.metaborg.spoofax.core.project;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-
-import java.net.URI;
-
-import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_STR_JAVA;
+import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettings;
 
 /**
  * This class is used to temporarily bridge between the old and new configuration systems.
@@ -16,9 +11,9 @@ import static org.metaborg.spoofax.core.SpoofaxConstants.DIR_STR_JAVA;
 public class LegacySpoofaxLanguageSpecPaths implements ISpoofaxLanguageSpecPaths {
     private static final long serialVersionUID = -1830431450114231566L;
 
-    private final SpoofaxProjectSettings settings;
+    private final LegacySpoofaxProjectSettings settings;
 
-    public LegacySpoofaxLanguageSpecPaths(final SpoofaxProjectSettings settings) {
+    public LegacySpoofaxLanguageSpecPaths(final LegacySpoofaxProjectSettings settings) {
         this.settings = settings;
     }
 

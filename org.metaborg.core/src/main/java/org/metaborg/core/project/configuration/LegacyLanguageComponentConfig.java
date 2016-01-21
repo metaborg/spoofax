@@ -22,16 +22,16 @@ package org.metaborg.core.project.configuration;
 import java.util.Collection;
 
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.ILegacyProjectSettings;
 
 import com.google.common.collect.Lists;
 
 @SuppressWarnings("deprecation")
 public class LegacyLanguageComponentConfig implements ILanguageComponentConfig {
 
-    private final IProjectSettings settings;
+    private final ILegacyProjectSettings settings;
 
-    public LegacyLanguageComponentConfig(final IProjectSettings settings) {
+    public LegacyLanguageComponentConfig(final ILegacyProjectSettings settings) {
         this.settings = settings;
     }
 

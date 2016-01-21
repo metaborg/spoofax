@@ -3,7 +3,7 @@ package org.metaborg.core.project.configuration;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.ILegacyProjectSettings;
 import org.metaborg.util.file.FileAccess;
 
 import javax.annotation.Nullable;
@@ -19,7 +19,7 @@ public class LegacyLanguageSpecConfigWriter implements ILanguageSpecConfigWriter
         if (!(config instanceof LegacyLanguageSpecConfig))
             throw new RuntimeException("This class can only deal with LegacySpoofaxLanguageSpecConfig configurations.");
 
-        final IProjectSettings settings = ((LegacyLanguageSpecConfig) config).settings;
+        final ILegacyProjectSettings settings = ((LegacyLanguageSpecConfig) config).settings;
         throw new UnsupportedOperationException("Not implemented!");
     }
 

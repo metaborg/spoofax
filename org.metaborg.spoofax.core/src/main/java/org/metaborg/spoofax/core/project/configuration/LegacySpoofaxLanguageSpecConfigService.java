@@ -4,8 +4,8 @@ import com.google.inject.Inject;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.settings.ILegacySpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettings;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -17,12 +17,12 @@ import java.io.IOException;
 public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageSpecConfigService {
 
     private final ConfigurationBasedSpoofaxLanguageSpecConfigService configurationBasedLanguageSpecConfigService;
-    private final ISpoofaxProjectSettingsService settingsService;
+    private final ILegacySpoofaxProjectSettingsService settingsService;
     private final ISpoofaxLanguageSpecConfigWriter configWriter;
 
     @Inject
     public LegacySpoofaxLanguageSpecConfigService(final ConfigurationBasedSpoofaxLanguageSpecConfigService configurationBasedLanguageSpecConfigService,
-                                                  final ISpoofaxProjectSettingsService settingsService, final ISpoofaxLanguageSpecConfigWriter configWriter) {
+                                                  final ILegacySpoofaxProjectSettingsService settingsService, final ISpoofaxLanguageSpecConfigWriter configWriter) {
         this.configurationBasedLanguageSpecConfigService = configurationBasedLanguageSpecConfigService;
         this.settingsService = settingsService;
         this.configWriter = configWriter;
@@ -39,7 +39,7 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
 //            return config;
 
         // If this fails, try get project settings.
-        SpoofaxProjectSettings settings = null;
+        LegacySpoofaxProjectSettings settings = null;
         if (languageSpec instanceof IProject) {
             try {
                 settings = this.settingsService.get((IProject) languageSpec);

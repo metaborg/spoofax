@@ -12,17 +12,18 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
-import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.core.project.settings.ProjectSettings;
-import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
+import org.metaborg.core.project.settings.ILegacyProjectSettings;
+import org.metaborg.core.project.settings.LegacyProjectSettings;
+import org.metaborg.spoofax.core.project.LegacySpoofaxMavenConstants;
 
 import com.google.common.collect.Lists;
 
 @SuppressWarnings("deprecation")
 @Deprecated
-public class MavenProjectSettingsReader {
-    public static @Nullable SpoofaxProjectSettings spoofaxSettings(FileObject location, MavenProject project) {
-        final Plugin plugin = project.getPlugin(SpoofaxMavenConstants.QUAL_PLUGIN_NAME);
+public class LegacyMavenProjectSettingsReader {
+    public static @Nullable
+    LegacySpoofaxProjectSettings spoofaxSettings(FileObject location, MavenProject project) {
+        final Plugin plugin = project.getPlugin(LegacySpoofaxMavenConstants.QUAL_PLUGIN_NAME);
         if(plugin == null) {
             return null;
         }
@@ -35,7 +36,7 @@ public class MavenProjectSettingsReader {
         final Collection<LanguageIdentifier> runtimeDeps = Lists.newLinkedList();
 
         for(Dependency dependency : project.getModel().getDependencies()) {
-            if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
+            if(LegacySpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
                 final LanguageVersion version = LanguageVersion.parse(dependency.getVersion());
                 final LanguageIdentifier identifier =
                     new LanguageIdentifier(dependency.getGroupId(), dependency.getArtifactId(), version);
@@ -48,7 +49,7 @@ public class MavenProjectSettingsReader {
 
         // LEGACY: add plugin artifacts for supporting older languages
         for(Dependency dependency : plugin.getDependencies()) {
-            if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
+            if(LegacySpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
                 final LanguageVersion version = LanguageVersion.parse(dependency.getVersion());
                 final LanguageIdentifier identifier =
                     new LanguageIdentifier(dependency.getGroupId(), dependency.getArtifactId(), version);
@@ -145,9 +146,9 @@ public class MavenProjectSettingsReader {
         final LanguageVersion version = LanguageVersion.parse(project.getVersion());
         final LanguageIdentifier identifier =
             new LanguageIdentifier(project.getGroupId(), project.getArtifactId(), version);
-        final IProjectSettings settings =
-            new ProjectSettings(identifier, project.getName(), compileDeps, runtimeDeps, langContribs);
-        final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, location);
+        final ILegacyProjectSettings settings =
+            new LegacyProjectSettings(identifier, project.getName(), compileDeps, runtimeDeps, langContribs);
+        final LegacySpoofaxProjectSettings spoofaxSettings = new LegacySpoofaxProjectSettings(settings, location);
         spoofaxSettings.setPardonedLanguages(pardonedLangs);
         spoofaxSettings.setFormat(format);
         spoofaxSettings.setSdfArgs(sdfArgs);

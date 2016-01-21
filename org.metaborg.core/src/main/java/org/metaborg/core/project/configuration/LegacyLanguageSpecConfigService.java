@@ -23,11 +23,10 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.core.project.settings.IProjectSettingsService;
+import org.metaborg.core.project.settings.ILegacyProjectSettings;
+import org.metaborg.core.project.settings.ILegacyProjectSettingsService;
 
 import com.google.inject.Inject;
 
@@ -38,12 +37,12 @@ import com.google.inject.Inject;
 public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigService {
 
     private final ConfigurationBasedLanguageSpecConfigService configurationBasedLanguageSpecConfigService;
-    private final IProjectSettingsService settingsService;
+    private final ILegacyProjectSettingsService settingsService;
     private final ILanguageSpecConfigWriter configWriter;
 
     @Inject
     public LegacyLanguageSpecConfigService(final ConfigurationBasedLanguageSpecConfigService configurationBasedLanguageSpecConfigService,
-            final IProjectSettingsService settingsService, final ILanguageSpecConfigWriter configWriter) {
+                                           final ILegacyProjectSettingsService settingsService, final ILanguageSpecConfigWriter configWriter) {
         this.configurationBasedLanguageSpecConfigService = configurationBasedLanguageSpecConfigService;
         this.settingsService = settingsService;
         this.configWriter = configWriter;
@@ -58,7 +57,7 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
 //
 //        // If this fails, try get project settings.
 //        if (config == null && languageSpec instanceof IProject) {
-            final IProjectSettings settings = this.settingsService.get((IProject)languageSpec);
+            final ILegacyProjectSettings settings = this.settingsService.get((IProject)languageSpec);
             if (settings != null) {
                 // Convert the settings to a configuration
                 config = new LegacyLanguageSpecConfig(settings);

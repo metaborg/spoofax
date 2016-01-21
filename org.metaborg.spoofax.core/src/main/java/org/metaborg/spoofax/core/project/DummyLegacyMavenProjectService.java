@@ -7,12 +7,12 @@ import org.metaborg.util.log.LoggerUtils;
 
 /**
  * Dummy Maven project service that gets bound by default, to display sane warnings when nothing else is bound to
- * {@link IMavenProjectService}. Replace with working implementation or bind {@link NullMavenProjectService} to disable
+ * {@link ILegacyMavenProjectService}. Replace with working implementation or bind {@link NullLegacyMavenProjectService} to disable
  * the warning.
  */
 @Deprecated
-public class DummyMavenProjectService implements IMavenProjectService {
-    private static final ILogger logger = LoggerUtils.logger(DummyMavenProjectService.class);
+public class DummyLegacyMavenProjectService implements ILegacyMavenProjectService {
+    private static final ILogger logger = LoggerUtils.logger(DummyLegacyMavenProjectService.class);
 
 
     @Override public MavenProject get(IProject project) {

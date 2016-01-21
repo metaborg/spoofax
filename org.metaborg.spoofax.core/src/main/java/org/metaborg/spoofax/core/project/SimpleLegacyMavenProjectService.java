@@ -11,7 +11,7 @@ import org.metaborg.core.project.IProject;
 import com.google.common.collect.Maps;
 
 @Deprecated
-public class SimpleMavenProjectService implements ISimpleMavenProjectService {
+public class SimpleLegacyMavenProjectService implements ISimpleLegacyMavenProjectService {
     private ConcurrentMap<IProject, MavenProject> projects = Maps.newConcurrentMap();
 
 

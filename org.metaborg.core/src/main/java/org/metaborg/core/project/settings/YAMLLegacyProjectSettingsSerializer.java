@@ -24,15 +24,15 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Lists;
 
 @Deprecated
-public class YAMLProjectSettingsSerializer {
-    public static IProjectSettings read(FileObject file) throws IOException {
+public class YAMLLegacyProjectSettingsSerializer {
+    public static ILegacyProjectSettings read(FileObject file) throws IOException {
         try(final InputStream stream = file.getContent().getInputStream()) {
             final ObjectMapper mapper = mapper();
-            return mapper.readValue(stream, IProjectSettings.class);
+            return mapper.readValue(stream, ILegacyProjectSettings.class);
         }
     }
 
-    public static void write(FileObject file, IProjectSettings settings) throws IOException {
+    public static void write(FileObject file, ILegacyProjectSettings settings) throws IOException {
         file.createFile();
         try(final OutputStream stream = file.getContent().getOutputStream()) {
             final ObjectMapper mapper = mapper();
@@ -42,8 +42,8 @@ public class YAMLProjectSettingsSerializer {
 
     private static ObjectMapper mapper() {
         final SimpleModule module = new SimpleModule();
-        module.addSerializer(IProjectSettings.class, new ProjectSettingsSerializer());
-        module.addDeserializer(IProjectSettings.class, new ProjectSettingsDeserializer());
+        module.addSerializer(ILegacyProjectSettings.class, new ProjectSettingsSerializer());
+        module.addDeserializer(ILegacyProjectSettings.class, new ProjectSettingsDeserializer());
 
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         mapper.registerModule(module);
@@ -53,8 +53,8 @@ public class YAMLProjectSettingsSerializer {
 }
 
 @Deprecated
-class ProjectSettingsSerializer extends JsonSerializer<IProjectSettings> {
-    @Override public void serialize(IProjectSettings value, JsonGenerator gen, SerializerProvider serializers)
+class ProjectSettingsSerializer extends JsonSerializer<ILegacyProjectSettings> {
+    @Override public void serialize(ILegacyProjectSettings value, JsonGenerator gen, SerializerProvider serializers)
         throws IOException, JsonProcessingException {
         gen.writeStartObject();
         gen.writeFieldName("identifier");
@@ -117,8 +117,8 @@ class ProjectSettingsSerializer extends JsonSerializer<IProjectSettings> {
 }
 
 @Deprecated
-class ProjectSettingsDeserializer extends JsonDeserializer<IProjectSettings> {
-    @Override public IProjectSettings deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException,
+class ProjectSettingsDeserializer extends JsonDeserializer<ILegacyProjectSettings> {
+    @Override public ILegacyProjectSettings deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException,
         JsonProcessingException {
         final JsonNode root = parser.getCodec().readTree(parser);
 
@@ -136,7 +136,7 @@ class ProjectSettingsDeserializer extends JsonDeserializer<IProjectSettings> {
         for(JsonNode node : root.get("languageContributions")) {
             languageContributions.add(contributionIdentifier(node));
         }
-        return new ProjectSettings(identifier, name, compileDependencies, runtimeDependencies, languageContributions);
+        return new LegacyProjectSettings(identifier, name, compileDependencies, runtimeDependencies, languageContributions);
     }
 
     private LanguageVersion version(JsonNode root) {

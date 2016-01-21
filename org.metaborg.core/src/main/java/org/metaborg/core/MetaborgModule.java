@@ -159,7 +159,7 @@ public class MetaborgModule extends AbstractModule {
 
     @Deprecated
     protected void bindProjectSettings() {
-        bind(IProjectSettingsService.class).to(DummyProjectSettingsService.class).in(Singleton.class);
+        bind(ILegacyProjectSettingsService.class).to(DummyLegacyProjectSettingsService.class).in(Singleton.class);
 
     }
 

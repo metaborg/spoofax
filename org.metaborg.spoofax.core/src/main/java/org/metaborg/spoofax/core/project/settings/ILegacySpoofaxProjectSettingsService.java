@@ -12,7 +12,7 @@ import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfi
  * @deprecated Use {@link ISpoofaxLanguageSpecConfigService} instead.
  */
 @Deprecated
-public interface ISpoofaxProjectSettingsService {
+public interface ILegacySpoofaxProjectSettingsService {
     /**
      * Retrieves Spoofax-specific project settings given a project.
      * 
@@ -22,5 +22,6 @@ public interface ISpoofaxProjectSettingsService {
      * @throws ProjectException
      *             When creating project settings unexpectedly fails.
      */
-    public abstract @Nullable SpoofaxProjectSettings get(IProject project) throws ProjectException;
+    public abstract @Nullable
+    LegacySpoofaxProjectSettings get(IProject project) throws ProjectException;
 }

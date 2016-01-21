@@ -12,9 +12,9 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
  * Serializer for the {@link LanguageIdentifier} class.
  */
 @Deprecated
-public final class LanguageIdentifierJacksonSerializer extends StdSerializer<LanguageIdentifier> {
+public final class LegacyLanguageIdentifierJacksonSerializer extends StdSerializer<LanguageIdentifier> {
 
-    public LanguageIdentifierJacksonSerializer() {
+    public LegacyLanguageIdentifierJacksonSerializer() {
         super(LanguageIdentifier.class);
     }
 

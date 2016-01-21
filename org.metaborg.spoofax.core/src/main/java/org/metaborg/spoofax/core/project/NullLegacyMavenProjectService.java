@@ -9,7 +9,7 @@ import org.metaborg.core.project.IProject;
  * Maven project service that always returns null.
  */
 @Deprecated
-public class NullMavenProjectService implements IMavenProjectService {
+public class NullLegacyMavenProjectService implements ILegacyMavenProjectService {
     @Override public @Nullable MavenProject get(IProject project) {
         return null;
     }

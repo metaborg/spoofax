@@ -3,9 +3,9 @@ package org.metaborg.spoofax.core.project.configuration;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.settings.ProjectSettings;
-import org.metaborg.core.project.settings.YAMLProjectSettingsSerializer;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+import org.metaborg.core.project.settings.LegacyProjectSettings;
+import org.metaborg.core.project.settings.YAMLLegacyProjectSettingsSerializer;
+import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettings;
 import org.metaborg.util.file.FileAccess;
 
 import javax.annotation.Nullable;
@@ -16,11 +16,11 @@ public class LegacySpoofaxLanguageSpecConfigWriter implements ISpoofaxLanguageSp
 
     @Override
     public void write(ILanguageSpec languageSpec, ISpoofaxLanguageSpecConfig config, @Nullable FileAccess access) throws IOException {
-        final SpoofaxProjectSettings settings = getSettings(languageSpec.location(), config);
+        final LegacySpoofaxProjectSettings settings = getSettings(languageSpec.location(), config);
 
         FileObject settingsFile = getConfigFile(languageSpec);
         settingsFile.createFile();
-        YAMLProjectSettingsSerializer.write(settingsFile, settings.settings());
+        YAMLLegacyProjectSettingsSerializer.write(settingsFile, settings.settings());
         if (access != null)
             access.addWrite(settingsFile);
     }
@@ -30,11 +30,11 @@ public class LegacySpoofaxLanguageSpecConfigWriter implements ISpoofaxLanguageSp
         return languageSpec.location().resolveFile("src-gen").resolveFile("metaborg.generated.yaml");
     }
 
-    private SpoofaxProjectSettings getSettings(FileObject location, ISpoofaxLanguageSpecConfig config) {
+    private LegacySpoofaxProjectSettings getSettings(FileObject location, ISpoofaxLanguageSpecConfig config) {
         if (config instanceof LegacySpoofaxLanguageSpecConfig) {
             return ((LegacySpoofaxLanguageSpecConfig) config).settings;
         } else {
-            return new SpoofaxProjectSettings(new ProjectSettings(
+            return new LegacySpoofaxProjectSettings(new LegacyProjectSettings(
                     config.identifier(),
                     config.name(),
                     config.compileDependencies(),

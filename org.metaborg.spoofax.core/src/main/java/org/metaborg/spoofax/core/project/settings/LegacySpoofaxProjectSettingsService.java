@@ -5,22 +5,23 @@ import javax.annotation.Nullable;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.project.IMavenProjectService;
+import org.metaborg.spoofax.core.project.ILegacyMavenProjectService;
 
 import com.google.inject.Inject;
 
 @SuppressWarnings("deprecation")
 @Deprecated
-public class SpoofaxProjectSettingsService implements ISpoofaxProjectSettingsService {
-    private final IMavenProjectService mavenProjectService;
+public class LegacySpoofaxProjectSettingsService implements ILegacySpoofaxProjectSettingsService {
+    private final ILegacyMavenProjectService mavenProjectService;
 
 
-    @Inject public SpoofaxProjectSettingsService(IMavenProjectService mavenProjectService) {
+    @Inject public LegacySpoofaxProjectSettingsService(ILegacyMavenProjectService mavenProjectService) {
         this.mavenProjectService = mavenProjectService;
     }
 
 
-    @Override public @Nullable SpoofaxProjectSettings get(IProject project) throws ProjectException {
+    @Override public @Nullable
+    LegacySpoofaxProjectSettings get(IProject project) throws ProjectException {
         final MavenProject mavenProject = mavenProjectService.get(project);
         if(mavenProject == null) {
             final String message =
@@ -28,8 +29,8 @@ public class SpoofaxProjectSettingsService implements ISpoofaxProjectSettingsSer
             throw new ProjectException(message);
         }
 
-        final SpoofaxProjectSettings settings =
-            MavenProjectSettingsReader.spoofaxSettings(project.location(), mavenProject);
+        final LegacySpoofaxProjectSettings settings =
+            LegacyMavenProjectSettingsReader.spoofaxSettings(project.location(), mavenProject);
         if(settings == null) {
             throw new ProjectException("Could not get settings, Maven project settings reader returned null");
         }

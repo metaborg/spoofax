@@ -14,9 +14,9 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
  * Deserializer for the {@link LanguageIdentifier} class.
  */
 @Deprecated
-public final class LanguageIdentifierJacksonDeserializer extends StdDeserializer<LanguageIdentifier> {
+public final class LegacyLanguageIdentifierJacksonDeserializer extends StdDeserializer<LanguageIdentifier> {
 
-    public LanguageIdentifierJacksonDeserializer() {
+    public LegacyLanguageIdentifierJacksonDeserializer() {
         super(LanguageIdentifier.class);
     }
 
