@@ -27,7 +27,7 @@ public interface ISyntaxService<P> {
      * @throws ParseException
      *             when parsing fails unexpectedly.
      */
-    public abstract ParseResult<P> parse(String text, FileObject resource, ILanguageImpl language,
+    public abstract ParseResult<P> parse(String text, @Nullable FileObject resource, ILanguageImpl language,
         @Nullable IParserConfiguration parserConfig) throws ParseException;
 
     /**
