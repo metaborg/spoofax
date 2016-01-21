@@ -5,12 +5,12 @@ import org.metaborg.core.language.ILanguageImpl;
 /**
  * Interface for styling of categorized parse and analysis results.
  * 
- * @param <P>
+ * @param <ParseT>
  *            Type of the parsed fragments.
- * @param <A>
+ * @param <AnalysisT>
  *            Type of the analyzed fragments.
  */
-public interface IStylerService<P, A> {
+public interface IStylerService<ParseT, AnalysisT> {
     /**
      * Returns a styling of given categorized parse result.
      * 
@@ -21,8 +21,8 @@ public interface IStylerService<P, A> {
      * @return Iterable over styles assigned to regions of the source text. Regions do not overlap and are iterated over
      *         in ascending order.
      */
-    public abstract Iterable<IRegionStyle<P>> styleParsed(ILanguageImpl language,
-        Iterable<IRegionCategory<P>> categorization);
+    public abstract Iterable<IRegionStyle<ParseT>> styleParsed(ILanguageImpl language,
+        Iterable<IRegionCategory<ParseT>> categorization);
 
     /**
      * Returns a styling of given categorized analysis result.
@@ -34,6 +34,6 @@ public interface IStylerService<P, A> {
      * @return Iterable over styles assigned to regions of the source text. Regions do not overlap and are iterated over
      *         in ascending order.
      */
-    public abstract Iterable<IRegionStyle<A>> styleAnalyzed(ILanguageImpl language,
-        Iterable<IRegionCategory<A>> categorization);
+    public abstract Iterable<IRegionStyle<AnalysisT>> styleAnalyzed(ILanguageImpl language,
+        Iterable<IRegionCategory<AnalysisT>> categorization);
 }

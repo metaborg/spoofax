@@ -8,10 +8,10 @@ import org.metaborg.core.language.ILanguageImpl;
 /**
  * Interface for parsing, unparsing, and retrieving origin information.
  *
- * @param <P>
+ * @param <T>
  *            Type of the parse result.
  */
-public interface ISyntaxService<P> {
+public interface ISyntaxService<T> {
     /**
      * Parses text, using parsing rules from given language.
      * 
@@ -27,7 +27,7 @@ public interface ISyntaxService<P> {
      * @throws ParseException
      *             when parsing fails unexpectedly.
      */
-    public abstract ParseResult<P> parse(String text, FileObject resource, ILanguageImpl language,
+    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguageImpl language,
         @Nullable IParserConfiguration parserConfig) throws ParseException;
 
     /**
@@ -39,7 +39,7 @@ public interface ISyntaxService<P> {
      *            Language to unparse with.
      * @return Unparsed string.
      */
-    public abstract String unparse(P parsed, ILanguageImpl language);
+    public abstract String unparse(T parsed, ILanguageImpl language);
 
 
     /**
@@ -60,6 +60,6 @@ public interface ISyntaxService<P> {
     /**
      * @return Empty parse result for given resource, language, and optionally a dialect.
      */
-    public abstract ParseResult<P>
+    public abstract ParseResult<T>
         emptyParseResult(FileObject resource, ILanguageImpl language, @Nullable ILanguageImpl dialect);
 }

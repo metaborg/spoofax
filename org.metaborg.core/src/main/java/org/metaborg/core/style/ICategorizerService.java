@@ -7,12 +7,12 @@ import org.metaborg.core.syntax.ParseResult;
 /**
  * Interface for categorization of parse and analysis results.
  * 
- * @param <P>
+ * @param <ParseT>
  *            Type of the parsed fragments.
- * @param <A>
+ * @param <AnalysisT>
  *            Type of the analyzed fragments.
  */
-public interface ICategorizerService<P, A> {
+public interface ICategorizerService<ParseT, AnalysisT> {
     /**
      * Returns a categorization of given parse result.
      * 
@@ -23,7 +23,7 @@ public interface ICategorizerService<P, A> {
      * @return Iterable over categories assigned to regions of the source text. Regions do not overlap and are iterated
      *         over in ascending order.
      */
-    public abstract Iterable<IRegionCategory<P>> categorize(ILanguageImpl language, ParseResult<P> parseResult);
+    public abstract Iterable<IRegionCategory<ParseT>> categorize(ILanguageImpl language, ParseResult<ParseT> parseResult);
 
     /**
      * Returns a categorization of given analysis result.
@@ -35,6 +35,6 @@ public interface ICategorizerService<P, A> {
      * @return Iterable over categories assigned to regions of the source text. Regions do not overlap and are iterated
      *         over in ascending order.
      */
-    public abstract Iterable<IRegionCategory<A>> categorize(ILanguageImpl language,
-        AnalysisFileResult<P, A> analysisResult);
+    public abstract Iterable<IRegionCategory<AnalysisT>> categorize(ILanguageImpl language,
+        AnalysisFileResult<ParseT, AnalysisT> analysisResult);
 }
