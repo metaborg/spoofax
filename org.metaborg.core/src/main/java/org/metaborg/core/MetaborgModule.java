@@ -8,8 +8,6 @@ import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.dependency.DefaultDependencyService;
 //import org.metaborg.core.build.dependency.DependencyService;
 //import org.metaborg.core.build.dependency.IDependencyService;
-import org.metaborg.core.build.dependency.DependencyService;
-import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.build.paths.*;
 import org.metaborg.core.context.ContextService;
@@ -196,7 +194,7 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindDependency() {
-        bind(IDependencyService.class).to(DependencyService.class).in(Singleton.class);
+//        bind(IDependencyService.class).to(DependencyService.class).in(Singleton.class);
 //        bind(IDependencyService.class).to(LegacyDependencyService.class).in(Singleton.class);
         bind(INewDependencyService.class).to(DefaultDependencyService.class).in(Singleton.class);
     }
