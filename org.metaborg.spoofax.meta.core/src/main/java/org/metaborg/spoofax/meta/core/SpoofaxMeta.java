@@ -32,7 +32,7 @@ public class SpoofaxMeta extends MetaBorgMeta {
         super(spoofax, module, loader);
         this.parent = spoofax;
 
-        this.metaBuilder = spoofax.injector.getInstance(SpoofaxMetaBuilder.class);
+        this.metaBuilder = injector.getInstance(SpoofaxMetaBuilder.class);
     }
 
     /**
