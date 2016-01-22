@@ -8,13 +8,13 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.ILanguageComponent;
 
 import com.google.inject.Inject;
 
 public class ConfigurationBasedLanguageComponentConfigService extends ConfigurationBasedConfigService<ILanguageComponent, ILanguageComponentConfig> implements ILanguageComponentConfigService, ILanguageComponentConfigWriter {
 
-    public static final String CONFIG_FILE = "metaborg.yml";
     private final ConfigurationBasedLanguageComponentConfigBuilder configBuilder;
 
     @Inject
@@ -39,7 +39,7 @@ public class ConfigurationBasedLanguageComponentConfigService extends Configurat
      * @throws FileSystemException
      */
     private FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
-        return rootFolder.resolveFile(CONFIG_FILE);
+        return rootFolder.resolveFile(MetaborgConstants.FILE_CONFIG);
     }
 
     /**

@@ -53,7 +53,6 @@ public abstract class SyntaxService<T> implements ISyntaxService<T> {
         if(facet == null) {
             return null;
         }
-        final IParseService<T> parser = parsers.get(facet.type);
-        return parser;
+        return parsers.get(facet.type);
     }
 }

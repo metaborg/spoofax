@@ -12,25 +12,25 @@ public interface IStyle extends Serializable {
     /**
      * @return Text color
      */
-    public abstract @Nullable Color color();
+    @Nullable Color color();
 
     /**
      * @return Background color
      */
-    public abstract @Nullable Color backgroundColor();
+    @Nullable Color backgroundColor();
 
     /**
      * @return If text should be in bold.
      */
-    public abstract boolean bold();
+    boolean bold();
 
     /**
      * @return If text should be in italic.
      */
-    public abstract boolean italic();
+    boolean italic();
 
     /**
      * @return If text should be underscored.
      */
-    public abstract boolean underscore();
+    boolean underscore();
 }

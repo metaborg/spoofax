@@ -7,16 +7,16 @@ public interface ICancellationToken {
     /**
      * @return If cancellation has been requested.
      */
-    public abstract boolean cancelled();
+    boolean cancelled();
 
     /**
      * @throws InterruptedException
      *             When cancellation has been requested.
      */
-    public abstract void throwIfCancelled() throws InterruptedException;
+    void throwIfCancelled() throws InterruptedException;
 
     /**
      * Request cancellation.
      */
-    public abstract void cancel();
+    void cancel();
 }

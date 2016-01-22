@@ -116,7 +116,7 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
     @Override public Collection<LanguageContributionIdentifier> languageContributions() {
         @Nullable final List<LanguageIdentifier> ids = this.config.getList(LanguageIdentifier.class, PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID);
         if (ids == null)
-            return Collections.<LanguageContributionIdentifier>emptyList();
+            return Collections.emptyList();
 
         final List<LanguageContributionIdentifier> lcids = new ArrayList<>(ids.size());
         for (int i = 0; i < ids.size(); i++) {

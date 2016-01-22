@@ -15,7 +15,7 @@ public interface IDialectService {
      *            Name of the dialect to check.
      * @return True if dialect exists, false if not.
      */
-    public abstract boolean hasDialect(String name);
+    boolean hasDialect(String name);
 
     /**
      * Gets dialect language with given name.
@@ -24,7 +24,7 @@ public interface IDialectService {
      *            Name of the dialect to get.
      * @return Dialect language with given name, or null if it does not exist.
      */
-    public abstract @Nullable ILanguageImpl getDialect(String name);
+    @Nullable ILanguageImpl getDialect(String name);
 
     /**
      * Gets all dialects for given base language
@@ -33,7 +33,7 @@ public interface IDialectService {
      *            Base language of the dialects.
      * @return Dialects for given base language.
      */
-    public abstract Iterable<ILanguageImpl> getDialects(ILanguageImpl base);
+    Iterable<ILanguageImpl> getDialects(ILanguageImpl base);
 
     /**
      * Gets the base language for given dialect.
@@ -43,7 +43,7 @@ public interface IDialectService {
      * @return Base language of given dialect, or null if given language is not a dialect or the dialect has been
      *         removed.
      */
-    public abstract @Nullable ILanguageImpl getBase(ILanguageImpl dialect);
+    @Nullable ILanguageImpl getBase(ILanguageImpl dialect);
 
     /**
      * Creates a new dialect language for given base language and parser facet. The dialect replaces the parser facet,
@@ -61,7 +61,7 @@ public interface IDialectService {
      * @throws MetaborgRuntimeException
      *             When dialect with given name already exists.
      */
-    public abstract ILanguageImpl add(String name, FileObject location, ILanguageImpl base, IFacet syntaxFacet);
+    ILanguageImpl add(String name, FileObject location, ILanguageImpl base, IFacet syntaxFacet);
 
     /**
      * Updates dialect of given name, with a new parser facet.
@@ -74,7 +74,7 @@ public interface IDialectService {
      * @throws MetaborgRuntimeException
      *             When dialect with given name does not exist.
      */
-    public abstract ILanguageImpl update(String name, IFacet parserFacet);
+    ILanguageImpl update(String name, IFacet parserFacet);
 
     /**
      * Updates all dialects based on {@code base}. Does nothing if there were no dialects based on {@code base}.
@@ -83,7 +83,7 @@ public interface IDialectService {
      *            Base language for which to update dialects.
      * @return Updated dialect languages.
      */
-    public abstract Iterable<ILanguageImpl> update(ILanguageImpl base);
+    Iterable<ILanguageImpl> update(ILanguageImpl base);
 
     /**
      * Removes dialect with given name.
@@ -94,7 +94,7 @@ public interface IDialectService {
      *             When dialect with given name does not exist.
      * @return Removed dialect language.
      */
-    public abstract ILanguageImpl remove(String name);
+    ILanguageImpl remove(String name);
 
     /**
      * Removes all dialects based on given language. Does nothing if there are no dialects of that language.
@@ -103,5 +103,5 @@ public interface IDialectService {
      *            Base language to remove all dialects for.
      * @return Removed dialect languages.
      */
-    public abstract Iterable<ILanguageImpl> remove(ILanguageImpl base);
+    Iterable<ILanguageImpl> remove(ILanguageImpl base);
 }

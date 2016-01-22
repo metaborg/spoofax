@@ -27,7 +27,7 @@ public interface ITracingService<P, A, T> {
      *            Parsed fragment to get source location for.
      * @return Source location, or null if it could not be determined.
      */
-    public abstract @Nullable ISourceLocation fromParsed(P fragment);
+    @Nullable ISourceLocation fromParsed(P fragment);
 
     /**
      * Retrieves the source location of given analyzed fragment.
@@ -36,7 +36,7 @@ public interface ITracingService<P, A, T> {
      *            Analyzed fragment to get source location for.
      * @return Source location, or null if it could not be determined.
      */
-    public abstract @Nullable ISourceLocation fromAnalyzed(A fragment);
+    @Nullable ISourceLocation fromAnalyzed(A fragment);
 
     /**
      * Retrieves the source location of given transformed fragment.
@@ -45,7 +45,7 @@ public interface ITracingService<P, A, T> {
      *            Transformed fragment to get source location for.
      * @return Source location, or null if it could not be determined.
      */
-    public abstract @Nullable ISourceLocation fromTransformed(T fragment);
+    @Nullable ISourceLocation fromTransformed(T fragment);
 
 
     /**
@@ -55,7 +55,7 @@ public interface ITracingService<P, A, T> {
      *            Analyzed fragment to get origin for.
      * @return Originating parsed fragment, or null if it could not be determined.
      */
-    public abstract @Nullable P originFromAnalyzed(A fragment);
+    @Nullable P originFromAnalyzed(A fragment);
 
     /**
      * Retrieves the originating parsed fragment of given transformed fragment.
@@ -64,7 +64,7 @@ public interface ITracingService<P, A, T> {
      *            Transformed fragment to get origin for.
      * @return Originating parsed fragment, or null if it could not be determined.
      */
-    public abstract @Nullable P originFromTransformed(T fragment);
+    @Nullable P originFromTransformed(T fragment);
 
 
     /**
@@ -78,7 +78,7 @@ public interface ITracingService<P, A, T> {
      *         (leaf) fragment to outermost (root) fragment. An empty iterable is returned when no fragments could be
      *         found.
      */
-    public abstract Iterable<P> toParsed(ParseResult<P> result, ISourceRegion region);
+    Iterable<P> toParsed(ParseResult<P> result, ISourceRegion region);
 
     /**
      * Finds an analyzed fragment and its ancestors that contain given region, in given analysis file result.
@@ -91,7 +91,7 @@ public interface ITracingService<P, A, T> {
      *         deepest (leaf) fragment to outermost (root) fragment. An empty iterable is returned when no fragments
      *         could be found.
      */
-    public abstract Iterable<A> toAnalyzed(AnalysisFileResult<P, A> result, ISourceRegion region);
+    Iterable<A> toAnalyzed(AnalysisFileResult<P, A> result, ISourceRegion region);
 
     /**
      * Finds a transformed fragment and its ancestors that contain given region, in given transform result.
@@ -104,5 +104,5 @@ public interface ITracingService<P, A, T> {
      *         deepest (leaf) fragment to outermost (root) fragment. An empty iterable is returned when no fragments
      *         could be found.
      */
-    public abstract Iterable<T> toTransformed(TransformResult<?, T> result, ISourceRegion region);
+    Iterable<T> toTransformed(TransformResult<?, T> result, ISourceRegion region);
 }

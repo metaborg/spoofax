@@ -21,8 +21,8 @@ public interface IStylerService<P, A> {
      * @return Iterable over styles assigned to regions of the source text. Regions do not overlap and are iterated over
      *         in ascending order.
      */
-    public abstract Iterable<IRegionStyle<P>> styleParsed(ILanguageImpl language,
-        Iterable<IRegionCategory<P>> categorization);
+    Iterable<IRegionStyle<P>> styleParsed(ILanguageImpl language,
+                                          Iterable<IRegionCategory<P>> categorization);
 
     /**
      * Returns a styling of given categorized analysis result.
@@ -34,6 +34,6 @@ public interface IStylerService<P, A> {
      * @return Iterable over styles assigned to regions of the source text. Regions do not overlap and are iterated over
      *         in ascending order.
      */
-    public abstract Iterable<IRegionStyle<A>> styleAnalyzed(ILanguageImpl language,
-        Iterable<IRegionCategory<A>> categorization);
+    Iterable<IRegionStyle<A>> styleAnalyzed(ILanguageImpl language,
+                                            Iterable<IRegionCategory<A>> categorization);
 }

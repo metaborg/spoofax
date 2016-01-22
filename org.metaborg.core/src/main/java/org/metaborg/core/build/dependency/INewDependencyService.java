@@ -28,15 +28,6 @@ public interface INewDependencyService {
     Collection<ILanguageComponent> runtimeDependencies(ILanguageSpec languageSpec) throws MissingDependencyException;
 
     /**
-     * Gets compile-time language component dependencies for the given language component.
-     * 
-     * @param component The language component to get dependencies for.
-     * @return Compile-time language component dependencies.
-     */
-    @Deprecated /* Does a language component have compile-time dependencies? */
-    Collection<ILanguageComponent> compileDependencies(ILanguageComponent component) throws MissingDependencyException;
-
-    /**
      * Gets runtime language component dependencies for the given language component.
      *
      * @param component The language component to get dependencies for.
@@ -51,7 +42,6 @@ public interface INewDependencyService {
      * @param languageSpec The language specification to check the dependencies for.
      * @return The missing compile-time and runtime dependencies.
      */
-    @Deprecated /* Is this ever used? */
     MissingDependencies checkDependencies(ILanguageSpec languageSpec);
 
 }

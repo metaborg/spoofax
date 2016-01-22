@@ -6,14 +6,14 @@ import org.metaborg.core.source.ISourceRegion;
 
 public class RegionCategory<T> implements IRegionCategory<T> {
     private final ISourceRegion region;
-    private final ICategory categeory;
+    private final ICategory category;
     private final @Nullable T fragment;
 
 
-    public RegionCategory(ISourceRegion region, ICategory categeory, @Nullable T fragment) {
+    public RegionCategory(ISourceRegion region, ICategory category, @Nullable T fragment) {
         this.fragment = fragment;
         this.region = region;
-        this.categeory = categeory;
+        this.category = category;
     }
 
 
@@ -22,7 +22,7 @@ public class RegionCategory<T> implements IRegionCategory<T> {
     }
 
     @Override public ICategory category() {
-        return categeory;
+        return category;
     }
 
     @Override public @Nullable T fragment() {
@@ -31,6 +31,6 @@ public class RegionCategory<T> implements IRegionCategory<T> {
 
 
     @Override public String toString() {
-        return String.format("RegionCategory [region=%s, categeory=%s, fragment=%s]", region, categeory, fragment);
+        return String.format("RegionCategory [region=%s, category=%s, fragment=%s]", region, category, fragment);
     }
 }

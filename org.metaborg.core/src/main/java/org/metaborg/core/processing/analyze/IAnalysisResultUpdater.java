@@ -26,7 +26,7 @@ public interface IAnalysisResultUpdater<P, A> {
      * @param resource
      *            Resource to invalidate.
      */
-    public abstract void invalidate(FileObject resource);
+    void invalidate(FileObject resource);
 
     /**
      * Invalidates the analysis results for sources in given parse results. Must be followed by a call to
@@ -37,7 +37,7 @@ public interface IAnalysisResultUpdater<P, A> {
      * @param parseResults
      *            Parse results with sources to invalidate.
      */
-    public abstract void invalidate(Iterable<ParseResult<P>> parseResults);
+    void invalidate(Iterable<ParseResult<P>> parseResults);
 
     /**
      * Updates the analysis result for a single resource. Pushes the analysis result to subscribed requests.
@@ -50,8 +50,8 @@ public interface IAnalysisResultUpdater<P, A> {
      *            Set of resources that have actually been removed instead of updated. Used for legacy analysis where
      *            removal is indicated by an empty tuple as parse result.
      */
-    public abstract void update(AnalysisFileResult<P, A> result, AnalysisResult<P, A> parentResult,
-        Set<FileName> removedResources);
+    void update(AnalysisFileResult<P, A> result, AnalysisResult<P, A> parentResult,
+                Set<FileName> removedResources);
 
     /**
      * Updates the analysis results for resources in given result. Pushes analysis results to subscribed requests.
@@ -63,7 +63,7 @@ public interface IAnalysisResultUpdater<P, A> {
      *            Set of resources that have actually been removed instead of updated. Used for legacy analysis where
      *            removal is indicated by an empty tuple as parse result.
      */
-    public abstract void update(AnalysisResult<P, A> parentResult, Set<FileName> removedResources);
+    void update(AnalysisResult<P, A> parentResult, Set<FileName> removedResources);
 
     /**
      * Updates the analysis results for resources in given result. Pushes analysis results to subscribed requests.
@@ -71,7 +71,7 @@ public interface IAnalysisResultUpdater<P, A> {
      * @param parentResult
      *            Parent of the results to update.
      */
-    public abstract void update(AnalysisResult<P, A> parentResult);
+    void update(AnalysisResult<P, A> parentResult);
 
     /**
      * Sets an analysis error for given resource. Pushes the analysis error to subscribed requests.
@@ -81,7 +81,7 @@ public interface IAnalysisResultUpdater<P, A> {
      * @param exception
      *            Analysis error to set.
      */
-    public abstract void error(FileObject resource, AnalysisException exception);
+    void error(FileObject resource, AnalysisException exception);
 
     /**
      * Sets an analysis error for sources in given parse result. Pushes analysis errors to subscribed requests.
@@ -91,7 +91,7 @@ public interface IAnalysisResultUpdater<P, A> {
      * @param exception
      *            Analysis error to set.
      */
-    public abstract void error(Iterable<ParseResult<P>> parseResults, AnalysisException exception);
+    void error(Iterable<ParseResult<P>> parseResults, AnalysisException exception);
 
     /**
      * Removes cached analysis results for given resource.
@@ -99,5 +99,5 @@ public interface IAnalysisResultUpdater<P, A> {
      * @param resource
      *            Resource to remove cached analysis results for.
      */
-    public abstract void remove(FileObject resource);
+    void remove(FileObject resource);
 }

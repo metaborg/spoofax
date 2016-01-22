@@ -10,7 +10,7 @@ public enum AnalysisType {
     public final String name;
 
 
-    private AnalysisType(String name) {
+    AnalysisType(String name) {
         this.name = name;
     }
 }

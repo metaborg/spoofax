@@ -12,7 +12,7 @@ import org.metaborg.core.MetaborgException;
 import com.google.common.collect.Maps;
 
 public class SimpleProjectService implements ISimpleProjectService {
-    private ConcurrentMap<FileName, IProject> projects = Maps.newConcurrentMap();
+    private final ConcurrentMap<FileName, IProject> projects = Maps.newConcurrentMap();
 
 
     @Override public @Nullable IProject get(FileObject resource) {

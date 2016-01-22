@@ -29,7 +29,7 @@ public class AnalysisChange<P, A> {
      */
     public static <P, A> AnalysisChange<P, A> update(FileObject resource, AnalysisFileResult<P, A> result,
         AnalysisResult<P, A> parentResult) {
-        return new AnalysisChange<P, A>(UpdateKind.Update, result.source, result, parentResult, null);
+        return new AnalysisChange<>(UpdateKind.Update, result.source, result, parentResult, null);
     }
 
     /**
@@ -40,7 +40,7 @@ public class AnalysisChange<P, A> {
      * @return Analysis change.
      */
     public static <P, A> AnalysisChange<P, A> invalidate(FileObject resource) {
-        return new AnalysisChange<P, A>(UpdateKind.Invalidate, resource, null, null, null);
+        return new AnalysisChange<>(UpdateKind.Invalidate, resource, null, null, null);
     }
 
     /**
@@ -53,7 +53,7 @@ public class AnalysisChange<P, A> {
      * @return Analysis change.
      */
     public static <P, A> AnalysisChange<P, A> error(FileObject resource, AnalysisException exception) {
-        return new AnalysisChange<P, A>(UpdateKind.Error, resource, null, null, exception);
+        return new AnalysisChange<>(UpdateKind.Error, resource, null, null, exception);
     }
 
     /**
@@ -64,15 +64,15 @@ public class AnalysisChange<P, A> {
      * @return Analysis change.
      */
     public static <P, A> AnalysisChange<P, A> remove(FileObject resource) {
-        return new AnalysisChange<P, A>(UpdateKind.Remove, resource, null, null, null);
+        return new AnalysisChange<>(UpdateKind.Remove, resource, null, null, null);
     }
 
 
     /*
      * Use static methods to create instances.
      */
-    protected AnalysisChange(UpdateKind kind, FileObject resource, AnalysisFileResult<P, A> result,
-        AnalysisResult<P, A> parentResult, AnalysisException exception) {
+    protected AnalysisChange(UpdateKind kind, FileObject resource, @Nullable AnalysisFileResult<P, A> result,
+                             @Nullable AnalysisResult<P, A> parentResult, @Nullable AnalysisException exception) {
         this.kind = kind;
         this.resource = resource;
         this.result = result;

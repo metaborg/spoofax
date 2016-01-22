@@ -28,7 +28,7 @@ public final class MessageFormatter {
      * @param argument0 The first argument, which may be <code>null</code>.
      * @return The formatted message.
      */
-    public static final String format(final String pattern, @Nullable final Object argument0) {
+    public static String format(final String pattern, @Nullable final Object argument0) {
         Preconditions.checkNotNull(pattern);
 
         return org.slf4j.helpers.MessageFormatter.format(pattern, argument0).getMessage();
@@ -41,7 +41,7 @@ public final class MessageFormatter {
      * @param arguments The arguments.
      * @return The formatted message.
      */
-    public static final String format(final String pattern, @Nullable final Object... arguments) {
+    public static String format(final String pattern, @Nullable final Object... arguments) {
         Preconditions.checkNotNull(pattern);
 
         return org.slf4j.helpers.MessageFormatter.arrayFormat(pattern, arguments).getMessage();
@@ -55,7 +55,7 @@ public final class MessageFormatter {
      * @param argument1 The second argument, which may be <code>null</code>.
      * @return The formatted message.
      */
-    public static final String format(
+    public static String format(
             final String pattern,
             @Nullable final Object argument0,
             @Nullable final Object argument1) {

@@ -1,6 +1,7 @@
 package org.metaborg.core.language;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 /**
  * Represents a change of a language implementation in the {@link ILanguageService}.
@@ -22,7 +23,7 @@ public class LanguageImplChange {
     public final @Nullable ILanguageImpl impl;
 
 
-    public LanguageImplChange(Kind kind, ILanguageImpl impl) {
+    public LanguageImplChange(Kind kind, @Nullable ILanguageImpl impl) {
         this.kind = kind;
         this.impl = impl;
     }
@@ -32,7 +33,7 @@ public class LanguageImplChange {
         final int prime = 31;
         int result = 1;
         result = prime * result + kind.hashCode();
-        result = prime * result + impl.hashCode();
+        result = prime * result + (impl != null ? impl.hashCode() : 0);
         return result;
     }
 
@@ -46,7 +47,7 @@ public class LanguageImplChange {
         final LanguageImplChange other = (LanguageImplChange) obj;
         if(kind != other.kind)
             return false;
-        if(!impl.equals(other.impl))
+        if(!Objects.equals(impl, other.impl))
             return false;
         return true;
     }

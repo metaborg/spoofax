@@ -5,19 +5,20 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Lists;
 import org.metaborg.core.project.configuration.LegacyLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.settings.Format;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettings;
 
 import java.util.Collection;
 
 /**
  * This class is only used for the configuration system migration.
  */
+@SuppressWarnings("deprecation")
 public class LegacySpoofaxLanguageSpecConfig extends LegacyLanguageSpecConfig implements ISpoofaxLanguageSpecConfig {
 
     private static final long serialVersionUID = -5913973186313150350L;
-    public final SpoofaxProjectSettings settings;
+    public final LegacySpoofaxProjectSettings settings;
 
-    public LegacySpoofaxLanguageSpecConfig(final SpoofaxProjectSettings settings) {
+    public LegacySpoofaxLanguageSpecConfig(final LegacySpoofaxProjectSettings settings) {
         super(settings.settings());
         this.settings = settings;
     }

@@ -21,6 +21,10 @@ public class NewLanguageSpecGenerator extends NewBaseGenerator {
         this(config, new String[0]);
     }
 
+    public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config, AnalysisType analysisType) throws ProjectException {
+        this(config, new String[0], analysisType);
+    }
+
     public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions) throws ProjectException {
         this(config, fileExtensions, AnalysisType.NaBL_TS);
     }
@@ -78,7 +82,7 @@ public class NewLanguageSpecGenerator extends NewBaseGenerator {
     }
 
     public void generateConfig() throws IOException {
-        writer.write("metaborg.yml", false);
+        writer.write("metaborg.yaml", false);
     }
 
     public void generatePOM() throws IOException {

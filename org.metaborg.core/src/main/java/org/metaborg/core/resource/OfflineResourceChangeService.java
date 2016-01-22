@@ -9,6 +9,10 @@ import rx.subjects.PublishSubject;
 
 import com.google.inject.Inject;
 
+/**
+ * @deprecated Not used.
+ */
+@Deprecated
 public class OfflineResourceChangeService implements IResourceChangeService {
     private final PublishSubject<ResourceChange> subject = PublishSubject.create();
 
@@ -16,10 +20,10 @@ public class OfflineResourceChangeService implements IResourceChangeService {
 
 
     @Inject public OfflineResourceChangeService(IResourceService resourceService,
-        ILanguageIdentifierService langaugeIdentifierService) {
+        ILanguageIdentifierService languageIdentifierService) {
         monitor =
             new OfflineResourceChangeMonitor(resourceService.root(), resourceService.userStorage(),
-                new AllLanguagesFileSelector(langaugeIdentifierService), resourceService);
+                new AllLanguagesFileSelector(languageIdentifierService), resourceService);
     }
 
 

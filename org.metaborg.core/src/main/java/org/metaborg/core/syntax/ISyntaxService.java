@@ -27,8 +27,8 @@ public interface ISyntaxService<P> {
      * @throws ParseException
      *             when parsing fails unexpectedly.
      */
-    public abstract ParseResult<P> parse(String text, @Nullable FileObject resource, ILanguageImpl language,
-        @Nullable IParserConfiguration parserConfig) throws ParseException;
+    ParseResult<P> parse(String text, FileObject resource, ILanguageImpl language,
+                         @Nullable IParserConfiguration parserConfig) throws ParseException;
 
     /**
      * Unparses a parsed fragment back into a string, using unparsing rules from given language.
@@ -39,27 +39,27 @@ public interface ISyntaxService<P> {
      *            Language to unparse with.
      * @return Unparsed string.
      */
-    public abstract String unparse(P parsed, ILanguageImpl language);
+    String unparse(P parsed, ILanguageImpl language);
 
 
     /**
      * @return Single line comment prefix characters for given language.
      */
-    public abstract Iterable<String> singleLineCommentPrefixes(ILanguageImpl language);
+    Iterable<String> singleLineCommentPrefixes(ILanguageImpl language);
 
     /**
      * @return Multi line comment prefix and postfix characters for given language.
      */
-    public abstract Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguageImpl language);
+    Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguageImpl language);
 
     /**
      * @return Fence (brackets, parentheses, etc.) open and close characters for given language.
      */
-    public abstract Iterable<FenceCharacters> fenceCharacters(ILanguageImpl language);
+    Iterable<FenceCharacters> fenceCharacters(ILanguageImpl language);
 
     /**
      * @return Empty parse result for given resource, language, and optionally a dialect.
      */
-    public abstract ParseResult<P>
+    ParseResult<P>
         emptyParseResult(FileObject resource, ILanguageImpl language, @Nullable ILanguageImpl dialect);
 }

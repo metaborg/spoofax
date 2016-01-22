@@ -25,8 +25,8 @@ public class LanguageBuildState {
     private final ILanguageIdentifierService languageIdentifierService;
     private final ILanguageImpl language;
 
-    private FilesBuildState source = new FilesBuildState();
-    private FilesBuildState include = new FilesBuildState();
+    private final FilesBuildState source = new FilesBuildState();
+    private final FilesBuildState include = new FilesBuildState();
 
 
     public LanguageBuildState(IResourceService resourceService, ILanguageIdentifierService languageIdentifierService,
@@ -117,7 +117,7 @@ public class LanguageBuildState {
 
 class FilesBuildState {
     public final Set<FileName> files = Sets.newHashSet();
-    public final ObjectLongMap<FileName> modification = new ObjectLongHashMap<FileName>();
+    public final ObjectLongMap<FileName> modification = new ObjectLongHashMap<>();
 
 
     public long add(FileObject resource) {

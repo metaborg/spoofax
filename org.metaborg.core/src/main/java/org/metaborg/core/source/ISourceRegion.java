@@ -16,42 +16,42 @@ public interface ISourceRegion extends Serializable {
      * @return Inclusive starting offset, the number of characters from the beginning of the source text with interval
      *         [0,#chars).
      */
-    public int startOffset();
+    int startOffset();
 
     /**
      * @return Inclusive starting row or line in the source text with interval [0,#rows), or -1 if not supported by this
      *         source region.
      */
-    public int startRow();
+    int startRow();
 
     /**
      * @return Inclusive starting column in the source text with interval [0,#columns@row), or -1 if not supported by
      *         this source region.
      */
-    public int startColumn();
+    int startColumn();
 
     /**
      * @return Inclusive ending offset, the number of characters from the beginning of the source text with interval
      *         [0,#chars).
      */
-    public int endOffset();
+    int endOffset();
 
     /**
      * @return Inclusive ending row or line in the source text with interval [0,#rows), or -1 if not supported by this
      *         source region.
      */
-    public int endRow();
+    int endRow();
 
     /**
      * @return Inclusive ending column in the source text with interval [0,#columns@row), or -1 if not supported by this
      *         source region.
      */
-    public int endColumn();
+    int endColumn();
 
     /**
      * @return Length of the source region.
      */
-    public int length();
+    int length();
 
     /**
      * Checks if this region contains given region.
@@ -60,5 +60,5 @@ public interface ISourceRegion extends Serializable {
      *            Other region to check.
      * @return True if this region contains given region, false otherwise.
      */
-    public boolean contains(ISourceRegion region);
+    boolean contains(ISourceRegion region);
 }

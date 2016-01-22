@@ -38,7 +38,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     private final ParseStrategoFileStrategy parseStrategoFileStrategy;
 
     private final Map<ILanguageComponent, HybridInterpreter> prototypes =
-        new HashMap<ILanguageComponent, HybridInterpreter>();
+            new HashMap<>();
 
 
     @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
@@ -91,7 +91,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     private HybridInterpreter clone(HybridInterpreter prototype, FileObject workingLocation,
         FileObject definitionLocation) {
         // TODO: this seems to copy operator registries, but they should be recreated to isolate interpreters?
-        final HybridInterpreter runtime = new HybridInterpreter(prototype, new String[0]);
+        final HybridInterpreter runtime = new HybridInterpreter(prototype);
 
         final ResourceAgent agent = new ResourceAgent(resourceService);
         agent.setAbsoluteWorkingDir(workingLocation);

@@ -15,5 +15,5 @@ public interface ISourceTextService {
      *            Resource to retrieve text for.
      * @return Text for given resource.
      */
-    public abstract String text(FileObject resource) throws IOException;
+    String text(FileObject resource) throws IOException;
 }

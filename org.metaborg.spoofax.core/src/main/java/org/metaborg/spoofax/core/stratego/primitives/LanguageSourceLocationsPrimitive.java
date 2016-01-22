@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.build.paths.INewLanguagePathService;
+import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
@@ -26,16 +28,18 @@ public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
     private static final ILogger logger = LoggerUtils.logger(LanguageSourceLocationsPrimitive.class);
 
     private final IResourceService resourceService;
-    private final ILanguagePathService languagePathService;
+    private final INewLanguagePathService languagePathService;
     private final IProjectService projectService;
+    private final ILanguageSpecService languageSpecService;
 
 
     @Inject public LanguageSourceLocationsPrimitive(IResourceService resourceService,
-        ILanguagePathService languagePathService, IProjectService projectService) {
+                                                    INewLanguagePathService languagePathService, IProjectService projectService, ILanguageSpecService languageSpecService) {
         super("SSL_EXT_language_source_locations", 0, 1);
         this.resourceService = resourceService;
         this.languagePathService = languagePathService;
         this.projectService = projectService;
+        this.languageSpecService = languageSpecService;
     }
 
 
@@ -57,9 +61,15 @@ public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
             return true;
         }
 
+        final ILanguageSpec languageSpec = languageSpecService.get(project);
+        if (languageSpec == null) {
+            env.setCurrent(factory.makeList());
+            return true;
+        }
+
         // GTODO: require language identifier instead of language name
         final String languageName = Tools.asJavaString(tvars[0]);
-        final Iterable<FileObject> sourceLocations = languagePathService.sourcePaths(project, languageName);
+        final Iterable<FileObject> sourceLocations = languagePathService.sourcePaths(languageSpec, languageName);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject sourceLocation : sourceLocations) {
             try {

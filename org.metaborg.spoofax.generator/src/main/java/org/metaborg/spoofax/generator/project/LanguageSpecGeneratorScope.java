@@ -21,7 +21,7 @@ public class LanguageSpecGeneratorScope {
     private final ISpoofaxLanguageSpecPaths paths;
 
 
-    public LanguageSpecGeneratorScope(ISpoofaxLanguageSpecPaths paths, ISpoofaxLanguageSpecConfig config) throws ProjectException {
+    public LanguageSpecGeneratorScope(ISpoofaxLanguageSpecConfig config, ISpoofaxLanguageSpecPaths paths) throws ProjectException {
 
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());
@@ -62,7 +62,7 @@ public class LanguageSpecGeneratorScope {
                 : SpoofaxConstants.METABORG_VERSION;
     }
 
-    public void setMetaborgVersion(String metaborgVersion) throws ProjectException {
+    public void setMetaborgVersion(@Nullable String metaborgVersion) throws ProjectException {
         if(metaborgVersion != null && !LanguageVersion.valid(metaborgVersion)) {
             throw new ProjectException("Invalid metaborg version: " + metaborgVersion);
         }

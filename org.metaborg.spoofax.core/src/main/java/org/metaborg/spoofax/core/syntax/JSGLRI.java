@@ -85,8 +85,8 @@ public class JSGLRI {
             ast = null;
         }
 
-        return new ParseResult<IStrategoTerm>(input, ast, resource, errorHandler.messages(), duration, language,
-            dialect, result);
+        return new ParseResult<>(input, ast, resource, errorHandler.messages(), duration, language,
+                dialect, result);
     }
 
     public SGLRParseResult actuallyParse(String text, @Nullable String filename, @Nullable JSGLRParserConfiguration parserConfig)
@@ -137,6 +137,7 @@ public class JSGLRI {
         return dialect;
     }
 
+    @Nullable
     public FileObject getResource() {
         return resource;
     }

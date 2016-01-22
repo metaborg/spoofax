@@ -11,7 +11,7 @@ public interface ILanguageCache {
      * @param component
      *            Component to invalidate the cache for.
      */
-    public abstract void invalidateCache(ILanguageComponent component);
+    void invalidateCache(ILanguageComponent component);
 
     /**
      * Invalidate the cache for given language implementation.
@@ -19,5 +19,5 @@ public interface ILanguageCache {
      * @param impl
      *            Implementation to invalidate the cache for.
      */
-    public abstract void invalidateCache(ILanguageImpl impl);
+    void invalidateCache(ILanguageImpl impl);
 }

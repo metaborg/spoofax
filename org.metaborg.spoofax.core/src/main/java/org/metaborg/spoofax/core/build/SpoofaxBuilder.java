@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.build;
 
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
-import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
@@ -20,11 +20,11 @@ import com.google.inject.Inject;
  */
 public class SpoofaxBuilder extends Builder<IStrategoTerm, IStrategoTerm, IStrategoTerm> implements ISpoofaxBuilder {
     @Inject public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
-        ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
-        ITransformService<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformService,
-        IParseResultUpdater<IStrategoTerm> parseResultProcessor,
-        IAnalysisResultUpdater<IStrategoTerm, IStrategoTerm> analysisResultProcessor) {
+                                  INewLanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
+                                  ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
+                                  ITransformService<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformService,
+                                  IParseResultUpdater<IStrategoTerm> parseResultProcessor,
+                                  IAnalysisResultUpdater<IStrategoTerm, IStrategoTerm> analysisResultProcessor) {
         super(resourceService, languageIdentifier, languagePathService, contextService, sourceTextService,
             syntaxService, analysisService, transformService, parseResultProcessor, analysisResultProcessor);
     }

@@ -24,12 +24,16 @@ public class StrategoRuntimeFacetFromESV {
         final Set<FileObject> jarFiles = Sets.newLinkedHashSet();
         for(FileObject strategoFile : strategoFiles) {
             final String extension = strategoFile.getName().getExtension();
-            if(extension.equals("jar")) {
-                jarFiles.add(strategoFile);
-            } else if(extension.equals("ctree")) {
-                ctreeFiles.add(strategoFile);
-            } else {
-                logger.warn("Stratego provider file {} has unknown extension {}, ignoring", strategoFile, extension);
+            switch (extension) {
+                case "jar":
+                    jarFiles.add(strategoFile);
+                    break;
+                case "ctree":
+                    ctreeFiles.add(strategoFile);
+                    break;
+                default:
+                    logger.warn("Stratego provider file {} has unknown extension {}, ignoring", strategoFile, extension);
+                    break;
             }
         }
 

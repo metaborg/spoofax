@@ -6,17 +6,19 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.dependency.INewDependencyService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageUtils;
+import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 public class CleanInputBuilder {
-    private final IProject project;
+
+    private final ILanguageSpec languageSpec;
 
     private Set<ILanguageImpl> languages;
     private boolean addDependencyLanguages;
@@ -24,8 +26,8 @@ public class CleanInputBuilder {
     private @Nullable FileSelector selector;
 
 
-    public CleanInputBuilder(IProject project) {
-        this.project = project;
+    public CleanInputBuilder(ILanguageSpec languageSpec) {
+        this.languageSpec = languageSpec;
         reset();
     }
 
@@ -39,7 +41,7 @@ public class CleanInputBuilder {
 
     
     /**
-     * Sets the languages to given languague implementations.
+     * Sets the languages to given language implementations.
      */
     public CleanInputBuilder withLanguages(Set<ILanguageImpl> languages) {
         this.languages = languages;
@@ -108,15 +110,15 @@ public class CleanInputBuilder {
      * Builds a clean input object from the current state.
      * 
      * @throws MetaborgException
-     *             When {@link IDependencyService#compileDependencies(IProject)} throws.
+     *             When {@link INewDependencyService#compileDependencies(ILanguageSpec)} throws.
      */
-    public CleanInput build(IDependencyService dependencyService) throws MetaborgException {
+    public CleanInput build(INewDependencyService dependencyService) throws MetaborgException {
         if(addDependencyLanguages) {
-            final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDependencies(project);
+            final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDependencies(languageSpec);
             final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);
             addLanguages(compileImpls);
         }
 
-        return new CleanInput(project, languages, selector);
+        return new CleanInput(languageSpec, languages, selector);
     }
 }

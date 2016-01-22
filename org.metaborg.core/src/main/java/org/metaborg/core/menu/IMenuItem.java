@@ -4,7 +4,7 @@ public interface IMenuItem {
     /**
      * @return Name of the menu item.
      */
-    public abstract String name();
+    String name();
 
     /**
      * Accepts the specified visitor.

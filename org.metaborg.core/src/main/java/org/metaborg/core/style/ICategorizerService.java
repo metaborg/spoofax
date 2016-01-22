@@ -23,7 +23,7 @@ public interface ICategorizerService<P, A> {
      * @return Iterable over categories assigned to regions of the source text. Regions do not overlap and are iterated
      *         over in ascending order.
      */
-    public abstract Iterable<IRegionCategory<P>> categorize(ILanguageImpl language, ParseResult<P> parseResult);
+    Iterable<IRegionCategory<P>> categorize(ILanguageImpl language, ParseResult<P> parseResult);
 
     /**
      * Returns a categorization of given analysis result.
@@ -35,6 +35,6 @@ public interface ICategorizerService<P, A> {
      * @return Iterable over categories assigned to regions of the source text. Regions do not overlap and are iterated
      *         over in ascending order.
      */
-    public abstract Iterable<IRegionCategory<A>> categorize(ILanguageImpl language,
-        AnalysisFileResult<P, A> analysisResult);
+    Iterable<IRegionCategory<A>> categorize(ILanguageImpl language,
+                                            AnalysisFileResult<P, A> analysisResult);
 }

@@ -8,6 +8,7 @@ import org.metaborg.core.MetaborgException;
 public class MissingDependencyException extends MetaborgException {
 
     private static final String DefaultMessage = "Dependency not found or not loaded.";
+    private static final long serialVersionUID = -2433147675712812448L;
 
     /**
      * Initializes a new instance of the {@link MissingDependencyException} class.

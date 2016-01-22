@@ -4,15 +4,15 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.metaborg.core.project.settings.LanguageIdentifierJacksonDeserializer;
-import org.metaborg.core.project.settings.LanguageIdentifierJacksonSerializer;
+import org.metaborg.core.project.settings.LegacyLanguageIdentifierJacksonDeserializer;
+import org.metaborg.core.project.settings.LegacyLanguageIdentifierJacksonSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ComparisonChain;
 
-@JsonSerialize(using = LanguageIdentifierJacksonSerializer.class)
-@JsonDeserialize(using = LanguageIdentifierJacksonDeserializer.class)
+@JsonSerialize(using = LegacyLanguageIdentifierJacksonSerializer.class)
+@JsonDeserialize(using = LegacyLanguageIdentifierJacksonDeserializer.class)
 public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Serializable {
     private static final long serialVersionUID = 8892997161544718124L;
     

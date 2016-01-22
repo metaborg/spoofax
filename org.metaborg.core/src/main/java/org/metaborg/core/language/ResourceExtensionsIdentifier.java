@@ -12,7 +12,7 @@ import com.google.common.collect.Sets;
 public class ResourceExtensionsIdentifier implements Func1<FileObject, Boolean>, Serializable {
     private static final long serialVersionUID = -7707458553452655759L;
     
-	private Set<String> extensions;
+	private final Set<String> extensions;
 
 
     public ResourceExtensionsIdentifier(Iterable<String> extensions) {

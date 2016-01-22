@@ -16,7 +16,7 @@ public interface ISimpleProjectService extends IProjectService {
      * @throws MetaborgException
      *             When a project already exists at given location, or when given location is nested in another project.
      */
-    public abstract IProject create(FileObject location) throws MetaborgException;
+    IProject create(FileObject location) throws MetaborgException;
 
     /**
      * Removes given project.
@@ -27,5 +27,5 @@ public interface ISimpleProjectService extends IProjectService {
      * @throws MetaborgException
      *             When given project does not exist in this project service.
      */
-    public abstract void remove(IProject project) throws MetaborgException;
+    void remove(IProject project) throws MetaborgException;
 }

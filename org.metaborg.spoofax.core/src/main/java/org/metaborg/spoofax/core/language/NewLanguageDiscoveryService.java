@@ -31,7 +31,6 @@ import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.project.configuration.ILanguageComponentConfig;
 import org.metaborg.core.project.configuration.ILanguageComponentConfigService;
-import org.metaborg.core.project.settings.IProjectSettingsService;
 import org.metaborg.core.syntax.ParseFacet;
 import org.metaborg.spoofax.core.action.ActionFacet;
 import org.metaborg.spoofax.core.action.ActionFacetFromESV;
@@ -75,7 +74,6 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
 
     private final ILanguageService languageService;
     private final ILanguageComponentConfigService componentConfigService;
-    private final IProjectSettingsService projectSettingsService;
     private final ITermFactoryService termFactoryService;
     private final Map<String, IContextFactory> contextFactories;
     private final Map<String, IContextStrategy> contextStrategies;
@@ -83,12 +81,11 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
 
 
     @Inject public NewLanguageDiscoveryService(ILanguageService languageService,
-        ILanguageComponentConfigService componentConfigService, IProjectSettingsService projectSettingsService,
+        ILanguageComponentConfigService componentConfigService,
         ITermFactoryService termFactoryService, Map<String, IContextFactory> contextFactories,
         Map<String, IContextStrategy> contextStrategies, Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
         this.languageService = languageService;
         this.componentConfigService = componentConfigService;
-        this.projectSettingsService = projectSettingsService;
         this.termFactoryService = termFactoryService;
         this.contextFactories = contextFactories;
         this.contextStrategies = contextStrategies;
@@ -201,10 +198,6 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         return components;
     }
 
-    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
-        return discover(request(location));
-    }
-
 
     private IStrategoAppl esvTerm(FileObject location, FileObject esvFile) throws ParseError, IOException,
         MetaborgException {
@@ -233,8 +226,6 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         final StrategoRuntimeFacet strategoRuntimeFacet = discoveryRequest.strategoRuntimeFacet();
 
         logger.debug("Creating language component for {}", location);
-
-        assert config != null;
 
         final LanguageIdentifier identifier = config.identifier();
         final Iterable<LanguageContributionIdentifier> languageContributions =
@@ -345,11 +336,9 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
         request.addFacet(languageComponentsFacet);
 
-        // if(config != null) {
         final DependencyFacet dependencyFacet =
             new DependencyFacet(config.compileDependencies(), config.runtimeDependencies());
         request.addFacet(dependencyFacet);
-        // }
 
         return languageService.add(request);
     }

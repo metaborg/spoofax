@@ -4,10 +4,10 @@ public interface IBuildStep {
 	/**
 	 * Pre-Java compilation
 	 */
-	void compilePreJava(MetaBuildInput input);
+	void compilePreJava(LanguageSpecBuildInput input);
 	
 	/**
 	 * Post-Java compilation
 	 */
-	void compilePostJava(MetaBuildInput input);
+	void compilePostJava(LanguageSpecBuildInput input);
 }

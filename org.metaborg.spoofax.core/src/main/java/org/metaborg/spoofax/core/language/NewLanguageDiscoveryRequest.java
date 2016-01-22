@@ -41,7 +41,7 @@ public class NewLanguageDiscoveryRequest implements INewLanguageDiscoveryRequest
      * @param syntaxFacet          The syntax facet.
      * @param strategoRuntimeFacet The Stratego runtime facet.
      */
-    public NewLanguageDiscoveryRequest(FileObject location, ILanguageComponentConfig config, IStrategoAppl esvTerm,
+    public NewLanguageDiscoveryRequest(FileObject location, @Nullable ILanguageComponentConfig config, @Nullable IStrategoAppl esvTerm,
                                        @Nullable SyntaxFacet syntaxFacet, @Nullable StrategoRuntimeFacet strategoRuntimeFacet) {
         this.available = true;
         this.location = location;
@@ -166,18 +166,6 @@ public class NewLanguageDiscoveryRequest implements INewLanguageDiscoveryRequest
      */
     @Nullable
     public StrategoRuntimeFacet strategoRuntimeFacet() { return this.strategoRuntimeFacet; }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    @Override
-    public String errorSummary() {
-        if (available) {
-            return "";
-        }
-        return toString();
-    }
 
     /**
      * {@inheritDoc}

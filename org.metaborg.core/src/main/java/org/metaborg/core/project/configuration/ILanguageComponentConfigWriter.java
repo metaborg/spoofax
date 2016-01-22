@@ -2,8 +2,7 @@ package org.metaborg.core.project.configuration;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.project.ILanguageSpec;
+
 import java.io.IOException;
 
 import org.metaborg.core.language.ILanguageComponent;

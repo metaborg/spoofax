@@ -3,20 +3,17 @@ package org.metaborg.core;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.editor.IEditorRegistry;
-import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.ILanguageDiscoveryService;
-import org.metaborg.core.language.ILanguageIdentifierService;
-import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.*;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.core.plugin.IServiceModulePlugin;
 import org.metaborg.core.plugin.InjectorFactory;
 import org.metaborg.core.plugin.ServiceModulePluginLoader;
+import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProjectService;
-import org.metaborg.core.project.settings.IProjectSettingsService;
+import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 
@@ -34,14 +31,15 @@ public class MetaBorg {
     public final IResourceService resourceService;
 
     public final ILanguageService languageService;
-    public final ILanguageDiscoveryService languageDiscoveryService;
+    public final INewLanguageDiscoveryService languageDiscoveryService;
     public final ILanguageIdentifierService languageIdentifierService;
-    public final ILanguagePathService languagePathService;
+    public final INewLanguagePathService languagePathService;
 
     public final IContextService contextService;
 
     public final IProjectService projectService;
-    public final IProjectSettingsService projectSettingsService;
+    public final ILanguageSpecService languageSpecService;
+    public final ILanguageSpecConfigService languageSpecConfigService;
 
     public final ISourceTextService sourceTextService;
 
@@ -64,14 +62,15 @@ public class MetaBorg {
 
         this.resourceService = injector.getInstance(IResourceService.class);
         this.languageService = injector.getInstance(ILanguageService.class);
-        this.languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
+        this.languageDiscoveryService = injector.getInstance(INewLanguageDiscoveryService.class);
         this.languageIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
-        this.languagePathService = injector.getInstance(ILanguagePathService.class);
+        this.languagePathService = injector.getInstance(INewLanguagePathService.class);
 
         this.contextService = injector.getInstance(IContextService.class);
 
         this.projectService = injector.getInstance(IProjectService.class);
-        this.projectSettingsService = injector.getInstance(IProjectSettingsService.class);
+        this.languageSpecService = injector.getInstance(ILanguageSpecService.class);
+        this.languageSpecConfigService = injector.getInstance(ILanguageSpecConfigService.class);
 
         this.sourceTextService = injector.getInstance(ISourceTextService.class);
 
@@ -114,10 +113,11 @@ public class MetaBorg {
 
 
     /**
-     * @see ILanguageDiscoveryService#discover(FileObject)
+     * @see INewLanguageDiscoveryService#request(FileObject)
+     * @see INewLanguageDiscoveryService#discover(INewLanguageDiscoveryRequest)
      */
     public Iterable<ILanguageComponent> discoverLanguages(FileObject location) throws MetaborgException {
-        return languageDiscoveryService.discover(location);
+        return languageDiscoveryService.discover(languageDiscoveryService.request(location));
     }
 
     /**

@@ -15,15 +15,15 @@ public interface IRegionCategory<T> {
     /**
      * @return Region in source text over which the category spans.
      */
-    public abstract ISourceRegion region();
+    ISourceRegion region();
 
     /**
      * @return Category assigned to the region.
      */
-    public abstract ICategory category();
+    ICategory category();
 
     /**
      * @return Fragment associated with the region, or null if there is no such association.
      */
-    public abstract @Nullable T fragment();
+    @Nullable T fragment();
 }

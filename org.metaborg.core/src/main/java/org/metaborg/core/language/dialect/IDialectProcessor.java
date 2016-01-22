@@ -11,12 +11,12 @@ public interface IDialectProcessor {
     /**
      * Updates dialects using given changes.
      * 
-     * @param project
+     * @param location
      *            Location to process changes for.
      * @param changes
      *            Resource changes to process.
      */
-    public abstract void update(FileObject location, Iterable<ResourceChange> changes);
+    void update(FileObject location, Iterable<ResourceChange> changes);
 
     /**
      * Updates dialects using a language implementation change.
@@ -24,5 +24,5 @@ public interface IDialectProcessor {
      * @param change
      *            Language change to process.
      */
-    public abstract void update(LanguageImplChange change);
+    void update(LanguageImplChange change);
 }

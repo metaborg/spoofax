@@ -157,7 +157,8 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
 
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
-            if(editor.language().equals(impl)) {
+            final ILanguageImpl language = editor.language();
+            if(language != null && language.equals(impl)) {
                 editor.reconfigure();
                 editor.disable();
             }

@@ -10,7 +10,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.Format;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -90,8 +89,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                      String sdfName,
                      String metaSdfName,
                      Iterable<String> sdfArgs,
-                     File externalJar,
-                     File strjTarget,
+                     @Nullable File externalJar,
+                     @Nullable File strjTarget,
                      File strjInputFile,
                      File strjOutputFile,
                      File strjDepFile,
@@ -227,7 +226,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         args.addAll(sdfArgs);
 
         final Iterable<FileObject> paths =
-                context.languagePathService().sourceAndIncludePaths(context.project, LANG_SDF_NAME);
+                context.languagePathService().sourceAndIncludePaths(context.languageSpec, LANG_SDF_NAME);
         for (FileObject path : paths) {
             try {
                 if (path.exists()) {
@@ -313,7 +312,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         requireBuild(CopyJar.factory, new CopyJar.Input(context, input.externalJar, input.strjTarget));
 
         final Iterable<FileObject> paths =
-                context.languagePathService().sourceAndIncludePaths(context.project, SpoofaxConstants.LANG_STRATEGO_NAME);
+                context.languagePathService().sourceAndIncludePaths(context.languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
         final Collection<File> includeDirs = Lists.newLinkedList();
         for (FileObject path : paths) {
             final File file = toFileReplicate(path);

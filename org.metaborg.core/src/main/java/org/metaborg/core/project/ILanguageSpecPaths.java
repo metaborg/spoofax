@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * Specifies the paths used in a language specification.
  */
-public interface ILanguageSpecPaths extends Serializable {
+public interface ILanguageSpecPaths {
 
     // NOTE: There is no getter for the configuration file
     // as the ILanguageSpecPaths interface requires a configuration to begin with.
@@ -32,7 +32,5 @@ public interface ILanguageSpecPaths extends Serializable {
      * @return A folder {@link FileObject}.
      */
     FileObject outputFolder();
-
-    void initAfterDeserialization(IResourceService resourceService);
 
 }

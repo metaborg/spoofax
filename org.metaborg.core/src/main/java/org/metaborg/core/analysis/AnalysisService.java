@@ -16,7 +16,7 @@ public class AnalysisService<P, A> implements IAnalysisService<P, A> {
         @SuppressWarnings("unchecked") final AnalyzerFacet<P, A> facet = language.facet(AnalyzerFacet.class);
         if(facet == null) {
             logger.debug("No analysis required for {}", language);
-            return new AnalysisResult<P, A>(context);
+            return new AnalysisResult<>(context);
         }
         final IAnalyzer<P, A> analyzer = facet.analyzer;
 

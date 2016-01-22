@@ -15,6 +15,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Lists;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class SyntaxFacetFromESV {
     public static @Nullable SyntaxFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
@@ -52,7 +53,8 @@ public class SyntaxFacetFromESV {
             return null;
         }
 
-        return Iterables2.singleton(ESVReader.termContents(termAt(termAt(result, 0), 0)));
+        final String contents = ESVReader.termContents(termAt(termAt(result, 0), 0));
+        return Iterables2.singleton(contents);
     }
 
     private static Iterable<String> singleLineCommentPrefixes(IStrategoAppl document) {

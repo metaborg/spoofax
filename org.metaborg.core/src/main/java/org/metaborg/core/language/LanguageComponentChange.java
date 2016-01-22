@@ -13,7 +13,7 @@ public class LanguageComponentChange {
         private final String name;
 
 
-        private Kind(String name) {
+        Kind(String name) {
             this.name = name;
         }
         
@@ -31,9 +31,9 @@ public class LanguageComponentChange {
     /**
      * Existing language component. Value under different kinds:
      * <ul>
-     * <li>{@link Kind#ADD}: null</li>
-     * <li>{@link Kind#RELOAD}: Component before the reload.</li>
-     * <li>{@link Kind#REMOVE}: Component that was removed.</li>
+     * <li>{@link Kind#Add}: null</li>
+     * <li>{@link Kind#Reload}: Component before the reload.</li>
+     * <li>{@link Kind#Remove}: Component that was removed.</li>
      * </ul>
      */
     public final @Nullable ILanguageComponent oldComponent;
@@ -41,15 +41,15 @@ public class LanguageComponentChange {
     /**
      * New language component. Value under different kinds:
      * <ul>
-     * <li>{@link Kind#ADD}: Component that was added.</li>
-     * <li>{@link Kind#RELOAD}: Component before the reload.</li>
-     * <li>{@link Kind#REMOVE}: null</li>
+     * <li>{@link Kind#Add}: Component that was added.</li>
+     * <li>{@link Kind#Reload}: Component before the reload.</li>
+     * <li>{@link Kind#Remove}: null</li>
      * </ul>
      */
     public final @Nullable ILanguageComponent newComponent;
 
 
-    public LanguageComponentChange(Kind kind, ILanguageComponent oldComponent, ILanguageComponent newComponent) {
+    public LanguageComponentChange(Kind kind, @Nullable ILanguageComponent oldComponent, @Nullable ILanguageComponent newComponent) {
         this.kind = kind;
         this.oldComponent = oldComponent;
         this.newComponent = newComponent;

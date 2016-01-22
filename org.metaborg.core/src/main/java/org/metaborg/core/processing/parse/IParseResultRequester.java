@@ -36,7 +36,7 @@ public interface IParseResultRequester<P> {
      * @return Cold observable which pushes a single element when subscribed; the latest parse result, or pushes an
      *         error if an error occurred while getting it.
      */
-    public abstract Observable<ParseResult<P>> request(FileObject resource, ILanguageImpl language, String text);
+    Observable<ParseResult<P>> request(FileObject resource, ILanguageImpl language, String text);
 
     /**
      * Returns an observable that pushes parse result updates to subscribers for given resource.
@@ -45,10 +45,10 @@ public interface IParseResultRequester<P> {
      *            Resource to push updates for.
      * @return Hot observable that pushes updates to subscribers for given resource.
      */
-    public abstract Observable<ParseChange<P>> updates(FileObject resource);
+    Observable<ParseChange<P>> updates(FileObject resource);
 
     /**
      * @return Latest parse result for given resource, or null if there is none.
      */
-    public abstract @Nullable ParseResult<P> get(FileObject resource);
+    @Nullable ParseResult<P> get(FileObject resource);
 }

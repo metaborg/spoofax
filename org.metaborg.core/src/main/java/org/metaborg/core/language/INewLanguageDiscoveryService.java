@@ -41,16 +41,4 @@ public interface INewLanguageDiscoveryService {
      */
     Iterable<ILanguageComponent> discover(Iterable<INewLanguageDiscoveryRequest> requests) throws MetaborgException;
 
-    /**
-     * Discover and create all language components at given location.
-     * 
-     * @param location
-     *            The directory to search in.
-     * @return Language components that were created.
-     * @throws MetaborgException
-     *             When discovery fails unexpectedly.
-     * @deprecated Use {@link #request(FileObject)} and {@link #discover(Iterable)} instead.
-     */
-    @Deprecated
-    Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException;
 }

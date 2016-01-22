@@ -23,27 +23,26 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.core.project.settings.IProjectSettingsService;
+import org.metaborg.core.project.settings.ILegacyProjectSettings;
+import org.metaborg.core.project.settings.ILegacyProjectSettingsService;
 
 import com.google.inject.Inject;
 
 /**
- * @deprecated This class is only used for the configuration system migration.
+ * This class is only used for the configuration system migration.
  */
-@Deprecated
+@SuppressWarnings("deprecation")
 public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigService {
 
     private final ConfigurationBasedLanguageSpecConfigService configurationBasedLanguageSpecConfigService;
-    private final IProjectSettingsService settingsService;
+    private final ILegacyProjectSettingsService settingsService;
     private final ILanguageSpecConfigWriter configWriter;
 
     @Inject
     public LegacyLanguageSpecConfigService(final ConfigurationBasedLanguageSpecConfigService configurationBasedLanguageSpecConfigService,
-            final IProjectSettingsService settingsService, final ILanguageSpecConfigWriter configWriter) {
+                                           final ILegacyProjectSettingsService settingsService, final ILanguageSpecConfigWriter configWriter) {
         this.configurationBasedLanguageSpecConfigService = configurationBasedLanguageSpecConfigService;
         this.settingsService = settingsService;
         this.configWriter = configWriter;
@@ -56,14 +55,15 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
         @Nullable ILanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
 
         // If this fails, try get project settings.
-        if (config == null) {
-            final IProjectSettings settings = this.settingsService.get(languageSpec);
+        if (config == null && languageSpec instanceof IProject) {
+            @Nullable final ILegacyProjectSettings settings = this.settingsService.get((IProject)languageSpec);
             if (settings != null) {
                 // Convert the settings to a configuration
                 config = new LegacyLanguageSpecConfig(settings);
 
-                // Write the configuration to file.
-                this.configWriter.write(languageSpec, config, null);
+//                // Write the configuration to file.
+//                // FIXME: This is only for migrating the old settings system to the new.
+//                this.configWriter.write(languageSpec, config, null);
             }
         }
         return config;

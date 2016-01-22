@@ -14,7 +14,7 @@ import org.spoofax.interpreter.library.index.IIndex;
 import com.google.inject.Injector;
 
 public class IndexTaskTemporaryContext implements ITemporaryContextInternal, IIndexTaskContext {
-    private IndexTaskContext context;
+    private final IndexTaskContext context;
 
 
     public IndexTaskTemporaryContext(IndexTaskContext context) {

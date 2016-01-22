@@ -25,28 +25,27 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.core.project.settings.IProjectSettingsService;
+import org.metaborg.core.project.settings.ILegacyProjectSettings;
+import org.metaborg.core.project.settings.ILegacyProjectSettingsService;
 
 import com.google.inject.Inject;
 
 /**
- * @deprecated This class is only used for the configuration system migration.
+ * This class is only used for the configuration system migration.
  */
-@Deprecated
+@SuppressWarnings("deprecation")
 public class LegacyLanguageComponentConfigService implements ILanguageComponentConfigService {
 
     private final ConfigurationBasedLanguageComponentConfigService configurationBasedLanguageComponentConfigService;
-    private final IProjectSettingsService settingsService;
-    private final ILanguageComponentConfigWriter configWriter;
+    private final ILegacyProjectSettingsService settingsService;
+//    private final ILanguageComponentConfigWriter configWriter;
 
     @Inject
     public LegacyLanguageComponentConfigService(final ConfigurationBasedLanguageComponentConfigService configurationBasedLanguageComponentConfigService,
-                                                final IProjectSettingsService settingsService, final ILanguageComponentConfigWriter configWriter) {
+                                                final ILegacyProjectSettingsService settingsService) { //}, final ILanguageComponentConfigWriter configWriter) {
         this.configurationBasedLanguageComponentConfigService = configurationBasedLanguageComponentConfigService;
         this.settingsService = settingsService;
-        this.configWriter = configWriter;
+//        this.configWriter = configWriter;
     }
 
     @Nullable
@@ -79,7 +78,7 @@ public class LegacyLanguageComponentConfigService implements ILanguageComponentC
 
         // If this fails, try get project settings.
         if (config == null) {
-            final IProjectSettings settings = this.settingsService.get(rootFolder);
+            final ILegacyProjectSettings settings = this.settingsService.get(rootFolder);
             if (settings != null) {
                 // Convert the settings to a configuration
                 config = new LegacyLanguageComponentConfig(settings);

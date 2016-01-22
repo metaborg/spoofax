@@ -7,7 +7,7 @@ public enum MessageSeverity {
     public final int value;
 
 
-    private MessageSeverity(int value) {
+    MessageSeverity(int value) {
         this.value = value;
     }
 }

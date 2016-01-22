@@ -77,7 +77,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
-            return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context);
+            return new AnalysisResult<>(context);
         }
         final AnalysisFacet facet = facetContribution.facet;
 
@@ -101,7 +101,6 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
                 logger.warn("Input result for {} is null, cannot analyze it", input.source);
                 continue;
             }
-
             final IStrategoString pathTerm = termFactory.makeString(input.source.getName().getURI());
             analysisInputs.add(termFactory.makeAppl(fileCons, pathTerm, input.result,
                 termFactory.makeReal(input.duration)));
@@ -123,7 +122,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, message);
         }
         if(!(resultTerm instanceof IStrategoAppl)) {
-            final String message = String.format("Unexpected results from analysis {}", resultTerm);
+            final String message = String.format("Unexpected results from analysis %s", resultTerm);
             logger.error(message);
             throw new AnalysisException(context, message);
         }
@@ -156,7 +155,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final AnalysisTimeResult timeResult = timeResult(timeResultTerm);
 
         final IAnalyzerData data = new TaskEngineAnalyzerData(affectedPartitions, debugResult, timeResult);
-        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context, fileResults, messageResults, data);
+        return new AnalysisResult<>(context, fileResults, messageResults, data);
     }
 
     private @Nullable AnalysisFileResult<IStrategoTerm, IStrategoTerm>
@@ -175,9 +174,9 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(5)));
         messages.addAll(analysisCommon.ambiguityMessages(source, ast));
 
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, source, context, messages,
-            new ParseResult<IStrategoTerm>("", previousAst, source, Arrays.asList(new IMessage[] {}), -1,
-                context.language(), null, null));
+        return new AnalysisFileResult<>(ast, source, context, messages,
+                new ParseResult<>("", previousAst, source, Arrays.asList(new IMessage[]{}), -1,
+                        context.language(), null, null));
     }
 
     private AnalysisMessageResult messageResult(IStrategoTerm result) {
@@ -191,7 +190,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     }
 
     private Collection<String> affectedPartitions(IStrategoTerm affectedTerm) {
-        final Collection<String> affected = new ArrayList<String>(affectedTerm.getSubtermCount());
+        final Collection<String> affected = new ArrayList<>(affectedTerm.getSubtermCount());
         for(IStrategoTerm partition : affectedTerm) {
             affected.add(Tools.asJavaString(partition));
         }

@@ -223,10 +223,6 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                 try {
                     final IIndex index = IndexManager.read(indexFile, termFactory);
                     return index;
-                } catch(ParseError | IOException e) {
-                    logger.error("Loading index from {} failed, deleting that file and returning an empty index. "
-                        + "Clean the project to reanalyze", e, indexFile);
-                    deleteIndexFile(indexFile);
                 } catch(Exception e) {
                     logger.error("Loading index from {} failed, deleting that file and returning an empty index. "
                         + "Clean the project to reanalyze", e, indexFile);
@@ -264,11 +260,6 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                 try {
                     final ITaskEngine taskEngine = TaskManager.read(taskEngineFile, termFactory);
                     return taskEngine;
-                } catch(ParseError | IOException e) {
-                    logger.error(
-                        "Loading task engine from {} failed, deleting that file and returning an empty task engine. "
-                            + "Clean the project to reanalyze", e, taskEngineFile);
-                    deleteTaskEngineFile(taskEngineFile);
                 } catch(Exception e) {
                     logger.error(
                         "Loading task engine from {} failed, deleting that file and returning an empty task engine. "

@@ -10,21 +10,21 @@ public interface ILanguageComponent extends IFacetContributions {
     /**
      * @return Identifier of this component.
      */
-    public abstract LanguageIdentifier id();
+    LanguageIdentifier id();
 
     /**
      * @return Location of this component.
      */
-    public abstract FileObject location();
+    FileObject location();
 
     /**
      * @return Sequence identifier of this component. Used to find out if a component was created after or before
      *         another component.
      */
-    public abstract int sequenceId();
+    int sequenceId();
 
     /**
      * @return All language implementations that this component contributes to.
      */
-    public abstract Iterable<? extends ILanguageImpl> contributesTo();
+    Iterable<? extends ILanguageImpl> contributesTo();
 }

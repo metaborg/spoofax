@@ -21,8 +21,8 @@ public interface IParseService<T> {
      * @throws ParseException
      *             when parsing fails unexpectedly.
      */
-    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguageImpl language,
-        @Nullable IParserConfiguration parserConfig) throws ParseException;
+    ParseResult<T> parse(String text, FileObject resource, ILanguageImpl language,
+                         @Nullable IParserConfiguration parserConfig) throws ParseException;
 
     /**
      * Unparses a parsed fragment back into a string, using unparsing rules from given language.
@@ -33,11 +33,11 @@ public interface IParseService<T> {
      *            Language to unparse with.
      * @return Unparsed string.
      */
-    public abstract String unparse(T parsed, ILanguageImpl language);
+    String unparse(T parsed, ILanguageImpl language);
 
     /**
      * @return Empty parse result for given resource, language, and optionally a dialect.
      */
-    public abstract ParseResult<T> emptyParseResult(FileObject resource, ILanguageImpl language,
-        @Nullable ILanguageImpl dialect);
+    ParseResult<T> emptyParseResult(FileObject resource, ILanguageImpl language,
+                                    @Nullable ILanguageImpl dialect);
 }

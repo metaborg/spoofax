@@ -23,16 +23,17 @@ import java.util.Collection;
 
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.ILegacyProjectSettings;
 
 import com.google.common.collect.Lists;
 
+@SuppressWarnings("deprecation")
 public class LegacyLanguageSpecConfig implements ILanguageSpecConfig {
 
     private static final long serialVersionUID = 4321718437339177753L;
-    public final IProjectSettings settings;
+    public final ILegacyProjectSettings settings;
 
-    public LegacyLanguageSpecConfig(final IProjectSettings settings) {
+    public LegacyLanguageSpecConfig(final ILegacyProjectSettings settings) {
         this.settings = settings;
     }
 

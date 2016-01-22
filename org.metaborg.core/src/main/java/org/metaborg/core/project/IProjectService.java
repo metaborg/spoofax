@@ -15,5 +15,5 @@ public interface IProjectService {
      *            Resource to retrieve project for.
      * @return Retrieved project, or null if no project could be retrieved.
      */
-    public abstract @Nullable IProject get(FileObject resource);
+    @Nullable IProject get(FileObject resource);
 }

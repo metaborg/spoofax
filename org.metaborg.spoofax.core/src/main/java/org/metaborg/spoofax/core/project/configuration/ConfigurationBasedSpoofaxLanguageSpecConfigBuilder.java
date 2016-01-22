@@ -28,8 +28,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
     @Nullable protected String externalDef = null;
     @Nullable protected String externalJar = null;
     @Nullable protected String externalJarFlags = null;
-    protected List<String> sdfArgs = new ArrayList<>();
-    protected List<String> strategoArgs = new ArrayList<>();
+    protected final List<String> sdfArgs = new ArrayList<>();
+    protected final List<String> strategoArgs = new ArrayList<>();
 
     /**
      * Initializes a new instance of the {@link ConfigurationBasedSpoofaxLanguageSpecConfigBuilder} class.

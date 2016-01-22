@@ -48,7 +48,7 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
 
             return manager;
         } catch(FileSystemException e) {
-            throw new RuntimeException("Cannot initialze resource service: " + e.getMessage(), e);
+            throw new RuntimeException("Cannot initialize resource service: " + e.getMessage(), e);
         }
     }
 

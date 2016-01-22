@@ -7,25 +7,16 @@ import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.file.FileUtils;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.URI;
 
 public abstract class LanguageSpecPaths implements ILanguageSpecPaths {
 
     private final ILanguageSpecConfig config;
-    private final URI rootPath;
     private transient FileObject root;
 
     public LanguageSpecPaths(FileObject rootFolder, ILanguageSpecConfig config) {
         this.root = rootFolder;
-        this.rootPath = FileUtils.toURI(rootFolder);
         this.config = config;
-    }
-
-    @Override
-    public void initAfterDeserialization(IResourceService resourceService) {
-        this.root = resourceService.resolve(this.rootPath);
     }
 
     @Override
