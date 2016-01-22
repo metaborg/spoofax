@@ -112,17 +112,12 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindLanguagePath() {
-//        bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
         bind(INewLanguagePathService.class).to(NewLanguagePathService.class).in(Singleton.class);
     }
 
     protected void bindLanguageSpecPath() {
 
     }
-
-//    protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-//        binder.addBinding().to(DependencyPathProvider.class);
-//    }
 
     protected void bindNewLanguagePathProviders(Multibinder<INewLanguagePathProvider> binder) {
         binder.addBinding().to(NewDependencyPathProvider.class);
@@ -132,10 +127,9 @@ public class MetaborgModule extends AbstractModule {
      * Override this method to bind a specific language specification service.
      */
     protected void bindLanguageSpec() {
-//        bind(ILanguageSpecService.class).to(DefaultLanguageSpecService.class).in(Singleton.class);
-
-        // This service is used to bridge between the old and the new configuration systems.
+        // FIXME: Used to bridge between the old and the new configuration systems.
         bind(ILanguageSpecService.class).to(LegacyLanguageSpecService.class).in(Singleton.class);
+//        bind(ILanguageSpecService.class).to(DefaultLanguageSpecService.class).in(Singleton.class);
     }
 
     protected void bindContext() {
@@ -164,26 +158,22 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindLanguageSpecConfig() {
+        // FIXME: Used to bridge between the old and the new configuration systems.
         bind(LegacyLanguageSpecConfigService.class).in(Singleton.class);
         bind(ILanguageSpecConfigService.class).to(LegacyLanguageSpecConfigService.class).in(Singleton.class);
-
         bind(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-//        bind(LegacyLanguageSpecConfigWriter.class).in(Singleton.class);
 //        bind(ILanguageSpecConfigService.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-//        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-//        bind(ILanguageSpecConfigWriter.class).to(LegacyLanguageSpecConfigWriter.class).in(Singleton.class);
 
         bind(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
         bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
     }
 
     protected void bindLanguageComponentConfig() {
+        // FIXME: Used to bridge between the old and the new configuration systems.
         bind(LegacyLanguageComponentConfigService.class).in(Singleton.class);
         bind(ILanguageComponentConfigService.class).to(LegacyLanguageComponentConfigService.class).in(Singleton.class);
-
         bind(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
 //        bind(ILanguageComponentConfigService.class).to(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
-//        bind(ILanguageComponentConfigWriter.class).to(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
 
         bind(ConfigurationBasedLanguageComponentConfigBuilder.class).in(Singleton.class);
         bind(ILanguageComponentConfigBuilder.class).to(ConfigurationBasedLanguageComponentConfigBuilder.class).in(Singleton.class);
@@ -194,8 +184,6 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindDependency() {
-//        bind(IDependencyService.class).to(DependencyService.class).in(Singleton.class);
-//        bind(IDependencyService.class).to(LegacyDependencyService.class).in(Singleton.class);
         bind(INewDependencyService.class).to(DefaultDependencyService.class).in(Singleton.class);
     }
 

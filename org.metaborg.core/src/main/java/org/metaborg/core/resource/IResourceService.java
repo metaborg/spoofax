@@ -20,7 +20,7 @@ public interface IResourceService {
      * @throws MetaborgRuntimeException
      *             if an error occurs.
      */
-    public FileObject root();
+    FileObject root();
 
     /**
      * Returns a file system object for given absolute or relative to the root URI. See <a
@@ -32,7 +32,7 @@ public interface IResourceService {
      * @throws MetaborgRuntimeException
      *             when uri is invalid.
      */
-    public FileObject resolve(String uri);
+    FileObject resolve(String uri);
 
     /**
      * Returns a local file system object for given Java file system object.
@@ -43,7 +43,7 @@ public interface IResourceService {
      * @throws MetaborgRuntimeException
      *             when file is invalid.
      */
-    public FileObject resolve(File file);
+    FileObject resolve(File file);
 
     /**
      * Returns a local file system object for given Java URI object.
@@ -54,7 +54,7 @@ public interface IResourceService {
      * @throws MetaborgRuntimeException
      *             when uri is invalid.
      */
-    public FileObject resolve(URI uri);
+    FileObject resolve(URI uri);
 
     /**
      * Tries to resolve {@code path} as an absolute path first, if that fails, resolves {@code path} relative to
@@ -69,7 +69,7 @@ public interface IResourceService {
      * @throws MetaborgRuntimeException
      *             When absolute or relative resolution fails.
      */
-    public FileObject resolve(FileObject parent, String path);
+    FileObject resolve(FileObject parent, String path);
 
     /**
      * Returns a file system name for given absolute or relative to the root URI. See <a
@@ -81,7 +81,7 @@ public interface IResourceService {
      * @throws MetaborgRuntimeException
      *             when uri is invalid.
      */
-    public FileName resolveToName(String uri);
+    FileName resolveToName(String uri);
 
     /**
      * Attempts to get a local file for given resource, or copies the resource to the local file system if it does not
@@ -93,7 +93,7 @@ public interface IResourceService {
      * @throws MetaborgRuntimeException
      *             When given resource does not exist.
      */
-    public File localFile(FileObject resource);
+    File localFile(FileObject resource);
 
     /**
      * Attempts to get a local file handle for given resource.
@@ -102,7 +102,7 @@ public interface IResourceService {
      *            Resource to get a local file handle for.
      * @return Local file handle, or null if given resource does not reside on the local file system.
      */
-    public @Nullable File localPath(FileObject resource);
+    @Nullable File localPath(FileObject resource);
 
     /**
      * Returns a file system object that points to a directory where user-specific data can be stored.
@@ -112,5 +112,6 @@ public interface IResourceService {
      * 
      * @deprecated Wrong abstraction, will be removed in the future.
      */
-    @Deprecated public FileObject userStorage();
+    @Deprecated
+    FileObject userStorage();
 }

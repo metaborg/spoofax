@@ -17,7 +17,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 public class CleanInputBuilder {
-//    private final IProject project;
+
     private final ILanguageSpec languageSpec;
 
     private Set<ILanguageImpl> languages;
@@ -41,7 +41,7 @@ public class CleanInputBuilder {
 
     
     /**
-     * Sets the languages to given languague implementations.
+     * Sets the languages to given language implementations.
      */
     public CleanInputBuilder withLanguages(Set<ILanguageImpl> languages) {
         this.languages = languages;
@@ -110,7 +110,7 @@ public class CleanInputBuilder {
      * Builds a clean input object from the current state.
      * 
      * @throws MetaborgException
-     *             When {@link INewDependencyService#compileDependencies(IProject)} throws.
+     *             When {@link INewDependencyService#compileDependencies(ILanguageSpec)} throws.
      */
     public CleanInput build(INewDependencyService dependencyService) throws MetaborgException {
         if(addDependencyLanguages) {

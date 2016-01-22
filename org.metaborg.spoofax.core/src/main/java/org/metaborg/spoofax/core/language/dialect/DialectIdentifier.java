@@ -52,8 +52,12 @@ public class DialectIdentifier implements IDialectIdentifier {
 
         // GTODO: use identifier service instead, but that introduces a cyclic dependency. Could use a provider.
         final ILanguageImpl strategoImpl = strategoLanguage.activeImpl();
+        if (strategoImpl == null) {
+            return null;
+        }
         // HACK: assuming single identification facet
-        if(strategoImpl == null || !strategoImpl.facet(IdentificationFacet.class).identify(resource)) {
+        final IdentificationFacet facet = strategoImpl.facet(IdentificationFacet.class);
+        if(facet == null || !facet.identify(resource)) {
             return null;
         }
 

@@ -15,7 +15,6 @@ import com.google.inject.Inject;
 
 public class ConfigurationBasedLanguageComponentConfigService extends ConfigurationBasedConfigService<ILanguageComponent, ILanguageComponentConfig> implements ILanguageComponentConfigService, ILanguageComponentConfigWriter {
 
-//    public static final String CONFIG_FILE = "metaborg.yaml";
     private final ConfigurationBasedLanguageComponentConfigBuilder configBuilder;
 
     @Inject

@@ -65,7 +65,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
     @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
         final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
         for(IFacet facet : facets()) {
-            contributions.add(new FacetContribution<IFacet>(facet, this));
+            contributions.add(new FacetContribution<>(facet, this));
         }
         return contributions;
     }
@@ -77,7 +77,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
     @Override public <T extends IFacet> Iterable<FacetContribution<T>> facetContributions(Class<T> type) {
         final Collection<FacetContribution<T>> contributions = Lists.newLinkedList();
         for(T facet : facets(type)) {
-            contributions.add(new FacetContribution<T>(facet, this));
+            contributions.add(new FacetContribution<>(facet, this));
         }
         return contributions;
     }

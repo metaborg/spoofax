@@ -17,17 +17,17 @@ public interface IContext {
     /**
      * @return Location of this context.
      */
-    public abstract FileObject location();
+    FileObject location();
 
     /**
      * @return Language of this context.
      */
-    public abstract ILanguageImpl language();
+    ILanguageImpl language();
 
     /**
      * @return Injector to retrieve implementations.
      */
-    public abstract Injector injector();
+    Injector injector();
 
 
     /**
@@ -35,14 +35,14 @@ public interface IContext {
      * 
      * @return Closable lock which must be held during reading. Close the lock when done.
      */
-    public abstract IClosableLock read();
+    IClosableLock read();
 
     /**
      * Request write access to this context.
      * 
      * @return Closable lock which must be held during writing. Close the lock when done.
      */
-    public abstract IClosableLock write();
+    IClosableLock write();
 
     
     /**
@@ -52,7 +52,7 @@ public interface IContext {
      * @throws IOException
      *             When persisting fails unexpectedly.
      */
-    public abstract void persist() throws IOException;
+    void persist() throws IOException;
 
     /**
      * Resets the state of this context. Acquires a write lock. Cannot be called while holding the read lock.
@@ -60,12 +60,12 @@ public interface IContext {
      * @throws IOException
      *             When resetting fails unexpectedly
      */
-    public abstract void reset() throws IOException;
+    void reset() throws IOException;
     
 
     /* Hint for hashCode implementation. */
-    public abstract int hashCode();
+    int hashCode();
 
     /* Hint for equals implementation. */
-    public abstract boolean equals(Object other);
+    boolean equals(Object other);
 }

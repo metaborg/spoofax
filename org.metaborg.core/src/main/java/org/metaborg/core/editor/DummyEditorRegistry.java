@@ -17,7 +17,7 @@ public class DummyEditorRegistry implements IEditorRegistry {
     @Override public Iterable<IEditor> openEditors() {
         logger.warn("Using dummy editor registry. "
             + "Bind an actual implementation of IEditorRegistry in your Guice module.");
-        return Iterables2.<IEditor>empty();
+        return Iterables2.empty();
     }
 
 

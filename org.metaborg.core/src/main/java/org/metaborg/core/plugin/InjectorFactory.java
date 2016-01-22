@@ -31,8 +31,7 @@ public class InjectorFactory {
     
     public static Injector create(Iterable<Module> modules) throws MetaborgException {
         try {
-            final Injector injector = Guice.createInjector(modules);
-            return injector;
+            return Guice.createInjector(modules);
         } catch(CreationException e) {
             throw new MetaborgException("Could not create injector because of dependency injection errors", e);
         }
@@ -40,8 +39,7 @@ public class InjectorFactory {
     
     public static Injector createChild(Injector parent, Iterable<Module> modules) throws MetaborgException {
         try {
-            final Injector injector = parent.createChildInjector(modules);
-            return injector;
+            return parent.createChildInjector(modules);
         } catch(CreationException e) {
             throw new MetaborgException("Could not create child injector because of dependency injection errors", e);
         }

@@ -22,7 +22,6 @@ import org.metaborg.core.build.paths.INewLanguagePathService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.configuration.ConfigurationBasedSpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.core.project.configuration.LegacySpoofaxLanguageSpecConfigWriter;

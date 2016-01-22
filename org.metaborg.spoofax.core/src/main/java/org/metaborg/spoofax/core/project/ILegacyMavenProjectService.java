@@ -18,5 +18,5 @@ public interface ILegacyMavenProjectService {
      * @return Maven project, or null if no Maven project could be retrieved. When there is no (valid) POM file in the
      *         project, null is returned.
      */
-    public abstract @Nullable MavenProject get(IProject project);
+    @Nullable MavenProject get(IProject project);
 }

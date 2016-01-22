@@ -37,7 +37,7 @@ public class ESVReader {
     }
 
     public static ArrayList<IStrategoAppl> collectTerms(IStrategoAppl term, String... constructors) {
-        ArrayList<IStrategoAppl> results = new ArrayList<IStrategoAppl>();
+        ArrayList<IStrategoAppl> results = new ArrayList<>();
         for(String constructor : constructors) {
             collectTerms(term, constructor, results);
         }

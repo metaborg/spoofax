@@ -4,14 +4,10 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.LanguageSpecPaths;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
 import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
 public class SpoofaxLanguageSpecPaths extends LanguageSpecPaths implements ISpoofaxLanguageSpecPaths {
 
-    private static final long serialVersionUID = 5794344648827194188L;
     private final ISpoofaxLanguageSpecConfig config;
 
     public SpoofaxLanguageSpecPaths(FileObject rootFolder, ISpoofaxLanguageSpecConfig config) {
@@ -21,7 +17,7 @@ public class SpoofaxLanguageSpecPaths extends LanguageSpecPaths implements ISpoo
 
     @Override
     public FileObject outputFolder() {
-        return resolve(DIR_SRCGEN);
+        return resolve(DIR_OUTPUT);
     }
 
     @Override

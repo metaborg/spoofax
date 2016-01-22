@@ -67,10 +67,6 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
             }
             env.setCurrent(output);
             return true;
-        } catch(ContextException e) {
-            final String message =
-                String.format("Foreign call of '%s' into language %s failed", strategyName, languageName);
-            throw new InterpreterException(message, e);
         } catch(MetaborgException e) {
             final String message =
                 String.format("Foreign call of '%s' into language %s failed", strategyName, languageName);

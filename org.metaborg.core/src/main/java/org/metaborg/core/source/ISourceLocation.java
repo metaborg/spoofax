@@ -11,10 +11,10 @@ public interface ISourceLocation {
     /**
      * @return Region in the source file.
      */
-    public abstract ISourceRegion region();
+    ISourceRegion region();
 
     /**
      * @return Resource of the source file, or null if the source file could not be determined.
      */
-    public abstract @Nullable FileObject resource();
+    @Nullable FileObject resource();
 }

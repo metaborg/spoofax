@@ -68,22 +68,6 @@ public final class DefaultDependencyService implements INewDependencyService {
         return getLanguages(config.runtimeDependencies());
     }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Override
-//    public Collection<ILanguageComponent> compileDependencies(ILanguageComponent component) throws MissingDependencyException {
-//        final DependencyFacet facet = component.facet(DependencyFacet.class);
-//
-//        if(facet == null) {
-//            logger.trace("No dependency facet found for language component '{}'. " +
-//                    "Returning all active language components as compile dependencies instead.", component);
-//            return ImmutableList.copyOf(LanguageUtils.allActiveComponents(languageService));
-//        }
-//
-//        return getLanguages(facet.compileDependencies);
-//    }
-
     /**
      * {@inheritDoc}
      */

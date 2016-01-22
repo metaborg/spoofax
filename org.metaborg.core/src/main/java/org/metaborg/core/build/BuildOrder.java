@@ -31,7 +31,7 @@ public class BuildOrder {
      */
     public BuildOrder(Iterable<ILanguageImpl> languages) throws MetaborgRuntimeException {
         this.languages = languages;
-        this.dag = new DirectedAcyclicGraph<ILanguageImpl, Object>(Object.class);
+        this.dag = new DirectedAcyclicGraph<>(Object.class);
 
         final Map<String, ILanguageImpl> lookup = Maps.newHashMap();
         for(ILanguageImpl language : languages) {

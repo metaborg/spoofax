@@ -9,7 +9,6 @@ import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -42,8 +41,7 @@ public class NewLanguagePathService implements INewLanguagePathService {
                     provider);
             }
         }
-        final Iterable<FileObject> allSources = Iterables.concat(sources);
-        return allSources;
+        return Iterables.concat(sources);
     }
 
     @Override public Iterable<FileObject> includePaths(ILanguageSpec languageSpec, String languageName) {
@@ -56,8 +54,7 @@ public class NewLanguagePathService implements INewLanguagePathService {
                     provider);
             }
         }
-        final Iterable<FileObject> allIncludes = Iterables.concat(includes);
-        return allIncludes;
+        return Iterables.concat(includes);
     }
 
     @Override public Iterable<FileObject> sourceAndIncludePaths(ILanguageSpec languageSpec, String languageName) {

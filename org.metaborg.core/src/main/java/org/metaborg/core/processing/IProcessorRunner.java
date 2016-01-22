@@ -31,8 +31,8 @@ public interface IProcessorRunner<P, A, T> {
      * @return Task that builds with given input, and has the build output as result. Schedule the task and wait for it
      *         to complete to get the build output.
      */
-    public abstract ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
+                                       @Nullable ICancellationToken cancellationToken);
 
     /**
      * Creates a task that cleans with given clean input.
@@ -45,8 +45,8 @@ public interface IProcessorRunner<P, A, T> {
      *            Cancellation token, or null to a use a processor-specific implementation for cancellation.
      * @return Task that cleans with given input.
      */
-    public abstract ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
+                   @Nullable ICancellationToken cancellationToken);
 
 
     /**
@@ -58,5 +58,5 @@ public interface IProcessorRunner<P, A, T> {
      *            Resource changes to process.
      * @return Task that processes dialect updates.
      */
-    public abstract ITask<?> updateDialects(FileObject location, Iterable<ResourceChange> changes);
+    ITask<?> updateDialects(FileObject location, Iterable<ResourceChange> changes);
 }

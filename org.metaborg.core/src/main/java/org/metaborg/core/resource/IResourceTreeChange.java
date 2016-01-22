@@ -10,16 +10,16 @@ public interface IResourceTreeChange {
     /**
      * Returns the resource that has changed.
      */
-    public abstract FileObject resource();
+    FileObject resource();
 
     /**
      * Returns the kind of change.
      */
-    public abstract ResourceChangeKind kind();
+    ResourceChangeKind kind();
 
     /**
      * Returns changes in children of the changed resource. Only child resources with changes will be returned. The
      * returned changes are also trees, which can be traversed further.
      */
-    public abstract Iterable<IResourceTreeChange> children();
+    Iterable<IResourceTreeChange> children();
 }

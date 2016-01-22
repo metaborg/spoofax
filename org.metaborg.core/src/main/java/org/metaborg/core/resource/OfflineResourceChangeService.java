@@ -20,10 +20,10 @@ public class OfflineResourceChangeService implements IResourceChangeService {
 
 
     @Inject public OfflineResourceChangeService(IResourceService resourceService,
-        ILanguageIdentifierService langaugeIdentifierService) {
+        ILanguageIdentifierService languageIdentifierService) {
         monitor =
             new OfflineResourceChangeMonitor(resourceService.root(), resourceService.userStorage(),
-                new AllLanguagesFileSelector(langaugeIdentifierService), resourceService);
+                new AllLanguagesFileSelector(languageIdentifierService), resourceService);
     }
 
 

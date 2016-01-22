@@ -410,10 +410,8 @@ public class NewBuildInputBuilder {
             }
         }
 
-        final BuildInput input =
-            new BuildInput(state, this.languageSpec, sourceChanges, includePaths, new BuildOrder(languages), selector,
+        return new BuildInput(state, this.languageSpec, sourceChanges, includePaths, new BuildOrder(languages), selector,
                 analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
-        return input;
     }
 }

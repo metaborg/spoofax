@@ -22,6 +22,6 @@ public interface ILegacySpoofaxProjectSettingsService {
      * @throws ProjectException
      *             When creating project settings unexpectedly fails.
      */
-    public abstract @Nullable
+    @Nullable
     LegacySpoofaxProjectSettings get(IProject project) throws ProjectException;
 }

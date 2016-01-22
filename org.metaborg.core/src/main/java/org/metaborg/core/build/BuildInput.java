@@ -9,15 +9,14 @@ import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
 import com.google.common.collect.Multimap;
 
 /**
- * Input for a build. Use the {@link BuildInputBuilder} fluent interface to create objects of this class.
+ * Input for a build. Use the {@link NewBuildInputBuilder} fluent interface to create objects of this class.
  * 
- * @see BuildInputBuilder
+ * @see NewBuildInputBuilder
  */
 public class BuildInput {
     /**
@@ -97,7 +96,7 @@ public class BuildInput {
 
     public BuildInput(BuildState state, ILanguageSpec languageSpec, Iterable<ResourceChange> resourceChanges,
                       Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
-                      boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
+                      boolean analyze, @Nullable FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
                       Iterable<ITransformGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors,
                       Set<ILanguageImpl> pardonedLanguages) {
         this.state = state;

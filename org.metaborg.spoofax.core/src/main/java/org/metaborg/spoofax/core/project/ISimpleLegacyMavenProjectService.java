@@ -18,7 +18,7 @@ public interface ISimpleLegacyMavenProjectService extends ILegacyMavenProjectSer
      * @throws MetaborgException
      *             When a Maven project already exists for given Metaborg project.
      */
-    public abstract MavenProject add(IProject project, MavenProject mavenProject) throws MetaborgException;
+    MavenProject add(IProject project, MavenProject mavenProject) throws MetaborgException;
 
     /**
      * Removes Maven project for given Metaborg project.
@@ -29,5 +29,5 @@ public interface ISimpleLegacyMavenProjectService extends ILegacyMavenProjectSer
      * @throws MetaborgException
      *             When given Metaborg project does not exist in this project service.
      */
-    public abstract void remove(IProject project) throws MetaborgException;
+    void remove(IProject project) throws MetaborgException;
 }

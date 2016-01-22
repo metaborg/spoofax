@@ -22,22 +22,22 @@ import org.metaborg.core.resource.ResourceChange;
  */
 public interface IProcessor<P, A, T> {
     /**
-     * @see IProcessorRunner#build(BuildInput, IProgressReporter)
+     * @see IProcessorRunner#build(BuildInput, IProgressReporter, ICancellationToken)
      */
-    public abstract ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
+                                       @Nullable ICancellationToken cancellationToken);
 
     /**
-     * @see IProcessorRunner#clean(CleanInput, IProgressReporter)
+     * @see IProcessorRunner#clean(CleanInput, IProgressReporter, ICancellationToken)
      */
-    public abstract ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
+                   @Nullable ICancellationToken cancellationToken);
 
 
     /**
      * @see IProcessorRunner#updateDialects(FileObject, Iterable)
      */
-    public abstract ITask<?> updateDialects(FileObject location, Iterable<ResourceChange> changes);
+    ITask<?> updateDialects(FileObject location, Iterable<ResourceChange> changes);
 
 
     /**
@@ -47,7 +47,7 @@ public interface IProcessor<P, A, T> {
      *            Language implementation change to process.
      * @return Task that processes given language change.
      */
-    public abstract ITask<?> languageChange(LanguageComponentChange change);
+    ITask<?> languageChange(LanguageComponentChange change);
 
     /**
      * Creates a task that processes given language implementation change.
@@ -56,5 +56,5 @@ public interface IProcessor<P, A, T> {
      *            Language implementation change to process.
      * @return Task that processes given language change.
      */
-    public abstract ITask<?> languageChange(LanguageImplChange change);
+    ITask<?> languageChange(LanguageImplChange change);
 }

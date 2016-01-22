@@ -51,19 +51,6 @@ public class NewDependencyPathProvider implements INewLanguagePathProvider {
                     resolve(facetContribution.contributor.location(), paths, includes);
                 }
             }
-
-            // HACK: transitive dependencies do not work with Maven, disable them for now.
-            // final Iterable<ILanguageComponent> transitiveDeps = dependencyService.compileDependencies(dependency);
-            // for(ILanguageComponent transitiveDep : transitiveDeps) {
-            // final Iterable<FacetContribution<LanguagePathFacet>> transFacets =
-            // transitiveDep.facetContributions(LanguagePathFacet.class);
-            // for(FacetContribution<LanguagePathFacet> facetContribution : transFacets) {
-            // final Collection<String> paths = facetContribution.facet.sources.get(languageName);
-            // if(paths != null) {
-            // resolve(dependency.location(), paths, includes);
-            // }
-            // }
-            // }
         }
 
 

@@ -156,8 +156,6 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void bindLanguage() {
         super.bindLanguage();
 
-//        bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
-        // bind(ILanguageDiscoveryService.class).to(LegacyLanguageDiscoveryService.class).in(Singleton.class);
         bind(INewLanguageDiscoveryService.class).to(NewLanguageDiscoveryService.class).in(Singleton.class);
 
         bind(IDialectService.class).to(DialectService.class).in(Singleton.class);
@@ -170,12 +168,6 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ILanguageSpecPathsService.class).to(SpoofaxLanguageSpecPathsService.class).in(Singleton.class);
         bind(ISpoofaxLanguageSpecPathsService.class).to(SpoofaxLanguageSpecPathsService.class).in(Singleton.class);
     }
-
-//    @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-//        super.bindLanguagePathProviders(binder);
-//
-//        binder.addBinding().to(BuiltinLanguagePathProvider.class);
-//    }
 
     @Override protected void bindNewLanguagePathProviders(Multibinder<INewLanguagePathProvider> binder) {
         super.bindNewLanguagePathProviders(binder);
@@ -213,14 +205,6 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ISpoofaxLanguageSpecConfigService.class).to(LegacySpoofaxLanguageSpecConfigService.class).in(
             Singleton.class);
         bind(ISpoofaxLanguageSpecConfigWriter.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
-//        bind(ISpoofaxLanguageSpecConfigWriter.class).to(LegacySpoofaxLanguageSpecConfigWriter.class).in(
-//                Singleton.class);
-
-//        bind(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
-        // bind(ILanguageSpecConfigService.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
-        // bind(ISpoofaxLanguageSpecConfigService.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
-//        bind(ISpoofaxLanguageSpecConfigWriter.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(
-//            Singleton.class);
 
         bind(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class).in(Singleton.class);
         bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class).in(

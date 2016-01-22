@@ -12,7 +12,7 @@ import com.google.common.collect.Maps;
 
 @Deprecated
 public class SimpleLegacyMavenProjectService implements ISimpleLegacyMavenProjectService {
-    private ConcurrentMap<IProject, MavenProject> projects = Maps.newConcurrentMap();
+    private final ConcurrentMap<IProject, MavenProject> projects = Maps.newConcurrentMap();
 
 
     @Override public @Nullable MavenProject get(IProject project) {

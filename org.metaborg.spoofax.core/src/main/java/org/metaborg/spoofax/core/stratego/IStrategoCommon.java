@@ -14,9 +14,7 @@ import org.strategoxt.HybridInterpreter;
 public interface IStrategoCommon {
     /**
      * Invokes a Stratego strategy in given component.
-     * 
-     * @param service
-     *            Stratego runtime service to get a runtime from.
+     *
      * @param component
      *            Component to invoke the strategy in.
      * @param context
@@ -31,15 +29,13 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    public abstract IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
-        String strategy) throws MetaborgException;
+    IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
+                         String strategy) throws MetaborgException;
 
     /**
      * Invokes a Stratego strategy in components of given language implementation. Returns the first result that
      * succeeds.
-     * 
-     * @param service
-     *            Stratego runtime service to get a runtime from.
+     *
      * @param impl
      *            Language implementation to invoke the strategy in.
      * @param context
@@ -54,7 +50,7 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    public abstract IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input, String strategy)
+    IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input, String strategy)
         throws MetaborgException;
 
     /**
@@ -70,7 +66,7 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    public abstract IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
+    IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
         throws MetaborgException;
 
     /**
@@ -80,7 +76,7 @@ public interface IStrategoCommon {
      *            Location to convert.
      * @return Stratego string with location.
      */
-    public abstract IStrategoString localLocationTerm(File localLocation);
+    IStrategoString localLocationTerm(File localLocation);
 
     /**
      * Converts a resource relative to a location into a Stratego string.
@@ -91,7 +87,7 @@ public interface IStrategoCommon {
      *            Location to convert relative to.
      * @return Stratego string with resource.
      */
-    public abstract IStrategoString localResourceTerm(File localResource, File localLocation);
+    IStrategoString localResourceTerm(File localResource, File localLocation);
 
     /**
      * Creates an input term for a builder.
@@ -106,7 +102,7 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When {@code resource} or {@code location} do not reside on the local file system.
      */
-    public abstract IStrategoTerm builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location)
+    IStrategoTerm builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location)
         throws MetaborgException;
 
     /**
@@ -117,7 +113,7 @@ public interface IStrategoCommon {
      *            Term to convert to a string.
      * @return Result as a string.
      */
-    public abstract String toString(IStrategoTerm term);
+    String toString(IStrategoTerm term);
 
     /**
      * Pretty prints an ATerm.
@@ -126,5 +122,5 @@ public interface IStrategoCommon {
      *            ATerm to pretty print.
      * @return Pretty printed ATerm as a Stratego string.
      */
-    public abstract IStrategoString prettyPrint(IStrategoTerm term);
+    IStrategoString prettyPrint(IStrategoTerm term);
 }

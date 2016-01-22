@@ -11,25 +11,25 @@ public interface ILanguageImpl extends IFacetContributions {
     /**
      * @return Identifier of this implementation.
      */
-    public abstract LanguageIdentifier id();
+    LanguageIdentifier id();
 
     /**
      * @return Maximum sequence identifier of this implementation's components.
      */
-    public abstract int sequenceId();
+    int sequenceId();
 
     /**
      * @return Locations of this implementation's components.
      */
-    public abstract Iterable<FileObject> locations();
+    Iterable<FileObject> locations();
 
     /**
      * @return All components that contribute to this implementation.
      */
-    public abstract Iterable<ILanguageComponent> components();
+    Iterable<ILanguageComponent> components();
 
     /**
      * @return Language this implementation belongs to.
      */
-    public abstract ILanguage belongsTo();
+    ILanguage belongsTo();
 }

@@ -47,12 +47,12 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
         }
 
         final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.result);
-        final ITokenizer tokenzier = rootImploderAttachment.getLeftToken().getTokenizer();
-        final int tokenCount = tokenzier.getTokenCount();
+        final ITokenizer tokenizer = rootImploderAttachment.getLeftToken().getTokenizer();
+        final int tokenCount = tokenizer.getTokenCount();
         int offset = -1;
         for(int i = 0; i < tokenCount; ++i) {
-            final IToken token = tokenzier.getTokenAt(i);
-            if(tokenzier.isAmbigous() && token.getStartOffset() < offset) {
+            final IToken token = tokenizer.getTokenAt(i);
+            if(tokenizer.isAmbigous() && token.getStartOffset() < offset) {
                 // In case of ambiguities, tokens inside the ambiguity are duplicated, ignore.
                 continue;
             }
@@ -70,7 +70,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
             if(category != null) {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromToken(token);
                 final IStrategoTerm term = (IStrategoTerm) token.getAstNode();
-                regionCategories.add(new RegionCategory<IStrategoTerm>(region, category, term));
+                regionCategories.add(new RegionCategory<>(region, category, term));
             }
         }
 

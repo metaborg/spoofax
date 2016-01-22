@@ -49,7 +49,7 @@ public class JSGLRCompletionService implements ICompletionService {
             final IParserConfiguration config = new JSGLRParserConfiguration(true, false, true, 2000);
             completionParseResult = syntaxService.parse(input, parseResult.source, language, config);
         } catch(ParseException e) {
-            final String message = "Cannot get completions, parsinged failed unexpectedly";
+            final String message = "Cannot get completions, parsing failed unexpectedly";
             logger.error(message, e);
             throw e;
         }

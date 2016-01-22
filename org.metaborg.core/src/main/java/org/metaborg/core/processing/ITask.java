@@ -12,12 +12,12 @@ public interface ITask<T> {
     /**
      * Schedule this task and returns itself.
      */
-    public abstract ITask<T> schedule();
+    ITask<T> schedule();
 
     /**
      * Request cancellation.
      */
-    public abstract void cancel();
+    void cancel();
 
     /**
      * Request cancellation, force cancel after after {@code stopTimeout} milliseconds.
@@ -25,22 +25,22 @@ public interface ITask<T> {
      * @param forceTimeout
      *            Timeout in milliseconds after which the cancellation is forced.
      */
-    public abstract void cancel(int forceTimeout);
+    void cancel(int forceTimeout);
 
     /**
      * @return If the task has been completed.
      */
-    public abstract boolean completed();
+    boolean completed();
 
     /**
      * @return If the task has been cancelled.
      */
-    public abstract boolean cancelled();
+    boolean cancelled();
 
     /**
      * @return Result of the task, or null if it has been cancelled, or not completed yet.
      */
-    public abstract @Nullable T result();
+    @Nullable T result();
 
     /**
      * Blocks until the task has been completed or cancelled, and return itself.
@@ -48,5 +48,5 @@ public interface ITask<T> {
      * @throws InterruptedException
      *             When the task has been cancelled while blocking.
      */
-    public abstract ITask<T> block() throws InterruptedException;
+    ITask<T> block() throws InterruptedException;
 }

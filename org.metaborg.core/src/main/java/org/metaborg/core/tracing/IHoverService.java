@@ -23,7 +23,7 @@ public interface IHoverService<P, A> {
      *            Language implementation to check.
      * @return True if hover tooltip information is available, false if not.
      */
-    public abstract boolean available(ILanguageImpl language);
+    boolean available(ILanguageImpl language);
 
     /**
      * Attempts to get hover tooltip information at {@code offset} in the source text, using given parse result for
@@ -38,7 +38,7 @@ public interface IHoverService<P, A> {
      * @throws MetaborgException
      *             When retrieving information fails unexpectedly.
      */
-    public abstract @Nullable Hover hover(int offset, ParseResult<P> result) throws MetaborgException;
+    @Nullable Hover hover(int offset, ParseResult<P> result) throws MetaborgException;
 
     /**
      * Attempts to get hover tooltip information at {@code offset} in the source text, using given analysis result for
@@ -53,5 +53,5 @@ public interface IHoverService<P, A> {
      * @throws MetaborgException
      *             When retrieving information fails unexpectedly.
      */
-    public abstract @Nullable Hover hover(int offset, AnalysisFileResult<P, A> result) throws MetaborgException;
+    @Nullable Hover hover(int offset, AnalysisFileResult<P, A> result) throws MetaborgException;
 }

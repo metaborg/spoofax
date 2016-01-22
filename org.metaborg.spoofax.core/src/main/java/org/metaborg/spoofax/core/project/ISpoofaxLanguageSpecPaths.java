@@ -3,8 +3,6 @@ package org.metaborg.spoofax.core.project;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ILanguageSpecPaths;
 
-import java.io.Serializable;
-
 /**
  * Specifies the filenames, files, and paths used in a Spoofax language specification.
  */

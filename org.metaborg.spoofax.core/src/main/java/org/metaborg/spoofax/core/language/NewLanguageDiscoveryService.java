@@ -198,10 +198,6 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         return components;
     }
 
-//    @Override public Iterable<ILanguageComponent> discover(FileObject location) throws MetaborgException {
-//        return discover(request(location));
-//    }
-
 
     private IStrategoAppl esvTerm(FileObject location, FileObject esvFile) throws ParseError, IOException,
         MetaborgException {
@@ -230,8 +226,6 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         final StrategoRuntimeFacet strategoRuntimeFacet = discoveryRequest.strategoRuntimeFacet();
 
         logger.debug("Creating language component for {}", location);
-
-        assert config != null;
 
         final LanguageIdentifier identifier = config.identifier();
         final Iterable<LanguageContributionIdentifier> languageContributions =
@@ -342,11 +336,9 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
         request.addFacet(languageComponentsFacet);
 
-        // if(config != null) {
         final DependencyFacet dependencyFacet =
             new DependencyFacet(config.compileDependencies(), config.runtimeDependencies());
         request.addFacet(dependencyFacet);
-        // }
 
         return languageService.add(request);
     }

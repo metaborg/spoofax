@@ -12,12 +12,12 @@ public interface IFacetContributions {
     /**
      * @return All facets.
      */
-    public Iterable<IFacet> facets();
+    Iterable<IFacet> facets();
 
     /**
      * @return All facet contributions.
      */
-    public Iterable<FacetContribution<IFacet>> facetContributions();
+    Iterable<FacetContribution<IFacet>> facetContributions();
 
     /**
      * Returns facets of given type.
@@ -26,7 +26,7 @@ public interface IFacetContributions {
      *            Facet type
      * @return Facets of given type.
      */
-    public <T extends IFacet> Iterable<T> facets(Class<T> type);
+    <T extends IFacet> Iterable<T> facets(Class<T> type);
 
     /**
      * Returns facet contributions of given type.
@@ -35,7 +35,7 @@ public interface IFacetContributions {
      *            Facet type
      * @return Facet contributions of given type.
      */
-    public <T extends IFacet> Iterable<FacetContribution<T>> facetContributions(Class<T> type);
+    <T extends IFacet> Iterable<FacetContribution<T>> facetContributions(Class<T> type);
 
     /**
      * Returns a facet of given type.
@@ -46,7 +46,7 @@ public interface IFacetContributions {
      * @throws MetaborgRuntimeException
      *             When there are multiple facets of given type.
      */
-    public @Nullable <T extends IFacet> T facet(Class<T> type);
+    @Nullable <T extends IFacet> T facet(Class<T> type);
 
     /**
      * Returns a facet contribution of given type.
@@ -57,5 +57,5 @@ public interface IFacetContributions {
      * @throws MetaborgRuntimeException
      *             When there are multiple facets of given type.
      */
-    public @Nullable <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type);
+    @Nullable <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type);
 }

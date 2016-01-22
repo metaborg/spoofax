@@ -16,17 +16,13 @@ public class ParseChange<P> {
 
     /**
      * Creates a parse change that represents an update to the parse result.
-     * 
-     * @param resource
-     *            Changed resource.
+     *
      * @param result
      *            Updated parse result.
-     * @param parentResult
-     *            Parent of the updated parse result.
      * @return Parse change.
      */
     public static <P> ParseChange<P> update(ParseResult<P> result) {
-        return new ParseChange<P>(UpdateKind.Update, result.source, result, null);
+        return new ParseChange<>(UpdateKind.Update, result.source, result, null);
     }
 
     /**
@@ -37,20 +33,18 @@ public class ParseChange<P> {
      * @return Parse change.
      */
     public static <P> ParseChange<P> invalidate(FileObject resource) {
-        return new ParseChange<P>(UpdateKind.Invalidate, resource, null, null);
+        return new ParseChange<>(UpdateKind.Invalidate, resource, null, null);
     }
 
     /**
      * Creates a parse change that represents an error that occurred while updating a parse result.
-     * 
-     * @param resource
-     *            Changed resource.
+     *
      * @param exception
      *            Error that occurred.
      * @return Parse change.
      */
     public static <P> ParseChange<P> error(ParseException exception) {
-        return new ParseChange<P>(UpdateKind.Error, exception.resource, null, exception);
+        return new ParseChange<>(UpdateKind.Error, exception.resource, null, exception);
     }
 
     /**
@@ -61,14 +55,14 @@ public class ParseChange<P> {
      * @return Parse change.
      */
     public static <P> ParseChange<P> remove(FileObject resource) {
-        return new ParseChange<P>(UpdateKind.Remove, resource, null, null);
+        return new ParseChange<>(UpdateKind.Remove, resource, null, null);
     }
 
 
     /*
      * Use static methods to create instances.
      */
-    protected ParseChange(UpdateKind kind, FileObject resource, ParseResult<P> result, ParseException exception) {
+    protected ParseChange(UpdateKind kind, FileObject resource, @Nullable ParseResult<P> result, @Nullable ParseException exception) {
         this.kind = kind;
         this.resource = resource;
         this.result = result;

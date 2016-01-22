@@ -6,7 +6,7 @@ public interface IEditorRegistry {
     /**
      * @return All open editors.
      */
-    public abstract Iterable<IEditor> openEditors();
+    Iterable<IEditor> openEditors();
 
     /**
      * Open an editor for given resource.
@@ -14,5 +14,5 @@ public interface IEditorRegistry {
      * @param resource
      *            Resource to open editor for.
      */
-    public abstract void open(FileObject resource);
+    void open(FileObject resource);
 }

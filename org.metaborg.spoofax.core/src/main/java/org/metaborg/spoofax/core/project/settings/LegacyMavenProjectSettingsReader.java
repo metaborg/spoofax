@@ -148,7 +148,7 @@ public class LegacyMavenProjectSettingsReader {
             new LanguageIdentifier(project.getGroupId(), project.getArtifactId(), version);
         final ILegacyProjectSettings settings =
             new LegacyProjectSettings(identifier, project.getName(), compileDeps, runtimeDeps, langContribs);
-        final LegacySpoofaxProjectSettings spoofaxSettings = new LegacySpoofaxProjectSettings(settings, location);
+        final LegacySpoofaxProjectSettings spoofaxSettings = new LegacySpoofaxProjectSettings(settings);
         spoofaxSettings.setPardonedLanguages(pardonedLangs);
         spoofaxSettings.setFormat(format);
         spoofaxSettings.setSdfArgs(sdfArgs);

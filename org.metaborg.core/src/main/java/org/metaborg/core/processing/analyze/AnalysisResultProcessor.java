@@ -35,7 +35,6 @@ import com.google.inject.Inject;
 public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P, A> {
     private static final ILogger logger = LoggerUtils.logger(AnalysisResultProcessor.class);
 
-    // private final IResourceService resourceService;
     private final IAnalysisService<P, A> analysisService;
 
     private final IParseResultRequester<P> parseResultProcessor;
@@ -87,14 +86,14 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
                         break;
                     case Remove: {
                         final String message =
-                            String.format("Analysis result for % was removed unexpectedly", resource);
+                            String.format("Analysis result for %s was removed unexpectedly", resource);
                         logger.error(message);
                         observer.onError(new AnalysisException(context, message));
                         break;
                     }
                     default: {
                         final String message =
-                            String.format("Unexpected analysis update kind % for %", update.kind, resource);
+                            String.format("Unexpected analysis update kind %s for %s", update.kind, resource);
                         logger.error(message);
                         observer.onError(new MetaborgRuntimeException(message));
                         break;
@@ -147,7 +146,7 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
         } else {
             logger.trace("Pushing analysis result for {}", name);
             final BehaviorSubject<AnalysisChange<P, A>> updates = getUpdates(name);
-            updates.onNext(AnalysisChange.<P, A>update(resource, result, parentResult));
+            updates.onNext(AnalysisChange.update(resource, result, parentResult));
         }
     }
 
@@ -170,6 +169,7 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
     @Override public void error(Iterable<ParseResult<P>> parseResults, AnalysisException exception) {
         for(ParseResult<P> parseResult : parseResults) {
             final FileObject resource = parseResult.source;
+            assert resource != null;
             final BehaviorSubject<AnalysisChange<P, A>> updates = getUpdates(resource.getName());
             updates.onNext(AnalysisChange.<P, A>error(resource, exception));
         }
@@ -209,13 +209,13 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
                     parentResult = analysisService.analyze(Iterables2.singleton(parseResult), context);
                 }
                 final AnalysisFileResult<P, A> result = Iterables.get(parentResult.fileResults, 0);
-                updates.onNext(AnalysisChange.<P, A>update(resource, result, parentResult));
+                updates.onNext(AnalysisChange.update(resource, result, parentResult));
             } catch(AnalysisException e) {
-                final String message = String.format("Analysis for % failed", name);
+                final String message = String.format("Analysis for %s failed", name);
                 logger.error(message, e);
                 updates.onNext(AnalysisChange.<P, A>error(resource, e));
             } catch(Exception e) {
-                final String message = String.format("Analysis for % failed", name);
+                final String message = String.format("Analysis for %s failed", name);
                 logger.error(message, e);
                 updates.onNext(AnalysisChange.<P, A>error(resource, new AnalysisException(context, message, e)));
             }

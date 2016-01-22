@@ -124,7 +124,7 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
     @Override
     public ILanguageComponentConfigBuilder withName(String name) {
         this.name = name;
-        return null;
+        return this;
     }
 
     /**

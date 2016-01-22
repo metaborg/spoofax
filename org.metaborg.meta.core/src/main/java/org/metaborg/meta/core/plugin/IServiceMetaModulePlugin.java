@@ -12,5 +12,5 @@ public interface IServiceMetaModulePlugin extends IServiceModulePlugin {
     /**
      * @return All meta modules provided by this plugin.
      */
-    public abstract Iterable<Module> modules();
+    Iterable<Module> modules();
 }

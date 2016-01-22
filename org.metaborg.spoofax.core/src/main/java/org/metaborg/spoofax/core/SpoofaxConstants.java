@@ -2,7 +2,6 @@ package org.metaborg.spoofax.core;
 
 import java.util.Set;
 
-import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 

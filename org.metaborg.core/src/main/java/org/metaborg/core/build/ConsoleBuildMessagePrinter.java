@@ -12,7 +12,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.source.AffectedSourceHelper;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.ISourceTextService;
@@ -72,7 +71,7 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
             sb.append(" in ");
             sb.append(source.getName().getPath());
             if(region != null) {
-                sb.append(":" + region.startRow());
+                sb.append(":").append(region.startRow());
             }
             sb.append('\n');
         }
@@ -151,26 +150,6 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
             ++exceptions;
         }
     }
-
-//    @Override public void print(IProject project, String message, @Nullable Throwable e, boolean pardoned) {
-//        final StringBuilder sb = new StringBuilder();
-//        sb.append("EXCEPTION");
-//        if(pardoned) {
-//            sb.append(" (pardoned)");
-//        }
-//        sb.append(" in project ");
-//        sb.append(project.location().getName().getPath());
-//        sb.append('\n');
-//
-//        print(sb, message, e, MessageSeverity.ERROR, pardoned);
-//
-//        if(pardoned) {
-//            ++exceptionsPardoned;
-//        } else {
-//            ++exceptions;
-//        }
-//    }
-
 
     private void print(StringBuilder sb, String message, @Nullable Throwable e, MessageSeverity severity,
         boolean pardoned) {

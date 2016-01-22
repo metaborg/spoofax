@@ -12,5 +12,5 @@ public interface IModulePluginLoader {
     /**
      * @return All modules provided by plugins.
      */
-    public abstract Iterable<Module> modules() throws MetaborgException;
+    Iterable<Module> modules() throws MetaborgException;
 }

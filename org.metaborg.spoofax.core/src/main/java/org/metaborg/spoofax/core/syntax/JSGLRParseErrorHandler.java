@@ -120,7 +120,7 @@ public class JSGLRParseErrorHandler {
     }
 
     private List<BadTokenException> getCollectedErrorsInRegion(IToken left, IToken right, boolean alsoOutside) {
-        final List<BadTokenException> results = new ArrayList<BadTokenException>();
+        final List<BadTokenException> results = new ArrayList<>();
         final int line = left.getLine();
         final int endLine = right.getLine() + (alsoOutside ? RegionRecovery.NR_OF_LINES_TILL_SUCCESS : 0);
         for(BadTokenException e : parser.getParser().getCollectedErrors()) {

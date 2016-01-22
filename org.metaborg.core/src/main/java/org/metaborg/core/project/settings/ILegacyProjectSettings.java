@@ -9,13 +9,13 @@ import org.metaborg.core.project.configuration.ILanguageComponentConfig;
  */
 @Deprecated
 public interface ILegacyProjectSettings {
-    public abstract LanguageIdentifier identifier();
+    LanguageIdentifier identifier();
 
-    public abstract String name();
+    String name();
 
-    public abstract Iterable<LanguageIdentifier> compileDependencies();
+    Iterable<LanguageIdentifier> compileDependencies();
 
-    public abstract Iterable<LanguageIdentifier> runtimeDependencies();
+    Iterable<LanguageIdentifier> runtimeDependencies();
 
-    public abstract Iterable<LanguageContributionIdentifier> languageContributions();
+    Iterable<LanguageContributionIdentifier> languageContributions();
 }

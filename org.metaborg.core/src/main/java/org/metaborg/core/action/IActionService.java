@@ -14,7 +14,7 @@ public interface IActionService {
      *            Goal to get transform actions for.
      * @return Transform actions.
      */
-    public abstract Iterable<ITransformAction> actions(ILanguageImpl language, ITransformGoal goal);
+    Iterable<ITransformAction> actions(ILanguageImpl language, ITransformGoal goal);
 
     /**
      * Gets transform action contributions for given transform goal.
@@ -25,8 +25,8 @@ public interface IActionService {
      *            Goal to get transform actions for.
      * @return Transform action contributions.
      */
-    public abstract @Nullable Iterable<TransformActionContribution> actionContributions(ILanguageImpl language,
-        ITransformGoal goal);
+    @Nullable Iterable<TransformActionContribution> actionContributions(ILanguageImpl language,
+                                                                        ITransformGoal goal);
 
     /**
      * Checks if transform actions are available for given transform goal.
@@ -37,7 +37,7 @@ public interface IActionService {
      *            Goal to check transform actions for.
      * @return True if transform actions are available, false if not.
      */
-    public abstract boolean available(ILanguageImpl language, ITransformGoal goal);
+    boolean available(ILanguageImpl language, ITransformGoal goal);
 
     /**
      * Checks if analysis is required for given transform goal.
@@ -48,5 +48,5 @@ public interface IActionService {
      *            Goal to check for.
      * @return True if analysis is required, false if not.
      */
-    public abstract boolean requiresAnalysis(ILanguageImpl language, ITransformGoal goal);
+    boolean requiresAnalysis(ILanguageImpl language, ITransformGoal goal);
 }

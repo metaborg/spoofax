@@ -54,7 +54,7 @@ public class ParseResult<P> implements IResult<P> {
 
 
     public ParseResult(String input, @Nullable P result, @Nullable FileObject source, Iterable<IMessage> messages, long duration,
-        ILanguageImpl language, @Nullable ILanguageImpl dialect, Object parserSpecificData) {
+                       ILanguageImpl language, @Nullable ILanguageImpl dialect, @Nullable Object parserSpecificData) {
         this.input = input;
         this.result = result;
         this.source = source;

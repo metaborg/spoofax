@@ -12,30 +12,30 @@ public interface IMessage {
     /**
      * @return Message text
      */
-    public String message();
+    String message();
 
     /**
      * @return Message severity
      */
-    public MessageSeverity severity();
+    MessageSeverity severity();
 
     /**
      * @return Message type
      */
-    public MessageType type();
+    MessageType type();
 
     /**
      * @return Source of the message
      */
-    public FileObject source();
+    FileObject source();
 
     /**
      * @return Affected region inside the source, or null if the entire source is affected.
      */
-    public @Nullable ISourceRegion region();
+    @Nullable ISourceRegion region();
 
     /**
      * @return Exception belonging to this message, or null if there is no exception.
      */
-    public @Nullable Throwable exception();
+    @Nullable Throwable exception();
 }

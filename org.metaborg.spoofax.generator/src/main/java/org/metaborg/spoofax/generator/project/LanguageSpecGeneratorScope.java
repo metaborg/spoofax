@@ -62,7 +62,7 @@ public class LanguageSpecGeneratorScope {
                 : SpoofaxConstants.METABORG_VERSION;
     }
 
-    public void setMetaborgVersion(String metaborgVersion) throws ProjectException {
+    public void setMetaborgVersion(@Nullable String metaborgVersion) throws ProjectException {
         if(metaborgVersion != null && !LanguageVersion.valid(metaborgVersion)) {
             throw new ProjectException("Invalid metaborg version: " + metaborgVersion);
         }

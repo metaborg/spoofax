@@ -4,7 +4,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.IProject;
 
 /**
  * Interface for service that returns source/include paths/files for languages.

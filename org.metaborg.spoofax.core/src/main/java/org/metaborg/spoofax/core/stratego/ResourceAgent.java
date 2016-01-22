@@ -122,7 +122,7 @@ public class ResourceAgent extends IOAgent {
         return tempDir;
     }
 
-    @Override public void setWorkingDir(String newWorkingDir) throws FileNotFoundException, IOException {
+    @Override public void setWorkingDir(String newWorkingDir) throws IOException {
         if(!acceptDirChanges)
             return;
 
@@ -230,7 +230,7 @@ public class ResourceAgent extends IOAgent {
     }
 
 
-    @Override public int openRandomAccessFile(String fn, String mode) throws FileNotFoundException, IOException {
+    @Override public int openRandomAccessFile(String fn, String mode) throws IOException {
         boolean appendMode = mode.indexOf('a') >= 0;
         boolean writeMode = appendMode || mode.indexOf('w') >= 0;
         boolean clearFile = false;
@@ -299,7 +299,7 @@ public class ResourceAgent extends IOAgent {
         try {
             getWriter(CONST_STDERR).write(error + "\n");
         } catch(IOException e) {
-            // Like System.err.println, we swallow excpetions
+            // Like System.err.println, we swallow exceptions
         }
     }
 

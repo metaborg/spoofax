@@ -55,7 +55,7 @@ public class YAMLLegacyProjectSettingsSerializer {
 @Deprecated
 class ProjectSettingsSerializer extends JsonSerializer<ILegacyProjectSettings> {
     @Override public void serialize(ILegacyProjectSettings value, JsonGenerator gen, SerializerProvider serializers)
-        throws IOException, JsonProcessingException {
+        throws IOException {
         gen.writeStartObject();
         gen.writeFieldName("identifier");
         serialize(value.identifier(), gen);
@@ -118,8 +118,7 @@ class ProjectSettingsSerializer extends JsonSerializer<ILegacyProjectSettings> {
 
 @Deprecated
 class ProjectSettingsDeserializer extends JsonDeserializer<ILegacyProjectSettings> {
-    @Override public ILegacyProjectSettings deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException,
-        JsonProcessingException {
+    @Override public ILegacyProjectSettings deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
         final JsonNode root = parser.getCodec().readTree(parser);
 
         final LanguageIdentifier identifier = identifier(root.get("identifier"));

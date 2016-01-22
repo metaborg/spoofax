@@ -3,6 +3,7 @@ package org.metaborg.core.project.settings;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
@@ -27,7 +28,7 @@ public interface ILegacyProjectSettingsService {
      * @deprecated Use {@link ILanguageSpecConfigService#get(ILanguageSpec)}
      */
     @Deprecated
-    public abstract @Nullable
+    @Nullable
     ILegacyProjectSettings get(IProject project);
 
     /**
@@ -36,9 +37,9 @@ public interface ILegacyProjectSettingsService {
      * @param location
      *            Location to get settings for.
      * @return Project settings, or null when no settings could be retrieved.
-     * @deprecated Use {@link ILanguageComponentConfigService#get(ILanguageImpl)}
+     * @deprecated Use {@link ILanguageComponentConfigService#get(ILanguageComponent)}
      */
     @Deprecated
-    public abstract @Nullable
+    @Nullable
     ILegacyProjectSettings get(FileObject location);
 }

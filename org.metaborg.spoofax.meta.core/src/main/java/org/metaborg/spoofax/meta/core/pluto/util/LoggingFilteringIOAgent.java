@@ -25,7 +25,7 @@ public class LoggingFilteringIOAgent extends IOAgent {
 	public LoggingFilteringIOAgent(String... regexs) {
 		outWriter = new LoggingWriter(new PrintStreamWriter(Log.out));
 		errWriter = new LoggingWriter(new PrintStreamWriter(Log.err));
-		excludePatterns = new LinkedList<Pattern>();
+		excludePatterns = new LinkedList<>();
 		for (String regex : regexs)
 			excludePatterns.add(Pattern.compile(regex, Pattern.DOTALL));
 	}

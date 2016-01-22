@@ -73,7 +73,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
-            return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context);
+            return new AnalysisResult<>(context);
         }
         final AnalysisFacet facet = facetContribution.facet;
 
@@ -111,7 +111,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
             final FileObject resource = input.source;
             final File localResource;
             try {
-                if(input.source.exists()) {
+                if(resource.exists()) {
                     localResource = resourceService.localFile(resource);
                 } else {
                     localResource = resourceService.localPath(resource);
@@ -145,7 +145,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                     results.add(result(analysisCommon.analysisFailedMessage(interpreter), parseResult, context, null));
                 } else if(!(resultTerm instanceof IStrategoTuple)) {
                     logger.trace("Analysis for {} has unexpected result, not a tuple", resource);
-                    results.add(result(String.format("Unexpected results from analysis {}", resultTerm), parseResult,
+                    results.add(result(String.format("Unexpected results from analysis %s", resultTerm), parseResult,
                         context, null));
                 } else if(resultTerm.getSubtermCount() == 4) {
                     logger.trace("Analysis for {} done", resource);
@@ -157,7 +157,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                     logger.trace(
                         "Analysis for {} has unexpected result, tuple with more than 4 or less than 2 elements",
                         resource);
-                    results.add(result(String.format("Unexpected results from analysis {}", resultTerm), parseResult,
+                    results.add(result(String.format("Unexpected results from analysis %s", resultTerm), parseResult,
                         context, null));
                 }
             } catch(MetaborgException e) {
@@ -166,7 +166,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
             }
         }
 
-        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context, results);
+        return new AnalysisResult<>(context, results);
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> result(IStrategoTerm result,
@@ -178,7 +178,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(analysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(2)));
         messages.addAll(analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3)));
         messages.addAll(analysisCommon.ambiguityMessages(source, ast));
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, source, context, messages, parseResult);
+        return new AnalysisFileResult<>(ast, source, context, messages, parseResult);
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> resultNoAst(IStrategoTerm result,
@@ -188,7 +188,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(analysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(0)));
         messages.addAll(analysisCommon.messages(source, MessageSeverity.WARNING, result.getSubterm(1)));
         messages.addAll(analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(2)));
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, context, messages, parseResult);
+        return new AnalysisFileResult<>(null, source, context, messages, parseResult);
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> result(String errorString,
@@ -200,7 +200,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         }
         final FileObject source = parseResult.source;
         final IMessage message = MessageFactory.newAnalysisErrorAtTop(source, errorString, e);
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, context,
-            Iterables2.singleton(message), parseResult);
+        return new AnalysisFileResult<>(null, source, context,
+                Iterables2.singleton(message), parseResult);
     }
 }

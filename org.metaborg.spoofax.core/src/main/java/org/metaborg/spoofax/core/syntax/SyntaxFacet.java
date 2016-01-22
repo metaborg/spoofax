@@ -25,8 +25,8 @@ public class SyntaxFacet implements IFacet {
     /**
      * Creates a syntax facet from a parse table provider and start symbols.
      * 
-     * @param parseTableProvider
-     *            Parse table provider.
+     * @param parseTable
+     *            Parse table.
      * @param startSymbols
      *            Set of start symbols.
      */
@@ -38,8 +38,8 @@ public class SyntaxFacet implements IFacet {
     /**
      * Creates a syntax facet from syntax configuration.
      * 
-     * @param parseTableProvider
-     *            Parse table provider.
+     * @param parseTable
+     *            Parse table.
      * @param startSymbols
      *            Set of start symbols.
      * @param singleLineCommentPrefixes

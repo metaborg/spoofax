@@ -43,11 +43,13 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
         assertEquals(resourceService.resolve("res:Entity"), component.location());
 
         final IdentificationFacet identificationFacet = impl.facet(IdentificationFacet.class);
+
         assertTrue(identificationFacet.identify(resourceService.resolve("ram:///Entity/test.ent")));
 
         final SyntaxFacet syntaxFacet = impl.facet(SyntaxFacet.class);
 
         assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTable);
+
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
         final StrategoRuntimeFacet strategoFacet = impl.facet(StrategoRuntimeFacet.class);

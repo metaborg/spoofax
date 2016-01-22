@@ -87,8 +87,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         if(languageSpec != null) {
             try {
                 final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);
-                final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(dependencies);
-                return impls;
+                return LanguageUtils.toImpls(dependencies);
             } catch(MetaborgException e) {
                 return LanguageUtils.allActiveImpls(languageService);
             }

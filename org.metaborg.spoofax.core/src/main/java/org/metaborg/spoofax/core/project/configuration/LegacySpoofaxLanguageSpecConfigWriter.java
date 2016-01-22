@@ -40,7 +40,7 @@ public class LegacySpoofaxLanguageSpecConfigWriter implements ISpoofaxLanguageSp
                     config.compileDependencies(),
                     config.runtimeDependencies(),
                     config.languageContributions()
-            ), location);
+            ));
         }
     }
 }

@@ -5,6 +5,7 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
+@SuppressWarnings("deprecation")
 @Deprecated
 public class DummyLegacyProjectSettingsService implements ILegacyProjectSettingsService {
     private static final ILogger logger = LoggerUtils.logger(DummyLegacyProjectSettingsService.class);
