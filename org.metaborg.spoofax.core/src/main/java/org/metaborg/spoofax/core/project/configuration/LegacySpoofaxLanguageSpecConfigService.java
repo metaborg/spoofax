@@ -35,7 +35,9 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
         @Nullable ISpoofaxLanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(languageSpec);
 
         // If this fails, try get project settings.
+//        // FIXME: Only do this when the new `config == null`!
         if (config == null && languageSpec instanceof IProject) {
+//        if (languageSpec instanceof IProject) {
             @Nullable final LegacySpoofaxProjectSettings settings;
             try {
                 settings = this.settingsService.get((IProject) languageSpec);

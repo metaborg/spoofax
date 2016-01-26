@@ -17,6 +17,7 @@ import org.metaborg.core.project.settings.LegacyProjectSettings;
 import org.metaborg.spoofax.core.project.LegacySpoofaxMavenConstants;
 
 import com.google.common.collect.Lists;
+import org.metaborg.util.cmd.Arguments;
 
 @SuppressWarnings("deprecation")
 @Deprecated
@@ -103,7 +104,7 @@ public class LegacyMavenProjectSettingsReader {
             format = Format.ctree;
         }
 
-        final Collection<String> sdfArgs = Lists.newLinkedList();
+        final Arguments sdfArgs = new Arguments();
         final Xpp3Dom sdfArgsNode = dom.getChild("sdfArgs");
         if(sdfArgsNode != null) {
             for(Xpp3Dom sdfArgNode : sdfArgsNode.getChildren()) {
@@ -119,7 +120,7 @@ public class LegacyMavenProjectSettingsReader {
             externalDef = null;
         }
 
-        final Collection<String> strategoArgs = Lists.newLinkedList();
+        final Arguments strategoArgs = new Arguments();
         final Xpp3Dom strategoArgsNode = dom.getChild("strategoArgs");
         if(strategoArgsNode != null) {
             for(Xpp3Dom strategoArgNode : strategoArgsNode.getChildren()) {

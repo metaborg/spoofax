@@ -1,11 +1,14 @@
 package org.metaborg.spoofax.core.project.configuration;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -14,6 +17,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.configuration.ConfigurationBasedLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.util.cmd.Arguments;
 
 /**
  * An implementation of the {@link ISpoofaxLanguageSpecConfig} interface
@@ -58,8 +62,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
             final String externalDef,
             final String externalJar,
             final String externalJarFlags,
-            final Iterable<String> sdfArgs,
-            final Iterable<String> strategoArgs
+            final Arguments sdfArgs,
+            final Arguments strategoArgs
     ) {
         super(configuration, identifier, name, compileDependencies, runtimeDependencies, languageContributions);
         configuration.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
@@ -103,9 +107,15 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
     /**
      * {@inheritDoc}
      */
-    public Iterable<String> sdfArgs() {
-        @Nullable final List<String> value = this.config.getList(String.class, PROP_SDF_ARGS);
-        return value != null ? value : Collections.<String>emptyList();
+    public Arguments sdfArgs() {
+        @Nullable final List<String> values = this.config.getList(String.class, PROP_SDF_ARGS);
+        final Arguments arguments = new Arguments();
+        if (values != null) {
+            for (String value : values) {
+                arguments.add(value);
+            }
+        }
+        return arguments;
     }
 
     /**
@@ -119,9 +129,15 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
     /**
      * {@inheritDoc}
      */
-    public Iterable<String> strategoArgs() {
-        @Nullable final List<String> value = this.config.getList(String.class, PROP_STRATEGO_ARGS);
-        return value != null ? value : Collections.<String>emptyList();
+    public Arguments strategoArgs() {
+        @Nullable final List<String> values = this.config.getList(String.class, PROP_STRATEGO_ARGS);
+        final Arguments arguments = new Arguments();
+        if (values != null) {
+            for (String value : values) {
+                arguments.add(value);
+            }
+        }
+        return arguments;
     }
 
     /**
@@ -172,4 +188,5 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
      */
     @Override
     public String esvName() { return name(); }
+
 }

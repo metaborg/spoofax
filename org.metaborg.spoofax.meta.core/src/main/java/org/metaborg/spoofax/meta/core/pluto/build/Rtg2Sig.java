@@ -76,7 +76,7 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
             // @formatter:off
             final Arguments arguments = new Arguments()
                 .addFile("-i", inputPath)
-                .addAll("--module", input.sdfModule())
+                .add("--module", input.sdfModule())
                 .addFile("-o", input.outputPath)
                 ;
             

@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.util.cmd.Arguments;
 
 import java.util.Collection;
 
@@ -48,14 +49,14 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      *
      * @return An iterable of SDF arguments.
      */
-    Iterable<String> sdfArgs();
+    Arguments sdfArgs();
 
     /**
      * Gets the Stratego arguments.
      *
      * @return The Stratego arguments.
      */
-    Iterable<String> strategoArgs();
+    Arguments strategoArgs();
 
     /**
      * Gets the external def.

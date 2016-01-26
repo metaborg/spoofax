@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import org.metaborg.core.project.configuration.LegacyLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettings;
+import org.metaborg.util.cmd.Arguments;
 
 import java.util.Collection;
 
@@ -40,12 +41,12 @@ public class LegacySpoofaxLanguageSpecConfig extends LegacyLanguageSpecConfig im
     public String metaSdfName() { return this.settings.metaSdfName(); }
 
     @Override
-    public Iterable<String> sdfArgs() {
+    public Arguments sdfArgs() {
         return this.settings.sdfArgs();
     }
 
     @Override
-    public Iterable<String> strategoArgs() {
+    public Arguments strategoArgs() {
         return this.settings.strategoArgs();
     }
 

@@ -90,13 +90,13 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
         // TODO: set nativepath to the native bundle, so that sdf2table can be found?
         final Arguments arguments = new Arguments()
             .addFile("-i", input.inputPath)
-            .addAll("-m", input.sdfModule)
-            .addAll("--lang", input.sdfModule)
-            .addAll("--omod", input.outputModule)
+            .add("-m", input.sdfModule)
+            .add("--lang", input.sdfModule)
+            .add("--omod", input.outputModule)
             .addFile("-o", input.outputPath)
-            .addAll("--main-strategy", "io-" + input.sdfModule + "-parenthesize")
-            .addAll("--rule-prefix", input.sdfModule)
-            .addAll( "--sig-module", SpoofaxConstants.DIR_INCLUDE + "/" + input.sdfModule)
+            .add("--main-strategy", "io-" + input.sdfModule + "-parenthesize")
+            .add("--rule-prefix", input.sdfModule)
+            .add( "--sig-module", SpoofaxConstants.DIR_INCLUDE + "/" + input.sdfModule)
             ;
         
         final ExecutionResult result = new StrategoExecutor()

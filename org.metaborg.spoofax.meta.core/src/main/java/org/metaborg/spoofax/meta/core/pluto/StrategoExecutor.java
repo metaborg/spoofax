@@ -12,6 +12,11 @@ import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.stratego_sdf.stratego_sdf;
 
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.Iterator;
+import java.util.List;
+
 public class StrategoExecutor {
     public static class ExecutionResult {
         public final boolean success;
@@ -47,7 +52,6 @@ public class StrategoExecutor {
     private ResourceAgentTracker tracker;
     private String name;
     private boolean silent;
-
 
     public StrategoExecutor withContext(Context context) {
         this.context = context;
@@ -128,11 +132,11 @@ public class StrategoExecutor {
 
         try {
             if(!silent) {
-                log.info("Execute {}", name);
+                log.info("Execute {} {}", name, arguments);
             }
             context.setIOAgent(tracker.agent());
             dr_scope_all_start_0_0.instance.invoke(context, context.getFactory().makeTuple());
-            context.invokeStrategyCLI(strategy, name, arguments.toArray());
+            context.invokeStrategyCLI(strategy, name, getArgumentStrings(arguments));
             return new ExecutionResult(true, tracker.stdout(), tracker.stderr());
         } catch(StrategoExit e) {
             if(e.getValue() == 0) {
@@ -159,4 +163,10 @@ public class StrategoExecutor {
             name = strategy.getName();
         }
     }
+
+    private String[] getArgumentStrings(Arguments arguments) {
+        List<String> strings = arguments.asStrings(null);
+        return strings.toArray(new String[strings.size()]);
+    }
+
 }

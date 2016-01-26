@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.ProjectException;
 import org.metaborg.core.project.settings.ILegacyProjectSettings;
 import org.metaborg.core.project.settings.ILegacyProjectSettingsService;
 
@@ -56,7 +57,8 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
 
         // If this fails, try get project settings.
         if (config == null && languageSpec instanceof IProject) {
-            @Nullable final ILegacyProjectSettings settings = this.settingsService.get((IProject)languageSpec);
+            @Nullable final ILegacyProjectSettings settings;
+            settings = this.settingsService.get((IProject) languageSpec);
             if (settings != null) {
                 // Convert the settings to a configuration
                 config = new LegacyLanguageSpecConfig(settings);

@@ -17,6 +17,7 @@ import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
+import org.metaborg.util.cmd.Arguments;
 
 /**
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
@@ -28,8 +29,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
     @Nullable protected String externalDef = null;
     @Nullable protected String externalJar = null;
     @Nullable protected String externalJarFlags = null;
-    protected final List<String> sdfArgs = new ArrayList<>();
-    protected final List<String> strategoArgs = new ArrayList<>();
+    protected final Arguments sdfArgs = new Arguments();
+    protected final Arguments strategoArgs = new Arguments();
 
     /**
      * Initializes a new instance of the {@link ConfigurationBasedSpoofaxLanguageSpecConfigBuilder} class.
@@ -241,8 +242,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
      * {@inheritDoc}
      */
     @Override
-    public ISpoofaxLanguageSpecConfigBuilder withSdfArgs(Iterable<String> args) {
-        this.sdfArgs.addAll(Lists.newArrayList(args));
+    public ISpoofaxLanguageSpecConfigBuilder withSdfArgs(Arguments args) {
+        this.sdfArgs.addAll(new Arguments(args));
         return this;
     }
 
@@ -250,8 +251,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
      * {@inheritDoc}
      */
     @Override
-    public ISpoofaxLanguageSpecConfigBuilder withStrategoArgs(Iterable<String> args) {
-        this.strategoArgs.addAll(Lists.newArrayList(args));
+    public ISpoofaxLanguageSpecConfigBuilder withStrategoArgs(Arguments args) {
+        this.strategoArgs.addAll(new Arguments(args));
         return this;
     }
 }

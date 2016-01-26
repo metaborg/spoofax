@@ -111,7 +111,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         }
         for(String lib : input.libraryIncludes) {
             if(lib != null && !lib.isEmpty()) {
-                arguments.addAll("-la", lib);
+                arguments.add("-la", lib);
             }
         }
         if(input.cacheDir != null) {

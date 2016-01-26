@@ -3,7 +3,9 @@ package org.metaborg.core.project.configuration;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.interpol.Lookup;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.vfs2.FileObject;
 
 import javax.annotation.Nullable;
@@ -98,6 +100,26 @@ public abstract class ConfigurationReaderWriter {
      * @param sourceConfiguration The source configuration; or <code>null</code>.
      * @return The created configuration object.
      */
-    public abstract JacksonConfiguration createConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration);
+    public JacksonConfiguration createConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration) {
+        JacksonConfiguration config = createNewConfiguration(sourceConfiguration);
+        config.getInterpolator().registerLookup("path", new Lookup() {
+            @Override
+            public Object lookup(String s) {
+                switch (s) {
+                    // TODO: Set the actual absolute root path here of the project/config file.
+                    case "root" : return "THE_ROOIT_DIR!";
+                    default: return null;
+                }
+            }
+        });
+        return config;
+    }
 
+    /**
+     * Creates a configuration object.
+     *
+     * @param sourceConfiguration The source configuration; or <code>null</code>.
+     * @return The created configuration object.
+     */
+    protected abstract JacksonConfiguration createNewConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration);
 }

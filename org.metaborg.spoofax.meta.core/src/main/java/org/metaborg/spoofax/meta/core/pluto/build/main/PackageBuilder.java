@@ -34,7 +34,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         public final File strategoMainFile;
         public final File strategoJavaStrategiesMainFile;
         public final File baseDir;
-        public final Iterable<String> sdfArgs;
+        public final Arguments sdfArgs;
         public final Format format;
         public final Collection<File> javaJarPaths;
         public final File javaJarOutput;
@@ -58,7 +58,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         public final File sdf2tableOutputPath;
 
         public Input(SpoofaxContext context, File strategoMainFile, File strategoJavaStrategiesMainFile,
-            Iterable<String> sdfArgs, File baseDir, Format format, Collection<File> javaJarPaths, File javaJarOutput,
+                     Arguments sdfArgs, File baseDir, Format format, Collection<File> javaJarPaths, File javaJarOutput,
             String sdfName, File jarTarget, File jarOutput, File targetPpAfFile, File targetGenPpAfFile,
             File targetTblFile, File ppPackInputPath, File ppPackOutputPath, File ppGenInputPath, File ppGenOutputPath,
             File afGenOutputPath, File makePermissiveOutputPath, File sdf2tableOutputPath, @Nullable File externalDef,

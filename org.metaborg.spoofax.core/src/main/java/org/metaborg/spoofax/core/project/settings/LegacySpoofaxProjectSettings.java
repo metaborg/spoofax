@@ -9,6 +9,7 @@ import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.settings.ILegacyProjectSettings;
 
 import com.google.common.collect.Lists;
+import org.metaborg.util.cmd.Arguments;
 
 @SuppressWarnings("deprecation")
 @Deprecated
@@ -19,9 +20,9 @@ public class LegacySpoofaxProjectSettings implements Serializable {
 
     private Collection<String> pardonedLanguages = Lists.newLinkedList();
     private Format format = Format.ctree;
-    private Collection<String> sdfArgs = Lists.newLinkedList();
+    private Arguments sdfArgs = new Arguments();
     private @Nullable String externalDef;
-    private Collection<String> strategoArgs = Lists.newLinkedList();
+    private Arguments strategoArgs = new Arguments();
     private @Nullable String externalJar;
     private @Nullable String externalJarFlags;
 
@@ -52,11 +53,11 @@ public class LegacySpoofaxProjectSettings implements Serializable {
     }
 
 
-    public Iterable<String> sdfArgs() {
+    public Arguments sdfArgs() {
         return sdfArgs;
     }
 
-    public void setSdfArgs(Collection<String> sdfArgs) {
+    public void setSdfArgs(Arguments sdfArgs) {
         this.sdfArgs = sdfArgs;
     }
 
@@ -69,11 +70,11 @@ public class LegacySpoofaxProjectSettings implements Serializable {
     }
 
 
-    public Iterable<String> strategoArgs() {
+    public Arguments strategoArgs() {
         return strategoArgs;
     }
 
-    public void setStrategoArgs(Collection<String> strategoArgs) {
+    public void setStrategoArgs(Arguments strategoArgs) {
         this.strategoArgs = strategoArgs;
     }
 

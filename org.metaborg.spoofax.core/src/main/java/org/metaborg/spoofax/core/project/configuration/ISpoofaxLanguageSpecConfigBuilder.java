@@ -4,6 +4,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.util.cmd.Arguments;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
@@ -159,7 +160,7 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @param args An iterable of SDF arguments.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withSdfArgs(Iterable<String> args);
+    ISpoofaxLanguageSpecConfigBuilder withSdfArgs(Arguments args);
 
     /**
      * Sets the Stratego arguments.
@@ -167,7 +168,7 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @param args The Stratego arguments.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withStrategoArgs(Iterable<String> args);
+    ISpoofaxLanguageSpecConfigBuilder withStrategoArgs(Arguments args);
 
 
 
