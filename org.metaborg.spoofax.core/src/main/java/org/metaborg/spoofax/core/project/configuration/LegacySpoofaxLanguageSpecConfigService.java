@@ -40,7 +40,7 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
             try {
                 settings = this.settingsService.get((IProject) languageSpec);
             } catch (ProjectException e) {
-                throw new RuntimeException(e);
+                throw new IOException(e);
             }
             if (settings != null) {
                 // Convert the settings to a configuration
