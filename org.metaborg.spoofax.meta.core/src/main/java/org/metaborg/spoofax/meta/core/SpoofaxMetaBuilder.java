@@ -88,7 +88,11 @@ public class SpoofaxMetaBuilder {
         final LanguageSpecGenerator generator = new LanguageSpecGenerator(new LanguageSpecGeneratorScope(input.config, input.paths), access);
         generator.generateAll();
 
-        this.languageSpecConfigWriter.write(input.languageSpec, input.config, access);
+        // FIXME: This is temporary, until we've moved to the new config system completely.
+        // As there's then no need to write the config file.
+        if (!this.languageSpecConfigWriter.getConfigFile(input.languageSpec).exists()) {
+            this.languageSpecConfigWriter.write(input.languageSpec, input.config, access);
+        }
 
         // FIXME: This is temporary, until we've moved to the new config system completely.
         this.oldLanguageSpecConfigWriter.write(input.languageSpec, input.config, access);
