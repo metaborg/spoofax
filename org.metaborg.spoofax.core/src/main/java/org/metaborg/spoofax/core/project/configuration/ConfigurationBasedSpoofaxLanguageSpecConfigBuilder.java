@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.configuration.ConfigurationBasedLanguageSpecConfigBuilder;
@@ -46,11 +47,11 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
      * {@inheritDoc}
      */
     @Override
-    public ISpoofaxLanguageSpecConfig build() throws IllegalStateException {
+    public ISpoofaxLanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
         if (!isValid())
             throw new IllegalStateException(validateOrError());
 
-        JacksonConfiguration configuration = createConfiguration();
+        JacksonConfiguration configuration = createConfiguration(rootFolder);
 
         return new ConfigurationBasedSpoofaxLanguageSpecConfig(
                 configuration,

@@ -1,6 +1,7 @@
 package org.metaborg.core.project.configuration;
 
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
+import javafx.scene.shape.Path;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.interpol.Lookup;
@@ -28,30 +29,52 @@ public abstract class ConfigurationReaderWriter {
      */
     public HierarchicalConfiguration<ImmutableNode> read(FileObject source) throws IOException, ConfigurationException {
         try (InputStream input = source.getContent().getInputStream()) {
-            return read(input);
+            return read(input, source.getParent());
         }
     }
+
+//    /**
+//     * Reads a configuration from the specified input stream.
+//     *
+//     * @param input The input stream.
+//     * @return The read configuration.
+//     */
+//    public HierarchicalConfiguration<ImmutableNode> read(InputStream input) throws IOException, ConfigurationException {
+//        return read(input, null);
+//    }
 
     /**
      * Reads a configuration from the specified input stream.
      *
      * @param input The input stream.
+     * @param rootFolder The root folder; or <code>null</code>.
      * @return The read configuration.
      */
-    public HierarchicalConfiguration<ImmutableNode> read(InputStream input) throws IOException, ConfigurationException {
+    public HierarchicalConfiguration<ImmutableNode> read(InputStream input, @Nullable FileObject rootFolder) throws IOException, ConfigurationException {
         try (Reader reader = new BufferedReader(new InputStreamReader(input, DefaultCharset))) {
-            return read(reader);
+            return read(reader, rootFolder);
         }
     }
+
+//    /**
+//     * Reads a configuration from the specified reader.
+//     *
+//     * @param reader The reader.
+//     * @return The read configuration.
+//     */
+//    public HierarchicalConfiguration<ImmutableNode> read(Reader reader) throws IOException, ConfigurationException {
+//        return read(reader, null);
+//    }
 
     /**
      * Reads a configuration from the specified reader.
      *
      * @param reader The reader.
+     * @param rootFolder The root folder; or <code>null</code>.
      * @return The read configuration.
      */
-    public HierarchicalConfiguration<ImmutableNode> read(Reader reader) throws IOException, ConfigurationException {
-        JacksonConfiguration resultConfig = createConfiguration(null);
+    public HierarchicalConfiguration<ImmutableNode> read(Reader reader, @Nullable FileObject rootFolder) throws IOException, ConfigurationException {
+        JacksonConfiguration resultConfig = createConfiguration(null, rootFolder);
         resultConfig.read(reader);
         return resultConfig;
     }
@@ -65,32 +88,56 @@ public abstract class ConfigurationReaderWriter {
     public void write(HierarchicalConfiguration<ImmutableNode> configuration, FileObject destination) throws IOException,
             ConfigurationException {
         try (OutputStream output = destination.getContent().getOutputStream()) {
-            write(configuration, output);
+            write(configuration, output, destination.getParent());
         }
     }
+
+//    /**
+//     * Writes a configuration to the specified writer.
+//     *
+//     * @param configuration The configuration to write.
+//     * @param output The output stream.
+//     */
+//    public void write(HierarchicalConfiguration<ImmutableNode> configuration, OutputStream output) throws IOException,
+//            ConfigurationException {
+//        write(configuration, output, null);
+//    }
 
     /**
      * Writes a configuration to the specified writer.
      *
      * @param configuration The configuration to write.
      * @param output The output stream.
+     * @param rootFolder The root folder; or <code>null</code>.
      */
-    public void write(HierarchicalConfiguration<ImmutableNode> configuration, OutputStream output) throws IOException,
+    public void write(HierarchicalConfiguration<ImmutableNode> configuration, OutputStream output, @Nullable FileObject rootFolder) throws IOException,
             ConfigurationException {
         try (Writer writer = new OutputStreamWriter(output, DefaultCharset)) {
-            write(configuration, writer);
+            write(configuration, writer, rootFolder);
         }
     }
+
+//    /**
+//     * Writes a configuration to the specified writer.
+//     *
+//     * @param configuration The configuration to write.
+//     * @param writer The writer.
+//     */
+//    public void write(HierarchicalConfiguration<ImmutableNode> configuration, Writer writer) throws IOException,
+//            ConfigurationException {
+//        write(configuration, writer, null);
+//    }
 
     /**
      * Writes a configuration to the specified writer.
      *
      * @param configuration The configuration to write.
      * @param writer The writer.
+     * @param rootFolder The root folder; or <code>null</code>.
      */
-    public void write(HierarchicalConfiguration<ImmutableNode> configuration, Writer writer) throws IOException,
+    public void write(HierarchicalConfiguration<ImmutableNode> configuration, Writer writer, @Nullable FileObject rootFolder) throws IOException,
             ConfigurationException {
-        JacksonConfiguration resultConfig = createConfiguration(configuration);
+        JacksonConfiguration resultConfig = createConfiguration(configuration, rootFolder);
         resultConfig.write(writer);
     }
 
@@ -98,20 +145,14 @@ public abstract class ConfigurationReaderWriter {
      * Creates a configuration object.
      *
      * @param sourceConfiguration The source configuration; or <code>null</code>.
+     * @param rootFolder The root folder; or <code>null</code>.
      * @return The created configuration object.
      */
-    public JacksonConfiguration createConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration) {
+    public JacksonConfiguration createConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration, @Nullable FileObject rootFolder) {
         JacksonConfiguration config = createNewConfiguration(sourceConfiguration);
-        config.getInterpolator().registerLookup("path", new Lookup() {
-            @Override
-            public Object lookup(String s) {
-                switch (s) {
-                    // TODO: Set the actual absolute root path here of the project/config file.
-                    case "root" : return "THE_ROOIT_DIR!";
-                    default: return null;
-                }
-            }
-        });
+        if (rootFolder != null) {
+            config.getInterpolator().registerLookup("path", new PathLookup(rootFolder));
+        }
         return config;
     }
 

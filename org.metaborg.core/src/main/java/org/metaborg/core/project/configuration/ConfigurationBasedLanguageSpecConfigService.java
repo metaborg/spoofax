@@ -55,7 +55,7 @@ public class ConfigurationBasedLanguageSpecConfigService extends ConfigurationBa
         if (!(config instanceof IConfigurationBasedConfig)) {
             this.configBuilder.reset();
             this.configBuilder.copyFrom(config);
-            config = this.configBuilder.build();
+            config = this.configBuilder.build(null);
         }
         return ((IConfigurationBasedConfig)config).getConfiguration();
     }

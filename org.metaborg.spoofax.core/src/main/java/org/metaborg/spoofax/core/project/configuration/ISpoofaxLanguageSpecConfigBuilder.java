@@ -1,10 +1,13 @@
 package org.metaborg.spoofax.core.project.configuration;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.util.cmd.Arguments;
+
+import javax.annotation.Nullable;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
@@ -14,11 +17,12 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Builds the object.
      *
+     * @param rootFolder The root folder.
      * @return The built object.
      * @throws IllegalStateException The builder state is not valid,
      * i.e. {@link #isValid()} returned <code>false</code>.
      */
-    ISpoofaxLanguageSpecConfig build() throws IllegalStateException;
+    ISpoofaxLanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
      * Determines whether the builder's state is valid.

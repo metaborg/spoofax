@@ -1,6 +1,9 @@
 package org.metaborg.core.project.configuration;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageIdentifier;
+
+import javax.annotation.Nullable;
 
 /**
  * Builder for {@link ILanguageComponentConfig} objects.
@@ -10,11 +13,12 @@ public interface ILanguageComponentConfigBuilder {
     /**
      * Builds the object.
      *
+     * @param rootFolder The root folder.
      * @return The built object.
      * @throws IllegalStateException The builder state is not valid,
      * i.e. {@link #isValid()} returned <code>false</code>.
      */
-    ILanguageComponentConfig build() throws IllegalStateException;
+    ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
      * Determines whether the builder's state is valid.

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.common.collect.Lists;
@@ -37,11 +38,11 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
      * {@inheritDoc}
      */
     @Override
-    public ILanguageComponentConfig build() throws IllegalStateException {
+    public ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
         if (!isValid())
             throw new IllegalStateException(validateOrError());
 
-        JacksonConfiguration configuration = createConfiguration();
+        JacksonConfiguration configuration = createConfiguration(rootFolder);
 
         return new ConfigurationBasedLanguageComponentConfig(
                 configuration,
@@ -54,10 +55,11 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
     /**
      * Builds the configuration.
      *
+     * @param rootFolder The root folder.
      * @return The built configuration.
      */
-    protected JacksonConfiguration createConfiguration() {
-        return this.configurationReaderWriter.createConfiguration(null);
+    protected JacksonConfiguration createConfiguration(@Nullable FileObject rootFolder) {
+        return this.configurationReaderWriter.createConfiguration(null, rootFolder);
     }
 
     /**
