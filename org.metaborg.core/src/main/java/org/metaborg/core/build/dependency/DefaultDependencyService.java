@@ -19,9 +19,9 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 /**
- * Default implementation of the {@link INewDependencyService} interface.
+ * Default implementation of the {@link IDependencyService} interface.
  */
-public final class DefaultDependencyService implements INewDependencyService {
+public final class DefaultDependencyService implements IDependencyService {
 
     private static final ILogger logger = LoggerUtils.logger(DefaultDependencyService.class);
 

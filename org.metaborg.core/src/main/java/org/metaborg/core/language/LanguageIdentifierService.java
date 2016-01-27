@@ -9,7 +9,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.build.dependency.INewDependencyService;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.metaborg.core.project.ILanguageSpec;
@@ -30,11 +30,11 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     private final IDialectIdentifier dialectIdentifier;
     private final IProjectService projectService;
     private final ILanguageSpecService languageSpecService;
-    private final INewDependencyService dependencyService;
+    private final IDependencyService dependencyService;
 
 
     @Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier,
-        IProjectService projectService, ILanguageSpecService languageSpecService, INewDependencyService dependencyService) {
+        IProjectService projectService, ILanguageSpecService languageSpecService, IDependencyService dependencyService) {
         this.languageService = languageService;
         this.dialectIdentifier = dialectIdentifier;
         this.projectService = projectService;

@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.build.paths.INewLanguagePathService;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
@@ -28,12 +28,12 @@ import com.google.inject.Inject;
 public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
     private final IResourceService resourceService;
     private final ILanguageService languageService;
-    private final INewLanguagePathService languagePathService;
+    private final ILanguagePathService languagePathService;
     private final IProjectService projectService;
     private final ILanguageSpecService languageSpecService;
 
     @Inject public LanguageSourceFilesPrimitive(IResourceService resourceService, ILanguageService languageService,
-                                                INewLanguagePathService languagePathService, IProjectService projectService, ILanguageSpecService languageSpecService) {
+                                                ILanguagePathService languagePathService, IProjectService projectService, ILanguageSpecService languageSpecService) {
         super("SSL_EXT_language_source_files", 0, 1);
         this.resourceService = resourceService;
         this.languageService = languageService;

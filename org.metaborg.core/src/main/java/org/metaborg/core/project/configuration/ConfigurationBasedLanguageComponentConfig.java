@@ -67,6 +67,9 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
 
     /**
      * {@inheritDoc}
+     *
+     * The identifier is stored at the <code>id</code> element.
+     * An identifier has the syntax <code>groupid:artifactid:version</code>.
      */
     @Override public LanguageIdentifier identifier() {
         @Nullable final LanguageIdentifier value = this.config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
@@ -75,6 +78,8 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
 
     /**
      * {@inheritDoc}
+     *
+     * The name is stored at the <code>name</code> element.
      */
     @Override public String name() {
         @Nullable final String value = this.config.getString(PROP_NAME);
@@ -83,6 +88,9 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
 
     /**
      * {@inheritDoc}
+     *
+     * The compile dependencies are stored as a list at the <code>compileDependencies</code> element.
+     * Each compile dependency is an identifier with the syntax <code>groupid:artifactid:version</code>.
      */
     @Override
     public Collection<LanguageIdentifier> compileDependencies() {
@@ -92,6 +100,9 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
 
     /**
      * {@inheritDoc}
+     *
+     * The runtime dependencies are stored as a list at the <code>runtimeDependencies</code> element.
+     * Each runtime dependency is an identifier with the syntax <code>groupid:artifactid:version</code>.
      */
     @Override public Collection<LanguageIdentifier> runtimeDependencies() {
         @Nullable final List<LanguageIdentifier> value = this.config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);

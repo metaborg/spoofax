@@ -13,6 +13,7 @@ import java.io.IOException;
 /**
  * This class is only used for the configuration system migration.
  */
+@Deprecated
 @SuppressWarnings("deprecation")
 public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageSpecConfigService {
 

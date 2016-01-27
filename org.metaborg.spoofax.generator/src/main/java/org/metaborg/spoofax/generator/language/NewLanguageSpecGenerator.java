@@ -5,14 +5,14 @@ import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.generator.NewBaseGenerator;
+import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 
 /**
  * Generates language project files that are only generated once when a new language project is created. Files are not
  * specific to an IDE.
  */
-public class NewLanguageSpecGenerator extends NewBaseGenerator {
+public class NewLanguageSpecGenerator extends BaseGenerator {
     private final String[] fileExtensions;
     private final AnalysisType analysisType;
 

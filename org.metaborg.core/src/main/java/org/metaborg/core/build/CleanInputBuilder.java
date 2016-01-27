@@ -6,12 +6,11 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.build.dependency.INewDependencyService;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.IProject;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -110,9 +109,9 @@ public class CleanInputBuilder {
      * Builds a clean input object from the current state.
      * 
      * @throws MetaborgException
-     *             When {@link INewDependencyService#compileDependencies(ILanguageSpec)} throws.
+     *             When {@link IDependencyService#compileDependencies(ILanguageSpec)} throws.
      */
-    public CleanInput build(INewDependencyService dependencyService) throws MetaborgException {
+    public CleanInput build(IDependencyService dependencyService) throws MetaborgException {
         if(addDependencyLanguages) {
             final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDependencies(languageSpec);
             final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);

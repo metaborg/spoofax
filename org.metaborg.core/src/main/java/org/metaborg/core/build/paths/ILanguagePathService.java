@@ -8,7 +8,7 @@ import org.metaborg.core.project.ILanguageSpec;
 /**
  * Interface for service that returns source/include paths/files for languages.
  */
-public interface INewLanguagePathService {
+public interface ILanguagePathService {
     /**
      * Gets source paths in given language specification, for given language.
      * 

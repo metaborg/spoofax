@@ -77,6 +77,9 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The pardoned languages are stored as a list at the <code>pardonedLanguages</code> element.
+     * Each pardoned language is the language name.
      */
     @Override
     public Collection<String> pardonedLanguages() {
@@ -86,6 +89,9 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The format is stored at the <code>format</code> element.
+     * The format is either <code>jar</code> or <code>ctree</code>.
      */
     public Format format() {
         @Nullable String value = this.config.getString(PROP_FORMAT);
@@ -94,18 +100,25 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The SDF name is not stored in the configuration.
      */
     @Override
     public String sdfName() { return name(); }
 
     /**
      * {@inheritDoc}
+     *
+     * The meta-SDF name is not stored in the configuration.
      */
     @Override
     public String metaSdfName() { return sdfName() + "-Stratego"; }
 
     /**
      * {@inheritDoc}
+     *
+     * The SDF arguments are stored as a list at the <code>language.sdf.args</code> element.
+     * Each argument is a string.
      */
     public Arguments sdfArgs() {
         @Nullable final List<String> values = this.config.getList(String.class, PROP_SDF_ARGS);
@@ -120,6 +133,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The external definition is stored at the <code>externalDef</code> element.
      */
     @Nullable
     public String externalDef() {
@@ -128,6 +143,9 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The Stratego arguments are stored as a list at the <code>language.stratego.args</code> element.
+     * Each argument is a string.
      */
     public Arguments strategoArgs() {
         @Nullable final List<String> values = this.config.getList(String.class, PROP_STRATEGO_ARGS);
@@ -142,6 +160,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The external JAR name is stored at the <code>externalJar.name</code> element.
      */
     @Nullable
     public String externalJar() {
@@ -150,6 +170,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The external JAR flags are stored at the <code>externalJar.flags</code> element.
      */
     @Nullable
     public String externalJarFlags() {
@@ -158,6 +180,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The Stratego name is not stored in the configuration.
      */
     public String strategoName() {
         return NameUtil.toJavaId(this.name().toLowerCase());
@@ -165,6 +189,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The Java name is not stored in the configuration.
      */
     public String javaName() {
         return NameUtil.toJavaId(this.name());
@@ -172,6 +198,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The package name is not stored in the configuration.
      */
     public String packageName() {
         return NameUtil.toJavaId(this.identifier().id);
@@ -179,12 +207,16 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
 
     /**
      * {@inheritDoc}
+     *
+     * The Strategies package name is not stored in the configuration.
      */
     @Override
     public String strategiesPackageName() { return packageName() + ".strategies"; }
 
     /**
      * {@inheritDoc}
+     *
+     * The ESV name is not stored in the configuration.
      */
     @Override
     public String esvName() { return name(); }

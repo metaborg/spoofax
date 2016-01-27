@@ -10,7 +10,7 @@ import org.metaborg.core.project.configuration.ILanguageComponentConfig;
 /**
  * Request for language discovery.
  */
-public interface INewLanguageDiscoveryRequest {
+public interface ILanguageDiscoveryRequest {
 
     /**
      * Gets whether the language component is available.

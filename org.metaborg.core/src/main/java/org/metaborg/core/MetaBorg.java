@@ -3,7 +3,7 @@ package org.metaborg.core;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.build.paths.INewLanguagePathService;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.language.*;
@@ -31,9 +31,9 @@ public class MetaBorg {
     public final IResourceService resourceService;
 
     public final ILanguageService languageService;
-    public final INewLanguageDiscoveryService languageDiscoveryService;
+    public final ILanguageDiscoveryService languageDiscoveryService;
     public final ILanguageIdentifierService languageIdentifierService;
-    public final INewLanguagePathService languagePathService;
+    public final ILanguagePathService languagePathService;
 
     public final IContextService contextService;
 
@@ -62,9 +62,9 @@ public class MetaBorg {
 
         this.resourceService = injector.getInstance(IResourceService.class);
         this.languageService = injector.getInstance(ILanguageService.class);
-        this.languageDiscoveryService = injector.getInstance(INewLanguageDiscoveryService.class);
+        this.languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
         this.languageIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
-        this.languagePathService = injector.getInstance(INewLanguagePathService.class);
+        this.languagePathService = injector.getInstance(ILanguagePathService.class);
 
         this.contextService = injector.getInstance(IContextService.class);
 
@@ -113,8 +113,8 @@ public class MetaBorg {
 
 
     /**
-     * @see INewLanguageDiscoveryService#request(FileObject)
-     * @see INewLanguageDiscoveryService#discover(INewLanguageDiscoveryRequest)
+     * @see ILanguageDiscoveryService#request(FileObject)
+     * @see ILanguageDiscoveryService#discover(ILanguageDiscoveryRequest)
      */
     public Iterable<ILanguageComponent> discoverLanguages(FileObject location) throws MetaborgException {
         return languageDiscoveryService.discover(languageDiscoveryService.request(location));

@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 
 @SuppressWarnings("deprecation")
+@Deprecated
 public class LegacySpoofaxLanguageSpecConfigWriter implements ISpoofaxLanguageSpecConfigWriter {
 
     @Override

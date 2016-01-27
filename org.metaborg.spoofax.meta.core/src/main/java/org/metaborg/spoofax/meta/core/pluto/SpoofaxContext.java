@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.net.URI;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.build.paths.INewLanguagePathService;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.project.ILanguageSpec;
@@ -43,7 +43,7 @@ public class SpoofaxContext implements Serializable {
     private static IResourceService resourceService;
     private static ILanguageService languageService;
     private static ILanguageIdentifierService languageIdentifierService;
-    private static INewLanguagePathService languagePathService;
+    private static ILanguagePathService languagePathService;
     private static IProjectService projectService;
     private static ILanguageSpecService languageSpecService;
     private static ISourceTextService sourceTextService;
@@ -68,7 +68,7 @@ public class SpoofaxContext implements Serializable {
         resourceService = newInjector.getInstance(IResourceService.class);
         languageService = newInjector.getInstance(ILanguageService.class);
         languageIdentifierService = newInjector.getInstance(ILanguageIdentifierService.class);
-        languagePathService = newInjector.getInstance(INewLanguagePathService.class);
+        languagePathService = newInjector.getInstance(ILanguagePathService.class);
         projectService = newInjector.getInstance(IProjectService.class);
         languageSpecService = newInjector.getInstance(ILanguageSpecService.class);
         sourceTextService = newInjector.getInstance(ISourceTextService.class);
@@ -133,7 +133,7 @@ public class SpoofaxContext implements Serializable {
         return languageIdentifierService;
     }
 
-    public INewLanguagePathService languagePathService() {
+    public ILanguagePathService languagePathService() {
         return languagePathService;
     }
 

@@ -13,6 +13,7 @@ import java.util.Collection;
 /**
  * This class is only used for the configuration system migration.
  */
+@Deprecated
 @SuppressWarnings("deprecation")
 public class LegacySpoofaxLanguageSpecConfig extends LegacyLanguageSpecConfig implements ISpoofaxLanguageSpecConfig {
 

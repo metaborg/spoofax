@@ -16,9 +16,9 @@ import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
-import org.metaborg.core.build.NewBuildInputBuilder;
-import org.metaborg.core.build.dependency.INewDependencyService;
-import org.metaborg.core.build.paths.INewLanguagePathService;
+import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
@@ -51,8 +51,8 @@ public class SpoofaxMetaBuilder {
 
     private final Injector injector;
     private final ISourceTextService sourceTextService;
-    private final INewDependencyService dependencyService;
-    private final INewLanguagePathService languagePathService;
+    private final IDependencyService dependencyService;
+    private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
     private final Set<IBuildStep> buildSteps;
     private final ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter;
@@ -60,10 +60,10 @@ public class SpoofaxMetaBuilder {
     private final LegacySpoofaxLanguageSpecConfigWriter oldLanguageSpecConfigWriter;
 
 
-    @Inject public SpoofaxMetaBuilder(Injector injector, ISourceTextService sourceTextService, INewDependencyService dependencyService,
+    @Inject public SpoofaxMetaBuilder(Injector injector, ISourceTextService sourceTextService, IDependencyService dependencyService,
                                       LegacySpoofaxLanguageSpecConfigWriter oldLanguageSpecConfigWriter,
-                                      INewLanguagePathService languagePathService, ISpoofaxProcessorRunner runner, ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter,
-        Set<IBuildStep> buildSteps) {
+                                      ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter,
+                                      Set<IBuildStep> buildSteps) {
         this.injector = injector;
         this.sourceTextService = sourceTextService;
         this.dependencyService = dependencyService;
@@ -123,7 +123,7 @@ public class SpoofaxMetaBuilder {
                 logger.info("Compiling ESV file {}", mainEsvFile);
                 // @formatter:off
                 final BuildInput buildInput =
-                        new NewBuildInputBuilder(input.languageSpec)
+                        new BuildInputBuilder(input.languageSpec)
                                 .addSource(mainEsvFile)
                                 .addTransformGoal(new CompileGoal())
                                 .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
@@ -146,7 +146,7 @@ public class SpoofaxMetaBuilder {
                 logger.info("Compiling DynSem file {}", mainDsFile);
                 // @formatter:off
                 final BuildInput buildInput =
-                    new NewBuildInputBuilder(input.languageSpec)
+                    new BuildInputBuilder(input.languageSpec)
                     .addSource(mainDsFile)
                     .addTransformGoal(new EndNamedGoal("All to Java"))
                     .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))

@@ -19,8 +19,8 @@ import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageService;
-import org.metaborg.core.language.INewLanguageDiscoveryRequest;
-import org.metaborg.core.language.INewLanguageDiscoveryService;
+import org.metaborg.core.language.ILanguageDiscoveryRequest;
+import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageCreationRequest;
@@ -69,8 +69,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService {
-    private static final ILogger logger = LoggerUtils.logger(NewLanguageDiscoveryService.class);
+public class LanguageDiscoveryService implements ILanguageDiscoveryService {
+    private static final ILogger logger = LoggerUtils.logger(LanguageDiscoveryService.class);
 
     private final ILanguageService languageService;
     private final ILanguageComponentConfigService componentConfigService;
@@ -80,10 +80,10 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
     private final Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers;
 
 
-    @Inject public NewLanguageDiscoveryService(ILanguageService languageService,
-        ILanguageComponentConfigService componentConfigService,
-        ITermFactoryService termFactoryService, Map<String, IContextFactory> contextFactories,
-        Map<String, IContextStrategy> contextStrategies, Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
+    @Inject public LanguageDiscoveryService(ILanguageService languageService,
+                                            ILanguageComponentConfigService componentConfigService,
+                                            ITermFactoryService termFactoryService, Map<String, IContextFactory> contextFactories,
+                                            Map<String, IContextStrategy> contextStrategies, Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
         this.languageService = languageService;
         this.componentConfigService = componentConfigService;
         this.termFactoryService = termFactoryService;
@@ -93,8 +93,8 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
     }
 
 
-    @Override public Collection<INewLanguageDiscoveryRequest> request(FileObject location) throws MetaborgException {
-        final Collection<INewLanguageDiscoveryRequest> requests = Lists.newLinkedList();
+    @Override public Collection<ILanguageDiscoveryRequest> request(FileObject location) throws MetaborgException {
+        final Collection<ILanguageDiscoveryRequest> requests = Lists.newLinkedList();
         final FileObject[] esvFiles;
         try {
             esvFiles = location.findFiles(FileSelectorUtils.endsWith("packed.esv"));
@@ -123,7 +123,7 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
                 final String message =
                     logger.format("Found multiple packed ESV files at {}, skipping.", languageLocation);
                 errors.add(message);
-                requests.add(new NewLanguageDiscoveryRequest(languageLocation, errors, exceptions));
+                requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
                 continue;
             }
             parents.add(languageLocation);
@@ -133,7 +133,7 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
                 esvTerm = esvTerm(languageLocation, esvFile);
             } catch(ParseError | IOException | MetaborgException e) {
                 exceptions.add(e);
-                requests.add(new NewLanguageDiscoveryRequest(languageLocation, errors, exceptions));
+                requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
                 continue;
             }
 
@@ -147,7 +147,7 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
                 final String message =
                     logger.format("Cannot retrieve language component configuration at {}", languageLocation);
                 errors.add(message);
-                requests.add(new NewLanguageDiscoveryRequest(languageLocation, errors, exceptions));
+                requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
                 continue;
             }
 
@@ -171,13 +171,13 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
                 exceptions.add(e);
             }
 
-            final INewLanguageDiscoveryRequest request;
+            final ILanguageDiscoveryRequest request;
             if(errors.isEmpty() && exceptions.isEmpty()) {
                 request =
-                    new NewLanguageDiscoveryRequest(languageLocation, config, esvTerm, syntaxFacet,
+                    new LanguageDiscoveryRequest(languageLocation, config, esvTerm, syntaxFacet,
                         strategoRuntimeFacet);
             } else {
-                request = new NewLanguageDiscoveryRequest(languageLocation, errors, exceptions);
+                request = new LanguageDiscoveryRequest(languageLocation, errors, exceptions);
             }
             requests.add(request);
         }
@@ -185,14 +185,14 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         return requests;
     }
 
-    @Override public ILanguageComponent discover(INewLanguageDiscoveryRequest request) throws MetaborgException {
-        return createComponent((NewLanguageDiscoveryRequest) request);
+    @Override public ILanguageComponent discover(ILanguageDiscoveryRequest request) throws MetaborgException {
+        return createComponent((LanguageDiscoveryRequest) request);
     }
 
-    @Override public Collection<ILanguageComponent> discover(Iterable<INewLanguageDiscoveryRequest> requests)
+    @Override public Collection<ILanguageComponent> discover(Iterable<ILanguageDiscoveryRequest> requests)
         throws MetaborgException {
         final Collection<ILanguageComponent> components = Lists.newLinkedList();
-        for(INewLanguageDiscoveryRequest request : requests) {
+        for(ILanguageDiscoveryRequest request : requests) {
             components.add(discover(request));
         }
         return components;
@@ -213,7 +213,7 @@ public class NewLanguageDiscoveryService implements INewLanguageDiscoveryService
         return (IStrategoAppl) term;
     }
 
-    private ILanguageComponent createComponent(NewLanguageDiscoveryRequest discoveryRequest) throws MetaborgException {
+    private ILanguageComponent createComponent(LanguageDiscoveryRequest discoveryRequest) throws MetaborgException {
         final FileObject location = discoveryRequest.location();
         if(!discoveryRequest.available()) {
             throw new MetaborgException(discoveryRequest.toString());

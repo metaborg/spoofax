@@ -17,7 +17,7 @@ import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.analysis.AnalysisResult;
 import org.metaborg.core.analysis.IAnalysisService;
-import org.metaborg.core.build.paths.INewLanguagePathService;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ContextUtils;
 import org.metaborg.core.context.IContext;
@@ -75,7 +75,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
-    private final INewLanguagePathService languagePathService;
+    private final ILanguagePathService languagePathService;
     private final IContextService contextService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<P> syntaxService;
@@ -87,7 +87,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-                           INewLanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
+                           ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
                            ISyntaxService<P> syntaxService, IAnalysisService<P, A> analysisService, ITransformService<P, A, T> transformService,
                            IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor) {
         this.resourceService = resourceService;

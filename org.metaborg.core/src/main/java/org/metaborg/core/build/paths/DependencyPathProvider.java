@@ -6,7 +6,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.build.dependency.INewDependencyService;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.LanguagePathFacet;
@@ -15,11 +15,11 @@ import org.metaborg.core.project.ILanguageSpec;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public class NewDependencyPathProvider implements INewLanguagePathProvider {
-    private final INewDependencyService dependencyService;
+public class DependencyPathProvider implements ILanguagePathProvider {
+    private final IDependencyService dependencyService;
 
 
-    @Inject public NewDependencyPathProvider(INewDependencyService dependencyService) {
+    @Inject public DependencyPathProvider(IDependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 

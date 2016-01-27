@@ -33,16 +33,6 @@ public abstract class ConfigurationReaderWriter {
         }
     }
 
-//    /**
-//     * Reads a configuration from the specified input stream.
-//     *
-//     * @param input The input stream.
-//     * @return The read configuration.
-//     */
-//    public HierarchicalConfiguration<ImmutableNode> read(InputStream input) throws IOException, ConfigurationException {
-//        return read(input, null);
-//    }
-
     /**
      * Reads a configuration from the specified input stream.
      *
@@ -55,16 +45,6 @@ public abstract class ConfigurationReaderWriter {
             return read(reader, rootFolder);
         }
     }
-
-//    /**
-//     * Reads a configuration from the specified reader.
-//     *
-//     * @param reader The reader.
-//     * @return The read configuration.
-//     */
-//    public HierarchicalConfiguration<ImmutableNode> read(Reader reader) throws IOException, ConfigurationException {
-//        return read(reader, null);
-//    }
 
     /**
      * Reads a configuration from the specified reader.
@@ -92,17 +72,6 @@ public abstract class ConfigurationReaderWriter {
         }
     }
 
-//    /**
-//     * Writes a configuration to the specified writer.
-//     *
-//     * @param configuration The configuration to write.
-//     * @param output The output stream.
-//     */
-//    public void write(HierarchicalConfiguration<ImmutableNode> configuration, OutputStream output) throws IOException,
-//            ConfigurationException {
-//        write(configuration, output, null);
-//    }
-
     /**
      * Writes a configuration to the specified writer.
      *
@@ -116,17 +85,6 @@ public abstract class ConfigurationReaderWriter {
             write(configuration, writer, rootFolder);
         }
     }
-
-//    /**
-//     * Writes a configuration to the specified writer.
-//     *
-//     * @param configuration The configuration to write.
-//     * @param writer The writer.
-//     */
-//    public void write(HierarchicalConfiguration<ImmutableNode> configuration, Writer writer) throws IOException,
-//            ConfigurationException {
-//        write(configuration, writer, null);
-//    }
 
     /**
      * Writes a configuration to the specified writer.

@@ -79,6 +79,9 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
 
     /**
      * {@inheritDoc}
+     *
+     * The identifier is stored at the <code>id</code> element.
+     * An identifier has the syntax <code>groupid:artifactid:version</code>.
      */
     @Override public LanguageIdentifier identifier() {
         @Nullable final LanguageIdentifier value = this.config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
@@ -87,6 +90,8 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
 
     /**
      * {@inheritDoc}
+     *
+     * The name is stored at the <code>name</code> element.
      */
     @Override public String name() {
         @Nullable final String value = this.config.getString(PROP_NAME);
@@ -95,6 +100,9 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
 
     /**
      * {@inheritDoc}
+     *
+     * The compile dependencies are stored as a list at the <code>compileDependencies</code> element.
+     * Each compile dependency is an identifier with the syntax <code>groupid:artifactid:version</code>.
      */
     @Override
     public Collection<LanguageIdentifier> compileDependencies() {
@@ -104,6 +112,9 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
 
     /**
      * {@inheritDoc}
+     *
+     * The runtime dependencies are stored as a list at the <code>runtimeDependencies</code> element.
+     * Each runtime dependency is an identifier with the syntax <code>groupid:artifactid:version</code>.
      */
     @Override public Collection<LanguageIdentifier> runtimeDependencies() {
         @Nullable final List<LanguageIdentifier> value = this.config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);
@@ -112,6 +123,10 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
 
     /**
      * {@inheritDoc}
+     *
+     * The language contributions are stored as a list at the <code>contributions</code> element.
+     * Each language contributions is a name at <code>name</code>,
+     * and an an identifier at <code>id</code> with the syntax <code>groupid:artifactid:version</code>.
      */
     @Override public Collection<LanguageContributionIdentifier> languageContributions() {
         @Nullable final List<LanguageIdentifier> ids = this.config.getList(LanguageIdentifier.class, PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID);

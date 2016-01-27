@@ -33,6 +33,7 @@ import com.google.inject.Inject;
 /**
  * This class is only used for the configuration system migration.
  */
+@Deprecated
 @SuppressWarnings("deprecation")
 public class LegacyLanguageComponentConfigService implements ILanguageComponentConfigService {
 

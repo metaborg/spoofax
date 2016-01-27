@@ -6,7 +6,7 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.build.paths.INewLanguagePathProvider;
+import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -14,7 +14,7 @@ import java.util.Collection;
 
 import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
-public class NewBuiltinLanguagePathProvider implements INewLanguagePathProvider {
+public class BuiltinLanguagePathProvider implements ILanguagePathProvider {
     private static final String ROOT = ".";
 
     // @formatter:off

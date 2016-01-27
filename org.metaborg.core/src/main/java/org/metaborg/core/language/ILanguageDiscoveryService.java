@@ -7,11 +7,11 @@ import org.metaborg.core.MetaborgException;
  * Interface for a language discovery service that finds and adds all language components,
  * at a given location, to the language service.
  */
-public interface INewLanguageDiscoveryService {
+public interface ILanguageDiscoveryService {
 
     /**
      * Request language discovery at given location. Returns language discovery requests which can be checked for
-     * availability and errors. Pass requests to {@link #discover(INewLanguageDiscoveryRequest)} to actually load the
+     * availability and errors. Pass requests to {@link #discover(ILanguageDiscoveryRequest)} to actually load the
      * components.
      * 
      * @param location The directory to search in.
@@ -19,7 +19,7 @@ public interface INewLanguageDiscoveryService {
      * @throws MetaborgException
      *             When searching for language components fails unexpectedly.
      */
-    Iterable<INewLanguageDiscoveryRequest> request(FileObject location) throws MetaborgException;
+    Iterable<ILanguageDiscoveryRequest> request(FileObject location) throws MetaborgException;
 
     /**
      * Discover language component with given request.
@@ -29,7 +29,7 @@ public interface INewLanguageDiscoveryService {
      * @throws MetaborgException
      *             When discovery fails unexpectedly.
      */
-    ILanguageComponent discover(INewLanguageDiscoveryRequest request) throws MetaborgException;
+    ILanguageComponent discover(ILanguageDiscoveryRequest request) throws MetaborgException;
 
     /**
      * Discover all language components with the given requests.
@@ -39,6 +39,6 @@ public interface INewLanguageDiscoveryService {
      * @throws MetaborgException
      *             When discovery fails unexpectedly.
      */
-    Iterable<ILanguageComponent> discover(Iterable<INewLanguageDiscoveryRequest> requests) throws MetaborgException;
+    Iterable<ILanguageComponent> discover(Iterable<ILanguageDiscoveryRequest> requests) throws MetaborgException;
 
 }

@@ -17,15 +17,15 @@ import org.metaborg.util.resource.ResourceUtils;
 import java.util.Collection;
 import java.util.Set;
 
-public class NewLanguagePathService implements INewLanguagePathService {
-    private static final ILogger logger = LoggerUtils.logger(NewLanguagePathService.class);
+public class LanguagePathService implements ILanguagePathService {
+    private static final ILogger logger = LoggerUtils.logger(LanguagePathService.class);
 
     private final ILanguageIdentifierService languageIdentifierService;
-    private final Set<INewLanguagePathProvider> providers;
+    private final Set<ILanguagePathProvider> providers;
 
 
-    @Inject public NewLanguagePathService(ILanguageIdentifierService languageIdentifierService,
-                                          Set<INewLanguagePathProvider> providers) {
+    @Inject public LanguagePathService(ILanguageIdentifierService languageIdentifierService,
+                                       Set<ILanguagePathProvider> providers) {
         this.languageIdentifierService = languageIdentifierService;
         this.providers = providers;
     }
@@ -33,7 +33,7 @@ public class NewLanguagePathService implements INewLanguagePathService {
 
     @Override public Iterable<FileObject> sourcePaths(ILanguageSpec languageSpec, String languageName) {
         final Collection<Iterable<FileObject>> sources = Lists.newArrayList();
-        for(INewLanguagePathProvider provider : providers) {
+        for(ILanguagePathProvider provider : providers) {
             try {
                 sources.add(provider.sourcePaths(languageSpec, languageName));
             } catch(MetaborgException e) {
@@ -46,7 +46,7 @@ public class NewLanguagePathService implements INewLanguagePathService {
 
     @Override public Iterable<FileObject> includePaths(ILanguageSpec languageSpec, String languageName) {
         final Collection<Iterable<FileObject>> includes = Lists.newArrayList();
-        for(INewLanguagePathProvider provider : providers) {
+        for(ILanguagePathProvider provider : providers) {
             try {
                 includes.add(provider.includePaths(languageSpec, languageName));
             } catch(MetaborgException e) {

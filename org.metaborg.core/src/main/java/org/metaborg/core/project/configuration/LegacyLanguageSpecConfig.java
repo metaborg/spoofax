@@ -27,6 +27,7 @@ import org.metaborg.core.project.settings.ILegacyProjectSettings;
 
 import com.google.common.collect.Lists;
 
+@Deprecated
 @SuppressWarnings("deprecation")
 public class LegacyLanguageSpecConfig implements ILanguageSpecConfig {
 

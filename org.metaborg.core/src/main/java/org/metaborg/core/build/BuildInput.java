@@ -14,9 +14,9 @@ import org.metaborg.core.resource.ResourceChange;
 import com.google.common.collect.Multimap;
 
 /**
- * Input for a build. Use the {@link NewBuildInputBuilder} fluent interface to create objects of this class.
+ * Input for a build. Use the {@link BuildInputBuilder} fluent interface to create objects of this class.
  * 
- * @see NewBuildInputBuilder
+ * @see BuildInputBuilder
  */
 public class BuildInput {
     /**

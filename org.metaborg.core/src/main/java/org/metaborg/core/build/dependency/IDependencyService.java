@@ -9,7 +9,7 @@ import org.metaborg.core.project.ILanguageSpec;
  * Interface for a service that returns compile-time and runtime dependencies
  * for a language component or specification.
  */
-public interface INewDependencyService {
+public interface IDependencyService {
 
     /**
      * Gets compile-time language component dependencies for the given language specification.

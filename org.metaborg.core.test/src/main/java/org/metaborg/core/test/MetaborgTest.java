@@ -18,7 +18,7 @@ public class MetaborgTest {
     protected MetaBorg metaborg;
     protected IResourceService resourceService;
     protected ILanguageService languageService;
-    protected INewLanguageDiscoveryService languageDiscoveryService;
+    protected ILanguageDiscoveryService languageDiscoveryService;
     protected ILanguageIdentifierService languageIdentifierService;
 
 

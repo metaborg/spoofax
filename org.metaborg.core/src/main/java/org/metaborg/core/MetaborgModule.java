@@ -8,7 +8,7 @@ import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.dependency.DefaultDependencyService;
 //import org.metaborg.core.build.dependency.DependencyService;
 //import org.metaborg.core.build.dependency.IDependencyService;
-import org.metaborg.core.build.dependency.INewDependencyService;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.*;
 import org.metaborg.core.context.ContextService;
 import org.metaborg.core.context.IContextFactory;
@@ -79,7 +79,7 @@ public class MetaborgModule extends AbstractModule {
         bindLanguagePath();
         bindLanguageSpecPath();
 //        bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
-        bindNewLanguagePathProviders(Multibinder.newSetBinder(binder(), INewLanguagePathProvider.class));
+        bindNewLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
         bindLanguageSpec();
         bindContext();
         bindContextFactories(MapBinder.newMapBinder(binder(), String.class, IContextFactory.class));
@@ -112,15 +112,15 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindLanguagePath() {
-        bind(INewLanguagePathService.class).to(NewLanguagePathService.class).in(Singleton.class);
+        bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
     }
 
     protected void bindLanguageSpecPath() {
 
     }
 
-    protected void bindNewLanguagePathProviders(Multibinder<INewLanguagePathProvider> binder) {
-        binder.addBinding().to(NewDependencyPathProvider.class);
+    protected void bindNewLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
+        binder.addBinding().to(DependencyPathProvider.class);
     }
 
     /**
@@ -184,7 +184,7 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindDependency() {
-        bind(INewDependencyService.class).to(DefaultDependencyService.class).in(Singleton.class);
+        bind(IDependencyService.class).to(DefaultDependencyService.class).in(Singleton.class);
     }
 
     protected void bindSourceText() {

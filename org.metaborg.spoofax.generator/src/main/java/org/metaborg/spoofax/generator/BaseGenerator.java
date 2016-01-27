@@ -6,15 +6,15 @@ import org.metaborg.util.file.FileAccess;
 
 import javax.annotation.Nullable;
 
-public abstract class NewBaseGenerator {
+public abstract class BaseGenerator {
     protected final MustacheWriter writer;
 
 
-    public NewBaseGenerator(LanguageSpecGeneratorScope scope, @Nullable FileAccess access) {
+    public BaseGenerator(LanguageSpecGeneratorScope scope, @Nullable FileAccess access) {
         this.writer = new MustacheWriter(scope.location(), new Object[] { this, scope }, getClass(), access);
     }
     
-    public NewBaseGenerator(LanguageSpecGeneratorScope scope) {
+    public BaseGenerator(LanguageSpecGeneratorScope scope) {
         this(scope, null);
     }
 }
