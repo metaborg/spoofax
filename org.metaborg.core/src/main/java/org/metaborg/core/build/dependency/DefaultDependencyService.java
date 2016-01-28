@@ -125,7 +125,7 @@ public final class DefaultDependencyService implements IDependencyService {
         try {
             config = this.languageSpecConfigService.get(languageSpec);
         } catch (IOException e) {
-            logger.error("Exception while retrieving configuration of {}.", languageSpec, e);
+            logger.debug("Exception while retrieving configuration of {}", e, languageSpec);
         }
         return config;
     }
