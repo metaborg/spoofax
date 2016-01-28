@@ -104,30 +104,35 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final Collection<P2<ParseResult<IStrategoTerm>, IStrategoTuple>> analysisInputs = Lists.newLinkedList();
         for(ParseResult<IStrategoTerm> input : inputs) {
             if(input.result == null) {
-                logger.warn("Input result for {} is null, cannot analyze it", input.source);
+                logger.warn("Parse result for {} is null, cannot analyze", input.source);
                 continue;
             }
 
+            final IStrategoString path;
             final FileObject resource = input.source;
-            final File localResource;
-            try {
-                if(resource.exists()) {
-                    localResource = resourceService.localFile(resource);
-                } else {
-                    localResource = resourceService.localPath(resource);
-                }
-                if(localResource == null) {
-                    logger.error(
-                        "Input {} does not exist, and cannot reside on the local file system, cannot analyze it",
-                        resource);
+            if(resource != null) {
+                final File localResource;
+                try {
+                    if(resource.exists()) {
+                        localResource = resourceService.localFile(resource);
+                    } else {
+                        localResource = resourceService.localPath(resource);
+                    }
+                    if(localResource == null) {
+                        logger.error(
+                            "Input {} does not exist, and cannot reside on the local file system, cannot analyze it",
+                            resource);
+                        continue;
+                    }
+                } catch(FileSystemException e) {
+                    logger.error("Cannot determine if input {} exists, cannot analyze it", resource);
                     continue;
                 }
-            } catch(FileSystemException e) {
-                logger.error("Cannot determine if input {} exists, cannot analyze it", resource);
-                continue;
+                path = strategoCommon.localResourceTerm(localResource, localContextLocation);
+            } else {
+                logger.debug("Parse result has no source, using 'null' as path");
+                path = termFactory.makeString("null");
             }
-
-            final IStrategoString path = strategoCommon.localResourceTerm(localResource, localContextLocation);
             final IStrategoString contextPath = strategoCommon.localLocationTerm(localContextLocation);
             analysisInputs.add(P.p(input, termFactory.makeTuple(input.result, path, contextPath)));
         }
@@ -200,7 +205,6 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         }
         final FileObject source = parseResult.source;
         final IMessage message = MessageFactory.newAnalysisErrorAtTop(source, errorString, e);
-        return new AnalysisFileResult<>(null, source, context,
-                Iterables2.singleton(message), parseResult);
+        return new AnalysisFileResult<>(null, source, context, Iterables2.singleton(message), parseResult);
     }
 }

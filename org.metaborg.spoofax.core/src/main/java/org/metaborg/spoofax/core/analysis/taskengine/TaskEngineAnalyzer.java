@@ -98,10 +98,17 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final Collection<IStrategoAppl> analysisInputs = Lists.newLinkedList();
         for(ParseResult<IStrategoTerm> input : inputs) {
             if(input.result == null) {
-                logger.warn("Input result for {} is null, cannot analyze it", input.source);
+                logger.warn("Parse result for {} is null, cannot analyze", input.source);
                 continue;
             }
-            final IStrategoString pathTerm = termFactory.makeString(input.source.getName().getURI());
+            final String pathString;
+            if(input.source == null) {
+                logger.debug("Parse result has no source, using 'null' as path");
+                pathString = "null";
+            } else {
+                pathString = input.source.getName().getURI();
+            }
+            final IStrategoString pathTerm = termFactory.makeString(pathString);
             analysisInputs.add(termFactory.makeAppl(fileCons, pathTerm, input.result,
                 termFactory.makeReal(input.duration)));
         }
@@ -174,9 +181,8 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(5)));
         messages.addAll(analysisCommon.ambiguityMessages(source, ast));
 
-        return new AnalysisFileResult<>(ast, source, context, messages,
-                new ParseResult<>("", previousAst, source, Arrays.asList(new IMessage[]{}), -1,
-                        context.language(), null, null));
+        return new AnalysisFileResult<>(ast, source, context, messages, new ParseResult<>("", previousAst, source,
+            Arrays.asList(new IMessage[] {}), -1, context.language(), null, null));
     }
 
     private AnalysisMessageResult messageResult(IStrategoTerm result) {
