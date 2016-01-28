@@ -42,13 +42,28 @@ public class ContextService implements IContextService, IContextProcessor {
     @Override public ITemporaryContext getTemporary(FileObject resource, ILanguageImpl language)
         throws ContextException {
         final ContextFacet facet = getFacet(resource, language);
-        final ContextIdentifier identifier = facet.strategy.get(resource, language);
+        ContextIdentifier identifier;
+        try {
+            identifier = facet.strategy.get(resource, language);
+        } catch(ContextException e) {
+            logger.debug("Could not create a context via context strategy of language {} (see exception)"
+                + ", creating context with given resource {} instead", e, language, resource);
+            identifier = new ContextIdentifier(resource, language);
+        }
         return createTemporary(facet.factory, identifier);
     }
 
     @Override public ITemporaryContext getTemporary(IContext context, ILanguageImpl language) throws ContextException {
-        final ContextFacet facet = getFacet(context.location(), language);
-        final ContextIdentifier identifier = new ContextIdentifier(context.location(), language);
+        final FileObject location = context.location();
+        final ContextFacet facet = getFacet(location, language);
+        ContextIdentifier identifier;
+        try {
+            identifier = facet.strategy.get(location, language);
+        } catch(ContextException e) {
+            logger.debug("Could not create a context via context strategy of language {} (see exception)"
+                + ", creating context with given resource {} instead", e, language, location);
+            identifier = new ContextIdentifier(location, language);
+        }
         return createTemporary(facet.factory, identifier);
     }
 
@@ -102,7 +117,7 @@ public class ContextService implements IContextService, IContextProcessor {
     private IContextInternal create(IContextFactory factory, ContextIdentifier identifier) {
         return factory.create(identifier);
     }
-    
+
     private ITemporaryContextInternal createTemporary(IContextFactory factory, ContextIdentifier identifier) {
         return factory.createTemporary(identifier);
     }
