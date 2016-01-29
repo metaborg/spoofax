@@ -6,7 +6,6 @@ import java.util.Collections;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.MessageFormatter;
 import org.metaborg.core.language.*;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.configuration.ILanguageSpecConfig;
@@ -141,7 +140,7 @@ public final class DefaultDependencyService implements IDependencyService {
         for(LanguageIdentifier identifier : identifiers) {
             final ILanguageComponent component = this.languageService.getComponentOrBaseline(identifier);
             if(component == null) {
-                throw new MissingDependencyException(MessageFormatter.format("Language for dependency {} does not exist.", identifier));
+                throw new MissingDependencyException(logger.format("Language for dependency {} does not exist.", identifier));
             }
             components.add(component);
         }
