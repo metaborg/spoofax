@@ -14,6 +14,7 @@ import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.ILanguageSpecService;
+import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -58,7 +59,12 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
     @Override public @Nullable ILanguageImpl identify(FileObject resource) {
-        final ILanguageSpec languageSpec = languageSpecService.get(projectService.get(resource));
+        return identify(resource, languageSpecService.get(projectService.get(resource)));
+    }
+
+    @Nullable
+    @Override
+    public ILanguageImpl identify(FileObject resource, @Nullable ILanguageSpec languageSpec) {
         if(languageSpec != null) {
             try {
                 final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);
@@ -78,12 +84,15 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
     @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource) {
-        final Iterable<ILanguageImpl> dependencies = compileDependencies(resource);
+        return identifyToResource(resource, languageSpecService.get(projectService.get(resource)));
+    }
+
+    @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource, @Nullable ILanguageSpec languageSpec) {
+        final Iterable<ILanguageImpl> dependencies = compileDependencies(resource, languageSpec);
         return identifyToResource(resource, dependencies);
     }
     
-    public Iterable<ILanguageImpl> compileDependencies(FileObject resource) {
-        final ILanguageSpec languageSpec = languageSpecService.get(projectService.get(resource));
+    private Iterable<ILanguageImpl> compileDependencies(FileObject resource, ILanguageSpec languageSpec) {
         if(languageSpec != null) {
             try {
                 final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);
