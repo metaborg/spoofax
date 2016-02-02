@@ -5,6 +5,10 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageImplChange;
+import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.ILanguageSpecService;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.IProjectService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -14,11 +18,15 @@ import com.google.inject.Inject;
 public class ContextService implements IContextService, IContextProcessor {
     private static final ILogger logger = LoggerUtils.logger(ContextService.class);
 
+    private final IProjectService projectService;
+    private final ILanguageSpecService languageSpecService;
     private final ConcurrentMap<ContextIdentifier, IContextInternal> idToContext = Maps.newConcurrentMap();
     private final ConcurrentMap<ILanguageImpl, ContextIdentifier> langToContextId = Maps.newConcurrentMap();
 
 
-    @Inject public ContextService() {
+    @Inject public ContextService(final IProjectService projectService, final ILanguageSpecService languageSpecService) {
+        this.projectService = projectService;
+        this.languageSpecService = languageSpecService;
     }
 
 
@@ -27,46 +35,34 @@ public class ContextService implements IContextService, IContextProcessor {
         return facet != null;
     }
 
-    @Override public IContext get(FileObject resource, ILanguageImpl language) throws ContextException {
+//    @Override public IContext get(FileObject resource, ILanguageImpl language) throws ContextException {
+//        return get(resource, getLanguageSpec(resource, language), language);
+//    }
+
+    @Override public IContext get(FileObject resource, ILanguageSpec project, ILanguageImpl language) throws ContextException {
         final ContextFacet facet = getFacet(resource, language);
-        final ContextIdentifier identifier = facet.strategy.get(resource, language);
+        final ContextIdentifier identifier = facet.strategy.get(resource, project, language);
         return getOrCreate(facet.factory, identifier);
     }
 
-    @Override public IContext get(IContext context, ILanguageImpl language) throws ContextException {
-        final ContextFacet facet = getFacet(context.location(), language);
-        final ContextIdentifier identifier = new ContextIdentifier(context.location(), language);
-        return getOrCreate(facet.factory, identifier);
-    }
+//    @Override public ITemporaryContext getTemporary(FileObject resource, ILanguageImpl language) throws ContextException {
+//        return getTemporary(resource, getLanguageSpec(resource, language), language);
+//    }
 
-    @Override public ITemporaryContext getTemporary(FileObject resource, ILanguageImpl language)
-        throws ContextException {
+
+    @Override public ITemporaryContext getTemporary(FileObject resource, ILanguageSpec project, ILanguageImpl language)
+            throws ContextException {
         final ContextFacet facet = getFacet(resource, language);
         ContextIdentifier identifier;
         try {
-            identifier = facet.strategy.get(resource, language);
+            identifier = facet.strategy.get(resource, project, language);
         } catch(ContextException e) {
             logger.debug("Could not create a context via context strategy of language {} (see exception)"
-                + ", creating context with given resource {} instead", e, language, resource);
+                    + ", creating context with given resource {} instead", e, language, resource);
             identifier = new ContextIdentifier(resource, language);
         }
         return createTemporary(facet.factory, identifier);
     }
-
-    @Override public ITemporaryContext getTemporary(IContext context, ILanguageImpl language) throws ContextException {
-        final FileObject location = context.location();
-        final ContextFacet facet = getFacet(location, language);
-        ContextIdentifier identifier;
-        try {
-            identifier = facet.strategy.get(location, language);
-        } catch(ContextException e) {
-            logger.debug("Could not create a context via context strategy of language {} (see exception)"
-                + ", creating context with given resource {} instead", e, language, location);
-            identifier = new ContextIdentifier(location, language);
-        }
-        return createTemporary(facet.factory, identifier);
-    }
-
 
     @Override public void unload(IContext context) {
         final IContextInternal contextInternal = (IContextInternal) context;
@@ -92,6 +88,17 @@ public class ContextService implements IContextService, IContextProcessor {
                 // Ignore other changes
                 break;
         }
+    }
+
+    private ILanguageSpec getLanguageSpec(FileObject resource, ILanguageImpl language) throws ContextException {
+        final IProject project = projectService.get(resource);
+        final ILanguageSpec languageSpec = languageSpecService.get(project);
+        if(languageSpec == null) {
+            final String message =
+                    logger.format("Cannot create or retrieve context, {} does not have a language specification.", resource);
+            throw new ContextException(resource, language, message);
+        }
+        return languageSpec;
     }
 
 

@@ -6,6 +6,9 @@ import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.ILanguageSpecService;
+import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -19,16 +22,21 @@ import com.google.inject.Inject;
 public class ForeignCallPrimitive extends AbstractPrimitive {
     private final ILanguageService languageService;
     private final IContextService contextService;
+    private final IProjectService projectService;
+    private final ILanguageSpecService languageSpecService;
 
     private final IStrategoCommon common;
 
 
     @Inject public ForeignCallPrimitive(ILanguageService languageService, IContextService contextService,
-        IStrategoCommon common) {
+                                        IProjectService projectService, ILanguageSpecService languageSpecService,
+                                        IStrategoCommon common) {
         super("SSL_EXT_foreigncall", 0, 2);
 
         this.languageService = languageService;
         this.contextService = contextService;
+        this.projectService = projectService;
+        this.languageSpecService = languageSpecService;
         this.common = common;
     }
 
@@ -60,7 +68,8 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
             if(currentContext == null) {
                 return false;
             }
-            final org.metaborg.core.context.IContext context = contextService.get(currentContext, activeImpl);
+            final ILanguageSpec languageSpec = languageSpecService.get(projectService.get(currentContext.location()));
+            final org.metaborg.core.context.IContext context = contextService.get(currentContext.location(), languageSpec, activeImpl);
             final IStrategoTerm output = common.invoke(activeImpl, context, env.current(), strategyName);
             if(output == null) {
                 return false;

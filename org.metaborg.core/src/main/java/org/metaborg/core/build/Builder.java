@@ -215,7 +215,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 final FileObject resource = parseResult.source;
                 try {
                     if(contextService.available(parseResult.language)) {
-                        final IContext context = contextService.get(resource, parseResult.language);
+                        final IContext context = contextService.get(resource, input.languageSpec, parseResult.language);
                         sourceResultsPerContext.put(context, parseResult);
                     }
                 } catch(ContextException e) {
@@ -477,7 +477,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 return;
             }
             final Set<IContext> contexts =
-                ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);
+                ContextUtils.getAll(Iterables2.from(resources), input.languageSpec, languageIdentifier, contextService);
             for(IContext context : contexts) {
                 try {
                     context.reset();

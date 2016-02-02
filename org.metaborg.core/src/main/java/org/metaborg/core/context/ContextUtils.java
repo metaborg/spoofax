@@ -5,6 +5,7 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -18,23 +19,25 @@ public class ContextUtils {
      * 
      * @param resources
      *            Resources to get contexts for.
+     * @param project
+     *            The project the resources belong to.
      * @param languageIdentifier
      *            Language identifier service.
      * @param contextService
      *            Context service.
      * @return Set of all contexts.
      */
-    public static Set<IContext> getAll(Iterable<FileObject> resources, ILanguageIdentifierService languageIdentifier,
-        IContextService contextService) {
+    public static Set<IContext> getAll(Iterable<FileObject> resources, ILanguageSpec project, ILanguageIdentifierService languageIdentifier,
+                                       IContextService contextService) {
         final Set<IContext> contexts = Sets.newHashSet();
         for(FileObject resource : resources) {
-            final ILanguageImpl language = languageIdentifier.identify(resource);
+            final ILanguageImpl language = languageIdentifier.identify(resource, project);
             if(language == null) {
                 logger.error("Could not identify language for {}", resource);
                 continue;
             }
             try {
-                contexts.add(contextService.get(resource, language));
+                contexts.add(contextService.get(resource, project, language));
             } catch(ContextException e) {
                 final String message = String.format("Could not retrieve context for %s", resource);
                 logger.error(message, e);
