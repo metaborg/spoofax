@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 import org.metaborg.util.concurrent.IClosableLock;
 
 import com.google.inject.Injector;
@@ -18,6 +19,11 @@ public interface IContext {
      * @return Location of this context.
      */
     FileObject location();
+
+    /**
+     * @return The project that contains the transformed resource.
+     */
+    IProject project();
 
     /**
      * @return Language of this context.

@@ -39,7 +39,7 @@ public class ContextService implements IContextService, IContextProcessor {
 //        return get(resource, getLanguageSpec(resource, language), language);
 //    }
 
-    @Override public IContext get(FileObject resource, ILanguageSpec project, ILanguageImpl language) throws ContextException {
+    @Override public IContext get(FileObject resource, IProject project, ILanguageImpl language) throws ContextException {
         final ContextFacet facet = getFacet(resource, language);
         final ContextIdentifier identifier = facet.strategy.get(resource, project, language);
         return getOrCreate(facet.factory, identifier);
@@ -50,7 +50,7 @@ public class ContextService implements IContextService, IContextProcessor {
 //    }
 
 
-    @Override public ITemporaryContext getTemporary(FileObject resource, ILanguageSpec project, ILanguageImpl language)
+    @Override public ITemporaryContext getTemporary(FileObject resource, IProject project, ILanguageImpl language)
             throws ContextException {
         final ContextFacet facet = getFacet(resource, language);
         ContextIdentifier identifier;
@@ -59,7 +59,7 @@ public class ContextService implements IContextService, IContextProcessor {
         } catch(ContextException e) {
             logger.debug("Could not create a context via context strategy of language {} (see exception)"
                     + ", creating context with given resource {} instead", e, language, resource);
-            identifier = new ContextIdentifier(resource, language);
+            identifier = new ContextIdentifier(resource, project, language);
         }
         return createTemporary(facet.factory, identifier);
     }

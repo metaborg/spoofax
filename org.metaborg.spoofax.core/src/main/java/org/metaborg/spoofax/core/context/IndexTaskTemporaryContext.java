@@ -6,6 +6,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 import org.metaborg.runtime.task.engine.ITaskEngine;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
@@ -29,6 +30,11 @@ public class IndexTaskTemporaryContext implements ITemporaryContextInternal, IIn
 
     @Override public FileObject location() {
         return context.location();
+    }
+
+    @Override
+    public IProject project() {
+        return context.project();
     }
 
     @Override public ILanguageImpl language() {

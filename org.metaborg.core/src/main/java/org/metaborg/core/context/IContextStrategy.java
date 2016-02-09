@@ -23,5 +23,5 @@ public interface IContextStrategy {
      * @throws ContextException
      *             When a context identifier cannot be returned.
      */
-    ContextIdentifier get(FileObject resource, ILanguageSpec project, ILanguageImpl language) throws ContextException;
+    ContextIdentifier get(FileObject resource, IProject project, ILanguageImpl language) throws ContextException;
 }

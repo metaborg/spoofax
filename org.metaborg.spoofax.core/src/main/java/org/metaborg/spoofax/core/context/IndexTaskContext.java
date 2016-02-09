@@ -14,6 +14,7 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 import org.metaborg.runtime.task.engine.ITaskEngine;
 import org.metaborg.runtime.task.engine.TaskManager;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -60,6 +61,11 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
     @Override public FileObject location() {
         return identifier.location;
+    }
+
+    @Override
+    public IProject project() {
+        return identifier.project;
     }
 
     @Override public ILanguageImpl language() {

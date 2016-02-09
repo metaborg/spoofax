@@ -2,6 +2,7 @@ package org.metaborg.core.editor;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 
 public interface IEditorRegistry {
     /**
@@ -12,10 +13,10 @@ public interface IEditorRegistry {
     /**
      * Open an editor for given resource.
      *
-     * @param project
-     *            The project that contains the resource.
      * @param resource
      *            Resource to open editor for.
+     * @param project
+     *            The project that contains the resource.
      */
-    void open(ILanguageImpl project, FileObject resource);
+    void open(FileObject resource, IProject project);
 }

@@ -8,6 +8,7 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 
@@ -30,6 +31,11 @@ public class LegacyContext implements IContext, IContextInternal, ITemporaryCont
 
     @Override public FileObject location() {
         return identifier.location;
+    }
+
+    @Override
+    public IProject project() {
+        return identifier.project;
     }
 
     @Override public ILanguageImpl language() {

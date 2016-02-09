@@ -125,7 +125,7 @@ public class StrategoTransformer implements IStrategoTransformer {
 
         // Open editor
         if(outputFile != null && action.flags.openEditor) {
-            editorRegistry.open(context.language(), outputFile);
+            editorRegistry.open(outputFile, context.project());
         }
 
         // Return result

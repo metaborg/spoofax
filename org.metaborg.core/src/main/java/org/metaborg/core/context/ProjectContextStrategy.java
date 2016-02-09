@@ -11,7 +11,7 @@ import com.google.inject.Inject;
 public class ProjectContextStrategy implements IContextStrategy {
     public static final String name = "project";
 
-    @Override public ContextIdentifier get(FileObject resource, ILanguageSpec project, ILanguageImpl language) throws ContextException {
-        return new ContextIdentifier(project.location(), language);
+    @Override public ContextIdentifier get(FileObject resource, IProject project, ILanguageImpl language) throws ContextException {
+        return new ContextIdentifier(project.location(), project, language);
     }
 }
