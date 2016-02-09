@@ -115,7 +115,7 @@ public class StrategoTransformer implements IStrategoTransformer {
                 try(OutputStream stream = outputFile.getContent().getOutputStream()) {
                     IOUtils.write(resultContents, stream);
                 } catch(IOException e) {
-                    logger.error("Error occured while writing output file", e);
+                    logger.error("Error occurred while writing output file", e);
                 }
             }
         } else {
@@ -125,7 +125,7 @@ public class StrategoTransformer implements IStrategoTransformer {
 
         // Open editor
         if(outputFile != null && action.flags.openEditor) {
-            editorRegistry.open(outputFile);
+            editorRegistry.open(context.language(), outputFile);
         }
 
         // Return result
