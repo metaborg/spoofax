@@ -3,10 +3,16 @@ package org.metaborg.core.language;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -39,7 +45,18 @@ public class LanguageService implements ILanguageService {
 
     private final Map<String, ILanguageInternal> nameToLanguage = Maps.newHashMap();
 
-
+    // Added caches to ensure we always get the same ILanguage and ILanguageImpl instances,
+    // even if the language (implementation) was unloaded and reloaded.
+    // This fixes several issues, including issues with cached parse and analysis results that store
+    // the old ILanguage(Impl) instances.
+    private final LoadingCache<String, ILanguageInternal> languageCache = CacheBuilder.newBuilder().weakValues()
+            .build(new CacheLoader<String, ILanguageInternal>() {
+                @Override
+                public ILanguageInternal load(final String languageName) throws Exception {
+                    return new Language(languageName);
+                }
+            });
+    private final Cache<LanguageIdentifier, ILanguageImplInternal> languageImplCache = CacheBuilder.newBuilder().weakValues().build();
 
     @Override public @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier) {
         return identifierToComponent.get(identifier);
@@ -107,18 +124,8 @@ public class LanguageService implements ILanguageService {
 
         final Collection<ILanguageImplInternal> impls = Lists.newLinkedList();
         for(LanguageContributionIdentifier identifier : request.implIds) {
-            ILanguageInternal language = nameToLanguage.get(identifier.name);
-            if(language == null) {
-                language = new Language(identifier.name);
-                addLanguage(language);
-            }
-
-            ILanguageImplInternal impl = identifierToImpl.get(identifier.identifier);
-            if(impl == null) {
-                impl = new LanguageImplementation(identifier.identifier, language);
-                addImplementation(impl);
-                language.add(impl);
-            }
+            ILanguageInternal language = getOrCreateLanguage(identifier.name);
+            ILanguageImplInternal impl = getOrCreateLanguageImpl(identifier.identifier, language);
             impls.add(impl);
         }
 
@@ -195,6 +202,36 @@ public class LanguageService implements ILanguageService {
         }
 
         return newComponent;
+    }
+
+    private ILanguageInternal getOrCreateLanguage(String languageName) {
+        ILanguageInternal language = nameToLanguage.get(languageName);
+        if(language == null) {
+            language = this.languageCache.getUnchecked(languageName);
+            addLanguage(language);
+        }
+        assert language != null;
+        return language;
+    }
+
+    private ILanguageImplInternal getOrCreateLanguageImpl(final LanguageIdentifier identifier, final ILanguageInternal language) {
+        ILanguageImplInternal impl = identifierToImpl.get(identifier);
+        if(impl == null) {
+            try {
+                impl = this.languageImplCache.get(identifier, new Callable<ILanguageImplInternal>() {
+                    @Override
+                    public ILanguageImplInternal call() throws Exception {
+                        return new LanguageImplementation(identifier, language);
+                    }
+                });
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+            addImplementation(impl);
+            language.add(impl);
+        }
+        assert impl != null;
+        return impl;
     }
 
     @Override public void remove(ILanguageComponent component) {
