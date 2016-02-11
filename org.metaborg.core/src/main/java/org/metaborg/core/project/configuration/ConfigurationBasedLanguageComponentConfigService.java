@@ -38,9 +38,8 @@ public class ConfigurationBasedLanguageComponentConfigService extends Configurat
      * @return The configuration file.
      * @throws FileSystemException
      */
-    @Override
     public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
-        return rootFolder.resolveFile(MetaborgConstants.FILE_CONFIG);
+        return rootFolder.resolveFile(MetaborgConstants.FILE_COMPONENT_CONFIG);
     }
 
     /**

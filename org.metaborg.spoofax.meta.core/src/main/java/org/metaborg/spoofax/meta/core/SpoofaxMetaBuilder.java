@@ -1,13 +1,12 @@
 package org.metaborg.spoofax.meta.core;
 
-import build.pluto.builder.BuildManagers;
-import build.pluto.builder.BuildRequest;
-import build.pluto.builder.RequiredBuilderFailed;
-import build.pluto.output.Output;
-import build.pluto.xattr.Xattr;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -15,16 +14,19 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.language.LanguageComponent;
+import org.metaborg.core.project.configuration.ILanguageComponentConfig;
+import org.metaborg.core.project.configuration.ILanguageComponentConfigBuilder;
+import org.metaborg.core.project.configuration.ILanguageComponentConfigWriter;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
-import org.metaborg.spoofax.core.project.configuration.LegacySpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
@@ -37,11 +39,15 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.FileSelectorUtils;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Set;
+import build.pluto.builder.BuildManagers;
+import build.pluto.builder.BuildRequest;
+import build.pluto.builder.RequiredBuilderFailed;
+import build.pluto.output.Output;
+import build.pluto.xattr.Xattr;
+
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 // TODO Rename to: SpoofaxLanguageSpecBuilder
 public class SpoofaxMetaBuilder {
@@ -55,22 +61,23 @@ public class SpoofaxMetaBuilder {
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
     private final Set<IBuildStep> buildSteps;
+    private final ILanguageComponentConfigBuilder componentConfigBuilder;
+    private final ILanguageComponentConfigWriter componentConfigWriter;
     private final ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter;
-    // FIXME: This is temporary, until we've moved to the new config system completely.
-    private final LegacySpoofaxLanguageSpecConfigWriter oldLanguageSpecConfigWriter;
 
 
-    @Inject public SpoofaxMetaBuilder(Injector injector, ISourceTextService sourceTextService, IDependencyService dependencyService,
-                                      LegacySpoofaxLanguageSpecConfigWriter oldLanguageSpecConfigWriter,
-                                      ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter,
-                                      Set<IBuildStep> buildSteps) {
+    @Inject public SpoofaxMetaBuilder(Injector injector, ISourceTextService sourceTextService,
+        IDependencyService dependencyService, ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner,
+        Set<IBuildStep> buildSteps, ILanguageComponentConfigBuilder componentConfigBuilder,
+        ILanguageComponentConfigWriter componentConfigWriter, ISpoofaxLanguageSpecConfigWriter languageSpecConfigWriter) {
         this.injector = injector;
         this.sourceTextService = sourceTextService;
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
         this.runner = runner;
+        this.componentConfigBuilder = componentConfigBuilder;
+        this.componentConfigWriter = componentConfigWriter;
         this.languageSpecConfigWriter = languageSpecConfigWriter;
-        this.oldLanguageSpecConfigWriter = oldLanguageSpecConfigWriter;
         this.buildSteps = buildSteps;
     }
 
@@ -83,19 +90,23 @@ public class SpoofaxMetaBuilder {
     }
 
     public void generateSources(LanguageSpecBuildInput input, FileAccess access) throws Exception {
+        final FileObject location = input.languageSpec.location();
         logger.debug("Generating sources for {}", input.languageSpec.location());
 
-        final LanguageSpecGenerator generator = new LanguageSpecGenerator(new LanguageSpecGeneratorScope(input.config, input.paths), access);
+        final LanguageSpecGenerator generator =
+            new LanguageSpecGenerator(new LanguageSpecGeneratorScope(input.config, input.paths), access);
         generator.generateAll();
 
+        componentConfigBuilder.reset();
+        componentConfigBuilder.copyFrom(input.config);
+        final ILanguageComponentConfig config = componentConfigBuilder.build(location);
+        componentConfigWriter.write(location, config, access);
+        
         // FIXME: This is temporary, until we've moved to the new config system completely.
         // As there's then no need to write the config file.
-        if (!this.languageSpecConfigWriter.getConfigFile(input.languageSpec).exists()) {
+        if(!this.languageSpecConfigWriter.getConfigFile(input.languageSpec).exists()) {
             this.languageSpecConfigWriter.write(input.languageSpec, input.config, access);
         }
-
-        // FIXME: This is temporary, until we've moved to the new config system completely.
-        this.oldLanguageSpecConfigWriter.write(input.languageSpec, input.config, access);
     }
 
     public void compilePreJava(LanguageSpecBuildInput input) throws MetaborgException {
@@ -141,7 +152,7 @@ public class SpoofaxMetaBuilder {
         } catch(InterruptedException e) {
             // Ignore
         }
-        
+
         // HACK: compile the main DS file if available, after generating sources (because ds can depend on Stratego
         // strategies), to generate an interpreter.
         final FileObject mainDsFile = input.paths.dsMainFile();
@@ -211,9 +222,7 @@ public class SpoofaxMetaBuilder {
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(LanguageSpecBuildInput input) {
         final ISpoofaxLanguageSpecConfig config = input.config;
         final ISpoofaxLanguageSpecPaths paths = input.paths;
-        final SpoofaxContext context = new SpoofaxContext(
-                input.languageSpec.location(),
-                paths.buildFolder());
+        final SpoofaxContext context = new SpoofaxContext(input.languageSpec.location(), paths.buildFolder());
 
         final String module = config.sdfName();
         final String metaModule = config.metaSdfName();
@@ -221,7 +230,7 @@ public class SpoofaxMetaBuilder {
         final File strategoJavaStrategiesMainFile = context.toFile(paths.strJavaStrategiesMainFile());
 
         @Nullable final File externalDef;
-        if (config.externalDef() != null) {
+        if(config.externalDef() != null) {
             externalDef = context.toFile(context.resourceService().resolve(config.externalDef()));
         } else {
             externalDef = null;
@@ -255,11 +264,11 @@ public class SpoofaxMetaBuilder {
         @Nullable final File externalJar;
         @Nullable final File target;
         @Nullable final String externalJarFilename = config.externalJar();
-        if (externalJarFilename != null) {
+        if(externalJarFilename != null) {
             externalJar = new File(externalJarFilename);
             try {
                 target = context.toFile(paths.includeFolder().resolveFile(externalJar.getName()));
-            } catch (FileSystemException e) {
+            } catch(FileSystemException e) {
                 throw new RuntimeException("Unexpected exception.", e);
             }
         } else {
@@ -270,7 +279,7 @@ public class SpoofaxMetaBuilder {
         final File strjInputFile = context.toFile(paths.strMainFile());
         final File strjOutputFile;
         final File strjDepFile;
-        if (config.format() == Format.ctree) {
+        if(config.format() == Format.ctree) {
             strjOutputFile = context.toFile(paths.strCompiledCtreeFile());
             strjDepFile = strjOutputFile;
         } else {
@@ -279,51 +288,20 @@ public class SpoofaxMetaBuilder {
         }
         final File strjCacheDir = context.toFile(paths.cacheFolder());
 
-        return new GenerateSourcesBuilder.Input(
-                context,
-                strategoMainFile,
-                strategoJavaStrategiesMainFile,
-                module,
-                config.metaSdfName(),
-                config.sdfArgs(),
-                externalJar,
-                target,
-                strjInputFile,
-                strjOutputFile,
-                strjDepFile,
-                strjCacheDir,
-                config.strategoArgs(),
-                config.format(),
-                config.strategiesPackageName(),
-                config.externalJarFlags(),
-                rtg2SigOutputPath,
-                sdf2RtgInputFile,
-                sdf2RtgOutputFile,
-                sdf2ParenthesizeInputFile,
-                sdf2ParenthesizeOutputFile,
-                sdf2ParenthesizeOutputModule,
-                ppPackInputPath,
-                ppPackOutputPath,
-                ppGenInputPath,
-                ppGenOutputPath,
-                afGenOutputPath,
-                makePermissiveOutputPath,
-                sdf2tableOutputPath,
-                externalDef,
-                packSdfInputPath,
-                packSdfOutputPath,
-                packMetaSdfInputPath,
-                packMetaSdfOutputPath,
-                syntaxFolder,
-                genSyntaxFolder);
+        return new GenerateSourcesBuilder.Input(context, strategoMainFile, strategoJavaStrategiesMainFile, module,
+            config.metaSdfName(), config.sdfArgs(), externalJar, target, strjInputFile, strjOutputFile, strjDepFile,
+            strjCacheDir, config.strategoArgs(), config.format(), config.strategiesPackageName(),
+            config.externalJarFlags(), rtg2SigOutputPath, sdf2RtgInputFile, sdf2RtgOutputFile,
+            sdf2ParenthesizeInputFile, sdf2ParenthesizeOutputFile, sdf2ParenthesizeOutputModule, ppPackInputPath,
+            ppPackOutputPath, ppGenInputPath, ppGenOutputPath, afGenOutputPath, makePermissiveOutputPath,
+            sdf2tableOutputPath, externalDef, packSdfInputPath, packSdfOutputPath, packMetaSdfInputPath,
+            packMetaSdfOutputPath, syntaxFolder, genSyntaxFolder);
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input) throws FileSystemException {
         final ISpoofaxLanguageSpecConfig config = input.config;
         final ISpoofaxLanguageSpecPaths paths = input.paths;
-        final SpoofaxContext context = new SpoofaxContext(
-                input.languageSpec.location(),
-                paths.buildFolder());
+        final SpoofaxContext context = new SpoofaxContext(input.languageSpec.location(), paths.buildFolder());
 
         final File strategoMainFile = context.toFile(paths.strMainFile());
         final File strategoJavaStrategiesMainFile = context.toFile(paths.strJavaStrategiesMainFile());
@@ -333,7 +311,7 @@ public class SpoofaxMetaBuilder {
         final File baseDir = context.toFile(paths.outputClassesFolder());
 
         @Nullable final File externalDef;
-        if (config.externalDef() != null) {
+        if(config.externalDef() != null) {
             externalDef = context.toFile(context.resourceService().resolve(config.externalDef()));
         } else {
             externalDef = null;
@@ -357,8 +335,8 @@ public class SpoofaxMetaBuilder {
         // TODO: get javajar-includes from project settings?
         // String[] paths = context.props.getOrElse("javajar-includes",
         // context.settings.packageStrategiesPath()).split("[\\s]+");
-        final Collection<File> javaJarPaths = Lists.newArrayList(
-                context.toFile(paths.strCompiledJavaStrategiesFolder()),
+        final Collection<File> javaJarPaths =
+            Lists.newArrayList(context.toFile(paths.strCompiledJavaStrategiesFolder()),
                 context.toFile(paths.dsGeneratedInterpreterCompiledJavaFolder()),
                 context.toFile(paths.dsManualInterpreterCompiledJavaFolder()));
 
@@ -370,32 +348,10 @@ public class SpoofaxMetaBuilder {
         final File targetGenPpAfFile = context.toFile(target.resolveFile(paths.getGeneratedPpAfFilename(module)));
         final File targetTblFile = context.toFile(target.resolveFile(paths.getSdfTableFilename(module)));
 
-        return new PackageBuilder.Input(
-                context,
-                strategoMainFile,
-                strategoJavaStrategiesMainFile,
-                config.sdfArgs(),
-                baseDir,
-                config.format(),
-                javaJarPaths,
-                javaJarOutput,
-                module,
-                jarTarget,
-                jarOutput,
-                targetPpAfFile,
-                targetGenPpAfFile,
-                targetTblFile,
-                ppPackInputPath,
-                ppPackOutputPath,
-                ppGenInputPath,
-                ppGenOutputPath,
-                afGenOutputPath,
-                makePermissiveOutputPath,
-                sdf2tableOutputPath,
-                externalDef,
-                packSdfInputPath,
-                packSdfOutputPath,
-                syntaxFolder,
-                genSyntaxFolder);
+        return new PackageBuilder.Input(context, strategoMainFile, strategoJavaStrategiesMainFile, config.sdfArgs(),
+            baseDir, config.format(), javaJarPaths, javaJarOutput, module, jarTarget, jarOutput, targetPpAfFile,
+            targetGenPpAfFile, targetTblFile, ppPackInputPath, ppPackOutputPath, ppGenInputPath, ppGenOutputPath,
+            afGenOutputPath, makePermissiveOutputPath, sdf2tableOutputPath, externalDef, packSdfInputPath,
+            packSdfOutputPath, syntaxFolder, genSyntaxFolder);
     }
 }

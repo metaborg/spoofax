@@ -161,22 +161,24 @@ public class MetaborgModule extends AbstractModule {
         // FIXME: Used to bridge between the old and the new configuration systems.
         bind(LegacyLanguageSpecConfigService.class).in(Singleton.class);
         bind(ILanguageSpecConfigService.class).to(LegacyLanguageSpecConfigService.class).in(Singleton.class);
+        
         bind(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-//        bind(ILanguageSpecConfigService.class).to(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
+        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class);
 
         bind(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
-        bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
+        bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedLanguageSpecConfigBuilder.class);
     }
 
     protected void bindLanguageComponentConfig() {
         // FIXME: Used to bridge between the old and the new configuration systems.
         bind(LegacyLanguageComponentConfigService.class).in(Singleton.class);
-        bind(ILanguageComponentConfigService.class).to(LegacyLanguageComponentConfigService.class).in(Singleton.class);
+        bind(ILanguageComponentConfigService.class).to(LegacyLanguageComponentConfigService.class);
+        
         bind(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
-//        bind(ILanguageComponentConfigService.class).to(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
-
-        bind(ConfigurationBasedLanguageComponentConfigBuilder.class).in(Singleton.class);
-        bind(ILanguageComponentConfigBuilder.class).to(ConfigurationBasedLanguageComponentConfigBuilder.class).in(Singleton.class);
+        bind(ILanguageComponentConfigWriter.class).to(ConfigurationBasedLanguageComponentConfigService.class);
+        
+        bind(ConfigurationBasedLanguageComponentConfigBuilder.class);
+        bind(ILanguageComponentConfigBuilder.class).to(ConfigurationBasedLanguageComponentConfigBuilder.class);
     }
 
     protected void bindConfigMisc() {
@@ -192,7 +194,7 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindAnalysis() {
-        bind(IAnalysisService.class).to(AnalysisService.class);
+        bind(IAnalysisService.class).to(AnalysisService.class).in(Singleton.class);
     }
 
     protected void bindBuilder() {

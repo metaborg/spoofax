@@ -18,9 +18,9 @@ import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.core.language.ILanguageDiscoveryService;
+import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageCreationRequest;
@@ -81,9 +81,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
 
     @Inject public LanguageDiscoveryService(ILanguageService languageService,
-                                            ILanguageComponentConfigService componentConfigService,
-                                            ITermFactoryService termFactoryService, Map<String, IContextFactory> contextFactories,
-                                            Map<String, IContextStrategy> contextStrategies, Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
+        ILanguageComponentConfigService componentConfigService, ITermFactoryService termFactoryService,
+        Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
+        Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
         this.languageService = languageService;
         this.componentConfigService = componentConfigService;
         this.termFactoryService = termFactoryService;
@@ -174,8 +174,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             final ILanguageDiscoveryRequest request;
             if(errors.isEmpty() && exceptions.isEmpty()) {
                 request =
-                    new LanguageDiscoveryRequest(languageLocation, config, esvTerm, syntaxFacet,
-                        strategoRuntimeFacet);
+                    new LanguageDiscoveryRequest(languageLocation, config, esvTerm, syntaxFacet, strategoRuntimeFacet);
             } else {
                 request = new LanguageDiscoveryRequest(languageLocation, errors, exceptions);
             }
@@ -221,15 +220,17 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final IStrategoAppl esvTerm = discoveryRequest.esvTerm();
         final ILanguageComponentConfig config = discoveryRequest.config();
-        // final IProjectSettings settings = discoveryRequest.settings;
         final SyntaxFacet syntaxFacet = discoveryRequest.syntaxFacet();
         final StrategoRuntimeFacet strategoRuntimeFacet = discoveryRequest.strategoRuntimeFacet();
 
         logger.debug("Creating language component for {}", location);
 
         final LanguageIdentifier identifier = config.identifier();
-        final Iterable<LanguageContributionIdentifier> languageContributions =
-            Iterables2.from(new LanguageContributionIdentifier(identifier, languageName(esvTerm)));
+        final Collection<LanguageContributionIdentifier> languageContributions =
+            discoveryRequest.config().languageContributions();
+        if(languageContributions.isEmpty()) {
+            languageContributions.add(new LanguageContributionIdentifier(identifier, config.name()));
+        }
         final LanguageCreationRequest request = languageService.create(identifier, location, languageContributions);
 
         final String[] extensions = extensions(esvTerm);
@@ -246,12 +247,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         if(syntaxFacet != null) {
             request.addFacet(syntaxFacet);
-        }
 
-        if(ParseFacetFromESV.hasParser(esvTerm)) {
-            request.addFacet(ParseFacetFromESV.create(esvTerm));
-        } else {
-            request.addFacet(new ParseFacet("jsglr"));
+            if(ParseFacetFromESV.hasParser(esvTerm)) {
+                request.addFacet(ParseFacetFromESV.create(esvTerm));
+            } else {
+                request.addFacet(new ParseFacet("jsglr"));
+            }
         }
 
         if(strategoRuntimeFacet != null) {
@@ -341,10 +342,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         request.addFacet(dependencyFacet);
 
         return languageService.add(request);
-    }
-
-    private static String languageName(IStrategoAppl document) {
-        return ESVReader.getProperty(document, "LanguageName");
     }
 
     private static String[] extensions(IStrategoAppl document) {

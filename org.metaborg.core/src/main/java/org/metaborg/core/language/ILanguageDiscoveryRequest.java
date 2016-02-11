@@ -11,16 +11,13 @@ import org.metaborg.core.project.configuration.ILanguageComponentConfig;
  * Request for language discovery.
  */
 public interface ILanguageDiscoveryRequest {
-
     /**
      * Gets whether the language component is available.
      *
-     * A language component is available when all required files exist,
-     * such as the parse table and JAR files,
-     * and all configuration files are valid.
+     * A language component is available when all required files exist, such as the parse table and JAR files, and all
+     * configuration files are valid.
      * 
-     * @return <code>true</code> when a request is available;
-     * otherwise, <code>false</code>.
+     * @return <code>true</code> when a request is available; otherwise, <code>false</code>.
      */
     boolean available();
 
@@ -34,10 +31,9 @@ public interface ILanguageDiscoveryRequest {
     /**
      * Gets the configuration of the language.
      *
-     * @return The configuration; or <code>null</code> when the language is not available.
+     * @return The configuration; or <code>null</code> when not available.
      */
-    @Nullable
-    ILanguageComponentConfig config();
+    @Nullable ILanguageComponentConfig config();
 
     /**
      * Gets the errors produced during the creation of this request.
@@ -56,5 +52,4 @@ public interface ILanguageDiscoveryRequest {
      * @return The thrown exceptions.
      */
     Collection<Throwable> exceptions();
-
 }

@@ -2,6 +2,7 @@ package org.metaborg.core.project.configuration;
 
 import java.util.Collection;
 
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 /**
@@ -37,4 +38,10 @@ public interface ILanguageComponentConfig {
      */
     Collection<LanguageIdentifier> runtimeDependencies();
 
+    /**
+     * Gets the language contributions.
+     *
+     * @return The language contributions.
+     */
+    Collection<LanguageContributionIdentifier> languageContributions();
 }

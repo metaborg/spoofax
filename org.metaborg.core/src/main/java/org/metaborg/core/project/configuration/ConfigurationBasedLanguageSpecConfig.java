@@ -11,8 +11,11 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+
 import java.util.ArrayList;
+
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface
@@ -21,6 +24,7 @@ import com.google.common.base.Preconditions;
 public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig, IConfigurationBasedConfig {
 
     private static final long serialVersionUID = -7053551901853301773L;
+    
     private static final String PROP_IDENTIFIER = "id";
     private static final String PROP_NAME = "name";
     private static final String PROP_COMPILE_DEPENDENCIES = "compileDependencies";
@@ -130,8 +134,9 @@ public class ConfigurationBasedLanguageSpecConfig implements ILanguageSpecConfig
      */
     @Override public Collection<LanguageContributionIdentifier> languageContributions() {
         @Nullable final List<LanguageIdentifier> ids = this.config.getList(LanguageIdentifier.class, PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID);
-        if (ids == null)
-            return Collections.emptyList();
+        if (ids == null) {
+            return Lists.newArrayList();
+        }
 
         final List<LanguageContributionIdentifier> lcids = new ArrayList<>(ids.size());
         for (int i = 0; i < ids.size(); i++) {

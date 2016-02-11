@@ -1,6 +1,7 @@
 package org.metaborg.core.project.configuration;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import javax.annotation.Nullable;
@@ -41,6 +42,13 @@ public interface ILanguageComponentConfigBuilder {
      * @param obj The object to copy values from.
      */
     ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig obj);
+    
+    /**
+     * Copies the values from the specified object.
+     *
+     * @param obj The object to copy values from.
+     */
+    ILanguageComponentConfigBuilder copyFrom(ILanguageSpecConfig obj);
 
     /**
      * Sets the language identifier.
@@ -89,6 +97,21 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder addRuntimeDependencies(Iterable<LanguageIdentifier> dependencies);
+    
+    /**
+     * Sets the language contributions.
+     *
+     * @param contributions The language contributions.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
 
+    /**
+     * Adds language contributions.
+     *
+     * @param contributions The language contributions.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder addLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
 
 }

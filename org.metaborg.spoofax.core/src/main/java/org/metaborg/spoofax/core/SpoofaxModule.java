@@ -206,11 +206,9 @@ public class SpoofaxModule extends MetaborgModule {
             Singleton.class);
         bind(ISpoofaxLanguageSpecConfigWriter.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigService.class).in(Singleton.class);
 
-        bind(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class).in(Singleton.class);
-        bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class).in(
-            Singleton.class);
-        bind(ISpoofaxLanguageSpecConfigBuilder.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class).in(
-            Singleton.class);
+        bind(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class);
+        bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class);
+        bind(ISpoofaxLanguageSpecConfigBuilder.class).to(ConfigurationBasedSpoofaxLanguageSpecConfigBuilder.class);
     }
 
     protected void bindSyntax() {

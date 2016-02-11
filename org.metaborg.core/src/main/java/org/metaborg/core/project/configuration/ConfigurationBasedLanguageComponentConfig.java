@@ -1,112 +1,31 @@
 package org.metaborg.core.project.configuration;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
-import com.google.common.base.Preconditions;
-
 /**
- * An implementation of the {@link ILanguageSpecConfig} interface
- * that is backed by an {@link ImmutableConfiguration} object.
+ * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
+ * {@link ImmutableConfiguration} object. {@link ILanguageComponentConfig} corresponds to {@link ILanguageSpecConfig},
+ * so we can reuse the {@link ConfigurationBasedLanguageSpecConfig} implementation.
  */
-public class ConfigurationBasedLanguageComponentConfig implements ILanguageComponentConfig, IConfigurationBasedConfig {
+public class ConfigurationBasedLanguageComponentConfig extends ConfigurationBasedLanguageSpecConfig implements
+    ILanguageComponentConfig, IConfigurationBasedConfig {
+    private static final long serialVersionUID = 33189118842345663L;
 
-    private static final String PROP_IDENTIFIER = "id";
-    private static final String PROP_NAME = "name";
-    private static final String PROP_COMPILE_DEPENDENCIES = "compileDependencies";
-    private static final String PROP_RUNTIME_DEPENDENCIES = "runtimeDependencies";
 
-    protected final HierarchicalConfiguration<ImmutableNode> config;
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public HierarchicalConfiguration<ImmutableNode> getConfiguration() {
-        return this.config;
+    public ConfigurationBasedLanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
+        super(configuration);
     }
 
-    /**
-     * Initializes a new instance of the {@link ConfigurationBasedLanguageComponentConfig} class.
-     *
-     * @param configuration The configuration that provides the properties.
-     */
-    public ConfigurationBasedLanguageComponentConfig(final HierarchicalConfiguration<ImmutableNode> configuration) {
-        Preconditions.checkNotNull(configuration);
-
-        this.config = configuration;
+    protected ConfigurationBasedLanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> configuration,
+        LanguageIdentifier identifier, String name, Collection<LanguageIdentifier> compileDependencies,
+        Collection<LanguageIdentifier> runtimeDependencies,
+        Collection<LanguageContributionIdentifier> languageContributions) {
+        super(configuration, identifier, name, compileDependencies, runtimeDependencies, languageContributions);
     }
-
-    /**
-     * Initializes a new instance of the {@link ConfigurationBasedLanguageComponentConfig} class.
-     *
-     * Use the {@link ConfigurationBasedLanguageSpecConfigBuilder} instead.
-     *
-     * @param configuration The configuration that provides some of the properties.
-     */
-    protected ConfigurationBasedLanguageComponentConfig(
-            final HierarchicalConfiguration<ImmutableNode> configuration,
-            final LanguageIdentifier identifier,
-            final String name,
-            final Collection<LanguageIdentifier> compileDependencies,
-            final Collection<LanguageIdentifier> runtimeDependencies
-    ) {
-        this(configuration);
-        configuration.setProperty(PROP_NAME, name);
-        configuration.setProperty(PROP_IDENTIFIER, identifier);
-        configuration.setProperty(PROP_COMPILE_DEPENDENCIES, compileDependencies);
-        configuration.setProperty(PROP_RUNTIME_DEPENDENCIES, runtimeDependencies);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * The identifier is stored at the <code>id</code> element.
-     * An identifier has the syntax <code>groupid:artifactid:version</code>.
-     */
-    @Override public LanguageIdentifier identifier() {
-        @Nullable final LanguageIdentifier value = this.config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
-        return value != null ? value : LanguageIdentifier.EMPTY;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * The name is stored at the <code>name</code> element.
-     */
-    @Override public String name() {
-        @Nullable final String value = this.config.getString(PROP_NAME);
-        return value != null ? value : "";
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * The compile dependencies are stored as a list at the <code>compileDependencies</code> element.
-     * Each compile dependency is an identifier with the syntax <code>groupid:artifactid:version</code>.
-     */
-    @Override
-    public Collection<LanguageIdentifier> compileDependencies() {
-        @Nullable final List<LanguageIdentifier> value = this.config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
-        return value != null ? value : Collections.<LanguageIdentifier>emptyList();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * The runtime dependencies are stored as a list at the <code>runtimeDependencies</code> element.
-     * Each runtime dependency is an identifier with the syntax <code>groupid:artifactid:version</code>.
-     */
-    @Override public Collection<LanguageIdentifier> runtimeDependencies() {
-        @Nullable final List<LanguageIdentifier> value = this.config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);
-        return value != null ? value : Collections.<LanguageIdentifier>emptyList();
-    }
-
 }
