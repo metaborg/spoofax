@@ -39,7 +39,18 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      */
     @Nullable
     public TConfig get(TSubject subject) throws IOException {
-        return getFromConfigFile(getConfigFile(subject));
+        return get(getRootFolder(subject));
+    }
+
+    /**
+     * Gets the configuration for the given subject.
+     *
+     * @param rootFolder The root folder of the subject to get the configuration for.
+     * @return The configuration; or <code>null</code> when no configuration could be retrieved.
+     */
+    @Nullable
+    public TConfig get(FileObject rootFolder) throws IOException {
+        return getFromConfigFile(getConfigFile(rootFolder), rootFolder);
     }
 
     /**
@@ -49,10 +60,10 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      * @return The configuration; or <code>null</code> when no configuration could be retrieved.
      */
     @Nullable
-    public TConfig getFromConfigFile(FileObject configFile) throws IOException {
+    public TConfig getFromConfigFile(FileObject configFile, @Nullable FileObject rootFolder) throws IOException {
         HierarchicalConfiguration<ImmutableNode> configuration;
         try {
-            configuration = readConfig(configFile);
+            configuration = readConfig(configFile, rootFolder);
         } catch (ConfigurationException e) {
             throw new ConfigurationRuntimeException(e);
         }
@@ -70,10 +81,21 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      * @param access
      */
     public void write(TSubject subject, TConfig config, @Nullable FileAccess access) throws IOException {
-        FileObject configFile = getConfigFile(subject);
+        write(getRootFolder(subject), config, access);
+    }
+
+    /**
+     * Writes the configuration for the given subject.
+     *
+     * @param rootFolder The root folder of the subject to set the configuration for.
+     * @param config The configuration; or <code>null</code> to remove an existing configuration.
+     * @param access
+     */
+    public void write(FileObject rootFolder, TConfig config, @Nullable FileAccess access) throws IOException {
+        FileObject configFile = getConfigFile(rootFolder);
         HierarchicalConfiguration<ImmutableNode> configuration = fromConfig(config);
         try {
-            writeConfig(configFile, configuration);
+            writeConfig(configFile, configuration, rootFolder);
         } catch (ConfigurationException e) {
             throw new ConfigurationRuntimeException(e);
         }
@@ -88,7 +110,27 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      * @return The configuration file.
      * @throws FileSystemException
      */
-    public abstract FileObject getConfigFile(TSubject subject) throws FileSystemException;
+    public FileObject getConfigFile(TSubject subject) throws FileSystemException {
+        return getConfigFile(getRootFolder(subject));
+    }
+
+    /**
+     * Gets the configuration file for the specified subject.
+     *
+     * @param subject The subject.
+     * @return The configuration file.
+     * @throws FileSystemException
+     */
+    protected abstract FileObject getRootFolder(TSubject subject) throws FileSystemException;
+
+    /**
+     * Gets the configuration file for the specified subject.
+     *
+     * @param rootFolder The root folder.
+     * @return The configuration file.
+     * @throws FileSystemException
+     */
+    public abstract FileObject getConfigFile(FileObject rootFolder) throws FileSystemException;
 
     /**
      * Creates a new instance of the config type for the specified configuration.
@@ -114,25 +156,26 @@ public abstract class ConfigurationBasedConfigService<TSubject, TConfig> {
      * @throws ConfigurationException
      */
     @Nullable
-    protected HierarchicalConfiguration<ImmutableNode> readConfig(final FileObject configFile) throws IOException,
+    protected HierarchicalConfiguration<ImmutableNode> readConfig(final FileObject configFile, @Nullable FileObject rootFolder) throws IOException,
             ConfigurationException {
         if (!configFile.exists())
             return null;
-        return this.configurationReaderWriter.read(configFile);
+        return this.configurationReaderWriter.read(configFile, rootFolder);
     }
 
     /**
      * Writes a configuration to a file.
      * @param configFile The configuration file to write to.
      * @param config The configuration to write; or <code>null</code> to delete the configuration file.
+     * @param rootFolder The root folder.
      * @throws IOException
      * @throws ConfigurationException
      */
-    protected void writeConfig(final FileObject configFile, @Nullable final HierarchicalConfiguration<ImmutableNode> config) throws
+    protected void writeConfig(final FileObject configFile, @Nullable final HierarchicalConfiguration<ImmutableNode> config, @Nullable final FileObject rootFolder) throws
             IOException, ConfigurationException {
 
         if (config != null) {
-            this.configurationReaderWriter.write(config, configFile);
+            this.configurationReaderWriter.write(config, configFile, rootFolder);
         } else {
             configFile.delete();
         }

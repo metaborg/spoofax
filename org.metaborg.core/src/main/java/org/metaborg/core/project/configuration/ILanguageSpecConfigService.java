@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ILanguageSpec;
 
 /**
@@ -19,5 +20,15 @@ public interface ILanguageSpecConfigService {
      */
     @Nullable
     ILanguageSpecConfig get(ILanguageSpec languageSpec) throws IOException;
+
+    /**
+     * Gets the configuration for the language specification at the given location.
+     *
+     * @param rootFolder The language specification root folder.
+     * @return The configuration; or <code>null</code> when no configuration could be retrieved.
+     * @throws IOException
+     */
+    @Nullable
+    ILanguageSpecConfig get(FileObject rootFolder) throws IOException;
 
 }

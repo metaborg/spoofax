@@ -23,6 +23,8 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ProjectException;
@@ -70,5 +72,11 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
             }
         }
         return config;
+    }
+
+    @Nullable
+    @Override
+    public ILanguageSpecConfig get(FileObject rootFolder) throws IOException {
+        throw new NotImplementedException("This operation is not supported.");
     }
 }

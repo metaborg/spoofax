@@ -25,6 +25,15 @@ public interface ILanguageComponentConfigWriter {
     void write(ILanguageComponent languageComponent, ILanguageComponentConfig config, @Nullable FileAccess access) throws IOException;
 
     /**
+     * Writes the specified configuration for the specified language component.
+     *
+     * @param root The language root folder.
+     * @param config The configuration to write.
+     * @param access
+     */
+    void write(FileObject root, ILanguageComponentConfig config, @Nullable FileAccess access) throws IOException;
+
+    /**
      * Gets the configuration file where the configuration is stored.
      *
      * @param languageComponent The language component.
@@ -33,4 +42,12 @@ public interface ILanguageComponentConfigWriter {
      */
     FileObject getConfigFile(ILanguageComponent languageComponent) throws FileSystemException;
 
+    /**
+     * Gets the configuration file where the configuration is stored.
+     *
+     * @param root The language root folder.
+     * @return The configuration file; or <code>null</code> if the configuration
+     * is not stored in a file.
+     */
+    FileObject getConfigFile(FileObject root) throws FileSystemException;
 }

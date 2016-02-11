@@ -27,18 +27,15 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends Configur
      * {@inheritDoc}
      */
     @Override
-    public FileObject getConfigFile(ILanguageSpec languageSpec) throws FileSystemException {
-        return getConfigFile(languageSpec.location());
+    protected FileObject getRootFolder(ILanguageSpec languageSpec) throws FileSystemException {
+        return languageSpec.location();
     }
 
     /**
-     * Gets the configuration file for the specified root folder.
-     *
-     * @param rootFolder The root folder.
-     * @return The configuration file.
-     * @throws FileSystemException
+     * {@inheritDoc}
      */
-    private FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+    @Override
+    public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
         return rootFolder.resolveFile(MetaborgConstants.FILE_CONFIG);
     }
 

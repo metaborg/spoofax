@@ -1,9 +1,12 @@
 package org.metaborg.spoofax.core.project.configuration;
 
 import com.google.inject.Inject;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ProjectException;
+import org.metaborg.core.project.configuration.ILanguageSpecConfig;
 import org.metaborg.spoofax.core.project.settings.ILegacySpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettings;
 
@@ -56,5 +59,11 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
         }
 
         return config;
+    }
+
+    @Nullable
+    @Override
+    public ILanguageSpecConfig get(FileObject rootFolder) throws IOException {
+        throw new NotImplementedException("This operation is not supported.");
     }
 }

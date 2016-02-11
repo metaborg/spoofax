@@ -27,8 +27,8 @@ public class ConfigurationBasedLanguageComponentConfigService extends Configurat
      * {@inheritDoc}
      */
     @Override
-    public FileObject getConfigFile(ILanguageComponent languageComponent) throws FileSystemException {
-        return getConfigFile(languageComponent.location());
+    protected FileObject getRootFolder(ILanguageComponent languageComponent) throws FileSystemException {
+        return languageComponent.location();
     }
 
     /**
@@ -38,7 +38,8 @@ public class ConfigurationBasedLanguageComponentConfigService extends Configurat
      * @return The configuration file.
      * @throws FileSystemException
      */
-    private FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+    @Override
+    public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
         return rootFolder.resolveFile(MetaborgConstants.FILE_CONFIG);
     }
 
@@ -61,14 +62,5 @@ public class ConfigurationBasedLanguageComponentConfigService extends Configurat
             config = this.configBuilder.build(null);
         }
         return ((IConfigurationBasedConfig)config).getConfiguration();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Nullable
-    @Override
-    public ILanguageComponentConfig get(FileObject rootFolder) throws IOException {
-        return getFromConfigFile(getConfigFile(rootFolder));
     }
 }

@@ -33,9 +33,9 @@ public abstract class ConfigurationReaderWriter {
      * @param source The source file.
      * @return The read configuration.
      */
-    public HierarchicalConfiguration<ImmutableNode> read(FileObject source) throws IOException, ConfigurationException {
+    public HierarchicalConfiguration<ImmutableNode> read(FileObject source, @Nullable FileObject rootFolder) throws IOException, ConfigurationException {
         try (InputStream input = source.getContent().getInputStream()) {
-            return read(input, source.getParent());
+            return read(input, rootFolder);
         }
     }
 
@@ -70,11 +70,12 @@ public abstract class ConfigurationReaderWriter {
      *
      * @param configuration The configuration to write.
      * @param destination The destination file.
+     * @param rootFolder The root folder.
      */
-    public void write(HierarchicalConfiguration<ImmutableNode> configuration, FileObject destination) throws IOException,
+    public void write(HierarchicalConfiguration<ImmutableNode> configuration, FileObject destination, @Nullable FileObject rootFolder) throws IOException,
             ConfigurationException {
         try (OutputStream output = destination.getContent().getOutputStream()) {
-            write(configuration, output, destination.getParent());
+            write(configuration, output, rootFolder);
         }
     }
 
