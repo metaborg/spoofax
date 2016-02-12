@@ -11,6 +11,7 @@ import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.menu.IMenuService;
 import org.metaborg.core.outline.IOutlineService;
 import org.metaborg.core.plugin.IModulePluginLoader;
+import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.style.ICategorizerService;
@@ -53,7 +54,8 @@ public class MetaBorgGeneric<P, A, T> extends MetaBorg {
     public final ITransformService<P, A, T> transformService;
 
     public final IBuilder<P, A, T> builder;
-
+    public final IProcessorRunner<P, A, T> processorRunner;
+    
     public final IParseResultProcessor<P> parseResultProcessor;
     public final IAnalysisResultProcessor<P, A> analysisResultProcessor;
 
@@ -98,6 +100,7 @@ public class MetaBorgGeneric<P, A, T> extends MetaBorg {
         this.transformService = getT(new TypeLiteral<ITransformService<P, A, T>>() {});
 
         this.builder = getT(new TypeLiteral<IBuilder<P, A, T>>() {});
+        this.processorRunner = getT(new TypeLiteral<IProcessorRunner<P, A, T>>() {});
 
         this.parseResultProcessor = getP(new TypeLiteral<IParseResultProcessor<P>>() {});
         this.analysisResultProcessor = getA(new TypeLiteral<IAnalysisResultProcessor<P, A>>() {});

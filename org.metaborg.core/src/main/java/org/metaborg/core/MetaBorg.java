@@ -3,10 +3,17 @@ package org.metaborg.core;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.editor.IEditorRegistry;
-import org.metaborg.core.language.*;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageDiscoveryRequest;
+import org.metaborg.core.language.ILanguageDiscoveryService;
+import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.core.plugin.IServiceModulePlugin;
 import org.metaborg.core.plugin.InjectorFactory;
@@ -34,9 +41,11 @@ public class MetaBorg {
     public final ILanguageDiscoveryService languageDiscoveryService;
     public final ILanguageIdentifierService languageIdentifierService;
     public final ILanguagePathService languagePathService;
+    public final IDialectProcessor dialectProcessor;
 
     public final IContextService contextService;
 
+    public final IDependencyService dependencyService;
     public final IProjectService projectService;
     public final ILanguageSpecService languageSpecService;
     public final ILanguageSpecConfigService languageSpecConfigService;
@@ -65,9 +74,11 @@ public class MetaBorg {
         this.languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
         this.languageIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
         this.languagePathService = injector.getInstance(ILanguagePathService.class);
+        this.dialectProcessor = injector.getInstance(IDialectProcessor.class);
 
         this.contextService = injector.getInstance(IContextService.class);
 
+        this.dependencyService = injector.getInstance(IDependencyService.class);
         this.projectService = injector.getInstance(IProjectService.class);
         this.languageSpecService = injector.getInstance(ILanguageSpecService.class);
         this.languageSpecConfigService = injector.getInstance(ILanguageSpecConfigService.class);

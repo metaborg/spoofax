@@ -3,6 +3,9 @@ package org.metaborg.spoofax.core;
 import org.metaborg.core.MetaBorgGeneric;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.plugin.IModulePluginLoader;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigBuilder;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -12,10 +15,13 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  * Facade for instantiating and accessing the Metaborg API, instantiated with the Spoofax implementation.
  */
 public class Spoofax extends MetaBorgGeneric<IStrategoTerm, IStrategoTerm, IStrategoTerm> {
+    @SuppressWarnings("hiding") public final ISpoofaxLanguageSpecConfigService languageSpecConfigService;
+    public final ISpoofaxLanguageSpecPathsService languageSpecPathsService;
+
     public final ITermFactoryService termFactoryService;
     public final IStrategoRuntimeService strategoRuntimeService;
     public final IStrategoCommon strategoCommon;
-    
+
 
     /**
      * Instantiate the Metaborg API with a Spoofax implementation.
@@ -29,7 +35,10 @@ public class Spoofax extends MetaBorgGeneric<IStrategoTerm, IStrategoTerm, IStra
      */
     public Spoofax(SpoofaxModule module, IModulePluginLoader loader) throws MetaborgException {
         super(module, loader, IStrategoTerm.class, IStrategoTerm.class, IStrategoTerm.class);
-        
+
+        this.languageSpecConfigService = injector.getInstance(ISpoofaxLanguageSpecConfigService.class);
+        this.languageSpecPathsService = injector.getInstance(ISpoofaxLanguageSpecPathsService.class);
+
         this.termFactoryService = injector.getInstance(ITermFactoryService.class);
         this.strategoRuntimeService = injector.getInstance(IStrategoRuntimeService.class);
         this.strategoCommon = injector.getInstance(IStrategoCommon.class);
@@ -68,6 +77,15 @@ public class Spoofax extends MetaBorgGeneric<IStrategoTerm, IStrategoTerm, IStra
     public Spoofax() throws MetaborgException {
         this(defaultModule());
     }
+
+
+    /**
+     * @return Fresh language specification configuration builder.
+     */
+    public ISpoofaxLanguageSpecConfigBuilder languageSpecConfigBuilder() {
+        return injector.getInstance(ISpoofaxLanguageSpecConfigBuilder.class);
+    }
+
 
     protected static SpoofaxModule defaultModule() {
         return new SpoofaxModule();
