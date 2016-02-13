@@ -1,0 +1,8 @@
+module Syntax
+
+language
+
+  line comment  : "//"
+  block comment : "/*" * "*/"
+
+  fences        : [ ] ( ) { }

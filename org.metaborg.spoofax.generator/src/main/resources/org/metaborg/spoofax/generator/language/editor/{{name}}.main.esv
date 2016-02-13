@@ -1,0 +1,28 @@
+module {{name}}.main
+
+imports
+
+  Colorer
+  Menus
+  Syntax
+  Views
+
+language
+  
+  name : {{name}}
+  
+{{#fileExtensions}}  extensions : {{fileExtensions}}
+
+{{/fileExtensions}}
+  table         : include/{{name}}.tbl
+  start symbols : {{startSymbol}}
+  
+  provider : include/{{strategoName}}.ctree
+  provider : include/{{strategoName}}-java.jar
+{{#analysisEnabled}}
+  observer : editor-analyze (multifile)
+  
+references
+
+  reference _ : editor-resolve
+  hover _     : editor-hover{{/analysisEnabled}}

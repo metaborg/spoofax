@@ -1,0 +1,14 @@
+/.cache
+/bin
+/editor/java/trans
+/editor/*.generated.*
+/include
+/src-gen
+/syntax/*.generated.*
+/target
+/trans/*.pp.generated.str
+/lib/*.generated.*
+
+/.classpath
+/.project
+/.settings

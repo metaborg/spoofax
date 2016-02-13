@@ -11,9 +11,9 @@
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>org.metaborg.maven.parent.java</artifactId>
-    <version>1.5.1-SNAPSHOT</version>
-    <relativePath>../../spoofax-deploy/org.metaborg.maven.parent.java</relativePath>
+    <artifactId>parent.java</artifactId>
+    <version>1.5.0-SNAPSHOT</version>
+    <relativePath>../../releng/parent/java</relativePath>
   </parent>
 
   <dependencies>
@@ -24,17 +24,17 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.core</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.spoofax.terms</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>org.spoofax.interpreter.core</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.strategoxt.imp.generator</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
@@ -52,7 +52,12 @@
       <artifactId>org.metaborg.runtime.task</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.meta.interpreter.framework</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
@@ -93,7 +98,17 @@
       <groupId>org.functionaljava</groupId>
       <artifactId>functionaljava</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.core.test</artifactId>
+      <version>${metaborg-version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

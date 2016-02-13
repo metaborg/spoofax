@@ -7,11 +7,16 @@ import static org.spoofax.terms.Term.asJavaString;
 import static org.spoofax.terms.Term.tryGetName;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+
+import com.google.common.collect.Lists;
 
 /**
  * Term reading utility class for ESV abstract syntax.
@@ -32,7 +37,7 @@ public class ESVReader {
     }
 
     public static ArrayList<IStrategoAppl> collectTerms(IStrategoAppl term, String... constructors) {
-        ArrayList<IStrategoAppl> results = new ArrayList<IStrategoAppl>();
+        ArrayList<IStrategoAppl> results = new ArrayList<>();
         for(String constructor : constructors) {
             collectTerms(term, constructor, results);
         }
@@ -49,6 +54,7 @@ public class ESVReader {
         }
     }
 
+    @Nullable
     public static String termContents(IStrategoTerm t) {
         if(t == null)
             return null;
@@ -71,6 +77,25 @@ public class ESVReader {
             result = result.substring(1, result.length() - 1).replace("\\\\", "\"");
 
         return result;
+    }
+
+    @Nullable
+    public static List<String> termListContents(IStrategoTerm t) {
+        if(t == null)
+            return null;
+
+        List<String> results = Lists.newArrayList();
+
+        if(t.getSubtermCount() == 1 && "Values".equals(tryGetName(t))) {
+            IStrategoList values = Tools.listAt(t, 0);
+            for(int i = 0; i < values.getSubtermCount(); i++) {
+                results.add(termContents(termAt(values, i)));
+            }
+        } else {
+            return null;
+        }
+
+        return results;
     }
 
     public static String getProperty(IStrategoAppl document, String name) {

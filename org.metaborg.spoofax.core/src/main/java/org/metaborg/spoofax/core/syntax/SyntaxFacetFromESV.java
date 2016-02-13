@@ -4,17 +4,26 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.syntax.FenceCharacters;
+import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Lists;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class SyntaxFacetFromESV {
-    public static SyntaxFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
-        final FileObject parseTable = location.resolveFile(parseTableName(esv));
+    public static @Nullable SyntaxFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
+        final String parseTableLocation = parseTableLocation(esv);
+        if(parseTableLocation == null) {
+            return null;
+        }
+        final FileObject parseTable = location.resolveFile(parseTableLocation);
         final Iterable<String> startSymbols = startSymbols(esv);
         final Iterable<String> singleLineCommentPrefixes = singleLineCommentPrefixes(esv);
         final Iterable<MultiLineCommentCharacters> multiLineCommentCharacters = multiLineCommentCharacters(esv);
@@ -26,20 +35,26 @@ public class SyntaxFacetFromESV {
     }
 
 
-    private static String parseTableName(IStrategoAppl document) {
-        String file = ESVReader.getProperty(document, "Table", ESVReader.getProperty(document, "LanguageName"));
-        if(!file.endsWith(".tbl"))
+    private static @Nullable String parseTableLocation(IStrategoAppl document) {
+        String file = ESVReader.getProperty(document, "Table");
+        if(file == null) {
+            return null;
+        }
+        if(!file.endsWith(".tbl")) {
             file += ".tbl";
+        }
         return file;
     }
 
     private static Iterable<String> startSymbols(IStrategoAppl document) {
         // GTODO: multiple start symbols
         final IStrategoAppl result = ESVReader.findTerm(document, "StartSymbols");
-        if(result == null)
+        if(result == null) {
             return null;
+        }
 
-        return Iterables2.singleton(ESVReader.termContents(termAt(termAt(result, 0), 0)));
+        final String contents = ESVReader.termContents(termAt(termAt(result, 0), 0));
+        return Iterables2.singleton(contents);
     }
 
     private static Iterable<String> singleLineCommentPrefixes(IStrategoAppl document) {

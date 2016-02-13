@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.style;
 
+import org.metaborg.core.style.ICategory;
+
 public class ConsCategory implements ICategory {
     private static final long serialVersionUID = -1986900934532701035L;
     

@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.resource.IResourceService;
-import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.syntax.ParseException;
-import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.text.ISourceTextService;
+import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.core.syntax.ISyntaxService;
+import org.metaborg.core.syntax.ParseException;
+import org.metaborg.core.syntax.ParseResult;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
@@ -46,12 +46,12 @@ public class ParseFileStrategy extends Strategy {
             if(resource.getType() != FileType.FILE) {
                 return null;
             }
-            final ILanguage language = languageIdentifierService.identify(resource);
+            final ILanguageImpl language = languageIdentifierService.identify(resource);
             if(language == null) {
                 return null;
             }
             final String text = sourceTextService.text(resource);
-            final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language);
+            final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language, null);
             return result.result;
         } catch(ParseException | IOException e) {
             throw new StrategoException("Parsing failed", e);
