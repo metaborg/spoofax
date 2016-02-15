@@ -24,8 +24,9 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
     protected final Set<LanguageIdentifier> compileDependencies = new HashSet<>();
     protected final Set<LanguageIdentifier> runtimeDependencies = new HashSet<>();
     protected final Set<LanguageContributionIdentifier> languageContributions = new HashSet<>();
+    @Nullable protected String metaborgVersion = null;
 
-    
+
     /**
      * Initializes a new instance of the {@link ConfigurationBasedLanguageComponentConfigBuilder} class.
      *
@@ -37,10 +38,7 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         this.configurationReaderWriter = configurationReaderWriter;
     }
 
-    
-    /**
-     * {@inheritDoc}
-     */
+
     @Override public ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
         if(!isValid())
             throw new IllegalStateException(validateOrError());
@@ -48,7 +46,7 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         JacksonConfiguration configuration = createConfiguration(rootFolder);
 
         return new ConfigurationBasedLanguageComponentConfig(configuration, this.identifier, this.name,
-            this.compileDependencies, this.runtimeDependencies, this.languageContributions);
+            this.compileDependencies, this.runtimeDependencies, this.languageContributions, this.metaborgVersion);
     }
 
     /**
@@ -62,9 +60,6 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         return this.configurationReaderWriter.createConfiguration(null, rootFolder);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public boolean isValid() {
         return validateOrError() == null;
     }
@@ -83,9 +78,6 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder reset() {
         this.identifier = null;
         this.name = null;
@@ -95,9 +87,6 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig config) {
         withIdentifier(config.identifier());
         withName(config.name());
@@ -118,69 +107,50 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder withIdentifier(LanguageIdentifier identifier) {
         this.identifier = identifier;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder withName(String name) {
         this.name = name;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder withCompileDependencies(Iterable<LanguageIdentifier> dependencies) {
         this.compileDependencies.clear();
         return addCompileDependencies(dependencies);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder addCompileDependencies(Iterable<LanguageIdentifier> dependencies) {
         this.compileDependencies.addAll(Lists.newArrayList(dependencies));
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder withRuntimeDependencies(Iterable<LanguageIdentifier> dependencies) {
         this.runtimeDependencies.clear();
         return addRuntimeDependencies(dependencies);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder addRuntimeDependencies(Iterable<LanguageIdentifier> dependencies) {
         this.runtimeDependencies.addAll(Lists.newArrayList(dependencies));
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder withLanguageContributions(
         Iterable<LanguageContributionIdentifier> contributions) {
         this.languageContributions.clear();
         return addLanguageContributions(contributions);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public ILanguageComponentConfigBuilder addLanguageContributions(
         Iterable<LanguageContributionIdentifier> contributions) {
         this.languageContributions.addAll(Lists.newArrayList(contributions));
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withMetaborgVersion(String metaborgVersion) {
+        this.metaborgVersion = metaborgVersion;
         return this;
     }
 }

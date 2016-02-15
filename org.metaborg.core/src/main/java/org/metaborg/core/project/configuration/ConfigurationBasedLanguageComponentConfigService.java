@@ -1,9 +1,5 @@
 package org.metaborg.core.project.configuration;
 
-import java.io.IOException;
-
-import javax.annotation.Nullable;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;

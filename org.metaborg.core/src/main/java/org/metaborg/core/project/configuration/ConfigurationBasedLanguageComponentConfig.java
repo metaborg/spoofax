@@ -25,7 +25,8 @@ public class ConfigurationBasedLanguageComponentConfig extends ConfigurationBase
     protected ConfigurationBasedLanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> configuration,
         LanguageIdentifier identifier, String name, Collection<LanguageIdentifier> compileDependencies,
         Collection<LanguageIdentifier> runtimeDependencies,
-        Collection<LanguageContributionIdentifier> languageContributions) {
-        super(configuration, identifier, name, compileDependencies, runtimeDependencies, languageContributions);
+        Collection<LanguageContributionIdentifier> languageContributions, String metaborgVersion) {
+        super(configuration, identifier, name, compileDependencies, runtimeDependencies, languageContributions,
+            metaborgVersion);
     }
 }

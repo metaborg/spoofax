@@ -15,11 +15,10 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
     private static final long serialVersionUID = -4814753959508772739L;
     private static final String SNAPSHOT = "SNAPSHOT";
     private static final Pattern pattern = Pattern.compile("(\\d+)?(?:\\.(\\d+)(?:\\.(\\d+))?)?(?:(?:\\-)(.+))?");
+    
     public static final String errorDescription = "must consist of 1-3 numbers separated by dots, optionally followed by a -qualifier string (e.g. 1.0.0-SNAPSHOT)";
 
-    /**
-     * The version of a baseline language.
-     */
+    // BOOTSTRAPPING: The version of a baseline language.
     public static final LanguageVersion BASELINE_VERSION = new LanguageVersion(0, 0, 0, "");
 
     private final int major;

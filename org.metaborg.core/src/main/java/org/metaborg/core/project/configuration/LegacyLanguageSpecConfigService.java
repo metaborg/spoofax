@@ -77,6 +77,8 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
     @Nullable
     @Override
     public ILanguageSpecConfig get(FileObject rootFolder) throws IOException {
-        throw new NotImplementedException("This operation is not supported.");
+        // Try get a configuration.
+        @Nullable ILanguageSpecConfig config = this.configurationBasedLanguageSpecConfigService.get(rootFolder);
+        return config;
     }
 }

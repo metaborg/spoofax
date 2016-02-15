@@ -1,17 +1,17 @@
 package org.metaborg.core.project.configuration;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import java.io.Serializable;
+
 /**
  * Configuration of a language specification.
  *
  * To create a new instance of this interface, use the {@link ILanguageSpecConfigBuilder} interface.
  */
 public interface ILanguageSpecConfig extends Serializable {
-
     /**
      * Gets the language identifier.
      *
@@ -47,4 +47,10 @@ public interface ILanguageSpecConfig extends Serializable {
      */
     Collection<LanguageContributionIdentifier> languageContributions();
 
+    /**
+     * Gets the version of MetaBorg tooling to use.
+     * 
+     * @return The version of MetaBorg tooling to use.
+     */
+    String metaborgVersion();
 }

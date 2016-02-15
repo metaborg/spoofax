@@ -60,6 +60,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
                 this.compileDependencies,
                 this.runtimeDependencies,
                 this.languageContributions,
+                this.metaborgVersion,
                 this.pardonedLanguages,
                 this.format,
                 this.externalDef,

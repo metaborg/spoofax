@@ -2,16 +2,13 @@ package org.metaborg.spoofax.core;
 
 import java.util.Set;
 
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.common.collect.ImmutableSet;
 
 public class SpoofaxConstants {
-    public static final String METABORG_GROUP_ID = "org.metaborg";
-    public static final String METABORG_VERSION = "1.5.0-SNAPSHOT";
-
-
     public static final String LANG_ATERM_ID = "org.metaborg.meta.lang.aterm";
     public static final String LANG_ATERM_NAME = "ATerm";
 
@@ -69,7 +66,7 @@ public class SpoofaxConstants {
     }
 
     public static boolean isMetaLanguage(String groupId, String id) {
-        return groupId.equals(METABORG_GROUP_ID) && META_LANG_IDS.contains(id);
+        return groupId.equals(MetaborgConstants.METABORG_GROUP_ID) && META_LANG_IDS.contains(id);
     }
 
     public static boolean isMetaLanguage(String name) {

@@ -57,6 +57,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
             final Collection<LanguageIdentifier> compileDependencies,
             final Collection<LanguageIdentifier> runtimeDependencies,
             final Collection<LanguageContributionIdentifier> languageContributions,
+            final String metaborgVersion,
             final Collection<String> pardonedLanguages,
             final Format format,
             final String externalDef,
@@ -65,7 +66,7 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfig extends ConfigurationBa
             final Arguments sdfArgs,
             final Arguments strategoArgs
     ) {
-        super(configuration, identifier, name, compileDependencies, runtimeDependencies, languageContributions);
+        super(configuration, identifier, name, compileDependencies, runtimeDependencies, languageContributions, metaborgVersion);
         configuration.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
         configuration.setProperty(PROP_FORMAT, format);
         configuration.setProperty(PROP_EXTERNAL_DEF, externalDef);

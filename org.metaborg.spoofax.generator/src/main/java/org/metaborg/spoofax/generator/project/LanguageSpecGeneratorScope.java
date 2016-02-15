@@ -3,11 +3,11 @@ package org.metaborg.spoofax.generator.project;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.core.project.settings.Format;
@@ -59,7 +59,7 @@ public class LanguageSpecGeneratorScope {
 
     public String metaborgVersion() {
         return metaborgVersion != null && !metaborgVersion.isEmpty() ? metaborgVersion
-                : SpoofaxConstants.METABORG_VERSION;
+                : MetaborgConstants.METABORG_VERSION;
     }
 
     public void setMetaborgVersion(@Nullable String metaborgVersion) throws ProjectException {
@@ -79,7 +79,7 @@ public class LanguageSpecGeneratorScope {
     }
 
     public boolean generateGroupId() {
-        return !groupId().equals(SpoofaxConstants.METABORG_GROUP_ID);
+        return !groupId().equals(MetaborgConstants.METABORG_GROUP_ID);
     }
 
     public String id() {

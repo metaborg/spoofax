@@ -5,7 +5,6 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgConstants;
-import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.ILanguageSpec;
 
 import com.google.inject.Inject;
