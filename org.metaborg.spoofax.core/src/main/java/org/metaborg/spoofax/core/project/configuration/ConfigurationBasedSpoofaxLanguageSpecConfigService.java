@@ -12,52 +12,39 @@ import org.metaborg.core.project.configuration.IConfigurationBasedConfig;
 
 import com.google.inject.Inject;
 
-public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends ConfigurationBasedConfigService<ILanguageSpec, ISpoofaxLanguageSpecConfig> implements ISpoofaxLanguageSpecConfigService, ISpoofaxLanguageSpecConfigWriter {
-
+public class ConfigurationBasedSpoofaxLanguageSpecConfigService extends
+    ConfigurationBasedConfigService<ILanguageSpec, ISpoofaxLanguageSpecConfig> implements
+    ISpoofaxLanguageSpecConfigService, ISpoofaxLanguageSpecConfigWriter {
     private final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder;
 
-    @Inject
-    public ConfigurationBasedSpoofaxLanguageSpecConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder) {
+
+    @Inject public ConfigurationBasedSpoofaxLanguageSpecConfigService(
+        ConfigurationReaderWriter configurationReaderWriter,
+        ConfigurationBasedSpoofaxLanguageSpecConfigBuilder configBuilder) {
         super(configurationReaderWriter);
 
         this.configBuilder = configBuilder;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected FileObject getRootFolder(ILanguageSpec languageSpec) throws FileSystemException {
+
+    @Override protected FileObject getRootFolder(ILanguageSpec languageSpec) throws FileSystemException {
         return languageSpec.location();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+    @Override public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
         return rootFolder.resolveFile(MetaborgConstants.FILE_CONFIG);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected ISpoofaxLanguageSpecConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
+    @Override protected ISpoofaxLanguageSpecConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
         return new ConfigurationBasedSpoofaxLanguageSpecConfig(configuration);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected HierarchicalConfiguration<ImmutableNode> fromConfig(ISpoofaxLanguageSpecConfig config) {
-        if (!(config instanceof IConfigurationBasedConfig)) {
-            this.configBuilder.reset();
-            this.configBuilder.copyFrom(config);
-            config = this.configBuilder.build(null);
+    @Override protected HierarchicalConfiguration<ImmutableNode> fromConfig(ISpoofaxLanguageSpecConfig config) {
+        if(!(config instanceof IConfigurationBasedConfig)) {
+            configBuilder.reset();
+            configBuilder.copyFrom(config);
+            config = configBuilder.build(null);
         }
-        return ((IConfigurationBasedConfig)config).getConfiguration();
+        return ((IConfigurationBasedConfig) config).getConfiguration();
     }
-
 }

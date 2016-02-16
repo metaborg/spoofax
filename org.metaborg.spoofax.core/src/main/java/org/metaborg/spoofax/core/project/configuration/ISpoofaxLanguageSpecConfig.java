@@ -15,7 +15,6 @@ import java.util.Collection;
  * To create a new instance of this interface, use the {@link ILanguageSpecConfigBuilder} interface.
  */
 public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
-
     /**
      * Gets a sequence of languages whose errors are ignored.
      *
@@ -63,24 +62,21 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      *
      * @return The external def.
      */
-    @Nullable
-    String externalDef();
+    @Nullable String externalDef();
 
     /**
      * Gets the external JAR.
      *
      * @return The external JAR.
      */
-    @Nullable
-    String externalJar();
+    @Nullable String externalJar();
 
     /**
      * Gets the external JAR flags.
      *
      * @return The external JAR flags.
      */
-    @Nullable
-    String externalJarFlags();
+    @Nullable String externalJarFlags();
 
     /**
      * Gets the Stratego name.
@@ -116,5 +112,4 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      * @return The ESV name.
      */
     String esvName();
-
 }

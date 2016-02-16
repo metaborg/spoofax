@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.project.configuration;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -7,28 +9,25 @@ import org.metaborg.core.project.configuration.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.project.settings.Format;
 import org.metaborg.util.cmd.Arguments;
 
-import javax.annotation.Nullable;
-
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
  */
-public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBuilder {//IObjectBuilder<ISpoofaxLanguageSpecConfig> {
-
+public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBuilder {
     /**
      * Builds the object.
      *
-     * @param rootFolder The root folder.
+     * @param rootFolder
+     *            The root folder.
      * @return The built object.
-     * @throws IllegalStateException The builder state is not valid,
-     * i.e. {@link #isValid()} returned <code>false</code>.
+     * @throws IllegalStateException
+     *             The builder state is not valid, i.e. {@link #isValid()} returned <code>false</code>.
      */
     ISpoofaxLanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
      * Determines whether the builder's state is valid.
      *
-     * @return <code>true</code> when the builder's state is valid;
-     * otherwise, <code>false</code>.
+     * @return <code>true</code> when the builder's state is valid; otherwise, <code>false</code>.
      */
     boolean isValid();
 
@@ -42,14 +41,16 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Copies the values from the specified object.
      *
-     * @param obj The object to copy values from.
+     * @param obj
+     *            The object to copy values from.
      */
     ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig obj);
 
     /**
      * Sets the language identifier.
      *
-     * @param identifier The language identifier.
+     * @param identifier
+     *            The language identifier.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier);
@@ -57,7 +58,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the language name.
      *
-     * @param name The language name.
+     * @param name
+     *            The language name.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withName(String name);
@@ -65,7 +67,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the compile-time dependencies.
      *
-     * @param dependencies The compile-time dependency identifiers.
+     * @param dependencies
+     *            The compile-time dependency identifiers.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withCompileDependencies(Iterable<LanguageIdentifier> dependencies);
@@ -73,7 +76,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Adds compile-time dependencies.
      *
-     * @param dependencies The compile-time dependency identifiers.
+     * @param dependencies
+     *            The compile-time dependency identifiers.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder addCompileDependencies(Iterable<LanguageIdentifier> dependencies);
@@ -81,7 +85,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the runtime dependencies.
      *
-     * @param dependencies The runtime dependency identifiers.
+     * @param dependencies
+     *            The runtime dependency identifiers.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withRuntimeDependencies(Iterable<LanguageIdentifier> dependencies);
@@ -89,7 +94,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Adds runtime dependencies.
      *
-     * @param dependencies The runtime dependency identifiers.
+     * @param dependencies
+     *            The runtime dependency identifiers.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder addRuntimeDependencies(Iterable<LanguageIdentifier> dependencies);
@@ -97,7 +103,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the language contributions.
      *
-     * @param contributions The language contributions.
+     * @param contributions
+     *            The language contributions.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
@@ -105,7 +112,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Adds language contributions.
      *
-     * @param contributions The language contributions.
+     * @param contributions
+     *            The language contributions.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder addLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
@@ -113,7 +121,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the pardoned languages.
      *
-     * @param contributions The language contributions.
+     * @param contributions
+     *            The language contributions.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> contributions);
@@ -121,7 +130,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Adds pardoned languages.
      *
-     * @param contributions The language contributions.
+     * @param contributions
+     *            The language contributions.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> contributions);
@@ -129,7 +139,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the project artifact format.
      *
-     * @param format A member of the {@link Format} enumeration.
+     * @param format
+     *            A member of the {@link Format} enumeration.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withFormat(Format format);
@@ -137,7 +148,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the external def.
      *
-     * @param def The external def.
+     * @param def
+     *            The external def.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withExternalDef(String def);
@@ -145,7 +157,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the external JAR.
      *
-     * @param jar The external JAR.
+     * @param jar
+     *            The external JAR.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withExternalJar(String jar);
@@ -153,7 +166,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the external JAR flags.
      *
-     * @param flags The external JAR flags.
+     * @param flags
+     *            The external JAR flags.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withExternalJarFlags(String flags);
@@ -161,7 +175,8 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the SDF arguments.
      *
-     * @param args An iterable of SDF arguments.
+     * @param args
+     *            An iterable of SDF arguments.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withSdfArgs(Arguments args);
@@ -169,11 +184,9 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * Sets the Stratego arguments.
      *
-     * @param args The Stratego arguments.
+     * @param args
+     *            The Stratego arguments.
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withStrategoArgs(Arguments args);
-
-
-
 }
