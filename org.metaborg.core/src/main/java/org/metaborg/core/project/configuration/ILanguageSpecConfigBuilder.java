@@ -9,111 +9,96 @@ import org.metaborg.core.language.LanguageIdentifier;
 /**
  * Builder for {@link ILanguageSpecConfig} objects.
  */
-public interface ILanguageSpecConfigBuilder {
+public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuilder {
     /**
-     * Builds the object.
-     *
-     * @param rootFolder
-     *            The root folder.
-     * @return The built object.
-     * @throws IllegalStateException
-     *             The builder state is not valid, i.e. {@link #isValid()} returned <code>false</code>.
+     * {@inheritDoc}
      */
     ILanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
-     * Determines whether the builder's state is valid.
-     *
-     * @return <code>true</code> when the builder's state is valid; otherwise, <code>false</code>.
+     * {@inheritDoc}
      */
     boolean isValid();
 
     /**
-     * Resets the values of this builder.
-     *
-     * @return This builder.
+     * {@inheritDoc}
      */
     ILanguageSpecConfigBuilder reset();
 
     /**
-     * Copies the values from the specified object.
-     *
-     * @param obj
-     *            The object to copy values from.
+     * {@inheritDoc}
      */
     ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig obj);
 
     /**
-     * Sets the language identifier.
-     *
-     * @param identifier
-     *            The language identifier.
-     * @return This builder.
+     * {@inheritDoc}
      */
     ILanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier);
 
     /**
-     * Sets the language name.
-     *
-     * @param name
-     *            The language name.
-     * @return This builder.
+     * {@inheritDoc}
      */
     ILanguageSpecConfigBuilder withName(String name);
 
     /**
-     * Sets the compile-time dependencies.
-     *
-     * @param dependencies
-     *            The compile-time dependency identifiers.
-     * @return This builder.
+     * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withCompileDependencies(Iterable<LanguageIdentifier> dependencies);
+    ILanguageSpecConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * Adds compile-time dependencies.
-     *
-     * @param dependencies
-     *            The compile-time dependency identifiers.
-     * @return This builder.
+     * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addCompileDependencies(Iterable<LanguageIdentifier> dependencies);
+    ILanguageSpecConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * Sets the runtime dependencies.
-     *
-     * @param dependencies
-     *            The runtime dependency identifiers.
-     * @return This builder.
+     * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withRuntimeDependencies(Iterable<LanguageIdentifier> dependencies);
+    ILanguageSpecConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * Adds runtime dependencies.
-     *
-     * @param dependencies
-     *            The runtime dependency identifiers.
-     * @return This builder.
+     * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addRuntimeDependencies(Iterable<LanguageIdentifier> dependencies);
+    ILanguageSpecConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * Sets the language contributions.
-     *
-     * @param contributions
-     *            The language contributions.
-     * @return This builder.
+     * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
+    ILanguageSpecConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * Adds language contributions.
-     *
-     * @param contributions
-     *            The language contributions.
-     * @return This builder.
+     * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
+    ILanguageSpecConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * {@inheritDoc}
+     */
+    ILanguageSpecConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs);
+
+    /**
+     * {@inheritDoc}
+     */
+    ILanguageSpecConfigBuilder addLangContribs(Iterable<LanguageContributionIdentifier> contribs);
+
+    /**
+     * {@inheritDoc}
+     */
+    ILanguageSpecConfigBuilder withGenerates(Iterable<Generate> generates);
+
+    /**
+     * {@inheritDoc}
+     */
+    ILanguageSpecConfigBuilder addGenerates(Iterable<Generate> generates);
+
+    /**
+     * {@inheritDoc}
+     */
+    ILanguageSpecConfigBuilder withExports(Iterable<Export> exports);
+
+    /**
+     * {@inheritDoc}
+     */
+    ILanguageSpecConfigBuilder addExports(Iterable<Export> exports);
 
     /**
      * Sets the MetaBorg version.

@@ -227,7 +227,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final LanguageIdentifier identifier = config.identifier();
         final Collection<LanguageContributionIdentifier> languageContributions =
-            discoveryRequest.config().languageContributions();
+            discoveryRequest.config().langContribs();
         if(languageContributions.isEmpty()) {
             languageContributions.add(new LanguageContributionIdentifier(identifier, config.name()));
         }
@@ -338,7 +338,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         request.addFacet(languageComponentsFacet);
 
         final DependencyFacet dependencyFacet =
-            new DependencyFacet(config.compileDependencies(), config.runtimeDependencies());
+            new DependencyFacet(config.compileDeps(), config.sourceDeps());
         request.addFacet(dependencyFacet);
 
         return languageService.add(request);

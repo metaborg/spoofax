@@ -48,7 +48,7 @@ public final class DefaultDependencyService implements IDependencyService {
             return ImmutableList.copyOf(LanguageUtils.allActiveComponents(languageService));
         }
 
-        return getLanguages(config.compileDependencies());
+        return getLanguages(config.compileDeps());
     }
 
     /**
@@ -64,7 +64,7 @@ public final class DefaultDependencyService implements IDependencyService {
             return Collections.emptyList();
         }
 
-        return getLanguages(config.runtimeDependencies());
+        return getLanguages(config.sourceDeps());
     }
 
     /**
@@ -92,7 +92,7 @@ public final class DefaultDependencyService implements IDependencyService {
             return new MissingDependencies();
         }
 
-        final Collection<LanguageIdentifier> compile = config.compileDependencies();
+        final Collection<LanguageIdentifier> compile = config.compileDeps();
         final Collection<LanguageIdentifier> missingCompile = Lists.newLinkedList();
         for(LanguageIdentifier identifier : compile) {
             if(this.languageService.getComponentOrBaseline(identifier) == null) {
@@ -100,7 +100,7 @@ public final class DefaultDependencyService implements IDependencyService {
             }
         }
 
-        final Collection<LanguageIdentifier> runtime = config.runtimeDependencies();
+        final Collection<LanguageIdentifier> runtime = config.sourceDeps();
         final Collection<LanguageIdentifier> missingRuntime = Lists.newLinkedList();
         for(LanguageIdentifier identifier : runtime) {
             if(this.languageService.getComponentOrBaseline(identifier) == null) {

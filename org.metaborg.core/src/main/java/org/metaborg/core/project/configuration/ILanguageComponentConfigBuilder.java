@@ -72,54 +72,108 @@ public interface ILanguageComponentConfigBuilder {
     /**
      * Sets the compile-time dependencies.
      *
-     * @param dependencies
+     * @param deps
      *            The compile-time dependency identifiers.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder withCompileDependencies(Iterable<LanguageIdentifier> dependencies);
+    ILanguageComponentConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * Adds compile-time dependencies.
+     * Adds compile dependencies.
      *
-     * @param dependencies
-     *            The compile-time dependency identifiers.
+     * @param deps
+     *            The compile dependency identifiers.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder addCompileDependencies(Iterable<LanguageIdentifier> dependencies);
+    ILanguageComponentConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * Sets the runtime dependencies.
+     * Sets the source dependencies.
      *
-     * @param dependencies
-     *            The runtime dependency identifiers.
+     * @param deps
+     *            The source dependency identifiers.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder withRuntimeDependencies(Iterable<LanguageIdentifier> dependencies);
+    ILanguageComponentConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * Adds runtime dependencies.
+     * Adds source dependencies.
      *
-     * @param dependencies
-     *            The runtime dependency identifiers.
+     * @param deps
+     *            The source dependency identifiers.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder addRuntimeDependencies(Iterable<LanguageIdentifier> dependencies);
+    ILanguageComponentConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * Sets the java dependencies.
+     *
+     * @param deps
+     *            The java dependency identifiers.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * Adds java dependencies.
+     *
+     * @param deps
+     *            The java dependency identifiers.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
 
     /**
      * Sets the language contributions.
      *
-     * @param contributions
+     * @param contribs
      *            The language contributions.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder withLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
+    ILanguageComponentConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs);
 
     /**
      * Adds language contributions.
      *
-     * @param contributions
+     * @param contribs
      *            The language contributions.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder addLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
+    ILanguageComponentConfigBuilder addLangContribs(Iterable<LanguageContributionIdentifier> contribs);
+
+    /**
+     * Sets the languages for while files are generated.
+     *
+     * @param generates
+     *            The languages for while files are generated.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withGenerates(Iterable<Generate> generates);
+
+    /**
+     * Adds languages for while files are generated.
+     *
+     * @param generates
+     *            The languages for while files are generated.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder addGenerates(Iterable<Generate> generates);
+
+    /**
+     * Sets the file exports.
+     *
+     * @param exports
+     *            The file exports.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withExports(Iterable<Export> exports);
+
+    /**
+     * Adds file exports.
+     *
+     * @param exports
+     *            The file exports.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder addExports(Iterable<Export> exports);
 }

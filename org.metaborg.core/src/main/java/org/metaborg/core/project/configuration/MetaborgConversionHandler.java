@@ -9,14 +9,18 @@ import org.metaborg.core.language.LanguageIdentifier;
  * Converts Metaborg Core types to and from their {@link Configuration} representations.
  */
 class MetaborgConversionHandler extends DefaultConversionHandler {
-    @SuppressWarnings("unchecked") @Override protected <T> T convertValue(final Object src, final Class<T> targetCls,
-        final ConfigurationInterpolator ci) {
+    @SuppressWarnings("unchecked") @Override protected <T> T convertValue(Object src, Class<T> target,
+        ConfigurationInterpolator interp) {
 
-        if(targetCls == LanguageIdentifier.class) {
+        if(target == LanguageIdentifier.class) {
             return (T) convertToLanguageIdentifier(src);
         } else {
-            return super.convertValue(src, targetCls, ci);
+            return super.convertValue(src, target, interp);
         }
+    }
+
+    @Override protected Object extractConversionValue(Object src, Class<?> target, ConfigurationInterpolator interp) {
+        return super.extractConversionValue(src, target, interp);
     }
 
     private LanguageIdentifier convertToLanguageIdentifier(Object src) {

@@ -29,17 +29,17 @@ public class LanguageSpecGeneratorScope {
         if(!LanguageIdentifier.validId(config.name())) {
             throw new ProjectException("Invalid name: " + name());
         }
-        for(LanguageIdentifier compileIdentifier : config.compileDependencies()) {
+        for(LanguageIdentifier compileIdentifier : config.compileDeps()) {
             if(!compileIdentifier.valid()) {
                 throw new ProjectException("Invalid compile dependency identifier: " + compileIdentifier);
             }
         }
-        for(LanguageIdentifier runtimeIdentifier : config.runtimeDependencies()) {
+        for(LanguageIdentifier runtimeIdentifier : config.sourceDeps()) {
             if(!runtimeIdentifier.valid()) {
                 throw new ProjectException("Invalid runtime dependency identifier: " + runtimeIdentifier);
             }
         }
-        for(LanguageContributionIdentifier contributionIdentifier : config.languageContributions()) {
+        for(LanguageContributionIdentifier contributionIdentifier : config.langContribs()) {
             if(!contributionIdentifier.identifier.valid()) {
                 throw new ProjectException("Invalid language contribution identifier: "
                     + contributionIdentifier.identifier);

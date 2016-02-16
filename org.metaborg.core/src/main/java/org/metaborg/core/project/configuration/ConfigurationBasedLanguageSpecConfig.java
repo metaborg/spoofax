@@ -49,7 +49,7 @@ public class ConfigurationBasedLanguageSpecConfig extends ConfigurationBasedLang
         configuration.setProperty(PROP_NAME, name);
         configuration.setProperty(PROP_IDENTIFIER, identifier);
         configuration.setProperty(PROP_COMPILE_DEPENDENCIES, compileDependencies);
-        configuration.setProperty(PROP_RUNTIME_DEPENDENCIES, runtimeDependencies);
+        configuration.setProperty(PROP_SOURCE_DEPENDENCIES, runtimeDependencies);
         configuration.setProperty(PROP_METABORG_VERSION, metaborgVersion);
 
         for(LanguageContributionIdentifier lcid : languageContributions) {

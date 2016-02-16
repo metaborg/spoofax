@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -22,12 +20,15 @@ import com.google.common.collect.Lists;
 public class ConfigurationBasedLanguageComponentConfig implements ILanguageComponentConfig, IConfigurationBasedConfig {
     protected static final String PROP_IDENTIFIER = "id";
     protected static final String PROP_NAME = "name";
-    protected static final String PROP_COMPILE_DEPENDENCIES = "compileDependencies";
-    protected static final String PROP_RUNTIME_DEPENDENCIES = "runtimeDependencies";
+    protected static final String PROP_COMPILE_DEPENDENCIES = "dependencies.compile";
+    protected static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
+    protected static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
     protected static final String PROP_LANGUAGE_CONTRIBUTIONS_IDX_NAME = "contributions(%d).name";
     protected static final String PROP_LANGUAGE_CONTRIBUTIONS_IDX_ID = "contributions(%d).id";
     protected static final String PROP_LANGUAGE_CONTRIBUTIONS_LAST_NAME = "contributions.name";
     protected static final String PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID = "contributions.id";
+    protected static final String PROP_GENERATES = "generates";
+    protected static final String PROP_EXPORTS = "exports";
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
 
@@ -47,23 +48,22 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
      *
      * Use the {@link ConfigurationBasedLanguageSpecConfigBuilder} instead.
      *
-     * @param configuration
+     * @param config
      *            The configuration that provides some of the properties.
      */
-    protected ConfigurationBasedLanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> configuration,
-        LanguageIdentifier identifier, String name, Collection<LanguageIdentifier> compileDependencies,
-        Collection<LanguageIdentifier> runtimeDependencies,
-        Collection<LanguageContributionIdentifier> languageContributions) {
-        this(configuration);
+    protected ConfigurationBasedLanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config,
+        LanguageIdentifier identifier, String name, Collection<LanguageIdentifier> compileDeps,
+        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageContributionIdentifier> languageContributions) {
+        this(config);
 
-        configuration.setProperty(PROP_NAME, name);
-        configuration.setProperty(PROP_IDENTIFIER, identifier);
-        configuration.setProperty(PROP_COMPILE_DEPENDENCIES, compileDependencies);
-        configuration.setProperty(PROP_RUNTIME_DEPENDENCIES, runtimeDependencies);
+        config.setProperty(PROP_NAME, name);
+        config.setProperty(PROP_IDENTIFIER, identifier);
+        config.setProperty(PROP_COMPILE_DEPENDENCIES, compileDeps);
+        config.setProperty(PROP_SOURCE_DEPENDENCIES, sourceDeps);
 
         for(LanguageContributionIdentifier lcid : languageContributions) {
-            configuration.addProperty(String.format(PROP_LANGUAGE_CONTRIBUTIONS_IDX_ID, -1), lcid.identifier);
-            configuration.addProperty(PROP_LANGUAGE_CONTRIBUTIONS_LAST_NAME, lcid.name);
+            config.addProperty(String.format(PROP_LANGUAGE_CONTRIBUTIONS_IDX_ID, -1), lcid.identifier);
+            config.addProperty(PROP_LANGUAGE_CONTRIBUTIONS_LAST_NAME, lcid.name);
         }
     }
 
@@ -74,29 +74,32 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
 
 
     @Override public LanguageIdentifier identifier() {
-        final @Nullable LanguageIdentifier value = config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
+        final LanguageIdentifier value = config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
         return value != null ? value : LanguageIdentifier.EMPTY;
     }
 
     @Override public String name() {
-        final @Nullable String value = config.getString(PROP_NAME);
+        final String value = config.getString(PROP_NAME);
         return value != null ? value : "";
     }
 
-    @Override public Collection<LanguageIdentifier> compileDependencies() {
-        final @Nullable List<LanguageIdentifier> value =
-            config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
-        return value != null ? value : Collections.<LanguageIdentifier>emptyList();
+    @Override public Collection<LanguageIdentifier> compileDeps() {
+        final List<LanguageIdentifier> deps = config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
+        return deps != null ? deps : Collections.<LanguageIdentifier>emptyList();
     }
 
-    @Override public Collection<LanguageIdentifier> runtimeDependencies() {
-        final @Nullable List<LanguageIdentifier> value =
-            config.getList(LanguageIdentifier.class, PROP_RUNTIME_DEPENDENCIES);
-        return value != null ? value : Collections.<LanguageIdentifier>emptyList();
+    @Override public Collection<LanguageIdentifier> sourceDeps() {
+        final List<LanguageIdentifier> deps = config.getList(LanguageIdentifier.class, PROP_SOURCE_DEPENDENCIES);
+        return deps != null ? deps : Collections.<LanguageIdentifier>emptyList();
     }
 
-    @Override public Collection<LanguageContributionIdentifier> languageContributions() {
-        final @Nullable List<LanguageIdentifier> ids =
+    @Override public Collection<LanguageIdentifier> javaDeps() {
+        final List<LanguageIdentifier> deps = config.getList(LanguageIdentifier.class, PROP_JAVA_DEPENDENCIES);
+        return deps != null ? deps : Collections.<LanguageIdentifier>emptyList();
+    }
+
+    @Override public Collection<LanguageContributionIdentifier> langContribs() {
+        final List<LanguageIdentifier> ids =
             config.getList(LanguageIdentifier.class, PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID);
         if(ids == null) {
             return Lists.newArrayList();
@@ -109,5 +112,15 @@ public class ConfigurationBasedLanguageComponentConfig implements ILanguageCompo
             lcids.add(new LanguageContributionIdentifier(identifier, name));
         }
         return lcids;
+    }
+
+    @Override public Collection<Generate> generates() {
+        final List<Generate> generates = config.getList(Generate.class, PROP_JAVA_DEPENDENCIES);
+        return generates != null ? generates : Collections.<Generate>emptyList();
+    }
+
+    @Override public Collection<Export> exports() {
+        final List<Export> exports = config.getList(Export.class, PROP_JAVA_DEPENDENCIES);
+        return exports != null ? exports : Collections.<Export>emptyList();
     }
 }

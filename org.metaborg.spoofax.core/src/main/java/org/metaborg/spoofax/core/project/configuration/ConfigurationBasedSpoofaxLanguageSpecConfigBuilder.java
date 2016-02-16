@@ -51,8 +51,8 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
 
         final JacksonConfiguration configuration = createConfiguration(rootFolder);
 
-        return new ConfigurationBasedSpoofaxLanguageSpecConfig(configuration, identifier, name, compileDependencies,
-            runtimeDependencies, languageContributions, metaborgVersion, pardonedLanguages, format, externalDef,
+        return new ConfigurationBasedSpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps,
+            sourceDeps, langContribs, metaborgVersion, pardonedLanguages, format, externalDef,
             externalJar, externalJarFlags, sdfArgs, strategoArgs);
     }
 
@@ -95,38 +95,38 @@ public class ConfigurationBasedSpoofaxLanguageSpecConfigBuilder extends Configur
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder
-        withCompileDependencies(Iterable<LanguageIdentifier> dependencies) {
-        super.withCompileDependencies(dependencies);
+        withCompileDeps(Iterable<LanguageIdentifier> dependencies) {
+        super.withCompileDeps(dependencies);
         return this;
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder
-        addCompileDependencies(Iterable<LanguageIdentifier> dependencies) {
-        super.addCompileDependencies(dependencies);
+        addCompileDeps(Iterable<LanguageIdentifier> dependencies) {
+        super.addCompileDeps(dependencies);
         return this;
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder
-        withRuntimeDependencies(Iterable<LanguageIdentifier> dependencies) {
-        super.withRuntimeDependencies(dependencies);
+        withSourceDeps(Iterable<LanguageIdentifier> dependencies) {
+        super.withSourceDeps(dependencies);
         return this;
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder
-        addRuntimeDependencies(Iterable<LanguageIdentifier> dependencies) {
-        super.addRuntimeDependencies(dependencies);
+        addSourceDeps(Iterable<LanguageIdentifier> dependencies) {
+        super.addSourceDeps(dependencies);
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withLanguageContributions(
+    @Override public ISpoofaxLanguageSpecConfigBuilder withLangContribs(
         Iterable<LanguageContributionIdentifier> contributions) {
-        super.withLanguageContributions(contributions);
+        super.withLangContribs(contributions);
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder addLanguageContributions(
+    @Override public ISpoofaxLanguageSpecConfigBuilder addLangContribs(
         Iterable<LanguageContributionIdentifier> contributions) {
-        super.addLanguageContributions(contributions);
+        super.addLangContribs(contributions);
         return this;
     }
 

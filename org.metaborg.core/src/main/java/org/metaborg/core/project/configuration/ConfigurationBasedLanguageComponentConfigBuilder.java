@@ -1,5 +1,6 @@
 package org.metaborg.core.project.configuration;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -8,6 +9,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -17,13 +19,16 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
  * Configuration-based builder for {@link ILanguageComponentConfig} objects.
  */
 public class ConfigurationBasedLanguageComponentConfigBuilder implements ILanguageComponentConfigBuilder {
-    private final ConfigurationReaderWriter configurationReaderWriter;
+    protected final ConfigurationReaderWriter configurationReaderWriter;
 
     protected @Nullable LanguageIdentifier identifier = null;
     protected @Nullable String name = null;
-    protected final Set<LanguageIdentifier> compileDependencies = Sets.newHashSet();
-    protected final Set<LanguageIdentifier> runtimeDependencies = Sets.newHashSet();
-    protected final Set<LanguageContributionIdentifier> languageContributions = Sets.newHashSet();
+    protected final Set<LanguageIdentifier> compileDeps = Sets.newHashSet();
+    protected final Set<LanguageIdentifier> sourceDeps = Sets.newHashSet();
+    protected final Set<LanguageIdentifier> javaDeps = Sets.newHashSet();
+    protected final Set<LanguageContributionIdentifier> langContribs = Sets.newHashSet();
+    protected final List<Generate> generates = Lists.newArrayList();
+    protected final List<Export> exports = Lists.newArrayList();
 
 
     /**
@@ -32,7 +37,8 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
      * @param configurationReaderWriter
      *            The configuration reader/writer.
      */
-    @Inject public ConfigurationBasedLanguageComponentConfigBuilder(ConfigurationReaderWriter configurationReaderWriter) {
+    @Inject public ConfigurationBasedLanguageComponentConfigBuilder(
+        ConfigurationReaderWriter configurationReaderWriter) {
         this.configurationReaderWriter = configurationReaderWriter;
     }
 
@@ -44,8 +50,8 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
 
         final JacksonConfiguration configuration = createConfiguration(rootFolder);
 
-        return new ConfigurationBasedLanguageComponentConfig(configuration, identifier, name, compileDependencies,
-            runtimeDependencies, languageContributions);
+        return new ConfigurationBasedLanguageComponentConfig(configuration, identifier, name, compileDeps, sourceDeps,
+            langContribs);
     }
 
     /**
@@ -82,26 +88,26 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
     @Override public ILanguageComponentConfigBuilder reset() {
         identifier = null;
         name = null;
-        compileDependencies.clear();
-        runtimeDependencies.clear();
+        compileDeps.clear();
+        sourceDeps.clear();
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig config) {
         withIdentifier(config.identifier());
         withName(config.name());
-        withCompileDependencies(config.compileDependencies());
-        withRuntimeDependencies(config.runtimeDependencies());
-        withLanguageContributions(config.languageContributions());
+        withCompileDeps(config.compileDeps());
+        withSourceDeps(config.sourceDeps());
+        withLangContribs(config.langContribs());
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder copyFrom(ILanguageSpecConfig config) {
         withIdentifier(config.identifier());
         withName(config.name());
-        withCompileDependencies(config.compileDependencies());
-        withRuntimeDependencies(config.runtimeDependencies());
-        withLanguageContributions(config.languageContributions());
+        withCompileDeps(config.compileDeps());
+        withSourceDeps(config.sourceDeps());
+        withLangContribs(config.langContribs());
         return this;
     }
 
@@ -115,35 +121,71 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder withCompileDependencies(Iterable<LanguageIdentifier> dependencies) {
-        this.compileDependencies.clear();
-        return addCompileDependencies(dependencies);
-    }
-
-    @Override public ILanguageComponentConfigBuilder addCompileDependencies(Iterable<LanguageIdentifier> dependencies) {
-        this.compileDependencies.addAll(Lists.newArrayList(dependencies));
+    @Override public ILanguageComponentConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps) {
+        this.compileDeps.clear();
+        addCompileDeps(deps);
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder withRuntimeDependencies(Iterable<LanguageIdentifier> dependencies) {
-        this.runtimeDependencies.clear();
-        return addRuntimeDependencies(dependencies);
-    }
-
-    @Override public ILanguageComponentConfigBuilder addRuntimeDependencies(Iterable<LanguageIdentifier> dependencies) {
-        this.runtimeDependencies.addAll(Lists.newArrayList(dependencies));
+    @Override public ILanguageComponentConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps) {
+        Iterables.addAll(this.compileDeps, deps);
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder withLanguageContributions(
-        Iterable<LanguageContributionIdentifier> contributions) {
-        this.languageContributions.clear();
-        return addLanguageContributions(contributions);
+    @Override public ILanguageComponentConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps) {
+        this.sourceDeps.clear();
+        addSourceDeps(deps);
+        return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder addLanguageContributions(
-        Iterable<LanguageContributionIdentifier> contributions) {
-        this.languageContributions.addAll(Lists.newArrayList(contributions));
+    @Override public ILanguageComponentConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps) {
+        Iterables.addAll(this.sourceDeps, deps);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps) {
+        this.javaDeps.clear();
+        addJavaDeps(deps);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps) {
+        Iterables.addAll(this.javaDeps, deps);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder
+        withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
+        this.langContribs.clear();
+        addLangContribs(contribs);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder
+        addLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
+        Iterables.addAll(this.langContribs, contribs);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withGenerates(Iterable<Generate> generates) {
+        this.generates.clear();
+        addGenerates(generates);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder addGenerates(Iterable<Generate> generates) {
+        Iterables.addAll(this.generates, generates);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withExports(Iterable<Export> exports) {
+        this.exports.clear();
+        addExports(exports);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder addExports(Iterable<Export> exports) {
+        Iterables.addAll(this.exports, exports);
         return this;
     }
 }

@@ -37,7 +37,7 @@ public class LegacySpoofaxLanguageSpecConfigWriter implements ISpoofaxLanguageSp
             return ((LegacySpoofaxLanguageSpecConfig) config).settings;
         } else {
             return new LegacySpoofaxProjectSettings(new LegacyProjectSettings(config.identifier(), config.name(),
-                config.compileDependencies(), config.runtimeDependencies(), config.languageContributions()));
+                config.compileDeps(), config.sourceDeps(), config.langContribs()));
         }
     }
 }

@@ -26,23 +26,44 @@ public interface ILanguageComponentConfig {
     String name();
 
     /**
-     * Gets the compile-time dependencies.
+     * Gets the compile dependencies.
      *
-     * @return The compile-time dependency identifiers.
+     * @return The compile dependency identifiers.
      */
-    Collection<LanguageIdentifier> compileDependencies();
+    Collection<LanguageIdentifier> compileDeps();
 
     /**
-     * Gets the runtime dependencies.
+     * Gets the source dependencies.
      *
-     * @return The runtime dependency identifiers.
+     * @return The source dependency identifiers.
      */
-    Collection<LanguageIdentifier> runtimeDependencies();
+    Collection<LanguageIdentifier> sourceDeps();
+    
+    /**
+     * Gets the Java dependencies.
+     *
+     * @return The Java dependency identifiers.
+     */
+    Collection<LanguageIdentifier> javaDeps();
 
     /**
      * Gets the language contributions.
      *
      * @return The language contributions.
      */
-    Collection<LanguageContributionIdentifier> languageContributions();
+    Collection<LanguageContributionIdentifier> langContribs();
+    
+    /**
+     * Gets the languages for while files are generated.
+     *
+     * @return The languages for while files are generated.
+     */
+    Collection<Generate> generates();
+    
+    /**
+     * Gets the file exports.
+     *
+     * @return The file exports.
+     */
+    Collection<Export> exports();
 }

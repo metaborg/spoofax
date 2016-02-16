@@ -44,15 +44,27 @@ public class LegacyLanguageComponentConfig implements ILanguageComponentConfig {
         return this.settings.name();
     }
 
-    @Override public Collection<LanguageIdentifier> compileDependencies() {
+    @Override public Collection<LanguageIdentifier> compileDeps() {
         return Lists.newArrayList(this.settings.compileDependencies());
     }
 
-    @Override public Collection<LanguageIdentifier> runtimeDependencies() {
+    @Override public Collection<LanguageIdentifier> sourceDeps() {
         return Lists.newArrayList(this.settings.runtimeDependencies());
     }
 
-    @Override public Collection<LanguageContributionIdentifier> languageContributions() {
+    @Override public Collection<LanguageIdentifier> javaDeps() {
+        return Lists.newArrayList();
+    }
+
+    @Override public Collection<LanguageContributionIdentifier> langContribs() {
         return Lists.newArrayList(this.settings.languageContributions());
+    }
+
+    @Override public Collection<Generate> generates() {
+        return Lists.newArrayList();
+    }
+
+    @Override public Collection<Export> exports() {
+        return Lists.newArrayList();
     }
 }

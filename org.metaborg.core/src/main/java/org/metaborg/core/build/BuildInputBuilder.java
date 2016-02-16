@@ -371,7 +371,7 @@ public class BuildInputBuilder {
      * Builds a build input object from the current state.
      * 
      * @throws MetaborgException
-     *             When {@link IDependencyService#compileDependencies} throws.
+     *             When {@link IDependencyService#compileDeps} throws.
      */
     public BuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService)
         throws MetaborgException {
