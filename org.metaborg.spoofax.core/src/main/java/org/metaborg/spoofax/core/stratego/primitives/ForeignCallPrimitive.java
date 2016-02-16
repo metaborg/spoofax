@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitives;
 
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;

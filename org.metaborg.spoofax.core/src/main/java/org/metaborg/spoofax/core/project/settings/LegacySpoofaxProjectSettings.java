@@ -7,15 +7,15 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.settings.ILegacyProjectSettings;
+import org.metaborg.util.cmd.Arguments;
 
 import com.google.common.collect.Lists;
-import org.metaborg.util.cmd.Arguments;
 
 @SuppressWarnings("deprecation")
 @Deprecated
 public class LegacySpoofaxProjectSettings implements Serializable {
     private static final long serialVersionUID = 7439146986768086591L;
-    
+
     private final ILegacyProjectSettings settings;
 
     private Collection<String> pardonedLanguages = Lists.newLinkedList();
@@ -94,15 +94,15 @@ public class LegacySpoofaxProjectSettings implements Serializable {
         this.externalJarFlags = externalJarFlags;
     }
 
-    
+
     public String sdfName() {
         return settings.name();
     }
-    
+
     public String metaSdfName() {
         return sdfName() + "-Statego";
     }
-    
+
     public String esvName() {
         return settings.name();
     }
@@ -122,5 +122,4 @@ public class LegacySpoofaxProjectSettings implements Serializable {
     public String strategiesPackageName() {
         return packageName() + ".strategies";
     }
-
 }

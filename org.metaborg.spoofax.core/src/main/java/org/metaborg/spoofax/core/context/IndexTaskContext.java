@@ -26,7 +26,6 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.library.index.IIndex;
 import org.spoofax.interpreter.library.index.IndexManager;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.ParseError;
 
 import com.google.inject.Injector;
 
@@ -63,8 +62,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
         return identifier.location;
     }
 
-    @Override
-    public IProject project() {
+    @Override public IProject project() {
         return identifier.project;
     }
 

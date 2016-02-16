@@ -2,14 +2,12 @@ package org.metaborg.core.context;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 
 /**
  * Interface for {@link IContext} creation/retrieval strategies.
  */
 public interface IContextStrategy {
-
     /**
      * Returns the context identifier for given resource and language.
      *

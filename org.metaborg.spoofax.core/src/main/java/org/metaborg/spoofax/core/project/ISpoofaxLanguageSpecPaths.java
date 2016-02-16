@@ -7,7 +7,6 @@ import org.metaborg.core.project.ILanguageSpecPaths;
  * Specifies the filenames, files, and paths used in a Spoofax language specification.
  */
 public interface ISpoofaxLanguageSpecPaths extends ILanguageSpecPaths {
-
     // NOTE: Name for getter for
     // - filename String     ends with "Filename";
     // - path     String     ends with "Path";

@@ -20,8 +20,7 @@ public class LegacySpoofaxProjectSettingsService implements ILegacySpoofaxProjec
     }
 
 
-    @Override public @Nullable
-    LegacySpoofaxProjectSettings get(IProject project) throws ProjectException {
+    @Override public @Nullable LegacySpoofaxProjectSettings get(IProject project) throws ProjectException {
         final MavenProject mavenProject = mavenProjectService.get(project);
         if(mavenProject == null) {
             final String message =
@@ -29,8 +28,7 @@ public class LegacySpoofaxProjectSettingsService implements ILegacySpoofaxProjec
             throw new ProjectException(message);
         }
 
-        final LegacySpoofaxProjectSettings settings =
-            LegacyMavenProjectSettingsReader.spoofaxSettings(project.location(), mavenProject);
+        final LegacySpoofaxProjectSettings settings = LegacyMavenProjectSettingsReader.spoofaxSettings(mavenProject);
         if(settings == null) {
             throw new ProjectException("Could not get settings, Maven project settings reader returned null");
         }

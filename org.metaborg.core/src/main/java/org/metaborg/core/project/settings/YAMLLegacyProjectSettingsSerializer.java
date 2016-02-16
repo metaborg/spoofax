@@ -12,7 +12,6 @@ import org.metaborg.core.language.LanguageVersion;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -118,7 +117,8 @@ class ProjectSettingsSerializer extends JsonSerializer<ILegacyProjectSettings> {
 
 @Deprecated
 class ProjectSettingsDeserializer extends JsonDeserializer<ILegacyProjectSettings> {
-    @Override public ILegacyProjectSettings deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
+    @Override public ILegacyProjectSettings deserialize(JsonParser parser, DeserializationContext ctxt)
+        throws IOException {
         final JsonNode root = parser.getCodec().readTree(parser);
 
         final LanguageIdentifier identifier = identifier(root.get("identifier"));
@@ -135,7 +135,8 @@ class ProjectSettingsDeserializer extends JsonDeserializer<ILegacyProjectSetting
         for(JsonNode node : root.get("languageContributions")) {
             languageContributions.add(contributionIdentifier(node));
         }
-        return new LegacyProjectSettings(identifier, name, compileDependencies, runtimeDependencies, languageContributions);
+        return new LegacyProjectSettings(identifier, name, compileDependencies, runtimeDependencies,
+            languageContributions);
     }
 
     private LanguageVersion version(JsonNode root) {
@@ -158,24 +159,24 @@ class ProjectSettingsDeserializer extends JsonDeserializer<ILegacyProjectSetting
         final String name = asText(root.get("name"));
         return new LanguageContributionIdentifier(identifier, name);
     }
-    
+
     private String asText(JsonNode node) {
-    	return asText(node, "");
+        return asText(node, "");
     }
-    
+
     private String asText(JsonNode node, String defaultValue) {
-    	if (node == null)
-    		return defaultValue;
-    	return node.asText(defaultValue);
+        if(node == null)
+            return defaultValue;
+        return node.asText(defaultValue);
     }
-    
+
     private int asInt(JsonNode node) {
-    	return asInt(node, 0);
+        return asInt(node, 0);
     }
-    
+
     private int asInt(JsonNode node, int defaultValue) {
-    	if (node == null)
-    		return defaultValue;
-    	return node.asInt(defaultValue);
+        if(node == null)
+            return defaultValue;
+        return node.asInt(defaultValue);
     }
 }

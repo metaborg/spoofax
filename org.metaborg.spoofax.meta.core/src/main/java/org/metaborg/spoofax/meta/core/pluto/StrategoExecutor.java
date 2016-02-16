@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
+import java.util.List;
+
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
@@ -11,11 +13,6 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.stratego_sdf.stratego_sdf;
-
-import java.net.URI;
-import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.List;
 
 public class StrategoExecutor {
     public static class ExecutionResult {

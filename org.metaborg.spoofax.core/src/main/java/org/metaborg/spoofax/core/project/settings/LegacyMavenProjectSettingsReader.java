@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
@@ -17,13 +16,13 @@ import org.metaborg.core.project.settings.LegacyProjectSettings;
 import org.metaborg.spoofax.core.project.LegacySpoofaxMavenConstants;
 
 import com.google.common.collect.Lists;
+
 import org.metaborg.util.cmd.Arguments;
 
 @SuppressWarnings("deprecation")
 @Deprecated
 public class LegacyMavenProjectSettingsReader {
-    public static @Nullable
-    LegacySpoofaxProjectSettings spoofaxSettings(FileObject location, MavenProject project) {
+    public static @Nullable LegacySpoofaxProjectSettings spoofaxSettings(MavenProject project) {
         final Plugin plugin = project.getPlugin(LegacySpoofaxMavenConstants.QUAL_PLUGIN_NAME);
         if(plugin == null) {
             return null;

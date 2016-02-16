@@ -3,7 +3,6 @@ package org.metaborg.core.context;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 
 /**
@@ -52,7 +51,8 @@ public interface IContextService {
      * @throws MetaborgRuntimeException
      *             When {@code language} does not have a {@link ContextFacet}.
      */
-    ITemporaryContext getTemporary(FileObject resource, IProject project, ILanguageImpl language) throws ContextException;
+    ITemporaryContext getTemporary(FileObject resource, IProject project, ILanguageImpl language)
+        throws ContextException;
 
     /**
      * Unloads given context, persisting it to disk (if supported by the context) and removing it from memory.

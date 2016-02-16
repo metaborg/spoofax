@@ -29,23 +29,21 @@ public class LegacyProjectSettingsService implements ILegacyProjectSettingsServi
     }
 
 
-    @Override public @Nullable
-    ILegacyProjectSettings get(IProject project) {
+    @Override public @Nullable ILegacyProjectSettings get(IProject project) {
         final MavenProject mavenProject = mavenProjectService.get(project);
         if(mavenProject == null) {
             logger.trace("Could not retrieve Maven project for {}, cannot get settings", project);
             return null;
         }
 
-        final LegacySpoofaxProjectSettings settings = LegacyMavenProjectSettingsReader.spoofaxSettings(project.location(), mavenProject);
+        final LegacySpoofaxProjectSettings settings = LegacyMavenProjectSettingsReader.spoofaxSettings(mavenProject);
         if(settings != null) {
             return settings.settings();
         }
         return null;
     }
 
-    @Override public @Nullable
-    ILegacyProjectSettings get(FileObject location) {
+    @Override public @Nullable ILegacyProjectSettings get(FileObject location) {
         try {
             final FileObject settingsFile = location.resolveFile("src-gen/metaborg.generated.yaml");
             if(!settingsFile.exists()) {

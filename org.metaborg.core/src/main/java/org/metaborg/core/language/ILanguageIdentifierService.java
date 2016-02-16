@@ -4,7 +4,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.IProject;
 
 /**
  * Interface for identifying the language of a resource.

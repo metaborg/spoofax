@@ -15,7 +15,6 @@ import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Lists;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class SyntaxFacetFromESV {
     public static @Nullable SyntaxFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {

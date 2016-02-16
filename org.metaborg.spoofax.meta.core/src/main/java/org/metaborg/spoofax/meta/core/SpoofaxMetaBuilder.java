@@ -18,7 +18,6 @@ import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.language.LanguageComponent;
 import org.metaborg.core.project.configuration.ILanguageComponentConfig;
 import org.metaborg.core.project.configuration.ILanguageComponentConfigBuilder;
 import org.metaborg.core.project.configuration.ILanguageComponentConfigWriter;

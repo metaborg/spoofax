@@ -14,7 +14,6 @@ import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.ILanguageSpecService;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -88,11 +87,11 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
     @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource, @Nullable ILanguageSpec languageSpec) {
-        final Iterable<ILanguageImpl> dependencies = compileDependencies(resource, languageSpec);
+        final Iterable<ILanguageImpl> dependencies = compileDependencies(languageSpec);
         return identifyToResource(resource, dependencies);
     }
     
-    private Iterable<ILanguageImpl> compileDependencies(FileObject resource, ILanguageSpec languageSpec) {
+    private Iterable<ILanguageImpl> compileDependencies(ILanguageSpec languageSpec) {
         if(languageSpec != null) {
             try {
                 final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);

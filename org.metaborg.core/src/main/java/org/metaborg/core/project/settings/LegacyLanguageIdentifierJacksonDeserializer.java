@@ -15,17 +15,17 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
  */
 @Deprecated
 public final class LegacyLanguageIdentifierJacksonDeserializer extends StdDeserializer<LanguageIdentifier> {
+    private static final long serialVersionUID = -7890806146378427526L;
+
 
     public LegacyLanguageIdentifierJacksonDeserializer() {
         super(LanguageIdentifier.class);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public LanguageIdentifier deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
-        final ObjectMapper mapper = (ObjectMapper)parser.getCodec();
+
+    @Override public LanguageIdentifier deserialize(final JsonParser parser, final DeserializationContext context)
+        throws IOException {
+        final ObjectMapper mapper = (ObjectMapper) parser.getCodec();
         final JsonNode root = mapper.readTree(parser);
 
         return LanguageIdentifier.parse(root.asText());

@@ -33,8 +33,7 @@ public class LegacyContext implements IContext, IContextInternal, ITemporaryCont
         return identifier.location;
     }
 
-    @Override
-    public IProject project() {
+    @Override public IProject project() {
         return identifier.project;
     }
 

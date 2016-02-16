@@ -1,7 +1,6 @@
 package org.metaborg.core.editor;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 
