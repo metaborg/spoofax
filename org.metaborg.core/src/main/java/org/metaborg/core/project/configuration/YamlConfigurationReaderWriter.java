@@ -11,15 +11,10 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
  * Reads/writes configurations in YAML files.
  */
 public class YamlConfigurationReaderWriter extends ConfigurationReaderWriter {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected JacksonConfiguration createNewConfiguration(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration) {
-        JacksonConfiguration config = new YamlConfiguration(sourceConfiguration);
+    @Override protected JacksonConfiguration createNewConfiguration(
+        @Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration) {
+        final JacksonConfiguration config = new YamlConfiguration(sourceConfiguration);
         config.setConversionHandler(new MetaborgConversionHandler());
         return config;
     }
-
 }

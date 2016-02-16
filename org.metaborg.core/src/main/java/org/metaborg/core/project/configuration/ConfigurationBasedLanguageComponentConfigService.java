@@ -9,53 +9,38 @@ import org.metaborg.core.language.ILanguageComponent;
 
 import com.google.inject.Inject;
 
-public class ConfigurationBasedLanguageComponentConfigService extends ConfigurationBasedConfigService<ILanguageComponent, ILanguageComponentConfig> implements ILanguageComponentConfigService, ILanguageComponentConfigWriter {
-
+public class ConfigurationBasedLanguageComponentConfigService extends
+    ConfigurationBasedConfigService<ILanguageComponent, ILanguageComponentConfig> implements
+    ILanguageComponentConfigService, ILanguageComponentConfigWriter {
     private final ConfigurationBasedLanguageComponentConfigBuilder configBuilder;
 
-    @Inject
-    public ConfigurationBasedLanguageComponentConfigService(final ConfigurationReaderWriter configurationReaderWriter, final ConfigurationBasedLanguageComponentConfigBuilder configBuilder) {
+
+    @Inject public ConfigurationBasedLanguageComponentConfigService(
+        ConfigurationReaderWriter configurationReaderWriter,
+        ConfigurationBasedLanguageComponentConfigBuilder configBuilder) {
         super(configurationReaderWriter);
         this.configBuilder = configBuilder;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected FileObject getRootFolder(ILanguageComponent languageComponent) throws FileSystemException {
+
+    @Override protected FileObject getRootFolder(ILanguageComponent languageComponent) throws FileSystemException {
         return languageComponent.location();
     }
 
-    /**
-     * Gets the configuration file for the specified root folder.
-     *
-     * @param rootFolder The root folder.
-     * @return The configuration file.
-     * @throws FileSystemException
-     */
-    public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+    @Override public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
         return rootFolder.resolveFile(MetaborgConstants.FILE_COMPONENT_CONFIG);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected ILanguageComponentConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
+    @Override protected ILanguageComponentConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
         return new ConfigurationBasedLanguageComponentConfig(configuration);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected HierarchicalConfiguration<ImmutableNode> fromConfig(ILanguageComponentConfig config) {
-        if (!(config instanceof IConfigurationBasedConfig)) {
-            this.configBuilder.reset();
-            this.configBuilder.copyFrom(config);
+    @Override protected HierarchicalConfiguration<ImmutableNode> fromConfig(ILanguageComponentConfig config) {
+        if(!(config instanceof IConfigurationBasedConfig)) {
+            configBuilder.reset();
+            configBuilder.copyFrom(config);
             config = this.configBuilder.build(null);
         }
-        return ((IConfigurationBasedConfig)config).getConfiguration();
+        return ((IConfigurationBasedConfig) config).getConfiguration();
     }
 }

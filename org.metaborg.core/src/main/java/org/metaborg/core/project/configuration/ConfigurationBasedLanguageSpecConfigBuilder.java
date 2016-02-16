@@ -1,6 +1,5 @@
 package org.metaborg.core.project.configuration;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -10,6 +9,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 
@@ -19,12 +19,12 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpecConfigBuilder {
     private final ConfigurationReaderWriter configurationReaderWriter;
 
-    @Nullable protected LanguageIdentifier identifier = null;
-    @Nullable protected String name = null;
-    protected final Set<LanguageIdentifier> compileDependencies = new HashSet<>();
-    protected final Set<LanguageIdentifier> runtimeDependencies = new HashSet<>();
-    protected final Set<LanguageContributionIdentifier> languageContributions = new HashSet<>();
-    @Nullable protected String metaborgVersion = null;
+    protected @Nullable LanguageIdentifier identifier = null;
+    protected @Nullable String name = null;
+    protected final Set<LanguageIdentifier> compileDependencies = Sets.newHashSet();
+    protected final Set<LanguageIdentifier> runtimeDependencies = Sets.newHashSet();
+    protected final Set<LanguageContributionIdentifier> languageContributions = Sets.newHashSet();
+    protected @Nullable String metaborgVersion = null;
 
 
     /**
@@ -33,18 +33,20 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
      * @param configurationReaderWriter
      *            The configuration reader/writer.
      */
-    @Inject public ConfigurationBasedLanguageSpecConfigBuilder(final ConfigurationReaderWriter configurationReaderWriter) {
+    @Inject public ConfigurationBasedLanguageSpecConfigBuilder(ConfigurationReaderWriter configurationReaderWriter) {
         this.configurationReaderWriter = configurationReaderWriter;
     }
 
+
     @Override public ILanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
-        if(!isValid())
+        if(!isValid()) {
             throw new IllegalStateException(validateOrError());
+        }
 
-        JacksonConfiguration configuration = createConfiguration(rootFolder);
+        final JacksonConfiguration configuration = createConfiguration(rootFolder);
 
-        return new ConfigurationBasedLanguageSpecConfig(configuration, this.identifier, this.name,
-            this.compileDependencies, this.runtimeDependencies, this.languageContributions, this.metaborgVersion);
+        return new ConfigurationBasedLanguageSpecConfig(configuration, identifier, name, compileDependencies,
+            runtimeDependencies, languageContributions, metaborgVersion);
     }
 
 
@@ -69,21 +71,21 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
      * @return <code>null</code> when the builder is valid; otherwise, an error message when the builder is invalid.
      */
     protected String validateOrError() {
-        if(this.name == null)
+        if(this.name == null) {
             return "A Name must be specified.";
-        if(this.identifier == null)
+        }
+        if(this.identifier == null) {
             return "An Identifier must be specified.";
-
+        }
         return null;
     }
 
     @Override public ILanguageSpecConfigBuilder reset() {
-        this.identifier = null;
-        this.name = null;
-        this.compileDependencies.clear();
-        this.runtimeDependencies.clear();
-        this.languageContributions.clear();
-
+        identifier = null;
+        name = null;
+        compileDependencies.clear();
+        runtimeDependencies.clear();
+        languageContributions.clear();
         return this;
     }
 
@@ -93,7 +95,6 @@ public class ConfigurationBasedLanguageSpecConfigBuilder implements ILanguageSpe
         withCompileDependencies(config.compileDependencies());
         withRuntimeDependencies(config.runtimeDependencies());
         withLanguageContributions(config.languageContributions());
-
         return this;
     }
 

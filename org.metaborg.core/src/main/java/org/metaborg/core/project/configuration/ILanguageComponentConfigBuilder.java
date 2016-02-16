@@ -36,20 +36,20 @@ public interface ILanguageComponentConfigBuilder {
     ILanguageComponentConfigBuilder reset();
 
     /**
-     * Copies the values from the specified object.
+     * Copies the values from the specified configuration.
      *
-     * @param obj
-     *            The object to copy values from.
+     * @param config
+     *            The configuration to copy values from.
      */
-    ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig obj);
+    ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig config);
 
     /**
-     * Copies the values from the specified object.
+     * Copies the values from the specified configuration.
      *
-     * @param obj
-     *            The object to copy values from.
+     * @param config
+     *            The configuration to copy values from.
      */
-    ILanguageComponentConfigBuilder copyFrom(ILanguageSpecConfig obj);
+    ILanguageComponentConfigBuilder copyFrom(ILanguageSpecConfig config);
 
     /**
      * Sets the language identifier.
@@ -122,13 +122,4 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder addLanguageContributions(Iterable<LanguageContributionIdentifier> contributions);
-
-    /**
-     * Sets the MetaBorg version.
-     *
-     * @param metaborgVersion
-     *            The MetaBorg version.
-     * @return This builder.
-     */
-    ILanguageComponentConfigBuilder withMetaborgVersion(String metaborgVersion);
 }

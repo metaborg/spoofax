@@ -9,7 +9,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 /**
  * Builder for {@link ILanguageSpecConfig} objects.
  */
-public interface ILanguageSpecConfigBuilder { // extends IObjectBuilder<ILanguageSpecConfig> {
+public interface ILanguageSpecConfigBuilder {
     /**
      * Builds the object.
      *

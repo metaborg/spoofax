@@ -1,6 +1,5 @@
 package org.metaborg.core.project.configuration;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -10,6 +9,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 
@@ -19,12 +19,11 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 public class ConfigurationBasedLanguageComponentConfigBuilder implements ILanguageComponentConfigBuilder {
     private final ConfigurationReaderWriter configurationReaderWriter;
 
-    @Nullable protected LanguageIdentifier identifier = null;
-    @Nullable protected String name = null;
-    protected final Set<LanguageIdentifier> compileDependencies = new HashSet<>();
-    protected final Set<LanguageIdentifier> runtimeDependencies = new HashSet<>();
-    protected final Set<LanguageContributionIdentifier> languageContributions = new HashSet<>();
-    @Nullable protected String metaborgVersion = null;
+    protected @Nullable LanguageIdentifier identifier = null;
+    protected @Nullable String name = null;
+    protected final Set<LanguageIdentifier> compileDependencies = Sets.newHashSet();
+    protected final Set<LanguageIdentifier> runtimeDependencies = Sets.newHashSet();
+    protected final Set<LanguageContributionIdentifier> languageContributions = Sets.newHashSet();
 
 
     /**
@@ -33,20 +32,20 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
      * @param configurationReaderWriter
      *            The configuration reader/writer.
      */
-    @Inject public ConfigurationBasedLanguageComponentConfigBuilder(
-        final ConfigurationReaderWriter configurationReaderWriter) {
+    @Inject public ConfigurationBasedLanguageComponentConfigBuilder(ConfigurationReaderWriter configurationReaderWriter) {
         this.configurationReaderWriter = configurationReaderWriter;
     }
 
 
     @Override public ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
-        if(!isValid())
+        if(!isValid()) {
             throw new IllegalStateException(validateOrError());
+        }
 
-        JacksonConfiguration configuration = createConfiguration(rootFolder);
+        final JacksonConfiguration configuration = createConfiguration(rootFolder);
 
-        return new ConfigurationBasedLanguageComponentConfig(configuration, this.identifier, this.name,
-            this.compileDependencies, this.runtimeDependencies, this.languageContributions, this.metaborgVersion);
+        return new ConfigurationBasedLanguageComponentConfig(configuration, identifier, name, compileDependencies,
+            runtimeDependencies, languageContributions);
     }
 
     /**
@@ -70,20 +69,21 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
      * @return <code>null</code> when the builder is valid; otherwise, an error message when the builder is invalid.
      */
     protected String validateOrError() {
-        if(this.name == null)
+        if(name == null) {
             return "A Name must be specified.";
-        if(this.identifier == null)
+        }
+        if(identifier == null) {
             return "An Identifier must be specified.";
+        }
 
         return null;
     }
 
     @Override public ILanguageComponentConfigBuilder reset() {
-        this.identifier = null;
-        this.name = null;
-        this.compileDependencies.clear();
-        this.runtimeDependencies.clear();
-
+        identifier = null;
+        name = null;
+        compileDependencies.clear();
+        runtimeDependencies.clear();
         return this;
     }
 
@@ -93,7 +93,6 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         withCompileDependencies(config.compileDependencies());
         withRuntimeDependencies(config.runtimeDependencies());
         withLanguageContributions(config.languageContributions());
-
         return this;
     }
 
@@ -103,7 +102,6 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
         withCompileDependencies(config.compileDependencies());
         withRuntimeDependencies(config.runtimeDependencies());
         withLanguageContributions(config.languageContributions());
-
         return this;
     }
 
@@ -146,11 +144,6 @@ public class ConfigurationBasedLanguageComponentConfigBuilder implements ILangua
     @Override public ILanguageComponentConfigBuilder addLanguageContributions(
         Iterable<LanguageContributionIdentifier> contributions) {
         this.languageContributions.addAll(Lists.newArrayList(contributions));
-        return this;
-    }
-
-    @Override public ILanguageComponentConfigBuilder withMetaborgVersion(String metaborgVersion) {
-        this.metaborgVersion = metaborgVersion;
         return this;
     }
 }

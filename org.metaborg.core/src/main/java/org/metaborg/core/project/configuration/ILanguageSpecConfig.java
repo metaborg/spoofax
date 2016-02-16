@@ -1,52 +1,14 @@
 package org.metaborg.core.project.configuration;
 
 import java.io.Serializable;
-import java.util.Collection;
-
-import org.metaborg.core.language.LanguageContributionIdentifier;
-import org.metaborg.core.language.LanguageIdentifier;
 
 /**
- * Configuration of a language specification.
+ * Configuration of a language specification at build time, an extension of the {@link ILanguageComponentConfig} runtime
+ * configuration.
  *
- * To create a new instance of this interface, use the {@link ILanguageSpecConfigBuilder} interface.
+ * To create a new instance of this interface, use an {@link ILanguageSpecConfigBuilder} interface.
  */
-public interface ILanguageSpecConfig extends Serializable {
-    /**
-     * Gets the language identifier.
-     *
-     * @return The language identifier.
-     */
-    LanguageIdentifier identifier();
-
-    /**
-     * Gets the language name.
-     *
-     * @return The language name.
-     */
-    String name();
-
-    /**
-     * Gets the compile-time dependencies.
-     *
-     * @return The compile-time dependency identifiers.
-     */
-    Collection<LanguageIdentifier> compileDependencies();
-
-    /**
-     * Gets the runtime dependencies.
-     *
-     * @return The runtime dependency identifiers.
-     */
-    Collection<LanguageIdentifier> runtimeDependencies();
-
-    /**
-     * Gets the language contributions.
-     *
-     * @return The language contributions.
-     */
-    Collection<LanguageContributionIdentifier> languageContributions();
-
+public interface ILanguageSpecConfig extends ILanguageComponentConfig, Serializable {
     /**
      * Gets the version of MetaBorg tooling to use.
      * 

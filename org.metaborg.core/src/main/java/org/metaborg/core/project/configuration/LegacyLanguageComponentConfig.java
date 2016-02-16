@@ -31,7 +31,7 @@ public class LegacyLanguageComponentConfig implements ILanguageComponentConfig {
     private final ILegacyProjectSettings settings;
 
 
-    public LegacyLanguageComponentConfig(final ILegacyProjectSettings settings) {
+    public LegacyLanguageComponentConfig(ILegacyProjectSettings settings) {
         this.settings = settings;
     }
 

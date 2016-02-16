@@ -1,20 +1,18 @@
 /*
  * Copyright © 2015-2015
- *
+ * 
  * This file is part of Spoofax for IntelliJ.
- *
- * Spoofax for IntelliJ is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Spoofax for IntelliJ is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Spoofax for IntelliJ.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * Spoofax for IntelliJ is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ * 
+ * Spoofax for IntelliJ is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along with Spoofax for IntelliJ. If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 
 package org.metaborg.core.project.configuration;
@@ -36,52 +34,34 @@ import com.google.inject.Inject;
 @Deprecated
 @SuppressWarnings("deprecation")
 public class LegacyLanguageComponentConfigService implements ILanguageComponentConfigService {
-
-    private final ConfigurationBasedLanguageComponentConfigService configurationBasedLanguageComponentConfigService;
+    private final ConfigurationBasedLanguageComponentConfigService languageComponentConfigService;
     private final ILegacyProjectSettingsService settingsService;
-//    private final ILanguageComponentConfigWriter configWriter;
 
-    @Inject
-    public LegacyLanguageComponentConfigService(final ConfigurationBasedLanguageComponentConfigService configurationBasedLanguageComponentConfigService,
-                                                final ILegacyProjectSettingsService settingsService) { //}, final ILanguageComponentConfigWriter configWriter) {
-        this.configurationBasedLanguageComponentConfigService = configurationBasedLanguageComponentConfigService;
+
+    @Inject public LegacyLanguageComponentConfigService(
+        ConfigurationBasedLanguageComponentConfigService languageComponentConfigService,
+        ILegacyProjectSettingsService settingsService) {
+        this.languageComponentConfigService = languageComponentConfigService;
         this.settingsService = settingsService;
-//        this.configWriter = configWriter;
     }
 
-    @Nullable
-    @Override
-    public ILanguageComponentConfig get(final ILanguageComponent languageComponent) throws IOException {
-        // Try get a configuration.
-        @Nullable ILanguageComponentConfig config = this.configurationBasedLanguageComponentConfigService.get(languageComponent);
 
-//        // If this fails, try get project settings.
-//        if (config == null) {
-//            final IProjectSettings settings = this.settingsService.get(new IProject() {
-//                @Override
-//                public FileObject location() {
-//                    return languageComponent.location();
-//                }
-//            });
-//            if (settings != null) {
-//                // Convert the settings to a configuration
-//                config = new LegacyLanguageComponentConfig(settings);
-//            }
-//        }
+    @Nullable @Override public ILanguageComponentConfig get(ILanguageComponent languageComponent) throws IOException {
+        ILanguageComponentConfig config = this.languageComponentConfigService.get(languageComponent);
+        if(config == null) {
+            final ILegacyProjectSettings settings = this.settingsService.get(languageComponent.location());
+            if(settings != null) {
+                config = new LegacyLanguageComponentConfig(settings);
+            }
+        }
         return config;
     }
 
-    @Nullable
-    @Override
-    public ILanguageComponentConfig get(FileObject rootFolder) throws IOException {
-        // Try get a configuration.
-        @Nullable ILanguageComponentConfig config = this.configurationBasedLanguageComponentConfigService.get(rootFolder);
-
-        // If this fails, try get project settings.
-        if (config == null) {
+    @Nullable @Override public ILanguageComponentConfig get(FileObject rootFolder) throws IOException {
+        ILanguageComponentConfig config = this.languageComponentConfigService.get(rootFolder);
+        if(config == null) {
             final ILegacyProjectSettings settings = this.settingsService.get(rootFolder);
-            if (settings != null) {
-                // Convert the settings to a configuration
+            if(settings != null) {
                 config = new LegacyLanguageComponentConfig(settings);
             }
         }

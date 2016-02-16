@@ -6,10 +6,11 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
 /**
- * Configuration of a language component.
+ * Configuration of a language component at runtime.
+ * 
+ * To create a new instance of this interface, use an {@link ILanguageComponentConfigBuilder} interface.
  */
 public interface ILanguageComponentConfig {
-
     /**
      * Gets the language identifier.
      *

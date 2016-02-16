@@ -10,7 +10,6 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
  * Configuration that uses YAML files.
  */
 public class YamlConfiguration extends JacksonConfiguration {
-
     /**
      * Initializes a new instance of the {@link YamlConfiguration} class.
      */
@@ -21,11 +20,10 @@ public class YamlConfiguration extends JacksonConfiguration {
     /**
      * Initializes a new instance of the {@link YamlConfiguration} class.
      *
-     * @param config The configuration whose nodes to copy.
+     * @param config
+     *            The configuration whose nodes to copy.
      */
-    public YamlConfiguration(
-            final HierarchicalConfiguration<ImmutableNode> config) {
+    public YamlConfiguration(HierarchicalConfiguration<ImmutableNode> config) {
         super(new YAMLFactory(), config);
     }
-
 }
