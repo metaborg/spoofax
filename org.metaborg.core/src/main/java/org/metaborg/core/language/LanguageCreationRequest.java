@@ -3,6 +3,7 @@ package org.metaborg.core.language;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.project.config.ILanguageComponentConfig;
 
 import com.google.common.collect.Lists;
 
@@ -12,13 +13,15 @@ public class LanguageCreationRequest {
     public final LanguageIdentifier identifier;
     public final FileObject location;
     public final Iterable<LanguageContributionIdentifier> implIds;
+    public final ILanguageComponentConfig config;
 
 
     public LanguageCreationRequest(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageContributionIdentifier> implIds) {
+        Iterable<LanguageContributionIdentifier> implIds, ILanguageComponentConfig config) {
         this.identifier = identifier;
         this.location = location;
         this.implIds = implIds;
+        this.config = config;
     }
 
 

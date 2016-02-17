@@ -6,12 +6,13 @@ import java.util.Map;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.LanguagePathFacet;
+import org.metaborg.core.project.config.Generate;
+import org.metaborg.core.project.config.ILanguageImplConfig;
 import org.metaborg.util.iterators.Iterables2;
 
-import rx.functions.Func0;
-
 import com.google.common.collect.Maps;
+
+import rx.functions.Func0;
 
 /**
  * Language build order calculation.
@@ -40,23 +41,20 @@ public class BuildOrder {
         }
 
         for(ILanguageImpl source : languages) {
-            final Iterable<LanguagePathFacet> facets = source.facets(LanguagePathFacet.class);
-            for(LanguagePathFacet facet : facets) {
-                for(String otherName : facet.sources.keySet()) {
-                    final ILanguageImpl target = lookup.get(otherName);
-                    if(target != null) {
-                        try {
-                            dag.addDagEdge(source, target);
-                        } catch(DirectedAcyclicGraph.CycleFoundException e) {
-                            throw new MetaborgRuntimeException(
-                                "Languages induce build cycle, cannot determine build order", e);
-                        }
+            final ILanguageImplConfig config = source.config();
+            for(Generate generate : config.generates()) {
+                final ILanguageImpl target = lookup.get(generate.languageName);
+                if(target != null) {
+                    try {
+                        dag.addDagEdge(source, target);
+                    } catch(DirectedAcyclicGraph.CycleFoundException e) {
+                        throw new MetaborgRuntimeException(
+                            "Language implementations induce build cycle, cannot determine build order", e);
                     }
                 }
             }
         }
     }
-
 
     /**
      * @return Build order.

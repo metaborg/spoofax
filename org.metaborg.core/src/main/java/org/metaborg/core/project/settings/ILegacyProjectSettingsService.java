@@ -4,10 +4,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.configuration.ILanguageComponentConfigService;
-import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
+import org.metaborg.core.project.config.ILanguageComponentConfigService;
 
 /**
  * Interface for getting project settings.

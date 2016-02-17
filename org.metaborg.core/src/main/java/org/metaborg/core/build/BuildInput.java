@@ -8,7 +8,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
 import com.google.common.collect.Multimap;
@@ -25,9 +25,9 @@ public class BuildInput {
     public final BuildState state;
 
     /**
-     * Language specification to build.
+     * Project to build.
      */
-    public final ILanguageSpec languageSpec;
+    public final IProject project;
 
     /**
      * Sources that have changed.
@@ -94,13 +94,13 @@ public class BuildInput {
     public final Set<ILanguageImpl> pardonedLanguages;
 
 
-    public BuildInput(BuildState state, ILanguageSpec languageSpec, Iterable<ResourceChange> resourceChanges,
-                      Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
-                      boolean analyze, @Nullable FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
-                      Iterable<ITransformGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors,
-                      Set<ILanguageImpl> pardonedLanguages) {
+    public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
+        Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
+        boolean analyze, @Nullable FileSelector analyzeSelector, boolean transform,
+        @Nullable FileSelector transformSelector, Iterable<ITransformGoal> transformGoals,
+        @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors, Set<ILanguageImpl> pardonedLanguages) {
         this.state = state;
-        this.languageSpec = languageSpec;
+        this.project = project;
         this.sourceChanges = resourceChanges;
         this.includePaths = includePaths;
         this.buildOrder = buildOrder;

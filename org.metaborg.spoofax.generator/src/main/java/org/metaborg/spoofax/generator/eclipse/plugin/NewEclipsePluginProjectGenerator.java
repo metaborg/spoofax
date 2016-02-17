@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.metaborg.spoofax.generator.BaseGenerator;
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
+import org.metaborg.spoofax.generator.IGeneratorSettings;
 import org.metaborg.util.file.FileAccess;
 
 /**
@@ -12,11 +12,11 @@ import org.metaborg.util.file.FileAccess;
  * Eclipse plugin that can be installed into Eclipse.
  */
 public class NewEclipsePluginProjectGenerator extends BaseGenerator {
-    public NewEclipsePluginProjectGenerator(LanguageSpecGeneratorScope scope, FileAccess access) {
+    public NewEclipsePluginProjectGenerator(IGeneratorSettings scope, FileAccess access) {
         super(scope, access);
     }
     
-    public NewEclipsePluginProjectGenerator(LanguageSpecGeneratorScope scope) {
+    public NewEclipsePluginProjectGenerator(IGeneratorSettings scope) {
         super(scope);
     }
 

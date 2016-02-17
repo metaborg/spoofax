@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.generator.BaseGenerator;
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
+import org.metaborg.spoofax.generator.IGeneratorSettings;
 
 /**
  * Generates language project files that are only generated once when a new language project is created. Files are not
@@ -17,19 +17,19 @@ public class NewLanguageSpecGenerator extends BaseGenerator {
     private final AnalysisType analysisType;
 
 
-    public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config) throws ProjectException {
+    public NewLanguageSpecGenerator(IGeneratorSettings config) throws ProjectException {
         this(config, new String[0]);
     }
 
-    public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config, AnalysisType analysisType) throws ProjectException {
+    public NewLanguageSpecGenerator(IGeneratorSettings config, AnalysisType analysisType) throws ProjectException {
         this(config, new String[0], analysisType);
     }
 
-    public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions) throws ProjectException {
+    public NewLanguageSpecGenerator(IGeneratorSettings config, String[] fileExtensions) throws ProjectException {
         this(config, fileExtensions, AnalysisType.NaBL_TS);
     }
 
-    public NewLanguageSpecGenerator(LanguageSpecGeneratorScope config, String[] fileExtensions, AnalysisType analysisType)
+    public NewLanguageSpecGenerator(IGeneratorSettings config, String[] fileExtensions, AnalysisType analysisType)
         throws ProjectException {
         super(config);
 

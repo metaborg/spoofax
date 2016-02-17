@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
-import org.metaborg.core.project.configuration.ILanguageComponentConfig;
+import org.metaborg.core.project.config.ILanguageComponentConfig;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.spoofax.interpreter.terms.IStrategoAppl;

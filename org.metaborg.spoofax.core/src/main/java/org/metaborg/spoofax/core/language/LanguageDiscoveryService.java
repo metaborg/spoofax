@@ -12,7 +12,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalyzerFacet;
 import org.metaborg.core.analysis.IAnalyzer;
-import org.metaborg.core.build.dependency.DependencyFacet;
 import org.metaborg.core.context.ContextFacet;
 import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextStrategy;
@@ -25,12 +24,11 @@ import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
-import org.metaborg.core.project.configuration.ILanguageComponentConfig;
-import org.metaborg.core.project.configuration.ILanguageComponentConfigService;
+import org.metaborg.core.project.config.ILanguageComponentConfig;
+import org.metaborg.core.project.config.ILanguageComponentConfigService;
 import org.metaborg.core.syntax.ParseFacet;
 import org.metaborg.spoofax.core.action.ActionFacet;
 import org.metaborg.spoofax.core.action.ActionFacetFromESV;
@@ -198,15 +196,14 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
 
-    private IStrategoAppl esvTerm(FileObject location, FileObject esvFile) throws ParseError, IOException,
-        MetaborgException {
+    private IStrategoAppl esvTerm(FileObject location, FileObject esvFile)
+        throws ParseError, IOException, MetaborgException {
         final TermReader reader =
             new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
         if(term.getTermType() != IStrategoTerm.APPL) {
-            final String message =
-                logger.format("Cannot discover language at {}, ESV file at {} does not contain a valid ESV term",
-                    location, esvFile);
+            final String message = logger.format(
+                "Cannot discover language at {}, ESV file at {} does not contain a valid ESV term", location, esvFile);
             throw new MetaborgException(message);
         }
         return (IStrategoAppl) term;
@@ -226,12 +223,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         logger.debug("Creating language component for {}", location);
 
         final LanguageIdentifier identifier = config.identifier();
-        final Collection<LanguageContributionIdentifier> languageContributions =
-            discoveryRequest.config().langContribs();
-        if(languageContributions.isEmpty()) {
-            languageContributions.add(new LanguageContributionIdentifier(identifier, config.name()));
+        final Collection<LanguageContributionIdentifier> langContribs = discoveryRequest.config().langContribs();
+        if(langContribs.isEmpty()) {
+            langContribs.add(new LanguageContributionIdentifier(identifier, config.name()));
         }
-        final LanguageCreationRequest request = languageService.create(identifier, location, languageContributions);
+        final LanguageCreationRequest request = languageService.create(identifier, location, langContribs, config);
 
         final String[] extensions = extensions(esvTerm);
         if(extensions.length != 0) {
@@ -333,13 +329,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         if(outlineFacet != null) {
             request.addFacet(outlineFacet);
         }
-
-        final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
-        request.addFacet(languageComponentsFacet);
-
-        final DependencyFacet dependencyFacet =
-            new DependencyFacet(config.compileDeps(), config.sourceDeps());
-        request.addFacet(dependencyFacet);
 
         return languageService.add(request);
     }

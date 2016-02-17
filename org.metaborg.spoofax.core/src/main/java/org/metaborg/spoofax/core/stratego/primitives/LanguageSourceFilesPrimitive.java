@@ -9,8 +9,6 @@ import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentifiedResource;
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
@@ -30,16 +28,15 @@ public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
     private final ILanguageService languageService;
     private final ILanguagePathService languagePathService;
     private final IProjectService projectService;
-    private final ILanguageSpecService languageSpecService;
+
 
     @Inject public LanguageSourceFilesPrimitive(IResourceService resourceService, ILanguageService languageService,
-                                                ILanguagePathService languagePathService, IProjectService projectService, ILanguageSpecService languageSpecService) {
+        ILanguagePathService languagePathService, IProjectService projectService) {
         super("SSL_EXT_language_source_files", 0, 1);
         this.resourceService = resourceService;
         this.languageService = languageService;
         this.languagePathService = languagePathService;
         this.projectService = projectService;
-        this.languageSpecService = languageSpecService;
     }
 
 
@@ -54,19 +51,13 @@ public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
             env.setCurrent(factory.makeList());
             return true;
         }
-        
+
         final IProject project = projectService.get(context.location());
         if(project == null) {
             env.setCurrent(factory.makeList());
             return true;
         }
 
-        final ILanguageSpec languageSpec = languageSpecService.get(project);
-        if (languageSpec == null) {
-            env.setCurrent(factory.makeList());
-            return true;
-        }
-        
         // GTODO: require language identifier instead of language name
         final String languageName = Tools.asJavaString(tvars[0]);
         final ILanguage language = languageService.getLanguage(languageName);
@@ -77,13 +68,12 @@ public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
         }
         final ILanguageImpl impl = language.activeImpl();
         if(impl == null) {
-            final String message =
-                String.format("Getting include files for %s failed, no active language implementation could be found",
-                    languageName);
+            final String message = String.format(
+                "Getting include files for %s failed, no active language implementation could be found", languageName);
             throw new InterpreterException(message);
         }
 
-        final Iterable<IdentifiedResource> sourceFiles = languagePathService.sourceFiles(languageSpec, impl);
+        final Iterable<IdentifiedResource> sourceFiles = languagePathService.sourceFiles(project, impl);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(IdentifiedResource sourceFile : sourceFiles) {
             final FileObject file = sourceFile.resource;

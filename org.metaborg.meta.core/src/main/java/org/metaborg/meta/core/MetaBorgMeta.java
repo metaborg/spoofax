@@ -5,7 +5,9 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.core.plugin.InjectorFactory;
 import org.metaborg.core.plugin.ServiceModulePluginLoader;
+import org.metaborg.meta.core.config.ILanguageSpecConfigService;
 import org.metaborg.meta.core.plugin.IServiceMetaModulePlugin;
+import org.metaborg.meta.core.project.ILanguageSpecService;
 
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -16,6 +18,11 @@ import com.google.inject.Module;
 public class MetaBorgMeta {
     public final Injector injector;
     public final MetaBorg parent;
+
+
+    public final ILanguageSpecService languageSpecService;
+    public final ILanguageSpecConfigService languageSpecConfigService;
+
 
 
     /**
@@ -35,6 +42,9 @@ public class MetaBorgMeta {
         final Iterable<Module> modules = InjectorFactory.modules(module, loader);
         this.injector = InjectorFactory.createChild(metaborg.injector, modules);
         this.parent = metaborg;
+
+        this.languageSpecService = injector.getInstance(ILanguageSpecService.class);
+        this.languageSpecConfigService = injector.getInstance(ILanguageSpecConfigService.class);
     }
 
     /**

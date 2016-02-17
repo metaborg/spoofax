@@ -18,21 +18,21 @@ import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.project.configuration.ILanguageComponentConfig;
-import org.metaborg.core.project.configuration.ILanguageComponentConfigBuilder;
-import org.metaborg.core.project.configuration.ILanguageComponentConfigWriter;
+import org.metaborg.core.project.config.ILanguageComponentConfig;
+import org.metaborg.core.project.config.ILanguageComponentConfigBuilder;
+import org.metaborg.core.project.config.ILanguageComponentConfigWriter;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigWriter;
-import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.spoofax.core.project.settings.StrategoFormat;
 import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.meta.core.project.GeneratorSettings;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -93,7 +93,7 @@ public class SpoofaxMetaBuilder {
         logger.debug("Generating sources for {}", input.languageSpec.location());
 
         final LanguageSpecGenerator generator =
-            new LanguageSpecGenerator(new LanguageSpecGeneratorScope(input.config, input.paths), access);
+            new LanguageSpecGenerator(new GeneratorSettings(input.config, input.paths), access);
         generator.generateAll();
 
         componentConfigBuilder.reset();
@@ -278,7 +278,7 @@ public class SpoofaxMetaBuilder {
         final File strjInputFile = context.toFile(paths.strMainFile());
         final File strjOutputFile;
         final File strjDepFile;
-        if(config.format() == Format.ctree) {
+        if(config.format() == StrategoFormat.ctree) {
             strjOutputFile = context.toFile(paths.strCompiledCtreeFile());
             strjDepFile = strjOutputFile;
         } else {

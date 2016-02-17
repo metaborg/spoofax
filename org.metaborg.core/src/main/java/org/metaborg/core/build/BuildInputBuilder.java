@@ -15,7 +15,7 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguageUtils;
-import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.util.resource.ResourceUtils;
 
@@ -32,7 +32,7 @@ import com.google.inject.Inject;
  * @see BuildInput
  */
 public class BuildInputBuilder {
-    private final ILanguageSpec languageSpec;
+    private final IProject project;
 
     private BuildState state;
 
@@ -60,8 +60,8 @@ public class BuildInputBuilder {
     private Set<String> pardonedLanguageStrings;
 
 
-    @Inject public BuildInputBuilder(ILanguageSpec languageSpec) {
-        this.languageSpec = languageSpec;
+    @Inject public BuildInputBuilder(IProject languageSpec) {
+        this.project = languageSpec;
         reset();
     }
 
@@ -379,7 +379,7 @@ public class BuildInputBuilder {
             state = new BuildState();
         }
 
-        final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDependencies(this.languageSpec);
+        final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDeps(this.project);
         final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);
         if(addDependencyLanguages) {
             addLanguages(compileImpls);
@@ -387,15 +387,13 @@ public class BuildInputBuilder {
 
         if(addDefaultIncludePaths) {
             for(ILanguageImpl language : compileImpls) {
-                addIncludePaths(language,
-                    languagePathService.includePaths(this.languageSpec, language.belongsTo().name()));
+                addIncludePaths(language, languagePathService.includePaths(this.project, language.belongsTo().name()));
             }
         }
 
         if(addSourcesFromDefaultSourceLocations) {
             for(ILanguageImpl language : compileImpls) {
-                final Iterable<IdentifiedResource> sources =
-                    languagePathService.sourceFiles(this.languageSpec, language);
+                final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(this.project, language);
                 addIdentifiedSources(sources);
             }
         }
@@ -406,8 +404,8 @@ public class BuildInputBuilder {
             }
         }
 
-        return new BuildInput(state, this.languageSpec, sourceChanges, includePaths, new BuildOrder(languages), selector,
-                analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
-                pardonedLanguages);
+        return new BuildInput(state, this.project, sourceChanges, includePaths, new BuildOrder(languages), selector,
+            analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
+            pardonedLanguages);
     }
 }

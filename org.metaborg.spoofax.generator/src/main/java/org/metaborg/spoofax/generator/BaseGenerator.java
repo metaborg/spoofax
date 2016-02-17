@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.generator;
 
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.generator.util.MustacheWriter;
 import org.metaborg.util.file.FileAccess;
 
@@ -10,11 +9,11 @@ public abstract class BaseGenerator {
     protected final MustacheWriter writer;
 
 
-    public BaseGenerator(LanguageSpecGeneratorScope scope, @Nullable FileAccess access) {
+    public BaseGenerator(IGeneratorSettings scope, @Nullable FileAccess access) {
         this.writer = new MustacheWriter(scope.location(), new Object[] { this, scope }, getClass(), access);
     }
     
-    public BaseGenerator(LanguageSpecGeneratorScope scope) {
+    public BaseGenerator(IGeneratorSettings scope) {
         this(scope, null);
     }
 }

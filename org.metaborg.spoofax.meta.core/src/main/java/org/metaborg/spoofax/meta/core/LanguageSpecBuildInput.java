@@ -1,8 +1,8 @@
 package org.metaborg.spoofax.meta.core;
 
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
+import org.metaborg.meta.core.project.ILanguageSpec;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 
 /**
  * Language specification build input arguments.

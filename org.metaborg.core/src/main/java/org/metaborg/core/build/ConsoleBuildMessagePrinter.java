@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
-import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.IProject;
 import org.metaborg.core.source.AffectedSourceHelper;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.ISourceTextService;
@@ -51,8 +51,8 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
 
     public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight,
         boolean printExceptions, ILogger logger) {
-        this(sourceTextService, printHighlight, printExceptions, LoggerUtils.stream(logger, Level.Info), LoggerUtils
-            .stream(logger, Level.Warn), LoggerUtils.stream(logger, Level.Error));
+        this(sourceTextService, printHighlight, printExceptions, LoggerUtils.stream(logger, Level.Info),
+            LoggerUtils.stream(logger, Level.Warn), LoggerUtils.stream(logger, Level.Error));
     }
 
 
@@ -132,14 +132,14 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         }
     }
 
-    @Override public void print(ILanguageSpec languageSpec, String message, @Nullable Throwable e, boolean pardoned) {
+    @Override public void print(IProject project, String message, @Nullable Throwable e, boolean pardoned) {
         final StringBuilder sb = new StringBuilder();
         sb.append("EXCEPTION");
         if(pardoned) {
             sb.append(" (pardoned)");
         }
         sb.append(" in project ");
-        sb.append(languageSpec.location().getName().getPath());
+        sb.append(project.location().getName().getPath());
         sb.append('\n');
 
         print(sb, message, e, MessageSeverity.ERROR, pardoned);

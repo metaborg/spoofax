@@ -1,0 +1,115 @@
+package org.metaborg.spoofax.meta.core.config;
+
+import java.util.Collection;
+
+import javax.annotation.Nullable;
+
+import org.metaborg.meta.core.config.ILanguageSpecConfig;
+import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
+import org.metaborg.spoofax.core.project.settings.StrategoFormat;
+import org.metaborg.util.cmd.Arguments;
+
+/**
+ * Spoofax-specific configuration for a language specification.
+ *
+ * To create a new instance of this interface, use the {@link ILanguageSpecConfigBuilder} interface.
+ */
+public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
+    /**
+     * Gets a sequence of languages whose errors are ignored.
+     *
+     * @return The pardoned languages.
+     */
+    Collection<String> pardonedLanguages();
+
+    /**
+     * Gets the project artifact format.
+     *
+     * @return A member of the {@link StrategoFormat} enumeration.
+     */
+    StrategoFormat format();
+
+    /**
+     * Gets the SDF name.
+     *
+     * @return The SDF name.
+     */
+    String sdfName();
+
+    /**
+     * Gets the meta SDF name.
+     *
+     * @return The meta SDF name.
+     */
+    String metaSdfName();
+
+    /**
+     * Gets SDF arguments.
+     *
+     * @return An iterable of SDF arguments.
+     */
+    Arguments sdfArgs();
+
+    /**
+     * Gets the Stratego arguments.
+     *
+     * @return The Stratego arguments.
+     */
+    Arguments strategoArgs();
+
+    /**
+     * Gets the external def.
+     *
+     * @return The external def.
+     */
+    @Nullable String externalDef();
+
+    /**
+     * Gets the external JAR.
+     *
+     * @return The external JAR.
+     */
+    @Nullable String externalJar();
+
+    /**
+     * Gets the external JAR flags.
+     *
+     * @return The external JAR flags.
+     */
+    @Nullable String externalJarFlags();
+
+    /**
+     * Gets the Stratego name.
+     *
+     * @return The Stratego name.
+     */
+    String strategoName();
+
+    /**
+     * Gets the Java name.
+     *
+     * @return The Java name.
+     */
+    String javaName();
+
+    /**
+     * Gets the package name.
+     *
+     * @return The package name.
+     */
+    String packageName();
+
+    /**
+     * Gets the strategies package name.
+     *
+     * @return The strategies package name.
+     */
+    String strategiesPackageName();
+
+    /**
+     * Gets the ESV name.
+     *
+     * @return The ESV name.
+     */
+    String esvName();
+}

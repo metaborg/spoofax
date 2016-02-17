@@ -2,7 +2,7 @@ package org.metaborg.core.project.settings;
 
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.configuration.ILanguageComponentConfig;
+import org.metaborg.core.project.config.ILanguageComponentConfig;
 
 /**
  * @deprecated Use {@link ILanguageComponentConfig} instead.

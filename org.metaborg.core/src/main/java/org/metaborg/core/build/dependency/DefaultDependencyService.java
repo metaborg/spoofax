@@ -6,10 +6,13 @@ import java.util.Collections;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.language.*;
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.configuration.ILanguageSpecConfig;
-import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageUtils;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.config.IProjectConfig;
+import org.metaborg.core.project.config.IProjectConfigService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -21,110 +24,83 @@ import com.google.inject.Inject;
  * Default implementation of the {@link IDependencyService} interface.
  */
 public final class DefaultDependencyService implements IDependencyService {
-
     private static final ILogger logger = LoggerUtils.logger(DefaultDependencyService.class);
 
     private final ILanguageService languageService;
-    private final ILanguageSpecConfigService languageSpecConfigService;
+    private final IProjectConfigService projectConfigService;
 
-    @Inject
-    public DefaultDependencyService(
-            ILanguageService languageService,
-            ILanguageSpecConfigService languageSpecConfigService) {
+
+    @Inject public DefaultDependencyService(ILanguageService languageService,
+        IProjectConfigService projectConfigService) {
         this.languageService = languageService;
-        this.languageSpecConfigService = languageSpecConfigService;
+        this.projectConfigService = projectConfigService;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<ILanguageComponent> compileDependencies(ILanguageSpec languageSpec) throws MissingDependencyException {
-        ILanguageSpecConfig config = getConfig(languageSpec);
 
+    @Override public Collection<ILanguageComponent> compileDeps(IProject project) throws MissingDependencyException {
+        final IProjectConfig config = getConfig(project);
         if(config == null) {
             logger.trace("No configuration found for language specification '{}'."
-                    + "Returning all active language components as compile dependencies instead.", languageSpec);
+                + "Returning all active language components as compile dependencies instead.", project);
             return ImmutableList.copyOf(LanguageUtils.allActiveComponents(languageService));
         }
-
         return getLanguages(config.compileDeps());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<ILanguageComponent> runtimeDependencies(ILanguageSpec languageSpec) throws MissingDependencyException {
-        ILanguageSpecConfig config = getConfig(languageSpec);
-
+    @Override public Collection<ILanguageComponent> sourceDeps(IProject project) throws MissingDependencyException {
+        final IProjectConfig config = getConfig(project);
         if(config == null) {
-            logger.trace("No configuration found for language specification '{}'. " +
-                    "Returning no runtime dependencies instead.", languageSpec);
+            logger.trace("No configuration found for language specification '{}'. "
+                + "Returning no runtime dependencies instead.", project);
             return Collections.emptyList();
         }
-
         return getLanguages(config.sourceDeps());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override public Collection<ILanguageComponent> runtimeDependencies(ILanguageComponent component) throws MissingDependencyException {
-
-        final DependencyFacet facet = component.facet(DependencyFacet.class);
-        if(facet == null) {
-            logger.trace("No dependency facet found for language component '{}'. " +
-                    "Returning no runtime dependencies instead.", component);
-            return Collections.emptyList();
-        }
-
-        return getLanguages(facet.runtimeDependencies);
+    @Override public Collection<ILanguageComponent> sourceDeps(ILanguageComponent component)
+        throws MissingDependencyException {
+        return getLanguages(component.config().sourceDeps());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MissingDependencies checkDependencies(ILanguageSpec languageSpec) {
-        ILanguageSpecConfig config = getConfig(languageSpec);
-        if (config == null) {
+    @Override public MissingDependencies checkDependencies(IProject project) {
+        final IProjectConfig config = getConfig(project);
+        if(config == null) {
             return new MissingDependencies();
         }
 
-        final Collection<LanguageIdentifier> compile = config.compileDeps();
+        final Collection<LanguageIdentifier> compileDeps = config.compileDeps();
         final Collection<LanguageIdentifier> missingCompile = Lists.newLinkedList();
-        for(LanguageIdentifier identifier : compile) {
-            if(this.languageService.getComponentOrBaseline(identifier) == null) {
+        for(LanguageIdentifier identifier : compileDeps) {
+            if(languageService.getComponentOrBaseline(identifier) == null) {
                 missingCompile.add(identifier);
             }
         }
 
-        final Collection<LanguageIdentifier> runtime = config.sourceDeps();
-        final Collection<LanguageIdentifier> missingRuntime = Lists.newLinkedList();
-        for(LanguageIdentifier identifier : runtime) {
-            if(this.languageService.getComponentOrBaseline(identifier) == null) {
-                missingRuntime.add(identifier);
+        final Collection<LanguageIdentifier> sourceDeps = config.sourceDeps();
+        final Collection<LanguageIdentifier> missingSource = Lists.newLinkedList();
+        for(LanguageIdentifier identifier : sourceDeps) {
+            if(languageService.getComponentOrBaseline(identifier) == null) {
+                missingSource.add(identifier);
             }
         }
 
-        return new MissingDependencies(missingCompile, missingRuntime);
+        return new MissingDependencies(missingCompile, missingSource);
     }
 
     /**
      * Gets the configuration for the specified language specification.
      *
-     * @param languageSpec The language specification.
-     * @return The associated configuration; or <code>null</code> when
-     * there is no associated configuration or an exception occurred.
+     * @param project
+     *            The language specification.
+     * @return The associated configuration; or <code>null</code> when there is no associated configuration or an
+     *         exception occurred.
      */
-    @Nullable
-    private ILanguageSpecConfig getConfig(ILanguageSpec languageSpec) {
-        ILanguageSpecConfig config = null;
+    private @Nullable IProjectConfig getConfig(IProject project) {
+        IProjectConfig config = null;
         try {
-            config = this.languageSpecConfigService.get(languageSpec);
-        } catch (IOException e) {
-            logger.debug("Exception while retrieving configuration of {}", e, languageSpec);
+            config = projectConfigService.get(project);
+        } catch(IOException e) {
+            logger.debug("Exception while retrieving configuration of {}", e, project);
         }
         return config;
     }
@@ -132,15 +108,17 @@ public final class DefaultDependencyService implements IDependencyService {
     /**
      * Gets the language components with the specified identifiers.
      *
-     * @param identifiers The language identifiers.
+     * @param ids
+     *            The language identifiers.
      * @return A collection of language components.
      */
-    private Collection<ILanguageComponent> getLanguages(final Iterable<LanguageIdentifier> identifiers) throws MissingDependencyException {
+    private Collection<ILanguageComponent> getLanguages(Iterable<LanguageIdentifier> ids)
+        throws MissingDependencyException {
         final Collection<ILanguageComponent> components = Lists.newLinkedList();
-        for(LanguageIdentifier identifier : identifiers) {
-            final ILanguageComponent component = this.languageService.getComponentOrBaseline(identifier);
+        for(LanguageIdentifier id : ids) {
+            final ILanguageComponent component = this.languageService.getComponentOrBaseline(id);
             if(component == null) {
-                throw new MissingDependencyException(logger.format("Language for dependency {} does not exist.", identifier));
+                throw new MissingDependencyException(logger.format("Language for dependency {} does not exist", id));
             }
             components.add(component);
         }

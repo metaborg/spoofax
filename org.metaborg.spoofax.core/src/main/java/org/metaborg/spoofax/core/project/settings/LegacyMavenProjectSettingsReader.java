@@ -14,10 +14,9 @@ import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.settings.ILegacyProjectSettings;
 import org.metaborg.core.project.settings.LegacyProjectSettings;
 import org.metaborg.spoofax.core.project.LegacySpoofaxMavenConstants;
+import org.metaborg.util.cmd.Arguments;
 
 import com.google.common.collect.Lists;
-
-import org.metaborg.util.cmd.Arguments;
 
 @SuppressWarnings("deprecation")
 @Deprecated
@@ -85,22 +84,22 @@ public class LegacyMavenProjectSettingsReader {
             }
         }
 
-        final Format format;
+        final StrategoFormat format;
         final Xpp3Dom formatNode = dom.getChild("format");
         if(formatNode != null) {
             switch(formatNode.getValue()) {
                 case "jar":
-                    format = Format.jar;
+                    format = StrategoFormat.jar;
                     break;
                 case "ctree":
-                    format = Format.ctree;
+                    format = StrategoFormat.ctree;
                     break;
                 default:
-                    format = Format.ctree;
+                    format = StrategoFormat.ctree;
                     break;
             }
         } else {
-            format = Format.ctree;
+            format = StrategoFormat.ctree;
         }
 
         final Arguments sdfArgs = new Arguments();

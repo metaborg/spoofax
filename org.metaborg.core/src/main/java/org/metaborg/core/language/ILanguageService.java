@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.project.config.ILanguageComponentConfig;
 
 import rx.Observable;
 
@@ -22,15 +23,15 @@ public interface ILanguageService {
     @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier);
 
     /**
-     * Gets a language component by its identifier;
-     * or otherwise the baseline language component with the same identifier.
+     * Gets a language component by its identifier; or otherwise the baseline language component with the same
+     * identifier.
      *
-     * @param identifier Identifier of the implementation to get.
-     * @return Component with given identifier; or the baseline component with the
-     * given identifier; or <code>null</code> if it could not be found.
+     * @param identifier
+     *            Identifier of the implementation to get.
+     * @return Component with given identifier; or the baseline component with the given identifier; or
+     *         <code>null</code> if it could not be found.
      */
-    @Nullable
-    ILanguageComponent getComponentOrBaseline(LanguageIdentifier identifier);
+    @Nullable ILanguageComponent getComponentOrBaseline(LanguageIdentifier identifier);
 
     /**
      * Gets a language component by its location.
@@ -107,13 +108,15 @@ public interface ILanguageService {
      *            Identifier of the component to create.
      * @param location
      *            Location of the component to create.
-     * @param implIds
+     * @param contribs
      *            Identifiers of language implementations that the component should contribute to.
+     * @param config
+     *            Configuration of the component to create.
      * 
      * @return Creation request object, when passed to {@link #add(LanguageCreationRequest)} actually adds the language.
      */
     LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
-                                   Iterable<LanguageContributionIdentifier> implIds);
+        Iterable<LanguageContributionIdentifier> contribs, ILanguageComponentConfig config);
 
     /**
      * Adds language component created from given request object, and return the created component.

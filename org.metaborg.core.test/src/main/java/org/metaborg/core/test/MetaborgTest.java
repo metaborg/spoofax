@@ -6,7 +6,17 @@ import org.junit.Before;
 import org.metaborg.core.MetaBorg;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgModule;
-import org.metaborg.core.language.*;
+import org.metaborg.core.language.IFacet;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageDiscoveryService;
+import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.IdentificationFacet;
+import org.metaborg.core.language.LanguageContributionIdentifier;
+import org.metaborg.core.language.LanguageCreationRequest;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
+import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -49,7 +59,8 @@ public class MetaborgTest {
 
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location,
         Iterable<LanguageContributionIdentifier> implIds, IFacet... facets) {
-        final LanguageCreationRequest request = languageService.create(identifier, location, implIds);
+        // TODO: don't pass null as config
+        final LanguageCreationRequest request = languageService.create(identifier, location, implIds, null);
         for(IFacet facet : facets) {
             request.addFacet(facet);
         }

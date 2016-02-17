@@ -19,7 +19,7 @@ public class LegacySpoofaxProjectSettings implements Serializable {
     private final ILegacyProjectSettings settings;
 
     private Collection<String> pardonedLanguages = Lists.newLinkedList();
-    private Format format = Format.ctree;
+    private StrategoFormat format = StrategoFormat.ctree;
     private Arguments sdfArgs = new Arguments();
     private @Nullable String externalDef;
     private Arguments strategoArgs = new Arguments();
@@ -44,11 +44,11 @@ public class LegacySpoofaxProjectSettings implements Serializable {
     }
 
 
-    public Format format() {
+    public StrategoFormat format() {
         return format;
     }
 
-    public void setFormat(Format format) {
+    public void setFormat(StrategoFormat format) {
         this.format = format;
     }
 

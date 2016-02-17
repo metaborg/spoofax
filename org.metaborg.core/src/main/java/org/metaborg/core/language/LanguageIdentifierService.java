@@ -12,8 +12,7 @@ import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.ILanguageSpecService;
+import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -29,16 +28,14 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     private final ILanguageService languageService;
     private final IDialectIdentifier dialectIdentifier;
     private final IProjectService projectService;
-    private final ILanguageSpecService languageSpecService;
     private final IDependencyService dependencyService;
 
 
     @Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier,
-        IProjectService projectService, ILanguageSpecService languageSpecService, IDependencyService dependencyService) {
+        IProjectService projectService, IDependencyService dependencyService) {
         this.languageService = languageService;
         this.dialectIdentifier = dialectIdentifier;
         this.projectService = projectService;
-        this.languageSpecService = languageSpecService;
         this.dependencyService = dependencyService;
     }
 
@@ -58,15 +55,13 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
     @Override public @Nullable ILanguageImpl identify(FileObject resource) {
-        return identify(resource, languageSpecService.get(projectService.get(resource)));
+        return identify(resource, projectService.get(resource));
     }
 
-    @Nullable
-    @Override
-    public ILanguageImpl identify(FileObject resource, @Nullable ILanguageSpec languageSpec) {
-        if(languageSpec != null) {
+    @Nullable @Override public ILanguageImpl identify(FileObject resource, @Nullable IProject project) {
+        if(project != null) {
             try {
-                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);
+                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDeps(project);
                 final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(dependencies);
                 ILanguageImpl impl = identify(resource, impls);
                 if(impl == null) {
@@ -83,18 +78,18 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
     @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource) {
-        return identifyToResource(resource, languageSpecService.get(projectService.get(resource)));
+        return identifyToResource(resource, projectService.get(resource));
     }
 
-    @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource, @Nullable ILanguageSpec languageSpec) {
-        final Iterable<ILanguageImpl> dependencies = compileDependencies(languageSpec);
+    @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource, @Nullable IProject project) {
+        final Iterable<ILanguageImpl> dependencies = compileDependencies(project);
         return identifyToResource(resource, dependencies);
     }
-    
-    private Iterable<ILanguageImpl> compileDependencies(ILanguageSpec languageSpec) {
-        if(languageSpec != null) {
+
+    private Iterable<ILanguageImpl> compileDependencies(IProject project) {
+        if(project != null) {
             try {
-                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDependencies(languageSpec);
+                final Iterable<ILanguageComponent> dependencies = dependencyService.compileDeps(project);
                 return LanguageUtils.toImpls(dependencies);
             } catch(MetaborgException e) {
                 return LanguageUtils.allActiveImpls(languageService);
@@ -104,7 +99,8 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         }
     }
 
-    @Override public @Nullable ILanguageImpl identify(FileObject resource, Iterable<? extends ILanguageImpl> languages) {
+    @Override public @Nullable ILanguageImpl identify(FileObject resource,
+        Iterable<? extends ILanguageImpl> languages) {
         final IdentifiedResource identified = identifyToResource(resource, languages);
         if(identified == null) {
             return null;

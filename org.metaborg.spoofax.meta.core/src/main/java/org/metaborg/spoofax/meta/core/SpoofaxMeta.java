@@ -5,6 +5,9 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.meta.core.MetaBorgMeta;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigBuilder;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPathsService;
 
 /**
  * Facade for instantiating and accessing the MetaBorg meta API, as an extension of the {@link MetaBorg} API,
@@ -14,6 +17,9 @@ public class SpoofaxMeta extends MetaBorgMeta {
     @SuppressWarnings("hiding") public final Spoofax parent;
 
     public final SpoofaxMetaBuilder metaBuilder;
+
+    @SuppressWarnings("hiding") public final ISpoofaxLanguageSpecConfigService languageSpecConfigService;
+    public final ISpoofaxLanguageSpecPathsService languageSpecPathsService;
 
 
     /**
@@ -31,6 +37,9 @@ public class SpoofaxMeta extends MetaBorgMeta {
     public SpoofaxMeta(Spoofax spoofax, SpoofaxMetaModule module, IModulePluginLoader loader) throws MetaborgException {
         super(spoofax, module, loader);
         this.parent = spoofax;
+
+        this.languageSpecConfigService = injector.getInstance(ISpoofaxLanguageSpecConfigService.class);
+        this.languageSpecPathsService = injector.getInstance(ISpoofaxLanguageSpecPathsService.class);
 
         this.metaBuilder = injector.getInstance(SpoofaxMetaBuilder.class);
     }
@@ -73,6 +82,14 @@ public class SpoofaxMeta extends MetaBorgMeta {
      */
     public SpoofaxMeta(Spoofax spoofax) throws MetaborgException {
         this(spoofax, defaultModule(), defaultPluginLoader());
+    }
+
+
+    /**
+     * @return Fresh language specification configuration builder.
+     */
+    public ISpoofaxLanguageSpecConfigBuilder languageSpecConfigBuilder() {
+        return injector.getInstance(ISpoofaxLanguageSpecConfigBuilder.class);
     }
 
 
