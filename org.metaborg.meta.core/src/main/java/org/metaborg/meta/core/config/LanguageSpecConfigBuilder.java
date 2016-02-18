@@ -4,12 +4,12 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgConstants;
+import org.metaborg.core.config.AConfigurationReaderWriter;
+import org.metaborg.core.config.Export;
+import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.LanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.config.AConfigurationReaderWriter;
-import org.metaborg.core.project.config.Export;
-import org.metaborg.core.project.config.Generate;
-import org.metaborg.core.project.config.LanguageComponentConfigBuilder;
 
 import com.google.inject.Inject;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;

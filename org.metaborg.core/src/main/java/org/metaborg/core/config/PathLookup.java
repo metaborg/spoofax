@@ -1,4 +1,4 @@
-package org.metaborg.core.project.config;
+package org.metaborg.core.config;
 
 import org.apache.commons.configuration2.interpol.Lookup;
 import org.apache.commons.vfs2.FileObject;
@@ -10,12 +10,6 @@ public final class PathLookup implements Lookup {
     private final FileObject rootFolder;
 
 
-    /**
-     * Initializes a new instance of the {@link PathLookup} class for the specified project root path.
-     *
-     * @param rootFolder
-     *            The root folder.
-     */
     public PathLookup(FileObject rootFolder) {
         this.rootFolder = rootFolder;
     }
@@ -24,7 +18,7 @@ public final class PathLookup implements Lookup {
     @Override public Object lookup(String s) {
         switch(s) {
             case "root":
-                return this.rootFolder.getName().getPath();
+                return rootFolder.getName().getPath();
             default:
                 return null;
         }

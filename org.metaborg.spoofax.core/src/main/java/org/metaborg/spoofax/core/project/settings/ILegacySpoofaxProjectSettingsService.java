@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.project.settings;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ProjectException;
 
@@ -12,6 +13,24 @@ import org.metaborg.core.project.ProjectException;
  */
 @Deprecated
 public interface ILegacySpoofaxProjectSettingsService {
+    /**
+     * Checks if Spoofax-specific project settings are available given a location.
+     * 
+     * @param location
+     *            Location to get settings for.
+     * @return True if available, false otherwise.
+     */
+    boolean available(FileObject location);
+
+    /**
+     * Checks if Spoofax-specific project settings are available given a project.
+     * 
+     * @param project
+     *            Project to get settings for.
+     * @return True if available, false otherwise.
+     */
+    boolean available(IProject project);
+
     /**
      * Retrieves Spoofax-specific project settings given a project.
      * 

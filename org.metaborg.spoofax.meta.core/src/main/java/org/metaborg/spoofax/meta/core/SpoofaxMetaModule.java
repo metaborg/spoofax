@@ -22,6 +22,8 @@ import com.google.inject.multibindings.Multibinder;
 
 public class SpoofaxMetaModule extends MetaborgMetaModule {
     @Override protected void configure() {
+        super.configure();
+
         bind(SpoofaxMetaBuilder.class).in(Singleton.class);
 
         Multibinder.newSetBinder(binder(), IBuildStep.class);

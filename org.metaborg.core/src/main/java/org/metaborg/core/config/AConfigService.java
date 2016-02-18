@@ -1,4 +1,4 @@
-package org.metaborg.core.project.config;
+package org.metaborg.core.config;
 
 import java.io.IOException;
 
@@ -32,24 +32,47 @@ public abstract class AConfigService<TSubject, TConfig> {
 
 
     /**
-     * Gets the configuration for the given subject.
+     * Checks if a configuration exists for given subject.
      *
      * @param subject
      *            The subject to get the configuration for.
-     * @return The configuration; or <code>null</code> when no configuration could be retrieved.
+     * @return True if a configuration exists, false otherwise.
      */
-    @Nullable public TConfig get(TSubject subject) throws IOException {
-        return get(getRootFolder(subject));
+    public boolean available(TSubject subject) throws IOException {
+        return available(getRootFolder(subject));
+    }
+
+    /**
+     * Checks if a configuration exists for a subject.
+     *
+     * @param rootFolder
+     *            The root folder of the subject to get the configuration for.
+     * @return True if a configuration exists, false otherwise.
+     */
+    public boolean available(FileObject rootFolder) throws IOException {
+        final FileObject configFile = getConfigFile(rootFolder);
+        return configFile.exists();
     }
 
     /**
      * Gets the configuration for the given subject.
      *
+     * @param subject
+     *            The subject to get the configuration for.
+     * @return The configuration, or <code>null</code> when no configuration could be retrieved.
+     */
+    public @Nullable TConfig get(TSubject subject) throws IOException {
+        return get(getRootFolder(subject));
+    }
+
+    /**
+     * Gets the configuration for the a subject.
+     *
      * @param rootFolder
      *            The root folder of the subject to get the configuration for.
-     * @return The configuration; or <code>null</code> when no configuration could be retrieved.
+     * @return The configuration, or <code>null</code> when no configuration could be retrieved.
      */
-    @Nullable public TConfig get(FileObject rootFolder) throws IOException {
+    public @Nullable TConfig get(FileObject rootFolder) throws IOException {
         return getFromConfigFile(getConfigFile(rootFolder), rootFolder);
     }
 
@@ -58,9 +81,9 @@ public abstract class AConfigService<TSubject, TConfig> {
      *
      * @param configFile
      *            The configuration file with the configuration.
-     * @return The configuration; or <code>null</code> when no configuration could be retrieved.
+     * @return The configuration, or <code>null</code> when no configuration could be retrieved.
      */
-    @Nullable public TConfig getFromConfigFile(FileObject configFile, @Nullable FileObject rootFolder)
+    public @Nullable TConfig getFromConfigFile(FileObject configFile, @Nullable FileObject rootFolder)
         throws IOException {
         final HierarchicalConfiguration<ImmutableNode> configuration;
         try {
@@ -82,7 +105,7 @@ public abstract class AConfigService<TSubject, TConfig> {
      * @param subject
      *            The subject to set the configuration for.
      * @param config
-     *            The configuration; or <code>null</code> to remove an existing configuration.
+     *            The configuration, or <code>null</code> to remove an existing configuration.
      * @param access
      */
     public void write(TSubject subject, TConfig config, @Nullable FileAccess access) throws IOException {
@@ -95,7 +118,7 @@ public abstract class AConfigService<TSubject, TConfig> {
      * @param rootFolder
      *            The root folder of the subject to set the configuration for.
      * @param config
-     *            The configuration; or <code>null</code> to remove an existing configuration.
+     *            The configuration, or <code>null</code> to remove an existing configuration.
      * @param access
      */
     public void write(FileObject rootFolder, TConfig config, @Nullable FileAccess access) throws IOException {
@@ -167,7 +190,7 @@ public abstract class AConfigService<TSubject, TConfig> {
      *
      * @param configFile
      *            The configuration file to read.
-     * @return The read configuration; or <code>null</code> when the configuration could not be read.
+     * @return The read configuration, or <code>null</code> when the configuration could not be read.
      * @throws IOException
      * @throws ConfigurationException
      */
@@ -176,7 +199,7 @@ public abstract class AConfigService<TSubject, TConfig> {
         if(!configFile.exists()) {
             return null;
         }
-        return this.configurationReaderWriter.read(configFile, rootFolder);
+        return configurationReaderWriter.read(configFile, rootFolder);
     }
 
     /**
@@ -185,7 +208,7 @@ public abstract class AConfigService<TSubject, TConfig> {
      * @param configFile
      *            The configuration file to write to.
      * @param config
-     *            The configuration to write; or <code>null</code> to delete the configuration file.
+     *            The configuration to write, or <code>null</code> to delete the configuration file.
      * @param rootFolder
      *            The root folder.
      * @throws IOException
@@ -194,7 +217,7 @@ public abstract class AConfigService<TSubject, TConfig> {
     protected void writeConfig(FileObject configFile, @Nullable HierarchicalConfiguration<ImmutableNode> config,
         @Nullable FileObject rootFolder) throws IOException, ConfigurationException {
         if(config != null) {
-            this.configurationReaderWriter.write(config, configFile, rootFolder);
+            configurationReaderWriter.write(config, configFile, rootFolder);
         } else {
             configFile.delete();
         }

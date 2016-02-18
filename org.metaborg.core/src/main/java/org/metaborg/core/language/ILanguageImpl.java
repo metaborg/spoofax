@@ -1,7 +1,7 @@
 package org.metaborg.core.language;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.config.ILanguageImplConfig;
+import org.metaborg.core.config.ILanguageImplConfig;
 
 /**
  * Interface that represents a language implementation. A language implementation is a view over all components that

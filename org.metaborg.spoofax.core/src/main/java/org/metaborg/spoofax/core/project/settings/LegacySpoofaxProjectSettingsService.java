@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.project.settings;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ProjectException;
@@ -19,6 +20,30 @@ public class LegacySpoofaxProjectSettingsService implements ILegacySpoofaxProjec
         this.mavenProjectService = mavenProjectService;
     }
 
+
+    @Override public boolean available(FileObject location) {
+        final MavenProject mavenProject = mavenProjectService.get(location);
+        if(mavenProject == null) {
+            return false;
+        }
+        final LegacySpoofaxProjectSettings settings = LegacyMavenProjectSettingsReader.spoofaxSettings(mavenProject);
+        if(settings == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override public boolean available(IProject project) {
+        final MavenProject mavenProject = mavenProjectService.get(project);
+        if(mavenProject == null) {
+            return false;
+        }
+        final LegacySpoofaxProjectSettings settings = LegacyMavenProjectSettingsReader.spoofaxSettings(mavenProject);
+        if(settings == null) {
+            return false;
+        }
+        return true;
+    }
 
     @Override public @Nullable LegacySpoofaxProjectSettings get(IProject project) throws ProjectException {
         final MavenProject mavenProject = mavenProjectService.get(project);

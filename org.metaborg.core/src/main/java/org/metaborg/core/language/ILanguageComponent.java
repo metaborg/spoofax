@@ -1,7 +1,7 @@
 package org.metaborg.core.language;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.config.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageComponentConfig;
 
 /**
  * Interface that represents a language component. A language component contributes facets to language implementations.

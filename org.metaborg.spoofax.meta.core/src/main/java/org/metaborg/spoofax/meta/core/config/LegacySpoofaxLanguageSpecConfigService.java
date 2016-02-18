@@ -23,11 +23,15 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
     private final ILegacySpoofaxProjectSettingsService settingsService;
 
 
-    @Inject public LegacySpoofaxLanguageSpecConfigService(
-        SpoofaxLanguageSpecConfigService languageSpecConfigService,
+    @Inject public LegacySpoofaxLanguageSpecConfigService(SpoofaxLanguageSpecConfigService languageSpecConfigService,
         ILegacySpoofaxProjectSettingsService settingsService) {
         this.languageSpecConfigService = languageSpecConfigService;
         this.settingsService = settingsService;
+    }
+
+
+    @Override public boolean available(FileObject rootFolder) throws IOException {
+        return languageSpecConfigService.available(rootFolder) || settingsService.available(rootFolder);
     }
 
 
@@ -36,7 +40,7 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
         if(config == null) {
             final LegacySpoofaxProjectSettings settings;
             try {
-                settings = this.settingsService.get(languageSpec);
+                settings = settingsService.get(languageSpec);
             } catch(ProjectException e) {
                 throw new IOException(e);
             }

@@ -1,4 +1,4 @@
-package org.metaborg.core.project.config;
+package org.metaborg.core.config;
 
 import java.util.Collection;
 import java.util.Set;

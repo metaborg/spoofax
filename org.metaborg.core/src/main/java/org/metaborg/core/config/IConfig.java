@@ -1,4 +1,4 @@
-package org.metaborg.core.project.config;
+package org.metaborg.core.config;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;

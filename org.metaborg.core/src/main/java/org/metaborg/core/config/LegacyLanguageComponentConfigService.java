@@ -1,4 +1,4 @@
-package org.metaborg.core.project.config;
+package org.metaborg.core.config;
 
 import java.io.IOException;
 
@@ -26,12 +26,17 @@ public class LegacyLanguageComponentConfigService implements ILanguageComponentC
         this.settingsService = settingsService;
     }
 
+    
+    @Override public boolean available(FileObject rootFolder) throws IOException {
+        return languageComponentConfigService.available(rootFolder);
+    }
+
     @Override public @Nullable ILanguageComponentConfig get(FileObject rootFolder) throws IOException {
-        ILanguageComponentConfig config = this.languageComponentConfigService.get(rootFolder);
+        final ILanguageComponentConfig config = languageComponentConfigService.get(rootFolder);
         if(config == null) {
-            final ILegacyProjectSettings settings = this.settingsService.get(rootFolder);
+            final ILegacyProjectSettings settings = settingsService.get(rootFolder);
             if(settings != null) {
-                config = new LegacyLanguageComponentConfig(settings);
+                return new LegacyLanguageComponentConfig(settings);
             }
         }
         return config;

@@ -18,5 +18,5 @@ public interface ISpoofaxLanguageSpecConfigService extends ILanguageSpecConfigSe
      *            The language specification to get the configuration for.
      * @return The configuration; or <code>null</code> when no configuration could be retrieved.
      */
-    @Nullable @Override ISpoofaxLanguageSpecConfig get(ILanguageSpec languageSpec) throws IOException;
+    @Nullable ISpoofaxLanguageSpecConfig get(ILanguageSpec languageSpec) throws IOException;
 }

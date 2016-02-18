@@ -8,12 +8,12 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.MetaborgConstants;
+import org.metaborg.core.config.Export;
+import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.IConfig;
+import org.metaborg.core.config.LanguageComponentConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.config.Export;
-import org.metaborg.core.project.config.Generate;
-import org.metaborg.core.project.config.IConfig;
-import org.metaborg.core.project.config.LanguageComponentConfig;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface that is backed by an {@link ImmutableConfiguration}

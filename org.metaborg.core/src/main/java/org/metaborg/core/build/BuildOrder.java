@@ -5,9 +5,9 @@ import java.util.Map;
 
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.ILanguageImplConfig;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.config.Generate;
-import org.metaborg.core.project.config.ILanguageImplConfig;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Maps;

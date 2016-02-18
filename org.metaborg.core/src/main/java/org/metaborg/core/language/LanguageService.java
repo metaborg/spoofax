@@ -16,7 +16,7 @@ import com.google.common.cache.LoadingCache;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.project.config.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 

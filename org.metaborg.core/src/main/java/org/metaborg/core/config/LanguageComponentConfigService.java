@@ -1,4 +1,4 @@
-package org.metaborg.core.project.config;
+package org.metaborg.core.config;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -14,9 +14,10 @@ public class LanguageComponentConfigService extends AConfigService<ILanguageComp
     private final LanguageComponentConfigBuilder configBuilder;
 
 
-    @Inject public LanguageComponentConfigService(AConfigurationReaderWriter configurationReaderWriter,
+    @Inject public LanguageComponentConfigService(AConfigurationReaderWriter configReaderWriter,
         LanguageComponentConfigBuilder configBuilder) {
-        super(configurationReaderWriter);
+        super(configReaderWriter);
+
         this.configBuilder = configBuilder;
     }
 

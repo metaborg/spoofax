@@ -5,9 +5,9 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgConstants;
-import org.metaborg.core.project.config.AConfigService;
-import org.metaborg.core.project.config.AConfigurationReaderWriter;
-import org.metaborg.core.project.config.IConfig;
+import org.metaborg.core.config.AConfigService;
+import org.metaborg.core.config.AConfigurationReaderWriter;
+import org.metaborg.core.config.IConfig;
 import org.metaborg.meta.core.project.ILanguageSpec;
 
 import com.google.inject.Inject;
@@ -17,9 +17,9 @@ public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILa
     private final LanguageSpecConfigBuilder configBuilder;
 
 
-    @Inject public LanguageSpecConfigService(final AConfigurationReaderWriter configurationReaderWriter,
-        final LanguageSpecConfigBuilder configBuilder) {
-        super(configurationReaderWriter);
+    @Inject public LanguageSpecConfigService(AConfigurationReaderWriter configReaderWriter,
+        LanguageSpecConfigBuilder configBuilder) {
+        super(configReaderWriter);
 
         this.configBuilder = configBuilder;
     }
@@ -41,7 +41,7 @@ public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILa
         if(!(config instanceof IConfig)) {
             configBuilder.reset();
             configBuilder.copyFrom(config);
-            config = this.configBuilder.build(null);
+            config = configBuilder.build(null);
         }
         return ((IConfig) config).getConfig();
     }

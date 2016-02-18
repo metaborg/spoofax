@@ -1,7 +1,7 @@
 package org.metaborg.meta.core.config;
 
 import org.metaborg.core.MetaborgConstants;
-import org.metaborg.core.project.config.LegacyLanguageComponentConfig;
+import org.metaborg.core.config.LegacyLanguageComponentConfig;
 import org.metaborg.core.project.settings.ILegacyProjectSettings;
 
 @Deprecated

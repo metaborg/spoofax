@@ -7,10 +7,10 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.config.Export;
+import org.metaborg.core.config.Generate;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.config.Export;
-import org.metaborg.core.project.config.Generate;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Lists;

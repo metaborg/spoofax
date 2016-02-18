@@ -3,7 +3,7 @@ package org.metaborg.core.language;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.config.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageComponentConfig;
 
 import com.google.common.collect.Lists;
 

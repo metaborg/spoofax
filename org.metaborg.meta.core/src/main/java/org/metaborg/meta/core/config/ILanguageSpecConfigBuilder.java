@@ -3,11 +3,11 @@ package org.metaborg.meta.core.config;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.Export;
+import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.config.Export;
-import org.metaborg.core.project.config.Generate;
-import org.metaborg.core.project.config.ILanguageComponentConfigBuilder;
 
 /**
  * Builder for {@link ILanguageSpecConfig} objects.

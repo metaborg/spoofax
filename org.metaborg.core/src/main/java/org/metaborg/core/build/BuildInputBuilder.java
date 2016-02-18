@@ -60,8 +60,8 @@ public class BuildInputBuilder {
     private Set<String> pardonedLanguageStrings;
 
 
-    @Inject public BuildInputBuilder(IProject languageSpec) {
-        this.project = languageSpec;
+    @Inject public BuildInputBuilder(IProject project) {
+        this.project = project;
         reset();
     }
 

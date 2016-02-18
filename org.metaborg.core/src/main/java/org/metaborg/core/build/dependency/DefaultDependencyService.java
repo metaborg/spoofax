@@ -6,13 +6,13 @@ import java.util.Collections;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.core.config.IProjectConfig;
+import org.metaborg.core.config.IProjectConfigService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.config.IProjectConfig;
-import org.metaborg.core.project.config.IProjectConfigService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -40,7 +40,7 @@ public final class DefaultDependencyService implements IDependencyService {
     @Override public Collection<ILanguageComponent> compileDeps(IProject project) throws MissingDependencyException {
         final IProjectConfig config = getConfig(project);
         if(config == null) {
-            logger.trace("No configuration found for language specification '{}'."
+            logger.trace("No configuration found for project '{}'."
                 + "Returning all active language components as compile dependencies instead.", project);
             return ImmutableList.copyOf(LanguageUtils.allActiveComponents(languageService));
         }
@@ -50,8 +50,8 @@ public final class DefaultDependencyService implements IDependencyService {
     @Override public Collection<ILanguageComponent> sourceDeps(IProject project) throws MissingDependencyException {
         final IProjectConfig config = getConfig(project);
         if(config == null) {
-            logger.trace("No configuration found for language specification '{}'. "
-                + "Returning no runtime dependencies instead.", project);
+            logger.trace("No configuration found for project '{}'. " + "Returning no runtime dependencies instead.",
+                project);
             return Collections.emptyList();
         }
         return getLanguages(config.sourceDeps());
@@ -88,10 +88,10 @@ public final class DefaultDependencyService implements IDependencyService {
     }
 
     /**
-     * Gets the configuration for the specified language specification.
+     * Gets the configuration for the specified project.
      *
      * @param project
-     *            The language specification.
+     *            The project.
      * @return The associated configuration; or <code>null</code> when there is no associated configuration or an
      *         exception occurred.
      */

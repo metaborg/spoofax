@@ -1,4 +1,4 @@
-package org.metaborg.core.project.config;
+package org.metaborg.core.config;
 
 import org.metaborg.core.language.LanguageIdentifier;
 

@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.settings.ILegacyProjectSettings;
 import org.metaborg.core.project.settings.ILegacyProjectSettingsService;
-import org.metaborg.meta.core.project.ILanguageSpec;
 
 import com.google.inject.Inject;
 
@@ -27,23 +26,16 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
         this.settingsService = settingsService;
     }
 
-    @Override public @Nullable ILanguageSpecConfig get(ILanguageSpec languageSpec) throws IOException {
-        ILanguageSpecConfig config = this.languageSpecConfigService.get(languageSpec);
-        if(config == null) {
-            final ILegacyProjectSettings settings = this.settingsService.get(languageSpec);
-            if(settings != null) {
-                config = new LegacyLanguageSpecConfig(settings);
-            }
-        }
-        return config;
+    @Override public boolean available(FileObject rootFolder) throws IOException {
+        return languageSpecConfigService.available(rootFolder) || settingsService.get(rootFolder) != null;
     }
 
     @Override public @Nullable ILanguageSpecConfig get(FileObject rootFolder) throws IOException {
-        ILanguageSpecConfig config = this.languageSpecConfigService.get(rootFolder);
+        final ILanguageSpecConfig config = this.languageSpecConfigService.get(rootFolder);
         if(config == null) {
-            final ILegacyProjectSettings settings = this.settingsService.get(rootFolder);
+            final ILegacyProjectSettings settings = settingsService.get(rootFolder);
             if(settings != null) {
-                config = new LegacyLanguageSpecConfig(settings);
+                return new LegacyLanguageSpecConfig(settings);
             }
         }
         return config;

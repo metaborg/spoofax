@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -17,7 +18,6 @@ import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.dialect.IDialectService;
-import org.metaborg.core.project.config.ILanguageComponentConfig;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;

@@ -28,8 +28,8 @@ public interface IBuildMessagePrinter {
     void print(FileObject resource, String message, @Nullable Throwable e, boolean pardoned);
 
     /**
-     * Prints given message and exception, located at a language specification. Used if the source location or resource
-     * is not available.
+     * Prints given message and exception, located at a project. Used if the source location or resource is not
+     * available.
      *
      * @param project
      *            Project the message occurred in.

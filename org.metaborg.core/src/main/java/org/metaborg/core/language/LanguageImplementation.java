@@ -5,9 +5,9 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.project.config.ILanguageComponentConfig;
-import org.metaborg.core.project.config.ILanguageImplConfig;
-import org.metaborg.core.project.config.LanguageImplConfig;
+import org.metaborg.core.config.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageImplConfig;
+import org.metaborg.core.config.LanguageImplConfig;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;

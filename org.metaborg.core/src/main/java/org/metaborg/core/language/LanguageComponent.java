@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.project.config.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.ArrayListMultimap;

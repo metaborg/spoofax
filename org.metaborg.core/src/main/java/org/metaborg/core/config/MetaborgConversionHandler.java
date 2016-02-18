@@ -1,4 +1,4 @@
-package org.metaborg.core.project.config;
+package org.metaborg.core.config;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.convert.DefaultConversionHandler;

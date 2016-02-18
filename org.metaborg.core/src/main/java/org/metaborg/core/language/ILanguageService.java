@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.config.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageComponentConfig;
 
 import rx.Observable;
 
