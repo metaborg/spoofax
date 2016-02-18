@@ -37,12 +37,12 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      *
      * @return The languages for while files are generated.
      */
-    Collection<Generate> generates();
+    Collection<IGenerate> generates();
     
     /**
      * Gets the file exports.
      *
      * @return The file exports.
      */
-    Collection<Export> exports();
+    Collection<IExport> exports();
 }

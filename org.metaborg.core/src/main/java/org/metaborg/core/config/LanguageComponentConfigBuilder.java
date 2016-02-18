@@ -22,8 +22,8 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
     protected @Nullable LanguageIdentifier identifier = null;
     protected @Nullable String name = null;
     protected final Set<LanguageContributionIdentifier> langContribs = Sets.newHashSet();
-    protected final List<Generate> generates = Lists.newArrayList();
-    protected final List<Export> exports = Lists.newArrayList();
+    protected final List<IGenerate> generates = Lists.newArrayList();
+    protected final List<IExport> exports = Lists.newArrayList();
 
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -129,24 +129,24 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder withGenerates(Iterable<Generate> generates) {
+    @Override public ILanguageComponentConfigBuilder withGenerates(Iterable<IGenerate> generates) {
         this.generates.clear();
         addGenerates(generates);
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder addGenerates(Iterable<Generate> generates) {
+    @Override public ILanguageComponentConfigBuilder addGenerates(Iterable<IGenerate> generates) {
         Iterables.addAll(this.generates, generates);
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder withExports(Iterable<Export> exports) {
+    @Override public ILanguageComponentConfigBuilder withExports(Iterable<IExport> exports) {
         this.exports.clear();
         addExports(exports);
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder addExports(Iterable<Export> exports) {
+    @Override public ILanguageComponentConfigBuilder addExports(Iterable<IExport> exports) {
         Iterables.addAll(this.exports, exports);
         return this;
     }

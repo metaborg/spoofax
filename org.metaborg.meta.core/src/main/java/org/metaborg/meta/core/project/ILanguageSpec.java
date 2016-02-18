@@ -15,4 +15,11 @@ public interface ILanguageSpec extends IProject {
      * @return Configuration of the language specification.
      */
     ILanguageSpecConfig config();
+    
+    /**
+     * Gets the paths of the language specification.
+     * 
+     * @return Paths of the language specification.
+     */
+    ILanguageSpecPaths paths();
 }

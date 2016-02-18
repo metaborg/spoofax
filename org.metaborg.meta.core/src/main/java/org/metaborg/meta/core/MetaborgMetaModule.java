@@ -6,8 +6,6 @@ import org.metaborg.meta.core.config.ILanguageSpecConfigWriter;
 import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
 import org.metaborg.meta.core.config.LanguageSpecConfigService;
 import org.metaborg.meta.core.config.LegacyLanguageSpecConfigService;
-import org.metaborg.meta.core.project.ILanguageSpecService;
-import org.metaborg.meta.core.project.LanguageSpecService;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -19,7 +17,6 @@ public class MetaborgMetaModule extends AbstractModule {
     }
 
     protected void bindLanguageSpec() {
-        bind(ILanguageSpecService.class).to(LanguageSpecService.class).in(Singleton.class);
     }
 
     protected void bindLanguageSpecConfig() {

@@ -5,8 +5,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.AConfigurationReaderWriter;
-import org.metaborg.core.config.Export;
-import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.IExport;
+import org.metaborg.core.config.IGenerate;
 import org.metaborg.core.config.LanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -98,22 +98,22 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withGenerates(Iterable<Generate> generates) {
+    @Override public ILanguageSpecConfigBuilder withGenerates(Iterable<IGenerate> generates) {
         super.withGenerates(generates);
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder addGenerates(Iterable<Generate> generates) {
+    @Override public ILanguageSpecConfigBuilder addGenerates(Iterable<IGenerate> generates) {
         super.addGenerates(generates);
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withExports(Iterable<Export> exports) {
+    @Override public ILanguageSpecConfigBuilder withExports(Iterable<IExport> exports) {
         super.withExports(exports);
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder addExports(Iterable<Export> exports) {
+    @Override public ILanguageSpecConfigBuilder addExports(Iterable<IExport> exports) {
         super.addExports(exports);
         return this;
     }

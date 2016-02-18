@@ -1,4 +1,4 @@
-package org.metaborg.meta.core.project;
+package org.metaborg.spoofax.meta.core.project;
 
 import java.io.IOException;
 
@@ -6,22 +6,22 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.IProject;
-import org.metaborg.meta.core.config.ILanguageSpecConfig;
-import org.metaborg.meta.core.config.ILanguageSpecConfigService;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
 
 import com.google.inject.Inject;
 
-public class LanguageSpecService implements ILanguageSpecService {
-    private final ILanguageSpecConfigService configService;
+public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
+    private final ISpoofaxLanguageSpecConfigService configService;
 
 
-    @Inject public LanguageSpecService(ILanguageSpecConfigService configService) {
+    @Inject public SpoofaxLanguageSpecService(ISpoofaxLanguageSpecConfigService configService) {
         this.configService = configService;
     }
 
 
     @Override public boolean available(IProject project) {
-        if(project instanceof ILanguageSpec) {
+        if(project instanceof ISpoofaxLanguageSpec) {
             return true;
         }
 
@@ -36,13 +36,13 @@ public class LanguageSpecService implements ILanguageSpecService {
         return true;
     }
 
-    @Override public @Nullable ILanguageSpec get(IProject project) {
-        if(project instanceof ILanguageSpec) {
-            return (ILanguageSpec) project;
+    @Override public @Nullable ISpoofaxLanguageSpec get(IProject project) {
+        if(project instanceof ISpoofaxLanguageSpec) {
+            return (ISpoofaxLanguageSpec) project;
         }
 
         final FileObject location = project.location();
-        final ILanguageSpecConfig config;
+        final ISpoofaxLanguageSpecConfig config;
         try {
             if(!configService.available(location)) {
                 return null;
@@ -56,6 +56,8 @@ public class LanguageSpecService implements ILanguageSpecService {
             return null;
         }
 
-        return new LanguageSpecWrapper(config, project);
+        final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(location, config);
+
+        return new SpoofaxLanguageSpecWrapper(config, paths, project);
     }
 }

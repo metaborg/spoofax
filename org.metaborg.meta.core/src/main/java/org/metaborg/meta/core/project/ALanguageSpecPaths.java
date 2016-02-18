@@ -4,13 +4,14 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 
-public abstract class LanguageSpecPaths implements ILanguageSpecPaths {
+public abstract class ALanguageSpecPaths implements ILanguageSpecPaths {
     private final FileObject rootDir;
 
 
-    public LanguageSpecPaths(FileObject rootDir) {
+    public ALanguageSpecPaths(FileObject rootDir) {
         this.rootDir = rootDir;
     }
+
 
     @Override public FileObject rootFolder() {
         return this.rootDir;

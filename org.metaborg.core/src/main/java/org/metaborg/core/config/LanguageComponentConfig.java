@@ -1,7 +1,6 @@
 package org.metaborg.core.config;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -19,10 +18,7 @@ import com.google.common.collect.Lists;
 public class LanguageComponentConfig extends ProjectConfig implements ILanguageComponentConfig, IConfig {
     protected static final String PROP_IDENTIFIER = "id";
     protected static final String PROP_NAME = "name";
-    protected static final String PROP_LANGUAGE_CONTRIBUTIONS_IDX_NAME = "contributions(%d).name";
-    protected static final String PROP_LANGUAGE_CONTRIBUTIONS_IDX_ID = "contributions(%d).id";
-    protected static final String PROP_LANGUAGE_CONTRIBUTIONS_LAST_NAME = "contributions.name";
-    protected static final String PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID = "contributions.id";
+    protected static final String PROP_LANGUAGE_CONTRIBUTIONS = "contributions";
     protected static final String PROP_GENERATES = "generates";
     protected static final String PROP_EXPORTS = "exports";
 
@@ -34,15 +30,12 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier identifier,
         String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<Generate> generates, Collection<Export> exports) {
+        Collection<IGenerate> generates, Collection<IExport> exports) {
         super(config, compileDeps, sourceDeps, javaDeps);
 
         config.setProperty(PROP_NAME, name);
         config.setProperty(PROP_IDENTIFIER, identifier);
-        for(LanguageContributionIdentifier lcid : langContribs) {
-            config.addProperty(String.format(PROP_LANGUAGE_CONTRIBUTIONS_IDX_ID, -1), lcid.identifier);
-            config.addProperty(PROP_LANGUAGE_CONTRIBUTIONS_LAST_NAME, lcid.name);
-        }
+        config.setProperty(PROP_LANGUAGE_CONTRIBUTIONS, langContribs);
         config.setProperty(PROP_GENERATES, generates);
         config.setProperty(PROP_EXPORTS, exports);
     }
@@ -59,28 +52,53 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     }
 
     @Override public Collection<LanguageContributionIdentifier> langContribs() {
-        final List<LanguageIdentifier> ids =
-            config.getList(LanguageIdentifier.class, PROP_LANGUAGE_CONTRIBUTIONS_LAST_ID);
-        if(ids == null) {
-            return Lists.newArrayList();
+        final List<HierarchicalConfiguration<ImmutableNode>> langContribConfigs =
+            config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
+        final List<LanguageContributionIdentifier> langContribs =
+            Lists.newArrayListWithCapacity(langContribConfigs.size());
+        for(HierarchicalConfiguration<ImmutableNode> langContribConfig : langContribConfigs) {
+            // HACK: for some reason get(LanguageIdentifier.class, "id") does not work here, it cannot convert to a
+            // language identifier, do manually instead.
+            final String idString = langContribConfig.getString("id");
+            final LanguageIdentifier id = LanguageIdentifier.parse(idString);
+            final String name = langContribConfig.getString("name");
+            langContribs.add(new LanguageContributionIdentifier(id, name));
         }
-
-        final List<LanguageContributionIdentifier> lcids = Lists.newArrayListWithCapacity(ids.size());
-        for(int i = 0; i < ids.size(); i++) {
-            LanguageIdentifier identifier = ids.get(i);
-            String name = config.getString(String.format(PROP_LANGUAGE_CONTRIBUTIONS_IDX_NAME, i));
-            lcids.add(new LanguageContributionIdentifier(identifier, name));
-        }
-        return lcids;
+        return langContribs;
     }
 
-    @Override public Collection<Generate> generates() {
-        final List<Generate> generates = config.getList(Generate.class, PROP_GENERATES);
-        return generates != null ? generates : Collections.<Generate>emptyList();
+    @Override public Collection<IGenerate> generates() {
+        final List<HierarchicalConfiguration<ImmutableNode>> generateConfigs = config.configurationsAt(PROP_GENERATES);
+        final List<IGenerate> generates = Lists.newArrayListWithCapacity(generateConfigs.size());
+        for(HierarchicalConfiguration<ImmutableNode> generateConfig : generateConfigs) {
+            final String language = generateConfig.getString("language");
+            final String directory = generateConfig.getString("directory");
+            generates.add(new Generate(language, directory));
+        }
+        return generates;
     }
 
-    @Override public Collection<Export> exports() {
-        final List<Export> exports = config.getList(Export.class, PROP_EXPORTS);
-        return exports != null ? exports : Collections.<Export>emptyList();
+    @Override public Collection<IExport> exports() {
+        final List<HierarchicalConfiguration<ImmutableNode>> exportConfigs = config.configurationsAt(PROP_EXPORTS);
+        final List<IExport> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
+        for(HierarchicalConfiguration<ImmutableNode> exportConfig : exportConfigs) {
+            final String languageName = exportConfig.getString("language");
+            final String directory = exportConfig.getString("directory");
+            final String file = exportConfig.getString("file");
+            final List<String> includes = exportConfig.getList(String.class, "includes");
+            final List<String> excludes = exportConfig.getList(String.class, "excludes");
+            if(languageName != null) {
+                if(directory != null) {
+                    exports.add(new LangDirExport(languageName, directory));
+                } else if(file != null) {
+                    exports.add(new LangFileExport(languageName, file));
+                }
+            } else {
+                if(directory != null) {
+                    exports.add(new ResourceExport(directory, includes, excludes));
+                }
+            }
+        }
+        return exports;
     }
 }

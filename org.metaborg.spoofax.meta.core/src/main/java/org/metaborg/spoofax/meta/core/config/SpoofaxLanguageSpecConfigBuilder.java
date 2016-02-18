@@ -6,8 +6,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.AConfigurationReaderWriter;
-import org.metaborg.core.config.Export;
-import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.IExport;
+import org.metaborg.core.config.IGenerate;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
@@ -34,8 +34,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected final Arguments strategoArgs = new Arguments();
 
 
-    @Inject public SpoofaxLanguageSpecConfigBuilder(
-        final AConfigurationReaderWriter configReaderWriter) {
+    @Inject public SpoofaxLanguageSpecConfigBuilder(final AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 
@@ -46,9 +45,9 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
 
         final JacksonConfiguration configuration = configReaderWriter.createConfiguration(null, rootFolder);
-        return new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps,
-            javaDeps, langContribs, generates, exports, metaborgVersion, pardonedLanguages, format, externalDef,
-            externalJar, externalJarFlags, sdfArgs, strategoArgs);
+        return new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps,
+            langContribs, generates, exports, metaborgVersion, pardonedLanguages, format, externalDef, externalJar,
+            externalJarFlags, sdfArgs, strategoArgs);
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder reset() {
@@ -127,22 +126,22 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withGenerates(Iterable<Generate> generates) {
+    @Override public ISpoofaxLanguageSpecConfigBuilder withGenerates(Iterable<IGenerate> generates) {
         super.withGenerates(generates);
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder addGenerates(Iterable<Generate> generates) {
+    @Override public ISpoofaxLanguageSpecConfigBuilder addGenerates(Iterable<IGenerate> generates) {
         super.addGenerates(generates);
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withExports(Iterable<Export> exports) {
+    @Override public ISpoofaxLanguageSpecConfigBuilder withExports(Iterable<IExport> exports) {
         super.withExports(exports);
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder addExports(Iterable<Export> exports) {
+    @Override public ISpoofaxLanguageSpecConfigBuilder addExports(Iterable<IExport> exports) {
         super.addExports(exports);
         return this;
     }

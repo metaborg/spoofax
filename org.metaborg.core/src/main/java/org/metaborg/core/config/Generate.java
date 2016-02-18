@@ -1,23 +1,30 @@
 package org.metaborg.core.config;
 
-import com.google.common.base.Joiner;
-
-public class Generate {
-    public final String languageName;
-    public final Iterable<String> directories;
+public class Generate implements IGenerate {
+    public final String language;
+    public final String directory;
 
 
-    public Generate(String languageName, Iterable<String> directories) {
-        this.languageName = languageName;
-        this.directories = directories;
+    public Generate(String languageName, String directory) {
+        this.language = languageName;
+        this.directory = directory;
+    }
+
+
+    @Override public String languageName() {
+        return language;
+    }
+
+    @Override public String directory() {
+        return directory;
     }
 
 
     @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + directories.hashCode();
-        result = prime * result + languageName.hashCode();
+        result = prime * result + language.hashCode();
+        result = prime * result + directory.hashCode();
         return result;
     }
 
@@ -29,14 +36,14 @@ public class Generate {
         if(getClass() != obj.getClass())
             return false;
         final Generate other = (Generate) obj;
-        if(!directories.equals(other.directories))
+        if(!language.equals(other.language))
             return false;
-        if(!languageName.equals(other.languageName))
+        if(!directory.equals(other.directory))
             return false;
         return true;
     }
 
     @Override public String toString() {
-        return languageName + " generates into " + Joiner.on(", ").join(directories);
+        return language + " generates into " + directory;
     }
 }

@@ -33,12 +33,12 @@ public interface ILanguageImplConfig {
      *
      * @return The languages for while files are generated.
      */
-    Iterable<Generate> generates();
+    Iterable<IGenerate> generates();
 
     /**
      * Gets the file exports.
      *
      * @return The file exports.
      */
-    Iterable<Export> exports();
+    Iterable<IExport> exports();
 }

@@ -41,9 +41,9 @@ public class GeneratorSettings implements IGeneratorSettings {
             }
         }
         for(LanguageContributionIdentifier contributionIdentifier : config.langContribs()) {
-            if(!contributionIdentifier.identifier.valid()) {
+            if(!contributionIdentifier.id.valid()) {
                 throw new ProjectException(
-                    "Invalid language contribution identifier: " + contributionIdentifier.identifier);
+                    "Invalid language contribution identifier: " + contributionIdentifier.id);
             }
             if(!LanguageIdentifier.validId(contributionIdentifier.name)) {
                 throw new ProjectException("Invalid language contribution name: " + config.name());

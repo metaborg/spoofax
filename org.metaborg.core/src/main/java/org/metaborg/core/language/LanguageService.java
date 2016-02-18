@@ -125,7 +125,7 @@ public class LanguageService implements ILanguageService {
         final Collection<ILanguageImplInternal> impls = Lists.newLinkedList();
         for(LanguageContributionIdentifier identifier : request.implIds) {
             ILanguageInternal language = getOrCreateLanguage(identifier.name);
-            ILanguageImplInternal impl = getOrCreateLanguageImpl(identifier.identifier, language);
+            ILanguageImplInternal impl = getOrCreateLanguageImpl(identifier.id, language);
             impls.add(impl);
         }
 

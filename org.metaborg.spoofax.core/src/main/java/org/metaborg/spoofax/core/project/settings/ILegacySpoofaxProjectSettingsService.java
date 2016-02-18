@@ -31,6 +31,8 @@ public interface ILegacySpoofaxProjectSettingsService {
      */
     boolean available(IProject project);
 
+    @Nullable LegacySpoofaxProjectSettings get(FileObject location) throws ProjectException;
+
     /**
      * Retrieves Spoofax-specific project settings given a project.
      * 

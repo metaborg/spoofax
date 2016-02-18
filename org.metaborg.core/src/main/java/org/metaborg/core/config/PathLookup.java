@@ -18,7 +18,7 @@ public final class PathLookup implements Lookup {
     @Override public Object lookup(String s) {
         switch(s) {
             case "root":
-                return rootFolder.getName().getPath();
+                return rootFolder.getName().getURI();
             default:
                 return null;
         }

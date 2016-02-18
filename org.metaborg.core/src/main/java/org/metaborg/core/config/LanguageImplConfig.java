@@ -12,8 +12,8 @@ public class LanguageImplConfig implements ILanguageImplConfig {
     private final Set<LanguageIdentifier> compileDeps = Sets.newHashSet();
     private final Set<LanguageIdentifier> sourceDeps = Sets.newHashSet();
     private final Set<LanguageIdentifier> javaDeps = Sets.newHashSet();
-    private final Collection<Generate> generates = Lists.newArrayList();
-    private final Collection<Export> exports = Lists.newArrayList();
+    private final Collection<IGenerate> generates = Lists.newArrayList();
+    private final Collection<IExport> exports = Lists.newArrayList();
 
 
     public LanguageImplConfig(Iterable<ILanguageComponentConfig> configs) {
@@ -39,11 +39,11 @@ public class LanguageImplConfig implements ILanguageImplConfig {
         return javaDeps;
     }
 
-    @Override public Iterable<Generate> generates() {
+    @Override public Iterable<IGenerate> generates() {
         return generates;
     }
 
-    @Override public Iterable<Export> exports() {
+    @Override public Iterable<IExport> exports() {
         return exports;
     }
 }

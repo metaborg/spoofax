@@ -45,6 +45,21 @@ public class LegacySpoofaxProjectSettingsService implements ILegacySpoofaxProjec
         return true;
     }
 
+    @Override public LegacySpoofaxProjectSettings get(FileObject location) throws ProjectException {
+        final MavenProject mavenProject = mavenProjectService.get(location);
+        if(mavenProject == null) {
+            final String message =
+                String.format("Could not retrieve Maven project for %s, cannot get settings", location);
+            throw new ProjectException(message);
+        }
+
+        final LegacySpoofaxProjectSettings settings = LegacyMavenProjectSettingsReader.spoofaxSettings(mavenProject);
+        if(settings == null) {
+            throw new ProjectException("Could not get settings, Maven project settings reader returned null");
+        }
+        return settings;
+    }
+
     @Override public @Nullable LegacySpoofaxProjectSettings get(IProject project) throws ProjectException {
         final MavenProject mavenProject = mavenProjectService.get(project);
         if(mavenProject == null) {

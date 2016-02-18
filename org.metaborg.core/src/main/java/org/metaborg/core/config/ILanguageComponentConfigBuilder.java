@@ -108,7 +108,7 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      *            The languages for while files are generated.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder withGenerates(Iterable<Generate> generates);
+    ILanguageComponentConfigBuilder withGenerates(Iterable<IGenerate> generates);
 
     /**
      * Adds languages for while files are generated.
@@ -117,7 +117,7 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      *            The languages for while files are generated.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder addGenerates(Iterable<Generate> generates);
+    ILanguageComponentConfigBuilder addGenerates(Iterable<IGenerate> generates);
 
     /**
      * Sets the file exports.
@@ -126,7 +126,7 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      *            The file exports.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder withExports(Iterable<Export> exports);
+    ILanguageComponentConfigBuilder withExports(Iterable<IExport> exports);
 
     /**
      * Adds file exports.
@@ -135,5 +135,5 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      *            The file exports.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder addExports(Iterable<Export> exports);
+    ILanguageComponentConfigBuilder addExports(Iterable<IExport> exports);
 }

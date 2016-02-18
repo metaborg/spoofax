@@ -3,10 +3,10 @@ package org.metaborg.spoofax.meta.core.project;
 import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.meta.core.project.LanguageSpecPaths;
+import org.metaborg.meta.core.project.ALanguageSpecPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 
-public class SpoofaxLanguageSpecPaths extends LanguageSpecPaths implements ISpoofaxLanguageSpecPaths {
+public class SpoofaxLanguageSpecPaths extends ALanguageSpecPaths implements ISpoofaxLanguageSpecPaths {
     private final ISpoofaxLanguageSpecConfig config;
 
 

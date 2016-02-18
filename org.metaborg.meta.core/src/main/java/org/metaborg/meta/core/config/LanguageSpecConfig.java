@@ -8,9 +8,9 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.MetaborgConstants;
-import org.metaborg.core.config.Export;
-import org.metaborg.core.config.Generate;
 import org.metaborg.core.config.IConfig;
+import org.metaborg.core.config.IExport;
+import org.metaborg.core.config.IGenerate;
 import org.metaborg.core.config.LanguageComponentConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -33,7 +33,7 @@ public class LanguageSpecConfig extends LanguageComponentConfig
     protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier id, String name,
         Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<Generate> generates, Collection<Export> exports, String metaborgVersion) {
+        Collection<IGenerate> generates, Collection<IExport> exports, String metaborgVersion) {
         super(config, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports);
 
         config.setProperty(PROP_METABORG_VERSION, metaborgVersion);

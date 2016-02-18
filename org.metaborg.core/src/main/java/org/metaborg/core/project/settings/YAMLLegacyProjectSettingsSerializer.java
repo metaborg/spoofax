@@ -108,7 +108,7 @@ class ProjectSettingsSerializer extends JsonSerializer<ILegacyProjectSettings> {
     private void serialize(LanguageContributionIdentifier identifier, JsonGenerator gen) throws IOException {
         gen.writeStartObject();
         gen.writeFieldName("identifier");
-        serialize(identifier.identifier, gen);
+        serialize(identifier.id, gen);
         gen.writeFieldName("name");
         gen.writeString(identifier.name);
         gen.writeEndObject();

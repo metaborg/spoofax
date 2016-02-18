@@ -9,8 +9,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.metaborg.core.config.Export;
-import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.IExport;
+import org.metaborg.core.config.IGenerate;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.NameUtil;
@@ -43,7 +43,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     protected SpoofaxLanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier id,
         String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<Generate> generates, Collection<Export> exports, String metaborgVersion,
+        Collection<IGenerate> generates, Collection<IExport> exports, String metaborgVersion,
         Collection<String> pardonedLanguages, StrategoFormat format, String externalDef, String externalJar,
         String externalJarFlags, Arguments sdfArgs, Arguments strategoArgs) {
         super(config, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports, metaborgVersion);
@@ -77,7 +77,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
     public Arguments sdfArgs() {
-        final List<String> values = this.config.getList(String.class, PROP_SDF_ARGS);
+        final List<String> values = config.getList(String.class, PROP_SDF_ARGS);
         final Arguments arguments = new Arguments();
         if(values != null) {
             for(String value : values) {
@@ -88,11 +88,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
     @Nullable public String externalDef() {
-        return this.config.getString(PROP_EXTERNAL_DEF);
+        return config.getString(PROP_EXTERNAL_DEF);
     }
 
     @Override public Arguments strategoArgs() {
-        @Nullable final List<String> values = this.config.getList(String.class, PROP_STRATEGO_ARGS);
+        @Nullable final List<String> values = config.getList(String.class, PROP_STRATEGO_ARGS);
         final Arguments arguments = new Arguments();
         if(values != null) {
             for(String value : values) {
@@ -103,23 +103,23 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
     @Override public @Nullable String externalJar() {
-        return this.config.getString(PROP_EXTERNAL_JAR);
+        return config.getString(PROP_EXTERNAL_JAR);
     }
 
     @Override public @Nullable String externalJarFlags() {
-        return this.config.getString(PROP_EXTERNAL_JAR_FLAGS);
+        return config.getString(PROP_EXTERNAL_JAR_FLAGS);
     }
 
     @Override public String strategoName() {
-        return NameUtil.toJavaId(this.name().toLowerCase());
+        return NameUtil.toJavaId(name().toLowerCase());
     }
 
     @Override public String javaName() {
-        return NameUtil.toJavaId(this.name());
+        return NameUtil.toJavaId(name());
     }
 
     @Override public String packageName() {
-        return NameUtil.toJavaId(this.identifier().id);
+        return NameUtil.toJavaId(identifier().id);
     }
 
     @Override public String strategiesPackageName() {

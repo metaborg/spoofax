@@ -4,10 +4,10 @@ public interface IBuildStep {
 	/**
 	 * Pre-Java compilation
 	 */
-	void compilePreJava(LanguageSpecBuildInput input);
+	void compilePreJava(SpoofaxLanguageSpecBuildInput input);
 	
 	/**
 	 * Post-Java compilation
 	 */
-	void compilePostJava(LanguageSpecBuildInput input);
+	void compilePostJava(SpoofaxLanguageSpecBuildInput input);
 }

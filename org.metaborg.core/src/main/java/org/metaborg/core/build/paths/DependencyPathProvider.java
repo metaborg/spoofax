@@ -7,8 +7,8 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.dependency.IDependencyService;
-import org.metaborg.core.config.Export;
-import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.IExport;
+import org.metaborg.core.config.IGenerate;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
@@ -29,10 +29,10 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         final Iterable<ILanguageComponent> dependencies = dependencyService.compileDeps(project);
         final Collection<FileObject> sources = Lists.newArrayList();
         for(ILanguageComponent dependency : dependencies) {
-            final Collection<Generate> generates = dependency.config().generates();
-            for(Generate generate : generates) {
-                if(languageName.equals(generate.languageName)) {
-                    resolve(project.location(), generate.directories, sources);
+            final Collection<IGenerate> generates = dependency.config().generates();
+            for(IGenerate generate : generates) {
+                if(languageName.equals(generate.languageName())) {
+                    resolve(project.location(), Iterables2.singleton(generate.directory()), sources);
                 }
             }
         }
@@ -43,10 +43,16 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         final Iterable<ILanguageComponent> dependencies = dependencyService.sourceDeps(project);
         final Collection<FileObject> includes = Lists.newArrayList();
         for(ILanguageComponent dependency : dependencies) {
-            final Collection<Export> exports = dependency.config().exports();
-            for(Export export : exports) {
-                if(languageName.equals(export.languageName)) {
-                    resolve(dependency.location(), Iterables2.singleton(export.directory), includes);
+            final Collection<IExport> exports = dependency.config().exports();
+            for(IExport export : exports) {
+                if(languageName.equals(export.languageName())) {
+                    final String directory = export.directory();
+                    final String file = export.file();
+                    if(directory != null) {
+                        resolve(dependency.location(), Iterables2.singleton(directory), includes);
+                    } else if(file != null) {
+                        resolve(dependency.location(), Iterables2.singleton(file), includes);
+                    }
                 }
             }
         }

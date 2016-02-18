@@ -6,8 +6,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.meta.core.config.ILanguageSpecConfig;
-import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.spoofax.core.project.settings.ILegacySpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettings;
 
@@ -34,13 +32,12 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
         return languageSpecConfigService.available(rootFolder) || settingsService.available(rootFolder);
     }
 
-
-    @Override public @Nullable ISpoofaxLanguageSpecConfig get(ILanguageSpec languageSpec) throws IOException {
-        final ISpoofaxLanguageSpecConfig config = languageSpecConfigService.get(languageSpec);
+    @Override public @Nullable ISpoofaxLanguageSpecConfig get(FileObject rootFolder) throws IOException {
+        final ISpoofaxLanguageSpecConfig config = languageSpecConfigService.get(rootFolder);
         if(config == null) {
             final LegacySpoofaxProjectSettings settings;
             try {
-                settings = settingsService.get(languageSpec);
+                settings = settingsService.get(rootFolder);
             } catch(ProjectException e) {
                 throw new IOException(e);
             }
@@ -50,9 +47,5 @@ public class LegacySpoofaxLanguageSpecConfigService implements ISpoofaxLanguageS
             }
         }
         return config;
-    }
-
-    @Override public @Nullable ILanguageSpecConfig get(FileObject rootFolder) throws IOException {
-        return languageSpecConfigService.get(rootFolder);
     }
 }

@@ -43,11 +43,11 @@ public class LegacyLanguageComponentConfig implements ILanguageComponentConfig {
         return Lists.newArrayList(settings.languageContributions());
     }
 
-    @Override public Collection<Generate> generates() {
+    @Override public Collection<IGenerate> generates() {
         return Lists.newArrayList();
     }
 
-    @Override public Collection<Export> exports() {
+    @Override public Collection<IExport> exports() {
         return Lists.newArrayList();
     }
 }

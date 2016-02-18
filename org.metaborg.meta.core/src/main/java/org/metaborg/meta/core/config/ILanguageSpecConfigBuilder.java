@@ -3,8 +3,8 @@ package org.metaborg.meta.core.config;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.config.Export;
-import org.metaborg.core.config.Generate;
+import org.metaborg.core.config.IExport;
+import org.metaborg.core.config.IGenerate;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -89,22 +89,22 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withGenerates(Iterable<Generate> generates);
+    ILanguageSpecConfigBuilder withGenerates(Iterable<IGenerate> generates);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addGenerates(Iterable<Generate> generates);
+    ILanguageSpecConfigBuilder addGenerates(Iterable<IGenerate> generates);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withExports(Iterable<Export> exports);
+    ILanguageSpecConfigBuilder withExports(Iterable<IExport> exports);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addExports(Iterable<Export> exports);
+    ILanguageSpecConfigBuilder addExports(Iterable<IExport> exports);
 
     /**
      * Sets the MetaBorg version.
