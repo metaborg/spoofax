@@ -1,7 +1,5 @@
 package org.metaborg.core.config;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -17,10 +15,8 @@ public interface IProjectConfigService {
      * @param project
      *            The project.
      * @return True if a configuration exists, false otherwise.
-     * @throws IOException
-     *             When locating the configuration fails.
      */
-    boolean available(IProject project) throws IOException;
+    boolean available(IProject project);
 
     /**
      * Checks if a configuration exists for the project at the given location.
@@ -28,10 +24,8 @@ public interface IProjectConfigService {
      * @param rootFolder
      *            The project root folder.
      * @return True if a configuration exists, false otherwise.
-     * @throws IOException
-     *             When locating the configuration fails.
      */
-    boolean available(FileObject rootFolder) throws IOException;
+    boolean available(FileObject rootFolder);
 
     /**
      * Gets the configuration for the given project.
@@ -39,10 +33,10 @@ public interface IProjectConfigService {
      * @param project
      *            The project to get the configuration for.
      * @return The configuration, or <code>null</code> when no configuration could be retrieved.
-     * @throws IOException
+     * @throws ConfigException
      *             When reading the configuration fails.
      */
-    @Nullable IProjectConfig get(IProject project) throws IOException;
+    @Nullable IProjectConfig get(IProject project) throws ConfigException;
 
     /**
      * Gets the configuration for the project at the given location.
@@ -50,8 +44,8 @@ public interface IProjectConfigService {
      * @param rootFolder
      *            The project root folder.
      * @return The configuration, or <code>null</code> when no configuration could be retrieved.
-     * @throws IOException
+     * @throws ConfigException
      *             When reading the configuration fails.
      */
-    @Nullable IProjectConfig get(FileObject rootFolder) throws IOException;
+    @Nullable IProjectConfig get(FileObject rootFolder) throws ConfigException;
 }

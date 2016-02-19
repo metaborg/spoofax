@@ -4,6 +4,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.project.IProject;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 
 /**
  * Wraps an {@link IProject} to use it as an {@link ILanguageSpec}

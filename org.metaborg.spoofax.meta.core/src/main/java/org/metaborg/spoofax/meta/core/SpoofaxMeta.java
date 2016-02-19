@@ -5,6 +5,8 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.meta.core.MetaBorgMeta;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.meta.core.SpoofaxMetaModule;
+import org.metaborg.spoofax.meta.core.build.LanguageSpecBuilder;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigBuilder;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
@@ -16,7 +18,7 @@ import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 public class SpoofaxMeta extends MetaBorgMeta {
     @SuppressWarnings("hiding") public final Spoofax parent;
 
-    public final SpoofaxMetaBuilder metaBuilder;
+    public final LanguageSpecBuilder metaBuilder;
 
     @SuppressWarnings("hiding") public final ISpoofaxLanguageSpecService languageSpecService;
     @SuppressWarnings("hiding") public final ISpoofaxLanguageSpecConfigService languageSpecConfigService;
@@ -40,7 +42,7 @@ public class SpoofaxMeta extends MetaBorgMeta {
         this.languageSpecService = injector.getInstance(ISpoofaxLanguageSpecService.class);
         this.languageSpecConfigService = injector.getInstance(ISpoofaxLanguageSpecConfigService.class);
 
-        this.metaBuilder = injector.getInstance(SpoofaxMetaBuilder.class);
+        this.metaBuilder = injector.getInstance(LanguageSpecBuilder.class);
     }
 
     /**

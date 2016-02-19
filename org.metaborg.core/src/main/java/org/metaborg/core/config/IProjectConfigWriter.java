@@ -1,7 +1,5 @@
 package org.metaborg.core.config;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
 import org.metaborg.core.project.IProject;
@@ -20,5 +18,5 @@ public interface IProjectConfigWriter {
      *            The configuration to write.
      * @param access
      */
-    void write(IProject project, IProjectConfig config, @Nullable FileAccess access) throws IOException;
+    void write(IProject project, IProjectConfig config, @Nullable FileAccess access) throws ConfigException;
 }

@@ -5,7 +5,9 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.ConfigException;
 import org.metaborg.meta.core.config.ILanguageSpecConfigService;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 
 /**
  * Stores and retrieves Spoofax language specification configurations.
@@ -20,7 +22,7 @@ public interface ISpoofaxLanguageSpecConfigService extends ILanguageSpecConfigSe
      * @throws IOException
      *             When location the configuration fails.
      */
-    boolean available(FileObject rootFolder) throws IOException;
+    boolean available(FileObject rootFolder);
 
     /**
      * Gets the configuration for the Spoofax language specification at the given location.
@@ -31,5 +33,5 @@ public interface ISpoofaxLanguageSpecConfigService extends ILanguageSpecConfigSe
      * @throws IOException
      *             When reading the configuration fails.
      */
-    @Nullable ISpoofaxLanguageSpecConfig get(FileObject rootFolder) throws IOException;
+    @Nullable ISpoofaxLanguageSpecConfig get(FileObject rootFolder) throws ConfigException;
 }

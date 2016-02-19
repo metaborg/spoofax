@@ -1,8 +1,9 @@
 package org.metaborg.core.config;
 
-import javax.annotation.Nullable;
-
-public class ResourceExport implements IExport {
+/**
+ * Generic resource export.
+ */
+public class ResourceExport implements IExportConfig {
     public final String directory;
     public final Iterable<String> includes;
     public final Iterable<String> excludes;
@@ -15,23 +16,7 @@ public class ResourceExport implements IExport {
     }
 
 
-    @Override public @Nullable String languageName() {
-        return null;
-    }
-
-    @Override public String directory() {
-        return directory;
-    }
-
-    @Override public @Nullable String file() {
-        return null;
-    }
-
-    @Override public Iterable<String> includes() {
-        return includes;
-    }
-
-    @Override public Iterable<String> excludes() {
-        return excludes;
+    @Override public void accept(IExportVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -25,7 +25,7 @@ public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILa
     }
 
 
-    @Override protected FileObject getRootFolder(ILanguageSpec languageSpec) throws FileSystemException {
+    @Override protected FileObject getRootDirectory(ILanguageSpec languageSpec) throws FileSystemException {
         return languageSpec.location();
     }
 

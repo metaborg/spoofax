@@ -1,6 +1,8 @@
 package org.metaborg.meta.core.config;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -9,8 +11,8 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.IConfig;
-import org.metaborg.core.config.IExport;
-import org.metaborg.core.config.IGenerate;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.LanguageComponentConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -19,11 +21,12 @@ import org.metaborg.core.language.LanguageIdentifier;
  * An implementation of the {@link ILanguageSpecConfig} interface that is backed by an {@link ImmutableConfiguration}
  * object.
  */
-public class LanguageSpecConfig extends LanguageComponentConfig
-    implements ILanguageSpecConfig, IConfig {
+public class LanguageSpecConfig extends LanguageComponentConfig implements ILanguageSpecConfig, IConfig {
     private static final long serialVersionUID = -7053551901853301773L;
 
     private static final String PROP_METABORG_VERSION = "metaborgVersion";
+    private static final String PROP_PARDONED_LANGUAGES = "pardonedLanguages";
+
 
 
     public LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config) {
@@ -33,15 +36,22 @@ public class LanguageSpecConfig extends LanguageComponentConfig
     protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier id, String name,
         Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<IGenerate> generates, Collection<IExport> exports, String metaborgVersion) {
+        Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
+        Collection<String> pardonedLanguages) {
         super(config, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports);
 
         config.setProperty(PROP_METABORG_VERSION, metaborgVersion);
+        config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
     }
 
 
     @Override public String metaborgVersion() {
         @Nullable final String value = this.config.getString(PROP_METABORG_VERSION);
         return value != null ? value : MetaborgConstants.METABORG_VERSION;
+    }
+
+    @Override public Collection<String> pardonedLanguages() {
+        final List<String> value = this.config.getList(String.class, PROP_PARDONED_LANGUAGES);
+        return value != null ? value : Collections.<String>emptyList();
     }
 }

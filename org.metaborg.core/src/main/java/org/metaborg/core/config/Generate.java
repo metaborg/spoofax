@@ -1,6 +1,6 @@
 package org.metaborg.core.config;
 
-public class Generate implements IGenerate {
+public class Generate implements IGenerateConfig {
     public final String language;
     public final String directory;
 

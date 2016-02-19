@@ -83,31 +83,14 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder addLangContribs(Iterable<LanguageContributionIdentifier> contributions);
 
     /**
-     * Sets the pardoned languages.
-     *
-     * @param contributions
-     *            The language contributions.
-     * @return This builder.
+     * {@inheritDoc}
      */
     ISpoofaxLanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> contributions);
 
     /**
-     * Adds pardoned languages.
-     *
-     * @param contributions
-     *            The language contributions.
-     * @return This builder.
+     * {@inheritDoc}
      */
     ISpoofaxLanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> contributions);
-
-    /**
-     * Sets the project artifact format.
-     *
-     * @param format
-     *            A member of the {@link StrategoFormat} enumeration.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withFormat(StrategoFormat format);
 
     /**
      * Sets the external def.
@@ -116,25 +99,7 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      *            The external def.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withExternalDef(String def);
-
-    /**
-     * Sets the external JAR.
-     *
-     * @param jar
-     *            The external JAR.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withExternalJar(String jar);
-
-    /**
-     * Sets the external JAR flags.
-     *
-     * @param flags
-     *            The external JAR flags.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withExternalJarFlags(String flags);
+    ISpoofaxLanguageSpecConfigBuilder withSdfExternalDef(String def);
 
     /**
      * Sets the SDF arguments.
@@ -146,11 +111,56 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder withSdfArgs(Arguments args);
 
     /**
+     * Sets the project artifact format.
+     *
+     * @param format
+     *            A member of the {@link StrategoFormat} enumeration.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withStrFormat(StrategoFormat format);
+
+    /**
+     * Sets the external JAR.
+     *
+     * @param jar
+     *            The external JAR.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withStrExternalJar(String jar);
+
+    /**
+     * Sets the external JAR flags.
+     *
+     * @param flags
+     *            The external JAR flags.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withStrExternalJarFlags(String flags);
+
+    /**
      * Sets the Stratego arguments.
      *
      * @param args
      *            The Stratego arguments.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withStrategoArgs(Arguments args);
+    ISpoofaxLanguageSpecConfigBuilder withStrArgs(Arguments args);
+
+    /**
+     * Sets the build step configurations.
+     * 
+     * @param buildSteps
+     *            Build step configurations.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withBuildSteps(Iterable<IBuildStepConfig> buildSteps);
+
+    /**
+     * Adds build step configurations.
+     * 
+     * @param buildSteps
+     *            Build step configurations.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder addBuildSteps(Iterable<IBuildStepConfig> buildSteps);
 }

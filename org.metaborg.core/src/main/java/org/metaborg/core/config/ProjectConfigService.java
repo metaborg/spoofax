@@ -22,7 +22,7 @@ public class ProjectConfigService extends AConfigService<IProject, IProjectConfi
     }
 
 
-    @Override protected FileObject getRootFolder(IProject project) throws FileSystemException {
+    @Override protected FileObject getRootDirectory(IProject project) throws FileSystemException {
         return project.location();
     }
 

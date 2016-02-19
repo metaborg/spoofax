@@ -22,11 +22,11 @@ public class LanguageComponentConfigService extends AConfigService<ILanguageComp
     }
 
 
-    @Override protected FileObject getRootFolder(ILanguageComponent languageComponent) throws FileSystemException {
+    @Override protected FileObject getRootDirectory(ILanguageComponent languageComponent) throws FileSystemException {
         return languageComponent.location();
     }
 
-    @Override public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+    @Override protected FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
         return rootFolder.resolveFile(MetaborgConstants.FILE_COMPONENT_CONFIG);
     }
 

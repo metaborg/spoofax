@@ -5,6 +5,7 @@ import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.meta.core.project.ALanguageSpecPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 
 public class SpoofaxLanguageSpecPaths extends ALanguageSpecPaths implements ISpoofaxLanguageSpecPaths {
     private final ISpoofaxLanguageSpecConfig config;

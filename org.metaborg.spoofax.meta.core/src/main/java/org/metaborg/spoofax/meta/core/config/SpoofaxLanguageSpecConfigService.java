@@ -9,6 +9,11 @@ import org.metaborg.core.config.AConfigService;
 import org.metaborg.core.config.AConfigurationReaderWriter;
 import org.metaborg.core.config.IConfig;
 import org.metaborg.meta.core.project.ILanguageSpec;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigWriter;
+import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigBuilder;
 
 import com.google.inject.Inject;
 
@@ -25,7 +30,12 @@ public class SpoofaxLanguageSpecConfigService extends AConfigService<ILanguageSp
     }
 
 
-    @Override protected FileObject getRootFolder(ILanguageSpec languageSpec) throws FileSystemException {
+    @Override public boolean exists(ILanguageSpec languageSpec) {
+        // HACK: expose available to writer interface through this exist method.
+        return available(languageSpec);
+    }
+
+    @Override protected FileObject getRootDirectory(ILanguageSpec languageSpec) throws FileSystemException {
         return languageSpec.location();
     }
 

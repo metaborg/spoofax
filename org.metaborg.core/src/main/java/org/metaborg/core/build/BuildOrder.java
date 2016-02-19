@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.config.IGenerate;
+import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.ILanguageImplConfig;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.util.iterators.Iterables2;
@@ -42,7 +42,7 @@ public class BuildOrder {
 
         for(ILanguageImpl source : languages) {
             final ILanguageImplConfig config = source.config();
-            for(IGenerate generate : config.generates()) {
+            for(IGenerateConfig generate : config.generates()) {
                 final ILanguageImpl target = lookup.get(generate.languageName());
                 if(target != null) {
                     try {

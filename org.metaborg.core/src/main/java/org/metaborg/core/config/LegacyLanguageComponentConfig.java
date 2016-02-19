@@ -11,7 +11,7 @@ import com.google.common.collect.Lists;
 @Deprecated
 @SuppressWarnings("deprecation")
 public class LegacyLanguageComponentConfig implements ILanguageComponentConfig {
-    private final ILegacyProjectSettings settings;
+    protected final ILegacyProjectSettings settings;
 
 
     public LegacyLanguageComponentConfig(ILegacyProjectSettings settings) {
@@ -43,11 +43,11 @@ public class LegacyLanguageComponentConfig implements ILanguageComponentConfig {
         return Lists.newArrayList(settings.languageContributions());
     }
 
-    @Override public Collection<IGenerate> generates() {
+    @Override public Collection<IGenerateConfig> generates() {
         return Lists.newArrayList();
     }
 
-    @Override public Collection<IExport> exports() {
+    @Override public Collection<IExportConfig> exports() {
         return Lists.newArrayList();
     }
 }

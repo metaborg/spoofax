@@ -1,16 +1,20 @@
 package org.metaborg.meta.core.config;
 
+import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.AConfigurationReaderWriter;
-import org.metaborg.core.config.IExport;
-import org.metaborg.core.config.IGenerate;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.LanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 
@@ -19,6 +23,7 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
  */
 public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder implements ILanguageSpecConfigBuilder {
     protected String metaborgVersion = MetaborgConstants.METABORG_VERSION;
+    protected final Set<String> pardonedLanguages = Sets.newHashSet();
 
 
     @Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -33,18 +38,20 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
         final JacksonConfiguration configuration = configReaderWriter.createConfiguration(null, rootFolder);
         return new LanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, langContribs,
-            generates, exports, metaborgVersion);
+            generates, exports, metaborgVersion, pardonedLanguages);
     }
 
     @Override public ILanguageSpecConfigBuilder reset() {
         super.reset();
         metaborgVersion = null;
+        pardonedLanguages.clear();
         return this;
     }
 
     @Override public ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig config) {
         super.copyFrom(config);
         withMetaborgVersion(config.metaborgVersion());
+        withPardonedLanguages(config.pardonedLanguages());
         return this;
     }
 
@@ -98,28 +105,38 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withGenerates(Iterable<IGenerate> generates) {
+    @Override public ILanguageSpecConfigBuilder withGenerates(Iterable<IGenerateConfig> generates) {
         super.withGenerates(generates);
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder addGenerates(Iterable<IGenerate> generates) {
+    @Override public ILanguageSpecConfigBuilder addGenerates(Iterable<IGenerateConfig> generates) {
         super.addGenerates(generates);
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withExports(Iterable<IExport> exports) {
+    @Override public ILanguageSpecConfigBuilder withExports(Iterable<IExportConfig> exports) {
         super.withExports(exports);
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder addExports(Iterable<IExport> exports) {
+    @Override public ILanguageSpecConfigBuilder addExports(Iterable<IExportConfig> exports) {
         super.addExports(exports);
         return this;
     }
 
     @Override public ILanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion) {
         this.metaborgVersion = metaborgVersion;
+        return this;
+    }
+
+    @Override public ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages) {
+        this.pardonedLanguages.clear();
+        return addPardonedLanguages(languages);
+    }
+
+    @Override public ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages) {
+        this.pardonedLanguages.addAll(Lists.newArrayList(languages));
         return this;
     }
 }

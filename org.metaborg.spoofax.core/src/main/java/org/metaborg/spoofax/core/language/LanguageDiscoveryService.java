@@ -12,6 +12,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalyzerFacet;
 import org.metaborg.core.analysis.IAnalyzer;
+import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigService;
 import org.metaborg.core.context.ContextFacet;
@@ -26,6 +27,7 @@ import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
@@ -138,7 +140,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             ILanguageComponentConfig config = null;
             try {
                 config = this.componentConfigService.get(languageLocation);
-            } catch(IOException e) {
+            } catch(ConfigException e) {
                 exceptions.add(e);
             }
             if(config == null) {
@@ -329,6 +331,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         if(outlineFacet != null) {
             request.addFacet(outlineFacet);
         }
+
+        // BOOTSTRAPPING: add LanguagePathFacet
+        final LanguagePathFacet languagePathFacet = LanguagePathFacetFromESV.create(esvTerm);
+        request.addFacet(languagePathFacet);
 
         return languageService.add(request);
     }

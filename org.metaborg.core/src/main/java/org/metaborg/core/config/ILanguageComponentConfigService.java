@@ -1,7 +1,5 @@
 package org.metaborg.core.config;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -16,10 +14,8 @@ public interface ILanguageComponentConfigService {
      * @param rootFolder
      *            The language component root folder.
      * @return True if a configuration exists, false otherwise.
-     * @throws IOException
-     *             When locating the configuration fails.
      */
-    boolean available(FileObject rootFolder) throws IOException;
+    boolean available(FileObject rootFolder);
 
     /**
      * Gets the configuration for the language component at given location.
@@ -27,8 +23,8 @@ public interface ILanguageComponentConfigService {
      * @param rootFolder
      *            The language component root folder.
      * @return The configuration, or <code>null</code> when no configuration could be retrieved.
-     * @throws IOException
+     * @throws ConfigException
      *             When reading the configuration fails.
      */
-    @Nullable ILanguageComponentConfig get(FileObject rootFolder) throws IOException;
+    @Nullable ILanguageComponentConfig get(FileObject rootFolder) throws ConfigException;
 }

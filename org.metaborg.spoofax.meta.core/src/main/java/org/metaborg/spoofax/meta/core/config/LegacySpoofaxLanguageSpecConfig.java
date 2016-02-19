@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.meta.core.config;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.annotation.Nullable;
 
@@ -19,68 +20,72 @@ import com.google.common.collect.Lists;
 public class LegacySpoofaxLanguageSpecConfig extends LegacyLanguageSpecConfig implements ISpoofaxLanguageSpecConfig {
     private static final long serialVersionUID = -5913973186313150350L;
 
-    final LegacySpoofaxProjectSettings settings;
+    final LegacySpoofaxProjectSettings spoofaxSettings;
 
 
     public LegacySpoofaxLanguageSpecConfig(LegacySpoofaxProjectSettings settings) {
         super(settings.settings());
-        this.settings = settings;
+        this.spoofaxSettings = settings;
     }
 
 
     @Override public Collection<String> pardonedLanguages() {
-        return Lists.newArrayList(this.settings.pardonedLanguages());
+        return Lists.newArrayList(spoofaxSettings.pardonedLanguages());
     }
 
-    @Override public StrategoFormat format() {
-        return this.settings.format();
+    @Override public StrategoFormat strFormat() {
+        return spoofaxSettings.format();
     }
 
     @Override public String sdfName() {
-        return this.settings.sdfName();
+        return spoofaxSettings.sdfName();
     }
 
     @Override public String metaSdfName() {
-        return this.settings.metaSdfName();
+        return spoofaxSettings.metaSdfName();
     }
 
     @Override public Arguments sdfArgs() {
-        return this.settings.sdfArgs();
+        return spoofaxSettings.sdfArgs();
     }
 
-    @Override public Arguments strategoArgs() {
-        return this.settings.strategoArgs();
+    @Override public Arguments strArgs() {
+        return spoofaxSettings.strategoArgs();
     }
 
-    @Nullable @Override public String externalDef() {
-        return this.settings.externalDef();
+    @Nullable @Override public String sdfExternalDef() {
+        return spoofaxSettings.externalDef();
     }
 
-    @Nullable @Override public String externalJar() {
-        return this.settings.externalJar();
+    @Nullable @Override public String strExternalJar() {
+        return spoofaxSettings.externalJar();
     }
 
-    @Nullable @Override public String externalJarFlags() {
-        return this.settings.externalJarFlags();
+    @Nullable @Override public String strExternalJarFlags() {
+        return spoofaxSettings.externalJarFlags();
     }
 
     @Override public String strategoName() {
-        return this.settings.strategoName();
+        return spoofaxSettings.strategoName();
     }
 
     @Override public String javaName() {
-        return this.settings.javaName();
+        return spoofaxSettings.javaName();
     }
 
     @Override public String packageName() {
-        return this.settings.packageName();
+        return spoofaxSettings.packageName();
     }
 
     @Override public String strategiesPackageName() {
-        return this.settings.strategiesPackageName();
+        return spoofaxSettings.strategiesPackageName();
     }
 
     @Override public String esvName() {
-        return this.settings.esvName();
+        return spoofaxSettings.esvName();
+    }
+
+    @Override public Collection<IBuildStepConfig> buildSteps() {
+        return Collections.emptyList();
     }
 }

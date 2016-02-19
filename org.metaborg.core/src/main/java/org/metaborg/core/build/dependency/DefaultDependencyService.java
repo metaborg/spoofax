@@ -1,11 +1,11 @@
 package org.metaborg.core.build.dependency;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.config.IProjectConfigService;
 import org.metaborg.core.language.ILanguageComponent;
@@ -96,13 +96,17 @@ public final class DefaultDependencyService implements IDependencyService {
      *         exception occurred.
      */
     private @Nullable IProjectConfig getConfig(IProject project) {
-        IProjectConfig config = null;
+        if(!projectConfigService.available(project)) {
+            return null;
+        }
+
         try {
-            config = projectConfigService.get(project);
-        } catch(IOException e) {
+            return projectConfigService.get(project);
+        } catch(ConfigException e) {
             logger.debug("Exception while retrieving configuration of {}", e, project);
         }
-        return config;
+
+        return null;
     }
 
     /**

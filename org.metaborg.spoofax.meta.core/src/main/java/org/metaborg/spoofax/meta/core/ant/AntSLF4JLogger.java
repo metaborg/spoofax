@@ -3,6 +3,7 @@ package org.metaborg.spoofax.meta.core.ant;
 import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.BuildListener;
 import org.apache.tools.ant.Project;
+import org.metaborg.spoofax.meta.core.ant.AntSLF4JLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

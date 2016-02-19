@@ -4,13 +4,17 @@ import org.metaborg.meta.core.MetaborgMetaModule;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
 import org.metaborg.meta.core.config.ILanguageSpecConfigService;
 import org.metaborg.meta.core.config.LanguageSpecConfigService;
+import org.metaborg.meta.core.project.ILanguageSpecService;
 import org.metaborg.spoofax.meta.core.ant.AntRunnerService;
 import org.metaborg.spoofax.meta.core.ant.IAntRunnerService;
+import org.metaborg.spoofax.meta.core.build.AntBuildStep;
+import org.metaborg.spoofax.meta.core.build.IBuildStep;
+import org.metaborg.spoofax.meta.core.build.LanguageSpecBuilder;
+import org.metaborg.spoofax.meta.core.build.StrategoBuildStep;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigBuilder;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.meta.core.config.LegacySpoofaxLanguageSpecConfigService;
-import org.metaborg.spoofax.meta.core.config.LegacySpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigBuilder;
 import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
@@ -23,9 +27,11 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
     @Override protected void configure() {
         super.configure();
 
-        bind(SpoofaxMetaBuilder.class).in(Singleton.class);
+        bind(LanguageSpecBuilder.class).in(Singleton.class);
 
-        Multibinder.newSetBinder(binder(), IBuildStep.class);
+        final Multibinder<IBuildStep> buildStepBinder = Multibinder.newSetBinder(binder(), IBuildStep.class);
+        buildStepBinder.addBinding().to(AntBuildStep.class);
+        buildStepBinder.addBinding().to(StrategoBuildStep.class);
 
         bindAnt();
     }
@@ -38,7 +44,9 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
      * Overrides {@link MetaborgMetaModule#bindLanguageSpec()} for Spoofax implementation of language specifications.
      */
     @Override protected void bindLanguageSpec() {
-        bind(ISpoofaxLanguageSpecService.class).to(SpoofaxLanguageSpecService.class).in(Singleton.class);
+        bind(SpoofaxLanguageSpecService.class).in(Singleton.class);
+        bind(ILanguageSpecService.class).to(SpoofaxLanguageSpecService.class);
+        bind(ISpoofaxLanguageSpecService.class).to(SpoofaxLanguageSpecService.class);
     }
 
     /**
@@ -50,7 +58,6 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         bind(SpoofaxLanguageSpecConfigService.class).in(Singleton.class);
 
         bind(LegacySpoofaxLanguageSpecConfigService.class).in(Singleton.class);
-        bind(LegacySpoofaxLanguageSpecConfigWriter.class).in(Singleton.class);
         bind(ILanguageSpecConfigService.class).to(LegacySpoofaxLanguageSpecConfigService.class).in(Singleton.class);
         bind(ISpoofaxLanguageSpecConfigService.class).to(LegacySpoofaxLanguageSpecConfigService.class)
             .in(Singleton.class);

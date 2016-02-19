@@ -16,18 +16,63 @@ import org.metaborg.util.cmd.Arguments;
  */
 public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     /**
-     * Gets a sequence of languages whose errors are ignored.
+     * Gets the external def.
      *
-     * @return The pardoned languages.
+     * @return The external def.
      */
-    Collection<String> pardonedLanguages();
+    @Nullable String sdfExternalDef();
+
+    /**
+     * Gets SDF arguments.
+     *
+     * @return An iterable of SDF arguments.
+     */
+    Arguments sdfArgs();
+
 
     /**
      * Gets the project artifact format.
      *
      * @return A member of the {@link StrategoFormat} enumeration.
      */
-    StrategoFormat format();
+    StrategoFormat strFormat();
+
+    /**
+     * Gets the external JAR.
+     *
+     * @return The external JAR.
+     */
+    @Nullable String strExternalJar();
+
+    /**
+     * Gets the external JAR flags.
+     *
+     * @return The external JAR flags.
+     */
+    @Nullable String strExternalJarFlags();
+
+    /**
+     * Gets the Stratego arguments.
+     *
+     * @return The Stratego arguments.
+     */
+    Arguments strArgs();
+
+
+    /**
+     * Gets additional build step configurations.
+     * 
+     * @return Additional build step configurations.
+     */
+    Collection<IBuildStepConfig> buildSteps();
+
+
+    /**
+     * Gets the ESV name.
+     *
+     * @return The ESV name.
+     */
+    String esvName();
 
     /**
      * Gets the SDF name.
@@ -44,53 +89,11 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     String metaSdfName();
 
     /**
-     * Gets SDF arguments.
-     *
-     * @return An iterable of SDF arguments.
-     */
-    Arguments sdfArgs();
-
-    /**
-     * Gets the Stratego arguments.
-     *
-     * @return The Stratego arguments.
-     */
-    Arguments strategoArgs();
-
-    /**
-     * Gets the external def.
-     *
-     * @return The external def.
-     */
-    @Nullable String externalDef();
-
-    /**
-     * Gets the external JAR.
-     *
-     * @return The external JAR.
-     */
-    @Nullable String externalJar();
-
-    /**
-     * Gets the external JAR flags.
-     *
-     * @return The external JAR flags.
-     */
-    @Nullable String externalJarFlags();
-
-    /**
      * Gets the Stratego name.
      *
      * @return The Stratego name.
      */
     String strategoName();
-
-    /**
-     * Gets the Java name.
-     *
-     * @return The Java name.
-     */
-    String javaName();
 
     /**
      * Gets the package name.
@@ -107,9 +110,9 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     String strategiesPackageName();
 
     /**
-     * Gets the ESV name.
+     * Gets the Java name.
      *
-     * @return The ESV name.
+     * @return The Java name.
      */
-    String esvName();
+    String javaName();
 }

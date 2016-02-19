@@ -14,9 +14,9 @@ import org.metaborg.core.language.LanguageIdentifier;
  * {@link ImmutableConfiguration} object.
  */
 public class ProjectConfig implements IProjectConfig, IConfig {
-    protected static final String PROP_COMPILE_DEPENDENCIES = "dependencies.compile";
-    protected static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
-    protected static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
+    private static final String PROP_COMPILE_DEPENDENCIES = "dependencies.compile";
+    private static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
+    private static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
 

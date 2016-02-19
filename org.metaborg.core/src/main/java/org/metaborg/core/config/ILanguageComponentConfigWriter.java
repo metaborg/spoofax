@@ -1,7 +1,5 @@
 package org.metaborg.core.config;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -21,5 +19,5 @@ public interface ILanguageComponentConfigWriter {
      *            The configuration to write.
      * @param access
      */
-    void write(FileObject root, ILanguageComponentConfig config, @Nullable FileAccess access) throws IOException;
+    void write(FileObject root, ILanguageComponentConfig config, @Nullable FileAccess access) throws ConfigException;
 }

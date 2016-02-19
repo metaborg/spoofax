@@ -1,18 +1,25 @@
 package org.metaborg.spoofax.meta.core.config;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.config.ConfigException;
 import org.metaborg.meta.core.project.ILanguageSpec;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.util.file.FileAccess;
 
 /**
  * Writes a configuration for the specified {@link ILanguageSpec}.
  */
 public interface ISpoofaxLanguageSpecConfigWriter {
+    /**
+     * Checks if a configuration file already exists for given language specification project.
+     * 
+     * @param languageSpec
+     *            Language specification project.
+     * @return True if configuration file exists, false otherwise.
+     */
+    boolean exists(ILanguageSpec languageSpec);
+
     /**
      * Writes the specified configuration for the specified language specification.
      *
@@ -23,14 +30,5 @@ public interface ISpoofaxLanguageSpecConfigWriter {
      * @param access
      */
     void write(ILanguageSpec languageSpec, ISpoofaxLanguageSpecConfig config, @Nullable FileAccess access)
-        throws IOException;
-
-    /**
-     * Gets the configuration file where the configuration is stored.
-     *
-     * @param languageSpec
-     *            The language specification.
-     * @return The configuration file; or <code>null</code> if the configuration is not stored in a file.
-     */
-    FileObject getConfigFile(ILanguageSpec languageSpec) throws FileSystemException;
+        throws ConfigException;
 }

@@ -1,5 +1,8 @@
 package org.metaborg.meta.core.config;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.LegacyLanguageComponentConfig;
 import org.metaborg.core.project.settings.ILegacyProjectSettings;
@@ -17,5 +20,10 @@ public class LegacyLanguageSpecConfig extends LegacyLanguageComponentConfig impl
 
     @Override public String metaborgVersion() {
         return MetaborgConstants.METABORG_VERSION;
+    }
+
+
+    @Override public Collection<String> pardonedLanguages() {
+        return Collections.emptyList();
     }
 }

@@ -1,10 +1,9 @@
 package org.metaborg.meta.core.config;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.project.settings.ILegacyProjectSettings;
 import org.metaborg.core.project.settings.ILegacyProjectSettingsService;
 
@@ -26,11 +25,11 @@ public class LegacyLanguageSpecConfigService implements ILanguageSpecConfigServi
         this.settingsService = settingsService;
     }
 
-    @Override public boolean available(FileObject rootFolder) throws IOException {
+    @Override public boolean available(FileObject rootFolder) {
         return languageSpecConfigService.available(rootFolder) || settingsService.get(rootFolder) != null;
     }
 
-    @Override public @Nullable ILanguageSpecConfig get(FileObject rootFolder) throws IOException {
+    @Override public @Nullable ILanguageSpecConfig get(FileObject rootFolder) throws ConfigException {
         final ILanguageSpecConfig config = this.languageSpecConfigService.get(rootFolder);
         if(config == null) {
             final ILegacyProjectSettings settings = settingsService.get(rootFolder);

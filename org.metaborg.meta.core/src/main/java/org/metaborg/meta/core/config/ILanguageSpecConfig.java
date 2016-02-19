@@ -1,6 +1,7 @@
 package org.metaborg.meta.core.config;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import org.metaborg.core.config.ILanguageComponentConfig;
 
@@ -17,4 +18,11 @@ public interface ILanguageSpecConfig extends ILanguageComponentConfig, Serializa
      * @return The version of MetaBorg tooling to use.
      */
     String metaborgVersion();
+
+    /**
+     * Gets a sequence of languages whose errors are ignored.
+     *
+     * @return The pardoned languages.
+     */
+    Collection<String> pardonedLanguages();
 }

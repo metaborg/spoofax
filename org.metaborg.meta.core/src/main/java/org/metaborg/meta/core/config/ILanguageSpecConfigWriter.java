@@ -1,9 +1,8 @@
 package org.metaborg.meta.core.config;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
+import org.metaborg.core.config.ConfigException;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.util.file.FileAccess;
 
@@ -20,5 +19,6 @@ public interface ILanguageSpecConfigWriter {
      *            The configuration to write.
      * @param access
      */
-    void write(ILanguageSpec languageSpec, ILanguageSpecConfig config, @Nullable FileAccess access) throws IOException;
+    void write(ILanguageSpec languageSpec, ILanguageSpecConfig config, @Nullable FileAccess access)
+        throws ConfigException;
 }

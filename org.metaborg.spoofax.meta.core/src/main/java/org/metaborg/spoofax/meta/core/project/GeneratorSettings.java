@@ -11,6 +11,7 @@ import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.core.project.settings.StrategoFormat;
 import org.metaborg.spoofax.generator.IGeneratorSettings;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 
 /**
  * Provides the values that can be used in a generator template, e.g. a Mustache template.
@@ -109,7 +110,7 @@ public class GeneratorSettings implements IGeneratorSettings {
 
 
     @Override public StrategoFormat format() {
-        final StrategoFormat format = this.config.format();
+        final StrategoFormat format = this.config.strFormat();
         return format != null ? format : StrategoFormat.ctree;
     }
 

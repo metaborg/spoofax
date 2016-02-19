@@ -16,11 +16,11 @@ import com.google.common.collect.Lists;
  * {@link ImmutableConfiguration} object.
  */
 public class LanguageComponentConfig extends ProjectConfig implements ILanguageComponentConfig, IConfig {
-    protected static final String PROP_IDENTIFIER = "id";
-    protected static final String PROP_NAME = "name";
-    protected static final String PROP_LANGUAGE_CONTRIBUTIONS = "contributions";
-    protected static final String PROP_GENERATES = "generates";
-    protected static final String PROP_EXPORTS = "exports";
+    private static final String PROP_IDENTIFIER = "id";
+    private static final String PROP_NAME = "name";
+    private static final String PROP_LANGUAGE_CONTRIBUTIONS = "contributions";
+    private static final String PROP_GENERATES = "generates";
+    private static final String PROP_EXPORTS = "exports";
 
 
     public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config) {
@@ -30,7 +30,7 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier identifier,
         String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<IGenerate> generates, Collection<IExport> exports) {
+        Collection<IGenerateConfig> generates, Collection<IExportConfig> exports) {
         super(config, compileDeps, sourceDeps, javaDeps);
 
         config.setProperty(PROP_NAME, name);
@@ -67,9 +67,9 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         return langContribs;
     }
 
-    @Override public Collection<IGenerate> generates() {
+    @Override public Collection<IGenerateConfig> generates() {
         final List<HierarchicalConfiguration<ImmutableNode>> generateConfigs = config.configurationsAt(PROP_GENERATES);
-        final List<IGenerate> generates = Lists.newArrayListWithCapacity(generateConfigs.size());
+        final List<IGenerateConfig> generates = Lists.newArrayListWithCapacity(generateConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> generateConfig : generateConfigs) {
             final String language = generateConfig.getString("language");
             final String directory = generateConfig.getString("directory");
@@ -78,15 +78,15 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         return generates;
     }
 
-    @Override public Collection<IExport> exports() {
+    @Override public Collection<IExportConfig> exports() {
         final List<HierarchicalConfiguration<ImmutableNode>> exportConfigs = config.configurationsAt(PROP_EXPORTS);
-        final List<IExport> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
+        final List<IExportConfig> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> exportConfig : exportConfigs) {
             final String languageName = exportConfig.getString("language");
             final String directory = exportConfig.getString("directory");
             final String file = exportConfig.getString("file");
-            final List<String> includes = exportConfig.getList(String.class, "includes");
-            final List<String> excludes = exportConfig.getList(String.class, "excludes");
+            final List<String> includes = exportConfig.getList(String.class, "includes", Lists.<String>newArrayList());
+            final List<String> excludes = exportConfig.getList(String.class, "excludes", Lists.<String>newArrayList());
             if(languageName != null) {
                 if(directory != null) {
                     exports.add(new LangDirExport(languageName, directory));

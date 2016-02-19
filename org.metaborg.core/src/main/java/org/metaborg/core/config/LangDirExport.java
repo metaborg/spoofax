@@ -1,10 +1,9 @@
 package org.metaborg.core.config;
 
-import javax.annotation.Nullable;
-
-import org.metaborg.util.iterators.Iterables2;
-
-public class LangDirExport implements IExport {
+/**
+ * Language directory export.
+ */
+public class LangDirExport implements IExportConfig {
     public final String language;
     public final String directory;
 
@@ -15,23 +14,7 @@ public class LangDirExport implements IExport {
     }
 
 
-    @Override public String languageName() {
-        return language;
-    }
-
-    @Override public String directory() {
-        return directory;
-    }
-
-    @Override public @Nullable String file() {
-        return null;
-    }
-
-    @Override public Iterable<String> includes() {
-        return Iterables2.empty();
-    }
-
-    @Override public Iterable<String> excludes() {
-        return Iterables2.empty();
+    @Override public void accept(IExportVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -1,7 +1,5 @@
 package org.metaborg.core.config;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -26,12 +24,12 @@ public class LegacyLanguageComponentConfigService implements ILanguageComponentC
         this.settingsService = settingsService;
     }
 
-    
-    @Override public boolean available(FileObject rootFolder) throws IOException {
+
+    @Override public boolean available(FileObject rootFolder) {
         return languageComponentConfigService.available(rootFolder);
     }
 
-    @Override public @Nullable ILanguageComponentConfig get(FileObject rootFolder) throws IOException {
+    @Override public @Nullable ILanguageComponentConfig get(FileObject rootFolder) throws ConfigException {
         final ILanguageComponentConfig config = languageComponentConfigService.get(rootFolder);
         if(config == null) {
             final ILegacyProjectSettings settings = settingsService.get(rootFolder);

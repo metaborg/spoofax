@@ -3,8 +3,8 @@ package org.metaborg.meta.core.config;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.config.IExport;
-import org.metaborg.core.config.IGenerate;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -89,22 +89,22 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withGenerates(Iterable<IGenerate> generates);
+    ILanguageSpecConfigBuilder withGenerates(Iterable<IGenerateConfig> generates);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addGenerates(Iterable<IGenerate> generates);
+    ILanguageSpecConfigBuilder addGenerates(Iterable<IGenerateConfig> generates);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withExports(Iterable<IExport> exports);
+    ILanguageSpecConfigBuilder withExports(Iterable<IExportConfig> exports);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addExports(Iterable<IExport> exports);
+    ILanguageSpecConfigBuilder addExports(Iterable<IExportConfig> exports);
 
     /**
      * Sets the MetaBorg version.
@@ -114,4 +114,22 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
      * @return This builder.
      */
     ILanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion);
+
+    /**
+     * Sets the pardoned languages.
+     *
+     * @param languages
+     *            The pardoned languages.
+     * @return This builder.
+     */
+    ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages);
+
+    /**
+     * Adds pardoned languages.
+     *
+     * @param languages
+     *            The pardoned languages.
+     * @return This builder.
+     */
+    ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages);
 }
