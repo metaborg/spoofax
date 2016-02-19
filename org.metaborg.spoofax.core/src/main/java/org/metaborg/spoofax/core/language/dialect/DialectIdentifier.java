@@ -45,8 +45,8 @@ public class DialectIdentifier implements IDialectIdentifier {
     @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
         final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
-            final String message = "Could not find Stratego language, Stratego dialects cannot be identified";
-            logger.debug(message);
+            final String message = "Could not find Stratego language, Stratego dialects cannot be identified for resource: {}";
+            logger.debug(message, resource);
             throw new MetaborgRuntimeException(message);
         }
 

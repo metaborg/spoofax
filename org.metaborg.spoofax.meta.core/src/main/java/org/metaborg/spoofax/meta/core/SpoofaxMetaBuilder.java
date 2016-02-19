@@ -120,9 +120,10 @@ public class SpoofaxMetaBuilder {
             plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)));
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
-                throw new MetaborgException(failingRebuildMessage);
+                throw new MetaborgException(failingRebuildMessage, e);
+            } else {
+                throw new MetaborgException("Rebuilding failed.", e);
             }
-            throw new MetaborgException();
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable e) {
