@@ -6,6 +6,8 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -57,8 +59,8 @@ public class SpoofaxContext implements Serializable {
     public final File depDir;
 
     public transient FileObject base;
-    private transient IProject project;
-    public transient ILanguageSpec languageSpec;
+    private transient @Nullable IProject project;
+    public transient @Nullable ILanguageSpec languageSpec;
 
 
     public static void init(Injector newInjector) {
@@ -94,6 +96,11 @@ public class SpoofaxContext implements Serializable {
     public void init() {
         this.base = this.resourceService().resolve(baseURI);
         this.project = projectService.get(base);
+        if(this.project == null) {
+            this.languageSpec = null;
+            return;
+        }
+        
         try {
             this.languageSpec = languageSpecService.get(project);
         } catch(ConfigException e) {
