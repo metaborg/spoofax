@@ -8,12 +8,22 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.config.IProjectConfig;
+import org.metaborg.core.config.IProjectConfigService;
 
 import com.google.common.collect.Maps;
+import com.google.inject.Inject;
 
 public class SimpleProjectService implements ISimpleProjectService {
+    private final IProjectConfigService projectConfigService;
+    
     private final ConcurrentMap<FileName, IProject> projects = Maps.newConcurrentMap();
 
+
+    @Inject public SimpleProjectService(IProjectConfigService projectConfigService) {
+        this.projectConfigService = projectConfigService;
+    }
+    
 
     @Override public @Nullable IProject get(FileObject resource) {
         final FileName name = resource.getName();
@@ -36,7 +46,8 @@ public class SimpleProjectService implements ISimpleProjectService {
             }
         }
 
-        final IProject project = new Project(location);
+        final IProjectConfig config = projectConfigService.get(location);
+        final IProject project = new Project(location, config);
         if(projects.putIfAbsent(name, project) != null) {
             final String message = String.format("Project with location %s already exists", name);
             throw new MetaborgException(message);

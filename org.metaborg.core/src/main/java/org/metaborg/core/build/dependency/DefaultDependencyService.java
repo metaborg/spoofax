@@ -3,11 +3,7 @@ package org.metaborg.core.build.dependency;
 import java.util.Collection;
 import java.util.Collections;
 
-import javax.annotation.Nullable;
-
-import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.config.IProjectConfig;
-import org.metaborg.core.config.IProjectConfigService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -27,18 +23,15 @@ public final class DefaultDependencyService implements IDependencyService {
     private static final ILogger logger = LoggerUtils.logger(DefaultDependencyService.class);
 
     private final ILanguageService languageService;
-    private final IProjectConfigService projectConfigService;
 
 
-    @Inject public DefaultDependencyService(ILanguageService languageService,
-        IProjectConfigService projectConfigService) {
+    @Inject public DefaultDependencyService(ILanguageService languageService) {
         this.languageService = languageService;
-        this.projectConfigService = projectConfigService;
     }
 
 
     @Override public Collection<ILanguageComponent> compileDeps(IProject project) throws MissingDependencyException {
-        final IProjectConfig config = getConfig(project);
+        final IProjectConfig config = project.config();
         if(config == null) {
             logger.trace("No configuration found for project '{}'."
                 + "Returning all active language components as compile dependencies instead.", project);
@@ -48,7 +41,7 @@ public final class DefaultDependencyService implements IDependencyService {
     }
 
     @Override public Collection<ILanguageComponent> sourceDeps(IProject project) throws MissingDependencyException {
-        final IProjectConfig config = getConfig(project);
+        final IProjectConfig config = project.config();
         if(config == null) {
             logger.trace("No configuration found for project '{}'. " + "Returning no runtime dependencies instead.",
                 project);
@@ -63,7 +56,7 @@ public final class DefaultDependencyService implements IDependencyService {
     }
 
     @Override public MissingDependencies checkDependencies(IProject project) {
-        final IProjectConfig config = getConfig(project);
+        final IProjectConfig config = project.config();
         if(config == null) {
             return new MissingDependencies();
         }
@@ -85,28 +78,6 @@ public final class DefaultDependencyService implements IDependencyService {
         }
 
         return new MissingDependencies(missingCompile, missingSource);
-    }
-
-    /**
-     * Gets the configuration for the specified project.
-     *
-     * @param project
-     *            The project.
-     * @return The associated configuration; or <code>null</code> when there is no associated configuration or an
-     *         exception occurred.
-     */
-    private @Nullable IProjectConfig getConfig(IProject project) {
-        if(!projectConfigService.available(project)) {
-            return null;
-        }
-
-        try {
-            return projectConfigService.get(project);
-        } catch(ConfigException e) {
-            logger.debug("Exception while retrieving configuration of {}", e, project);
-        }
-
-        return null;
     }
 
     /**
