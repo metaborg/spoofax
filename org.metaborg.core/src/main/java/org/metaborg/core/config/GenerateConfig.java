@@ -1,11 +1,11 @@
 package org.metaborg.core.config;
 
-public class Generate implements IGenerateConfig {
+public class GenerateConfig implements IGenerateConfig {
     public final String language;
     public final String directory;
 
 
-    public Generate(String languageName, String directory) {
+    public GenerateConfig(String languageName, String directory) {
         this.language = languageName;
         this.directory = directory;
     }
@@ -35,7 +35,7 @@ public class Generate implements IGenerateConfig {
             return false;
         if(getClass() != obj.getClass())
             return false;
-        final Generate other = (Generate) obj;
+        final GenerateConfig other = (GenerateConfig) obj;
         if(!language.equals(other.language))
             return false;
         if(!directory.equals(other.directory))

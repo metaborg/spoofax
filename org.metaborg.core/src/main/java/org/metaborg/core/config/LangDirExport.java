@@ -1,10 +1,17 @@
 package org.metaborg.core.config;
 
 /**
- * Language directory export.
+ * Language-specific directory export.
  */
 public class LangDirExport implements IExportConfig {
+    /**
+     * Name of the language for which source files are exported.
+     */
     public final String language;
+
+    /**
+     * Directory which is exported, relative to the location of the language component that exports sources.
+     */
     public final String directory;
 
 

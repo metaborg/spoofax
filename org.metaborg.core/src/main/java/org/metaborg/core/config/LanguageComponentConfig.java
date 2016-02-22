@@ -73,7 +73,7 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         for(HierarchicalConfiguration<ImmutableNode> generateConfig : generateConfigs) {
             final String language = generateConfig.getString("language");
             final String directory = generateConfig.getString("directory");
-            generates.add(new Generate(language, directory));
+            generates.add(new GenerateConfig(language, directory));
         }
         return generates;
     }

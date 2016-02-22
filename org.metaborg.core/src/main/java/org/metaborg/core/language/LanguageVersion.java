@@ -21,10 +21,10 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
     // BOOTSTRAPPING: The version of a baseline language.
     public static final LanguageVersion BASELINE_VERSION = new LanguageVersion(0, 0, 0, "");
 
-    private final int major;
-    private final int minor;
-    private final int patch;
-    private final String qualifier;
+    public final int major;
+    public final int minor;
+    public final int patch;
+    public final String qualifier;
 
     
     public LanguageVersion(int major, int minor, int patch, String qualifier) {

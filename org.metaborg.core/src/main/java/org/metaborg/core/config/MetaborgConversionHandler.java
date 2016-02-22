@@ -18,15 +18,6 @@ class MetaborgConversionHandler extends DefaultConversionHandler {
         }
     }
 
-    @Override protected Object extractConversionValue(Object src, Class<?> target, ConfigurationInterpolator interp) {
-        return super.extractConversionValue(src, target, interp);
-    }
-
-    @Override protected boolean isComplexObject(Object src) {
-        return super.isComplexObject(src);
-    }
-
-
     private LanguageIdentifier convertToLanguageIdentifier(Object src) {
         if(src == null) {
             return null;

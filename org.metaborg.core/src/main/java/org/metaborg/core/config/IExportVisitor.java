@@ -5,7 +5,7 @@ package org.metaborg.core.config;
  */
 public interface IExportVisitor {
     /**
-     * Visit a language directory export
+     * Visit a language-specific directory export
      * 
      * @param export
      *            Language directory export.
@@ -13,7 +13,7 @@ public interface IExportVisitor {
     void visit(LangDirExport export);
 
     /**
-     * Visit a language single-file export.
+     * Visit a language-specific single-file export.
      * 
      * @param export
      *            Language file export.

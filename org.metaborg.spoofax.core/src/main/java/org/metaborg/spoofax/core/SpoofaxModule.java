@@ -22,7 +22,6 @@ import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
-import org.metaborg.core.project.settings.ILegacyProjectSettingsService;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.IParseService;
@@ -64,11 +63,6 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
-import org.metaborg.spoofax.core.project.DummyLegacyMavenProjectService;
-import org.metaborg.spoofax.core.project.ILegacyMavenProjectService;
-import org.metaborg.spoofax.core.project.settings.ILegacySpoofaxProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.LegacyProjectSettingsService;
-import org.metaborg.spoofax.core.project.settings.LegacySpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
@@ -133,7 +127,6 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void configure() {
         super.configure();
 
-        bindMavenProject();
         bindSyntax();
         bindCompletion();
         bindAction();
@@ -157,8 +150,8 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
 
-    @Override protected void bindNewLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-        super.bindNewLanguagePathProviders(binder);
+    @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
+        super.bindLanguagePathProviders(binder);
 
         binder.addBinding().to(BuiltinLanguagePathProvider.class);
     }
@@ -168,19 +161,6 @@ public class SpoofaxModule extends MetaborgModule {
 
         binder.addBinding(IndexTaskContextFactory.name).to(IndexTaskContextFactory.class).in(Singleton.class);
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
-    }
-
-    /**
-     * Overrides {@link MetaborgModule#bindProjectSettings()} for non-dummy implementation of project settings service.
-     */
-    @Override protected void bindProjectSettings() {
-        bind(ILegacyProjectSettingsService.class).to(LegacyProjectSettingsService.class).in(Singleton.class);
-        bind(ILegacySpoofaxProjectSettingsService.class).to(LegacySpoofaxProjectSettingsService.class)
-            .in(Singleton.class);
-    }
-
-    @Deprecated protected void bindMavenProject() {
-        bind(ILegacyMavenProjectService.class).to(DummyLegacyMavenProjectService.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {

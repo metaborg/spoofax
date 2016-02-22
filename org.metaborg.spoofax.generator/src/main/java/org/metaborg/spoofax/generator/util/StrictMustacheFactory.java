@@ -11,14 +11,6 @@ import com.github.mustachejava.TemplateContext;
 import com.github.mustachejava.codes.ValueCode;
 
 public class StrictMustacheFactory extends DefaultMustacheFactory {
-    public StrictMustacheFactory(MustacheResolver mustacheResolver) {
-        super(mustacheResolver);
-    }
-
-    @Override public MustacheVisitor createMustacheVisitor() {
-        return new StrictMustacheVisitor(this);
-    }
-
     private static class StrictMustacheVisitor extends DefaultMustacheVisitor {
         public StrictMustacheVisitor(DefaultMustacheFactory df) {
             super(df);
@@ -43,12 +35,21 @@ public class StrictMustacheFactory extends DefaultMustacheFactory {
                 } else {
                     throw new Exception("Null");
                 }
+            } catch(MustacheException e) {
+                throw e;
             } catch(Exception e) {
-                if(e instanceof MustacheException) {
-                    throw (MustacheException) e;
-                }
                 throw new MustacheException("Failed to get value for " + name, e, tc);
             }
         }
+    }
+
+
+    public StrictMustacheFactory(MustacheResolver mustacheResolver) {
+        super(mustacheResolver);
+    }
+
+
+    @Override public MustacheVisitor createMustacheVisitor() {
+        return new StrictMustacheVisitor(this);
     }
 }

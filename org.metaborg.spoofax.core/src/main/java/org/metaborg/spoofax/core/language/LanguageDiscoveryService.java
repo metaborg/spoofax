@@ -27,8 +27,6 @@ import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguagePathFacet;
-import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.core.syntax.ParseFacet;
@@ -332,10 +330,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             request.addFacet(outlineFacet);
         }
 
-        // BOOTSTRAPPING: add LanguagePathFacet
-        final LanguagePathFacet languagePathFacet = LanguagePathFacetFromESV.create(esvTerm);
-        request.addFacet(languagePathFacet);
-
         return languageService.add(request);
     }
 
@@ -346,14 +340,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         }
         return extensionsStr.split(",");
     }
-
-    @SuppressWarnings("unused") private static boolean isBaseline(LanguageIdentifier identifier) {
-        final LanguageVersion version = identifier.version;
-        final String qualifier = version.qualifier();
-        // BOOTSTRAPPING: check for older baseline, update to new baseline and use when necessary.
-        return qualifier.contains("baseline-20150905-200051");
-    }
-
 
     private @Nullable IContextFactory contextFactory(@Nullable String name) throws MetaborgException {
         if(name == null) {

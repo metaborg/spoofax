@@ -1,7 +1,6 @@
 package org.metaborg.core.build.paths;
 
 import java.util.Collection;
-import java.util.Map.Entry;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -15,7 +14,6 @@ import org.metaborg.core.config.LangDirExport;
 import org.metaborg.core.config.LangFileExport;
 import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -41,16 +39,6 @@ public class DependencyPathProvider implements ILanguagePathProvider {
                     resolve(project.location(), Iterables2.singleton(generate.directory()), sources);
                 }
             }
-
-            // BOOTSTRAPPING: get extra source paths from LanguagePathFacet
-            final LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
-            if(facet != null) {
-                for(Entry<String, Collection<String>> entry : facet.sources.asMap().entrySet()) {
-                    if(languageName.equals(entry.getKey())) {
-                        resolve(project.location(), entry.getValue(), sources);
-                    }
-                }
-            }
         }
         return sources;
     }
@@ -74,16 +62,6 @@ public class DependencyPathProvider implements ILanguagePathProvider {
                         // Ignore resource exports
                     }
                 });
-            }
-
-            // BOOTSTRAPPING: get extra export paths from LanguagePathFacet
-            final LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
-            if(facet != null) {
-                for(Entry<String, Collection<String>> entry : facet.includes.asMap().entrySet()) {
-                    if(languageName.equals(entry.getKey())) {
-                        resolve(dependency.location(), entry.getValue(), includes);
-                    }
-                }
             }
         }
         return includes;
