@@ -12,7 +12,6 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
-import org.metaborg.spoofax.core.project.settings.StrategoFormat;
 import org.metaborg.util.cmd.Arguments;
 
 import com.google.common.collect.Iterables;

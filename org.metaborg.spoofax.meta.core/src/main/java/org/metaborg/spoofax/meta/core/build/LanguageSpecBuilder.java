@@ -23,16 +23,16 @@ import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
-import org.metaborg.spoofax.core.project.settings.StrategoFormat;
-import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigWriter;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
+import org.metaborg.spoofax.meta.core.config.StrategoFormat;
+import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
-import org.metaborg.spoofax.meta.core.project.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
@@ -102,7 +102,7 @@ public class LanguageSpecBuilder {
         final FileObject location = input.languageSpec.location();
         logger.debug("Generating sources for {}", input.languageSpec.location());
 
-        final LanguageSpecGenerator generator = new LanguageSpecGenerator(
+        final ContinuousLanguageSpecGenerator generator = new ContinuousLanguageSpecGenerator(
             new GeneratorSettings(input.languageSpec.config(), input.languageSpec.paths()), access);
         generator.generateAll();
 

@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.metaborg.spoofax.core.project.settings.StrategoFormat;
+import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.pluto.*;
 import org.metaborg.spoofax.meta.core.pluto.build.PPGen;
 import org.metaborg.spoofax.meta.core.pluto.build.PPPack;

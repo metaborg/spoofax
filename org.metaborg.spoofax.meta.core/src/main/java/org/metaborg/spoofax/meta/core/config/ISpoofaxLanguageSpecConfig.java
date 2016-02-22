@@ -6,7 +6,6 @@ import javax.annotation.Nullable;
 
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
-import org.metaborg.spoofax.core.project.settings.StrategoFormat;
 import org.metaborg.util.cmd.Arguments;
 
 /**

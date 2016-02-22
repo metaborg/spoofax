@@ -63,15 +63,6 @@
         <artifactId>spoofax-maven-plugin</artifactId>
         <version>${metaborg-version}</version>
         <extensions>true</extensions>
-        <configuration>
-          <format>ctree</format>
-          <pardonedLanguages combine.children="append">
-          </pardonedLanguages>
-          <sdfArgs combine.children="append">
-          </sdfArgs>
-          <strategoArgs combine.children="append">
-          </strategoArgs>
-        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -89,7 +80,7 @@
     </repository>
     <repository>
       <id>metaborg-snapshot-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/core-snapshots/</url>
+      <url>http://artifacts.metaborg.org/content/repositories/snapshots/</url>
       <releases>
         <enabled>false</enabled>
       </releases>

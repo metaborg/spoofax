@@ -1,35 +1,35 @@
-package org.metaborg.spoofax.generator.language;
+package org.metaborg.spoofax.meta.core.generator.language;
 
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.generator.BaseGenerator;
-import org.metaborg.spoofax.generator.IGeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
+import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 
 /**
  * Generates language project files that are only generated once when a new language project is created. Files are not
  * specific to an IDE.
  */
-public class NewLanguageSpecGenerator extends BaseGenerator {
+public class LanguageSpecGenerator extends BaseGenerator {
     private final String[] fileExtensions;
     private final AnalysisType analysisType;
 
 
-    public NewLanguageSpecGenerator(IGeneratorSettings config) throws ProjectException {
+    public LanguageSpecGenerator(GeneratorSettings config) throws ProjectException {
         this(config, new String[0]);
     }
 
-    public NewLanguageSpecGenerator(IGeneratorSettings config, AnalysisType analysisType) throws ProjectException {
+    public LanguageSpecGenerator(GeneratorSettings config, AnalysisType analysisType) throws ProjectException {
         this(config, new String[0], analysisType);
     }
 
-    public NewLanguageSpecGenerator(IGeneratorSettings config, String[] fileExtensions) throws ProjectException {
+    public LanguageSpecGenerator(GeneratorSettings config, String[] fileExtensions) throws ProjectException {
         this(config, fileExtensions, AnalysisType.NaBL_TS);
     }
 
-    public NewLanguageSpecGenerator(IGeneratorSettings config, String[] fileExtensions, AnalysisType analysisType)
+    public LanguageSpecGenerator(GeneratorSettings config, String[] fileExtensions, AnalysisType analysisType)
         throws ProjectException {
         super(config);
 

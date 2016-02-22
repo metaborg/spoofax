@@ -6,7 +6,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
-import org.metaborg.spoofax.core.project.settings.StrategoFormat;
 import org.metaborg.util.cmd.Arguments;
 
 /**

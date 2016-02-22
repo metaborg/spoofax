@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.generator.util;
+package org.metaborg.spoofax.meta.core.generator;
 
 import java.io.Writer;
 

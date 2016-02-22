@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.project;
+package org.metaborg.spoofax.meta.core.generator;
 
 import javax.annotation.Nullable;
 
@@ -8,15 +8,14 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.project.settings.StrategoFormat;
-import org.metaborg.spoofax.generator.IGeneratorSettings;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 
 /**
  * Provides the values that can be used in a generator template, e.g. a Mustache template.
  */
-public class GeneratorSettings implements IGeneratorSettings {
+public class GeneratorSettings {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
     private final ISpoofaxLanguageSpecPaths paths;
@@ -43,8 +42,7 @@ public class GeneratorSettings implements IGeneratorSettings {
         }
         for(LanguageContributionIdentifier contributionIdentifier : config.langContribs()) {
             if(!contributionIdentifier.id.valid()) {
-                throw new ProjectException(
-                    "Invalid language contribution identifier: " + contributionIdentifier.id);
+                throw new ProjectException("Invalid language contribution identifier: " + contributionIdentifier.id);
             }
             if(!LanguageIdentifier.validId(contributionIdentifier.name)) {
                 throw new ProjectException("Invalid language contribution name: " + config.name());
@@ -59,7 +57,7 @@ public class GeneratorSettings implements IGeneratorSettings {
 
     private @Nullable String metaborgVersion;
 
-    @Override public String metaborgVersion() {
+    public String metaborgVersion() {
         return metaborgVersion != null && !metaborgVersion.isEmpty() ? metaborgVersion
             : MetaborgConstants.METABORG_VERSION;
     }
@@ -71,63 +69,67 @@ public class GeneratorSettings implements IGeneratorSettings {
         this.metaborgVersion = metaborgVersion;
     }
 
-    @Override public String eclipseMetaborgVersion() {
+    public String eclipseMetaborgVersion() {
         return metaborgVersion().replace("-SNAPSHOT", ".qualifier");
     }
 
 
-    @Override public String groupId() {
-        return this.config.identifier().groupId;
+    public String groupId() {
+        return config.identifier().groupId;
     }
 
-    @Override public boolean generateGroupId() {
+    public boolean generateGroupId() {
         return !groupId().equals(MetaborgConstants.METABORG_GROUP_ID);
     }
 
-    @Override public String id() {
-        return this.config.identifier().id;
+    public String id() {
+        return config.identifier().id;
     }
 
-    @Override public String version() {
-        return this.config.identifier().version.toString();
+    public String version() {
+        return config.identifier().version.toString();
     }
 
-    @Override public boolean generateVersion() {
+    public boolean generateVersion() {
         return !version().equals(metaborgVersion());
     }
 
-    @Override public String eclipseVersion() {
+    public String eclipseVersion() {
         return version().replace("-SNAPSHOT", ".qualifier");
     }
 
-    @Override public String name() {
+    public String fullIdentifier() {
+        return config.identifier().toString();
+    }
+
+    public String name() {
         return this.config.name();
     }
 
-    @Override public FileObject location() {
-        return this.location;
+    public FileObject location() {
+        return location;
     }
 
 
-    @Override public StrategoFormat format() {
+    public StrategoFormat format() {
         final StrategoFormat format = this.config.strFormat();
         return format != null ? format : StrategoFormat.ctree;
     }
 
 
-    @Override public String strategoName() {
-        return this.config.strategoName();
+    public String strategoName() {
+        return config.strategoName();
     }
 
-    @Override public String javaName() {
-        return this.config.javaName();
+    public String javaName() {
+        return config.javaName();
     }
 
-    @Override public String packageName() {
-        return this.config.packageName();
+    public String packageName() {
+        return config.packageName();
     }
 
-    @Override public String packagePath() {
-        return this.paths.packagePath();
+    public String packagePath() {
+        return paths.packagePath();
     }
 }

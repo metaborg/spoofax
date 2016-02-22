@@ -38,11 +38,6 @@
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>org.metaborg.spoofax.generator</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.util</artifactId>
       <version>${metaborg-version}</version>
@@ -74,6 +69,10 @@
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-multibindings</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.spullara.mustache.java</groupId>
+      <artifactId>compiler</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.ant</groupId>

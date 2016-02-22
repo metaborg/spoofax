@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.generator.language;
+package org.metaborg.spoofax.meta.core.generator.language;
 
 public enum AnalysisType {
     NaBL_TS("nabl_ts"), 

@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.generator.util;
+package org.metaborg.spoofax.meta.core.generator;
 
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -20,10 +20,10 @@ public class MustacheWriter {
     private final @Nullable FileAccess access;
 
 
-    public MustacheWriter(FileObject root, Object[] objs, Class<?> cls, @Nullable FileAccess access) {
+    public MustacheWriter(FileObject root, Object[] objects, Class<?> clazz, @Nullable FileAccess access) {
         this.root = root;
-        this.objects = objs;
-        this.factory = new StrictMustacheFactory(new ClassResolver(cls));
+        this.objects = objects;
+        this.factory = new StrictMustacheFactory(new ClassResolver(clazz));
         this.access = access;
     }
 
@@ -63,16 +63,16 @@ public class MustacheWriter {
     }
 
 
-    private void write(Mustache mustache, FileObject dest, boolean overwrite) throws FileSystemException {
-        if(dest.exists() && !overwrite) {
+    private void write(Mustache mustache, FileObject dst, boolean overwrite) throws FileSystemException {
+        if(dst.exists() && !overwrite) {
             return;
         }
-        dest.createFile();
-        try(final PrintWriter writer = new PrintWriter(dest.getContent().getOutputStream())) {
+        dst.createFile();
+        try(final PrintWriter writer = new PrintWriter(dst.getContent().getOutputStream())) {
             mustache.execute(writer, objects);
         }
         if(access != null) {
-            access.addWrite(dest);
+            access.addWrite(dst);
         }
     }
 

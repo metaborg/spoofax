@@ -1,20 +1,20 @@
-package org.metaborg.spoofax.generator.language;
+package org.metaborg.spoofax.meta.core.generator.language;
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.generator.BaseGenerator;
-import org.metaborg.spoofax.generator.IGeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
+import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.util.file.FileAccess;
 
 /**
  * Generates project files which need to be generated after each build. Files are not specific to an IDE.
  */
-public class LanguageSpecGenerator extends BaseGenerator {
-    public LanguageSpecGenerator(IGeneratorSettings scope, FileAccess access) {
+public class ContinuousLanguageSpecGenerator extends BaseGenerator {
+    public ContinuousLanguageSpecGenerator(GeneratorSettings scope, FileAccess access) {
         super(scope, access);
     }
 
-    public LanguageSpecGenerator(IGeneratorSettings scope) {
+    public ContinuousLanguageSpecGenerator(GeneratorSettings scope) {
         super(scope);
     }
 
