@@ -1,0 +1,8 @@
+---
+id: org.metaborg:Entity:1.5.0-SNAPSHOT
+name: Entity
+dependencies:
+  compile:
+  - org.metaborg:org.metaborg.meta.lang.esv:1.5.0-SNAPSHOT
+  source:
+  - org.metaborg:org.metaborg.meta.lib.analysis:1.5.0-SNAPSHOT

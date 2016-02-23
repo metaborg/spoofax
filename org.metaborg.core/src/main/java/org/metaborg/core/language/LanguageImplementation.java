@@ -5,6 +5,9 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.config.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageImplConfig;
+import org.metaborg.core.config.LanguageImplConfig;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -56,6 +59,14 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
     }
 
 
+    @Override public ILanguageImplConfig config() {
+        final Collection<ILanguageComponentConfig> configs = Lists.newArrayListWithCapacity(components.size());
+        for(ILanguageComponent component : components) {
+            configs.add(component.config());
+        }
+        return new LanguageImplConfig(configs);
+    }
+
     @Override public Iterable<IFacet> facets() {
         final Collection<IFacet> facets = Lists.newLinkedList();
         for(ILanguageComponent component : components) {
@@ -95,8 +106,8 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
         if(size == 0) {
             return null;
         } else if(size > 1) {
-            throw new MetaborgRuntimeException("Multiple facets of type " + type
-                + " found, while only a single facet is supported");
+            throw new MetaborgRuntimeException(
+                "Multiple facets of type " + type + " found, while only a single facet is supported");
         }
         return Iterables.get(facets, 0);
     }
@@ -108,12 +119,11 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
         if(size == 0) {
             return null;
         } else if(size > 1) {
-            throw new MetaborgRuntimeException("Multiple facets of type " + type
-                + " found, while only a single facet is supported");
+            throw new MetaborgRuntimeException(
+                "Multiple facets of type " + type + " found, while only a single facet is supported");
         }
         return Iterables.get(facetContributions, 0);
     }
-
 
     @Override public boolean addComponent(ILanguageComponent component) {
         return components.add(component);

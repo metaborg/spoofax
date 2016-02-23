@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.IProject;
 
 /**
  * Input for a clean build.
@@ -13,8 +13,7 @@ public class CleanInput {
     /**
      * Project to clean.
      */
-//    public final IProject project;
-    public final ILanguageSpec languageSpec;
+    public final IProject project;
     
     /**
      * Languages to run clean operations for.
@@ -27,8 +26,8 @@ public class CleanInput {
     public final @Nullable FileSelector selector;
 
 
-    public CleanInput(ILanguageSpec languageSpec, Iterable<ILanguageImpl> languages, @Nullable FileSelector selector) {
-        this.languageSpec = languageSpec;
+    public CleanInput(IProject project, Iterable<ILanguageImpl> languages, @Nullable FileSelector selector) {
+        this.project = project;
         this.languages = languages;
         this.selector = selector;
     }

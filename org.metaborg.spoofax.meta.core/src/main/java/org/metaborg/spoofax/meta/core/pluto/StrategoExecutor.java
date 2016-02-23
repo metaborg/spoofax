@@ -46,9 +46,11 @@ public class StrategoExecutor {
 
     private Context context;
     private Strategy strategy;
+    private String strategyName;
     private ResourceAgentTracker tracker;
     private String name;
     private boolean silent;
+
 
     public StrategoExecutor withContext(Context context) {
         this.context = context;
@@ -90,6 +92,11 @@ public class StrategoExecutor {
         return this;
     }
 
+    public StrategoExecutor withStrategyName(String strategyName) {
+        this.strategyName = strategyName;
+        return this;
+    }
+
     public StrategoExecutor withTracker(ResourceAgentTracker tracker) {
         this.tracker = tracker;
         return this;
@@ -106,24 +113,6 @@ public class StrategoExecutor {
     }
 
 
-    public ExecutionResult execute(IStrategoTerm inputTerm) {
-        prepare();
-
-        try {
-            if(!silent) {
-                log.info("Execute {}", name);
-            }
-            context.setIOAgent(tracker.agent());
-            dr_scope_all_start_0_0.instance.invoke(context, inputTerm);
-            IStrategoTerm result = strategy.invoke(context, inputTerm);
-            return new ExecutionResult(result, tracker.stdout(), tracker.stderr());
-        } catch(StrategoExit e) {
-            return new ExecutionResult(false, tracker.stdout(), tracker.stderr());
-        } finally {
-            dr_scope_all_end_0_0.instance.invoke(context, inputTerm);
-        }
-    }
-
     public ExecutionResult executeCLI(Arguments arguments) {
         prepare();
 
@@ -133,7 +122,12 @@ public class StrategoExecutor {
             }
             context.setIOAgent(tracker.agent());
             dr_scope_all_start_0_0.instance.invoke(context, context.getFactory().makeTuple());
-            context.invokeStrategyCLI(strategy, name, getArgumentStrings(arguments));
+            final String[] args = getArgumentStrings(arguments);
+            if(strategy != null) {
+                context.invokeStrategyCLI(strategy, name, args);
+            } else {
+                context.invokeStrategyCLI(strategyName, name, args);
+            }
             return new ExecutionResult(true, tracker.stdout(), tracker.stderr());
         } catch(StrategoExit e) {
             if(e.getValue() == 0) {
@@ -150,8 +144,8 @@ public class StrategoExecutor {
         if(context == null) {
             throw new RuntimeException("Cannot execute Stratego strategy; context was not set");
         }
-        if(strategy == null) {
-            throw new RuntimeException("Cannot execute Stratego strategy; strategy was not set");
+        if(strategy == null && strategyName == null) {
+            throw new RuntimeException("Cannot execute Stratego strategy; strategy or strategy name was not set");
         }
         if(tracker == null) {
             throw new RuntimeException("Cannot execute Stratego strategy; tracker was not set");

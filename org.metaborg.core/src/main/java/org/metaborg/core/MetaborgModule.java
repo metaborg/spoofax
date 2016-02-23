@@ -6,10 +6,24 @@ import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.dependency.DefaultDependencyService;
-//import org.metaborg.core.build.dependency.DependencyService;
-//import org.metaborg.core.build.dependency.IDependencyService;
+// import org.metaborg.core.build.dependency.DependencyService;
+// import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.dependency.IDependencyService;
-import org.metaborg.core.build.paths.*;
+import org.metaborg.core.build.paths.DependencyPathProvider;
+import org.metaborg.core.build.paths.ILanguagePathProvider;
+import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.build.paths.LanguagePathService;
+import org.metaborg.core.config.AConfigurationReaderWriter;
+import org.metaborg.core.config.ILanguageComponentConfigBuilder;
+import org.metaborg.core.config.ILanguageComponentConfigService;
+import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.config.IProjectConfigBuilder;
+import org.metaborg.core.config.IProjectConfigService;
+import org.metaborg.core.config.LanguageComponentConfigBuilder;
+import org.metaborg.core.config.LanguageComponentConfigService;
+import org.metaborg.core.config.ProjectConfigBuilder;
+import org.metaborg.core.config.ProjectConfigService;
+import org.metaborg.core.config.YamlConfigurationReaderWriter;
 import org.metaborg.core.context.ContextService;
 import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextProcessor;
@@ -38,9 +52,8 @@ import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.processing.parse.ParseResultProcessor;
-import org.metaborg.core.project.*;
-import org.metaborg.core.project.configuration.*;
-import org.metaborg.core.project.settings.*;
+import org.metaborg.core.project.DummyProjectService;
+import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.resource.ResourceService;
@@ -76,19 +89,15 @@ public class MetaborgModule extends AbstractModule {
 
         bindResource();
         bindLanguage();
-        bindLanguagePath();
-        bindLanguageSpecPath();
-//        bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
-        bindNewLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
-        bindLanguageSpec();
         bindContext();
         bindContextFactories(MapBinder.newMapBinder(binder(), String.class, IContextFactory.class));
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
-        bindProjectSettings();
-        bindLanguageSpecConfig();
-        bindLanguageComponentConfig();
         bindConfigMisc();
+        bindProjectConfig();
+        bindLanguageComponentConfig();
+        bindLanguagePath();
+        bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
         bindDependency();
         bindSourceText();
         bindAnalysis();
@@ -111,25 +120,8 @@ public class MetaborgModule extends AbstractModule {
         bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
     }
 
-    protected void bindLanguagePath() {
-        bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
-    }
-
-    protected void bindLanguageSpecPath() {
-
-    }
-
-    protected void bindNewLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-        binder.addBinding().to(DependencyPathProvider.class);
-    }
-
-    /**
-     * Override this method to bind a specific language specification service.
-     */
-    protected void bindLanguageSpec() {
-        // FIXME: Used to bridge between the old and the new configuration systems.
-        bind(ILanguageSpecService.class).to(LegacyLanguageSpecService.class).in(Singleton.class);
-//        bind(ILanguageSpecService.class).to(DefaultLanguageSpecService.class).in(Singleton.class);
+    protected void bindProject() {
+        bind(IProjectService.class).to(DummyProjectService.class).in(Singleton.class);
     }
 
     protected void bindContext() {
@@ -138,8 +130,7 @@ public class MetaborgModule extends AbstractModule {
         bind(IContextProcessor.class).to(ContextService.class);
     }
 
-    @SuppressWarnings("unused") protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
-
+    protected void bindContextFactories(@SuppressWarnings("unused") MapBinder<String, IContextFactory> binder) {
     }
 
     protected void bindContextStrategies(MapBinder<String, IContextStrategy> binder) {
@@ -147,42 +138,33 @@ public class MetaborgModule extends AbstractModule {
         binder.addBinding(ProjectContextStrategy.name).to(ProjectContextStrategy.class).in(Singleton.class);
     }
 
-    protected void bindProject() {
-        bind(IProjectService.class).to(DummyProjectService.class).in(Singleton.class);
+    protected void bindConfigMisc() {
+        bind(AConfigurationReaderWriter.class).to(YamlConfigurationReaderWriter.class).in(Singleton.class);
     }
 
-    @Deprecated
-    protected void bindProjectSettings() {
-        bind(ILegacyProjectSettingsService.class).to(DummyLegacyProjectSettingsService.class).in(Singleton.class);
+    protected void bindProjectConfig() {
+        bind(ProjectConfigService.class).in(Singleton.class);
+        bind(IProjectConfigService.class).to(ProjectConfigService.class);
 
-    }
-
-    protected void bindLanguageSpecConfig() {
-        // FIXME: Used to bridge between the old and the new configuration systems.
-        bind(LegacyLanguageSpecConfigService.class).in(Singleton.class);
-        bind(ILanguageSpecConfigService.class).to(LegacyLanguageSpecConfigService.class).in(Singleton.class);
-        
-        bind(ConfigurationBasedLanguageSpecConfigService.class).in(Singleton.class);
-        bind(ILanguageSpecConfigWriter.class).to(ConfigurationBasedLanguageSpecConfigService.class);
-
-        bind(ConfigurationBasedLanguageSpecConfigBuilder.class).in(Singleton.class);
-        bind(ILanguageSpecConfigBuilder.class).to(ConfigurationBasedLanguageSpecConfigBuilder.class);
+        bind(ProjectConfigBuilder.class);
+        bind(IProjectConfigBuilder.class).to(ProjectConfigBuilder.class);
     }
 
     protected void bindLanguageComponentConfig() {
-        // FIXME: Used to bridge between the old and the new configuration systems.
-        bind(LegacyLanguageComponentConfigService.class).in(Singleton.class);
-        bind(ILanguageComponentConfigService.class).to(LegacyLanguageComponentConfigService.class);
-        
-        bind(ConfigurationBasedLanguageComponentConfigService.class).in(Singleton.class);
-        bind(ILanguageComponentConfigWriter.class).to(ConfigurationBasedLanguageComponentConfigService.class);
-        
-        bind(ConfigurationBasedLanguageComponentConfigBuilder.class);
-        bind(ILanguageComponentConfigBuilder.class).to(ConfigurationBasedLanguageComponentConfigBuilder.class);
+        bind(LanguageComponentConfigService.class).in(Singleton.class);
+        bind(ILanguageComponentConfigWriter.class).to(LanguageComponentConfigService.class);
+        bind(ILanguageComponentConfigService.class).to(LanguageComponentConfigService.class);
+
+        bind(LanguageComponentConfigBuilder.class);
+        bind(ILanguageComponentConfigBuilder.class).to(LanguageComponentConfigBuilder.class);
     }
 
-    protected void bindConfigMisc() {
-        bind(ConfigurationReaderWriter.class).to(YamlConfigurationReaderWriter.class).in(Singleton.class);
+    protected void bindLanguagePath() {
+        bind(ILanguagePathService.class).to(LanguagePathService.class).in(Singleton.class);
+    }
+
+    protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
+        binder.addBinding().to(DependencyPathProvider.class);
     }
 
     protected void bindDependency() {

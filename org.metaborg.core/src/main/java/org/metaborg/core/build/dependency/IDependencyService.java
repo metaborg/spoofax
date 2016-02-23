@@ -3,45 +3,45 @@ package org.metaborg.core.build.dependency;
 import java.util.Collection;
 
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.IProject;
 
 /**
- * Interface for a service that returns compile-time and runtime dependencies
- * for a language component or specification.
+ * Returns compile and source dependencies for a project or language component.
  */
 public interface IDependencyService {
-
     /**
-     * Gets compile-time language component dependencies for the given language specification.
+     * Gets compile dependencies for the given project.
      * 
-     * @param languageSpec The language specification to get dependencies for.
-     * @return Compile-time language component dependencies.
+     * @param project
+     *            Project to get dependencies for.
+     * @return Compile dependencies.
      */
-    Collection<ILanguageComponent> compileDependencies(ILanguageSpec languageSpec) throws MissingDependencyException;
+    Collection<ILanguageComponent> compileDeps(IProject project) throws MissingDependencyException;
 
     /**
-     * Gets runtime language component dependencies for the given language specification.
+     * Gets source dependencies for the given project.
      *
-     * @param languageSpec The language specification to get dependencies for.
-     * @return Runtime language component dependencies.
+     * @param project
+     *            Project to get dependencies for.
+     * @return Source dependencies.
      */
-    Collection<ILanguageComponent> runtimeDependencies(ILanguageSpec languageSpec) throws MissingDependencyException;
+    Collection<ILanguageComponent> sourceDeps(IProject project) throws MissingDependencyException;
 
     /**
-     * Gets runtime language component dependencies for the given language component.
+     * Gets source dependencies for the given language component.
      *
-     * @param component The language component to get dependencies for.
-     * @return Runtime language component dependencies.
+     * @param component
+     *            Language component to get dependencies for.
+     * @return Source dependencies.
      */
-    Collection<ILanguageComponent> runtimeDependencies(ILanguageComponent component) throws MissingDependencyException;
+    Collection<ILanguageComponent> sourceDeps(ILanguageComponent component) throws MissingDependencyException;
 
     /**
-     * Checks if compile-time and runtime dependencies for the given language specification
-     * are loaded; and returns any missing dependencies.
+     * Checks if compile and source dependencies for the given project are loaded; and returns any missing dependencies.
      *
-     * @param languageSpec The language specification to check the dependencies for.
-     * @return The missing compile-time and runtime dependencies.
+     * @param project
+     *            Project to check the dependencies for.
+     * @return Missing dependencies.
      */
-    MissingDependencies checkDependencies(ILanguageSpec languageSpec);
-
+    MissingDependencies checkDependencies(IProject project);
 }

@@ -10,14 +10,13 @@ import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageUtils;
-import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.IProject;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 public class CleanInputBuilder {
-
-    private final ILanguageSpec languageSpec;
+    private final IProject project;
 
     private Set<ILanguageImpl> languages;
     private boolean addDependencyLanguages;
@@ -25,8 +24,8 @@ public class CleanInputBuilder {
     private @Nullable FileSelector selector;
 
 
-    public CleanInputBuilder(ILanguageSpec languageSpec) {
-        this.languageSpec = languageSpec;
+    public CleanInputBuilder(IProject project) {
+        this.project = project;
         reset();
     }
 
@@ -34,11 +33,11 @@ public class CleanInputBuilder {
     public void reset() {
         languages = Sets.newHashSet();
         addDependencyLanguages = true;
-        
+
         selector = null;
     }
 
-    
+
     /**
      * Sets the languages to given language implementations.
      */
@@ -109,15 +108,15 @@ public class CleanInputBuilder {
      * Builds a clean input object from the current state.
      * 
      * @throws MetaborgException
-     *             When {@link IDependencyService#compileDependencies(ILanguageSpec)} throws.
+     *             When {@link IDependencyService#compileDeps(IProject)} throws.
      */
     public CleanInput build(IDependencyService dependencyService) throws MetaborgException {
         if(addDependencyLanguages) {
-            final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDependencies(languageSpec);
+            final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDeps(project);
             final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);
             addLanguages(compileImpls);
         }
 
-        return new CleanInput(languageSpec, languages, selector);
+        return new CleanInput(project, languages, selector);
     }
 }

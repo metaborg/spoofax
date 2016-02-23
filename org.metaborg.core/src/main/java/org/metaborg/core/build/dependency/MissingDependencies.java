@@ -19,11 +19,11 @@ public class MissingDependencies {
         this(Iterables2.<LanguageIdentifier>empty(), Iterables2.<LanguageIdentifier>empty());
     }
 
-    
+
     public boolean empty() {
         return Iterables.isEmpty(compile) && Iterables.isEmpty(runtime);
     }
-    
+
 
     @Override public String toString() {
         final StringBuilder sb = new StringBuilder();

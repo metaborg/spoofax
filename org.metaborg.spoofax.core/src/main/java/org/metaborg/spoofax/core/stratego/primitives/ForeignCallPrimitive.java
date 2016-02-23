@@ -5,8 +5,7 @@ import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
-import org.metaborg.core.project.ILanguageSpec;
-import org.metaborg.core.project.ILanguageSpecService;
+import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.spoofax.interpreter.core.IContext;
@@ -22,20 +21,17 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
     private final ILanguageService languageService;
     private final IContextService contextService;
     private final IProjectService projectService;
-    private final ILanguageSpecService languageSpecService;
 
     private final IStrategoCommon common;
 
 
     @Inject public ForeignCallPrimitive(ILanguageService languageService, IContextService contextService,
-                                        IProjectService projectService, ILanguageSpecService languageSpecService,
-                                        IStrategoCommon common) {
+        IProjectService projectService, IStrategoCommon common) {
         super("SSL_EXT_foreigncall", 0, 2);
 
         this.languageService = languageService;
         this.contextService = contextService;
         this.projectService = projectService;
-        this.languageSpecService = languageSpecService;
         this.common = common;
     }
 
@@ -48,16 +44,15 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
         final ILanguage language = languageService.getLanguage(languageName);
         if(language == null) {
             final String message =
-                String.format("Foreign call of '%s' into language %s failed, language could not be found",
-                    strategyName, languageName);
+                String.format("Foreign call of '%s' into language %s failed, language could not be found", strategyName,
+                    languageName);
             throw new InterpreterException(message);
         }
         final ILanguageImpl activeImpl = language.activeImpl();
         if(activeImpl == null) {
-            final String message =
-                String.format(
-                    "Foreign call of '%s' into language %s failed, no active language implementation could be found",
-                    strategyName, languageName);
+            final String message = String.format(
+                "Foreign call of '%s' into language %s failed, no active language implementation could be found",
+                strategyName, languageName);
             throw new InterpreterException(message);
         }
 
@@ -67,8 +62,9 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
             if(currentContext == null) {
                 return false;
             }
-            final ILanguageSpec languageSpec = languageSpecService.get(projectService.get(currentContext.location()));
-            final org.metaborg.core.context.IContext context = contextService.get(currentContext.location(), languageSpec, activeImpl);
+            final IProject project = projectService.get(currentContext.location());
+            final org.metaborg.core.context.IContext context =
+                contextService.get(currentContext.location(), project, activeImpl);
             final IStrategoTerm output = common.invoke(activeImpl, context, env.current(), strategyName);
             if(output == null) {
                 return false;

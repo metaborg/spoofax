@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -16,16 +17,19 @@ public class LanguageComponent implements ILanguageComponentInternal {
     private final FileObject location;
     private final int sequenceId;
     private Iterable<ILanguageImplInternal> contributesTo;
+    private final ILanguageComponentConfig config;
 
     private final Multimap<Class<? extends IFacet>, IFacet> facets = ArrayListMultimap.create();
 
 
     public LanguageComponent(LanguageIdentifier identifier, FileObject location, int sequenceId,
-        Iterable<ILanguageImplInternal> contributesTo, Iterable<? extends IFacet> facets) {
+        Iterable<ILanguageImplInternal> contributesTo, ILanguageComponentConfig config,
+        Iterable<? extends IFacet> facets) {
         this.id = identifier;
         this.location = location;
         this.sequenceId = sequenceId;
         this.contributesTo = contributesTo;
+        this.config = config;
         for(IFacet facet : facets) {
             this.facets.put(facet.getClass(), facet);
         }
@@ -58,6 +62,10 @@ public class LanguageComponent implements ILanguageComponentInternal {
     }
 
 
+    @Override public ILanguageComponentConfig config() {
+        return config;
+    }
+
     @Override public Iterable<IFacet> facets() {
         return facets.values();
     }
@@ -89,8 +97,8 @@ public class LanguageComponent implements ILanguageComponentInternal {
         if(size == 0) {
             return null;
         } else if(size > 1) {
-            throw new MetaborgRuntimeException("Multiple facets of type " + type
-                + " found, while only a single facet is supported");
+            throw new MetaborgRuntimeException(
+                "Multiple facets of type " + type + " found, while only a single facet is supported");
         }
         return Iterables.get(facets, 0);
     }
@@ -102,8 +110,8 @@ public class LanguageComponent implements ILanguageComponentInternal {
         if(size == 0) {
             return null;
         } else if(size > 1) {
-            throw new MetaborgRuntimeException("Multiple facets of type " + type
-                + " found, while only a single facet is supported");
+            throw new MetaborgRuntimeException(
+                "Multiple facets of type " + type + " found, while only a single facet is supported");
         }
         return Iterables.get(facetContributions, 0);
     }

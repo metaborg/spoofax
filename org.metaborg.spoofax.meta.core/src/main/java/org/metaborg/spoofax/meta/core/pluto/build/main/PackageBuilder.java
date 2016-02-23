@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.pluto.*;
 import org.metaborg.spoofax.meta.core.pluto.build.PPGen;
 import org.metaborg.spoofax.meta.core.pluto.build.PPPack;
@@ -35,7 +35,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         public final File strategoJavaStrategiesMainFile;
         public final File baseDir;
         public final Arguments sdfArgs;
-        public final Format format;
+        public final StrategoFormat format;
         public final Collection<File> javaJarPaths;
         public final File javaJarOutput;
         public final String sdfName;
@@ -58,7 +58,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         public final File sdf2tableOutputPath;
 
         public Input(SpoofaxContext context, File strategoMainFile, File strategoJavaStrategiesMainFile,
-                     Arguments sdfArgs, File baseDir, Format format, Collection<File> javaJarPaths, File javaJarOutput,
+                     Arguments sdfArgs, File baseDir, StrategoFormat format, Collection<File> javaJarPaths, File javaJarOutput,
             String sdfName, File jarTarget, File jarOutput, File targetPpAfFile, File targetGenPpAfFile,
             File targetTblFile, File ppPackInputPath, File ppPackOutputPath, File ppGenInputPath, File ppGenOutputPath,
             File afGenOutputPath, File makePermissiveOutputPath, File sdf2tableOutputPath, @Nullable File externalDef,
@@ -130,7 +130,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             jar(input.javaJarOutput, input.baseDir, null, input.javaJarPaths);
         }
 
-        if(input.format == Format.jar) {
+        if(input.format == StrategoFormat.jar) {
             // Copy .pp.af and .tbl to trans, so that they get included in the JAR file. Required for being able
             // to load those files from Stratego code.
             // TODO: extract build request/origin creation for these files into separate class to prevent code dup.

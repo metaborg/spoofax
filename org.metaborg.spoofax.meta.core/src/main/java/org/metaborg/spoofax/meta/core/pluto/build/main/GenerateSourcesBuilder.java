@@ -9,7 +9,7 @@ import java.util.Collection;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -58,7 +58,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final File strjDepFile;
         public final File strjCacheDir;
         public final Arguments strategoArgs;
-        public final Format format;
+        public final StrategoFormat format;
         public final String strategiesPackageName;
         public final String externalJarFlags;
         public final File rtg2SigOutputFile;
@@ -96,7 +96,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                      File strjDepFile,
                      File strjCacheDir,
                      Arguments strategoArgs,
-                     Format format,
+                     StrategoFormat format,
                      String strategiesPackageName,
                      String externalJarFlags,
                      File rtg2SigOutputFile,
@@ -325,11 +325,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 Iterables.toArray(includeDirs, File.class), new String[0], input.strjCacheDir, strategoArgs, origin));
     }
 
-    private Arguments strategoArgs(Arguments strategoArgs, Format format, String strategiesPackageName, @Nullable String externalJarFlags, File strategoJavaStrategiesMainFile) {
+    private Arguments strategoArgs(Arguments strategoArgs, StrategoFormat format, String strategiesPackageName, @Nullable String externalJarFlags, File strategoJavaStrategiesMainFile) {
         final Arguments args = new Arguments();
         args.addAll(strategoArgs);
 
-        if (format == Format.ctree) {
+        if (format == StrategoFormat.ctree) {
             args.add("-F");
         } else {
             args.add("-la", "java-front");

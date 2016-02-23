@@ -5,7 +5,7 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.IProject;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -13,6 +13,7 @@ import com.google.common.collect.Sets;
 
 public class ContextUtils {
     private static final ILogger logger = LoggerUtils.logger(ContextUtils.class);
+
 
     /**
      * Gets a set of all contexts for given resources.
@@ -27,8 +28,8 @@ public class ContextUtils {
      *            Context service.
      * @return Set of all contexts.
      */
-    public static Set<IContext> getAll(Iterable<FileObject> resources, ILanguageSpec project, ILanguageIdentifierService languageIdentifier,
-                                       IContextService contextService) {
+    public static Set<IContext> getAll(Iterable<FileObject> resources, IProject project,
+        ILanguageIdentifierService languageIdentifier, IContextService contextService) {
         final Set<IContext> contexts = Sets.newHashSet();
         for(FileObject resource : resources) {
             final ILanguageImpl language = languageIdentifier.identify(resource, project);

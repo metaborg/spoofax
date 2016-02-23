@@ -18,9 +18,7 @@ import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.core.plugin.IServiceModulePlugin;
 import org.metaborg.core.plugin.InjectorFactory;
 import org.metaborg.core.plugin.ServiceModulePluginLoader;
-import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProjectService;
-import org.metaborg.core.project.configuration.ILanguageSpecConfigService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 
@@ -47,8 +45,6 @@ public class MetaBorg {
 
     public final IDependencyService dependencyService;
     public final IProjectService projectService;
-    public final ILanguageSpecService languageSpecService;
-    public final ILanguageSpecConfigService languageSpecConfigService;
 
     public final ISourceTextService sourceTextService;
 
@@ -80,8 +76,6 @@ public class MetaBorg {
 
         this.dependencyService = injector.getInstance(IDependencyService.class);
         this.projectService = injector.getInstance(IProjectService.class);
-        this.languageSpecService = injector.getInstance(ILanguageSpecService.class);
-        this.languageSpecConfigService = injector.getInstance(ILanguageSpecConfigService.class);
 
         this.sourceTextService = injector.getInstance(ISourceTextService.class);
 

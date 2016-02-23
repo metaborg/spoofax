@@ -5,7 +5,7 @@ import java.util.Collection;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.configuration.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageComponentConfig;
 
 /**
  * Request for language discovery.

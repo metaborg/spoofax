@@ -5,6 +5,11 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.meta.core.MetaBorgMeta;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.meta.core.SpoofaxMetaModule;
+import org.metaborg.spoofax.meta.core.build.LanguageSpecBuilder;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigBuilder;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 
 /**
  * Facade for instantiating and accessing the MetaBorg meta API, as an extension of the {@link MetaBorg} API,
@@ -13,8 +18,10 @@ import org.metaborg.spoofax.core.Spoofax;
 public class SpoofaxMeta extends MetaBorgMeta {
     @SuppressWarnings("hiding") public final Spoofax parent;
 
-    public final SpoofaxMetaBuilder metaBuilder;
+    public final LanguageSpecBuilder metaBuilder;
 
+    @SuppressWarnings("hiding") public final ISpoofaxLanguageSpecService languageSpecService;
+    @SuppressWarnings("hiding") public final ISpoofaxLanguageSpecConfigService languageSpecConfigService;
 
     /**
      * Instantiate the MetaBorg meta API, with a Spoofax implementation.
@@ -32,7 +39,10 @@ public class SpoofaxMeta extends MetaBorgMeta {
         super(spoofax, module, loader);
         this.parent = spoofax;
 
-        this.metaBuilder = injector.getInstance(SpoofaxMetaBuilder.class);
+        this.languageSpecService = injector.getInstance(ISpoofaxLanguageSpecService.class);
+        this.languageSpecConfigService = injector.getInstance(ISpoofaxLanguageSpecConfigService.class);
+
+        this.metaBuilder = injector.getInstance(LanguageSpecBuilder.class);
     }
 
     /**
@@ -73,6 +83,14 @@ public class SpoofaxMeta extends MetaBorgMeta {
      */
     public SpoofaxMeta(Spoofax spoofax) throws MetaborgException {
         this(spoofax, defaultModule(), defaultPluginLoader());
+    }
+
+
+    /**
+     * @return Fresh language specification configuration builder.
+     */
+    public ISpoofaxLanguageSpecConfigBuilder languageSpecConfigBuilder() {
+        return injector.getInstance(ISpoofaxLanguageSpecConfigBuilder.class);
     }
 
 

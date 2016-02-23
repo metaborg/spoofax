@@ -1,6 +1,7 @@
 package org.metaborg.core.language;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.ILanguageImplConfig;
 
 /**
  * Interface that represents a language implementation. A language implementation is a view over all components that
@@ -32,4 +33,9 @@ public interface ILanguageImpl extends IFacetContributions {
      * @return Language this implementation belongs to.
      */
     ILanguage belongsTo();
+
+    /**
+     * @return Configuration of this language implementation.
+     */
+    ILanguageImplConfig config();
 }
