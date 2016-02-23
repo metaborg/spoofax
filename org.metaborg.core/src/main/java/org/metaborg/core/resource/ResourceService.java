@@ -14,16 +14,23 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.impl.DefaultFileReplicator;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
+import org.apache.commons.vfs2.provider.FileReplicator;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.file.URIEncode;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 public class ResourceService implements IResourceService {
+    private static final ILogger logger = LoggerUtils.logger(ResourceService.class);
+
     private final FileSystemManager fileSystemManager;
     private final FileSystemOptions fileSystemOptions;
 
@@ -38,6 +45,22 @@ public class ResourceService implements IResourceService {
         }
 
         ResourceFileSystemConfigBuilder.getInstance().setClassLoader(fileSystemOptions, classLoader);
+    }
+
+    @Override public void close() throws Exception {
+        if(fileSystemManager instanceof DefaultFileSystemManager) {
+            final DefaultFileSystemManager defaultFileSystemManager = (DefaultFileSystemManager) fileSystemManager;
+            final FileReplicator replicator = defaultFileSystemManager.getReplicator();
+            if(replicator instanceof DefaultFileReplicator) {
+                final DefaultFileReplicator defaultFileReplicator = (DefaultFileReplicator) replicator;
+                defaultFileReplicator.close();
+            } else {
+                logger.warn("File replicator {} does not support cleaning up generated temporary files", replicator);
+            }
+        } else {
+            logger.warn("File system manager {} does not support cleaning up generated temporary files",
+                fileSystemManager);
+        }
     }
 
 

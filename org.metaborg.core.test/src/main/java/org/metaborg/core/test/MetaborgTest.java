@@ -2,6 +2,7 @@ package org.metaborg.core.test;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.junit.After;
 import org.junit.Before;
 import org.metaborg.core.MetaBorg;
 import org.metaborg.core.MetaborgException;
@@ -43,6 +44,11 @@ public class MetaborgTest {
         languageService = metaborg.languageService;
         languageDiscoveryService = metaborg.languageDiscoveryService;
         languageIdentifierService = metaborg.languageIdentifierService;
+    }
+
+    @After public void afterTest() throws MetaborgException {
+        metaborg.close();
+        metaborg = null;
     }
 
 

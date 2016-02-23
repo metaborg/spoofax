@@ -37,8 +37,9 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
             manager.setFilesCache(new DefaultFilesCache());
             manager.setCacheStrategy(CacheStrategy.ON_RESOLVE);
 
-            manager.setTemporaryFileStore(new DefaultFileReplicator());
-            manager.setReplicator(new DefaultFileReplicator());
+            final DefaultFileReplicator replicator = new DefaultFileReplicator();
+            manager.setTemporaryFileStore(replicator);
+            manager.setReplicator(replicator);
 
             addDefaultProvider(manager);
             addProviders(manager);

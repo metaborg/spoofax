@@ -12,7 +12,7 @@ import org.metaborg.core.MetaborgRuntimeException;
 /**
  * Interface for access to the virtual file system.
  */
-public interface IResourceService {
+public interface IResourceService extends AutoCloseable {
     /**
      * Returns the root file system object.
      * 

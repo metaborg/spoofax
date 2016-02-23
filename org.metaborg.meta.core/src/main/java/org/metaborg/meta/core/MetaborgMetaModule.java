@@ -8,9 +8,15 @@ import org.metaborg.meta.core.config.LanguageSpecConfigService;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 
 public class MetaborgMetaModule extends AbstractModule {
+    protected Multibinder<AutoCloseable> autoClosableBinder;
+
+
     @Override protected void configure() {
+        autoClosableBinder = Multibinder.newSetBinder(binder(), AutoCloseable.class, Meta.class);
+
         bindLanguageSpec();
         bindLanguageSpecConfig();
     }

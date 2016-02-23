@@ -1,5 +1,7 @@
 package org.metaborg.core;
 
+import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -21,17 +23,25 @@ import org.metaborg.core.plugin.ServiceModulePluginLoader;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Module;
+import com.google.inject.util.Types;
 
 /**
  * Facade for instantiating and accessing the MetaBorg API. Call the public methods to perform common operations, or use
  * the public final fields to access services directly. All services and operations available in this facade are
  * implemented when using the default {@link MetaborgModule}.
  */
-public class MetaBorg {
+public class MetaBorg implements AutoCloseable {
+    private static final ILogger logger = LoggerUtils.logger(MetaBorg.class);
+
     public final Injector injector;
+
+    public final Set<AutoCloseable> autoCloseables;
 
     public final IResourceService resourceService;
 
@@ -61,9 +71,12 @@ public class MetaBorg {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorg(MetaborgModule module, IModulePluginLoader loader) throws MetaborgException {
+    @SuppressWarnings("unchecked") public MetaBorg(MetaborgModule module, IModulePluginLoader loader)
+        throws MetaborgException {
         final Iterable<Module> modules = InjectorFactory.modules(module, loader);
         this.injector = InjectorFactory.create(modules);
+
+        this.autoCloseables = (Set<AutoCloseable>) injector.getInstance(Key.get(Types.setOf(AutoCloseable.class)));
 
         this.resourceService = injector.getInstance(IResourceService.class);
         this.languageService = injector.getInstance(ILanguageService.class);
@@ -114,6 +127,20 @@ public class MetaBorg {
      */
     public MetaBorg() throws MetaborgException {
         this(defaultModule(), defaultPluginLoader());
+    }
+
+    /**
+     * Closes the MetaBorg API, closing any resources and services created by the API.
+     */
+    @Override public void close() {
+        logger.debug("Closing the MetaBorg API");
+        for(AutoCloseable autoCloseable : autoCloseables) {
+            try {
+                autoCloseable.close();
+            } catch(Exception e) {
+                logger.error("Error while closing {}", e, autoCloseable);
+            }
+        }
     }
 
 

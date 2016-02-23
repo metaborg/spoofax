@@ -72,6 +72,7 @@ import com.google.inject.name.Names;
 public class MetaborgModule extends AbstractModule {
     private final ClassLoader resourceClassLoader;
 
+    protected Multibinder<AutoCloseable> autoClosableBinder;
     protected Multibinder<ILanguageCache> languageCacheBinder;
 
 
@@ -85,6 +86,7 @@ public class MetaborgModule extends AbstractModule {
 
 
     @Override protected void configure() {
+        autoClosableBinder = Multibinder.newSetBinder(binder(), AutoCloseable.class);
         languageCacheBinder = Multibinder.newSetBinder(binder(), ILanguageCache.class);
 
         bindResource();
@@ -111,7 +113,10 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindResource() {
-        bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
+        bind(ResourceService.class).in(Singleton.class);
+        bind(IResourceService.class).to(ResourceService.class);
+        autoClosableBinder.addBinding().to(ResourceService.class);
+        
         bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
     }
 
