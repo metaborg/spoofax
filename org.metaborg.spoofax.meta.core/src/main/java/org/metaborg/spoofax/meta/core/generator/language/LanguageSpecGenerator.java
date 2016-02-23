@@ -73,6 +73,7 @@ public class LanguageSpecGenerator extends BaseGenerator {
     public void generateAll() throws IOException {
         generateConfig();
         generatePOM();
+        generateDotMvn();
         generateGrammar();
         generateTrans();
         generateInclude();
@@ -87,6 +88,13 @@ public class LanguageSpecGenerator extends BaseGenerator {
 
     public void generatePOM() throws IOException {
         writer.write("pom.xml", false);
+    }
+    
+    public void generateDotMvn() throws IOException {
+        writer.write(".mvn/extensions.xml", false);
+        writer.write(".mvn/jvm.config", false);
+        writer.write(".mvn/maven.config", false);
+        writer.write(".mvn/settings.xml", false);
     }
 
     public void generateGrammar() throws IOException {
