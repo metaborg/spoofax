@@ -43,7 +43,8 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         return sources;
     }
 
-    @Override public Iterable<FileObject> includePaths(IProject project, String languageName) throws MetaborgException {
+    @Override public Iterable<FileObject> includePaths(IProject project, final String languageName)
+        throws MetaborgException {
         final Iterable<ILanguageComponent> dependencies = dependencyService.sourceDeps(project);
         final Collection<FileObject> includes = Lists.newArrayList();
         for(final ILanguageComponent dependency : dependencies) {
@@ -51,11 +52,15 @@ public class DependencyPathProvider implements ILanguagePathProvider {
             for(IExportConfig export : exports) {
                 export.accept(new IExportVisitor() {
                     @Override public void visit(LangDirExport export) {
-                        resolve(dependency.location(), Iterables2.singleton(export.directory), includes);
+                        if(languageName.equals(export.language)) {
+                            resolve(dependency.location(), Iterables2.singleton(export.directory), includes);
+                        }
                     }
 
                     @Override public void visit(LangFileExport export) {
-                        resolve(dependency.location(), Iterables2.singleton(export.file), includes);
+                        if(languageName.equals(export.language)) {
+                            resolve(dependency.location(), Iterables2.singleton(export.file), includes);
+                        }
                     }
 
                     @Override public void visit(ResourceExport export) {
