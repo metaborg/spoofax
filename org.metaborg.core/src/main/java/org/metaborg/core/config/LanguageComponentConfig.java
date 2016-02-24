@@ -89,7 +89,7 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
             final List<String> excludes = exportConfig.getList(String.class, "excludes", Lists.<String>newArrayList());
             if(languageName != null) {
                 if(directory != null) {
-                    exports.add(new LangDirExport(languageName, directory));
+                    exports.add(new LangDirExport(languageName, directory, includes, excludes));
                 } else if(file != null) {
                     exports.add(new LangFileExport(languageName, file));
                 }

@@ -17,7 +17,7 @@ public class ResourceExport implements IExportConfig {
     public final Iterable<String> includes;
 
     /**
-     * Exclude patterns, following the Ant pattenr syntax.
+     * Exclude patterns, following the Ant pattern syntax.
      * 
      * @see <a href="http://ant.apache.org/manual/dirtasks.html#patterns">Ant patterns</a>
      */
