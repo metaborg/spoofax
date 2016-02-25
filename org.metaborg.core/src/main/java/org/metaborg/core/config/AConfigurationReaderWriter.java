@@ -68,7 +68,7 @@ public abstract class AConfigurationReaderWriter {
      */
     public HierarchicalConfiguration<ImmutableNode> read(Reader reader, @Nullable FileObject rootFolder)
         throws IOException, ConfigurationException {
-        JacksonConfiguration resultConfig = createConfiguration(null, rootFolder);
+        JacksonConfiguration resultConfig = create(null, rootFolder);
         resultConfig.read(reader);
         return resultConfig;
     }
@@ -119,26 +119,35 @@ public abstract class AConfigurationReaderWriter {
      */
     public void write(HierarchicalConfiguration<ImmutableNode> configuration, Writer writer,
         @Nullable FileObject rootFolder) throws IOException, ConfigurationException {
-        JacksonConfiguration resultConfig = createConfiguration(configuration, rootFolder);
+        JacksonConfiguration resultConfig = create(configuration, rootFolder);
         resultConfig.write(writer);
     }
 
     /**
      * Creates a configuration object.
      *
-     * @param sourceConfiguration
+     * @param source
      *            The source configuration; or <code>null</code>.
      * @param rootFolder
      *            The root folder; or <code>null</code>.
      * @return The created configuration object.
      */
-    public JacksonConfiguration createConfiguration(
-        @Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration, @Nullable FileObject rootFolder) {
-        JacksonConfiguration config = createNewConfiguration(sourceConfiguration);
+    public JacksonConfiguration create(@Nullable HierarchicalConfiguration<ImmutableNode> source,
+        @Nullable FileObject rootFolder) {
+        JacksonConfiguration config = createNew(source);
         if(rootFolder != null) {
             config.getInterpolator().registerLookup("path", new PathLookup(rootFolder));
         }
         return config;
+    }
+
+    /**
+     * Creates a configuration object.
+     * 
+     * @return The created configuration object.
+     */
+    public JacksonConfiguration create() {
+        return createNew(null);
     }
 
 
@@ -149,6 +158,6 @@ public abstract class AConfigurationReaderWriter {
      *            The source configuration; or <code>null</code>.
      * @return The created configuration object.
      */
-    protected abstract JacksonConfiguration createNewConfiguration(
-        @Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration);
+    protected abstract JacksonConfiguration
+        createNew(@Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration);
 }

@@ -15,12 +15,12 @@ import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
-import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
@@ -151,7 +151,7 @@ public class LanguageSpecBuilder {
                     new BuildInputBuilder(input.languageSpec)
                     .addSource(mainEsvFile)
                     .addTransformGoal(new CompileGoal())
-                    .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
+                    .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
                     .build(dependencyService, languagePathService);
                 // @formatter:on
                 runner.build(buildInput, null, null).schedule().block();
@@ -174,7 +174,7 @@ public class LanguageSpecBuilder {
                     new BuildInputBuilder(input.languageSpec)
                     .addSource(mainDsFile)
                     .addTransformGoal(new EndNamedGoal("All to Java"))
-                    .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, false, true, logger))
+                    .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
                     .build(dependencyService, languagePathService);
                 // @formatter:on
                 runner.build(buildInput, null, null).schedule().block();

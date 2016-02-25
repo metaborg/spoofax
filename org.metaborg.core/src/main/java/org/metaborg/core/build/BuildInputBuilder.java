@@ -15,6 +15,7 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguageUtils;
+import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.util.resource.ResourceUtils;
@@ -54,7 +55,7 @@ public class BuildInputBuilder {
     private @Nullable FileSelector transformSelector;
     private Collection<ITransformGoal> transformGoals;
 
-    private @Nullable IBuildMessagePrinter messagePrinter;
+    private @Nullable IMessagePrinter messagePrinter;
     private boolean throwOnErrors;
     private Set<ILanguageImpl> pardonedLanguages;
     private Set<String> pardonedLanguageStrings;
@@ -321,7 +322,7 @@ public class BuildInputBuilder {
     /**
      * Sets the message printer to given message printer.
      */
-    public BuildInputBuilder withMessagePrinter(IBuildMessagePrinter messagePrinter) {
+    public BuildInputBuilder withMessagePrinter(IMessagePrinter messagePrinter) {
         this.messagePrinter = messagePrinter;
         return this;
     }

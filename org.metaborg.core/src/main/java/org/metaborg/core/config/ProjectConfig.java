@@ -8,6 +8,10 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageBuilder;
+
+import com.google.common.collect.Lists;
 
 /**
  * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
@@ -39,17 +43,38 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     }
 
     @Override public Collection<LanguageIdentifier> compileDeps() {
-        final List<LanguageIdentifier> deps = config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES);
-        return deps != null ? deps : Collections.<LanguageIdentifier>emptyList();
+        return config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES,
+            Collections.<LanguageIdentifier>emptyList());
     }
 
     @Override public Collection<LanguageIdentifier> sourceDeps() {
-        final List<LanguageIdentifier> deps = config.getList(LanguageIdentifier.class, PROP_SOURCE_DEPENDENCIES);
-        return deps != null ? deps : Collections.<LanguageIdentifier>emptyList();
+        return config.getList(LanguageIdentifier.class, PROP_SOURCE_DEPENDENCIES,
+            Collections.<LanguageIdentifier>emptyList());
     }
 
     @Override public Collection<LanguageIdentifier> javaDeps() {
-        final List<LanguageIdentifier> deps = config.getList(LanguageIdentifier.class, PROP_JAVA_DEPENDENCIES);
-        return deps != null ? deps : Collections.<LanguageIdentifier>emptyList();
+        return config.getList(LanguageIdentifier.class, PROP_JAVA_DEPENDENCIES,
+            Collections.<LanguageIdentifier>emptyList());
+    }
+
+
+    public Collection<IMessage> validate(MessageBuilder mb) {
+        final Collection<IMessage> messages = Lists.newArrayList();
+        validateDeps(config, PROP_COMPILE_DEPENDENCIES, "compile", mb, messages);
+        validateDeps(config, PROP_SOURCE_DEPENDENCIES, "source", mb, messages);
+        validateDeps(config, PROP_JAVA_DEPENDENCIES, "java", mb, messages);
+        return messages;
+    }
+
+    private void validateDeps(ImmutableConfiguration config, String key, String name, MessageBuilder mb,
+        Collection<IMessage> messages) {
+        final List<String> depStrs = config.getList(String.class, key, Lists.<String>newArrayList());
+        for(String depStr : depStrs) {
+            try {
+                LanguageIdentifier.parse(depStr);
+            } catch(IllegalArgumentException e) {
+                messages.add(mb.withMessage("Invalid " + name + " dependency. " + e.getMessage()).build());
+            }
+        }
     }
 }

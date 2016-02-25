@@ -1,5 +1,7 @@
 package org.metaborg.meta.core.config;
 
+import java.util.Collection;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
@@ -7,7 +9,10 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.AConfigService;
 import org.metaborg.core.config.AConfigurationReaderWriter;
+import org.metaborg.core.config.ConfigRequest;
 import org.metaborg.core.config.IConfig;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
 
 import com.google.inject.Inject;
@@ -29,12 +34,16 @@ public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILa
         return languageSpec.location();
     }
 
-    @Override public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+    @Override protected FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
         return rootFolder.resolveFile(MetaborgConstants.FILE_CONFIG);
     }
 
-    @Override protected ILanguageSpecConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
-        return new LanguageSpecConfig(configuration);
+    @Override protected ConfigRequest<ILanguageSpecConfig> toConfig(HierarchicalConfiguration<ImmutableNode> config,
+        FileObject configFile) {
+        final LanguageSpecConfig languageSpecConfig = new LanguageSpecConfig(config);
+        final MessageBuilder mb = MessageBuilder.create().asError().asInternal().withSource(configFile);
+        final Collection<IMessage> messages = languageSpecConfig.validate(mb);
+        return new ConfigRequest<ILanguageSpecConfig>(languageSpecConfig, messages);
     }
 
     @Override protected HierarchicalConfiguration<ImmutableNode> fromConfig(ILanguageSpecConfig config) {

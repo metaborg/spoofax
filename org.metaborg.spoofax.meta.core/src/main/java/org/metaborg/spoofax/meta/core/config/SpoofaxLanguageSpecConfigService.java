@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.meta.core.config;
 
+import java.util.Collection;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
@@ -7,13 +9,11 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.AConfigService;
 import org.metaborg.core.config.AConfigurationReaderWriter;
+import org.metaborg.core.config.ConfigRequest;
 import org.metaborg.core.config.IConfig;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
-import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
-import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigWriter;
-import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigBuilder;
 
 import com.google.inject.Inject;
 
@@ -32,19 +32,23 @@ public class SpoofaxLanguageSpecConfigService extends AConfigService<ILanguageSp
 
     @Override public boolean exists(ILanguageSpec languageSpec) {
         // HACK: expose available to writer interface through this exist method.
-        return available(languageSpec);
+        return available(languageSpec.location());
     }
 
     @Override protected FileObject getRootDirectory(ILanguageSpec languageSpec) throws FileSystemException {
         return languageSpec.location();
     }
 
-    @Override public FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
+    @Override protected FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
         return rootFolder.resolveFile(MetaborgConstants.FILE_CONFIG);
     }
 
-    @Override protected ISpoofaxLanguageSpecConfig toConfig(HierarchicalConfiguration<ImmutableNode> configuration) {
-        return new SpoofaxLanguageSpecConfig(configuration);
+    @Override protected ConfigRequest<ISpoofaxLanguageSpecConfig>
+        toConfig(HierarchicalConfiguration<ImmutableNode> config, FileObject configFile) {
+        final SpoofaxLanguageSpecConfig languageSpecConfig = new SpoofaxLanguageSpecConfig(config);
+        final MessageBuilder mb = MessageBuilder.create().asError().asInternal().withSource(configFile);
+        final Collection<IMessage> messages = languageSpecConfig.validate(mb);
+        return new ConfigRequest<ISpoofaxLanguageSpecConfig>(languageSpecConfig, messages);
     }
 
     @Override protected HierarchicalConfiguration<ImmutableNode> fromConfig(ISpoofaxLanguageSpecConfig config) {

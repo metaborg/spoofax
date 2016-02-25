@@ -26,6 +26,7 @@ import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguagesFileSelector;
+import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
@@ -167,7 +168,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             newState.add(language, diff.newState);
         }
 
-        final IBuildMessagePrinter printer = input.messagePrinter;
+        final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.printSummary();
         }
@@ -422,7 +423,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private boolean printMessages(Iterable<IMessage> messages, String phase, BuildInput input, boolean pardoned) {
-        final IBuildMessagePrinter printer = input.messagePrinter;
+        final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             for(IMessage message : messages) {
                 printer.print(message, pardoned);
@@ -438,7 +439,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     private boolean printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
         boolean pardoned) {
-        final IBuildMessagePrinter printer = input.messagePrinter;
+        final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(resource, message, e, pardoned);
         }
@@ -450,7 +451,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private boolean printMessage(String message, @Nullable Throwable e, BuildInput input, boolean pardoned) {
-        final IBuildMessagePrinter printer = input.messagePrinter;
+        final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(input.project, message, e, pardoned);
         }

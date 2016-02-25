@@ -12,7 +12,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalyzerFacet;
 import org.metaborg.core.analysis.IAnalyzer;
-import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.config.ConfigRequest;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigService;
 import org.metaborg.core.context.ContextFacet;
@@ -29,6 +29,7 @@ import org.metaborg.core.language.LanguageCreationRequest;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.ResourceExtensionsIdentifier;
+import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.syntax.ParseFacet;
 import org.metaborg.spoofax.core.action.ActionFacet;
 import org.metaborg.spoofax.core.action.ActionFacetFromESV;
@@ -135,12 +136,17 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                 continue;
             }
 
-            ILanguageComponentConfig config = null;
-            try {
-                config = this.componentConfigService.get(languageLocation);
-            } catch(ConfigException e) {
-                exceptions.add(e);
+            final ConfigRequest<ILanguageComponentConfig> configRequest = componentConfigService.get(languageLocation);
+            if(!configRequest.valid()) {
+                for(IMessage message : configRequest.errors()) {
+                    errors.add(message.message());
+                    final Throwable exception = message.exception();
+                    if(exception != null) {
+                        exceptions.add(exception);
+                    }
+                }
             }
+            final ILanguageComponentConfig config = configRequest.config();
             if(config == null) {
                 final String message =
                     logger.format("Cannot retrieve language component configuration at {}", languageLocation);

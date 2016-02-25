@@ -21,28 +21,29 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
     private final FileObject location;
     private final Collection<String> errors;
     private final Collection<Throwable> exceptions;
-    @Nullable
-    private final ILanguageComponentConfig config;
-    @Nullable
-    private final IStrategoAppl esvTerm;
-    @Nullable
-    private final SyntaxFacet syntaxFacet;
-    @Nullable
-    private final StrategoRuntimeFacet strategoRuntimeFacet;
+    @Nullable private final ILanguageComponentConfig config;
+    @Nullable private final IStrategoAppl esvTerm;
+    @Nullable private final SyntaxFacet syntaxFacet;
+    @Nullable private final StrategoRuntimeFacet strategoRuntimeFacet;
 
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class
-     * for a successful language request.
+     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a successful language request.
      *
-     * @param location             The location of the language component.
-     * @param config               The configuration of the language component.
-     * @param esvTerm              The ESV term.
-     * @param syntaxFacet          The syntax facet.
-     * @param strategoRuntimeFacet The Stratego runtime facet.
+     * @param location
+     *            The location of the language component.
+     * @param config
+     *            The configuration of the language component.
+     * @param esvTerm
+     *            The ESV term.
+     * @param syntaxFacet
+     *            The syntax facet.
+     * @param strategoRuntimeFacet
+     *            The Stratego runtime facet.
      */
-    public LanguageDiscoveryRequest(FileObject location, @Nullable ILanguageComponentConfig config, @Nullable IStrategoAppl esvTerm,
-                                    @Nullable SyntaxFacet syntaxFacet, @Nullable StrategoRuntimeFacet strategoRuntimeFacet) {
+    public LanguageDiscoveryRequest(FileObject location, @Nullable ILanguageComponentConfig config,
+        @Nullable IStrategoAppl esvTerm, @Nullable SyntaxFacet syntaxFacet,
+        @Nullable StrategoRuntimeFacet strategoRuntimeFacet) {
         this.available = true;
         this.location = location;
         this.errors = Collections.emptyList();
@@ -54,12 +55,14 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
     }
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class
-     * for a failed language request.
+     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a failed language request.
      *
-     * @param location   The location of the language component.
-     * @param errors     The error messages that were raised during the request.
-     * @param exceptions The exceptions that were raised during the request.
+     * @param location
+     *            The location of the language component.
+     * @param errors
+     *            The error messages that were raised during the request.
+     * @param exceptions
+     *            The exceptions that were raised during the request.
      */
     public LanguageDiscoveryRequest(FileObject location, Collection<String> errors, Collection<Throwable> exceptions) {
         this.available = false;
@@ -73,33 +76,36 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
     }
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class
-     * for a failed language request.
+     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a failed language request.
      *
-     * @param location The location of the language component.
-     * @param errors   The error messages that were raised during the request.
+     * @param location
+     *            The location of the language component.
+     * @param errors
+     *            The error messages that were raised during the request.
      */
     public LanguageDiscoveryRequest(FileObject location, Collection<String> errors) {
         this(location, errors, null);
     }
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class
-     * for a failed language request.
+     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a failed language request.
      *
-     * @param location The location of the language component.
-     * @param error    The error message that was raised during the request.
+     * @param location
+     *            The location of the language component.
+     * @param error
+     *            The error message that was raised during the request.
      */
     public LanguageDiscoveryRequest(FileObject location, String error) {
         this(location, Collections.singletonList(error), null);
     }
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class
-     * for a failed language request.
+     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a failed language request.
      *
-     * @param location  The location of the language component.
-     * @param exception The exception that was raised during the request.
+     * @param location
+     *            The location of the language component.
+     * @param exception
+     *            The exception that was raised during the request.
      */
     public LanguageDiscoveryRequest(FileObject location, Throwable exception) {
         this(location, null, Collections.singletonList(exception));
@@ -108,38 +114,35 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
     /**
      * {@inheritDoc}
      */
-    @Override
-    public boolean available() {
+    @Override public boolean available() {
         return this.available;
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public FileObject location() {
+    @Override public FileObject location() {
         return this.location;
     }
 
     /**
      * {@inheritDoc}
      */
-    @Nullable
-    public ILanguageComponentConfig config() { return this.config; }
+    @Nullable public ILanguageComponentConfig config() {
+        return this.config;
+    }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public Collection<String> errors() {
+    @Override public Collection<String> errors() {
         return this.errors;
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public Collection<Throwable> exceptions() {
+    @Override public Collection<Throwable> exceptions() {
         return this.exceptions;
     }
 
@@ -148,35 +151,37 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
      *
      * @return The ESV term; or <code>null</code> when the language is not available.
      */
-    @Nullable
-    public IStrategoAppl esvTerm() { return this.esvTerm; }
+    @Nullable public IStrategoAppl esvTerm() {
+        return this.esvTerm;
+    }
 
     /**
      * Gets the syntax facet.
      *
      * @return The syntax facet; or <code>null</code> when the language is not available.
      */
-    @Nullable
-    public SyntaxFacet syntaxFacet() { return this.syntaxFacet; }
+    @Nullable public SyntaxFacet syntaxFacet() {
+        return this.syntaxFacet;
+    }
 
     /**
      * Gets the Stratego runtime facet.
      *
      * @return The Stratego runtime facet; or <code>null</code> when the language is not available.
      */
-    @Nullable
-    public StrategoRuntimeFacet strategoRuntimeFacet() { return this.strategoRuntimeFacet; }
+    @Nullable public StrategoRuntimeFacet strategoRuntimeFacet() {
+        return this.strategoRuntimeFacet;
+    }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public String toString() {
+    @Override public String toString() {
         final StringBuilder sb = new StringBuilder();
-        if (this.available) {
+        if(this.available) {
             sb.append("Found language component at ");
             sb.append(this.location);
-            if (this.config != null) {
+            if(this.config != null) {
                 sb.append(": ");
                 sb.append(this.config.identifier());
             } else {
@@ -191,21 +196,21 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
         final boolean hasErrors = !Iterables.isEmpty(errors);
         final boolean hasExceptions = !Iterables.isEmpty(exceptions);
 
-        if (hasErrors) {
+        if(hasErrors) {
             sb.append("The following errors occurred: \n");
-            for (String error : errors) {
+            for(String error : errors) {
                 sb.append("  ");
                 sb.append(error);
                 sb.append('\n');
             }
         }
 
-        if (hasExceptions) {
-            if (hasErrors) {
+        if(hasExceptions) {
+            if(hasErrors) {
                 sb.append('\n');
             }
             sb.append("The following exceptions occurred: \n");
-            for (Throwable exception : exceptions) {
+            for(Throwable exception : exceptions) {
                 sb.append("  ");
                 sb.append(ExceptionUtils.getStackTrace(exception));
                 sb.append('\n');

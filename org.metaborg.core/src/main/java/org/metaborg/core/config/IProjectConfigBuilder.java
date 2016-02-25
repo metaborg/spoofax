@@ -10,15 +10,11 @@ import org.metaborg.core.language.LanguageIdentifier;
  */
 public interface IProjectConfigBuilder {
     /**
-     * Builds the object.
-     *
-     * @param rootFolder
-     *            The root folder.
-     * @return The built object.
-     * @throws IllegalStateException
-     *             The builder state is not valid, i.e. {@link #isValid()} returned <code>false</code>.
+     * Builds the configuration.
+     * 
+     * @return The built configuration.
      */
-    IProjectConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
+    IProjectConfig build(@Nullable FileObject rootFolder);
 
     /**
      * Resets the values of this builder.

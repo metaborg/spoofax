@@ -1,9 +1,7 @@
 package org.metaborg.meta.core.config;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.config.ConfigRequest;
 
 /**
  * Stores and retrieves language specification configurations.
@@ -23,9 +21,7 @@ public interface ILanguageSpecConfigService {
      *
      * @param rootFolder
      *            The language specification root folder.
-     * @return The configuration, or <code>null</code> when no configuration could be retrieved.
-     * @throws ConfigException
-     *             When reading the configuration fails.
+     * @return Configuration request, either with a valid configuration, or a collection of error messages.
      */
-    @Nullable ILanguageSpecConfig get(FileObject rootFolder) throws ConfigException;
+    ConfigRequest<? extends ILanguageSpecConfig> get(FileObject rootFolder);
 }

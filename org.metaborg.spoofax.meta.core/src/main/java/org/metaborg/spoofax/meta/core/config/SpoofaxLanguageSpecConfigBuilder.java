@@ -43,7 +43,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             throw new IllegalStateException(validateOrError());
         }
 
-        final JacksonConfiguration configuration = configReaderWriter.createConfiguration(null, rootFolder);
+        final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps,
             langContribs, generates, exports, metaborgVersion, pardonedLanguages, strFormat, sdfExternalDef,
             strExternalJar, strExternalJarFlags, sdfArgs, strArgs, buildSteps);

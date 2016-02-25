@@ -1,17 +1,22 @@
-package org.metaborg.core.build;
+package org.metaborg.core.messages;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.project.IProject;
 
 /**
- * Interface for printing messages created during a build.
+ * Interface for printing messages.
  */
-public interface IBuildMessagePrinter {
+public interface IMessagePrinter {
     /**
-     * Prints given message, located inside source text.
+     * Prints given message.
+     * 
+     * @param message
+     *            Message to print.
+     * @param pardoned
+     *            If the (error or warning) message is pardoned, i.e. the message is acceptable even if it indicates a
+     *            problem.
      */
     void print(IMessage message, boolean pardoned);
 
@@ -24,6 +29,9 @@ public interface IBuildMessagePrinter {
      *            Message to print.
      * @param e
      *            Exception to print, or null if there is no exception.
+     * @param pardoned
+     *            If the (error or warning) message is pardoned, i.e. the message is acceptable even if it indicates a
+     *            problem.
      */
     void print(FileObject resource, String message, @Nullable Throwable e, boolean pardoned);
 
@@ -37,6 +45,9 @@ public interface IBuildMessagePrinter {
      *            Message to print.
      * @param e
      *            Exception to print, or null if there is no exception.
+     * @param pardoned
+     *            If the (error or warning) message is pardoned, i.e. the message is acceptable even if it indicates a
+     *            problem.
      */
     void print(IProject project, String message, @Nullable Throwable e, boolean pardoned);
 

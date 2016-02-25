@@ -1,4 +1,4 @@
-package org.metaborg.core.build;
+package org.metaborg.core.messages;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,8 +9,6 @@ import java.io.StringWriter;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.source.AffectedSourceHelper;
 import org.metaborg.core.source.ISourceRegion;
@@ -20,9 +18,9 @@ import org.metaborg.util.log.Level;
 import org.metaborg.util.log.LoggerUtils;
 
 /**
- * Build message printer implementation that prints detailed messages to a stream.
+ * Message printer implementation that prints detailed messages to a stream.
  */
-public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
+public class StreamMessagePrinter implements IMessagePrinter {
     private final ISourceTextService sourceTextService;
     private final PrintStream infoStream;
     private final PrintStream warnStream;
@@ -39,8 +37,8 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
     private int exceptionsPardoned = 0;
 
 
-    public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight,
-        boolean printExceptions, OutputStream infoStream, OutputStream warnStream, OutputStream errorStream) {
+    public StreamMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight, boolean printExceptions,
+        OutputStream infoStream, OutputStream warnStream, OutputStream errorStream) {
         this.sourceTextService = sourceTextService;
         this.infoStream = new PrintStream(infoStream);
         this.warnStream = new PrintStream(warnStream);
@@ -49,8 +47,8 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         this.printExceptions = printExceptions;
     }
 
-    public ConsoleBuildMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight,
-        boolean printExceptions, ILogger logger) {
+    public StreamMessagePrinter(ISourceTextService sourceTextService, boolean printHighlight, boolean printExceptions,
+        ILogger logger) {
         this(sourceTextService, printHighlight, printExceptions, LoggerUtils.stream(logger, Level.Info),
             LoggerUtils.stream(logger, Level.Warn), LoggerUtils.stream(logger, Level.Error));
     }
@@ -69,7 +67,7 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         final ISourceRegion region = message.region();
         if(source != null) {
             sb.append(" in ");
-            sb.append(source.getName().getPath());
+            sb.append(source.getName().getURI());
             if(region != null) {
                 sb.append(":").append(region.startRow());
             }
@@ -244,7 +242,8 @@ public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
         if(notes == 0 || notes > 1) {
             sb.append('s');
         }
-        sb.append(")");
+        sb.append(')');
+        sb.append('\n');
 
         final String str = sb.toString();
         infoStream.print(str);

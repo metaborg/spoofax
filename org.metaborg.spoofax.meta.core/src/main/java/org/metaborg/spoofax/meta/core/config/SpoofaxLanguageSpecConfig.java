@@ -12,6 +12,8 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.meta.core.config.LanguageSpecConfig;
 import org.metaborg.util.cmd.Arguments;
@@ -153,8 +155,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         try {
             return phaseStr != null ? LanguageSpecBuildPhase.valueOf(phaseStr) : defaultPhase;
         } catch(IllegalArgumentException e) {
-            logger.warn("Language specification build phase with name {} does not exist, defaulting to {}", e,
-                phaseStr, defaultPhase);
+            logger.warn("Language specification build phase with name {} does not exist, defaulting to {}", e, phaseStr,
+                defaultPhase);
             return defaultPhase;
         }
     }
@@ -186,5 +188,14 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     @Override public String javaName() {
         return NameUtil.toJavaId(name());
+    }
+
+
+    public Collection<IMessage> validate(MessageBuilder mb) {
+        final Collection<IMessage> messages = super.validate(mb);
+        
+        // TODO: validate buildSteps
+        
+        return messages;
     }
 }

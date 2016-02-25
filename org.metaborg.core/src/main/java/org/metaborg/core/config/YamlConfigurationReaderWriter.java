@@ -11,7 +11,7 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
  * Reads/writes configurations in YAML files.
  */
 public class YamlConfigurationReaderWriter extends AConfigurationReaderWriter {
-    @Override protected JacksonConfiguration createNewConfiguration(
+    @Override protected JacksonConfiguration createNew(
         @Nullable HierarchicalConfiguration<ImmutableNode> sourceConfiguration) {
         final JacksonConfiguration config = new YamlConfiguration(sourceConfiguration);
         config.setConversionHandler(new MetaborgConversionHandler());

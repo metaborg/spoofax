@@ -28,8 +28,8 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     }
 
 
-    @Override public IProjectConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
-        final JacksonConfiguration configuration = configReaderWriter.createConfiguration(null, rootFolder);
+    @Override public IProjectConfig build(@Nullable FileObject rootFolder) {
+        final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
 
         return new ProjectConfig(configuration, compileDeps, sourceDeps, javaDeps);
     }

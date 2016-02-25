@@ -2,9 +2,6 @@ package org.metaborg.meta.core.config;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
@@ -16,6 +13,8 @@ import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.LanguageComponentConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageBuilder;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface that is backed by an {@link ImmutableConfiguration}
@@ -46,12 +45,20 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
 
 
     @Override public String metaborgVersion() {
-        @Nullable final String value = this.config.getString(PROP_METABORG_VERSION);
-        return value != null ? value : MetaborgConstants.METABORG_VERSION;
+        return config.getString(PROP_METABORG_VERSION, MetaborgConstants.METABORG_VERSION);
     }
 
     @Override public Collection<String> pardonedLanguages() {
-        final List<String> value = this.config.getList(String.class, PROP_PARDONED_LANGUAGES);
-        return value != null ? value : Collections.<String>emptyList();
+        return config.getList(String.class, PROP_PARDONED_LANGUAGES, Collections.<String>emptyList());
+    }
+
+
+    public Collection<IMessage> validate(MessageBuilder mb) {
+        final Collection<IMessage> messages = super.validate(mb);
+
+        // TODO: validate metaborgVersion
+        // TODO: validate pardonedLanguages
+
+        return messages;
     }
 }

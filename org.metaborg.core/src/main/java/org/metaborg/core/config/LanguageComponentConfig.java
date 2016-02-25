@@ -8,6 +8,8 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageBuilder;
 
 import com.google.common.collect.Lists;
 
@@ -42,13 +44,11 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
 
 
     @Override public LanguageIdentifier identifier() {
-        final LanguageIdentifier value = config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
-        return value != null ? value : LanguageIdentifier.EMPTY;
+        return config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
     }
 
     @Override public String name() {
-        final String value = config.getString(PROP_NAME);
-        return value != null ? value : "";
+        return config.getString(PROP_NAME);
     }
 
     @Override public Collection<LanguageContributionIdentifier> langContribs() {
@@ -100,5 +100,37 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
             }
         }
         return exports;
+    }
+
+
+    public Collection<IMessage> validate(MessageBuilder mb) {
+        final Collection<IMessage> messages = super.validate(mb);
+        final String idStr = config.getString(PROP_IDENTIFIER);
+        if(idStr == null) {
+            messages.add(mb.withMessage("Field 'id' must be set").build());
+        } else {
+            try {
+                LanguageIdentifier.parseFull(idStr);
+            } catch(IllegalArgumentException e) {
+                messages.add(mb.withMessage("Invalid identifier in 'id' field. " + e.getMessage()).build());
+            }
+        }
+
+        final String name = config.getString(PROP_NAME);
+        if(name == null) {
+            messages.add(mb.withMessage("Field 'name' must be set").build());
+        } else {
+            if(!LanguageIdentifier.validId(name)) {
+                messages.add(
+                    mb.withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
+                        .build());
+            }
+        }
+
+        // TODO: validate language contributions
+        // TODO: validate generates
+        // TODO: validate exports
+
+        return messages;
     }
 }

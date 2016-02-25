@@ -4,22 +4,27 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.config.ConfigRequest;
+import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.project.IProject;
+import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
-import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecWrapper;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.inject.Inject;
 
 public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
+    private static final ILogger logger = LoggerUtils.logger(SpoofaxLanguageSpecService.class);
+
+    private final ISourceTextService sourceTextService;
     private final ISpoofaxLanguageSpecConfigService configService;
 
 
-    @Inject public SpoofaxLanguageSpecService(ISpoofaxLanguageSpecConfigService configService) {
+    @Inject public SpoofaxLanguageSpecService(ISourceTextService sourceTextService,
+        ISpoofaxLanguageSpecConfigService configService) {
+        this.sourceTextService = sourceTextService;
         this.configService = configService;
     }
 
@@ -37,11 +42,19 @@ public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
         }
 
         final FileObject location = project.location();
-        final ISpoofaxLanguageSpecConfig config;
         if(!configService.available(location)) {
             return null;
         }
-        config = configService.get(location);
+
+        final ConfigRequest<ISpoofaxLanguageSpecConfig> configRequest = configService.get(location);
+        if(!configRequest.valid()) {
+            logger.error("Errors occurred when retrieving language specification configuration from project {}",
+                project);
+            configRequest.reportErrors(new StreamMessagePrinter(sourceTextService, false, false, logger));
+            throw new ConfigException("Configuration for language specification at " + project + " is invalid");
+        }
+
+        final ISpoofaxLanguageSpecConfig config = configRequest.config();
         if(config == null) {
             // Configuration should never be null if it is available, but sanity check anyway.
             return null;

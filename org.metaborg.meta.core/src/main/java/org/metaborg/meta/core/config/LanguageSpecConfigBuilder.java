@@ -36,7 +36,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
             throw new IllegalStateException(validateOrError());
         }
 
-        final JacksonConfiguration configuration = configReaderWriter.createConfiguration(null, rootFolder);
+        final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new LanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, langContribs,
             generates, exports, metaborgVersion, pardonedLanguages);
     }
