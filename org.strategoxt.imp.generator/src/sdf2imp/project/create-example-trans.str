@@ -272,7 +272,7 @@ imports
 	libstratego-gpp
 	runtime/refactoring/-
 	{sdf-name}-parenthesize
-	src-gen/pp/{sdf-name}-pp
+	pp/{sdf-name}-pp
 
 rules
 	
@@ -315,7 +315,7 @@ imports
 	libstratego-gpp
 	runtime/refactoring/-
 	{sdf-name}-parenthesize
-	src-gen/pp/{sdf-name}-pp
+	pp/{sdf-name}-pp
 
 rules
 	
