@@ -93,10 +93,8 @@ strategies
         */
        public class java_strategy_0_0 extends RegisteringStrategy {
          
-         private java_strategy_0_0 instance = new java_strategy_0_0();
-         
          public void registerImplementators(StrategyCollector collector) {
-		    collector.registerStrategyImplementator("java_strategy_0_0", instance);
+		    collector.registerStrategyImplementator("java_strategy_0_0", this);
 		 }
        
          @Override
