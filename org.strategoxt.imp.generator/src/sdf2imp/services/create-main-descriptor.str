@@ -30,7 +30,7 @@ strategies
     extensions  := <require-option(EditorExtensions |"File extensions (-e)")>;
     parsetable  := <parse-table-target>;
     startsymbol := <StartSymbol <+ !"">;
-    provider1   := <conc-strings> ("include/", <trans-module-name>, ".ctree");
+  //  provider1   := <conc-strings> ("include/", <trans-module-name>, ".ctree");
     provider2   := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
    // provider3   := <conc-strings> ("include/", name, "-lib.jar");
     
@@ -59,7 +59,6 @@ strategies
     table:         {parsetable}
     start symbols: {startsymbol}
     
-    provider:      {provider1}
     provider:      {provider2}
     
     observer:      editor-analyze (multifile)

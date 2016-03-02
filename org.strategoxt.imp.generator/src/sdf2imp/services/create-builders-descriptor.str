@@ -12,8 +12,8 @@ strategies
   create-builders-descriptor =
     output-initial-descriptor-file(
       <descriptor-name> "-Builders"
-    , provider1 := <conc-strings> ("include/", <trans-module-name>, ".ctree");
-      provider2 := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
+    ,
+      provider := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
       !|[
         module <descriptor-name> "-Builders"
         
@@ -26,8 +26,7 @@ strategies
           ~~// See the imported file for a brief introduction and examples.
         builders
           ~~
-          provider: ~provider1
-          provider: ~provider2
+          provider: ~provider
           ~~
           observer: editor-analyze (multifile)
           ~~
@@ -57,7 +56,6 @@ strategies
           ~
           ~// Building and analysis is defined in Stratego program or programs:
           ~//
-          ~//   provider : stratego-program.ctree
           ~//   provider : stratego-library.jar
           ~//
           ~// Analysis is carried out by a Stratego rule that can be selected as follows:
