@@ -34,4 +34,9 @@ public class SpoofaxLanguageSpecWrapper implements IProject, ISpoofaxLanguageSpe
     @Override public FileObject location() {
         return project.location();
     }
+
+    @Override
+    public String toString() {
+        return this.project.toString();
+    }
 }
