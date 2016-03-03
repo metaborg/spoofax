@@ -26,7 +26,7 @@ public class StrategoBuildStep extends AConfigBuildStep<StrategoBuildStepConfig>
         // @formatter:off
         final StrategoExecutor executor = new StrategoExecutor()
             .withToolsContext()
-            .withTracker(new ResourceAgentTracker(resourceService, input.languageSpec.location()))
+            .withTracker(new ResourceAgentTracker(resourceService, input.languageSpec().location()))
             .withStrategyName(config.strategy)
             .withName(config.strategy)
             ;

@@ -83,7 +83,7 @@ public class LanguageSpecBuilder {
 
 
     public void initialize(LanguageSpecBuildInput input) throws MetaborgException {
-        final ISpoofaxLanguageSpecPaths paths = input.languageSpec.paths();
+        final ISpoofaxLanguageSpecPaths paths = input.languageSpec().paths();
         try {
             paths.includeFolder().createFolder();
             paths.libFolder().createFolder();
@@ -99,22 +99,22 @@ public class LanguageSpecBuilder {
     }
 
     public void generateSources(LanguageSpecBuildInput input, @Nullable FileAccess access) throws Exception {
-        final FileObject location = input.languageSpec.location();
-        logger.debug("Generating sources for {}", input.languageSpec.location());
+        final FileObject location = input.languageSpec().location();
+        logger.debug("Generating sources for {}", input.languageSpec().location());
 
         final ContinuousLanguageSpecGenerator generator = new ContinuousLanguageSpecGenerator(
-            new GeneratorSettings(input.languageSpec.config(), input.languageSpec.paths()), access);
+            new GeneratorSettings(input.languageSpec().config(), input.languageSpec().paths()), access);
         generator.generateAll();
 
         componentConfigBuilder.reset();
-        componentConfigBuilder.copyFrom(input.languageSpec.config());
+        componentConfigBuilder.copyFrom(input.languageSpec().config());
         final ILanguageComponentConfig config = componentConfigBuilder.build(location);
         componentConfigWriter.write(location, config, access);
 
         // FIXME: This is temporary, until we've moved to the new config system completely.
         // As there's then no need to write the config file.
-        if(!this.languageSpecConfigWriter.exists(input.languageSpec)) {
-            this.languageSpecConfigWriter.write(input.languageSpec, input.languageSpec.config(), access);
+        if(!this.languageSpecConfigWriter.exists(input.languageSpec())) {
+            this.languageSpecConfigWriter.write(input.languageSpec(), input.languageSpec().config(), access);
         }
 
         for(IBuildStep buildStep : buildSteps) {
@@ -123,7 +123,7 @@ public class LanguageSpecBuilder {
     }
 
     public void compilePreJava(LanguageSpecBuildInput input) throws MetaborgException {
-        logger.debug("Running pre-Java build for {}", input.languageSpec.location());
+        logger.debug("Running pre-Java build for {}", input.languageSpec().location());
 
         initPluto();
         try {
@@ -142,13 +142,13 @@ public class LanguageSpecBuilder {
 
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
-        final FileObject mainEsvFile = input.languageSpec.paths().mainEsvFile();
+        final FileObject mainEsvFile = input.languageSpec().paths().mainEsvFile();
         try {
             if(mainEsvFile.exists()) {
                 logger.info("Compiling ESV file {}", mainEsvFile);
                 // @formatter:off
                 final BuildInput buildInput = 
-                    new BuildInputBuilder(input.languageSpec)
+                    new BuildInputBuilder(input.languageSpec())
                     .addSource(mainEsvFile)
                     .addTransformGoal(new CompileGoal())
                     .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
@@ -165,13 +165,13 @@ public class LanguageSpecBuilder {
 
         // HACK: compile the main DS file if available, after generating sources (because ds can depend on Stratego
         // strategies), to generate an interpreter.
-        final FileObject mainDsFile = input.languageSpec.paths().dsMainFile();
+        final FileObject mainDsFile = input.languageSpec().paths().dsMainFile();
         try {
             if(mainDsFile.exists()) {
                 logger.info("Compiling DynSem file {}", mainDsFile);
                 // @formatter:off
                 final BuildInput buildInput =
-                    new BuildInputBuilder(input.languageSpec)
+                    new BuildInputBuilder(input.languageSpec())
                     .addSource(mainDsFile)
                     .addTransformGoal(new EndNamedGoal("All to Java"))
                     .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
@@ -192,7 +192,7 @@ public class LanguageSpecBuilder {
     }
 
     public void compilePostJava(LanguageSpecBuildInput input) throws MetaborgException {
-        logger.debug("Running post-Java build for {}", input.languageSpec.location());
+        logger.debug("Running post-Java build for {}", input.languageSpec().location());
 
         initPluto();
         try {
@@ -214,9 +214,9 @@ public class LanguageSpecBuilder {
     }
 
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
-        logger.debug("Cleaning {}", input.languageSpec.location());
+        logger.debug("Cleaning {}", input.languageSpec().location());
 
-        final ISpoofaxLanguageSpecPaths paths = input.languageSpec.paths();
+        final ISpoofaxLanguageSpecPaths paths = input.languageSpec().paths();
         final AllFileSelector selector = new AllFileSelector();
         try {
             paths.strJavaTransFolder().delete(selector);
@@ -249,9 +249,9 @@ public class LanguageSpecBuilder {
     }
 
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(LanguageSpecBuildInput input) {
-        final ISpoofaxLanguageSpecConfig config = input.languageSpec.config();
-        final ISpoofaxLanguageSpecPaths paths = input.languageSpec.paths();
-        final SpoofaxContext context = new SpoofaxContext(input.languageSpec.location(), paths.buildFolder());
+        final ISpoofaxLanguageSpecConfig config = input.languageSpec().config();
+        final ISpoofaxLanguageSpecPaths paths = input.languageSpec().paths();
+        final SpoofaxContext context = new SpoofaxContext(input.languageSpec().location(), paths.buildFolder());
 
         final String module = config.sdfName();
         final String metaModule = config.metaSdfName();
@@ -329,9 +329,9 @@ public class LanguageSpecBuilder {
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input) throws FileSystemException {
-        final ISpoofaxLanguageSpecConfig config = input.languageSpec.config();
-        final ISpoofaxLanguageSpecPaths paths = input.languageSpec.paths();
-        final SpoofaxContext context = new SpoofaxContext(input.languageSpec.location(), paths.buildFolder());
+        final ISpoofaxLanguageSpecConfig config = input.languageSpec().config();
+        final ISpoofaxLanguageSpecPaths paths = input.languageSpec().paths();
+        final SpoofaxContext context = new SpoofaxContext(input.languageSpec().location(), paths.buildFolder());
 
         final File strategoMainFile = context.toFile(paths.strMainFile());
         final File strategoJavaStrategiesMainFile = context.toFile(paths.strJavaStrategiesMainFile());

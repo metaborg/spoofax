@@ -15,7 +15,7 @@ public abstract class AConfigBuildStep<T> implements IBuildStep {
 
     @SuppressWarnings("unchecked") @Override public void execute(LanguageSpecBuildPhase phase,
         LanguageSpecBuildInput input) throws MetaborgException {
-        final Iterable<IBuildStepConfig> configs = input.languageSpec.config().buildSteps();
+        final Iterable<IBuildStepConfig> configs = input.languageSpec().config().buildSteps();
         for(IBuildStepConfig config : configs) {
             if(!config.phase().equals(phase) || !config.getClass().equals(clazz)) {
                 continue;
