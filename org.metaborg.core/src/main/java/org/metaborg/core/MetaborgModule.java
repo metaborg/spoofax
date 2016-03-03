@@ -13,17 +13,7 @@ import org.metaborg.core.build.paths.DependencyPathProvider;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.LanguagePathService;
-import org.metaborg.core.config.AConfigurationReaderWriter;
-import org.metaborg.core.config.ILanguageComponentConfigBuilder;
-import org.metaborg.core.config.ILanguageComponentConfigService;
-import org.metaborg.core.config.ILanguageComponentConfigWriter;
-import org.metaborg.core.config.IProjectConfigBuilder;
-import org.metaborg.core.config.IProjectConfigService;
-import org.metaborg.core.config.LanguageComponentConfigBuilder;
-import org.metaborg.core.config.LanguageComponentConfigService;
-import org.metaborg.core.config.ProjectConfigBuilder;
-import org.metaborg.core.config.ProjectConfigService;
-import org.metaborg.core.config.YamlConfigurationReaderWriter;
+import org.metaborg.core.config.*;
 import org.metaborg.core.context.ContextService;
 import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextProcessor;
@@ -150,6 +140,8 @@ public class MetaborgModule extends AbstractModule {
     protected void bindProjectConfig() {
         bind(ProjectConfigService.class).in(Singleton.class);
         bind(IProjectConfigService.class).to(ProjectConfigService.class);
+
+        bind(IProjectConfigWriter.class).to(ProjectConfigService.class);
 
         bind(ProjectConfigBuilder.class);
         bind(IProjectConfigBuilder.class).to(ProjectConfigBuilder.class);

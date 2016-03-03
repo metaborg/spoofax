@@ -1,15 +1,18 @@
 package org.metaborg.spoofax.meta.core.build;
 
+import org.metaborg.core.project.IProject;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 
 /**
  * Language specification build input arguments.
  */
-public class LanguageSpecBuildInput {
-    public final ISpoofaxLanguageSpec languageSpec;
+public class LanguageSpecBuildInput extends ProjectBuildInput {
 
+    public ISpoofaxLanguageSpec languageSpec() {
+        return (ISpoofaxLanguageSpec)super.project();
+    }
 
-    public LanguageSpecBuildInput(ISpoofaxLanguageSpec languageSpec) {
-        this.languageSpec = languageSpec;
+    public LanguageSpecBuildInput(final ISpoofaxLanguageSpec languageSpec) {
+        super(languageSpec);
     }
 }

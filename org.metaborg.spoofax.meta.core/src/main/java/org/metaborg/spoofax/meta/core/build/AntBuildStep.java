@@ -25,7 +25,7 @@ public class AntBuildStep extends AConfigBuildStep<AntBuildStepConfig> {
 
     @Override protected void execute(AntBuildStepConfig config, LanguageSpecBuildPhase phase,
         LanguageSpecBuildInput input) throws MetaborgException {
-        final FileObject root = input.languageSpec.location();
+        final FileObject root = input.languageSpec().location();
         final FileObject file = resourceService.resolve(root, config.file);
         final IAntRunner runner = antRunnerService.get(file, root, Maps.<String, String>newHashMap(), null, null);
         runner.execute(config.target, null);
