@@ -54,6 +54,7 @@ public class SpoofaxConstants {
     public static final String DIR_STR_JAVA_TRANS = DIR_STR_JAVA + "/trans";
     public static final String DIR_OUTPUT = "target";
     public static final String DIR_CLASSES = DIR_OUTPUT + "/classes";
+    public static final String DIR_TESTCLASSES = DIR_OUTPUT + "/test-classes";
     public static final String DIR_STR_JAVA_CLASSES = DIR_CLASSES + "/trans";
 
 
