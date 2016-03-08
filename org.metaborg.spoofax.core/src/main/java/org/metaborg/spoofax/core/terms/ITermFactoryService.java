@@ -15,7 +15,7 @@ public interface ITermFactoryService {
      *            Implementation to get the term factory for.
      * @return Language-specific term factory.
      */
-    public ITermFactory get(ILanguageImpl impl);
+    ITermFactory get(ILanguageImpl impl);
 
     /**
      * Return the term factory to be used when constructing new terms for given language component.
@@ -24,12 +24,12 @@ public interface ITermFactoryService {
      *            Component to get the term factory for.
      * @return Language-specific term factory.
      */
-    public ITermFactory get(ILanguageComponent component);
+    ITermFactory get(ILanguageComponent component);
 
     /**
      * Returns the generic term factory.
      * 
      * @return Generic term factory.
      */
-    public ITermFactory getGeneric();
+    ITermFactory getGeneric();
 }

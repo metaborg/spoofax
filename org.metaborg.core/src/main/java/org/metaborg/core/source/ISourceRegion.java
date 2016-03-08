@@ -5,26 +5,60 @@ import java.io.Serializable;
 /**
  * Interface for representing a finite region in source code text. A region has:
  * <ul>
- * <li>Offset - number of characters from the beginning of the source text, with interval [0,length).</li>
+ * <li>Offset - number of characters from the beginning of the source text, with interval [0,#chars).</li>
  * <li>Row - row or line in the source text, with interval [0,#rows), or -1 if the row is not supported.</li>
  * <li>Column - column in the source text, with interval [0,#columns@row), or -1 if the column is not supported.</li>
  * </ul>
  * Both the starting and ending numbers are inclusive.
  */
 public interface ISourceRegion extends Serializable {
-    public int startOffset();
+    /**
+     * @return Inclusive starting offset, the number of characters from the beginning of the source text with interval
+     *         [0,#chars).
+     */
+    int startOffset();
 
-    public int startRow();
+    /**
+     * @return Inclusive starting row or line in the source text with interval [0,#rows), or -1 if not supported by this
+     *         source region.
+     */
+    int startRow();
 
-    public int startColumn();
+    /**
+     * @return Inclusive starting column in the source text with interval [0,#columns@row), or -1 if not supported by
+     *         this source region.
+     */
+    int startColumn();
 
-    public int endOffset();
+    /**
+     * @return Inclusive ending offset, the number of characters from the beginning of the source text with interval
+     *         [0,#chars).
+     */
+    int endOffset();
 
-    public int endRow();
+    /**
+     * @return Inclusive ending row or line in the source text with interval [0,#rows), or -1 if not supported by this
+     *         source region.
+     */
+    int endRow();
 
-    public int endColumn();
+    /**
+     * @return Inclusive ending column in the source text with interval [0,#columns@row), or -1 if not supported by this
+     *         source region.
+     */
+    int endColumn();
 
-    public int length();
+    /**
+     * @return Length of the source region.
+     */
+    int length();
 
-    public boolean contains(ISourceRegion region);
+    /**
+     * Checks if this region contains given region.
+     * 
+     * @param region
+     *            Other region to check.
+     * @return True if this region contains given region, false otherwise.
+     */
+    boolean contains(ISourceRegion region);
 }

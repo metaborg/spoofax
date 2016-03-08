@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.ILanguageComponentConfig;
 
 import rx.Observable;
 
@@ -19,18 +20,18 @@ public interface ILanguageService {
      *            Identifier of the implementation to get.
      * @return Component with given identifier, or null if it could not be found.
      */
-    public @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier);
+    @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier);
 
     /**
-     * Gets a language component by its identifier;
-     * or otherwise the baseline language component with the same identifier.
+     * Gets a language component by its identifier; or otherwise the baseline language component with the same
+     * identifier.
      *
-     * @param identifier Identifier of the implementation to get.
-     * @return Component with given identifier; or the baseline component with the
-     * given identifier; or <code>null</code> if it could not be found.
+     * @param identifier
+     *            Identifier of the implementation to get.
+     * @return Component with given identifier; or the baseline component with the given identifier; or
+     *         <code>null</code> if it could not be found.
      */
-    @Nullable
-    ILanguageComponent getComponentOrBaseline(LanguageIdentifier identifier);
+    @Nullable ILanguageComponent getComponentOrBaseline(LanguageIdentifier identifier);
 
     /**
      * Gets a language component by its location.
@@ -39,7 +40,7 @@ public interface ILanguageService {
      *            Location of the implementation to get.
      * @return Component at given location, or null if it could not be found.
      */
-    public @Nullable ILanguageComponent getComponent(FileName location);
+    @Nullable ILanguageComponent getComponent(FileName location);
 
     /**
      * Gets a language implementation by its identifier.
@@ -48,7 +49,7 @@ public interface ILanguageService {
      *            Identifier of the implementation to get.
      * @return Implementation with given identifier, or null if it could not be found.
      */
-    public @Nullable ILanguageImpl getImpl(LanguageIdentifier identifier);
+    @Nullable ILanguageImpl getImpl(LanguageIdentifier identifier);
 
     /**
      * Gets a language by its name.
@@ -57,18 +58,18 @@ public interface ILanguageService {
      *            Name of the language to get.
      * @return Language with given name, or null if it could not be found.
      */
-    public @Nullable ILanguage getLanguage(String name);
+    @Nullable ILanguage getLanguage(String name);
 
 
     /**
      * @return All language components.
      */
-    public Iterable<? extends ILanguageComponent> getAllComponents();
+    Iterable<? extends ILanguageComponent> getAllComponents();
 
     /**
      * @return All language implementations.
      */
-    public Iterable<? extends ILanguageImpl> getAllImpls();
+    Iterable<? extends ILanguageImpl> getAllImpls();
 
     /**
      * Gets language implementations with group id and id.
@@ -79,41 +80,43 @@ public interface ILanguageService {
      *            ID of the implementations to get.
      * @return Implementations with given group id and id.
      */
-    public abstract Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id);
+    Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id);
 
     /**
      * @return All languages
      */
-    public Iterable<? extends ILanguage> getAllLanguages();
+    Iterable<? extends ILanguage> getAllLanguages();
 
 
     /**
      * @return Observable over language component changes.
      */
-    public Observable<LanguageComponentChange> componentChanges();
+    Observable<LanguageComponentChange> componentChanges();
 
     /**
      * @return Observable over language implementation changes.
      */
-    public Observable<LanguageImplChange> implChanges();
+    Observable<LanguageImplChange> implChanges();
 
 
     /**
      * Creates a request object with given identifier and location, contributing to given language implementation
      * identifiers. Returns a request object where facets can be added before passing it to
-     * {@link #add(ILanguageComponent)}.
+     * {@link #add(LanguageCreationRequest)}.
      * 
      * @param identifier
      *            Identifier of the component to create.
      * @param location
      *            Location of the component to create.
-     * @param implIds
+     * @param contribs
      *            Identifiers of language implementations that the component should contribute to.
+     * @param config
+     *            Configuration of the component to create.
      * 
-     * @return Creation request object, when passed to {@link #add(ILanguageComponent)} actually adds the language.
+     * @return Creation request object, when passed to {@link #add(LanguageCreationRequest)} actually adds the language.
      */
-    public LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageContributionIdentifier> implIds);
+    LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
+        Iterable<LanguageContributionIdentifier> contribs, ILanguageComponentConfig config);
 
     /**
      * Adds language component created from given request object, and return the created component.
@@ -127,15 +130,15 @@ public interface ILanguageService {
      * @throws IllegalStateException
      *             When a component with a different id has already been created at given component's location.
      */
-    public ILanguageComponent add(LanguageCreationRequest request);
+    ILanguageComponent add(LanguageCreationRequest request);
 
     /**
      * Removes given language component.
      * 
-     * @param language
-     *            Language to remove.
+     * @param component
+     *            Language component to remove.
      * @throws IllegalStateException
      *             When component does not exist or has already been removed.
      */
-    public void remove(ILanguageComponent component);
+    void remove(ILanguageComponent component);
 }

@@ -15,15 +15,15 @@ public interface IRegionStyle<T> {
     /**
      * @return Region in source text over which the style spans.
      */
-    public abstract ISourceRegion region();
+    ISourceRegion region();
 
     /**
      * @return Style assigned to the region.
      */
-    public abstract IStyle style();
+    IStyle style();
 
     /**
      * @return Fragment associated with the region, or null if there is no such association.
      */
-    public abstract @Nullable T fragment();
+    @Nullable T fragment();
 }

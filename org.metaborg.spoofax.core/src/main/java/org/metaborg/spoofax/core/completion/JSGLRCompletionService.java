@@ -80,17 +80,14 @@ public class JSGLRCompletionService implements ICompletionService<IStrategoTerm>
             return Iterables2.empty();
         }
 
-        boolean errorNearCursor = false;
-        String inputText = parseResult.input.substring(0, position);
-        String[] lines = inputText.split("\r\n|\r|\n");
-        int cursorLine = lines.length - 1;
-
-
-        for(IMessage e : parseResult.messages) {
-            if(e.severity() == MessageSeverity.ERROR && cursorLine <= e.region().endRow()
-                && cursorLine >= e.region().startRow()) {
-                errorNearCursor = true;
-            }
+        final ParseResult<?> completionParseResult;
+        try {
+            final IParserConfiguration config = new JSGLRParserConfiguration(true, false, true, 2000);
+            completionParseResult = syntaxService.parse(input, parseResult.source, language, config);
+        } catch(ParseException e) {
+            final String message = "Cannot get completions, parsing failed unexpectedly";
+            logger.error(message, e);
+            throw e;
         }
 
         if(true) {

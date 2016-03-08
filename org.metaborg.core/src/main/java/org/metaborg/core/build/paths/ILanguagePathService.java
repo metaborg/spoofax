@@ -10,7 +10,7 @@ import org.metaborg.core.project.IProject;
  */
 public interface ILanguagePathService {
     /**
-     * Gets source paths in given language specification, for given language.
+     * Gets source paths in given project, for given language.
      * 
      * @param project
      *            Project to get source paths relative to.
@@ -21,7 +21,7 @@ public interface ILanguagePathService {
     Iterable<FileObject> sourcePaths(IProject project, String languageName);
 
     /**
-     * Gets include paths in given language specification, for given language.
+     * Gets include paths in given project, for given language.
      * 
      * @param project
      *            Project to get include paths relative to.
@@ -32,7 +32,7 @@ public interface ILanguagePathService {
     Iterable<FileObject> includePaths(IProject project, String languageName);
 
     /**
-     * Gets source and include paths in given language specification, for given language.
+     * Gets source and include paths in given project, for given language.
      * 
      * @param project
      *            Project to get source and include paths relative to.
@@ -44,7 +44,7 @@ public interface ILanguagePathService {
 
 
     /**
-     * Gets source files in given language specification, for given language.
+     * Gets source files in given project, for given language.
      * 
      * @param project
      *            Project to get source files relative to.
@@ -55,7 +55,7 @@ public interface ILanguagePathService {
     Iterable<IdentifiedResource> sourceFiles(IProject project, ILanguageImpl language);
 
     /**
-     * Gets include files in given language specification, for given language.
+     * Gets include files in given project, for given language.
      * 
      * @param project
      *            Project to get include files relative to.
@@ -66,7 +66,7 @@ public interface ILanguagePathService {
     Iterable<IdentifiedResource> includeFiles(IProject project, ILanguageImpl language);
 
     /**
-     * Gets source and include files in given language specification, for given language.
+     * Gets source and include files in given project, for given language.
      * 
      * @param project
      *            Project to get source and include files relative to.

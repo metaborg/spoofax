@@ -15,6 +15,7 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguageUtils;
+import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.util.resource.ResourceUtils;
@@ -30,9 +31,7 @@ import com.google.inject.Inject;
  * Fluent interface for creating {@link BuildInput} objects.
  * 
  * @see BuildInput
- * @deprecated Use {@link NewBuildInputBuilder} instead.
  */
-@Deprecated
 public class BuildInputBuilder {
     private final IProject project;
 
@@ -56,7 +55,7 @@ public class BuildInputBuilder {
     private @Nullable FileSelector transformSelector;
     private Collection<ITransformGoal> transformGoals;
 
-    private @Nullable IBuildMessagePrinter messagePrinter;
+    private @Nullable IMessagePrinter messagePrinter;
     private boolean throwOnErrors;
     private Set<ILanguageImpl> pardonedLanguages;
     private Set<String> pardonedLanguageStrings;
@@ -323,7 +322,7 @@ public class BuildInputBuilder {
     /**
      * Sets the message printer to given message printer.
      */
-    public BuildInputBuilder withMessagePrinter(IBuildMessagePrinter messagePrinter) {
+    public BuildInputBuilder withMessagePrinter(IMessagePrinter messagePrinter) {
         this.messagePrinter = messagePrinter;
         return this;
     }
@@ -373,7 +372,7 @@ public class BuildInputBuilder {
      * Builds a build input object from the current state.
      * 
      * @throws MetaborgException
-     *             When {@link IDependencyService#compileDependencies(IProject)} throws.
+     *             When {@link IDependencyService#compileDeps} throws.
      */
     public BuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService)
         throws MetaborgException {
@@ -381,7 +380,7 @@ public class BuildInputBuilder {
             state = new BuildState();
         }
 
-        final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDependencies(project);
+        final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDeps(this.project);
         final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);
         if(addDependencyLanguages) {
             addLanguages(compileImpls);
@@ -389,13 +388,13 @@ public class BuildInputBuilder {
 
         if(addDefaultIncludePaths) {
             for(ILanguageImpl language : compileImpls) {
-                addIncludePaths(language, languagePathService.includePaths(project, language.belongsTo().name()));
+                addIncludePaths(language, languagePathService.includePaths(this.project, language.belongsTo().name()));
             }
         }
 
         if(addSourcesFromDefaultSourceLocations) {
             for(ILanguageImpl language : compileImpls) {
-                final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(project, language);
+                final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(this.project, language);
                 addIdentifiedSources(sources);
             }
         }
@@ -406,10 +405,8 @@ public class BuildInputBuilder {
             }
         }
 
-        final BuildInput input =
-            new BuildInput(state, project, sourceChanges, includePaths, new BuildOrder(languages), selector, analyze,
-                analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
-                pardonedLanguages);
-        return input;
+        return new BuildInput(state, this.project, sourceChanges, includePaths, new BuildOrder(languages), selector,
+            analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
+            pardonedLanguages);
     }
 }

@@ -21,7 +21,7 @@ public interface IDialectIdentifier {
      * @throws MetaborgException
      *             When resource requires a dialect that is not available.
      */
-    public abstract @Nullable IdentifiedDialect identify(FileObject resource) throws MetaborgException;
+    @Nullable IdentifiedDialect identify(FileObject resource) throws MetaborgException;
 
     /**
      * Checks if given resource is of given dialect.
@@ -36,5 +36,5 @@ public interface IDialectIdentifier {
      * @throws MetaborgException
      *             When resource requires a dialect that is not available.
      */
-    public abstract boolean identify(FileObject resource, ILanguageImpl dialect) throws MetaborgException;
+    boolean identify(FileObject resource, ILanguageImpl dialect) throws MetaborgException;
 }

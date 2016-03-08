@@ -23,7 +23,7 @@ public interface IOutlineService<P, A> {
      *            Language implementation to check.
      * @return True if outlining is available, false if not.
      */
-    public abstract boolean available(ILanguageImpl language);
+    boolean available(ILanguageImpl language);
 
     /**
      * Creates an outline from given parse result.
@@ -35,7 +35,7 @@ public interface IOutlineService<P, A> {
      * @throws MetaborgException
      *             When creating an outline fails unexpectedly.
      */
-    public abstract @Nullable IOutline outline(ParseResult<P> result) throws MetaborgException;
+    @Nullable IOutline outline(ParseResult<P> result) throws MetaborgException;
 
     /**
      * Creates an outline from given analysis result.
@@ -47,5 +47,5 @@ public interface IOutlineService<P, A> {
      * @throws MetaborgException
      *             When creating an outline fails unexpectedly.
      */
-    public abstract @Nullable IOutline outline(AnalysisFileResult<P, A> result) throws MetaborgException;
+    @Nullable IOutline outline(AnalysisFileResult<P, A> result) throws MetaborgException;
 }

@@ -10,5 +10,5 @@ public interface IServiceModulePlugin {
     /**
      * @return All modules provided by this plugin.
      */
-    public abstract Iterable<Module> modules();
+    Iterable<Module> modules();
 }

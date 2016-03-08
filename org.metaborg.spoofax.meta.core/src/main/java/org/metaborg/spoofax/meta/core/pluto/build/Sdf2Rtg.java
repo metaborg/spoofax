@@ -86,7 +86,7 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>
         // TODO: set nativepath to the native bundle, so that sdf2table can be found?
         final Arguments arguments = new Arguments()
             .addFile("-i", input.inputPath)
-            .addAll("-m", input.sdfModule)
+            .add("-m", input.sdfModule)
             .addFile("-o", input.outputPath)
             .add("--ignore-missing-cons")
             ;

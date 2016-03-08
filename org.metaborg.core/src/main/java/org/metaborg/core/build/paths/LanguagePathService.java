@@ -42,8 +42,7 @@ public class LanguagePathService implements ILanguagePathService {
                     provider);
             }
         }
-        final Iterable<FileObject> allSources = Iterables.concat(sources);
-        return allSources;
+        return Iterables.concat(sources);
     }
 
     @Override public Iterable<FileObject> includePaths(IProject project, String languageName) {
@@ -56,8 +55,7 @@ public class LanguagePathService implements ILanguagePathService {
                     provider);
             }
         }
-        final Iterable<FileObject> allIncludes = Iterables.concat(includes);
-        return allIncludes;
+        return Iterables.concat(includes);
     }
 
     @Override public Iterable<FileObject> sourceAndIncludePaths(IProject project, String languageName) {

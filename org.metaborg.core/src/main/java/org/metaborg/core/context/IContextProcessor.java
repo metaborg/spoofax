@@ -9,5 +9,5 @@ public interface IContextProcessor {
      * @param change
      *            Language change to process.
      */
-    public abstract void update(LanguageImplChange change);
+    void update(LanguageImplChange change);
 }

@@ -14,6 +14,7 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 import org.metaborg.runtime.task.engine.ITaskEngine;
 import org.metaborg.runtime.task.engine.TaskManager;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -25,7 +26,6 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.library.index.IIndex;
 import org.spoofax.interpreter.library.index.IndexManager;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.ParseError;
 
 import com.google.inject.Injector;
 
@@ -60,6 +60,10 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
     @Override public FileObject location() {
         return identifier.location;
+    }
+
+    @Override public IProject project() {
+        return identifier.project;
     }
 
     @Override public ILanguageImpl language() {
@@ -223,10 +227,6 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                 try {
                     final IIndex index = IndexManager.read(indexFile, termFactory);
                     return index;
-                } catch(ParseError | IOException e) {
-                    logger.error("Loading index from {} failed, deleting that file and returning an empty index. "
-                        + "Clean the project to reanalyze", e, indexFile);
-                    deleteIndexFile(indexFile);
                 } catch(Exception e) {
                     logger.error("Loading index from {} failed, deleting that file and returning an empty index. "
                         + "Clean the project to reanalyze", e, indexFile);
@@ -264,11 +264,6 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                 try {
                     final ITaskEngine taskEngine = TaskManager.read(taskEngineFile, termFactory);
                     return taskEngine;
-                } catch(ParseError | IOException e) {
-                    logger.error(
-                        "Loading task engine from {} failed, deleting that file and returning an empty task engine. "
-                            + "Clean the project to reanalyze", e, taskEngineFile);
-                    deleteTaskEngineFile(taskEngineFile);
                 } catch(Exception e) {
                     logger.error(
                         "Loading task engine from {} failed, deleting that file and returning an empty task engine. "

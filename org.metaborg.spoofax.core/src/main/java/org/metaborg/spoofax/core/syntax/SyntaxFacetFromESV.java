@@ -52,7 +52,8 @@ public class SyntaxFacetFromESV {
             return null;
         }
 
-        return Iterables2.singleton(ESVReader.termContents(termAt(termAt(result, 0), 0)));
+        final String contents = ESVReader.termContents(termAt(termAt(result, 0), 0));
+        return Iterables2.singleton(contents);
     }
 
     private static Iterable<String> singleLineCommentPrefixes(IStrategoAppl document) {

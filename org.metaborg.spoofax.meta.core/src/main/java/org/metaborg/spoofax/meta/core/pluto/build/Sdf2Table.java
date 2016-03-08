@@ -84,8 +84,6 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
 
 
         final File inputPath = makePermissiveOutput.val;
-        // final File inputPath = toFile(context.settings.getSdfCompiledPermissiveDefFile(input.sdfModule));
-        // final File outputPath = toFile(context.settings.getSdfCompiledTableFile(input.sdfModule));
 
         require(inputPath);
 

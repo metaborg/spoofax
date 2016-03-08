@@ -1,6 +1,7 @@
 package org.metaborg.core.editor;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -17,11 +18,11 @@ public class DummyEditorRegistry implements IEditorRegistry {
     @Override public Iterable<IEditor> openEditors() {
         logger.warn("Using dummy editor registry. "
             + "Bind an actual implementation of IEditorRegistry in your Guice module.");
-        return Iterables2.<IEditor>empty();
+        return Iterables2.empty();
     }
 
 
-    @Override public void open(FileObject resource) {
+    @Override public void open(FileObject resource, IProject project) {
         logger.warn("Using dummy editor registry. "
             + "Bind an actual implementation of IEditorRegistry in your Guice module.");
     }

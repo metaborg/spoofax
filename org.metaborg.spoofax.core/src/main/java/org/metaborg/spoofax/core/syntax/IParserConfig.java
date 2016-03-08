@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
 public interface IParserConfig {
-    public String getStartSymbol();
+    String getStartSymbol();
 
-    public IParseTableProvider getParseTableProvider();
+    IParseTableProvider getParseTableProvider();
 }

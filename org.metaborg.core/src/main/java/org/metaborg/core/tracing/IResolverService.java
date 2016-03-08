@@ -23,7 +23,7 @@ public interface IResolverService<P, A> {
      *            Language implementation to check.
      * @return True if reference resolution is available, false if not.
      */
-    public abstract boolean available(ILanguageImpl language);
+    boolean available(ILanguageImpl language);
 
     /**
      * Attempt to resolve use site at {@code offset} in the source text, using given parse result for resolving and
@@ -38,7 +38,7 @@ public interface IResolverService<P, A> {
      * @throws MetaborgException
      *             When reference resolution fails unexpectedly.
      */
-    public abstract @Nullable Resolution resolve(int offset, ParseResult<P> result) throws MetaborgException;
+    @Nullable Resolution resolve(int offset, ParseResult<P> result) throws MetaborgException;
 
     /**
      * Attempt to resolve use site at {@code offset} in the source text, using given analysis result for resolving and
@@ -53,5 +53,5 @@ public interface IResolverService<P, A> {
      * @throws MetaborgException
      *             When reference resolution fails unexpectedly.
      */
-    public abstract @Nullable Resolution resolve(int offset, AnalysisFileResult<P, A> result) throws MetaborgException;
+    @Nullable Resolution resolve(int offset, AnalysisFileResult<P, A> result) throws MetaborgException;
 }

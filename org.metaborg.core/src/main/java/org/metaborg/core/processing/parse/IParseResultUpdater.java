@@ -19,17 +19,17 @@ public interface IParseResultUpdater<P> {
      * @param resource
      *            Resource to invalidate.
      */
-    public abstract void invalidate(FileObject resource);
+    void invalidate(FileObject resource);
 
     /**
      * Updates the parse result for a single resource. Pushes the parse result to subscribed requests.
      * 
      * @param result
      *            Result to update.
-     * @param parentResult
+     * @param result
      *            Parent of the result to update.
      */
-    public abstract void update(FileObject resource, ParseResult<P> result);
+    void update(FileObject resource, ParseResult<P> result);
 
     /**
      * Sets a parse error for given resource. Pushes the parse error to subscribed requests.
@@ -39,7 +39,7 @@ public interface IParseResultUpdater<P> {
      * @param exception
      *            Parse error to set.
      */
-    public abstract void error(FileObject resource, ParseException exception);
+    void error(FileObject resource, ParseException exception);
 
     /**
      * Removes cached parse results for given resource.
@@ -47,5 +47,5 @@ public interface IParseResultUpdater<P> {
      * @param resource
      *            Resource to remove cached parse results for.
      */
-    public abstract void remove(FileObject resource);
+    void remove(FileObject resource);
 }

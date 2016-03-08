@@ -23,6 +23,6 @@ public interface IAnalysisService<P, A> {
      * @throws AnalysisException
      *             when analysis fails.
      */
-    public abstract AnalysisResult<P, A> analyze(Iterable<ParseResult<P>> inputs, IContext context)
+    AnalysisResult<P, A> analyze(Iterable<ParseResult<P>> inputs, IContext context)
         throws AnalysisException;
 }

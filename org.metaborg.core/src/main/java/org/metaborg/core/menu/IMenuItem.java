@@ -1,7 +1,10 @@
 package org.metaborg.core.menu;
 
 public interface IMenuItem {
-    public abstract String name();
+    /**
+     * @return Name of the menu item.
+     */
+    String name();
 
     /**
      * Accepts the specified visitor.

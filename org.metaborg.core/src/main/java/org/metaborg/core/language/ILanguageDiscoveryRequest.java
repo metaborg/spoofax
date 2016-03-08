@@ -1,41 +1,55 @@
 package org.metaborg.core.language;
 
+import java.util.Collection;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.ILanguageComponentConfig;
 
 /**
  * Request for language discovery.
- *
- * @deprecated Use {@link INewLanguageDiscoveryRequest} instead.
  */
-@Deprecated
 public interface ILanguageDiscoveryRequest {
     /**
-     * A request is available when all required files exist, such as the parse table and JAR files, and all
+     * Gets whether the language component is available.
+     *
+     * A language component is available when all required files exist, such as the parse table and JAR files, and all
      * configuration files are valid.
      * 
-     * @return True when available, false if not.
+     * @return <code>true</code> when a request is available; otherwise, <code>false</code>.
      */
-    public abstract boolean available();
+    boolean available();
 
     /**
-     * @return Location of the request.
+     * Gets the location of the request.
+     *
+     * @return The location of the request.
      */
-    public abstract FileObject location();
+    FileObject location();
 
     /**
-     * @return Error messages produced during the creation of this request.
+     * Gets the configuration of the language.
+     *
+     * @return The configuration; or <code>null</code> when not available.
      */
-    public abstract Iterable<String> errors();
+    @Nullable ILanguageComponentConfig config();
 
     /**
-     * @return Exceptions thrown during the creation of this request.
+     * Gets the errors produced during the creation of this request.
+     *
+     * The resulting collection is empty when {@link #available()} is <code>true</code>.
+     *
+     * @return The produced error messages.
      */
-    public abstract Iterable<Throwable> exceptions();
-    
+    Collection<String> errors();
+
     /**
-     * @return Summary of the errors and exceptions in this request, or null if the request is available.
+     * Gets the exceptions thrown during the creation of this request.
+     *
+     * The resulting collection is empty when {@link #available()} is <code>true</code>.
+     *
+     * @return The thrown exceptions.
      */
-    public abstract @Nullable String errorSummary();
+    Collection<Throwable> exceptions();
 }

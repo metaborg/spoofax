@@ -2,14 +2,23 @@ package org.metaborg.core.context;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 
 public class ContextIdentifier {
+    public final IProject project;
     public final FileObject location;
     public final ILanguageImpl language;
 
 
-    public ContextIdentifier(FileObject location, ILanguageImpl language) {
-        this.location = location;
+    /**
+     *
+     * @param resource The resource.
+     * @param project The project to which the resource belongs.
+     * @param language
+     */
+    public ContextIdentifier(FileObject resource, IProject project, ILanguageImpl language) {
+        this.project = project;
+        this.location = resource;
         this.language = language;
     }
 

@@ -19,7 +19,7 @@ public interface ILanguagePathProvider {
      * @throws MetaborgException
      *             When getting source paths fails unexpectedly.
      */
-    public Iterable<FileObject> sourcePaths(IProject project, String languageName) throws MetaborgException;
+    Iterable<FileObject> sourcePaths(IProject project, String languageName) throws MetaborgException;
 
     /**
      * Gets include paths in given project, for given language.
@@ -32,5 +32,5 @@ public interface ILanguagePathProvider {
      * @throws MetaborgException
      *             When getting include paths fails unexpectedly.
      */
-    public Iterable<FileObject> includePaths(IProject project, String languageName) throws MetaborgException;
+    Iterable<FileObject> includePaths(IProject project, String languageName) throws MetaborgException;
 }

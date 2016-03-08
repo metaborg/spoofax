@@ -20,11 +20,11 @@ import com.google.inject.Inject;
  */
 public class SpoofaxBuilder extends Builder<IStrategoTerm, IStrategoTerm, IStrategoTerm> implements ISpoofaxBuilder {
     @Inject public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
-        ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
-        ITransformService<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformService,
-        IParseResultUpdater<IStrategoTerm> parseResultProcessor,
-        IAnalysisResultUpdater<IStrategoTerm, IStrategoTerm> analysisResultProcessor) {
+                                  ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
+                                  ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
+                                  ITransformService<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformService,
+                                  IParseResultUpdater<IStrategoTerm> parseResultProcessor,
+                                  IAnalysisResultUpdater<IStrategoTerm, IStrategoTerm> analysisResultProcessor) {
         super(resourceService, languageIdentifier, languagePathService, contextService, sourceTextService,
             syntaxService, analysisService, transformService, parseResultProcessor, analysisResultProcessor);
     }

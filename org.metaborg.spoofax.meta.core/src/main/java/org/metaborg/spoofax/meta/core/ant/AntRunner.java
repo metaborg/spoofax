@@ -28,7 +28,7 @@ public class AntRunner implements IAntRunner {
         final File localAntFile = resourceService.localFile(antFile);
         final File localBaseDir = resourceService.localPath(baseDir);
 
-        // GTODO: use classpaths
+        // TODO: use classpaths
 
         antProject.setProperty(MagicNames.ANT_FILE, localAntFile.getPath());
         antProject.setBaseDir(localBaseDir);

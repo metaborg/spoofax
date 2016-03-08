@@ -26,8 +26,8 @@ public interface IBuilder<P, A, T> {
      * @throws MetaborgRuntimeException
      *             When {@code input.throwOnErrors} is set to true and errors occur.
      */
-    public abstract IBuildOutput<P, A, T> build(BuildInput input, IProgressReporter progressReporter,
-        ICancellationToken cancellationToken) throws InterruptedException;
+    IBuildOutput<P, A, T> build(BuildInput input, IProgressReporter progressReporter,
+                                ICancellationToken cancellationToken) throws InterruptedException;
 
     /**
      * Cleans derived resources and contexts from given location.
@@ -37,6 +37,6 @@ public interface IBuilder<P, A, T> {
      * @throws InterruptedException
      *             When clean is cancelled.
      */
-    public abstract void clean(CleanInput input, IProgressReporter progressReporter,
-        ICancellationToken cancellationToken) throws InterruptedException;
+    void clean(CleanInput input, IProgressReporter progressReporter,
+               ICancellationToken cancellationToken) throws InterruptedException;
 }

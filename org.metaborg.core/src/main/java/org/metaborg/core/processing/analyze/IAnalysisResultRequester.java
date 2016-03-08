@@ -39,7 +39,7 @@ public interface IAnalysisResultRequester<P, A> {
      * @return Cold observable which pushes a single element when subscribed; the latest analysis result, or pushes an
      *         error if an error occurred while getting it.
      */
-    public abstract Observable<AnalysisFileResult<P, A>> request(FileObject resource, IContext context, String text);
+    Observable<AnalysisFileResult<P, A>> request(FileObject resource, IContext context, String text);
 
     /**
      * Returns an observable that pushes analysis result updates to subscribers for given resource.
@@ -48,10 +48,10 @@ public interface IAnalysisResultRequester<P, A> {
      *            Resource to push updates for.
      * @return Hot observable that pushes updates to subscribers for given resource.
      */
-    public abstract Observable<AnalysisChange<P, A>> updates(FileObject resource);
+    Observable<AnalysisChange<P, A>> updates(FileObject resource);
 
     /**
      * @return Latest analysis result for given resource, or null if there is none.
      */
-    public abstract @Nullable AnalysisFileResult<P, A> get(FileObject resource);
+    @Nullable AnalysisFileResult<P, A> get(FileObject resource);
 }

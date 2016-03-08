@@ -33,13 +33,13 @@ public class CleanInputBuilder {
     public void reset() {
         languages = Sets.newHashSet();
         addDependencyLanguages = true;
-        
+
         selector = null;
     }
 
-    
+
     /**
-     * Sets the languages to given languague implementations.
+     * Sets the languages to given language implementations.
      */
     public CleanInputBuilder withLanguages(Set<ILanguageImpl> languages) {
         this.languages = languages;
@@ -108,11 +108,11 @@ public class CleanInputBuilder {
      * Builds a clean input object from the current state.
      * 
      * @throws MetaborgException
-     *             When {@link IDependencyService#compileDependencies(IProject)} throws.
+     *             When {@link IDependencyService#compileDeps(IProject)} throws.
      */
     public CleanInput build(IDependencyService dependencyService) throws MetaborgException {
         if(addDependencyLanguages) {
-            final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDependencies(project);
+            final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDeps(project);
             final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);
             addLanguages(compileImpls);
         }

@@ -23,7 +23,7 @@ public interface IStrategoRuntimeService extends ILanguageCache {
      * @throws MetaborgException
      *             When loading a Stratego CTree or JAR fails.
      */
-    public abstract HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException;
+    HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException;
 
     /**
      * Returns a new Stratego runtime for given component, initialized without a context.
@@ -36,11 +36,11 @@ public interface IStrategoRuntimeService extends ILanguageCache {
      * @throws MetaborgException
      *             When loading a Stratego CTree or JAR fails.
      */
-    public abstract HybridInterpreter runtime(ILanguageComponent component, FileObject location)
+    HybridInterpreter runtime(ILanguageComponent component, FileObject location)
         throws MetaborgException;
 
     /**
      * @return Generic Stratego runtime, with just the standard libraries loaded.
      */
-    public abstract HybridInterpreter genericRuntime();
+    HybridInterpreter genericRuntime();
 }

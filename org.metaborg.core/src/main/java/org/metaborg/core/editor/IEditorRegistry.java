@@ -1,18 +1,21 @@
 package org.metaborg.core.editor;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.project.IProject;
 
 public interface IEditorRegistry {
     /**
      * @return All open editors.
      */
-    public abstract Iterable<IEditor> openEditors();
+    Iterable<IEditor> openEditors();
 
     /**
      * Open an editor for given resource.
-     * 
+     *
      * @param resource
      *            Resource to open editor for.
+     * @param project
+     *            The project that contains the resource.
      */
-    public abstract void open(FileObject resource);
+    void open(FileObject resource, IProject project);
 }

@@ -10,7 +10,7 @@
   <parent>
     <groupId>org.metaborg</groupId>
     <artifactId>parent.java</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <relativePath>../../releng/parent/java</relativePath>
   </parent>
 
@@ -20,20 +20,6 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <!-- Add the generated MANIFEST.MF to the resulting JAR file. Copied from parent POM, because configuration 
-            is not merged properly. -->
-          <manifestFile>${manifest-location}/MANIFEST.MF</manifestFile>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
   <scm>
     <connection>scm:git:git@github.com:metaborg/spoofax.git</connection>

@@ -4,23 +4,28 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.metaborg.core.project.settings.LanguageIdentifierJacksonDeserializer;
-import org.metaborg.core.project.settings.LanguageIdentifierJacksonSerializer;
+import org.metaborg.core.MetaborgConstants;
+import org.metaborg.core.config.LanguageIdentifierDeserializer;
+import org.metaborg.core.config.LanguageIdentifierSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ComparisonChain;
 
-@JsonSerialize(using = LanguageIdentifierJacksonSerializer.class)
-@JsonDeserialize(using = LanguageIdentifierJacksonDeserializer.class)
+@JsonSerialize(using = LanguageIdentifierSerializer.class)
+@JsonDeserialize(using = LanguageIdentifierDeserializer.class)
 public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Serializable {
     private static final long serialVersionUID = 8892997161544718124L;
-    
+
     private static final Pattern idPattern = Pattern.compile("[A-Za-z0-9._\\-]+");
-    public static final String errorDescription = "may only contain characters, numbers, and _ - .";
-    private static final Pattern fullPattern = Pattern.compile("(?:(" + idPattern + "):)?(" + idPattern + ")(?::(.+))?");
+    public static final String errorDescription = "may only consist of alphanumeral and _ - . characters";
+
+    private static final Pattern partialPattern =
+        Pattern.compile("(?:(" + idPattern + "):)?(" + idPattern + ")(?::(.+))?");
+    private static final Pattern fullPattern = Pattern.compile("(?:(" + idPattern + "):)(" + idPattern + ")(?::(.+))");
+
     public static final LanguageIdentifier EMPTY = new LanguageIdentifier("", "", LanguageVersion.BASELINE_VERSION);
-    
+
     public final String groupId;
     public final String id;
     public final LanguageVersion version;
@@ -43,7 +48,7 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
 
 
     public static boolean valid(String identifier) {
-        final Matcher matcher = fullPattern.matcher(identifier);
+        final Matcher matcher = partialPattern.matcher(identifier);
         if(!matcher.matches()) {
             return false;
         }
@@ -55,20 +60,34 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
     }
 
     public static LanguageIdentifier parse(String identifier) {
-        final Matcher matcher = fullPattern.matcher(identifier);
+        return parse(identifier, partialPattern);
+    }
+
+    public static LanguageIdentifier parseFull(String identifier) {
+        return parse(identifier, fullPattern);
+    }
+
+    private static LanguageIdentifier parse(String identifier, Pattern pattern) {
+        final Matcher matcher = pattern.matcher(identifier);
         if(!matcher.matches()) {
-            throw new IllegalArgumentException("Invalid language identifier " + identifier);
+            throw new IllegalArgumentException("Invalid language identifier " + identifier
+                + ", expected groupId:id:version where characters " + errorDescription);
         }
 
         String groupId = matcher.group(1);
         if(groupId == null || groupId.isEmpty()) {
-            // GTODO: move this constant into a class
-            groupId = "org.metaborg";
+            groupId = MetaborgConstants.METABORG_GROUP_ID;
         }
 
         final String id = matcher.group(2);
         final String versionString = matcher.group(3);
-        final LanguageVersion version = LanguageVersion.parse(versionString);
+        final LanguageVersion version;
+        try {
+            version = LanguageVersion.parse(versionString);
+        } catch(IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Invalid version in language identifier " + identifier + ", " + LanguageVersion.errorDescription);
+        }
 
         return new LanguageIdentifier(groupId, id, version);
     }

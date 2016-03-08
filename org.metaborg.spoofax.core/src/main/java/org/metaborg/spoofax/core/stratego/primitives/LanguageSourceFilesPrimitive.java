@@ -51,13 +51,13 @@ public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
             env.setCurrent(factory.makeList());
             return true;
         }
-        
+
         final IProject project = projectService.get(context.location());
         if(project == null) {
             env.setCurrent(factory.makeList());
             return true;
         }
-        
+
         // GTODO: require language identifier instead of language name
         final String languageName = Tools.asJavaString(tvars[0]);
         final ILanguage language = languageService.getLanguage(languageName);
@@ -68,9 +68,8 @@ public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
         }
         final ILanguageImpl impl = language.activeImpl();
         if(impl == null) {
-            final String message =
-                String.format("Getting include files for %s failed, no active language implementation could be found",
-                    languageName);
+            final String message = String.format(
+                "Getting include files for %s failed, no active language implementation could be found", languageName);
             throw new InterpreterException(message);
         }
 

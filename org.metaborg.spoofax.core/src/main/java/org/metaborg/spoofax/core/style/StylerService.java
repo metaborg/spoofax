@@ -78,6 +78,6 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
             return null;
         }
 
-        return new RegionStyle<IStrategoTerm>(regionCategory.region(), style, regionCategory.fragment());
+        return new RegionStyle<>(regionCategory.region(), style, regionCategory.fragment());
     }
 }

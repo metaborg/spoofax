@@ -9,6 +9,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.tools.ant.BuildListener;
 
 public interface IAntRunnerService {
-    public abstract IAntRunner get(FileObject antFile, FileObject baseDir, Map<String, String> properties,
-        @Nullable URL[] classpaths, @Nullable BuildListener listener);
+    IAntRunner get(FileObject antFile, FileObject baseDir, Map<String, String> properties, @Nullable URL[] classpaths,
+        @Nullable BuildListener listener);
 }

@@ -12,7 +12,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -51,7 +51,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final File strategoJavaStrategiesMainFile;
         public final String sdfName;
         public final String metaSdfName;
-        public final Iterable<String> sdfArgs;
+        public final Arguments sdfArgs;
         @Nullable
         public final File externalJar;
         @Nullable
@@ -60,8 +60,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final File strjOutputFile;
         public final File strjDepFile;
         public final File strjCacheDir;
-        public final Iterable<String> strategoArgs;
-        public final Format format;
+        public final Arguments strategoArgs;
+        public final StrategoFormat format;
         public final String strategiesPackageName;
         public final String externalJarFlags;
         public final File rtg2SigOutputFile;
@@ -91,15 +91,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                      File strategoJavaStrategiesMainFile,
                      String sdfName,
                      String metaSdfName,
-                     Iterable<String> sdfArgs,
-                     File externalJar,
-                     File strjTarget,
+                     Arguments sdfArgs,
+                     @Nullable File externalJar,
+                     @Nullable File strjTarget,
                      File strjInputFile,
                      File strjOutputFile,
                      File strjDepFile,
                      File strjCacheDir,
-                     Iterable<String> strategoArgs,
-                     Format format,
+                     Arguments strategoArgs,
+                     StrategoFormat format,
                      String strategiesPackageName,
                      String externalJarFlags,
                      File rtg2SigOutputFile,
@@ -238,12 +238,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
 
-    public static Arguments sdfArgs(SpoofaxContext context, Iterable<String> sdfArgs) {
+    public static Arguments sdfArgs(SpoofaxContext context, Arguments sdfArgs) {
         final Arguments args = new Arguments();
         args.addAll(sdfArgs);
 
         final Iterable<FileObject> paths =
-                context.languagePathService().sourceAndIncludePaths(context.project, LANG_SDF_NAME);
+                context.languagePathService().sourceAndIncludePaths(context.languageSpec, LANG_SDF_NAME);
         for (FileObject path : paths) {
             try {
                 if (path.exists()) {
@@ -329,7 +329,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         requireBuild(CopyJar.factory, new CopyJar.Input(context, input.externalJar, input.strjTarget));
 
         final Iterable<FileObject> paths =
-                context.languagePathService().sourceAndIncludePaths(context.project, SpoofaxConstants.LANG_STRATEGO_NAME);
+                context.languagePathService().sourceAndIncludePaths(context.languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
         final Collection<File> includeDirs = Lists.newLinkedList();
         for (FileObject path : paths) {
             final File file = toFileReplicate(path);
@@ -342,16 +342,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 Iterables.toArray(includeDirs, File.class), new String[0], input.strjCacheDir, strategoArgs, origin));
     }
 
-    private Arguments strategoArgs(Iterable<String> strategoArgs, Format format, String strategiesPackageName, @Nullable String externalJarFlags, File strategoJavaStrategiesMainFile) {
+    private Arguments strategoArgs(Arguments strategoArgs, StrategoFormat format, String strategiesPackageName, @Nullable String externalJarFlags, File strategoJavaStrategiesMainFile) {
         final Arguments args = new Arguments();
         args.addAll(strategoArgs);
 
-        if (format == Format.ctree) {
+        if (format == StrategoFormat.ctree) {
             args.add("-F");
         } else {
-            args.addAll("-la", "java-front");
+            args.add("-la", "java-front");
             if (context.isJavaJarEnabled(this, strategoJavaStrategiesMainFile)) {
-                args.addAll("-la", strategiesPackageName);
+                args.add("-la", strategiesPackageName);
             }
         }
 

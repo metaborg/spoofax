@@ -9,12 +9,12 @@ import org.apache.commons.vfs2.FileObject;
  */
 public interface ISourceLocation {
     /**
-     * @return Source region
+     * @return Region in the source file.
      */
-    public abstract ISourceRegion region();
+    ISourceRegion region();
 
     /**
-     * @return Resource, or null if the resource could not be determined.
+     * @return Resource of the source file, or null if the source file could not be determined.
      */
-    public abstract @Nullable FileObject resource();
+    @Nullable FileObject resource();
 }

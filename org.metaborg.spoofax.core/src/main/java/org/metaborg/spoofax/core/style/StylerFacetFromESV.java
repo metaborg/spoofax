@@ -102,33 +102,39 @@ public class StylerFacetFromESV {
         final boolean underline = false;
         final IStrategoAppl fontSetting = (IStrategoAppl) attribute.getSubterm(2);
         final String fontSettingCons = fontSetting.getConstructor().getName();
-        if(fontSettingCons.equals("BOLD")) {
-            bold = true;
-            italic = false;
-        } else if(fontSettingCons.equals("ITALIC")) {
-            bold = false;
-            italic = true;
-        } else if(fontSettingCons.equals("BOLD_ITALIC")) {
-            bold = true;
-            italic = true;
-        } else {
-            bold = false;
-            italic = false;
+        switch (fontSettingCons) {
+            case "BOLD":
+                bold = true;
+                italic = false;
+                break;
+            case "ITALIC":
+                bold = false;
+                italic = true;
+                break;
+            case "BOLD_ITALIC":
+                bold = true;
+                italic = true;
+                break;
+            default:
+                bold = false;
+                italic = false;
+                break;
         }
         return new Style(color, backgroundColor, bold, italic, underline);
     }
 
     private static Color color(IStrategoAppl color) {
         final String colorCons = color.getConstructor().getName();
-        if(colorCons.equals("ColorRGB")) {
-            final int r = Integer.parseInt(Tools.asJavaString(color.getSubterm(0)));
-            final int g = Integer.parseInt(Tools.asJavaString(color.getSubterm(1)));
-            final int b = Integer.parseInt(Tools.asJavaString(color.getSubterm(2)));
-            return new Color(r, g, b);
-        } else if(colorCons.equals("ColorDefault")) {
-            return new Color(0, 0, 0);
-        } else {
-            return null;
+        switch (colorCons) {
+            case "ColorRGB":
+                final int r = Integer.parseInt(Tools.asJavaString(color.getSubterm(0)));
+                final int g = Integer.parseInt(Tools.asJavaString(color.getSubterm(1)));
+                final int b = Integer.parseInt(Tools.asJavaString(color.getSubterm(2)));
+                return new Color(r, g, b);
+            case "ColorDefault":
+                return new Color(0, 0, 0);
+            default:
+                return null;
         }
     }
 }

@@ -1,68 +1,47 @@
 package org.metaborg.core.build.dependency;
 
-import org.metaborg.core.MetaborgException;
+import java.util.Collection;
+
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.IProject;
 
 /**
- * Interface for a service that returns compile-time and runtime language component dependencies for projects.
- *
- * @deprecated Use {@link INewDependencyService} instead.
+ * Returns compile and source dependencies for a project or language component.
  */
-@Deprecated
 public interface IDependencyService {
     /**
-     * Gets compile-time language component dependencies for given project.
+     * Gets compile dependencies for the given project.
      * 
      * @param project
      *            Project to get dependencies for.
-     * @return Compile-time language component dependencies.
-     * @throws MetaborgException
-     *             When getting dependencies fails unexpectedly.
+     * @return Compile dependencies.
      */
-    public abstract Iterable<ILanguageComponent> compileDependencies(IProject project) throws MetaborgException;
+    Collection<ILanguageComponent> compileDeps(IProject project) throws MissingDependencyException;
 
     /**
-     * Gets runtime language component dependencies for given project.
-     * 
+     * Gets source dependencies for the given project.
+     *
      * @param project
      *            Project to get dependencies for.
-     * @return Runtime language component dependencies.
-     * @throws MetaborgException
-     *             When getting dependencies fails unexpectedly.
+     * @return Source dependencies.
      */
-    public abstract Iterable<ILanguageComponent> runtimeDependencies(IProject project) throws MetaborgException;
+    Collection<ILanguageComponent> sourceDeps(IProject project) throws MissingDependencyException;
 
     /**
-     * Checks if dependencies for given project are loaded and returns any missing dependencies.
-     * 
+     * Gets source dependencies for the given language component.
+     *
+     * @param component
+     *            Language component to get dependencies for.
+     * @return Source dependencies.
+     */
+    Collection<ILanguageComponent> sourceDeps(ILanguageComponent component) throws MissingDependencyException;
+
+    /**
+     * Checks if compile and source dependencies for the given project are loaded; and returns any missing dependencies.
+     *
      * @param project
-     *            Project to check dependencies for.
+     *            Project to check the dependencies for.
+     * @return Missing dependencies.
      */
-    public abstract MissingDependencies checkDependencies(IProject project);
-
-
-    /**
-     * Gets compile-time language component dependencies for given component.
-     * 
-     * @param component
-     *            Component to get dependencies for.
-     * @return Compile-time language component dependencies.
-     * @throws MetaborgException
-     *             When getting dependencies fails unexpectedly.
-     */
-    public abstract Iterable<ILanguageComponent> compileDependencies(ILanguageComponent component)
-        throws MetaborgException;
-
-    /**
-     * Gets runtime language component dependencies for given component.
-     * 
-     * @param component
-     *            Component to get dependencies for.
-     * @return Runtime language component dependencies.
-     * @throws MetaborgException
-     *             When getting dependencies fails unexpectedly.
-     */
-    public abstract Iterable<ILanguageComponent> runtimeDependencies(ILanguageComponent component)
-        throws MetaborgException;
+    MissingDependencies checkDependencies(IProject project);
 }

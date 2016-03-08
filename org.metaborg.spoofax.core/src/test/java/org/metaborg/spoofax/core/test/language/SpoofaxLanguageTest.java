@@ -31,7 +31,7 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
     @Test public void discoverLanguage() throws Exception {
         final FileObject location = resourceService.resolve("res:");
 
-        final Iterable<ILanguageComponent> languages = languageDiscoveryService.discover(location);
+        final Iterable<ILanguageComponent> languages = languageDiscoveryService.discover(languageDiscoveryService.request(location));
 
         assertEquals(1, Iterables.size(languages));
 
@@ -43,11 +43,13 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
         assertEquals(resourceService.resolve("res:Entity"), component.location());
 
         final IdentificationFacet identificationFacet = impl.facet(IdentificationFacet.class);
+
         assertTrue(identificationFacet.identify(resourceService.resolve("ram:///Entity/test.ent")));
 
         final SyntaxFacet syntaxFacet = impl.facet(SyntaxFacet.class);
 
         assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTable);
+
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
         final StrategoRuntimeFacet strategoFacet = impl.facet(StrategoRuntimeFacet.class);

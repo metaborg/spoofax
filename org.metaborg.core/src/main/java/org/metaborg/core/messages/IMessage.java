@@ -10,32 +10,32 @@ import org.metaborg.core.source.ISourceRegion;
  */
 public interface IMessage {
     /**
-     * @return Message text
+     * @return Message text.
      */
-    public String message();
+    String message();
 
     /**
      * @return Message severity
      */
-    public MessageSeverity severity();
+    MessageSeverity severity();
 
     /**
-     * @return Message type
+     * @return Message type.
      */
-    public MessageType type();
+    MessageType type();
 
     /**
-     * @return Source of the message
+     * @return Source of the message, or null if the source is unknown.
      */
-    public FileObject source();
+    @Nullable FileObject source();
 
     /**
      * @return Affected region inside the source, or null if the entire source is affected.
      */
-    public @Nullable ISourceRegion region();
+    @Nullable ISourceRegion region();
 
     /**
      * @return Exception belonging to this message, or null if there is no exception.
      */
-    public @Nullable Throwable exception();
+    @Nullable Throwable exception();
 }

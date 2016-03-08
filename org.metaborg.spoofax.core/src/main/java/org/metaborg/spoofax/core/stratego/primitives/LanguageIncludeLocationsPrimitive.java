@@ -50,7 +50,7 @@ public class LanguageIncludeLocationsPrimitive extends AbstractPrimitive {
             env.setCurrent(factory.makeList());
             return true;
         }
-        
+
         final IProject project = projectService.get(context.location());
         if(project == null) {
             env.setCurrent(factory.makeList());

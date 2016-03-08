@@ -3,6 +3,7 @@ package org.metaborg.core.language;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.project.IProject;
 
 /**
  * Interface for identifying the language of a resource.
@@ -17,7 +18,7 @@ public interface ILanguageIdentifierService {
      *            Language to check against.
      * @return True if resource is of given language, false otherwise.
      */
-    public abstract boolean identify(FileObject resource, ILanguageImpl language);
+    boolean identify(FileObject resource, ILanguageImpl language);
 
     /**
      * Attempts to identify the active language of given resource.
@@ -28,7 +29,20 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to languages with different names.
      */
-    public abstract @Nullable ILanguageImpl identify(FileObject resource);
+    @Nullable ILanguageImpl identify(FileObject resource);
+
+    /**
+     * Attempts to identify the active language of given resource.
+     *
+     * @param resource
+     *            Resource to identify.
+     * @param project
+     *            The projectto which the resource belongs; or <code>null</code> if not known.
+     * @return Identified language, or null if language could not be identified.
+     * @throws IllegalStateException
+     *             When a resource can be identified to languages with different names.
+     */
+    @Nullable ILanguageImpl identify(FileObject resource, @Nullable IProject project);
 
     /**
      * Attempts to identify the active language of given resource, and return an identified resource.
@@ -39,7 +53,20 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to languages with different names.
      */
-    public abstract @Nullable IdentifiedResource identifyToResource(FileObject resource);
+    @Nullable IdentifiedResource identifyToResource(FileObject resource);
+
+    /**
+     * Attempts to identify the active language of given resource, and return an identified resource.
+     *
+     * @param resource
+     *            Resource to identify.
+     * @param project
+     *            The project to which the resource belongs; or <code>null</code> if not known.
+     * @return Identified resource, or null if language could not be identified.
+     * @throws IllegalStateException
+     *             When a resource can be identified to languages with different names.
+     */
+    @Nullable IdentifiedResource identifyToResource(FileObject resource, @Nullable IProject project);
 
     /**
      * Attempts to identify the language of given resource, among given list of languages.
@@ -50,7 +77,7 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to multiple languages.
      */
-    public abstract @Nullable ILanguageImpl identify(FileObject resource, Iterable<? extends ILanguageImpl> languages);
+    @Nullable ILanguageImpl identify(FileObject resource, Iterable<? extends ILanguageImpl> languages);
 
     /**
      * Attempts to identify the language of given resource, among given list of languages, and return an identified
@@ -62,8 +89,7 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to multiple languages.
      */
-    public abstract @Nullable IdentifiedResource identifyToResource(FileObject resource,
-        Iterable<? extends ILanguageImpl> languages);
+    @Nullable IdentifiedResource identifyToResource(FileObject resource, Iterable<? extends ILanguageImpl> languages);
 
     /**
      * Returns if language identification is available for given implementation.
@@ -72,5 +98,5 @@ public interface ILanguageIdentifierService {
      *            Language implementation to check.
      * @return True if identification is available, false if not.
      */
-    public boolean available(ILanguageImpl impl);
+    boolean available(ILanguageImpl impl);
 }

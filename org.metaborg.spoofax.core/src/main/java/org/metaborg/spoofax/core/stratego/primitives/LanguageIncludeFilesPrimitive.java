@@ -51,7 +51,7 @@ public class LanguageIncludeFilesPrimitive extends AbstractPrimitive {
             env.setCurrent(factory.makeList());
             return true;
         }
-        
+
         final IProject project = projectService.get(context.location());
         if(project == null) {
             env.setCurrent(factory.makeList());
@@ -68,9 +68,8 @@ public class LanguageIncludeFilesPrimitive extends AbstractPrimitive {
         }
         final ILanguageImpl impl = language.activeImpl();
         if(impl == null) {
-            final String message =
-                String.format("Getting include files for %s failed, no active language implementation could be found",
-                    languageName);
+            final String message = String.format(
+                "Getting include files for %s failed, no active language implementation could be found", languageName);
             throw new InterpreterException(message);
         }
 

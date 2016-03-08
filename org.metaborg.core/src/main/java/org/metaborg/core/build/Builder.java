@@ -26,6 +26,7 @@ import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguagesFileSelector;
+import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
@@ -87,9 +88,9 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
-        ISyntaxService<P> syntaxService, IAnalysisService<P, A> analysisService, ITransformService<P, A, T> transformService,
-        IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor) {
+                           ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
+                           ISyntaxService<P> syntaxService, IAnalysisService<P, A> analysisService, ITransformService<P, A, T> transformService,
+                           IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
         this.languagePathService = languagePathService;
@@ -167,7 +168,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             newState.add(language, diff.newState);
         }
 
-        final IBuildMessagePrinter printer = input.messagePrinter;
+        final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.printSummary();
         }
@@ -215,7 +216,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 final FileObject resource = parseResult.source;
                 try {
                     if(contextService.available(parseResult.language)) {
-                        final IContext context = contextService.get(resource, parseResult.language);
+                        final IContext context = contextService.get(resource, input.project, parseResult.language);
                         sourceResultsPerContext.put(context, parseResult);
                     }
                 } catch(ContextException e) {
@@ -422,7 +423,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private boolean printMessages(Iterable<IMessage> messages, String phase, BuildInput input, boolean pardoned) {
-        final IBuildMessagePrinter printer = input.messagePrinter;
+        final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             for(IMessage message : messages) {
                 printer.print(message, pardoned);
@@ -438,7 +439,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     private boolean printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
         boolean pardoned) {
-        final IBuildMessagePrinter printer = input.messagePrinter;
+        final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(resource, message, e, pardoned);
         }
@@ -450,7 +451,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private boolean printMessage(String message, @Nullable Throwable e, BuildInput input, boolean pardoned) {
-        final IBuildMessagePrinter printer = input.messagePrinter;
+        final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(input.project, message, e, pardoned);
         }
@@ -477,7 +478,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 return;
             }
             final Set<IContext> contexts =
-                ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);
+                ContextUtils.getAll(Iterables2.from(resources), input.project, languageIdentifier, contextService);
             for(IContext context : contexts) {
                 try {
                     context.reset();

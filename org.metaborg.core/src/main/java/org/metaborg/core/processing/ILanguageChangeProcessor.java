@@ -18,8 +18,8 @@ public interface ILanguageChangeProcessor {
      * @param progressReporter
      *            Progress reporter, or null to use a processor-specific implementation for progress reporting.
      */
-    public abstract void processComponentChange(LanguageComponentChange change,
-        @Nullable IProgressReporter progressReporter);
+    void processComponentChange(LanguageComponentChange change,
+                                @Nullable IProgressReporter progressReporter);
 
     /**
      * Process given language implementation change event.
@@ -29,5 +29,5 @@ public interface ILanguageChangeProcessor {
      * @param progressReporter
      *            Progress reporter, or null to use a processor-specific implementation for progress reporting.
      */
-    public abstract void processImplChange(LanguageImplChange change, @Nullable IProgressReporter progressReporter);
+    void processImplChange(LanguageImplChange change, @Nullable IProgressReporter progressReporter);
 }

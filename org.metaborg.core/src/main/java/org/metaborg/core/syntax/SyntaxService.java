@@ -19,7 +19,7 @@ public abstract class SyntaxService<T> implements ISyntaxService<T> {
     }
 
 
-    @Override public ParseResult<T> parse(String text, FileObject resource, ILanguageImpl language,
+    @Override public ParseResult<T> parse(String text, @Nullable FileObject resource, ILanguageImpl language,
         IParserConfiguration parserConfig) throws ParseException {
         final IParseService<T> parser = parser(language);
         if(parser == null) {
@@ -53,7 +53,6 @@ public abstract class SyntaxService<T> implements ISyntaxService<T> {
         if(facet == null) {
             return null;
         }
-        final IParseService<T> parser = parsers.get(facet.type);
-        return parser;
+        return parsers.get(facet.type);
     }
 }

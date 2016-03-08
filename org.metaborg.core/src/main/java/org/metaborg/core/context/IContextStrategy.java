@@ -2,6 +2,7 @@ package org.metaborg.core.context;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 
 /**
  * Interface for {@link IContext} creation/retrieval strategies.
@@ -9,14 +10,16 @@ import org.metaborg.core.language.ILanguageImpl;
 public interface IContextStrategy {
     /**
      * Returns the context identifier for given resource and language.
-     * 
+     *
      * @param resource
      *            Resource to get a context identifier for.
+     * @param project
+     *            Project to which the resource belongs.
      * @param language
      *            Language to get a context identifier for.
      * @return Context identifier.
      * @throws ContextException
      *             When a context identifier cannot be returned.
      */
-    public ContextIdentifier get(FileObject resource, ILanguageImpl language) throws ContextException;
+    ContextIdentifier get(FileObject resource, IProject project, ILanguageImpl language) throws ContextException;
 }

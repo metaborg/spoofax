@@ -7,5 +7,5 @@ public interface ITemporaryContext extends IContext, AutoCloseable {
     /**
      * Close the context, releasing any state.
      */
-    public abstract void close();
+    void close();
 }

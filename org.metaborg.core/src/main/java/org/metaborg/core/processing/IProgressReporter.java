@@ -10,7 +10,7 @@ public interface IProgressReporter {
      * @param ticks
      *            Amount of work done.
      */
-    public abstract void work(int ticks);
+    void work(int ticks);
 
     /**
      * Set the work remaining to {@code ticks}.
@@ -18,14 +18,14 @@ public interface IProgressReporter {
      * @param ticks
      *            Amount of work remaining.
      */
-    public abstract void setWorkRemaining(int ticks);
+    void setWorkRemaining(int ticks);
 
     /**
      * Create a sub progress reporter, with {@code ticks} worth of work being done from this progress reporter.
      * 
      * @param ticks
-     *            Amount of work being done i nthis progress reporter.
+     *            Amount of work being done in this progress reporter.
      * @return Sub progress reporter.
      */
-    public abstract IProgressReporter subProgress(int ticks);
+    IProgressReporter subProgress(int ticks);
 }

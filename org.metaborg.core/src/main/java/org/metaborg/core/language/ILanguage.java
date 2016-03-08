@@ -10,12 +10,12 @@ public interface ILanguage {
     /**
      * @return Name of this language.
      */
-    public abstract String name();
+    String name();
 
     /**
      * @return All language implementations that belong to this language.
      */
-    public abstract Iterable<? extends ILanguageImpl> impls();
+    Iterable<? extends ILanguageImpl> impls();
 
     /**
      * @return Active language implementation for this language. A language implementation is active when it has a
@@ -23,5 +23,5 @@ public interface ILanguage {
      *         the highest version number, the one that was added last wins. Returns null when {@code #impls()} returns
      *         an empty iterable, which only happens if this language has been removed from the language service.
      */
-    public abstract @Nullable ILanguageImpl activeImpl();
+    @Nullable ILanguageImpl activeImpl();
 }

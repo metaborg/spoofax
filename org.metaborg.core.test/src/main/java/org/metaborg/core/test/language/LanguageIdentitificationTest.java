@@ -14,6 +14,8 @@ import org.metaborg.core.test.MetaborgTest;
 import com.google.common.collect.Iterables;
 
 public class LanguageIdentitificationTest extends MetaborgTest {
+
+
     public LanguageIdentitificationTest(MetaborgModule module) {
         super(module);
     }
@@ -36,7 +38,7 @@ public class LanguageIdentitificationTest extends MetaborgTest {
         assertTrue(languageIdentifierService.identify(resourceService.resolve("ram:///Entity2/test.ent2"), impl2));
         assertFalse(languageIdentifierService.identify(resourceService.resolve("ram:///Entity1/test.ent1"), impl2));
     }
-    
+
     @Test(expected = IllegalStateException.class) public void conflictingExtension() throws Exception {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location1 = createDir("ram:///Entity1");

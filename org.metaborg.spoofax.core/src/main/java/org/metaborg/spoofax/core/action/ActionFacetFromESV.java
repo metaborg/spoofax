@@ -68,12 +68,12 @@ public class ActionFacetFromESV {
                     break;
                 case "Action":
                     final String actionName = name(item.getSubterm(0));
-                    final String stategy = Tools.asJavaString(item.getSubterm(1).getSubterm(0));
+                    final String strategy = Tools.asJavaString(item.getSubterm(1).getSubterm(0));
                     final TransformActionFlags actionFlags = flags(item.getSubterm(2));
                     final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
                     final ImmutableList<String> newActionNesting = ImmutableList.<String>builder().addAll(newNesting).add(actionName).build();
                     final NamedGoal goal = new NamedGoal(newActionNesting);
-                    final TransformAction action = new TransformAction(actionName, goal, mergedActionFlags, stategy);
+                    final TransformAction action = new TransformAction(actionName, goal, mergedActionFlags, strategy);
                     actions.put(goal, action);
                     actions.put(new EndNamedGoal(goal.names.get(goal.names.size() - 1)), action);
                     final MenuAction menuAction = new MenuAction(action);

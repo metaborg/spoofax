@@ -8,6 +8,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
@@ -81,7 +82,7 @@ public class BuildInput {
     /**
      * Message printer to use during build, or null to skip printing messages.
      */
-    public final @Nullable IBuildMessagePrinter messagePrinter;
+    public final @Nullable IMessagePrinter messagePrinter;
 
     /**
      * If an exception should be thrown when there are parsing, analysis, or transformation errors.
@@ -96,9 +97,9 @@ public class BuildInput {
 
     public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
         Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
-        boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
-        Iterable<ITransformGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors,
-        Set<ILanguageImpl> pardonedLanguages) {
+        boolean analyze, @Nullable FileSelector analyzeSelector, boolean transform,
+        @Nullable FileSelector transformSelector, Iterable<ITransformGoal> transformGoals,
+        @Nullable IMessagePrinter messagePrinter, boolean throwOnErrors, Set<ILanguageImpl> pardonedLanguages) {
         this.state = state;
         this.project = project;
         this.sourceChanges = resourceChanges;

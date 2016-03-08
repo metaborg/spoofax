@@ -26,7 +26,7 @@ public class CleanInput {
     public final @Nullable FileSelector selector;
 
 
-    public CleanInput(IProject project, Iterable<ILanguageImpl> languages, FileSelector selector) {
+    public CleanInput(IProject project, Iterable<ILanguageImpl> languages, @Nullable FileSelector selector) {
         this.project = project;
         this.languages = languages;
         this.selector = selector;

@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -37,7 +38,8 @@ import com.google.inject.Inject;
  * different name and a few different facets. Dialects are created by copying over all facets from a language
  * implementation into a new language implementation, except that:
  * <ul>
- * <li>{@link ResourceExtensionFacet}: removed to prevent dialects from overriding an extension of the base language.</li>
+ * <li>{@link ResourceExtensionFacet}: removed to prevent dialects from overriding an extension of the base language.
+ * </li>
  * <li>{@link IdentificationFacet}: wrapped by {@link MetaFileIdentifier} such that files without a corresponding .meta
  * file do not identify to the dialect.</li>
  * <li>{@link SyntaxFacet}: replaced by the dialect's syntax facet that uses a different parse table.</li>
@@ -204,10 +206,11 @@ public class DialectService implements IDialectService {
         } else {
             dialectId = baseId.id;
         }
-        final LanguageIdentifier id =
-            new LanguageIdentifier(baseId.groupId, dialectId, baseId.version);
-        final LanguageCreationRequest request =
-            languageService.create(id, location, Iterables2.singleton(new LanguageContributionIdentifier(id, name)));
+        final LanguageIdentifier id = new LanguageIdentifier(baseId.groupId, dialectId, baseId.version);
+        // HACK: use config of first component.
+        final ILanguageComponentConfig config = Iterables.get(base.components(), 0).config();
+        final LanguageCreationRequest request = languageService.create(id, location,
+            Iterables2.singleton(new LanguageContributionIdentifier(id, name)), config);
 
         for(IFacet facet : base.facets()) {
             if(facet instanceof IdentificationFacet && replaceIdentification) {

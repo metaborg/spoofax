@@ -31,7 +31,7 @@ public interface ITransformService<P, A, T> {
      * @throws TransformException
      *             When transformation fails.
      */
-    public abstract TransformResults<P, T> transform(ParseResult<P> input, IContext context, ITransformGoal goal)
+    TransformResults<P, T> transform(ParseResult<P> input, IContext context, ITransformGoal goal)
         throws TransformException;
 
     /**
@@ -48,8 +48,8 @@ public interface ITransformService<P, A, T> {
      * @throws TransformException
      *             When transformation fails.
      */
-    public abstract TransformResults<A, T> transform(AnalysisFileResult<P, A> input, IContext context,
-        ITransformGoal goal) throws TransformException;
+    TransformResults<A, T> transform(AnalysisFileResult<P, A> input, IContext context,
+                                     ITransformGoal goal) throws TransformException;
 
     /**
      * Checks if transform actions are available for given context and goal.
@@ -60,7 +60,7 @@ public interface ITransformService<P, A, T> {
      *            Goal to check transform actions for.
      * @return True if transform actions are available, false if not.
      */
-    public abstract boolean available(IContext context, ITransformGoal goal);
+    boolean available(IContext context, ITransformGoal goal);
 
     /**
      * Checks if analysis is required for given context and goal.
@@ -71,7 +71,7 @@ public interface ITransformService<P, A, T> {
      *            Goal to check for.
      * @return True if analysis is required, false if not.
      */
-    public abstract boolean requiresAnalysis(IContext context, ITransformGoal goal);
+    boolean requiresAnalysis(IContext context, ITransformGoal goal);
 
 
     /**
@@ -89,8 +89,8 @@ public interface ITransformService<P, A, T> {
      * @throws TransformException
      *             When transformation action requires analysis.
      */
-    public abstract TransformResult<P, T> transformAction(ParseResult<P> input, IContext context,
-        TransformActionContribution action) throws TransformException;
+    TransformResult<P, T> transformAction(ParseResult<P> input, IContext context,
+                                          TransformActionContribution action) throws TransformException;
 
     /**
      * Transforms given result with given action.
@@ -105,6 +105,6 @@ public interface ITransformService<P, A, T> {
      * @throws TransformException
      *             When transformation fails.
      */
-    public abstract TransformResult<A, T> transformAction(AnalysisFileResult<P, A> input, IContext context,
-        TransformActionContribution action) throws TransformException;
+    TransformResult<A, T> transformAction(AnalysisFileResult<P, A> input, IContext context,
+                                          TransformActionContribution action) throws TransformException;
 }

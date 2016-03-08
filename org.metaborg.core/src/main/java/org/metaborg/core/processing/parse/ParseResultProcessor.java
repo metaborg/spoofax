@@ -70,14 +70,14 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
                         observer.onError(update.exception);
                         break;
                     case Remove: {
-                        final String message = String.format("Parse result for % was removed unexpectedly", resource);
+                        final String message = String.format("Parse result for %s was removed unexpectedly", resource);
                         logger.error(message);
                         observer.onError(new ParseException(resource, language, message));
                         break;
                     }
                     default: {
                         final String message =
-                            String.format("Unexpected parse update kind % for %", update.kind, resource);
+                            String.format("Unexpected parse update kind %s for %s", update.kind, resource);
                         logger.error(message);
                         observer.onError(new ParseException(resource, language, message));
                         break;
@@ -113,7 +113,7 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
     @Override public void update(FileObject resource, ParseResult<P> result) {
         logger.trace("Pushing parse result for {}", resource);
         final BehaviorSubject<ParseChange<P>> updates = getUpdates(resource.getName());
-        updates.onNext(ParseChange.<P>update(result));
+        updates.onNext(ParseChange.update(result));
     }
 
     @Override public void error(FileObject resource, ParseException exception) {
@@ -150,7 +150,7 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
                 final ParseResult<P> result = syntaxService.parse(text, resource, language, null);
                 updates.onNext(ParseChange.update(result));
             } catch(ParseException e) {
-                final String message = String.format("Parsing for % failed", name);
+                final String message = String.format("Parsing for %s failed", name);
                 logger.error(message, e);
                 updates.onNext(ParseChange.<P>error(e));
             }

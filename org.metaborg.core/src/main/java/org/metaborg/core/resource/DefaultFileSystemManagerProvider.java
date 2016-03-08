@@ -37,8 +37,9 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
             manager.setFilesCache(new DefaultFilesCache());
             manager.setCacheStrategy(CacheStrategy.ON_RESOLVE);
 
-            manager.setTemporaryFileStore(new DefaultFileReplicator());
-            manager.setReplicator(new DefaultFileReplicator());
+            final DefaultFileReplicator replicator = new DefaultFileReplicator();
+            manager.setTemporaryFileStore(replicator);
+            manager.setReplicator(replicator);
 
             addDefaultProvider(manager);
             addProviders(manager);
@@ -48,7 +49,7 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
 
             return manager;
         } catch(FileSystemException e) {
-            throw new RuntimeException("Cannot initialze resource service: " + e.getMessage(), e);
+            throw new RuntimeException("Cannot initialize resource service: " + e.getMessage(), e);
         }
     }
 

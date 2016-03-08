@@ -1,6 +1,7 @@
 package org.metaborg.core.editor;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 
 /**
@@ -8,9 +9,9 @@ import org.metaborg.util.iterators.Iterables2;
  */
 public class NullEditorRegistry implements IEditorRegistry {
     @Override public Iterable<IEditor> openEditors() {
-        return Iterables2.<IEditor>empty();
+        return Iterables2.empty();
     }
 
-    @Override public void open(FileObject resource) {
+    @Override public void open(FileObject resource, IProject project) {
     }
 }
