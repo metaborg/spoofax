@@ -31,11 +31,6 @@ public class Menu implements IMenu {
         return name;
     }
 
-    @Override
-    public void accept(final IMenuItemVisitor visitor) {
-        visitor.visitMenu(this);
-    }
-
     @Override public Iterable<IMenuItem> items() {
         return items;
     }

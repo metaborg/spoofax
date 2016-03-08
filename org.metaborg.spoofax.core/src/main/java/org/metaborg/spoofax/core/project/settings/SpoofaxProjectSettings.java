@@ -201,8 +201,146 @@ public class SpoofaxProjectSettings implements Serializable {
         return resolve(DIR_CACHE);
     }
 
+    public FileObject getMainESVFile() {
+        return resolve(DIR_EDITOR + "/" + settings.name() + ".main.esv");
+    }
+    
+    public FileObject getSdfMainFile(String sdfName) {
+        return resolve(getGenSyntaxDirectory(), sdfName + ".sdf");
+    }
+    
+    public FileObject getSdfCompiledDefFile(String sdfName) {
+        return resolve(getIncludeDirectory(), sdfName + ".def");
+    }
+    
+    public FileObject getSdfCompiledPermissiveDefFile(String sdfName) {
+        return resolve(getIncludeDirectory(), sdfName + "-Permissive.def");
+    }
+    
+    public String getSdfTableName(String sdfName) {
+        return sdfName + ".tbl";
+    }
+    
+    public FileObject getSdfCompiledTableFile(String sdfName) {
+        return resolve(getIncludeDirectory(), getSdfTableName(sdfName));
+    }
+    
+    
+    public FileObject getRtgFile(String sdfName) {
+        return resolve(getIncludeDirectory(), sdfName + ".rtg");
+    }
+    
+    
+    public FileObject getStrMainFile() {
+        return resolve(getTransDirectory(), strategoName() + ".str");
+    }
+    
+    public FileObject getStrJavaDirectory() {
+        return resolve(DIR_STR_JAVA);
+    }
+    
+    public FileObject getStrJavaPackageDirectory() {
+        return resolve(getStrJavaDirectory(), packagePath());
+    }
+    
+    public FileObject getStrCompiledJavaPackageDirectory() {
+        return resolve(getOutputClassesDirectory(), packagePath());
+    }
+    
+    public FileObject getStrJavaStrategiesDirectory() {
+        return resolve(getStrJavaPackageDirectory(), "strategies");
+    }
+    
+    public FileObject getStrCompiledJavaStrategiesDirectory() {
+        return resolve(getStrCompiledJavaPackageDirectory(), "strategies");
+    }
+    
+    public FileObject getStrJavaStrategiesMainFile() {
+        return resolve(getStrJavaStrategiesDirectory(), "Main.java");
+    }
 
-    private FileObject resolve(String directory) {
+    public FileObject getStrJavaTransDirectory() {
+        return resolve(DIR_STR_JAVA_TRANS);
+    }
+    
+    public FileObject getStrJavaMainFile() {
+        return resolve(getStrJavaTransDirectory(), "Main.java");
+    }
+    
+    public FileObject getStrCompiledJavaTransDirectory() {
+        return resolve(DIR_STR_JAVA_CLASSES);
+    }
+    
+    public FileObject getStrCompiledJarFile() {
+        return resolve(getIncludeDirectory(), strategoName() + ".jar");
+    }
+    
+    public FileObject getStrCompiledJavaJarFile() {
+        return resolve(getIncludeDirectory(), strategoName() + "-java.jar");
+    }
+    
+    public FileObject getStrCompiledCtreeFile() {
+        return resolve(getIncludeDirectory(), strategoName() + ".ctree");
+    }
+    
+    public FileObject getStrCompiledParenthesizerFile(String sdfName) {
+        return resolve(getIncludeDirectory(), sdfName + "-parenthesize.str");
+    }
+    
+    public FileObject getStrCompiledSigFile(String sdfName) {
+        return resolve(getIncludeDirectory(), sdfName + ".str");
+    }
+    
+
+    public FileObject getPpFile(String sdfName) {
+        return resolve(getSyntaxDirectory(), sdfName + ".pp");
+    }
+    
+    public String getPpAfName(String sdfName) {
+        return sdfName + ".pp.af";
+    }
+    
+    public FileObject getPpAfCompiledFile(String sdfName) {
+        return resolve(getIncludeDirectory(), getPpAfName(sdfName));
+    }
+    
+    public FileObject getGenPpCompiledFile(String sdfName) {
+        return resolve(getIncludeDirectory(), sdfName + ".generated.pp");
+    }
+    
+    public String getGenPpAfName(String sdfName) {
+        return sdfName + ".generated.pp.af";
+    }
+    
+    public FileObject getGenPpAfCompiledFile(String sdfName) {
+        return resolve(getIncludeDirectory(), getGenPpAfName(sdfName));
+    }
+    
+    
+    public FileObject getDsGeneratedInterpreterJava() {
+        return resolve(DIR_STR_JAVA + "/ds/generated/interpreter");
+    }
+    
+    public FileObject getDsGeneratedInterpreterCompiledJava() {
+        return resolve(getOutputClassesDirectory(), "ds/generated/interpreter");
+    }
+    
+    public FileObject getDsManualInterpreterCompiledJava() {
+        return resolve(getOutputClassesDirectory(), "ds/manual/interpreter");
+    }
+    
+    
+    public FileObject getPackedEsv() {
+        return resolve(getIncludeDirectory(), esvName() + ".packed.esv");
+    }
+    
+    public FileObject getMainDsFile() {
+        return resolve(getTransDirectory(), strategoName() + ".ds");
+    }
+    
+
+
+    private FileObject resolve(String name) {
         try {
             return location.resolveFile(name);
         } catch(FileSystemException e) {

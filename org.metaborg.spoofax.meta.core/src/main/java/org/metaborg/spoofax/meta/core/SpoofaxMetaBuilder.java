@@ -59,6 +59,11 @@ public class SpoofaxMetaBuilder {
     private static final String failingRebuildMessage =
         "Previous build failed and no change in the build input has been observed, not rebuilding. Fix the problem, or clean and rebuild the project to force a rebuild";
 
+    private final Injector injector;
+    private final ISourceTextService sourceTextService;
+    private final IDependencyService dependencyService;
+    private final ILanguagePathService languagePathService;
+    private final ISpoofaxProcessorRunner runner;
     private final MetaBuildAntRunnerFactory antRunner;
     private final Set<IBuildStep> buildSteps;
 

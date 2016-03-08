@@ -6,7 +6,7 @@ public class JSGLRParserConfiguration implements IParserConfiguration {
     public static final boolean defaultImplode = true;
     public static final boolean defaultRecovery = true;
     public static final boolean defaultCompletion = false;
-    public static final int defaultTimeout = 30000000;
+    public static final int defaultTimeout = 30000;
     public static final int defaultCursorPosition = Integer.MAX_VALUE;
 
     public final boolean implode;

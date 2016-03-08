@@ -6,11 +6,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.Format;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -25,6 +27,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.Rtg2Sig;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
+import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableCustom;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
 import org.metaborg.util.cmd.Arguments;
@@ -33,13 +36,12 @@ import org.sugarj.common.FileCommands;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
+import build.pluto.output.Out;
 import build.pluto.stamp.FileExistsStamper;
 import build.pluto.stamp.LastModifiedStamper;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
-import javax.annotation.Nullable;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
@@ -205,6 +207,20 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(context, input, packSdfOrigin);
         final Origin rtg2Sig = rtg2Sig(rtg2SigInput(context, input, sdf2RtgInput));
 
+        // SDF custom permissive
+        final String permissivePostfix = "-Permissive-Custom";
+        final String permissiveSdfName = input.sdfName + permissivePostfix;
+        final File permissiveInputPath = new File(FilenameUtils.removeExtension(input.packSdfInputPath.toString()) + permissivePostfix + ".sdf");
+        require(permissiveInputPath);
+        if (permissiveInputPath.exists()){
+            final File permissiveOutputPath = new File(FilenameUtils.removeExtension(input.packSdfOutputPath.toString()) + permissivePostfix + ".def");
+            final PackSdf.Input permissivePackSdfInput = packSdfInput(context, permissiveSdfName, sdfArgs, input.externalDef, permissiveInputPath, permissiveOutputPath, input.syntaxFolder, input.genSyntaxFolder);
+            final File permissivePackSdfOut = requireBuild(PackSdf.factory, permissivePackSdfInput).val;
+            final Origin permissivePackSdfOrigin = PackSdf.origin(permissivePackSdfInput);
+            final File permissiveTableOutputPath = new File(FilenameUtils.removeExtension(input.sdf2tableOutputPath.toString()) + permissivePostfix + ".tbl");
+            final Sdf2TableCustom.Input permissiveSdf2TableInput = new Sdf2TableCustom.Input(context, permissiveSdfName, permissivePackSdfOut, permissiveTableOutputPath, permissivePackSdfOrigin);  
+            requireBuild(Sdf2TableCustom.factory, permissiveSdf2TableInput);
+        }
         // Stratego
         if (!context.isBuildStrategoEnabled(this, input.strategoMainFile)) {
             return None.val;
