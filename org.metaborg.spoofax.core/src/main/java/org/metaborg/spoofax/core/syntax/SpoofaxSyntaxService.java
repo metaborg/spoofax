@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.FenceCharacters;
-import org.metaborg.core.syntax.IParseService;
+import org.metaborg.core.syntax.IParser;
 import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.core.syntax.SyntaxService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -15,7 +15,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class SpoofaxSyntaxService extends SyntaxService<IStrategoTerm> implements ISpoofaxSyntaxService {
-    @Inject public SpoofaxSyntaxService(Map<String, IParseService<IStrategoTerm>> parsers) {
+    @Inject public SpoofaxSyntaxService(Map<String, IParser<IStrategoTerm>> parsers) {
         super(parsers);
     }
 

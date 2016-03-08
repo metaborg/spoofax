@@ -4,15 +4,13 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.AnalysisException;
-import org.metaborg.core.analysis.AnalysisFileResult;
-import org.metaborg.core.analysis.AnalysisResult;
+import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.build.UpdateKind;
 
-public class AnalysisChange<P, A> {
+public class AnalysisChange<A extends IAnalyzeUnit> {
     public final UpdateKind kind;
     public final FileObject resource;
-    @Nullable public final AnalysisFileResult<P, A> result;
-    @Nullable public final AnalysisResult<P, A> parentResult;
+    @Nullable public final A result;
     @Nullable public final AnalysisException exception;
 
 
@@ -27,9 +25,8 @@ public class AnalysisChange<P, A> {
      *            Parent of the updated analysis result.
      * @return Analysis change.
      */
-    public static <P, A> AnalysisChange<P, A> update(FileObject resource, AnalysisFileResult<P, A> result,
-        AnalysisResult<P, A> parentResult) {
-        return new AnalysisChange<>(UpdateKind.Update, result.source, result, parentResult, null);
+    public static <A extends IAnalyzeUnit> AnalysisChange<A> update(FileObject resource, A result) {
+        return new AnalysisChange<>(UpdateKind.Update, result.source(), result, null);
     }
 
     /**
@@ -39,8 +36,8 @@ public class AnalysisChange<P, A> {
      *            Resource to invalidate.
      * @return Analysis change.
      */
-    public static <P, A> AnalysisChange<P, A> invalidate(FileObject resource) {
-        return new AnalysisChange<>(UpdateKind.Invalidate, resource, null, null, null);
+    public static <A extends IAnalyzeUnit> AnalysisChange<A> invalidate(FileObject resource) {
+        return new AnalysisChange<>(UpdateKind.Invalidate, resource, null, null);
     }
 
     /**
@@ -52,8 +49,8 @@ public class AnalysisChange<P, A> {
      *            Error that occurred.
      * @return Analysis change.
      */
-    public static <P, A> AnalysisChange<P, A> error(FileObject resource, AnalysisException exception) {
-        return new AnalysisChange<>(UpdateKind.Error, resource, null, null, exception);
+    public static <A extends IAnalyzeUnit> AnalysisChange<A> error(FileObject resource, AnalysisException exception) {
+        return new AnalysisChange<>(UpdateKind.Error, resource, null, exception);
     }
 
     /**
@@ -63,20 +60,19 @@ public class AnalysisChange<P, A> {
      *            Resource that was removed.
      * @return Analysis change.
      */
-    public static <P, A> AnalysisChange<P, A> remove(FileObject resource) {
-        return new AnalysisChange<>(UpdateKind.Remove, resource, null, null, null);
+    public static <A extends IAnalyzeUnit> AnalysisChange<A> remove(FileObject resource) {
+        return new AnalysisChange<>(UpdateKind.Remove, resource, null, null);
     }
 
 
     /*
      * Use static methods to create instances.
      */
-    protected AnalysisChange(UpdateKind kind, FileObject resource, @Nullable AnalysisFileResult<P, A> result,
-                             @Nullable AnalysisResult<P, A> parentResult, @Nullable AnalysisException exception) {
+    protected AnalysisChange(UpdateKind kind, FileObject resource, @Nullable A result,
+        @Nullable AnalysisException exception) {
         this.kind = kind;
         this.resource = resource;
         this.result = result;
-        this.parentResult = parentResult;
         this.exception = exception;
     }
 }

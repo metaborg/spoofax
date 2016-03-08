@@ -3,6 +3,7 @@ package org.metaborg.core.processing;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
@@ -10,15 +11,18 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.resource.ResourceChange;
-
-import rx.functions.Action1;
+import org.metaborg.core.syntax.IParseUnit;
+import org.metaborg.core.transform.ITransformUnit;
 
 import com.google.inject.Inject;
+
+import rx.functions.Action1;
 
 /**
  * Default implementation for the processor runner.
  */
-public class ProcessorRunner<P, A, T> implements IProcessorRunner<P, A, T> {
+public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>>
+    implements IProcessorRunner<P, A, T> {
     private final IProcessor<P, A, T> processor;
 
 

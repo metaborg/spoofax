@@ -7,7 +7,7 @@ import org.metaborg.core.completion.Completion;
 import org.metaborg.core.completion.ICompletion;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.syntax.IParserConfiguration;
+import org.metaborg.core.syntax.IParserConfig;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.core.syntax.ParseResult;
@@ -46,7 +46,7 @@ public class JSGLRCompletionService implements ICompletionService {
 
         final ParseResult<?> completionParseResult;
         try {
-            final IParserConfiguration config = new JSGLRParserConfiguration(true, false, true, 2000);
+            final IParserConfig config = new JSGLRParserConfiguration(true, false, true, 2000);
             completionParseResult = syntaxService.parse(input, parseResult.source, language, config);
         } catch(ParseException e) {
             final String message = "Cannot get completions, parsing failed unexpectedly";

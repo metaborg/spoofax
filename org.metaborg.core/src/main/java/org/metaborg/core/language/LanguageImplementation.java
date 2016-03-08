@@ -67,20 +67,14 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
         return new LanguageImplConfig(configs);
     }
 
-    @Override public Iterable<IFacet> facets() {
-        final Collection<IFacet> facets = Lists.newLinkedList();
-        for(ILanguageComponent component : components) {
-            Iterables.addAll(facets, component.facets());
-        }
-        return facets;
-    }
 
-    @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
-        final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
+    @Override public boolean hasFacet(Class<? extends IFacet> type) {
         for(ILanguageComponent component : components) {
-            Iterables.addAll(contributions, component.facetContributions());
+            if(component.hasFacet(type)) {
+                return true;
+            }
         }
-        return contributions;
+        return false;
     }
 
     @Override public <T extends IFacet> Iterable<T> facets(Class<T> type) {
@@ -124,6 +118,23 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
         }
         return Iterables.get(facetContributions, 0);
     }
+
+    @Override public Iterable<IFacet> facets() {
+        final Collection<IFacet> facets = Lists.newLinkedList();
+        for(ILanguageComponent component : components) {
+            Iterables.addAll(facets, component.facets());
+        }
+        return facets;
+    }
+
+    @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
+        final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
+        for(ILanguageComponent component : components) {
+            Iterables.addAll(contributions, component.facetContributions());
+        }
+        return contributions;
+    }
+
 
     @Override public boolean addComponent(ILanguageComponent component) {
         return components.add(component);

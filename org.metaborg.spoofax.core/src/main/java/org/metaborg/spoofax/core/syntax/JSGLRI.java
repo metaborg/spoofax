@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.syntax.IParserConfiguration;
+import org.metaborg.core.syntax.IParserConfig;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -49,7 +49,7 @@ public class JSGLRI {
     }
 
 
-    public ParseResult<IStrategoTerm> parse(@Nullable IParserConfiguration parserConfig) throws IOException {
+    public ParseResult<IStrategoTerm> parse(@Nullable IParserConfig parserConfig) throws IOException {
         JSGLRParserConfiguration configuration = (JSGLRParserConfiguration) parserConfig;
         if(configuration == null) {
             configuration = new JSGLRParserConfiguration();

@@ -3,8 +3,9 @@ package org.metaborg.core.processing.analyze;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.analysis.AnalysisFileResult;
+import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.syntax.IInputUnit;
 
 import rx.Observable;
 
@@ -12,11 +13,11 @@ import rx.Observable;
  * Interface for requesting single analysis results or updates for analysis results.
  * 
  * @param <P>
- *            Type of parsed fragments.
+ *            Type of parse units.
  * @param <A>
- *            Type of analyzed fragments.
+ *            Type of analyze units.
  */
-public interface IAnalysisResultRequester<P, A> {
+public interface IAnalysisResultRequester<I extends IInputUnit, A extends IAnalyzeUnit> {
     /**
      * Requests the analysis result for given resource. When subscribing to the returned observer, it always returns a
      * single element; the latest analysis result, or pushes an error if an error occurred while getting it. If the
@@ -24,8 +25,7 @@ public interface IAnalysisResultRequester<P, A> {
      * (when it is in the process of being updated), it will be pushed when it has been updated. If there is no analysis
      * result yet, it will request a parse result, analyze the resource in given context, and push the analysis result.
      * 
-     * The simplest way to get the analysis result is to wait for it:
-     * {@code
+     * The simplest way to get the analysis result is to wait for it: {@code
      *   result = requester.request(resource, context, text).toBlocking().single();
      * }
      * 
@@ -39,7 +39,7 @@ public interface IAnalysisResultRequester<P, A> {
      * @return Cold observable which pushes a single element when subscribed; the latest analysis result, or pushes an
      *         error if an error occurred while getting it.
      */
-    Observable<AnalysisFileResult<P, A>> request(FileObject resource, IContext context, String text);
+    Observable<A> request(I input, IContext context);
 
     /**
      * Returns an observable that pushes analysis result updates to subscribers for given resource.
@@ -48,10 +48,10 @@ public interface IAnalysisResultRequester<P, A> {
      *            Resource to push updates for.
      * @return Hot observable that pushes updates to subscribers for given resource.
      */
-    Observable<AnalysisChange<P, A>> updates(FileObject resource);
+    Observable<AnalysisChange<A>> updates(FileObject resource);
 
     /**
      * @return Latest analysis result for given resource, or null if there is none.
      */
-    @Nullable AnalysisFileResult<P, A> get(FileObject resource);
+    @Nullable A get(FileObject resource);
 }

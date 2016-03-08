@@ -11,8 +11,8 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.syntax.IParseService;
-import org.metaborg.core.syntax.IParserConfiguration;
+import org.metaborg.core.syntax.IParser;
+import org.metaborg.core.syntax.IParserConfig;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -27,7 +27,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-public class JSGLRParseService implements IParseService<IStrategoTerm>, ILanguageCache {
+public class JSGLRParseService implements IParser<IStrategoTerm>, ILanguageCache {
     private static final ILogger logger = LoggerUtils.logger(JSGLRParseService.class);
 
     private final IDialectService dialectService;
@@ -43,7 +43,7 @@ public class JSGLRParseService implements IParseService<IStrategoTerm>, ILanguag
 
 
     @Override public ParseResult<IStrategoTerm> parse(String text, @Nullable FileObject resource, ILanguageImpl language,
-        @Nullable IParserConfiguration parserConfig) throws ParseException {
+        @Nullable IParserConfig parserConfig) throws ParseException {
         final IParserConfig config = getParserConfig(language);
         try {
             logger.trace("Parsing {}", resource);

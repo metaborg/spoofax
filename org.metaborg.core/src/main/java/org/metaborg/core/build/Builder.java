@@ -14,9 +14,9 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.analysis.AnalysisException;
-import org.metaborg.core.analysis.AnalysisFileResult;
-import org.metaborg.core.analysis.AnalysisResult;
+import org.metaborg.core.analysis.AnalyzeUnitType;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ContextUtils;
@@ -26,8 +26,8 @@ import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.LanguagesFileSelector;
-import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
@@ -40,13 +40,14 @@ import org.metaborg.core.resource.IdentifiedResourceChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.core.syntax.IInputUnit;
+import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
-import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.core.transform.ITransformService;
+import org.metaborg.core.transform.ITransformUnit;
 import org.metaborg.core.transform.TransformException;
-import org.metaborg.core.transform.TransformResult;
-import org.metaborg.core.transform.TransformResults;
+import org.metaborg.core.unit.IUnitService;
 import org.metaborg.util.RefBool;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
@@ -65,38 +66,46 @@ import com.google.inject.Inject;
  * Builder implementation.
  * 
  * @param <P>
- *            Type of parsed fragments.
+ *            Type of parse units.
  * @param <A>
- *            Type of analyzed fragments.
+ *            Type of analyze units.
  * @param <T>
- *            Type of transformed fragments.
+ *            Type of transform units with any input.
+ * @param <TP>
+ *            Type of transform units with parse units as input.
+ * @param <TA>
+ *            Type of transform units with analyze units as input.
  */
-public class Builder<P, A, T> implements IBuilder<P, A, T> {
+public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>>
+    implements IBuilder<P, A, T> {
     private static final ILogger logger = LoggerUtils.logger(Builder.class);
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
     private final ILanguagePathService languagePathService;
-    private final IContextService contextService;
+    private final IUnitService<I> unitService;
     private final ISourceTextService sourceTextService;
-    private final ISyntaxService<P> syntaxService;
+    private final ISyntaxService<I, P> syntaxService;
+    private final IContextService contextService;
     private final IAnalysisService<P, A> analysisService;
-    private final ITransformService<P, A, T> transformService;
+    private final ITransformService<P, A, TP, TA> transformService;
 
     private final IParseResultUpdater<P> parseResultProcessor;
     private final IAnalysisResultUpdater<P, A> analysisResultProcessor;
 
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-                           ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
-                           ISyntaxService<P> syntaxService, IAnalysisService<P, A> analysisService, ITransformService<P, A, T> transformService,
-                           IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor) {
+        ILanguagePathService languagePathService, IUnitService<I> unitService, ISourceTextService sourceTextService,
+        ISyntaxService<I, P> syntaxService, IContextService contextService, IAnalysisService<P, A> analysisService,
+        ITransformService<P, A, TP, TA> transformService, IParseResultUpdater<P> parseResultProcessor,
+        IAnalysisResultUpdater<P, A> analysisResultProcessor) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
         this.languagePathService = languagePathService;
-        this.contextService = contextService;
+        this.unitService = unitService;
         this.sourceTextService = sourceTextService;
         this.syntaxService = syntaxService;
+        this.contextService = contextService;
         this.analysisService = analysisService;
         this.transformService = transformService;
 
@@ -197,26 +206,25 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         // Parse
         cancel.throwIfCancelled();
-        final Collection<ParseResult<P>> sourceParseResults =
-            parse(input, language, sourceChanges, pardoned, changedResources, removedResources, extraMessages, success,
-                cancel);
+        final Collection<P> sourceParseResults = parse(input, language, sourceChanges, pardoned, changedResources,
+            removedResources, extraMessages, success, cancel);
         // GTODO: when a new context is created, all include files need to be parsed and analyzed in that context, this
         // approach does not do that!
-        final Collection<ParseResult<P>> includeParseResults =
-            parse(input, language, includeChanges, pardoned, changedResources, removedResources, extraMessages,
-                success, cancel);
-        final Iterable<ParseResult<P>> allParseResults = Iterables.concat(sourceParseResults, includeParseResults);
+        final Collection<P> includeParseResults = parse(input, language, includeChanges, pardoned, changedResources,
+            removedResources, extraMessages, success, cancel);
+        final Iterable<P> allParseResults = Iterables.concat(sourceParseResults, includeParseResults);
 
         // Segregate by context
         cancel.throwIfCancelled();
-        final Multimap<IContext, ParseResult<P>> sourceResultsPerContext = ArrayListMultimap.create();
+        final Multimap<IContext, P> sourceResultsPerContext = ArrayListMultimap.create();
         if(input.analyze) {
-            for(ParseResult<P> parseResult : sourceParseResults) {
+            for(P parseResult : sourceParseResults) {
                 cancel.throwIfCancelled();
-                final FileObject resource = parseResult.source;
+                final FileObject resource = parseResult.source();
+                final ILanguageImpl langImpl = parseResult.input().langImpl();
                 try {
-                    if(contextService.available(parseResult.language)) {
-                        final IContext context = contextService.get(resource, input.project, parseResult.language);
+                    if(contextService.available(langImpl)) {
+                        final IContext context = contextService.get(resource, input.project, langImpl);
                         sourceResultsPerContext.put(context, parseResult);
                     }
                 } catch(ContextException e) {
@@ -229,22 +237,20 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         // Analyze
         cancel.throwIfCancelled();
-        final Collection<AnalysisResult<P, A>> allAnalysisResults;
+        final Multimap<IContext, A> allAnalysisResults;
         if(input.analyze) {
-            allAnalysisResults =
-                analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned, removedResources,
-                    extraMessages, success, cancel);
+            allAnalysisResults = analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned,
+                removedResources, extraMessages, success, cancel);
         } else {
-            allAnalysisResults = Lists.newLinkedList();
+            allAnalysisResults = ArrayListMultimap.create();
         }
 
         // Transform
         cancel.throwIfCancelled();
-        final Collection<TransformResult<A, T>> allTransformResults;
+        final Collection<T> allTransformResults;
         if(input.transform) {
-            allTransformResults =
-                transform(input, location, allAnalysisResults, includedResources, pardoned, removedResources,
-                    extraMessages, success, cancel);
+            allTransformResults = transform(input, location, allAnalysisResults, includedResources, pardoned,
+                removedResources, extraMessages, success, cancel);
         } else {
             allTransformResults = Lists.newLinkedList();
         }
@@ -252,15 +258,14 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         printMessages(extraMessages, "Something", input, pardoned);
 
         output.add(success.get(), removedResources, includedResources, changedResources, allParseResults,
-            allAnalysisResults, allTransformResults, extraMessages);
+            allAnalysisResults.values(), allTransformResults, extraMessages);
     }
 
-    private Collection<ParseResult<P>> parse(BuildInput input, ILanguageImpl language,
-        Iterable<IdentifiedResourceChange> changes, boolean pardoned, Collection<FileObject> changedResources,
-        Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel)
-        throws InterruptedException {
+    private Collection<P> parse(BuildInput input, ILanguageImpl langImpl, Iterable<IdentifiedResourceChange> changes,
+        boolean pardoned, Collection<FileObject> changedResources, Set<FileName> removedResources,
+        Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel) throws InterruptedException {
         final int size = Iterables.size(changes);
-        final Collection<ParseResult<P>> allParseResults = Lists.newArrayListWithCapacity(size);
+        final Collection<P> allParseResults = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
             return allParseResults;
         }
@@ -272,7 +277,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             final ResourceChange change = identifiedChange.change;
             final FileObject resource = change.resource;
             final ILanguageImpl dialect = identifiedChange.dialect;
-            final ILanguageImpl parserLanguage = dialect != null ? dialect : language;
             final ResourceChangeKind changeKind = change.kind;
 
             try {
@@ -282,66 +286,71 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     // LEGACY: add empty parse result, to indicate to analysis that this resource was
                     // removed. There is special handling in updating the analysis result processor, the marker
                     // updater, and the compiler, to exclude removed resources.
-                    final ParseResult<P> emptyParseResult =
-                        syntaxService.emptyParseResult(resource, parserLanguage, dialect);
+                    final I inputUnit = unitService.emptyInput(resource, langImpl, dialect);
+                    final P emptyParseResult = syntaxService.emptyUnit(inputUnit);
                     allParseResults.add(emptyParseResult);
                     // Don't add resource as changed when it has been deleted, because it does not exist any more.
                 } else {
                     final String sourceText = sourceTextService.text(resource);
                     parseResultProcessor.invalidate(resource);
-                    final ParseResult<P> parseResult = syntaxService.parse(sourceText, resource, parserLanguage, null);
-                    final boolean noErrors = printMessages(parseResult.messages, "Parsing", input, pardoned);
+                    final I inputUnit = unitService.input(resource, sourceText, langImpl, dialect);
+                    final P parseResult = syntaxService.parse(inputUnit);
+                    final boolean noErrors = printMessages(parseResult.messages(), "Parsing", input, pardoned);
                     success.and(noErrors);
                     allParseResults.add(parseResult);
                     parseResultProcessor.update(resource, parseResult);
                     changedResources.add(resource);
                 }
             } catch(ParseException e) {
-                final String message = String.format("Parsing failed unexpectedly for %s", resource);
+                final String message = logger.format("Parsing {} failed unexpectedly", resource);
                 final boolean noErrors = printMessage(resource, message, e, input, pardoned);
                 success.and(noErrors);
                 parseResultProcessor.error(resource, e);
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed unexpectedly", e));
                 changedResources.add(resource);
             } catch(IOException e) {
-                final String message = String.format("Parsing failed unexpectedly for %s", resource);
+                final String message = logger.format("Getting source text for {} failed unexpectedly", resource);
                 final boolean noErrors = printMessage(resource, message, e, input, pardoned);
                 success.and(noErrors);
-                parseResultProcessor.error(resource, new ParseException(resource, parserLanguage, e));
-                extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed unexpectedly", e));
+                final I inputUnit = unitService.emptyInput(resource, langImpl, dialect);
+                parseResultProcessor.error(resource, new ParseException(inputUnit, e));
+                extraMessages
+                    .add(MessageFactory.newParseErrorAtTop(resource, "Getting source text failed unexpectedly", e));
                 changedResources.add(resource);
             }
         }
         return allParseResults;
     }
 
-    private Collection<AnalysisResult<P, A>> analyze(BuildInput input, FileObject location,
-        Multimap<IContext, ParseResult<P>> sourceParseResults, Iterable<ParseResult<P>> includeParseResults,
-        boolean pardoned, Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success,
-        ICancellationToken cancel) throws InterruptedException {
+    private Multimap<IContext, A> analyze(BuildInput input, FileObject location,
+        Multimap<IContext, P> sourceParseResults, Iterable<P> includeParseResults, boolean pardoned,
+        Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel)
+        throws InterruptedException {
         final int size = sourceParseResults.size() + Iterables.size(includeParseResults);
-        final Collection<AnalysisResult<P, A>> allAnalysisResults = Lists.newArrayListWithCapacity(size);
+        final Multimap<IContext, A> allAnalysisResults = ArrayListMultimap.create();
         if(size == 0) {
             return allAnalysisResults;
         }
 
         logger.debug("Analyzing {} parse results in {} context(s)", size, sourceParseResults.keySet().size());
 
-        for(Entry<IContext, Collection<ParseResult<P>>> entry : sourceParseResults.asMap().entrySet()) {
+        for(Entry<IContext, Collection<P>> entry : sourceParseResults.asMap().entrySet()) {
             cancel.throwIfCancelled();
             final IContext context = entry.getKey();
-            final Iterable<ParseResult<P>> parseResults = Iterables.concat(entry.getValue(), includeParseResults);
+            final Iterable<P> parseResults = Iterables.concat(entry.getValue(), includeParseResults);
 
             try {
                 try(IClosableLock lock = context.write()) {
                     analysisResultProcessor.invalidate(parseResults);
-                    final AnalysisResult<P, A> analysisResult = analysisService.analyze(parseResults, context);
-                    for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
-                        final boolean noErrors = printMessages(fileResult.messages, "Analysis", input, pardoned);
+                    final Collection<A> results = analysisService.analyzeAll(parseResults, context);
+                    for(A result : results) {
+                        cancel.throwIfCancelled();
+                        final boolean noErrors = printMessages(result.messages(), "Analysis", input, pardoned);
                         success.and(noErrors);
+                        analysisResultProcessor.update(result, removedResources);
+                        allAnalysisResults.put(context, result);
                     }
-                    analysisResultProcessor.update(analysisResult, removedResources);
-                    allAnalysisResults.add(analysisResult);
+                } finally {
                     context.persist();
                 }
             } catch(AnalysisException e) {
@@ -360,38 +369,41 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return allAnalysisResults;
     }
 
-    private Collection<TransformResult<A, T>> transform(BuildInput input, FileObject location,
-        Iterable<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles, boolean pardoned,
-        Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel)
-        throws InterruptedException {
-        int size = 0;
-        for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
-            size += Iterables.size(analysisResult.fileResults);
-        }
-        final Collection<TransformResult<A, T>> allTransformResults =
-            Lists.newArrayListWithCapacity(size);
+    private Collection<T> transform(BuildInput input, FileObject location, Multimap<IContext, A> allAnalysisResults,
+        Set<FileName> includeFiles, boolean pardoned, Set<FileName> removedResources,
+        Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel) throws InterruptedException {
+        int size = allAnalysisResults.size();
+        final Collection<T> allTransformResults = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
             return allTransformResults;
         }
 
         logger.debug("Compiling {} analysis results", size);
 
-        for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
+        for(Entry<IContext, Collection<A>> entry : allAnalysisResults.asMap().entrySet()) {
             cancel.throwIfCancelled();
-            final IContext context = analysisResult.context;
+            final IContext context = entry.getKey();
+            final Iterable<A> analysisResults = entry.getValue();
             try(IClosableLock lock = context.read()) {
-                for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
+                for(A analysisResult : analysisResults) {
                     cancel.throwIfCancelled();
-                    final FileObject resource = fileResult.source;
+
+                    if(analysisResult.type() != AnalyzeUnitType.Result) {
+                        // Only transform analyze units that contain actual results.
+                        continue;
+                    }
+
+                    final FileObject resource = analysisResult.source();
                     final FileName name = resource.getName();
+
                     if(removedResources.contains(name) || includeFiles.contains(name)) {
                         // Don't compile removed resources, which the analysis results contain for legacy reasons.
                         // Don't transform included resources, they should just be parsed and analyzed.
                         continue;
                     }
 
-                    if(fileResult.result == null) {
-                        logger.warn("Input result for {} is null, cannot transform it", resource);
+                    if(!analysisResult.valid()) {
+                        logger.warn("Input result for {} is invalid, cannot transform it", resource);
                         continue;
                     }
 
@@ -402,18 +414,21 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                                 logger.trace("No {} transformation required for {}", goal, context.language());
                                 continue;
                             }
-                            final TransformResults<A, T> result = transformService.transform(fileResult, context, goal);
-                            final boolean noErrors =
-                                printMessages(result.messages(), goal + " transformation", input, pardoned);
-                            success.and(noErrors);
-                            Iterables.addAll(allTransformResults, result.results);
+                            final Collection<TA> results = transformService.transform(analysisResult, context, goal);
+                            for(TA result : results) {
+                                final boolean noErrors =
+                                    printMessages(result.messages(), goal + " transformation", input, pardoned);
+                                success.and(noErrors);
+                                @SuppressWarnings("unchecked") final T genericResult = (T) result;
+                                allTransformResults.add(genericResult);
+                            }
                         }
                     } catch(TransformException e) {
                         final String message = String.format("Transformation failed unexpectedly for %s", name);
                         final boolean noErrors = printMessage(resource, message, e, input, pardoned);
                         success.and(noErrors);
-                        extraMessages.add(MessageFactory.newBuilderErrorAtTop(location,
-                            "Transformation failed unexpectedly", e));
+                        extraMessages.add(
+                            MessageFactory.newBuilderErrorAtTop(location, "Transformation failed unexpectedly", e));
                     }
                 }
                 // GTODO: also compile any affected sources

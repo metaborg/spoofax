@@ -202,7 +202,7 @@ public class OutlineService implements ISpoofaxOutlineService {
     }
 
     private @Nullable ISourceRegion region(IStrategoTerm term) {
-        final ISourceLocation location = tracingService.fromTransformed(term);
+        final ISourceLocation location = tracingService.location(term);
         if(location != null) {
             return location.region();
         }

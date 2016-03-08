@@ -24,7 +24,7 @@ import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
-import org.metaborg.core.syntax.IParseService;
+import org.metaborg.core.syntax.IParser;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.tracing.IHoverService;
 import org.metaborg.core.tracing.IResolverService;
@@ -166,8 +166,8 @@ public class SpoofaxModule extends MetaborgModule {
     protected void bindSyntax() {
         bind(JSGLRParseService.class).in(Singleton.class);
 
-        final MapBinder<String, IParseService<IStrategoTerm>> parsers = MapBinder.newMapBinder(binder(),
-            new TypeLiteral<String>() {}, new TypeLiteral<IParseService<IStrategoTerm>>() {});
+        final MapBinder<String, IParser<IStrategoTerm>> parsers = MapBinder.newMapBinder(binder(),
+            new TypeLiteral<String>() {}, new TypeLiteral<IParser<IStrategoTerm>>() {});
         parsers.addBinding("jsglr").to(JSGLRParseService.class).in(Singleton.class);
         languageCacheBinder.addBinding().to(JSGLRParseService.class);
 

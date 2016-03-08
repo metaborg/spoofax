@@ -1,54 +1,55 @@
 package org.metaborg.core.syntax;
 
+import java.util.Collection;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public abstract class SyntaxService<T> implements ISyntaxService<T> {
-    private final Map<String, IParseService<T>> parsers;
+public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> implements ISyntaxService<I, P> {
+    private static final ILogger logger = LoggerUtils.logger(SyntaxService.class);
+
+    private final Map<String, IParser<I, P>> parsers;
 
 
-    @Inject public SyntaxService(Map<String, IParseService<T>> parsers) {
+    @Inject public SyntaxService(Map<String, IParser<I, P>> parsers) {
         this.parsers = parsers;
     }
 
 
-    @Override public ParseResult<T> parse(String text, @Nullable FileObject resource, ILanguageImpl language,
-        IParserConfiguration parserConfig) throws ParseException {
-        final IParseService<T> parser = parser(language);
-        if(parser == null) {
-            throw new ParseException(resource, language, "No parser");
-        }
-        return parser.parse(text, resource, language, parserConfig);
-    }
-
-    @Override public String unparse(T parsed, ILanguageImpl language) {
-        final IParseService<T> parser = parser(language);
-        if(parser == null) {
-            // TODO: better exception
-            throw new MetaborgRuntimeException("No parser");
-        }
-        return parser.unparse(parsed, language);
-    }
-
-    @Override public ParseResult<T>
-        emptyParseResult(FileObject resource, ILanguageImpl language, @Nullable ILanguageImpl dialect) {
-        final IParseService<T> parser = parser(language);
-        if(parser == null) {
-            // TODO: better exception
-            throw new MetaborgRuntimeException("No parser");
-        }
-        return parser.emptyParseResult(resource, language, dialect);
+    @Override public boolean available(ILanguageImpl langImpl) {
+        return parser(langImpl) != null;
     }
 
 
-    private @Nullable IParseService<T> parser(ILanguageImpl language) {
+    @Override public P parse(I input) throws ParseException {
+        final ILanguageImpl langImpl = input.langImpl();
+        final IParser<I, P> parser = parser(langImpl);
+        if(parser == null) {
+            final String message = logger.format("Cannot get a parser for {}", langImpl);
+            throw new ParseException(input, message);
+        }
+        return parser.parse(input);
+    }
+
+    @Override public Collection<P> parseAll(Iterable<I> inputs) throws ParseException {
+        final Collection<P> results = Lists.newArrayList();
+        for(I input : inputs) {
+            results.add(parse(input));
+        }
+        return results;
+    }
+
+    @Override public P emptyUnit(I unit) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+
+    private IParser<I, P> parser(ILanguageImpl language) {
         final ParseFacet facet = language.facet(ParseFacet.class);
         if(facet == null) {
             return null;

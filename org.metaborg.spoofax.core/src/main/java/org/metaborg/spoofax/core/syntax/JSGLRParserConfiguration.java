@@ -1,8 +1,8 @@
 package org.metaborg.spoofax.core.syntax;
 
-import org.metaborg.core.syntax.IParserConfiguration;
+import org.metaborg.core.syntax.IParserConfig;
 
-public class JSGLRParserConfiguration implements IParserConfiguration {
+public class JSGLRParserConfiguration implements IParserConfig {
     public static final boolean defaultImplode = true;
     public static final boolean defaultRecovery = true;
     public static final boolean defaultCompletion = false;

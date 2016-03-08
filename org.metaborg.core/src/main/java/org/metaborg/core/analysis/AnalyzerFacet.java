@@ -1,8 +1,9 @@
 package org.metaborg.core.analysis;
 
 import org.metaborg.core.language.IFacet;
+import org.metaborg.core.syntax.IParseUnit;
 
-public class AnalyzerFacet<P, A> implements IFacet {
+public class AnalyzerFacet<P extends IParseUnit, A extends IAnalyzeUnit> implements IFacet {
     public final IAnalyzer<P, A> analyzer;
 
 

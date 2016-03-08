@@ -1,16 +1,13 @@
 package org.metaborg.core.processing.parse;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.syntax.ParseException;
-import org.metaborg.core.syntax.ParseResult;
 
 /**
  * Interface for updating parse results which are requested by an {@link IParseResultRequester}.
- * 
- * @param <P>
- *            Type of parsed fragments.
  */
-public interface IParseResultUpdater<P> {
+public interface IParseResultUpdater<P extends IParseUnit> {
     /**
      * Invalidates the parse result for given resource. Must be followed by a call to {@link #update} or {@link #error}
      * for that resource eventually. Failing to do so will block any request made while resource was in an invalid
@@ -29,7 +26,7 @@ public interface IParseResultUpdater<P> {
      * @param result
      *            Parent of the result to update.
      */
-    void update(FileObject resource, ParseResult<P> result);
+    void update(FileObject resource, P unit);
 
     /**
      * Sets a parse error for given resource. Pushes the parse error to subscribed requests.

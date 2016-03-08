@@ -69,7 +69,7 @@ public class ReferenceResolver implements IResolverService<IStrategoTerm, IStrat
         try {
             final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor);
             final HybridInterpreter interpreter = strategoRuntimeService.runtime(facetContrib.contributor, resource);
-            final Iterable<IStrategoTerm> inRegion = tracingService.toParsed(result, new SourceRegion(offset));
+            final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final P2<IStrategoTerm, ISourceRegion> tuple =
                 common.outputs(termFactory, interpreter, result.source, result.source, result.result, inRegion,
                     strategy);
@@ -95,7 +95,7 @@ public class ReferenceResolver implements IResolverService<IStrategoTerm, IStrat
         try {
             final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor);
             final HybridInterpreter interpreter = strategoRuntimeService.runtime(facetContrib.contributor, context);
-            final Iterable<IStrategoTerm> inRegion = tracingService.toAnalyzed(result, new SourceRegion(offset));
+            final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final P2<IStrategoTerm, ISourceRegion> tuple;
             try(IClosableLock lock = context.read()) {
                 tuple =

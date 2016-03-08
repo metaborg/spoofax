@@ -3,6 +3,7 @@ package org.metaborg.core.processing;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
@@ -11,16 +12,19 @@ import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.resource.ResourceChange;
-
-import rx.functions.Func0;
+import org.metaborg.core.syntax.IParseUnit;
+import org.metaborg.core.transform.ITransformUnit;
 
 import com.google.inject.Inject;
+
+import rx.functions.Func0;
 
 /**
  * Processor implementation that uses {@link BlockingTask} as task implementation. Tasks execute and block when
  * scheduled.
  */
-public class BlockingProcessor<P, A, T> implements IProcessor<P, A, T> {
+public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>>
+    implements IProcessor<P, A, T> {
     private final IDialectProcessor dialectProcessor;
     private final IBuilder<P, A, T> builder;
     private final ILanguageChangeProcessor languageChangeProcessor;

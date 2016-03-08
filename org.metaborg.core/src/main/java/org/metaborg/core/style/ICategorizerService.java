@@ -1,40 +1,41 @@
 package org.metaborg.core.style;
 
-import org.metaborg.core.analysis.AnalysisFileResult;
+import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.syntax.ParseResult;
+import org.metaborg.core.syntax.IParseUnit;
 
 /**
  * Interface for categorization of parse and analysis results.
  * 
  * @param <P>
- *            Type of the parsed fragments.
+ *            Type of parse units
  * @param <A>
- *            Type of the analyzed fragments.
+ *            Type of analyze units.
+ * @param <F>
+ *            Type of fragments.
  */
-public interface ICategorizerService<P, A> {
+public interface ICategorizerService<P extends IParseUnit, A extends IAnalyzeUnit, F> {
     /**
      * Returns a categorization of given parse result.
      * 
-     * @param language
-     *            Language that contains the categorization logic.
+     * @param langImpl
+     *            Language implementation that contains the categorization logic.
      * @param parseResult
      *            Parse result to categorize.
      * @return Iterable over categories assigned to regions of the source text. Regions do not overlap and are iterated
      *         over in ascending order.
      */
-    Iterable<IRegionCategory<P>> categorize(ILanguageImpl language, ParseResult<P> parseResult);
+    Iterable<IRegionCategory<F>> categorize(ILanguageImpl langImpl, P result);
 
     /**
      * Returns a categorization of given analysis result.
      * 
-     * @param language
-     *            Language that contains the categorization logic.
+     * @param langImpl
+     *            Language implementation that contains the categorization logic.
      * @param analysisResult
      *            Analysis result to categorize.
      * @return Iterable over categories assigned to regions of the source text. Regions do not overlap and are iterated
      *         over in ascending order.
      */
-    Iterable<IRegionCategory<A>> categorize(ILanguageImpl language,
-                                            AnalysisFileResult<P, A> analysisResult);
+    Iterable<IRegionCategory<F>> categorize(ILanguageImpl langImpl, A result);
 }

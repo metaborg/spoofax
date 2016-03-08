@@ -19,8 +19,8 @@ import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.tracing.IHoverService;
 import org.metaborg.core.tracing.IResolverService;
-import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.ITransformService;
+import org.metaborg.spoofax.core.tracing.ITracingService;
 
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;

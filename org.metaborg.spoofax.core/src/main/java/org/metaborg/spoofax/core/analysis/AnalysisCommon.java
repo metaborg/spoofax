@@ -49,7 +49,7 @@ public class AnalysisCommon {
             }
 
             if(originTerm != null) {
-                final ISourceLocation location = tracingService.fromAnalyzed(originTerm);
+                final ISourceLocation location = tracingService.location(originTerm);
                 if(location != null) {
                     final ISourceRegion region = location.region();
                     messages.add(message(resource, region, message, severity));
@@ -72,7 +72,7 @@ public class AnalysisCommon {
             @Override public void preVisit(IStrategoTerm term) {
                 if(ambStart == null && "amb".equals(Term.tryGetName(term))) {
                     final String text = "Fragment is ambiguous: " + ambToString(term);
-                    final ISourceLocation location = tracingService.fromAnalyzed(term);
+                    final ISourceLocation location = tracingService.location(term);
                     if(location != null) {
                         final ISourceRegion region = location.region();
                         messages.add(message(resource, region, text, MessageSeverity.WARNING));
