@@ -101,6 +101,7 @@ public class LanguageSpecGenerator extends BaseGenerator {
         }
         writer.write("trans/outline.str", false);
         writer.write("trans/pp.str", false);
+        writer.write("trans/completion.str", false);
     }
 
     public void generateInclude() throws IOException {
