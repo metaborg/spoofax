@@ -15,8 +15,6 @@ public interface ISyntaxService<I extends IInputUnit, P extends IParseUnit> {
 
     Collection<P> parseAll(Iterable<I> inputs) throws ParseException;
 
-    P emptyUnit(I input);
-
 
     /**
      * @return Single line comment prefix characters for given language.

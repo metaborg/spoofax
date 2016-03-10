@@ -25,7 +25,7 @@ public interface IActionService {
      *            Goal to get transform actions for.
      * @return Transform action contributions.
      */
-    @Nullable Iterable<TransformActionContribution> actionContributions(ILanguageImpl language,
+    @Nullable Iterable<TransformActionContrib> actionContributions(ILanguageImpl language,
                                                                         ITransformGoal goal);
 
     /**

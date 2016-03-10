@@ -83,22 +83,22 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
     private final ILanguagePathService languagePathService;
-    private final IUnitService<I> unitService;
+    private final IUnitService<I, P, A, TP, TA> unitService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<I, P> syntaxService;
     private final IContextService contextService;
     private final IAnalysisService<P, A> analysisService;
     private final ITransformService<P, A, TP, TA> transformService;
 
-    private final IParseResultUpdater<P> parseResultProcessor;
-    private final IAnalysisResultUpdater<P, A> analysisResultProcessor;
+    private final IParseResultUpdater<P> parseResultUpdater;
+    private final IAnalysisResultUpdater<P, A> analysisResultUpdater;
 
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ILanguagePathService languagePathService, IUnitService<I> unitService, ISourceTextService sourceTextService,
-        ISyntaxService<I, P> syntaxService, IContextService contextService, IAnalysisService<P, A> analysisService,
-        ITransformService<P, A, TP, TA> transformService, IParseResultUpdater<P> parseResultProcessor,
-        IAnalysisResultUpdater<P, A> analysisResultProcessor) {
+        ILanguagePathService languagePathService, IUnitService<I, P, A, TP, TA> unitService,
+        ISourceTextService sourceTextService, ISyntaxService<I, P> syntaxService, IContextService contextService,
+        IAnalysisService<P, A> analysisService, ITransformService<P, A, TP, TA> transformService,
+        IParseResultUpdater<P> parseResultUpdater, IAnalysisResultUpdater<P, A> analysisResultUpdater) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
         this.languagePathService = languagePathService;
@@ -109,8 +109,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         this.analysisService = analysisService;
         this.transformService = transformService;
 
-        this.parseResultProcessor = parseResultProcessor;
-        this.analysisResultProcessor = analysisResultProcessor;
+        this.parseResultUpdater = parseResultUpdater;
+        this.analysisResultUpdater = analysisResultUpdater;
     }
 
 
@@ -281,39 +281,39 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
             try {
                 if(changeKind == ResourceChangeKind.Delete) {
-                    parseResultProcessor.remove(resource);
+                    parseResultUpdater.remove(resource);
                     removedResources.add(resource.getName());
                     // LEGACY: add empty parse result, to indicate to analysis that this resource was
                     // removed. There is special handling in updating the analysis result processor, the marker
                     // updater, and the compiler, to exclude removed resources.
-                    final I inputUnit = unitService.emptyInput(resource, langImpl, dialect);
-                    final P emptyParseResult = syntaxService.emptyUnit(inputUnit);
+                    final I inputUnit = unitService.emptyInputUnit(resource, langImpl, dialect);
+                    final P emptyParseResult = unitService.emptyParseUnit(inputUnit);
                     allParseResults.add(emptyParseResult);
                     // Don't add resource as changed when it has been deleted, because it does not exist any more.
                 } else {
                     final String sourceText = sourceTextService.text(resource);
-                    parseResultProcessor.invalidate(resource);
-                    final I inputUnit = unitService.input(resource, sourceText, langImpl, dialect);
+                    parseResultUpdater.invalidate(resource);
+                    final I inputUnit = unitService.inputUnit(resource, sourceText, langImpl, dialect);
                     final P parseResult = syntaxService.parse(inputUnit);
                     final boolean noErrors = printMessages(parseResult.messages(), "Parsing", input, pardoned);
                     success.and(noErrors);
                     allParseResults.add(parseResult);
-                    parseResultProcessor.update(resource, parseResult);
+                    parseResultUpdater.update(resource, parseResult);
                     changedResources.add(resource);
                 }
             } catch(ParseException e) {
                 final String message = logger.format("Parsing {} failed unexpectedly", resource);
                 final boolean noErrors = printMessage(resource, message, e, input, pardoned);
                 success.and(noErrors);
-                parseResultProcessor.error(resource, e);
+                parseResultUpdater.error(resource, e);
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed unexpectedly", e));
                 changedResources.add(resource);
             } catch(IOException e) {
                 final String message = logger.format("Getting source text for {} failed unexpectedly", resource);
                 final boolean noErrors = printMessage(resource, message, e, input, pardoned);
                 success.and(noErrors);
-                final I inputUnit = unitService.emptyInput(resource, langImpl, dialect);
-                parseResultProcessor.error(resource, new ParseException(inputUnit, e));
+                final I inputUnit = unitService.emptyInputUnit(resource, langImpl, dialect);
+                parseResultUpdater.error(resource, new ParseException(inputUnit, e));
                 extraMessages
                     .add(MessageFactory.newParseErrorAtTop(resource, "Getting source text failed unexpectedly", e));
                 changedResources.add(resource);
@@ -341,13 +341,13 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
             try {
                 try(IClosableLock lock = context.write()) {
-                    analysisResultProcessor.invalidate(parseResults);
+                    analysisResultUpdater.invalidate(parseResults);
                     final Collection<A> results = analysisService.analyzeAll(parseResults, context);
                     for(A result : results) {
                         cancel.throwIfCancelled();
                         final boolean noErrors = printMessages(result.messages(), "Analysis", input, pardoned);
                         success.and(noErrors);
-                        analysisResultProcessor.update(result, removedResources);
+                        analysisResultUpdater.update(result, removedResources);
                         allAnalysisResults.put(context, result);
                     }
                 } finally {
@@ -357,7 +357,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 final String message = "Analysis failed unexpectedly";
                 final boolean noErrors = printMessage(message, e, input, pardoned);
                 success.and(noErrors);
-                analysisResultProcessor.error(parseResults, e);
+                analysisResultUpdater.error(parseResults, e);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             } catch(IOException e) {
                 final String message = "Persisting analysis data failed unexpectedly";

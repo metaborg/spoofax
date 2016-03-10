@@ -8,8 +8,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
-import org.metaborg.core.analysis.AnalysisFileResult;
-import org.metaborg.core.analysis.AnalysisResult;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageImpl;
@@ -17,13 +15,14 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -65,7 +64,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     }
 
 
-    @Override public AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ParseResult<IStrategoTerm>> inputs,
+    @Override public AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ISpoofaxParseUnit> inputs,
         IContext context) throws AnalysisException {
         final ILanguageImpl language = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
@@ -87,7 +86,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         return analyze(inputs, context, interpreter, facet.strategyName, termFactory);
     }
 
-    private AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ParseResult<IStrategoTerm>> inputs,
+    private AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ISpoofaxParseUnit> inputs,
         IContext context, HybridInterpreter interpreter, String analysisStrategy, ITermFactory termFactory)
         throws AnalysisException {
         final FileObject contextLocation = context.location();
@@ -101,8 +100,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         }
 
         logger.trace("Creating input terms for analysis (3-tuple terms)");
-        final Collection<P2<ParseResult<IStrategoTerm>, IStrategoTuple>> analysisInputs = Lists.newLinkedList();
-        for(ParseResult<IStrategoTerm> input : inputs) {
+        final Collection<P2<ISpoofaxParseUnit, IStrategoTuple>> analysisInputs = Lists.newLinkedList();
+        for(ISpoofaxParseUnit input : inputs) {
             if(input.result == null) {
                 logger.warn("Parse result for {} is null, cannot analyze", input.source);
                 continue;
@@ -137,9 +136,9 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
             analysisInputs.add(P.p(input, termFactory.makeTuple(input.result, path, contextPath)));
         }
 
-        final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> results = Lists.newLinkedList();
-        for(P2<ParseResult<IStrategoTerm>, IStrategoTuple> input : analysisInputs) {
-            final ParseResult<IStrategoTerm> parseResult = input._1();
+        final Collection<ISpoofaxAnalyzeUnit> results = Lists.newLinkedList();
+        for(P2<ISpoofaxParseUnit, IStrategoTuple> input : analysisInputs) {
+            final ISpoofaxParseUnit parseResult = input._1();
             final FileObject resource = parseResult.source;
             final IStrategoTuple inputTerm = input._2();
             try {
@@ -174,8 +173,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         return new AnalysisResult<>(context, results);
     }
 
-    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> result(IStrategoTerm result,
-        ParseResult<IStrategoTerm> parseResult, IContext context) {
+    private ISpoofaxAnalyzeUnit result(IStrategoTerm result,
+        ISpoofaxParseUnit parseResult, IContext context) {
         final IStrategoTerm ast = result.getSubterm(0);
         final FileObject source = parseResult.source;
         final Collection<IMessage> messages = Lists.newLinkedList();
@@ -186,8 +185,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         return new AnalysisFileResult<>(ast, source, context, messages, parseResult);
     }
 
-    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> resultNoAst(IStrategoTerm result,
-        ParseResult<IStrategoTerm> parseResult, IContext context) {
+    private ISpoofaxAnalyzeUnit resultNoAst(IStrategoTerm result,
+        ISpoofaxParseUnit parseResult, IContext context) {
         final FileObject source = parseResult.source;
         final Collection<IMessage> messages = Lists.newLinkedList();
         messages.addAll(analysisCommon.messages(source, MessageSeverity.ERROR, result.getSubterm(0)));
@@ -196,8 +195,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         return new AnalysisFileResult<>(null, source, context, messages, parseResult);
     }
 
-    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> result(String errorString,
-        ParseResult<IStrategoTerm> parseResult, IContext context, Throwable e) {
+    private ISpoofaxAnalyzeUnit result(String errorString,
+        ISpoofaxParseUnit parseResult, IContext context, Throwable e) {
         if(e != null) {
             logger.error(errorString, e);
         } else {

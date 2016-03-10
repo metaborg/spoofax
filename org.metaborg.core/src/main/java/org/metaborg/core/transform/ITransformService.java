@@ -3,7 +3,7 @@ package org.metaborg.core.transform;
 import java.util.Collection;
 
 import org.metaborg.core.action.ITransformGoal;
-import org.metaborg.core.action.TransformActionContribution;
+import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.syntax.IParseUnit;
@@ -74,7 +74,7 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When transformation action requires analysis.
      */
-    TP transform(P input, IContext context, TransformActionContribution action) throws TransformException;
+    TP transform(P input, IContext context, TransformActionContrib action) throws TransformException;
 
     /**
      * Transforms analyzed input in a context with given goal.
@@ -104,7 +104,7 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When the transformation fails unexpectedly.
      */
-    TA transform(A input, IContext context, TransformActionContribution action) throws TransformException;
+    TA transform(A input, IContext context, TransformActionContrib action) throws TransformException;
 
 
     /**
@@ -138,7 +138,7 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When transformation action requires analysis.
      */
-    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContribution action)
+    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContrib action)
         throws TransformException;
 
     /**
@@ -170,6 +170,6 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When the transformation fails unexpectedly.
      */
-    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContribution action)
+    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib action)
         throws TransformException;
 }

@@ -35,17 +35,17 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
 
     private final IAnalysisService<P, A> analysisService;
 
-    private final IParseResultRequester<I, P> parseResultProcessor;
+    private final IParseResultRequester<I, P> parseResultRequester;
 
     private final ConcurrentMap<FileName, BehaviorSubject<AnalysisChange<A>>> updatesPerResource =
         Maps.newConcurrentMap();
 
 
     @Inject public AnalysisResultProcessor(IAnalysisService<P, A> analysisService,
-        IParseResultRequester<I, P> parseResultProcessor) {
+        IParseResultRequester<I, P> parseResultRequester) {
         this.analysisService = analysisService;
 
-        this.parseResultProcessor = parseResultProcessor;
+        this.parseResultRequester = parseResultRequester;
     }
 
 
@@ -187,7 +187,7 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
             updatesPerResource.put(name, updates);
             try {
                 logger.trace("Requesting parse result for {}", resource);
-                final P parseResult = parseResultProcessor.request(input).toBlocking().single();
+                final P parseResult = parseResultRequester.request(input).toBlocking().single();
 
                 logger.trace("Analysing for {}", resource);
                 final A result;

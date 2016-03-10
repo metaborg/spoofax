@@ -1,11 +1,12 @@
 package org.metaborg.spoofax.core.analysis;
 
 import org.metaborg.core.analysis.IAnalyzer;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 
 /**
- * Typedef interface for {@link IAnalyzer} with {@link IStrategoTerm}.
+ * Typedef interface for {@link IAnalyzer} with Spoofax interfaces.
  */
-public interface ISpoofaxAnalyzer extends IAnalyzer<IStrategoTerm, IStrategoTerm> {
+public interface ISpoofaxAnalyzer extends IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit> {
 
 }

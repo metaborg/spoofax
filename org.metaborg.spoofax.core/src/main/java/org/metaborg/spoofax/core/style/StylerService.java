@@ -9,7 +9,6 @@ import org.metaborg.core.style.ICategory;
 import org.metaborg.core.style.IRegionCategory;
 import org.metaborg.core.style.IRegionStyle;
 import org.metaborg.core.style.IStyle;
-import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.style.RegionStyle;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
@@ -18,7 +17,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
 
-public class StylerService implements IStylerService<IStrategoTerm, IStrategoTerm> {
+public class StylerService implements ISpoofaxStylerService {
     private static final ILogger logger = LoggerUtils.logger(StylerService.class);
 
 
@@ -30,7 +29,7 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
             // GTODO: throw exception instead
             return Iterables2.empty();
         }
-        
+
         final List<IRegionStyle<IStrategoTerm>> regionStyles = Lists.newLinkedList();
         for(IRegionCategory<IStrategoTerm> regionCategory : categorization) {
             final IRegionStyle<IStrategoTerm> regionStyle = style(facet, regionCategory);
@@ -47,8 +46,8 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
         throw new UnsupportedOperationException();
     }
 
-    private @Nullable IRegionStyle<IStrategoTerm>
-        style(StylerFacet facet, IRegionCategory<IStrategoTerm> regionCategory) {
+    private @Nullable IRegionStyle<IStrategoTerm> style(StylerFacet facet,
+        IRegionCategory<IStrategoTerm> regionCategory) {
         if(regionCategory.region().length() == 0) {
             // Skip empty regions for styling.
             return null;

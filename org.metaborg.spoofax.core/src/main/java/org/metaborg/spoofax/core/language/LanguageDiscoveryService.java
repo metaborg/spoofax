@@ -11,7 +11,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalyzerFacet;
-import org.metaborg.core.analysis.IAnalyzer;
 import org.metaborg.core.config.ConfigRequest;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigService;
@@ -35,6 +34,7 @@ import org.metaborg.spoofax.core.action.ActionFacet;
 import org.metaborg.spoofax.core.action.ActionFacetFromESV;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
@@ -76,13 +76,13 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private final ITermFactoryService termFactoryService;
     private final Map<String, IContextFactory> contextFactories;
     private final Map<String, IContextStrategy> contextStrategies;
-    private final Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers;
+    private final Map<String, ISpoofaxAnalyzer> analyzers;
 
 
     @Inject public LanguageDiscoveryService(ILanguageService languageService,
         ILanguageComponentConfigService componentConfigService, ITermFactoryService termFactoryService,
         Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
-        Map<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers) {
+        Map<String, ISpoofaxAnalyzer> analyzers) {
         this.languageService = languageService;
         this.componentConfigService = componentConfigService;
         this.termFactoryService = termFactoryService;
@@ -265,7 +265,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final boolean hasAnalysis = AnalysisFacetFromESV.hasAnalysis(esvTerm);
 
         final IContextFactory contextFactory;
-        final IAnalyzer<IStrategoTerm, IStrategoTerm> analyzer;
+        final ISpoofaxAnalyzer analyzer;
         final AnalysisFacet analysisFacet;
         if(!hasContext && !hasAnalysis) {
             contextFactory = contextFactory(LegacyContextFactory.name);

@@ -1,7 +1,5 @@
 package org.metaborg.core.unit;
 
-public interface IUnitContrib<T> {
+public interface IUnitContrib {
     String id();
-
-    T value();
 }

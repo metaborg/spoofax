@@ -44,10 +44,6 @@ public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> 
         return results;
     }
 
-    @Override public P emptyUnit(I unit) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
 
     private IParser<I, P> parser(ILanguageImpl language) {
         final ParseFacet facet = language.facet(ParseFacet.class);

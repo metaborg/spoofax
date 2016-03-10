@@ -2,7 +2,6 @@ package org.metaborg.core.analysis;
 
 import java.util.Collection;
 
-import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParseUnit;
@@ -16,6 +15,4 @@ public interface IAnalysisService<P extends IParseUnit, A extends IAnalyzeUnit> 
     A analyze(P input, IContext context) throws AnalysisException;
 
     Collection<A> analyzeAll(Iterable<P> inputs, IContext context) throws AnalysisException;
-
-    A emptyUnit(P input, IContext context) throws MetaborgException;
 }

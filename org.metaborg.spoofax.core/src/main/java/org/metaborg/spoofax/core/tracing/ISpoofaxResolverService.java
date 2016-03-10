@@ -1,11 +1,12 @@
 package org.metaborg.spoofax.core.tracing;
 
 import org.metaborg.core.tracing.IResolverService;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 
 /**
- * Typedef interface for {@link IResolverService} with {@link IStrategoTerm}.
+ * Typedef interface for {@link IResolverService} with Spoofax interfaces.
  */
-public interface ISpoofaxResolverService extends IResolverService<IStrategoTerm, IStrategoTerm> {
+public interface ISpoofaxResolverService extends IResolverService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit> {
 
 }

@@ -15,7 +15,7 @@ import org.metaborg.core.transform.ITransformUnit;
  * @param <A>
  *            Type of analyze units.
  * @param <T>
- *            Type of transform units..
+ *            Type of transform units with any input.
  */
 public interface IBuilder<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>> {
     /**

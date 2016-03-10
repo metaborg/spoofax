@@ -83,7 +83,7 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, OutputPersisted<I
             return null;
         }
         final String text = context.sourceTextService().text(resource);
-        final ParseResult<IStrategoTerm> result = context.syntaxService().parse(text, resource, language, null);
+        final ISpoofaxParseUnit result = context.syntaxService().parse(text, resource, language, null);
         if(result.result == null) {
             return null;
         }

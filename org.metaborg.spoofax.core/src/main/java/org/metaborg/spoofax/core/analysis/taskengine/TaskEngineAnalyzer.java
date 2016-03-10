@@ -9,23 +9,21 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
-import org.metaborg.core.analysis.AnalysisFileResult;
-import org.metaborg.core.analysis.AnalysisMessageResult;
-import org.metaborg.core.analysis.AnalysisResult;
-import org.metaborg.core.analysis.IAnalyzerData;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
@@ -49,6 +47,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private static final ILogger logger = LoggerUtils.logger(TaskEngineAnalyzer.class);
 
     private final IResourceService resourceService;
+    private final ISpoofaxUnitService unitService;
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
@@ -57,9 +56,10 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private final IStrategoConstructor fileCons;
 
 
-    @Inject public TaskEngineAnalyzer(IResourceService resourceService, ITermFactoryService termFactoryService,
+    @Inject public TaskEngineAnalyzer(IResourceService resourceService, ISpoofaxUnitService unitService, ITermFactoryService termFactoryService,
         IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon, AnalysisCommon analysisCommon) {
         this.resourceService = resourceService;
+        this.unitService = unitService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
         this.strategoCommon = strategoCommon;
@@ -69,14 +69,14 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     }
 
 
-    @Override public AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ParseResult<IStrategoTerm>> inputs,
+    @Override public AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ISpoofaxParseUnit> inputs,
         IContext context) throws AnalysisException {
-        final ILanguageImpl language = context.language();
+        final ILanguageImpl langImpl = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
+        final FacetContribution<AnalysisFacet> facetContribution = langImpl.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
-            logger.debug("No analysis required for {}", language);
+            logger.debug("No analysis required for {}", langImpl);
             return new AnalysisResult<>(context);
         }
         final AnalysisFacet facet = facetContribution.facet;
@@ -91,12 +91,12 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         return analyze(inputs, context, interpreter, facet.strategyName, termFactory);
     }
 
-    private AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ParseResult<IStrategoTerm>> inputs,
+    private AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ISpoofaxParseUnit> inputs,
         IContext context, HybridInterpreter interpreter, String analysisStrategy, ITermFactory termFactory)
         throws AnalysisException {
         logger.trace("Creating input terms for analysis");
         final Collection<IStrategoAppl> analysisInputs = Lists.newLinkedList();
-        for(ParseResult<IStrategoTerm> input : inputs) {
+        for(ISpoofaxParseUnit input : inputs) {
             if(input.result == null) {
                 logger.warn("Parse result for {} is null, cannot analyze", input.source);
                 continue;
@@ -143,9 +143,9 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
         final int numItems = fileResultsTerm.getSubtermCount();
         logger.trace("Analysis contains {} results. Converting to analysis results", numItems);
-        final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> fileResults = Lists.newLinkedList();
+        final Collection<ISpoofaxAnalyzeUnit> fileResults = Lists.newLinkedList();
         for(IStrategoTerm result : fileResultsTerm) {
-            final AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult = fileResult(result, context);
+            final ISpoofaxAnalyzeUnit fileResult = fileResult(result, context);
             if(fileResult == null) {
                 continue;
             }
@@ -165,7 +165,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         return new AnalysisResult<>(context, fileResults, messageResults, data);
     }
 
-    private @Nullable AnalysisFileResult<IStrategoTerm, IStrategoTerm>
+    private @Nullable ISpoofaxAnalyzeUnit
         fileResult(IStrategoTerm result, IContext context) {
         final String file = Tools.asJavaString(result.getSubterm(0));
         final FileObject source = resourceService.resolve(file);

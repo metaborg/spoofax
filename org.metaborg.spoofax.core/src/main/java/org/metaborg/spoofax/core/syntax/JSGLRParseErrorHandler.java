@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.syntax;
 
-import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findLeftMostTokenOnSameLine;
-import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findRightMostTokenOnSameLine;
+import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.*;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
 
 import java.util.ArrayList;

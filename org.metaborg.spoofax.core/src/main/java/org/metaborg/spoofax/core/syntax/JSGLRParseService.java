@@ -1,68 +1,83 @@
 package org.metaborg.spoofax.core.syntax;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
-
-import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.dialect.IDialectService;
-import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.syntax.IParser;
-import org.metaborg.core.syntax.IParserConfig;
 import org.metaborg.core.syntax.ParseException;
-import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.util.NotImplementedException;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-public class JSGLRParseService implements IParser<IStrategoTerm>, ILanguageCache {
+public class JSGLRParseService implements IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>, ILanguageCache {
     private static final ILogger logger = LoggerUtils.logger(JSGLRParseService.class);
 
-    private final IDialectService dialectService;
+    private final ISpoofaxUnitService unitService;
     private final ITermFactoryService termFactoryService;
 
     private final Map<ILanguageImpl, IParserConfig> parserConfigs = Maps.newHashMap();
 
 
-    @Inject public JSGLRParseService(IDialectService dialectService, ITermFactoryService termFactoryService) {
-        this.dialectService = dialectService;
+    @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService) {
+        this.unitService = unitService;
         this.termFactoryService = termFactoryService;
     }
 
 
-    @Override public ParseResult<IStrategoTerm> parse(String text, @Nullable FileObject resource, ILanguageImpl language,
-        @Nullable IParserConfig parserConfig) throws ParseException {
-        final IParserConfig config = getParserConfig(language);
+    @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input) throws ParseException {
+        final FileObject source = input.source();
+        final ILanguageImpl langImpl;
+        final ILanguageImpl base;
+        if(input.dialect() != null) {
+            langImpl = input.dialect();
+            base = input.langImpl();
+        } else {
+            langImpl = input.langImpl();
+            base = null;
+        }
+        final String text = input.text();
+
+        final IParserConfig config = getParserConfig(langImpl);
         try {
-            logger.trace("Parsing {}", resource);
-            final ILanguageImpl base = dialectService.getBase(language);
+            logger.trace("Parsing {}", source);
             final JSGLRI parser;
             if(base != null) {
-                parser = new JSGLRI(config, termFactoryService.get(language), base, language, resource, text);
+                parser = new JSGLRI(config, termFactoryService.get(langImpl), base, langImpl, source, text);
             } else {
-                parser = new JSGLRI(config, termFactoryService.get(language), language, null, resource, text);
+                parser = new JSGLRI(config, termFactoryService.get(langImpl), langImpl, null, source, text);
             }
-            return parser.parse(parserConfig);
+            final ParseContrib contrib = parser.parse(input.config());
+            final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
+            return unit;
         } catch(IOException e) {
-            throw new ParseException(resource, language, e);
+            throw new ParseException(input, e);
         }
     }
 
-    @Override public String unparse(IStrategoTerm parsed, ILanguageImpl language) {
-        throw new NotImplementedException();
+    @Override public Collection<ISpoofaxParseUnit> parseAll(Iterable<ISpoofaxInputUnit> inputs) throws ParseException {
+        final Collection<ISpoofaxParseUnit> parseUnits = Lists.newArrayList();
+        for(ISpoofaxInputUnit input : inputs) {
+            parseUnits.add(parse(input));
+        }
+        return parseUnits;
     }
+
 
     public IParserConfig getParserConfig(ILanguageImpl lang) {
         IParserConfig config = parserConfigs.get(lang);
@@ -75,12 +90,6 @@ public class JSGLRParseService implements IParser<IStrategoTerm>, ILanguageCache
             parserConfigs.put(lang, config);
         }
         return config;
-    }
-
-    @Override public ParseResult<IStrategoTerm> emptyParseResult(FileObject resource, ILanguageImpl language,
-        ILanguageImpl dialect) {
-        return new ParseResult<IStrategoTerm>("", termFactoryService.getGeneric().makeTuple(), resource,
-            Iterables2.<IMessage>empty(), -1, language, dialect, null);
     }
 
 

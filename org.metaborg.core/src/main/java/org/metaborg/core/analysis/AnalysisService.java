@@ -2,7 +2,6 @@ package org.metaborg.core.analysis;
 
 import java.util.Collection;
 
-import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParseUnit;
@@ -39,10 +38,6 @@ public class AnalysisService<P extends IParseUnit, A extends IAnalyzeUnit> imple
         final IAnalyzer<P, A> analyzer = facet.analyzer;
 
         return analyzer.analyzeAll(inputs, context);
-    }
-
-    @Override public A emptyUnit(P input, IContext context) throws MetaborgException {
-        throw new UnsupportedOperationException("Not implemented yet");
     }
 
 
