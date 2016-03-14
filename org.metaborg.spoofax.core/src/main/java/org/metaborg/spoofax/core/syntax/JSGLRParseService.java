@@ -11,6 +11,9 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.Message;
+import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.core.messages.MessageType;
 import org.metaborg.core.syntax.IParseService;
 import org.metaborg.core.syntax.IParserConfiguration;
 import org.metaborg.core.syntax.ParseException;
@@ -47,6 +50,14 @@ public class JSGLRParseService implements IParseService<IStrategoTerm>, ILanguag
         final IParserConfig config = getParserConfig(language);
         try {
             logger.trace("Parsing {}", resource);
+
+            // WORKAROUND: The parser can't handle an empty input string.
+            if (text == null || text.isEmpty()) {
+                return new ParseResult<>(text, null, resource, Iterables2.<IMessage>singleton(
+                    new Message("The input is empty.", MessageSeverity.NOTE, MessageType.PARSER, resource, null, null)
+                ), 0, language, null, null);
+            }
+
             final ILanguageImpl base = dialectService.getBase(language);
             final JSGLRI parser;
             if(base != null) {

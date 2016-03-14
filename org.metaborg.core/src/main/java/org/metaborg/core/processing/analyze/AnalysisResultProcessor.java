@@ -208,6 +208,14 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
                 try(IClosableLock lock = context.write()) {
                     parentResult = analysisService.analyze(Iterables2.singleton(parseResult), context);
                 }
+
+                // WORKAROUND: When there are no parse results and therefore no analysis results,
+                // the Iterables.get() method would fail. Instead, throw an exception to get the hell
+                // outta here.
+                if (Iterables.isEmpty(parentResult.fileResults)) {
+                    throw new AnalysisException(context, "No analysis results.");
+                }
+
                 final AnalysisFileResult<P, A> result = Iterables.get(parentResult.fileResults, 0);
                 updates.onNext(AnalysisChange.update(resource, result, parentResult));
             } catch(AnalysisException e) {
