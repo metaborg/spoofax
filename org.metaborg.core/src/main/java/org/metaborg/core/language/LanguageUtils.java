@@ -33,7 +33,10 @@ public class LanguageUtils {
         final Iterable<? extends ILanguage> languages = languageService.getAllLanguages();
         final Collection<ILanguageImpl> activeImpls = Lists.newLinkedList();
         for(ILanguage language : languages) {
-            final ILanguageImpl impl = language.activeImpl();
+            @Nullable final ILanguageImpl impl = language.activeImpl();
+            if (impl == null) {
+                throw new IllegalStateException("Unexpected null for active implementation of language " + language);
+            }
             activeImpls.add(impl);
         }
         return activeImpls;
