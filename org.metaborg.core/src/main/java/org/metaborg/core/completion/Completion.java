@@ -31,10 +31,12 @@ public class Completion implements ICompletion {
         return text;
     }
     
+    @Override
     public boolean isNested(){
         return nested;
     }
     
+    @Override
     public void setNested(boolean nested){
         this.nested = nested;
     }

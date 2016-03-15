@@ -6,4 +6,6 @@ public interface ICompletion {
     int startOffset();
     int endOffset();
     void setItems(Iterable<ICompletionItem> items);
+    void setNested(boolean nested);
+    boolean isNested();
 }
