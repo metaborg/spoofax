@@ -10,7 +10,9 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.analysis.IAnalyzeResult;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.build.UpdateKind;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.processing.parse.IParseResultRequester;
@@ -29,27 +31,28 @@ import rx.Subscriber;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
 
-public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit>
+public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate>
     implements IAnalysisResultProcessor<I, P, A> {
     private static final ILogger logger = LoggerUtils.logger(AnalysisResultProcessor.class);
 
-    private final IAnalysisService<P, A> analysisService;
-
+    private final IAnalysisService<P, A, AU> analysisService;
     private final IParseResultRequester<I, P> parseResultRequester;
 
     private final ConcurrentMap<FileName, BehaviorSubject<AnalysisChange<A>>> updatesPerResource =
         Maps.newConcurrentMap();
 
 
-    @Inject public AnalysisResultProcessor(IAnalysisService<P, A> analysisService,
+    @Inject public AnalysisResultProcessor(IAnalysisService<P, A, AU> analysisService,
         IParseResultRequester<I, P> parseResultRequester) {
         this.analysisService = analysisService;
-
         this.parseResultRequester = parseResultRequester;
     }
 
 
     @Override public Observable<A> request(final I input, final IContext context) {
+        if(input.detached()) {
+            throw new MetaborgRuntimeException("Cannot request updates for detached (no source) units");
+        }
         final FileObject resource = input.source();
         return Observable.create(new OnSubscribe<A>() {
             @Override public void call(Subscriber<? super A> observer) {
@@ -125,11 +128,17 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
 
     @Override public void invalidate(Iterable<P> results) {
         for(P parseResult : results) {
+            if(parseResult.detached()) {
+                throw new MetaborgRuntimeException("Cannot invalidate results for detached (no source) units");
+            }
             invalidate(parseResult.source());
         }
     }
 
     @Override public void update(A result, Set<FileName> removedResources) {
+        if(result.detached()) {
+            throw new MetaborgRuntimeException("Cannot process updates for detached (no source) units");
+        }
         // LEGACY: analysis always returns resources on the local file system, but we expect resources in the Eclipse
         // file system here. Need to rebase resources on the local file system to the Eclipse file system, otherwise
         // updates will not match invalidates.
@@ -155,7 +164,9 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
     @Override public void error(Iterable<P> results, AnalysisException exception) {
         for(P parseResult : results) {
             final FileObject resource = parseResult.source();
-            assert resource != null;
+            if(parseResult.detached()) {
+                throw new MetaborgRuntimeException("Cannot process analysis errors for detached (no source) units");
+            }
             final BehaviorSubject<AnalysisChange<A>> updates = getUpdates(resource.getName());
             updates.onNext(AnalysisChange.<A>error(resource, exception));
         }
@@ -175,6 +186,9 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
     }
 
     private BehaviorSubject<AnalysisChange<A>> getUpdates(I input, IContext context) {
+        if(input.detached()) {
+            throw new MetaborgRuntimeException("Cannot get updates for detached (no source) units");
+        }
         final FileObject resource = input.source();
         final FileName name = resource.getName();
 
@@ -190,11 +204,12 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
                 final P parseResult = parseResultRequester.request(input).toBlocking().single();
 
                 logger.trace("Analysing for {}", resource);
-                final A result;
+                final IAnalyzeResult<A, AU> result;
                 try(IClosableLock lock = context.write()) {
                     result = analysisService.analyze(parseResult, context);
                 }
-                updates.onNext(AnalysisChange.<A>update(resource, result));
+                updates.onNext(AnalysisChange.<A>update(resource, result.result()));
+                // HACK: ignore analyze unit updates from result.updates(), may cause incrementality problems.
             } catch(AnalysisException e) {
                 final String message = String.format("Analysis for %s failed", name);
                 logger.error(message, e);

@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
@@ -23,14 +24,14 @@ import rx.functions.Func0;
  * Processor implementation that uses {@link BlockingTask} as task implementation. Tasks execute and block when
  * scheduled.
  */
-public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>>
-    implements IProcessor<P, A, T> {
+public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>>
+    implements IProcessor<P, A, AU, T> {
     private final IDialectProcessor dialectProcessor;
-    private final IBuilder<P, A, T> builder;
+    private final IBuilder<P, A, AU, T> builder;
     private final ILanguageChangeProcessor languageChangeProcessor;
 
 
-    @Inject public BlockingProcessor(IDialectProcessor dialectProcessor, IBuilder<P, A, T> builder,
+    @Inject public BlockingProcessor(IDialectProcessor dialectProcessor, IBuilder<P, A, AU, T> builder,
         ILanguageChangeProcessor languageChangeProcessor) {
         this.dialectProcessor = dialectProcessor;
         this.builder = builder;
@@ -38,10 +39,10 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, T e
     }
 
 
-    @Override public ITask<IBuildOutput<P, A, T>> build(final BuildInput input,
+    @Override public ITask<IBuildOutput<P, A, AU, T>> build(final BuildInput input,
         final @Nullable IProgressReporter progressReporter, final @Nullable ICancellationToken cancellationToken) {
-        return new BlockingTask<>(new Func0<IBuildOutput<P, A, T>>() {
-            @Override public IBuildOutput<P, A, T> call() {
+        return new BlockingTask<>(new Func0<IBuildOutput<P, A, AU, T>>() {
+            @Override public IBuildOutput<P, A, AU, T> call() {
                 final IProgressReporter pr = progressReporter != null ? progressReporter : new NullProgressReporter();
                 final ICancellationToken ct = cancellationToken != null ? cancellationToken : new CancellationToken();
                 try {

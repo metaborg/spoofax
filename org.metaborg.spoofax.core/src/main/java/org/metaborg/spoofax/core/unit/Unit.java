@@ -10,21 +10,21 @@ import org.metaborg.core.unit.IUnitContrib;
 
 import com.google.common.collect.Maps;
 
-public class SpoofaxUnit implements IUnit {
+public class Unit implements IUnit {
     private final @Nullable FileObject source;
     private final Map<String, IUnitContrib> contribs;
 
 
-    public SpoofaxUnit(@Nullable FileObject source, Map<String, IUnitContrib> contribs) {
+    public Unit(@Nullable FileObject source, Map<String, IUnitContrib> contribs) {
         this.contribs = contribs;
         this.source = source;
     }
 
-    public SpoofaxUnit(@Nullable FileObject source) {
+    public Unit(@Nullable FileObject source) {
         this(source, Maps.<String, IUnitContrib>newHashMap());
     }
 
-    public SpoofaxUnit() {
+    public Unit() {
         this(null);
     }
 

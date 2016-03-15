@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
@@ -21,12 +22,12 @@ import rx.functions.Action1;
 /**
  * Default implementation for the processor runner.
  */
-public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>>
-    implements IProcessorRunner<P, A, T> {
-    private final IProcessor<P, A, T> processor;
+public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>>
+    implements IProcessorRunner<P, A, AU, T> {
+    private final IProcessor<P, A, AU, T> processor;
 
 
-    @Inject public ProcessorRunner(IProcessor<P, A, T> processor, ILanguageService languageService) {
+    @Inject public ProcessorRunner(IProcessor<P, A, AU, T> processor, ILanguageService languageService) {
         this.processor = processor;
 
         languageService.componentChanges().subscribe(new Action1<LanguageComponentChange>() {
@@ -43,8 +44,8 @@ public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, T ext
     }
 
 
-    @Override public ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken) {
+    @Override public ITask<IBuildOutput<P, A, AU, T>> build(BuildInput input,
+        @Nullable IProgressReporter progressReporter, @Nullable ICancellationToken cancellationToken) {
         return processor.build(input, progressReporter, cancellationToken);
     }
 

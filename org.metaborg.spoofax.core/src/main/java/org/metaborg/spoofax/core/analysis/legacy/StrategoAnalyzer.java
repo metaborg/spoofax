@@ -8,7 +8,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
-import org.metaborg.core.analysis.AnalyzeUnitType;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageImpl;
@@ -18,7 +17,11 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
+import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResult;
+import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -69,11 +72,10 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     }
 
 
-    @Override public ISpoofaxAnalyzeUnit analyze(ISpoofaxParseUnit input, IContext context) throws AnalysisException {
+    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context) throws AnalysisException {
         if(!input.valid()) {
-            logger.warn("Parse input for {} is invalid, cannot analyze", input.source());
-            // TODO: throw exception instead?
-            return unitService.emptyAnalyzeUnit(input, context);
+            final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
+            throw new AnalysisException(context, message);
         }
 
         final ILanguageImpl language = context.language();
@@ -82,7 +84,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
-            return unitService.emptyAnalyzeUnit(input, context);
+            final ISpoofaxAnalyzeUnit emptyUnit = unitService.emptyAnalyzeUnit(input, context);
+            return new SpoofaxAnalyzeResult(emptyUnit, context);
         }
         final AnalysisFacet facet = facetContribution.facet;
 
@@ -90,13 +93,14 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         try {
             runtime = runtimeService.runtime(facetContribution.contributor, context);
         } catch(MetaborgException e) {
-            throw new AnalysisException(context, "Failed to get Stratego interpreter", e);
+            throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
-        return analyze(input, context, runtime, facet.strategyName, termFactory);
+        final ISpoofaxAnalyzeUnit result = analyze(input, context, runtime, facet.strategyName, termFactory);
+        return new SpoofaxAnalyzeResult(result, context);
     }
 
-    @Override public Collection<ISpoofaxAnalyzeUnit> analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context)
+    @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context)
         throws AnalysisException {
         final ILanguageImpl language = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
@@ -104,7 +108,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
-            return Lists.newArrayList();
+            return new SpoofaxAnalyzeResults(context);
         }
         final AnalysisFacet facet = facetContribution.facet;
 
@@ -112,7 +116,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         try {
             runtime = runtimeService.runtime(facetContribution.contributor, context);
         } catch(MetaborgException e) {
-            throw new AnalysisException(context, "Failed to get Stratego interpreter", e);
+            throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayListWithCapacity(Iterables.size(inputs));
@@ -125,7 +129,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
             final ISpoofaxAnalyzeUnit result = analyze(input, context, runtime, facet.strategyName, termFactory);
             results.add(result);
         }
-        return results;
+        return new SpoofaxAnalyzeResults(results, context);
     }
 
     private ISpoofaxAnalyzeUnit analyze(ISpoofaxParseUnit input, IContext context, HybridInterpreter runtime,
@@ -218,8 +222,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(notes);
         messages.addAll(ambiguities);
 
-        return unitService.analyzeUnit(input,
-            new AnalyzeContrib(true, errors.isEmpty(), AnalyzeUnitType.Result, ast, messages, duration), context);
+        return unitService.analyzeUnit(input, new AnalyzeContrib(true, errors.isEmpty(), ast, messages, duration),
+            context);
     }
 
     private ISpoofaxAnalyzeUnit resultNoAst(IStrategoTerm result, ISpoofaxParseUnit input, IContext context,
@@ -238,8 +242,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(warnings);
         messages.addAll(notes);
 
-        return unitService.analyzeUnit(input,
-            new AnalyzeContrib(true, errors.isEmpty(), AnalyzeUnitType.Result, null, messages, duration), context);
+        return unitService.analyzeUnit(input, new AnalyzeContrib(true, errors.isEmpty(), null, messages, duration),
+            context);
     }
 
     private ISpoofaxAnalyzeUnit result(String error, ISpoofaxParseUnit input, IContext context, Throwable e,
@@ -247,7 +251,6 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final FileObject source = input.source();
         final IMessage message = MessageFactory.newAnalysisErrorAtTop(source, error, e);
         return unitService.analyzeUnit(input,
-            new AnalyzeContrib(false, false, AnalyzeUnitType.Result, null, Iterables2.singleton(message), duration),
-            context);
+            new AnalyzeContrib(false, false, null, Iterables2.singleton(message), duration), context);
     }
 }

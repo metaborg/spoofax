@@ -6,6 +6,7 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
@@ -14,16 +15,17 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>>
-    implements IBuildOutput<P, A, T> {
+public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>>
+    implements IBuildOutput<P, A, AU, T> {
     private boolean success = true;
     public final BuildState state;
     public final Set<FileName> removedResources = Sets.newHashSet();
     public final Set<FileName> includedResources = Sets.newHashSet();
-    public final Collection<FileObject> changedResources = Lists.newLinkedList();
-    public final Collection<P> parseResults = Lists.newLinkedList();
-    public final Collection<A> analysisResults = Lists.newLinkedList();
-    public final Collection<T> transformResults = Lists.newLinkedList();
+    public final Collection<FileObject> changedResources = Lists.newArrayList();
+    public final Collection<P> parseResults = Lists.newArrayList();
+    public final Collection<A> analysisResults = Lists.newArrayList();
+    public final Collection<AU> analysisUpdates = Lists.newArrayList();
+    public final Collection<T> transformResults = Lists.newArrayList();
     public final Collection<IMessage> extraMessages = Lists.newLinkedList();
 
 
@@ -60,6 +62,10 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, T extends
         return analysisResults;
     }
 
+    @Override public Iterable<AU> analysisUpdates() {
+        return analysisUpdates;
+    }
+
     @Override public Iterable<T> transformResults() {
         return transformResults;
     }
@@ -85,13 +91,14 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, T extends
 
     public void add(boolean success, Iterable<FileName> removedResources, Iterable<FileName> includedResources,
         Iterable<FileObject> changedResources, Iterable<P> parseResults, Iterable<A> analysisResults,
-        Iterable<T> transformResults, Iterable<IMessage> extraMessages) {
+        Iterable<AU> analysisUpdates, Iterable<T> transformResults, Iterable<IMessage> extraMessages) {
         this.success &= success;
         Iterables.addAll(this.removedResources, removedResources);
         Iterables.addAll(this.includedResources, includedResources);
         Iterables.addAll(this.changedResources, changedResources);
         Iterables.addAll(this.parseResults, parseResults);
         Iterables.addAll(this.analysisResults, analysisResults);
+        Iterables.addAll(this.analysisUpdates, analysisUpdates);
         Iterables.addAll(this.transformResults, transformResults);
         Iterables.addAll(this.extraMessages, extraMessages);
     }

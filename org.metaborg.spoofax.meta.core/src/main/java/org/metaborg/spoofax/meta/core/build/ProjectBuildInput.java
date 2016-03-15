@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.meta.core.build;
 
 import org.metaborg.core.project.IProject;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 
 /**
  * Project build input arguments.

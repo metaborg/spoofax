@@ -6,6 +6,7 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.syntax.ParseException;
@@ -18,10 +19,12 @@ import org.metaborg.core.transform.ITransformUnit;
  *            Type of parse units
  * @param <A>
  *            Type of analyze units.
+ * @param <AU>
+ *            Type of analyze unit updates.
  * @param <T>
  *            Type of transform units.
  */
-public interface IBuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>> {
+public interface IBuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>> {
     /**
      * @return If the build was successful.
      */
@@ -55,10 +58,14 @@ public interface IBuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, T ex
     Iterable<P> parseResults();
 
     /**
-     * @return Analysis results for changed resources. Resources that could not be parsed are not analyzed. Resources in
-     *         the same context are analyzed together and create a single analysis result.
+     * @return Analysis results for changed resources. Resources that could not be parsed are not analyzed.
      */
     Iterable<A> analysisResults();
+
+    /**
+     * @return Analysis updates for affected resources.
+     */
+    Iterable<AU> analysisUpdates();
 
     /**
      * @return Transformation results for changed resources. Resources that could not be parsed or analyzed, or that do

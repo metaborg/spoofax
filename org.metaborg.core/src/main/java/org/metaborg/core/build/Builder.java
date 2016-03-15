@@ -14,9 +14,10 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.analysis.AnalysisException;
-import org.metaborg.core.analysis.AnalyzeUnitType;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.analysis.IAnalyzeResults;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ContextUtils;
@@ -69,6 +70,8 @@ import com.google.inject.Inject;
  *            Type of parse units.
  * @param <A>
  *            Type of analyze units.
+ * @param <AU>
+ *            Type of analyze unit updates.
  * @param <T>
  *            Type of transform units with any input.
  * @param <TP>
@@ -76,18 +79,18 @@ import com.google.inject.Inject;
  * @param <TA>
  *            Type of transform units with analyze units as input.
  */
-public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>>
-    implements IBuilder<P, A, T> {
+public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>>
+    implements IBuilder<P, A, AU, T> {
     private static final ILogger logger = LoggerUtils.logger(Builder.class);
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
     private final ILanguagePathService languagePathService;
-    private final IUnitService<I, P, A, TP, TA> unitService;
+    private final IUnitService<I, P, A, AU, TP, TA> unitService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<I, P> syntaxService;
     private final IContextService contextService;
-    private final IAnalysisService<P, A> analysisService;
+    private final IAnalysisService<P, A, AU> analysisService;
     private final ITransformService<P, A, TP, TA> transformService;
 
     private final IParseResultUpdater<P> parseResultUpdater;
@@ -95,9 +98,9 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ILanguagePathService languagePathService, IUnitService<I, P, A, TP, TA> unitService,
+        ILanguagePathService languagePathService, IUnitService<I, P, A, AU, TP, TA> unitService,
         ISourceTextService sourceTextService, ISyntaxService<I, P> syntaxService, IContextService contextService,
-        IAnalysisService<P, A> analysisService, ITransformService<P, A, TP, TA> transformService,
+        IAnalysisService<P, A, AU> analysisService, ITransformService<P, A, TP, TA> transformService,
         IParseResultUpdater<P> parseResultUpdater, IAnalysisResultUpdater<P, A> analysisResultUpdater) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
@@ -114,7 +117,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     }
 
 
-    @Override public IBuildOutput<P, A, T> build(BuildInput input, IProgressReporter progressReporter,
+    @Override public IBuildOutput<P, A, AU, T> build(BuildInput input, IProgressReporter progressReporter,
         ICancellationToken cancel) throws InterruptedException {
         cancel.throwIfCancelled();
 
@@ -157,7 +160,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         cancel.throwIfCancelled();
 
         final BuildState newState = new BuildState();
-        final BuildOutput<P, A, T> buildOutput = new BuildOutput<>(newState);
+        final BuildOutput<P, A, AU, T> buildOutput = new BuildOutput<>(newState);
         for(ILanguageImpl language : input.buildOrder.buildOrder()) {
             cancel.throwIfCancelled();
 
@@ -187,16 +190,16 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
 
     private void updateLanguageResources(BuildInput input, ILanguageImpl language, LanguageBuildDiff diff,
-        BuildOutput<P, A, T> output, boolean pardoned, ICancellationToken cancel) throws InterruptedException {
+        BuildOutput<P, A, AU, T> output, boolean pardoned, ICancellationToken cancel) throws InterruptedException {
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
-        final Set<FileName> includedResources = Sets.newHashSet();
+        final Set<FileName> includes = Sets.newHashSet();
         for(IdentifiedResourceChange includeChange : includeChanges) {
-            includedResources.add(includeChange.change.resource.getName());
+            includes.add(includeChange.change.resource.getName());
         }
         final FileObject location = input.project.location();
-        final Collection<FileObject> changedResources = Sets.newHashSet();
+        final Collection<FileObject> changedSources = Sets.newHashSet();
         final Set<FileName> removedResources = Sets.newHashSet();
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
         final RefBool success = new RefBool(true);
@@ -206,26 +209,26 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         // Parse
         cancel.throwIfCancelled();
-        final Collection<P> sourceParseResults = parse(input, language, sourceChanges, pardoned, changedResources,
+        final Collection<P> sourceParseUnits = parse(input, language, sourceChanges, pardoned, changedSources,
             removedResources, extraMessages, success, cancel);
         // GTODO: when a new context is created, all include files need to be parsed and analyzed in that context, this
         // approach does not do that!
-        final Collection<P> includeParseResults = parse(input, language, includeChanges, pardoned, changedResources,
+        final Collection<P> includeParseUnits = parse(input, language, includeChanges, pardoned, changedSources,
             removedResources, extraMessages, success, cancel);
-        final Iterable<P> allParseResults = Iterables.concat(sourceParseResults, includeParseResults);
+        final Iterable<P> allParseResults = Iterables.concat(sourceParseUnits, includeParseUnits);
 
         // Segregate by context
         cancel.throwIfCancelled();
-        final Multimap<IContext, P> sourceResultsPerContext = ArrayListMultimap.create();
+        final Multimap<IContext, P> parseUnitsPerContext = ArrayListMultimap.create();
         if(input.analyze) {
-            for(P parseResult : sourceParseResults) {
+            for(P parseResult : sourceParseUnits) {
                 cancel.throwIfCancelled();
                 final FileObject resource = parseResult.source();
                 final ILanguageImpl langImpl = parseResult.input().langImpl();
                 try {
                     if(contextService.available(langImpl)) {
                         final IContext context = contextService.get(resource, input.project, langImpl);
-                        sourceResultsPerContext.put(context, parseResult);
+                        parseUnitsPerContext.put(context, parseResult);
                     }
                 } catch(ContextException e) {
                     final String message = String.format("Failed to retrieve context for parse result of %s", resource);
@@ -237,37 +240,38 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         // Analyze
         cancel.throwIfCancelled();
-        final Multimap<IContext, A> allAnalysisResults;
+        final Multimap<IContext, A> allAnalyzeUnits;
+        final Collection<AU> allAnalyzeUpdates = Lists.newArrayList();
         if(input.analyze) {
-            allAnalysisResults = analyze(input, location, sourceResultsPerContext, includeParseResults, pardoned,
-                removedResources, extraMessages, success, cancel);
+            allAnalyzeUnits = analyze(input, location, parseUnitsPerContext, includeParseUnits, pardoned,
+                allAnalyzeUpdates, removedResources, extraMessages, success, cancel);
         } else {
-            allAnalysisResults = ArrayListMultimap.create();
+            allAnalyzeUnits = ArrayListMultimap.create();
         }
 
         // Transform
         cancel.throwIfCancelled();
-        final Collection<T> allTransformResults;
+        final Collection<T> allTransformUnits;
         if(input.transform) {
-            allTransformResults = transform(input, location, allAnalysisResults, includedResources, pardoned,
-                removedResources, extraMessages, success, cancel);
+            allTransformUnits = transform(input, location, allAnalyzeUnits, includes, pardoned, removedResources,
+                extraMessages, success, cancel);
         } else {
-            allTransformResults = Lists.newLinkedList();
+            allTransformUnits = Lists.newLinkedList();
         }
 
         printMessages(extraMessages, "Something", input, pardoned);
 
-        output.add(success.get(), removedResources, includedResources, changedResources, allParseResults,
-            allAnalysisResults.values(), allTransformResults, extraMessages);
+        output.add(success.get(), removedResources, includes, changedSources, allParseResults, allAnalyzeUnits.values(),
+            allAnalyzeUpdates, allTransformUnits, extraMessages);
     }
 
     private Collection<P> parse(BuildInput input, ILanguageImpl langImpl, Iterable<IdentifiedResourceChange> changes,
         boolean pardoned, Collection<FileObject> changedResources, Set<FileName> removedResources,
         Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel) throws InterruptedException {
         final int size = Iterables.size(changes);
-        final Collection<P> allParseResults = Lists.newArrayListWithCapacity(size);
+        final Collection<P> allParseUnits = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
-            return allParseResults;
+            return allParseUnits;
         }
 
         logger.debug("Parsing {} resources", size);
@@ -288,7 +292,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     // updater, and the compiler, to exclude removed resources.
                     final I inputUnit = unitService.emptyInputUnit(resource, langImpl, dialect);
                     final P emptyParseResult = unitService.emptyParseUnit(inputUnit);
-                    allParseResults.add(emptyParseResult);
+                    allParseUnits.add(emptyParseResult);
                     // Don't add resource as changed when it has been deleted, because it does not exist any more.
                 } else {
                     final String sourceText = sourceTextService.text(resource);
@@ -297,7 +301,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     final P parseResult = syntaxService.parse(inputUnit);
                     final boolean noErrors = printMessages(parseResult.messages(), "Parsing", input, pardoned);
                     success.and(noErrors);
-                    allParseResults.add(parseResult);
+                    allParseUnits.add(parseResult);
                     parseResultUpdater.update(resource, parseResult);
                     changedResources.add(resource);
                 }
@@ -319,37 +323,37 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 changedResources.add(resource);
             }
         }
-        return allParseResults;
+        return allParseUnits;
     }
 
-    private Multimap<IContext, A> analyze(BuildInput input, FileObject location,
-        Multimap<IContext, P> sourceParseResults, Iterable<P> includeParseResults, boolean pardoned,
-        Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel)
-        throws InterruptedException {
-        final int size = sourceParseResults.size() + Iterables.size(includeParseResults);
-        final Multimap<IContext, A> allAnalysisResults = ArrayListMultimap.create();
+    private Multimap<IContext, A> analyze(BuildInput input, FileObject location, Multimap<IContext, P> sourceParseUnits,
+        Iterable<P> includeParseUnits, boolean pardoned, Collection<AU> analyzeUpdates, Set<FileName> removedResources,
+        Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel) throws InterruptedException {
+        final int size = sourceParseUnits.size() + Iterables.size(includeParseUnits);
+        final Multimap<IContext, A> allAnalyzeUnits = ArrayListMultimap.create();
         if(size == 0) {
-            return allAnalysisResults;
+            return allAnalyzeUnits;
         }
 
-        logger.debug("Analyzing {} parse results in {} context(s)", size, sourceParseResults.keySet().size());
+        logger.debug("Analyzing {} parse results in {} context(s)", size, sourceParseUnits.keySet().size());
 
-        for(Entry<IContext, Collection<P>> entry : sourceParseResults.asMap().entrySet()) {
+        for(Entry<IContext, Collection<P>> entry : sourceParseUnits.asMap().entrySet()) {
             cancel.throwIfCancelled();
             final IContext context = entry.getKey();
-            final Iterable<P> parseResults = Iterables.concat(entry.getValue(), includeParseResults);
+            final Iterable<P> parseResults = Iterables.concat(entry.getValue(), includeParseUnits);
 
             try {
                 try(IClosableLock lock = context.write()) {
                     analysisResultUpdater.invalidate(parseResults);
-                    final Collection<A> results = analysisService.analyzeAll(parseResults, context);
-                    for(A result : results) {
+                    final IAnalyzeResults<A, AU> results = analysisService.analyzeAll(parseResults, context);
+                    for(A result : results.results()) {
                         cancel.throwIfCancelled();
                         final boolean noErrors = printMessages(result.messages(), "Analysis", input, pardoned);
                         success.and(noErrors);
                         analysisResultUpdater.update(result, removedResources);
-                        allAnalysisResults.put(context, result);
+                        allAnalyzeUnits.put(context, result);
                     }
+                    analyzeUpdates.addAll(results.updates());
                 } finally {
                     context.persist();
                 }
@@ -366,32 +370,27 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             }
         }
-        return allAnalysisResults;
+        return allAnalyzeUnits;
     }
 
-    private Collection<T> transform(BuildInput input, FileObject location, Multimap<IContext, A> allAnalysisResults,
+    private Collection<T> transform(BuildInput input, FileObject location, Multimap<IContext, A> allAnalysisUnits,
         Set<FileName> includeFiles, boolean pardoned, Set<FileName> removedResources,
         Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel) throws InterruptedException {
-        int size = allAnalysisResults.size();
-        final Collection<T> allTransformResults = Lists.newArrayListWithCapacity(size);
+        int size = allAnalysisUnits.size();
+        final Collection<T> allTransformUnits = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
-            return allTransformResults;
+            return allTransformUnits;
         }
 
         logger.debug("Compiling {} analysis results", size);
 
-        for(Entry<IContext, Collection<A>> entry : allAnalysisResults.asMap().entrySet()) {
+        for(Entry<IContext, Collection<A>> entry : allAnalysisUnits.asMap().entrySet()) {
             cancel.throwIfCancelled();
             final IContext context = entry.getKey();
             final Iterable<A> analysisResults = entry.getValue();
             try(IClosableLock lock = context.read()) {
                 for(A analysisResult : analysisResults) {
                     cancel.throwIfCancelled();
-
-                    if(analysisResult.type() != AnalyzeUnitType.Result) {
-                        // Only transform analyze units that contain actual results.
-                        continue;
-                    }
 
                     final FileObject resource = analysisResult.source();
                     final FileName name = resource.getName();
@@ -420,7 +419,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                                     printMessages(result.messages(), goal + " transformation", input, pardoned);
                                 success.and(noErrors);
                                 @SuppressWarnings("unchecked") final T genericResult = (T) result;
-                                allTransformResults.add(genericResult);
+                                allTransformUnits.add(genericResult);
                             }
                         }
                     } catch(TransformException e) {
@@ -434,7 +433,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 // GTODO: also compile any affected sources
             }
         }
-        return allTransformResults;
+        return allTransformUnits;
     }
 
     private boolean printMessages(Iterable<IMessage> messages, String phase, BuildInput input, boolean pardoned) {

@@ -4,11 +4,11 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.unit.IUnit;
 import org.metaborg.core.unit.IUnitContrib;
 
-public class SpoofaxUnitWrapper implements IUnit {
-    public final SpoofaxUnit unit;
+public class UnitWrapper implements IUnit {
+    public final Unit unit;
 
 
-    public SpoofaxUnitWrapper(SpoofaxUnit unit) {
+    public UnitWrapper(Unit unit) {
         this.unit = unit;
     }
 

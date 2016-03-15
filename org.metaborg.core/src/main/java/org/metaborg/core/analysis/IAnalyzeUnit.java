@@ -24,25 +24,20 @@ public interface IAnalyzeUnit extends IUnit {
     boolean success();
 
     /**
-     * @return Type of this unit.
-     */
-    AnalyzeUnitType type();
-
-    /**
      * @return Messages produced by the analyzer.
      */
     Iterable<IMessage> messages();
+
+    /**
+     * @return The context that was used during analysis.
+     */
+    IContext context();
 
 
     /**
      * @return The parse unit this unit was made with.
      */
     IParseUnit input();
-
-    /**
-     * @return The context that was used during analysis.
-     */
-    IContext context();
 
 
     /**

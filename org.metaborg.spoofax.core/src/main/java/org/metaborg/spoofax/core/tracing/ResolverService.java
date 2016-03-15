@@ -29,8 +29,8 @@ import com.google.inject.Inject;
 
 import fj.P2;
 
-public class ReferenceResolver implements ISpoofaxResolverService {
-    private static final ILogger logger = LoggerUtils.logger(ReferenceResolver.class);
+public class ResolverService implements ISpoofaxResolverService {
+    private static final ILogger logger = LoggerUtils.logger(ResolverService.class);
 
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService strategoRuntimeService;
@@ -38,7 +38,7 @@ public class ReferenceResolver implements ISpoofaxResolverService {
     private final TracingCommon common;
 
 
-    @Inject public ReferenceResolver(ITermFactoryService termFactoryService,
+    @Inject public ResolverService(ITermFactoryService termFactoryService,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService, TracingCommon common) {
         this.termFactoryService = termFactoryService;
         this.strategoRuntimeService = strategoRuntimeService;

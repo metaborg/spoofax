@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.analysis.taskengine;
 
-public class TaskEngineAnalyzerData implements IAnalyzerData {
+public class TaskEngineAnalyzerData {
     public final Iterable<String> affectedPartitions;
     public final AnalysisDebugResult debugResult;
     public final AnalysisTimeResult timeResult;

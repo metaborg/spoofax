@@ -6,6 +6,7 @@ import java.lang.reflect.Type;
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
@@ -45,6 +46,8 @@ import com.google.inject.util.Types;
  *            Type of parse units.
  * @param <A>
  *            Type of analyze units.
+ * @param <AU>
+ *            Type of analyze unit updates.
  * @param <T>
  *            Type of transform units with any input.
  * @param <TP>
@@ -54,17 +57,17 @@ import com.google.inject.util.Types;
  * @param <F>
  *            Type of fragments.
  */
-public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>, F>
+public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>, F>
     extends MetaBorg {
     public final IDialectService dialectService;
     public final IDialectIdentifier dialectIdentifier;
 
     public final ISyntaxService<I, P> syntaxService;
-    public final IAnalysisService<P, A> analysisService;
+    public final IAnalysisService<P, A, AU> analysisService;
     public final ITransformService<P, A, TP, TA> transformService;
 
-    public final IBuilder<P, A, T> builder;
-    public final IProcessorRunner<P, A, T> processorRunner;
+    public final IBuilder<P, A, AU, T> builder;
+    public final IProcessorRunner<P, A, AU, T> processorRunner;
 
     public final IParseResultProcessor<I, P> parseResultProcessor;
     public final IAnalysisResultProcessor<I, P, A> analysisResultProcessor;
@@ -95,7 +98,7 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
      *             When loading plugins or dependency injection fails.
      */
     public MetaBorgGeneric(MetaborgModule module, IModulePluginLoader loader, Class<I> iClass, Class<P> pClass,
-        Class<A> aClass, Class<T> tClass, Class<TP> tpClass, Class<TA> taClass, Class<F> fClass)
+        Class<A> aClass, Class<AU> auClass, Type tClass, Type tpClass, Type taClass, Class<F> fClass)
         throws MetaborgException {
         super(module, loader);
 
@@ -103,12 +106,13 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
         this.dialectIdentifier = injector.getInstance(IDialectIdentifier.class);
 
         this.syntaxService = instance(new TypeLiteral<ISyntaxService<I, P>>() {}, iClass, pClass);
-        this.analysisService = instance(new TypeLiteral<IAnalysisService<P, A>>() {}, pClass, aClass);
+        this.analysisService = instance(new TypeLiteral<IAnalysisService<P, A, AU>>() {}, pClass, aClass, auClass);
         this.transformService =
             instance(new TypeLiteral<ITransformService<P, A, TP, TA>>() {}, pClass, aClass, tpClass, taClass);
 
-        this.builder = instance(new TypeLiteral<IBuilder<P, A, T>>() {}, pClass, aClass, tClass);
-        this.processorRunner = instance(new TypeLiteral<IProcessorRunner<P, A, T>>() {}, pClass, aClass, tClass);
+        this.builder = instance(new TypeLiteral<IBuilder<P, A, AU, T>>() {}, pClass, aClass, auClass, tClass);
+        this.processorRunner =
+            instance(new TypeLiteral<IProcessorRunner<P, A, AU, T>>() {}, pClass, aClass, auClass, tClass);
 
         this.parseResultProcessor = instance(new TypeLiteral<IParseResultProcessor<I, P>>() {}, iClass, pClass);
         this.analysisResultProcessor =
@@ -137,33 +141,9 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgGeneric(MetaborgModule module, Class<I> iClass, Class<P> pClass, Class<A> aClass, Class<T> tClass,
-        Class<TP> tpClass, Class<TA> taClass, Class<F> fClass) throws MetaborgException {
-        this(module, defaultPluginLoader(), iClass, pClass, aClass, tClass, tpClass, taClass, fClass);
-    }
-
-    /**
-     * Instantiate the generic MetaBorg API.
-     * 
-     * @param loader
-     *            Module plugin loader to use.
-     * @throws MetaborgException
-     *             When loading plugins or dependency injection fails.
-     */
-    public MetaBorgGeneric(IModulePluginLoader loader, Class<I> iClass, Class<P> pClass, Class<A> aClass,
+    public MetaBorgGeneric(MetaborgModule module, Class<I> iClass, Class<P> pClass, Class<A> aClass, Class<AU> auClass,
         Class<T> tClass, Class<TP> tpClass, Class<TA> taClass, Class<F> fClass) throws MetaborgException {
-        this(defaultModule(), loader, iClass, pClass, aClass, tClass, tpClass, taClass, fClass);
-    }
-
-    /**
-     * Instantiate the generic MetaBorg API.
-     * 
-     * @throws MetaborgException
-     *             When loading plugins or dependency injection fails.
-     */
-    public MetaBorgGeneric(Class<I> iClass, Class<P> pClass, Class<A> aClass, Class<T> tClass, Class<TP> tpClass,
-        Class<TA> taClass, Class<F> fClass) throws MetaborgException {
-        this(defaultModule(), defaultPluginLoader(), iClass, pClass, aClass, tClass, tpClass, taClass, fClass);
+        this(module, defaultPluginLoader(), iClass, pClass, aClass, auClass, tClass, tpClass, taClass, fClass);
     }
 
 

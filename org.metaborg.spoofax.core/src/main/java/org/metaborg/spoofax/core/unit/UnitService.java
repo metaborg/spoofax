@@ -10,29 +10,29 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.unit.IUnit;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 
-public class SpoofaxUnitService implements ISpoofaxUnitService {
-    private SpoofaxUnit unit() {
-        return new SpoofaxUnit();
+public class UnitService implements ISpoofaxUnitService {
+    private Unit unit() {
+        return new Unit();
     }
 
-    private SpoofaxUnit unit(FileObject source) {
-        return new SpoofaxUnit(source);
+    private Unit unit(FileObject source) {
+        return new Unit(source);
     }
 
 
     @Override public ISpoofaxInputUnit inputUnit(FileObject source, String text, ILanguageImpl langImpl,
         @Nullable ILanguageImpl dialect, @Nullable JSGLRParserConfiguration config) {
-        final SpoofaxUnit unit = unit(source);
+        final Unit unit = unit(source);
         final InputContrib contrib = new InputContrib(text, langImpl, dialect, config);
-        final SpoofaxInputUnit inputUnit = new SpoofaxInputUnit(unit, contrib);
+        final InputUnit inputUnit = new InputUnit(unit, contrib);
         return inputUnit;
     }
 
     @Override public ISpoofaxInputUnit inputUnit(String text, ILanguageImpl langImpl, @Nullable ILanguageImpl dialect,
         @Nullable JSGLRParserConfiguration config) {
-        final SpoofaxUnit unit = unit();
+        final Unit unit = unit();
         final InputContrib contrib = new InputContrib(text, langImpl, dialect, config);
-        final SpoofaxInputUnit inputUnit = new SpoofaxInputUnit(unit, contrib);
+        final InputUnit inputUnit = new InputUnit(unit, contrib);
         return inputUnit;
     }
 
@@ -47,28 +47,28 @@ public class SpoofaxUnitService implements ISpoofaxUnitService {
 
     @Override public ISpoofaxInputUnit emptyInputUnit(FileObject source, ILanguageImpl langImpl,
         @Nullable ILanguageImpl dialect) {
-        final SpoofaxUnit unit = unit(source);
+        final Unit unit = unit(source);
         final InputContrib contrib = new InputContrib(langImpl, dialect);
-        final SpoofaxInputUnit inputUnit = new SpoofaxInputUnit(unit, contrib);
+        final InputUnit inputUnit = new InputUnit(unit, contrib);
         return inputUnit;
     }
 
     @Override public ISpoofaxInputUnit emptyInputUnit(ILanguageImpl langImpl, @Nullable ILanguageImpl dialect) {
-        final SpoofaxUnit unit = unit();
+        final Unit unit = unit();
         final InputContrib contrib = new InputContrib(langImpl, dialect);
-        final SpoofaxInputUnit inputUnit = new SpoofaxInputUnit(unit, contrib);
+        final InputUnit inputUnit = new InputUnit(unit, contrib);
         return inputUnit;
     }
 
 
     @Override public ISpoofaxParseUnit parseUnit(ISpoofaxInputUnit input, ParseContrib contrib) {
-        final SpoofaxUnit unit;
-        if(!(input instanceof SpoofaxUnitWrapper)) {
+        final Unit unit;
+        if(!(input instanceof UnitWrapper)) {
             throw new MetaborgRuntimeException("Input unit is not a SpoofaxUnitWrapper, cannot create a parse unit");
         }
-        final SpoofaxUnitWrapper wrapper = (SpoofaxUnitWrapper) input;
+        final UnitWrapper wrapper = (UnitWrapper) input;
         unit = wrapper.unit;
-        final SpoofaxParseUnit parseUnit = new SpoofaxParseUnit(unit, contrib, input);
+        final ParseUnit parseUnit = new ParseUnit(unit, contrib, input);
         return parseUnit;
     }
 
@@ -79,13 +79,13 @@ public class SpoofaxUnitService implements ISpoofaxUnitService {
 
     @Override public ISpoofaxAnalyzeUnit analyzeUnit(ISpoofaxParseUnit input, AnalyzeContrib contrib,
         IContext context) {
-        final SpoofaxUnit unit;
-        if(!(input instanceof SpoofaxUnitWrapper)) {
+        final Unit unit;
+        if(!(input instanceof UnitWrapper)) {
             throw new MetaborgRuntimeException("Input unit is not a SpoofaxUnitWrapper, cannot create an analyze unit");
         }
-        final SpoofaxUnitWrapper wrapper = (SpoofaxUnitWrapper) input;
+        final UnitWrapper wrapper = (UnitWrapper) input;
         unit = wrapper.unit;
-        final SpoofaxAnalyzeUnit analyzeUnit = new SpoofaxAnalyzeUnit(unit, contrib, input, context);
+        final AnalyzeUnit analyzeUnit = new AnalyzeUnit(unit, contrib, input, context);
         return analyzeUnit;
     }
 
@@ -94,16 +94,26 @@ public class SpoofaxUnitService implements ISpoofaxUnitService {
     }
 
 
+    @Override public ISpoofaxAnalyzeUnitUpdate analyzeUnitUpdate(FileObject source, AnalyzeUpdateData contrib,
+        IContext context) {
+        return new AnalyzeUnitUpdate(source, contrib);
+    }
+
+    @Override public ISpoofaxAnalyzeUnitUpdate emptyAnalyzeUnitUpdate(FileObject source, IContext context) {
+        return analyzeUnitUpdate(source, new AnalyzeUpdateData(), context);
+    }
+
+
     @Override public <I extends IUnit> ISpoofaxTransformUnit<I> transformUnit(I input, TransformContrib contrib,
         IContext context, TransformActionContrib action) {
-        final SpoofaxUnit unit;
-        if(!(input instanceof SpoofaxUnitWrapper)) {
+        final Unit unit;
+        if(!(input instanceof UnitWrapper)) {
             throw new MetaborgRuntimeException(
                 "Input unit is not a SpoofaxUnitWrapper, cannot create a transform unit");
         }
-        final SpoofaxUnitWrapper wrapper = (SpoofaxUnitWrapper) input;
+        final UnitWrapper wrapper = (UnitWrapper) input;
         unit = wrapper.unit;
-        final SpoofaxTransformUnit<I> analyzeUnit = new SpoofaxTransformUnit<>(unit, contrib, input, context, action);
+        final TransformUnit<I> analyzeUnit = new TransformUnit<>(unit, contrib, input, context, action);
         return analyzeUnit;
     }
 

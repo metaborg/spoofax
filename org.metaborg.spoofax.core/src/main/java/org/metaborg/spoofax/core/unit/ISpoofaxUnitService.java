@@ -15,7 +15,7 @@ import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
  * analyze, and transform units.
  */
 public interface ISpoofaxUnitService extends
-    IUnitService<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> {
+    IUnitService<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> {
     ISpoofaxInputUnit inputUnit(FileObject source, String text, ILanguageImpl langImpl, @Nullable ILanguageImpl dialect,
         @Nullable JSGLRParserConfiguration config);
 
@@ -27,8 +27,10 @@ public interface ISpoofaxUnitService extends
 
 
     ISpoofaxAnalyzeUnit analyzeUnit(ISpoofaxParseUnit input, AnalyzeContrib contrib, IContext context);
+    
+    ISpoofaxAnalyzeUnitUpdate analyzeUnitUpdate(FileObject source, AnalyzeUpdateData contrib, IContext context);
 
 
-    <I extends IUnit> ISpoofaxTransformUnit<I> transformUnit(I input, TransformContrib contrib,
-        IContext context, TransformActionContrib action);
+    <I extends IUnit> ISpoofaxTransformUnit<I> transformUnit(I input, TransformContrib contrib, IContext context,
+        TransformActionContrib action);
 }

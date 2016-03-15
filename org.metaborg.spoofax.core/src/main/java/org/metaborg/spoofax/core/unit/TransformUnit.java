@@ -7,14 +7,14 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.unit.IUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class SpoofaxTransformUnit<I extends IUnit> extends SpoofaxUnitWrapper implements ISpoofaxTransformUnit<I> {
+public class TransformUnit<I extends IUnit> extends UnitWrapper implements ISpoofaxTransformUnit<I> {
     private final TransformContrib contrib;
     private final I inputUnit;
     private final IContext context;
     private final TransformActionContrib action;
 
 
-    public SpoofaxTransformUnit(SpoofaxUnit unit, TransformContrib contrib, I inputUnit, IContext context,
+    public TransformUnit(Unit unit, TransformContrib contrib, I inputUnit, IContext context,
         TransformActionContrib action) {
         super(unit);
         this.contrib = contrib;

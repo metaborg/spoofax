@@ -4,13 +4,13 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 
 /**
- * Wraps a {@link SpoofaxUnit} and {@link InputContrib} as {@link ISpoofaxInputUnit}.
+ * Wraps a {@link Unit} and {@link InputContrib} as {@link ISpoofaxInputUnit}.
  */
-public class SpoofaxInputUnit extends SpoofaxUnitWrapper implements ISpoofaxInputUnit {
+public class InputUnit extends UnitWrapper implements ISpoofaxInputUnit {
     private final InputContrib contrib;
 
 
-    public SpoofaxInputUnit(SpoofaxUnit unit, InputContrib contrib) {
+    public InputUnit(Unit unit, InputContrib contrib) {
         super(unit);
         this.contrib = contrib;
         addUnitContrib(contrib);

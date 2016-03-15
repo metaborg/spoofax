@@ -23,6 +23,7 @@ import org.metaborg.meta.core.project.ILanguageSpecService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -51,6 +52,7 @@ public class SpoofaxContext implements Serializable {
     private static IProjectService projectService;
     private static ILanguageSpecService languageSpecService;
     private static ISourceTextService sourceTextService;
+    private static ISpoofaxUnitService unitService;
     private static ISpoofaxSyntaxService syntaxService;
     private static ITermFactoryService termFactoryService;
 
@@ -76,6 +78,7 @@ public class SpoofaxContext implements Serializable {
         projectService = newInjector.getInstance(IProjectService.class);
         languageSpecService = newInjector.getInstance(ILanguageSpecService.class);
         sourceTextService = newInjector.getInstance(ISourceTextService.class);
+        unitService = newInjector.getInstance(ISpoofaxUnitService.class);
         syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);
         termFactoryService = newInjector.getInstance(ITermFactoryService.class);
     }
@@ -100,7 +103,7 @@ public class SpoofaxContext implements Serializable {
             this.languageSpec = null;
             return;
         }
-        
+
         try {
             this.languageSpec = languageSpecService.get(project);
         } catch(ConfigException e) {
@@ -152,6 +155,10 @@ public class SpoofaxContext implements Serializable {
 
     public ISourceTextService sourceTextService() {
         return sourceTextService;
+    }
+
+    public ISpoofaxUnitService unitService() {
+        return unitService;
     }
 
     public ISpoofaxSyntaxService syntaxService() {

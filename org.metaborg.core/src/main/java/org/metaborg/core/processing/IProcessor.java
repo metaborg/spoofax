@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
@@ -20,14 +21,16 @@ import org.metaborg.core.transform.ITransformUnit;
  *            Type of parse units.
  * @param <A>
  *            Type of analyze units.
+ * @param <AU>
+ *            Type of analyze unit updates.
  * @param <T>
  *            Type of transform units.
  */
-public interface IProcessor<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>> {
+public interface IProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>> {
     /**
      * @see IProcessorRunner#build(BuildInput, IProgressReporter, ICancellationToken)
      */
-    ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
+    ITask<IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
         @Nullable ICancellationToken cancellationToken);
 
     /**

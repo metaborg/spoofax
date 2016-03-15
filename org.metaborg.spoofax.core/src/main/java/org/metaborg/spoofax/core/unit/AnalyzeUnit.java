@@ -1,20 +1,20 @@
 package org.metaborg.spoofax.core.unit;
 
+import org.metaborg.core.context.IContext;
 import org.metaborg.core.messages.IMessage;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-/**
- * Wraps a {@link SpoofaxUnit} and {@link ParseContrib} as {@link ISpoofaxParseUnit}.
- */
-public class SpoofaxParseUnit extends SpoofaxUnitWrapper implements ISpoofaxParseUnit {
-    private final ParseContrib contrib;
-    private final ISpoofaxInputUnit inputUnit;
+public class AnalyzeUnit extends UnitWrapper implements ISpoofaxAnalyzeUnit {
+    private final AnalyzeContrib contrib;
+    private final ISpoofaxParseUnit parseUnit;
+    private final IContext context;
 
 
-    public SpoofaxParseUnit(SpoofaxUnit unit, ParseContrib contrib, ISpoofaxInputUnit inputUnit) {
+    public AnalyzeUnit(Unit unit, AnalyzeContrib contrib, ISpoofaxParseUnit parseUnit, IContext context) {
         super(unit);
         this.contrib = contrib;
-        this.inputUnit = inputUnit;
+        this.parseUnit = parseUnit;
+        this.context = context;
     }
 
 
@@ -34,8 +34,12 @@ public class SpoofaxParseUnit extends SpoofaxUnitWrapper implements ISpoofaxPars
         return contrib.messages;
     }
 
-    @Override public ISpoofaxInputUnit input() {
-        return inputUnit;
+    @Override public ISpoofaxParseUnit input() {
+        return parseUnit;
+    }
+
+    @Override public IContext context() {
+        return context;
     }
 
     @Override public long duration() {
