@@ -37,7 +37,7 @@ public interface IProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, 
      * @return Task that builds with given input, and has the build output as result. Schedule the task and wait for it
      *         to complete to get the build output.
      */
-    ITask<IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
+    ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
         @Nullable ICancellationToken cancellationToken);
 
     /**

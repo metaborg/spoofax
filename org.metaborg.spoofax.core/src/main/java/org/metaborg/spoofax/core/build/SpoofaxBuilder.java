@@ -32,4 +32,5 @@ public class SpoofaxBuilder extends
         super(resourceService, languageIdentifier, languagePathService, unitService, sourceTextService, syntaxService,
             contextService, analysisService, transformService, parseResultUpdater, analysisResultUpdater);
     }
+
 }

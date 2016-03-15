@@ -31,6 +31,7 @@ import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformer;
+import org.metaborg.core.unit.IUnitService;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.action.ActionService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
@@ -108,6 +109,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.spoofax.core.unit.UnitService;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.library.index.primitives.legacy.LegacyIndexLibrary;
@@ -135,6 +138,7 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void configure() {
         super.configure();
 
+        bindUnit();
         bindSyntax();
         bindCompletion();
         bindAction();
@@ -146,6 +150,16 @@ public class SpoofaxModule extends MetaborgModule {
         bindMenu();
     }
 
+
+    protected void bindUnit() {
+        bind(UnitService.class).in(Singleton.class);
+        bind(ISpoofaxUnitService.class).to(UnitService.class);
+        bind(
+            new TypeLiteral<IUnitService<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>>() {})
+                .to(UnitService.class);
+        bind(new TypeLiteral<IUnitService<?, ?, ?, ?, ?, ?>>() {}).to(UnitService.class);
+        bind(IUnitService.class).to(UnitService.class);
+    }
 
     @Override protected void bindLanguage() {
         super.bindLanguage();

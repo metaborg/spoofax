@@ -8,7 +8,6 @@ import java.util.Collection;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
@@ -32,14 +31,14 @@ import org.metaborg.spoofax.nativebundle.NativeBundle;
 import org.metaborg.util.cmd.Arguments;
 import org.sugarj.common.FileCommands;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.stamp.FileExistsStamper;
 import build.pluto.stamp.LastModifiedStamper;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {

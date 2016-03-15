@@ -44,7 +44,7 @@ public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, AU ex
     }
 
 
-    @Override public ITask<IBuildOutput<P, A, AU, T>> build(BuildInput input,
+    @Override public ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input,
         @Nullable IProgressReporter progressReporter, @Nullable ICancellationToken cancellationToken) {
         return processor.build(input, progressReporter, cancellationToken);
     }
