@@ -124,236 +124,17 @@ public class JSGLRCompletionService implements ICompletionService {
     }
 
 
-    public Collection<ICompletion> optionalCompletions(Iterable<IStrategoTerm> optionals, String input,
-        ILanguageImpl language, FileObject location) throws MetaborgException {
-
-        Collection<ICompletion> completions = Lists.newLinkedList();
-
-
-        for(ILanguageComponent component : language.components()) {
-            int insertionPoint = 0;
-            int suffixPoint = 0;
-            final ITermFactory termFactory = termFactoryService.get(component);
-
-            for(IStrategoTerm optional : optionals) {
-                ImploderAttachment attachment = optional.getAttachment(ImploderAttachment.TYPE);
-                String placeholderName = attachment.getSort().substring(0, attachment.getSort().length()) + "-Plhdr";
-                IStrategoAppl optionalPlaceholder =
-                    termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
-                final IStrategoTerm strategoInput = termFactory.makeTuple(optional, optionalPlaceholder);
-                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
-                final IStrategoTerm proposalsOptional =
-                    strategoCommon.invoke(runtime, strategoInput, "get-proposals-optional");
-                if(proposalsOptional == null) {
-                    logger.error("Getting proposals for {} failed", strategoInput);
-                }
-                for(IStrategoTerm proposalTerm : proposalsOptional) {
-                    if(!(proposalTerm instanceof IStrategoTuple)) {
-                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
-                        continue;
-                    }
-                    final IStrategoTuple tuple = (IStrategoTuple) proposalTerm;
-                    if(tuple.getSubtermCount() != 3 || !(tuple.getSubterm(0) instanceof IStrategoString)
-                        || !(tuple.getSubterm(1) instanceof IStrategoString)
-                        || !(tuple.getSubterm(2) instanceof IStrategoAppl)) {
-                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
-                        continue;
-                    }
-
-                    final String name = Tools.asJavaString(tuple.getSubterm(0));
-                    final String description = Tools.asJavaString(tuple.getSubterm(1));
-                    final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
-                    final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
-                    final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
-
-
-                    if(change.getConstructor().getName().contains("REPLACE_TERM")) {
-
-                        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl)
-                            || !(oldNode instanceof IStrategoAppl)) {
-                            logger.error("Unexpected proposal term {}, skipping", proposalTerm);
-                            continue;
-                        }
-
-                        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
-                        final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
-
-                        // get the last non-layout token before the new node
-                        int tokenPosition =
-                            oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-                        while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer
-                            .getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
-                            tokenPosition--;
-
-                        insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
-
-                        // skip all the (erroneous) characters that were in the text already
-                        suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
-                    }
-
-                    final Completion completion = new Completion(name, description, insertionPoint + 1, suffixPoint);
-                    completions.add(completion);
-                }
-            }
-        }
-        return completions;
-
-    }
-
-    public Collection<ICompletion> listsCompletions(int position, Iterable<IStrategoList> lists, String input,
-        ILanguageImpl language, FileObject location) throws MetaborgException {
-
-        Collection<ICompletion> completions = Lists.newLinkedList();
-        int insertionPoint = position;
-        int suffixPoint = insertionPoint + 1;
-
-
-        for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
-
-            for(IStrategoList list : lists) {
-                ListImploderAttachment attachment = list.getAttachment(null);
-                String placeholderName =
-                    attachment.getSort().substring(0, attachment.getSort().length() - 1) + "-Plhdr";
-                IStrategoAppl listPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
-                final IStrategoTerm strategoInput =
-                    termFactory.makeTuple(list, listPlaceholder, termFactory.makeInt(position));
-                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
-                final IStrategoTerm proposalsLists =
-                    strategoCommon.invoke(runtime, strategoInput, "get-proposals-list");
-                if(proposalsLists == null) {
-                    logger.error("Getting proposals for {} failed", strategoInput);
-                }
-                for(IStrategoTerm proposalTerm : proposalsLists) {
-                    if(!(proposalTerm instanceof IStrategoTuple)) {
-                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
-                        continue;
-                    }
-                    final IStrategoTuple tuple = (IStrategoTuple) proposalTerm;
-                    if(tuple.getSubtermCount() != 3 || !(tuple.getSubterm(0) instanceof IStrategoString)
-                        || !(tuple.getSubterm(1) instanceof IStrategoString)
-                        || !(tuple.getSubterm(2) instanceof IStrategoAppl)) {
-                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
-                        continue;
-                    }
-
-                    final String name = Tools.asJavaString(tuple.getSubterm(0));
-                    final String description = Tools.asJavaString(tuple.getSubterm(1));
-                    final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
-                    final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
-                    final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
-
-                    // if the change is inserting at the end of a list
-                    if(change.getConstructor().getName().contains("INSERT_AT_END")) {
-                        // expected two lists
-                        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList)
-                            || !(newNode instanceof IStrategoList)) {
-                            logger.error("Unexpected proposal term {}, skipping", proposalTerm);
-                            continue;
-                        }
-
-                        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
-                        final ImploderAttachment oldListIA = oldNode.getAttachment(ImploderAttachment.TYPE);
-                        insertionPoint = position;
-
-                        // if list is empty
-                        // insert after the first non-layout token before the leftmost token of the completion
-                        // node
-                        if(((IStrategoList) oldNode).getSubtermCount() == 0) {
-                            int tokenPosition =
-                                oldListIA.getLeftToken().getIndex() - 1 > 0 ? oldListIA.getLeftToken().getIndex() - 1
-                                    : 0;
-                            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer
-                                .getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
-                                tokenPosition--;
-                            insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
-                        } else {
-                            // if list is not empty
-                            // insert after at end offset of the rightmost token of the element before the
-                            // completion
-                            StrategoTerm elementBefore =
-                                (StrategoTerm) oldNode.getSubterm(oldNode.getAllSubterms().length - 1);
-                            insertionPoint =
-                                elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
-                        }
-                        suffixPoint = insertionPoint + 1;
-
-                    } else if(change.getConstructor().getName().contains("INSERT_BEFORE")) {
-                        // expect two terms and 1st should be an element of a list
-                        final StrategoTerm oldList = (StrategoTerm) ParentAttachment.getParent(oldNode);
-                        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
-                        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoAppl)
-                            || !(newNode instanceof IStrategoList) || !(oldList instanceof IStrategoList)) {
-                            logger.error("Unexpected proposal term {}, skipping", proposalTerm);
-                            continue;
-                        }
-
-
-                        IStrategoTerm[] subterms = ((IStrategoList) oldList).getAllSubterms();
-                        int indexOfElement;
-                        for(indexOfElement = 0; indexOfElement < subterms.length; indexOfElement++) {
-                            if(subterms[indexOfElement] == oldNode)
-                                break;
-                        }
-
-                        // if inserted element is first (only two elements)
-                        if(indexOfElement == 0) {
-                            // insert after the first non-layout token before the leftmost token of the
-                            // completion node
-
-                            final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
-                            int tokenPosition =
-                                oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1
-                                    : 0;
-                            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer
-                                .getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
-                                tokenPosition--;
-
-                            insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
-                        } else {
-                            // if inserted element is not first
-                            // insert after at end offset of the rightmost token of the element before the
-                            // completion
-                            StrategoTerm elementBefore = (StrategoTerm) oldList.getSubterm(indexOfElement - 1);
-                            insertionPoint =
-                                elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
-
-                        }
-
-                        // if suffix point should be the first token of the next element, next element also gets
-                        // pp but it should keep its indentation
-                        IToken checkToken = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken();
-                        int checkTokenIdx = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getIndex();
-                        suffixPoint = insertionPoint;
-                        for(; checkTokenIdx >= 0; checkTokenIdx--) {
-                            checkToken = tokenizer.getTokenAt(checkTokenIdx);
-                            if(tokenizer.toString(checkToken, checkToken).contains("\n")) {
-                                break;
-                            }
-                            suffixPoint = checkToken.getStartOffset();
-                        }
-
-                    }
-
-                    final Completion completion = new Completion(name, description, insertionPoint + 1, suffixPoint);
-                    completions.add(completion);
-                }
-            }
-        }
-        return completions;
-    }
-
-
     public Collection<ICompletion> placeholderCompletions(IStrategoAppl placeholder, String input,
         ILanguageImpl language, FileObject location) throws MetaborgException {
         Collection<ICompletion> completions = Lists.newLinkedList();
-        int insertionPoint = 0;
-        int suffixPoint = 0;
 
         for(ILanguageComponent component : language.components()) {
+
+            // call Stratego part of the framework to compute change
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
             final IStrategoTerm proposalsPlaceholder =
                 strategoCommon.invoke(runtime, placeholder, "get-proposals-placeholder");
+
             if(proposalsPlaceholder == null) {
                 logger.error("Getting proposals for {} failed", placeholder);
             }
@@ -373,29 +154,287 @@ public class JSGLRCompletionService implements ICompletionService {
                 final String name = Tools.asJavaString(tuple.getSubterm(0));
                 final String description = Tools.asJavaString(tuple.getSubterm(1));
                 final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
-                final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
-                final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
 
                 if(change.getConstructor().getName().contains("REPLACE_TERM")) {
+                    final ICompletion completion = createCompletionReplacement(name, description, change);
 
-                    if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl)
-                        || !(oldNode instanceof IStrategoAppl)) {
+                    if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                         continue;
                     }
 
-                    final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
-
-                    insertionPoint = oldNodeIA.getLeftToken().getStartOffset() - 1;
-                    suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
+                    completions.add(completion);
                 }
-
-                final Completion completion = new Completion(name, description, insertionPoint + 1, suffixPoint);
-                completions.add(completion);
             }
         }
 
         return completions;
+    }
+
+
+    public Collection<ICompletion> optionalCompletions(Iterable<IStrategoTerm> optionals, String input,
+        ILanguageImpl language, FileObject location) throws MetaborgException {
+
+        Collection<ICompletion> completions = Lists.newLinkedList();
+
+
+        for(ILanguageComponent component : language.components()) {
+            final ITermFactory termFactory = termFactoryService.get(component);
+
+            for(IStrategoTerm optional : optionals) {
+
+                ImploderAttachment attachment = optional.getAttachment(ImploderAttachment.TYPE);
+                String placeholderName = attachment.getSort().substring(0, attachment.getSort().length()) + "-Plhdr";
+                IStrategoAppl optionalPlaceholder =
+                    termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
+                final IStrategoTerm strategoInput = termFactory.makeTuple(optional, optionalPlaceholder);
+
+                // call Stratego part of the framework to compute change
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
+                final IStrategoTerm proposalsOptional =
+                    strategoCommon.invoke(runtime, strategoInput, "get-proposals-optional");
+
+                if(proposalsOptional == null) {
+                    logger.error("Getting proposals for {} failed", strategoInput);
+                }
+
+                for(IStrategoTerm proposalTerm : proposalsOptional) {
+                    if(!(proposalTerm instanceof IStrategoTuple)) {
+                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
+                        continue;
+                    }
+                    final IStrategoTuple tuple = (IStrategoTuple) proposalTerm;
+                    if(tuple.getSubtermCount() != 3 || !(tuple.getSubterm(0) instanceof IStrategoString)
+                        || !(tuple.getSubterm(1) instanceof IStrategoString)
+                        || !(tuple.getSubterm(2) instanceof IStrategoAppl)) {
+                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
+                        continue;
+                    }
+
+                    final String name = Tools.asJavaString(tuple.getSubterm(0));
+                    final String description = Tools.asJavaString(tuple.getSubterm(1));
+                    final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
+
+                    if(change.getConstructor().getName().contains("REPLACE_TERM")) {
+
+                        final ICompletion completion = createCompletionReplacement(name, description, change);
+
+                        if(completion == null) {
+                            logger.error("Unexpected proposal term {}, skipping", proposalTerm);
+                            continue;
+                        }
+
+                        completions.add(completion);
+                    }
+                }
+            }
+        }
+        return completions;
+
+    }
+
+    public Collection<ICompletion> listsCompletions(int position, Iterable<IStrategoList> lists, String input,
+        ILanguageImpl language, FileObject location) throws MetaborgException {
+
+        Collection<ICompletion> completions = Lists.newLinkedList();
+
+        for(ILanguageComponent component : language.components()) {
+            final ITermFactory termFactory = termFactoryService.get(component);
+
+            for(IStrategoList list : lists) {
+                ListImploderAttachment attachment = list.getAttachment(null);
+                String placeholderName =
+                    attachment.getSort().substring(0, attachment.getSort().length() - 1) + "-Plhdr";
+                IStrategoAppl listPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
+                final IStrategoTerm strategoInput =
+                    termFactory.makeTuple(list, listPlaceholder, termFactory.makeInt(position));
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
+                final IStrategoTerm proposalsLists =
+                    strategoCommon.invoke(runtime, strategoInput, "get-proposals-list");
+                if(proposalsLists == null) {
+                    logger.error("Getting proposals for {} failed", strategoInput);
+                    continue;
+                }
+                for(IStrategoTerm proposalTerm : proposalsLists) {
+                    if(!(proposalTerm instanceof IStrategoTuple)) {
+                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
+                        continue;
+                    }
+                    final IStrategoTuple tuple = (IStrategoTuple) proposalTerm;
+                    if(tuple.getSubtermCount() != 3 || !(tuple.getSubterm(0) instanceof IStrategoString)
+                        || !(tuple.getSubterm(1) instanceof IStrategoString)
+                        || !(tuple.getSubterm(2) instanceof IStrategoAppl)) {
+                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
+                        continue;
+                    }
+
+                    final String name = Tools.asJavaString(tuple.getSubterm(0));
+                    final String description = Tools.asJavaString(tuple.getSubterm(1));
+                    final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
+
+
+                    // if the change is inserting at the end of a list
+                    if(change.getConstructor().getName().contains("INSERT_AT_END")) {
+
+                        final ICompletion completion = createCompletionInsertAtEnd(name, description, change);
+
+                        if(completion == null) {
+                            logger.error("Unexpected proposal term {}, skipping", proposalTerm);
+                            continue;
+                        }
+
+                        completions.add(completion);
+                    } else if(change.getConstructor().getName().contains("INSERT_BEFORE")) {
+
+                        final ICompletion completion = createCompletionInsertBefore(name, description, change);
+
+                        if(completion == null) {
+                            logger.error("Unexpected proposal term {}, skipping", proposalTerm);
+                            continue;
+                        }
+
+                        completions.add(completion);
+                    }
+
+                }
+            }
+        }
+        return completions;
+    }
+
+
+    private ICompletion createCompletionReplacement(String name, String description, StrategoAppl change) {
+
+        final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
+        final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
+
+        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl) || !(oldNode instanceof IStrategoAppl)) {
+            return null;
+        }
+
+        int insertionPoint, suffixPoint;
+
+        final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
+        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+
+        // check if it's an empty node
+        if(oldNodeIA.getLeftToken().getStartOffset() > oldNodeIA.getRightToken().getEndOffset()) {
+            // get the last non-layout token before the new node
+            int tokenPosition =
+                oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
+                tokenPosition).getKind() == IToken.TK_ERROR)
+                && tokenPosition > 0)
+                tokenPosition--;
+            insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
+        } else { // if not, do a regular replacement
+            insertionPoint = oldNodeIA.getLeftToken().getStartOffset() - 1;
+        }
+
+        suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
+
+        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+    }
+
+
+    private ICompletion createCompletionInsertBefore(String name, String description, StrategoAppl change) {
+
+        final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
+        final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
+
+        // expect two terms and 1st should be an element of a list
+        final StrategoTerm oldList = (StrategoTerm) ParentAttachment.getParent(oldNode);
+
+        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoAppl) || !(newNode instanceof IStrategoList)
+            || !(oldList instanceof IStrategoList)) {
+            return null;
+        }
+
+        int insertionPoint, suffixPoint;
+
+        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+
+        IStrategoTerm[] subterms = oldList.getAllSubterms();
+        int indexOfElement;
+        for(indexOfElement = 0; indexOfElement < subterms.length; indexOfElement++) {
+            if(subterms[indexOfElement] == oldNode)
+                break;
+        }
+
+        // if inserted element is first (only two elements)
+        if(indexOfElement == 0) {
+            // insert after the first non-layout token before the leftmost token of the
+            // completion node
+            final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
+            int tokenPosition =
+                oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
+                tokenPosition).getKind() == IToken.TK_ERROR)
+                && tokenPosition > 0)
+                tokenPosition--;
+
+            insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
+        } else {
+            // if inserted element is not first
+            // insert after at end offset of the rightmost token of the element before the
+            // completion
+            StrategoTerm elementBefore = (StrategoTerm) oldList.getSubterm(indexOfElement - 1);
+            insertionPoint = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
+        }
+
+        // if suffix point should be the first token of the next element, next element also gets
+        // pp but it should keep its indentation
+        IToken checkToken = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken();
+        int checkTokenIdx = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getIndex();
+        suffixPoint = insertionPoint;
+        for(; checkTokenIdx >= 0; checkTokenIdx--) {
+            checkToken = tokenizer.getTokenAt(checkTokenIdx);
+            if(tokenizer.toString(checkToken, checkToken).contains("\n")) {
+                break;
+            }
+            suffixPoint = checkToken.getStartOffset();
+        }
+
+        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+    }
+
+
+    private ICompletion createCompletionInsertAtEnd(String name, String description, StrategoAppl change) {
+
+        final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
+        final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
+
+        // expected two lists
+        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList) || !(newNode instanceof IStrategoList)) {
+            return null;
+        }
+
+        int insertionPoint, suffixPoint;
+
+        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        final ImploderAttachment oldListIA = oldNode.getAttachment(ImploderAttachment.TYPE);
+
+        // if list is empty
+        // insert after the first non-layout token before the leftmost token of the completion
+        // node
+        if(oldNode.getSubtermCount() == 0) {
+            int tokenPosition =
+                oldListIA.getLeftToken().getIndex() - 1 > 0 ? oldListIA.getLeftToken().getIndex() - 1 : 0;
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
+                tokenPosition).getKind() == IToken.TK_ERROR)
+                && tokenPosition > 0)
+                tokenPosition--;
+            insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
+        } else {
+            // if list is not empty
+            // insert after at end offset of the rightmost token of the element before the
+            // completion
+            StrategoTerm elementBefore = (StrategoTerm) oldNode.getSubterm(oldNode.getAllSubterms().length - 1);
+            insertionPoint = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
+        }
+        suffixPoint = insertionPoint + 1;
+
+        return new Completion(name, description, insertionPoint + 1, suffixPoint);
     }
 
 
@@ -406,9 +445,6 @@ public class JSGLRCompletionService implements ICompletionService {
         final ILanguageImpl language = completionParseResult.language;
         final Collection<ICompletion> completions = Lists.newLinkedList();
         final Collection<IStrategoTerm> proposalsTerm = Lists.newLinkedList();
-
-        int insertionPoint = 0;
-        int suffixPoint = 0;
 
         // TODO: disambiguate the tree and break it into completion results
         Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
@@ -440,142 +476,185 @@ public class JSGLRCompletionService implements ICompletionService {
                 }
                 final String name = Tools.asJavaString(tuple.getSubterm(0));
                 final String description = Tools.asJavaString(tuple.getSubterm(1));
-
                 final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
 
 
                 // if the change is inserting at the end of a list
                 if(change.getConstructor().getName().contains("INSERT_AT_END")) {
-                    // expected two lists
-                    final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
-                    final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
-                    if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList)
-                        || !(newNode instanceof IStrategoAppl)) {
+
+                    // calls a different method because now, the program has errors that should be fixed
+                    final ICompletion completion = createCompletionInsertAtEndFixing(name, description, change);
+
+                    if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                         continue;
                     }
-                    ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
-                    final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
 
-                    // if list is empty
-                    // insert after the first non-layout token before the leftmost token of the completion node
-                    if(((IStrategoList) oldNode).getSubtermCount() == 1) {
-                        int tokenPosition =
-                            newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
-                        while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer
-                            .getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
-                            tokenPosition--;
-                        insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
-                    } else {
-                        // if list is not empty
-                        // insert after at end offset of the rightmost token of the element before the completion
-                        StrategoTerm elementBefore =
-                            (StrategoTerm) oldNode.getSubterm(oldNode.getAllSubterms().length - 2);
-                        insertionPoint =
-                            elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
-                    }
-
-                    suffixPoint = insertionPoint;
-                    if(newNodeIA.getRightToken().getEndOffset() < newNodeIA.getRightToken().getStartOffset()) {
-                        // keep all the characters after the last non-layout token if completion ends with a
-                        // placeholder
-                        int tokenPosition = newNodeIA.getRightToken().getIndex();
-                        while(tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition)
-                            .getStartOffset()
-                            || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                            && tokenPosition > 0)
-                            tokenPosition--;
-                        suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
-
-                    } else
-                        // skip all the (erroneous) characters that were in the text already
-                        suffixPoint = newNodeIA.getRightToken().getEndOffset() + 1;
-
-
+                    completions.add(completion);
                 } else if(change.getConstructor().getName().contains("INSERT_BEFORE")) {
-                    // expect two terms and 1st should be an element of a list
-                    final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
-                    final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
-                    final StrategoTerm oldList = (StrategoTerm) ParentAttachment.getParent(oldNode);
-                    if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoAppl)
-                        || !(newNode instanceof IStrategoAppl) || !(oldList instanceof IStrategoList)) {
+
+                    final ICompletion completion = createCompletionInsertBeforeFixing(name, description, change);
+
+                    if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                         continue;
                     }
-                    IStrategoTerm[] subterms = ((IStrategoList) oldList).getAllSubterms();
-                    int indexOfCompletion;
-                    for(indexOfCompletion = 0; indexOfCompletion < subterms.length; indexOfCompletion++) {
-                        if(subterms[indexOfCompletion] == newNode)
-                            break;
-                    }
-                    // if inserted element is first (only two elements)
-                    if(indexOfCompletion == 0) {
-                        // insert after the first non-layout token before the leftmost token of the completion node
-                        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
-                        final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
-                        int tokenPosition =
-                            newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
-                        while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer
-                            .getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
-                            tokenPosition--;
 
-                        insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
-                    } else {
-                        // if inserted element is not first
-                        // insert after at end offset of the rightmost token of the element before the completion
-                        StrategoTerm elementBefore = (StrategoTerm) oldList.getSubterm(indexOfCompletion - 1);
-                        insertionPoint =
-                            elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
-
-                    }
-                    // suffix point should be the first token of the next element
-                    suffixPoint = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getStartOffset();
+                    completions.add(completion);
 
 
                 } else if(change.getConstructor().getName().contains("INSERTION_TERM")) {
-                    final StrategoTerm newNode = (StrategoTerm) change.getSubterm(0);
-                    if(change.getSubtermCount() != 1 || !(newNode instanceof IStrategoAppl)) {
+
+                    final ICompletion completion = createCompletionInsertionTermFixing(name, description, change);
+
+                    if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                         continue;
                     }
 
-                    ITokenizer tokenizer = ImploderAttachment.getTokenizer(newNode);
-                    final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
-
-                    // get the last non-layout token before the new node
-                    int tokenPosition =
-                        newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
-                    while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
-                        tokenPosition).getKind() == IToken.TK_ERROR)
-                        && tokenPosition > 0)
-                        tokenPosition--;
-
-                    insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
-
-                    if(newNodeIA.getRightToken().getEndOffset() < newNodeIA.getRightToken().getStartOffset()) {
-                        // keep all the characters after the last non-layout token if completion ends with a
-                        // placeholder
-                        tokenPosition = newNodeIA.getRightToken().getIndex();
-                        while(tokenPosition > 0
-                            && (tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer
-                                .getTokenAt(tokenPosition).getStartOffset() || tokenizer.getTokenAt(tokenPosition)
-                                .getKind() == IToken.TK_LAYOUT))
-                            tokenPosition--;
-                        suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
-
-                    } else
-                        // skip all the (erroneous) characters that were in the text already
-                        suffixPoint = newNodeIA.getRightToken().getEndOffset() + 1;
-
-
+                    completions.add(completion);
                 }
-
-                final Completion completion = new Completion(name, description, insertionPoint + 1, suffixPoint);
-                completions.add(completion);
             }
         }
 
         return completions;
+    }
+
+
+    private ICompletion createCompletionInsertionTermFixing(String name, String description, StrategoAppl change) {
+        final StrategoTerm newNode = (StrategoTerm) change.getSubterm(0);
+
+        if(change.getSubtermCount() != 1 || !(newNode instanceof IStrategoAppl)) {
+            return null;
+        }
+
+        int insertionPoint, suffixPoint;
+
+        ITokenizer tokenizer = ImploderAttachment.getTokenizer(newNode);
+        final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
+
+        // get the last non-layout token before the new node
+        int tokenPosition = newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
+        while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(tokenPosition)
+            .getKind() == IToken.TK_ERROR) && tokenPosition > 0)
+            tokenPosition--;
+
+        insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
+
+        if(newNodeIA.getRightToken().getEndOffset() < newNodeIA.getRightToken().getStartOffset()) {
+            // keep all the characters after the last non-layout token if completion ends with a
+            // placeholder
+            tokenPosition = newNodeIA.getRightToken().getIndex();
+            while(tokenPosition > 0
+                && (tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition)
+                    .getStartOffset() || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT))
+                tokenPosition--;
+            suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
+
+        } else {
+            // skip all the (erroneous) characters that were in the text already
+            suffixPoint = newNodeIA.getRightToken().getEndOffset() + 1;
+        }
+        
+        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+    }
+
+
+    private ICompletion createCompletionInsertBeforeFixing(String name, String description, StrategoAppl change) {
+
+        // expect two terms and 1st should be an element of a list
+        final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
+        final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
+        final StrategoTerm oldList = (StrategoTerm) ParentAttachment.getParent(oldNode);
+
+        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoAppl) || !(newNode instanceof IStrategoAppl)
+            || !(oldList instanceof IStrategoList)) {
+            return null;
+        }
+
+        int insertionPoint, suffixPoint;
+
+        IStrategoTerm[] subterms = ((IStrategoList) oldList).getAllSubterms();
+        int indexOfCompletion;
+        for(indexOfCompletion = 0; indexOfCompletion < subterms.length; indexOfCompletion++) {
+            if(subterms[indexOfCompletion] == newNode)
+                break;
+        }
+        // if inserted element is first (only two elements)
+        if(indexOfCompletion == 0) {
+            // insert after the first non-layout token before the leftmost token of the completion node
+            ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+            final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
+            int tokenPosition =
+                newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
+                tokenPosition).getKind() == IToken.TK_ERROR)
+                && tokenPosition > 0)
+                tokenPosition--;
+
+            insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
+        } else {
+            // if inserted element is not first
+            // insert after at end offset of the rightmost token of the element before the completion
+            StrategoTerm elementBefore = (StrategoTerm) oldList.getSubterm(indexOfCompletion - 1);
+            insertionPoint = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
+
+        }
+        // suffix point should be the first token of the next element
+        suffixPoint = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getStartOffset();
+
+        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+    }
+
+
+    private ICompletion createCompletionInsertAtEndFixing(String name, String description, StrategoAppl change) {
+        // expected two lists
+        final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
+        final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
+
+        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList) || !(newNode instanceof IStrategoAppl)) {
+            return null;
+        }
+
+        int insertionPoint, suffixPoint;
+        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
+
+        // if list is empty
+        // insert after the first non-layout token before the leftmost token of the completion node
+        if(oldNode.getSubtermCount() == 1) {
+            int tokenPosition =
+                newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
+                tokenPosition).getKind() == IToken.TK_ERROR)
+                && tokenPosition > 0)
+                tokenPosition--;
+            insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
+        } else {
+            // if list is not empty
+            // insert after at end offset of the rightmost token of the element before the completion
+            StrategoTerm elementBefore = (StrategoTerm) oldNode.getSubterm(oldNode.getAllSubterms().length - 2);
+            insertionPoint = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
+        }
+
+        suffixPoint = insertionPoint;
+        if(newNodeIA.getRightToken().getEndOffset() < newNodeIA.getRightToken().getStartOffset()) {
+            // keep all the characters after the last non-layout token if completion ends with a
+            // placeholder
+            int tokenPosition = newNodeIA.getRightToken().getIndex();
+            while(tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition)
+                .getStartOffset()
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                && tokenPosition > 0)
+                tokenPosition--;
+            suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
+
+        } else {
+            // skip all the (erroneous) characters that were in the text already
+            suffixPoint = newNodeIA.getRightToken().getEndOffset() + 1;
+        }
+
+        return new Completion(name, description, insertionPoint + 1, suffixPoint);
     }
 
 
