@@ -98,9 +98,9 @@ public class JSGLRI {
             parser.setTreeBuilder(new Asfix2TreeBuilder(termFactory));
         }
         parser.setUseStructureRecovery(parserConfig.recovery);
-        parser.setCompletionParse(parserConfig.completion, Integer.MAX_VALUE);
+        parser.setCompletionParse(parserConfig.completion, parserConfig.cursorPosition);
         parser.setTimeout(parserConfig.timeout);
-
+      
         final Disambiguator disambiguator = parser.getDisambiguator();
 
         if(dialect != null) {

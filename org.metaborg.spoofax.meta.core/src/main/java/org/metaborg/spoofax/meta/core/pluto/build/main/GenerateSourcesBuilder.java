@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
@@ -37,8 +40,6 @@ import build.pluto.stamp.LastModifiedStamper;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
-import javax.annotation.Nullable;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {

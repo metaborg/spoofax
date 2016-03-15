@@ -189,8 +189,8 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
         if(input.detached()) {
             throw new MetaborgRuntimeException("Cannot get updates for detached (no source) units");
         }
-        final FileObject resource = input.source();
-        final FileName name = resource.getName();
+        final FileObject source = input.source();
+        final FileName name = source.getName();
 
         // THREADING: it is possible that two different threads asking for a subject may do the parsing twice here, as
         // this is not an atomic operation. However, the chance is very low and it does not break anything (only
@@ -200,24 +200,29 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
             updates = BehaviorSubject.create();
             updatesPerResource.put(name, updates);
             try {
-                logger.trace("Requesting parse result for {}", resource);
+                logger.trace("Requesting parse result for {}", source);
                 final P parseResult = parseResultRequester.request(input).toBlocking().single();
+                if(!parseResult.valid()) {
+                    updates.onNext(AnalysisChange.<A>error(source, new AnalysisException(context, "Parsing failed")));
+                    return updates;
+                }
 
-                logger.trace("Analysing for {}", resource);
+                logger.trace("Analysing for {}", source);
                 final IAnalyzeResult<A, AU> result;
                 try(IClosableLock lock = context.write()) {
                     result = analysisService.analyze(parseResult, context);
                 }
-                updates.onNext(AnalysisChange.<A>update(resource, result.result()));
+
+                updates.onNext(AnalysisChange.<A>update(source, result.result()));
                 // HACK: ignore analyze unit updates from result.updates(), may cause incrementality problems.
             } catch(AnalysisException e) {
-                final String message = String.format("Analysis for %s failed", name);
+                final String message = logger.format("Analysis for {} failed", name);
                 logger.error(message, e);
-                updates.onNext(AnalysisChange.<A>error(resource, e));
+                updates.onNext(AnalysisChange.<A>error(source, e));
             } catch(Exception e) {
-                final String message = String.format("Analysis for %s failed", name);
+                final String message = logger.format("Analysis for {} failed", name);
                 logger.error(message, e);
-                updates.onNext(AnalysisChange.<A>error(resource, new AnalysisException(context, message, e)));
+                updates.onNext(AnalysisChange.<A>error(source, new AnalysisException(context, message, e)));
             }
         }
         return updates;

@@ -35,6 +35,13 @@ public interface ISpoofaxLanguageSpecPaths extends ILanguageSpecPaths {
     FileObject outputClassesFolder();
 
     /**
+     * Gets the folder for test classes.
+     *
+     * @return A folder {@link FileObject}.
+     */
+    FileObject outputTestClassesFolder();
+
+    /**
      * Gets the build folder.
      *
      * @return A folder {@link FileObject}.

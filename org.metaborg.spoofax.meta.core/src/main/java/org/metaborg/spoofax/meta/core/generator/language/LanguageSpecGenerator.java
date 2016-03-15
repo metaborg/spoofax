@@ -44,14 +44,14 @@ public class LanguageSpecGenerator extends BaseGenerator {
 
 
     public String fileExtensions() {
-        if(fileExtensions.length == 0) {
+        if(fileExtensions == null || fileExtensions.length == 0) {
             return null;
         }
         return StringUtils.join(fileExtensions, ", ");
     }
 
     public String fileExtension() {
-        if(fileExtensions.length == 0) {
+        if(fileExtensions == null || fileExtensions.length == 0) {
             return null;
         }
         return fileExtensions[0];
@@ -71,9 +71,12 @@ public class LanguageSpecGenerator extends BaseGenerator {
 
 
     public void generateAll() throws IOException {
+        generateAllSpoofax();
+        generateAllMaven();
+    }
+
+    public void generateAllSpoofax() throws IOException {
         generateConfig();
-        generatePOM();
-        generateDotMvn();
         generateGrammar();
         generateTrans();
         generateInclude();
@@ -84,17 +87,6 @@ public class LanguageSpecGenerator extends BaseGenerator {
 
     public void generateConfig() throws IOException {
         writer.write("metaborg.yaml", false);
-    }
-
-    public void generatePOM() throws IOException {
-        writer.write("pom.xml", false);
-    }
-    
-    public void generateDotMvn() throws IOException {
-        writer.write(".mvn/extensions.xml", false);
-        writer.write(".mvn/jvm.config", false);
-        writer.write(".mvn/maven.config", false);
-        writer.write(".mvn/settings.xml", false);
     }
 
     public void generateGrammar() throws IOException {
@@ -109,6 +101,7 @@ public class LanguageSpecGenerator extends BaseGenerator {
         }
         writer.write("trans/outline.str", false);
         writer.write("trans/pp.str", false);
+        writer.write("trans/completion.str", false);
     }
 
     public void generateInclude() throws IOException {
@@ -134,4 +127,22 @@ public class LanguageSpecGenerator extends BaseGenerator {
     public void generateIgnoreFile() throws IOException {
         writer.write("vcsignore", ".gitignore", false);
     }
+    
+    
+    public void generateAllMaven() throws IOException {
+        generatePOM();
+        generateDotMvn();
+    }
+
+    public void generatePOM() throws IOException {
+        writer.write("pom.xml", false);
+    }
+    
+    public void generateDotMvn() throws IOException {
+        writer.write(".mvn/extensions.xml", false);
+        writer.write(".mvn/jvm.config", false);
+        writer.write(".mvn/maven.config", false);
+        writer.write(".mvn/settings.xml", false);
+    }
+
 }

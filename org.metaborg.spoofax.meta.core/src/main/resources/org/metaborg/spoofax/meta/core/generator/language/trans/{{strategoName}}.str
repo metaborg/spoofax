@@ -3,7 +3,7 @@ module {{strategoName}}
 imports
   
   runtime/editor/outline-library
-  
+  completion
   pp
 {{#analysisEnabled}}  analysis
 {{/analysisEnabled}}  outline

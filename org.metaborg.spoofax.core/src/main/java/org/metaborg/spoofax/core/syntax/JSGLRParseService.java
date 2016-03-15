@@ -8,6 +8,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.syntax.IParser;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -15,6 +17,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.core.unit.ParseContrib;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -53,6 +56,13 @@ public class JSGLRParseService implements IParser<ISpoofaxInputUnit, ISpoofaxPar
         }
         final String text = input.text();
 
+        // WORKAROUND: The parser can't handle an empty input string.
+        if(text == null || text.isEmpty()) {
+            final IMessage message = MessageFactory.newParseErrorAtTop(source, "The input is empty", null);
+            return unitService.parseUnit(input,
+                new ParseContrib(false, false, null, Iterables2.singleton(message), -1));
+        }
+
         final IParserConfig config = getParserConfig(langImpl);
         try {
             logger.trace("Parsing {}", source);
@@ -77,7 +87,6 @@ public class JSGLRParseService implements IParser<ISpoofaxInputUnit, ISpoofaxPar
         }
         return parseUnits;
     }
-
 
     public IParserConfig getParserConfig(ILanguageImpl lang) {
         IParserConfig config = parserConfigs.get(lang);

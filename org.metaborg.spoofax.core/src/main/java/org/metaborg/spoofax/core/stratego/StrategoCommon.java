@@ -86,6 +86,23 @@ public class StrategoCommon implements IStrategoCommon {
         }
     }
 
+//    @Override public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
+//        Strategy[] sp, IStrategoTerm... tp) {
+//        final SDefT def = runtime.lookupUncifiedSVar(strategy);
+//        final Strategy strat = def.getBody();
+//        final CallT callT = (CallT) strat;
+//
+//        final org.spoofax.interpreter.core.IContext context = runtime.getContext();
+//        context.setCurrent(input);
+//        boolean success = false;
+//        try {
+//            success = callT.evaluateWithArgs(context, sp, tp);
+//        } catch(InterpreterException e) {
+//            throw new RuntimeException("Failed to evaluate strategy " + strategy, e);
+//        }
+//        return success ? context.current() : null;
+//    }
+
     private void handleException(InterpreterException ex, String strategy) throws MetaborgException {
         try {
             throw ex;

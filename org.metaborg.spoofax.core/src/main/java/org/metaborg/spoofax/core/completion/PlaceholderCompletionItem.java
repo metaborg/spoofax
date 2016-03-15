@@ -9,7 +9,7 @@ public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
 
     public PlaceholderCompletionItem(String sort, String name) {
         this.sort = sort;
-        this.name = name;
+        this.name = name + hashCode();
     }
 
 
@@ -18,11 +18,11 @@ public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
     }
 
     @Override public String placeholderText() {
-        return name;
+        return sort;
     }
 
 
     @Override public String toString() {
-        return "[" + name + "]";
+        return "[[" + name + "]]";
     }
 }

@@ -33,6 +33,10 @@ public class SpoofaxLanguageSpecPaths extends ALanguageSpecPaths implements ISpo
         return resolve(DIR_CLASSES);
     }
 
+    @Override public FileObject outputTestClassesFolder() {
+        return resolve(DIR_TESTCLASSES);
+    }
+
     @Override public FileObject buildFolder() {
         return resolve(DIR_BUILD);
     }
