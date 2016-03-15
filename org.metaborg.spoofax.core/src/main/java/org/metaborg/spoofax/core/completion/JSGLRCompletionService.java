@@ -1,21 +1,16 @@
 package org.metaborg.spoofax.core.completion;
 
 import java.util.Collection;
-import java.util.LinkedList;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.build.Builder;
 import org.metaborg.core.completion.Completion;
 import org.metaborg.core.completion.ICompletion;
-import org.metaborg.core.completion.ICompletionItem;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
@@ -35,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -46,15 +40,12 @@ import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.ListImploderAttachment;
 import org.spoofax.terms.StrategoAppl;
-import org.spoofax.terms.StrategoList;
 import org.spoofax.terms.StrategoTerm;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.visitor.AStrategoTermVisitor;
 import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 import org.strategoxt.HybridInterpreter;
-
-import ch.qos.logback.core.subst.Tokenizer;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -171,7 +162,6 @@ public class JSGLRCompletionService implements ICompletionService {
 
                     final String name = Tools.asJavaString(tuple.getSubterm(0));
                     final String description = Tools.asJavaString(tuple.getSubterm(1));
-                    String text = null;
                     final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
                     final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
                     final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -199,17 +189,11 @@ public class JSGLRCompletionService implements ICompletionService {
 
                         // skip all the (erroneous) characters that were in the text already
                         suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
-
-                        text = input.substring(0, insertionPoint + 1);
-                        text += description;
-                        text += input.substring(suffixPoint);
                     }
-                    //final Collection<ICompletionItem> items = createItemsFromString(text);
 
                     final Completion completion = new Completion(name, description, insertionPoint + 1, suffixPoint);
                     completions.add(completion);
                 }
-
             }
         }
         return completions;
@@ -255,7 +239,6 @@ public class JSGLRCompletionService implements ICompletionService {
 
                     final String name = Tools.asJavaString(tuple.getSubterm(0));
                     final String description = Tools.asJavaString(tuple.getSubterm(1));
-                    String text = null;
                     final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
                     final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
                     final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -295,9 +278,6 @@ public class JSGLRCompletionService implements ICompletionService {
                         }
                         suffixPoint = insertionPoint + 1;
 
-                        text = input.substring(0, insertionPoint + 1);
-                        text += description;
-                        text += input.substring(suffixPoint);
                     } else if(change.getConstructor().getName().contains("INSERT_BEFORE")) {
                         // expect two terms and 1st should be an element of a list
                         final StrategoTerm oldList = (StrategoTerm) ParentAttachment.getParent(oldNode);
@@ -353,12 +333,7 @@ public class JSGLRCompletionService implements ICompletionService {
                             suffixPoint = checkToken.getStartOffset();
                         }
 
-                        text = input.substring(0, insertionPoint + 1);
-                        text += description;
-                        text += input.substring(suffixPoint);
                     }
-
-                    //final Collection<ICompletionItem> items = createItemsFromString(text);
 
                     final Completion completion = new Completion(name, description, insertionPoint + 1, suffixPoint);
                     completions.add(completion);
@@ -397,7 +372,6 @@ public class JSGLRCompletionService implements ICompletionService {
 
                 final String name = Tools.asJavaString(tuple.getSubterm(0));
                 final String description = Tools.asJavaString(tuple.getSubterm(1));
-                String text = null;
                 final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
                 final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
                 final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -414,13 +388,7 @@ public class JSGLRCompletionService implements ICompletionService {
 
                     insertionPoint = oldNodeIA.getLeftToken().getStartOffset() - 1;
                     suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
-
-
-                    text = input.substring(0, insertionPoint + 1);
-                    text += description;
-                    text += input.substring(suffixPoint);
                 }
-                //final Collection<ICompletionItem> items = createItemsFromString(text);
 
                 final Completion completion = new Completion(name, description, insertionPoint + 1, suffixPoint);
                 completions.add(completion);
@@ -434,7 +402,6 @@ public class JSGLRCompletionService implements ICompletionService {
     public Collection<ICompletion> completionErroneousPrograms(ParseResult<?> completionParseResult)
         throws MetaborgException {
 
-        final String input = completionParseResult.input;
         final FileObject location = completionParseResult.source;
         final ILanguageImpl language = completionParseResult.language;
         final Collection<ICompletion> completions = Lists.newLinkedList();
@@ -473,7 +440,7 @@ public class JSGLRCompletionService implements ICompletionService {
                 }
                 final String name = Tools.asJavaString(tuple.getSubterm(0));
                 final String description = Tools.asJavaString(tuple.getSubterm(1));
-                String text = null;
+
                 final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
 
 
@@ -524,9 +491,7 @@ public class JSGLRCompletionService implements ICompletionService {
                         // skip all the (erroneous) characters that were in the text already
                         suffixPoint = newNodeIA.getRightToken().getEndOffset() + 1;
 
-                    text = input.substring(0, insertionPoint + 1);
-                    text += description;
-                    text += input.substring(suffixPoint);
+
                 } else if(change.getConstructor().getName().contains("INSERT_BEFORE")) {
                     // expect two terms and 1st should be an element of a list
                     final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
@@ -565,9 +530,7 @@ public class JSGLRCompletionService implements ICompletionService {
                     }
                     // suffix point should be the first token of the next element
                     suffixPoint = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getStartOffset();
-                    text = input.substring(0, insertionPoint + 1);
-                    text += description;
-                    text += input.substring(suffixPoint);
+
 
                 } else if(change.getConstructor().getName().contains("INSERTION_TERM")) {
                     final StrategoTerm newNode = (StrategoTerm) change.getSubterm(0);
@@ -604,11 +567,8 @@ public class JSGLRCompletionService implements ICompletionService {
                         // skip all the (erroneous) characters that were in the text already
                         suffixPoint = newNodeIA.getRightToken().getEndOffset() + 1;
 
-                    text = input.substring(0, insertionPoint + 1);
-                    text += description;
-                    text += input.substring(suffixPoint);
+
                 }
-                //final Collection<ICompletionItem> items = createItemsFromString(text);
 
                 final Completion completion = new Completion(name, description, insertionPoint + 1, suffixPoint);
                 completions.add(completion);
@@ -631,17 +591,25 @@ public class JSGLRCompletionService implements ICompletionService {
     private Collection<IStrategoTerm> findCompletionTerm(StrategoAppl ast) {
 
         final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
-        final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
-            @Override public boolean visit(IStrategoTerm term) {
-                ImploderAttachment ia = term.getAttachment(ImploderAttachment.TYPE);
-                if(ia.isCompletion()) {
-                    completionTerms.add(term);
-                    return false;
-                }
-                return true;
+        /*
+         * TODO: to be implemented
+         */
+        
+        /*final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
+
+        @Override public boolean visit(IStrategoTerm term) {
+            ImploderAttachment ia = term.getAttachment(ImploderAttachment.TYPE);
+            if(ia.isCompletion()) {
+                completionTerms.add(term);
+                return false;
             }
+            return true;
+        }
         };
         StrategoTermVisitee.bottomup(visitor, ast);
+        */
+
+
 
         return completionTerms;
     }
