@@ -10,7 +10,6 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
-import org.metaborg.core.syntax.IParser;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
@@ -28,7 +27,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-public class JSGLRParseService implements IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>, ILanguageCache {
+public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
+    public static final String name = "jsglr";
+    
     private static final ILogger logger = LoggerUtils.logger(JSGLRParseService.class);
 
     private final ISpoofaxUnitService unitService;

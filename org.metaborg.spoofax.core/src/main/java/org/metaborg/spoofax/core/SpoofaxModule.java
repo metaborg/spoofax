@@ -36,6 +36,7 @@ import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.action.ActionService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
@@ -88,6 +89,7 @@ import org.metaborg.spoofax.core.style.CategorizerService;
 import org.metaborg.spoofax.core.style.ISpoofaxCategorizerService;
 import org.metaborg.spoofax.core.style.ISpoofaxStylerService;
 import org.metaborg.spoofax.core.style.StylerService;
+import org.metaborg.spoofax.core.syntax.ISpoofaxParser;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.syntax.JSGLRParseService;
 import org.metaborg.spoofax.core.syntax.SpoofaxSyntaxService;
@@ -126,6 +128,12 @@ import com.google.inject.name.Names;
  * Guice module that specifies which implementations to use for services and factories.
  */
 public class SpoofaxModule extends MetaborgModule {
+    private MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder;
+    private MapBinder<String, ISpoofaxParser> spoofaxParserBinder;
+    private MapBinder<String, IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>> analyzerBinder;
+    private MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder;
+
+
     public SpoofaxModule() {
         this(SpoofaxModule.class.getClassLoader());
     }
@@ -138,8 +146,17 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void configure() {
         super.configure();
 
+        parserBinder = MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
+            new TypeLiteral<IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>>() {});
+        spoofaxParserBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxParser.class);
+        analyzerBinder = MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
+            new TypeLiteral<IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {});
+        spoofaxAnalyzerBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxAnalyzer.class);
+
         bindUnit();
         bindSyntax();
+        bindParsers(parserBinder, spoofaxParserBinder);
+        bindAnalyzers(analyzerBinder, spoofaxAnalyzerBinder);
         bindCompletion();
         bindAction();
         bindTransformer();
@@ -186,14 +203,6 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
     protected void bindSyntax() {
-        final MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parsers =
-            MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
-                new TypeLiteral<IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>>() {});
-
-        bind(JSGLRParseService.class).in(Singleton.class);
-        parsers.addBinding("jsglr").to(JSGLRParseService.class);
-        languageCacheBinder.addBinding().to(JSGLRParseService.class);
-
         bind(SpoofaxSyntaxService.class).in(Singleton.class);
         bind(ISpoofaxSyntaxService.class).to(SpoofaxSyntaxService.class);
         bind(new TypeLiteral<ISyntaxService<ISpoofaxInputUnit, ISpoofaxParseUnit>>() {}).to(SpoofaxSyntaxService.class);
@@ -203,8 +212,12 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
     }
 
-    protected void bindCompletion() {
-        bind(ICompletionService.class).to(JSGLRCompletionService.class).in(Singleton.class);
+    protected void bindParsers(MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder,
+        MapBinder<String, ISpoofaxParser> spoofaxParserBinder) {
+        bind(JSGLRParseService.class).in(Singleton.class);
+        parserBinder.addBinding(JSGLRParseService.name).to(JSGLRParseService.class);
+        spoofaxParserBinder.addBinding(JSGLRParseService.name).to(JSGLRParseService.class);
+        languageCacheBinder.addBinding().to(JSGLRParseService.class);
     }
 
     /**
@@ -219,13 +232,6 @@ public class SpoofaxModule extends MetaborgModule {
             .to(SpoofaxAnalysisService.class);
         bind(new TypeLiteral<IAnalysisService<?, ?, ?>>() {}).to(SpoofaxAnalysisService.class);
         bind(IAnalysisService.class).to(SpoofaxAnalysisService.class);
-
-        // Analyzers
-        final MapBinder<String, IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>> analyzers =
-            MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
-                new TypeLiteral<IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {});
-        analyzers.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class).in(Singleton.class);
-        analyzers.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class).in(Singleton.class);
 
         // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);
@@ -271,6 +277,18 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxJSGLRLibrary, ParseFilePtPrimitive.class);
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
+    }
+
+    private void bindAnalyzers(
+        MapBinder<String, IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>> analyzerBinder,
+        MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder) {
+        bind(StrategoAnalyzer.class).in(Singleton.class);
+        bind(TaskEngineAnalyzer.class).in(Singleton.class);
+
+        analyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
+        analyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
     }
 
     protected void bindAction() {
@@ -419,6 +437,10 @@ public class SpoofaxModule extends MetaborgModule {
         bind(new TypeLiteral<IHoverService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit>>() {}).to(HoverService.class);
         bind(new TypeLiteral<IHoverService<?, ?>>() {}).to(HoverService.class);
         bind(IHoverService.class).to(HoverService.class);
+    }
+
+    protected void bindCompletion() {
+        bind(ICompletionService.class).to(JSGLRCompletionService.class).in(Singleton.class);
     }
 
     protected void bindOutline() {

@@ -18,13 +18,15 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 
+import com.google.inject.Inject;
+
 /**
  * Typedef class for {@link Builder} with Spoofax interfaces.
  */
 public class SpoofaxBuilder extends
     Builder<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
     implements ISpoofaxBuilder {
-    public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
+    @Inject public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
         ILanguagePathService languagePathService, ISpoofaxUnitService unitService, ISourceTextService sourceTextService,
         ISpoofaxSyntaxService syntaxService, IContextService contextService, ISpoofaxAnalysisService analysisService,
         ISpoofaxTransformService transformService, ISpoofaxParseResultUpdater parseResultUpdater,
@@ -32,5 +34,4 @@ public class SpoofaxBuilder extends
         super(resourceService, languageIdentifier, languagePathService, unitService, sourceTextService, syntaxService,
             contextService, analysisService, transformService, parseResultUpdater, analysisResultUpdater);
     }
-
 }
