@@ -3,7 +3,7 @@ module completion
 imports
   
   runtime/completion/-
-  completion/-
+  completion/{{name}}-cp
   pp
   
 rules
