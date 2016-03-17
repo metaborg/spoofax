@@ -30,7 +30,7 @@ public interface IProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU ext
     /**
      * @see IProcessorRunner#build(BuildInput, IProgressReporter, ICancellationToken)
      */
-    ITask<IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
+    ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
         @Nullable ICancellationToken cancellationToken);
 
     /**

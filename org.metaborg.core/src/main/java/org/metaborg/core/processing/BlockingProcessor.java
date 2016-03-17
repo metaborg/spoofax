@@ -39,7 +39,7 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU 
     }
 
 
-    @Override public ITask<IBuildOutput<P, A, AU, T>> build(final BuildInput input,
+    @Override public ITask<? extends IBuildOutput<P, A, AU, T>> build(final BuildInput input,
         final @Nullable IProgressReporter progressReporter, final @Nullable ICancellationToken cancellationToken) {
         return new BlockingTask<>(new Func0<IBuildOutput<P, A, AU, T>>() {
             @Override public IBuildOutput<P, A, AU, T> call() {

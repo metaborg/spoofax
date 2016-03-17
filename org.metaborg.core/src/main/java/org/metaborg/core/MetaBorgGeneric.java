@@ -1,6 +1,5 @@
 package org.metaborg.core;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 import org.metaborg.core.action.IActionService;
@@ -27,10 +26,9 @@ import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.util.inject.GenericInjectUtils;
 
-import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
-import com.google.inject.util.Types;
 
 /**
  * Generic version of the {@link MetaBorg} facade. Call the public methods to perform common operations, or use the
@@ -148,9 +146,6 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
 
 
     private <K> K instance(TypeLiteral<K> typeLiteral, Type... typeArgs) {
-        final Class<? super K> rawType = typeLiteral.getRawType();
-        final ParameterizedType type = Types.newParameterizedType(rawType, typeArgs);
-        @SuppressWarnings("unchecked") final Key<K> key = (Key<K>) Key.get(type);
-        return injector.getInstance(key);
+        return GenericInjectUtils.<K>instance(injector, typeLiteral, typeArgs);
     }
 }

@@ -31,6 +31,7 @@ import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformer;
+import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.action.ActionService;
@@ -109,6 +110,7 @@ import org.metaborg.spoofax.core.transform.StrategoTransformer;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnitService;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
@@ -176,6 +178,11 @@ public class SpoofaxModule extends MetaborgModule {
                 .to(UnitService.class);
         bind(new TypeLiteral<IUnitService<?, ?, ?, ?, ?, ?>>() {}).to(UnitService.class);
         bind(IUnitService.class).to(UnitService.class);
+
+        bind(ISpoofaxInputUnitService.class).to(UnitService.class);
+        bind(new TypeLiteral<IInputUnitService<ISpoofaxInputUnit>>() {}).to(UnitService.class);
+        bind(new TypeLiteral<IInputUnitService<?>>() {}).to(UnitService.class);
+        bind(IInputUnitService.class).to(UnitService.class);
     }
 
     @Override protected void bindLanguage() {
@@ -440,7 +447,10 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
     protected void bindCompletion() {
-        bind(ICompletionService.class).to(JSGLRCompletionService.class).in(Singleton.class);
+        bind(JSGLRCompletionService.class).in(Singleton.class);
+        bind(new TypeLiteral<ICompletionService<ISpoofaxParseUnit>>() {}).to(JSGLRCompletionService.class);
+        bind(new TypeLiteral<ICompletionService<?>>() {}).to(JSGLRCompletionService.class);
+        bind(ICompletionService.class).to(JSGLRCompletionService.class);
     }
 
     protected void bindOutline() {
