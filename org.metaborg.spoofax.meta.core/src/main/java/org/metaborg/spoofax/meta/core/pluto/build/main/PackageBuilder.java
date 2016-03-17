@@ -11,89 +11,69 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
-import org.metaborg.spoofax.meta.core.pluto.*;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.PPGen;
 import org.metaborg.spoofax.meta.core.pluto.build.PPPack;
 import org.metaborg.spoofax.meta.core.pluto.build.PackSdf;
+import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.Copy;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.CopyPattern;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryLastModifiedStamper;
 import org.metaborg.util.cmd.Arguments;
+
+import com.google.common.collect.Lists;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.buildjava.JarBuilder;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
-import com.google.common.collect.Lists;
-
-public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
+public class PackageBuilder extends SpoofaxMainBuilder<PackageBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final File strategoMainFile;
-        public final File strategoJavaStrategiesMainFile;
-        public final File baseDir;
-        public final Arguments sdfArgs;
-        public final StrategoFormat format;
-        public final Collection<File> javaJarPaths;
-        public final File javaJarOutput;
-        public final String sdfName;
-        public final File jarTarget;
-        public final File jarOutput;
-        public final File targetPpAfFile;
-        public final File targetGenPpAfFile;
-        public final File targetTblFile;
-        public final File ppPackInputPath;
-        public final File ppPackOutputPath;
-        public final File ppGenInputPath;
-        public final File ppGenOutputPath;
-        public final File afGenOutputPath;
-        @Nullable public final File externalDef;
-        public final File packSdfInputPath;
-        public final File packSdfOutputPath;
-        public final File syntaxFolder;
-        public final File genSyntaxFolder;
-        public final File makePermissiveOutputPath;
-        public final File sdf2tableOutputPath;
+        public final GenerateSourcesBuilder.Input generateSourcesInput;
 
-        public Input(SpoofaxContext context, File strategoMainFile, File strategoJavaStrategiesMainFile,
-                     Arguments sdfArgs, File baseDir, StrategoFormat format, Collection<File> javaJarPaths, File javaJarOutput,
-            String sdfName, File jarTarget, File jarOutput, File targetPpAfFile, File targetGenPpAfFile,
-            File targetTblFile, File ppPackInputPath, File ppPackOutputPath, File ppGenInputPath, File ppGenOutputPath,
-            File afGenOutputPath, File makePermissiveOutputPath, File sdf2tableOutputPath, @Nullable File externalDef,
-            File packSdfInputPath, File packSdfOutputPath, File syntaxFolder, File genSyntaxFolder) {
+        // Shared
+        public final File classesDir;
+
+        // Stratego JAR
+        public final StrategoFormat format;
+        public final File strategoJavaSourceDir;
+        public final File strategoJarInputDir;
+        public final File strategoJarOutput;
+
+        // Stratego Java-strategies JAR
+        public final File strategiesMainFile;
+        public final Collection<File> strategiesJarInputs;
+        public final File strategiesJarOutput;
+
+
+        public Input(SpoofaxContext context, GenerateSourcesBuilder.Input generateSourcesInput, File classesDir,
+            StrategoFormat format, File strategoJavaSourceDir, File strategoJarInputDir, File strategoJarOutput,
+            File strategiesMainFile, Collection<File> strategiesJarInputs, File strategiesJarOutput) {
             super(context);
-            this.strategoMainFile = strategoMainFile;
-            this.strategoJavaStrategiesMainFile = strategoJavaStrategiesMainFile;
-            this.sdfArgs = sdfArgs;
-            this.baseDir = baseDir;
+
+            this.generateSourcesInput = generateSourcesInput;
+
+            this.classesDir = classesDir;
+
             this.format = format;
-            this.javaJarPaths = javaJarPaths;
-            this.javaJarOutput = javaJarOutput;
-            this.sdfName = sdfName;
-            this.jarTarget = jarTarget;
-            this.jarOutput = jarOutput;
-            this.targetPpAfFile = targetPpAfFile;
-            this.targetGenPpAfFile = targetGenPpAfFile;
-            this.targetTblFile = targetTblFile;
-            this.ppPackInputPath = ppPackInputPath;
-            this.ppPackOutputPath = ppPackOutputPath;
-            this.ppGenInputPath = ppGenInputPath;
-            this.ppGenOutputPath = ppGenOutputPath;
-            this.afGenOutputPath = afGenOutputPath;
-            this.makePermissiveOutputPath = makePermissiveOutputPath;
-            this.sdf2tableOutputPath = sdf2tableOutputPath;
-            this.externalDef = externalDef;
-            this.packSdfInputPath = packSdfInputPath;
-            this.packSdfOutputPath = packSdfOutputPath;
-            this.syntaxFolder = syntaxFolder;
-            this.genSyntaxFolder = genSyntaxFolder;
+            this.strategoJavaSourceDir = strategoJavaSourceDir;
+            this.strategoJarInputDir = strategoJarInputDir;
+            this.strategoJarOutput = strategoJarOutput;
+
+            this.strategiesMainFile = strategiesMainFile;
+            this.strategiesJarInputs = strategiesJarInputs;
+            this.strategiesJarOutput = strategiesJarOutput;
         }
     }
 
-    public static SpoofaxBuilderFactory<Input, None, PackageBuilder> factory = SpoofaxBuilderFactoryFactory.of(
-        PackageBuilder.class, Input.class);
+    public static SpoofaxBuilderFactory<Input, None, PackageBuilder> factory =
+        SpoofaxBuilderFactoryFactory.of(PackageBuilder.class, Input.class);
 
 
     public PackageBuilder(Input input) {
@@ -120,54 +100,53 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     }
 
     @Override protected None build(Input input) throws Throwable {
-        // TODO: build Java code with Pluto.
-        // BuildRequest<CompileJavaCode.Input, None, CompileJavaCode, ?> compileJavaCode =
-        // new BuildRequest<>(CompileJavaCode.factory, new CompileJavaCode.Input(context,
-        // new BuildRequest<?, ?, ?, ?>[] { strategoCtree }));
-        // requireBuild(compileJavaCode);
-
-        if(context.isJavaJarEnabled(this, input.strategoJavaStrategiesMainFile)) {
-            jar(input.javaJarOutput, input.baseDir, null, input.javaJarPaths);
-        }
-
         if(input.format == StrategoFormat.jar) {
-            // Copy .pp.af and .tbl to trans, so that they get included in the JAR file. Required for being able
-            // to load those files from Stratego code.
-            // TODO: extract build request/origin creation for these files into separate class to prevent code dup.
-            final String sdfModule = input.sdfName;
-            final Arguments sdfArgs = GenerateSourcesBuilder.sdfArgs(context, input.sdfArgs);
-            final PackSdf.Input packSdfInput =
-                GenerateSourcesBuilder.packSdfInput(context, sdfModule, sdfArgs, input.externalDef,
-                    input.packSdfInputPath, input.packSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
+            // Get all required origins for sound incrementality.
+            final Arguments sdfArgs = sdfArgs(context, input.generateSourcesInput.sdfArgs);
+            final PackSdf.Input packSdfInput = packSdfInput(context, input.generateSourcesInput.sdfName, sdfArgs,
+                input.generateSourcesInput.externalDef, input.generateSourcesInput.packSdfInputPath,
+                input.generateSourcesInput.packSdfOutputPath, input.generateSourcesInput.syntaxFolder,
+                input.generateSourcesInput.genSyntaxFolder);
             final Origin packSdf = PackSdf.origin(packSdfInput);
 
             final Origin.Builder originBuilder = Origin.Builder();
 
-            final PPPack.Input ppPackInput =
-                GenerateSourcesBuilder.ppPackInput(context, input.ppPackInputPath, input.ppPackOutputPath, packSdf);
-            final File ppAfFile = requireBuild(PPPack.factory, ppPackInput).val;
-            originBuilder.add(Copy.origin(new Copy.Input(ppAfFile, input.targetPpAfFile, Origin.from(PPPack
-                .request(ppPackInput)), context.baseDir, context.depDir)));
+            final PPPack.Input ppPackInput = ppPackInput(context, input.generateSourcesInput.ppPackInputPath,
+                input.generateSourcesInput.ppPackOutputPath, packSdf);
+            originBuilder.add(PPPack.origin(ppPackInput));
 
-            final PPGen.Input ppGenInput =
-                GenerateSourcesBuilder.ppGenInput(context, input.ppGenInputPath, input.ppGenOutputPath,
-                    input.afGenOutputPath, sdfModule, packSdf);
-            final File ppGenFile = requireBuild(PPGen.factory, ppGenInput).val;
-            originBuilder.add(Copy.origin(new Copy.Input(ppGenFile, input.targetGenPpAfFile, Origin.from(PPGen
-                .request(ppGenInput)), context.baseDir, context.depDir)));
+            final PPGen.Input ppGenInput = ppGenInput(context, input.generateSourcesInput.ppGenInputPath,
+                input.generateSourcesInput.ppGenOutputPath, input.generateSourcesInput.afGenOutputPath,
+                input.generateSourcesInput.sdfName, packSdf);
+            originBuilder.add(PPGen.origin(ppGenInput));
 
-            final Sdf2Table.Input sdf2TableInput =
-                GenerateSourcesBuilder.sdf2TableInput(context, input.sdf2tableOutputPath,
-                    input.makePermissiveOutputPath, sdfModule, packSdfInput);
-            final File tblFile = requireBuild(Sdf2Table.factory, sdf2TableInput).val;
-            originBuilder.add(Copy.origin(new Copy.Input(tblFile, input.targetTblFile, Origin.from(Sdf2Table
-                .request(sdf2TableInput)), context.baseDir, context.depDir)));
+            final Sdf2Table.Input sdf2TableInput = sdf2TableInput(context,
+                input.generateSourcesInput.sdf2tableOutputPath, input.generateSourcesInput.makePermissiveOutputPath,
+                input.generateSourcesInput.sdfName, packSdfInput);
+            originBuilder.add(Sdf2Table.origin(sdf2TableInput));
+
+            final Origin sdf2Parenthesize =
+                sdf2Parenthesize(sdf2ParenthesizeInput(context, input.generateSourcesInput, packSdf));
+            final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(context, input.generateSourcesInput, packSdf);
+            final Origin rtg2Sig = rtg2Sig(rtg2SigInput(context, input.generateSourcesInput, sdf2RtgInput));
+            final Origin strj = strj(input.generateSourcesInput, sdf2Parenthesize, rtg2Sig);
+            originBuilder.add(strj);
 
             final Origin origin = originBuilder.get();
-            requireBuild(origin);
 
-            // Jar
-            jar(input.jarOutput, input.baseDir, origin, input.jarTarget);
+
+            // Copy .pp.af and .tbl to JAR target directory, so that they get included in the JAR file.
+            // Required for being able to import-term those files from Stratego code.
+            final CopyPattern.Input copyPatternInput = new CopyPattern.Input(input.strategoJavaSourceDir,
+                input.strategoJarInputDir, ".+\\.(?:tbl|pp\\.af)", origin, context.baseDir, context.depDir);
+            final Origin copyPatternOrigin = CopyPattern.origin(copyPatternInput);
+            requireBuild(copyPatternOrigin);
+
+            jar(input.strategoJarOutput, input.classesDir, copyPatternOrigin, input.strategoJarInputDir);
+        }
+
+        if(context.isJavaJarEnabled(this, input.strategiesMainFile)) {
+            jar(input.strategiesJarOutput, input.classesDir, null, input.strategiesJarInputs);
         }
 
         return None.val;
@@ -187,9 +166,9 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
                 final String relative = relativize(javaFile, baseDir);
                 // Convert \ to / on Windows; ZIP/JAR files must use / for paths.
                 // HACK: this should be fixed in the JarBuilder.
-                final String forwardslashRelative = relative.replace('\\', '/');
                 // Ignore files that are not relative to the base directory.
                 if(relative != null) {
+                    final String forwardslashRelative = relative.replace('\\', '/');
                     fileEntries.add(new JarBuilder.Entry(forwardslashRelative, javaFile));
                 }
             }
@@ -199,7 +178,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     }
 
     private @Nullable String relativize(File path, File base) {
-        @Nullable String relative = FilenameUtils.normalize(base.toPath().relativize(path.toPath()).toString());
+        final String relative = FilenameUtils.normalize(base.toPath().relativize(path.toPath()).toString());
         if(relative == null || relative.equals(""))
             return null;
         return relative;
@@ -210,5 +189,4 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             return Collections.emptyList();
         return FileUtils.listFilesAndDirs(directory, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
     }
-
 }
