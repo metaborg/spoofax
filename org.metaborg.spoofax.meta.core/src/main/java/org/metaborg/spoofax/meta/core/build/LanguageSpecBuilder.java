@@ -329,59 +329,30 @@ public class LanguageSpecBuilder {
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input) throws FileSystemException {
+        final GenerateSourcesBuilder.Input generateSourcesInput = generateSourcesBuilderInput(input);
+
         final ISpoofaxLanguageSpecConfig config = input.languageSpec().config();
         final ISpoofaxLanguageSpecPaths paths = input.languageSpec().paths();
         final SpoofaxContext context = new SpoofaxContext(input.languageSpec().location(), paths.buildFolder());
 
-        final File strategoMainFile = context.toFile(paths.strMainFile());
-        final File strategoJavaStrategiesMainFile = context.toFile(paths.strJavaStrategiesMainFile());
+        final File classesDir = context.toFile(paths.outputClassesFolder());
 
-        final String module = config.sdfName();
+        final StrategoFormat format = config.strFormat();
+        final File strategoJavaSourceDir = context.toFile(paths.strJavaTransFolder());
+        final File strategoJarInputDir = context.toFile(paths.strCompiledJavaTransFolder());
+        final File strategoJarOutput = context.toFile(paths.strCompiledJarFile());
 
-        final File baseDir = context.toFile(paths.outputClassesFolder());
-
-        @Nullable final File externalDef;
-        if(config.sdfExternalDef() != null) {
-            externalDef = context.toFile(context.resourceService().resolve(config.sdfExternalDef()));
-        } else {
-            externalDef = null;
-        }
-        final File packSdfInputPath = context.toFile(paths.getSdfMainFile(module));
-        final File packSdfOutputPath = context.toFile(paths.getSdfCompiledDefFile(module));
-        final File syntaxFolder = context.toFile(paths.syntaxFolder());
-        final File genSyntaxFolder = context.toFile(paths.generatedSyntaxFolder());
-
-        final File makePermissiveOutputPath = context.toFile(paths.getSdfCompiledPermissiveDefFile(module));
-        final File sdf2tableOutputPath = context.toFile(paths.getSdfCompiledTableFile(module));
-
-        final File ppGenInputPath = context.toFile(paths.getSdfCompiledDefFile(module));
-        final File ppGenOutputPath = context.toFile(paths.getGeneratedPpCompiledFile(module));
-        final File afGenOutputPath = context.toFile(paths.getGeneratedPpAfCompiledFile(module));
-
-        final File ppPackInputPath = context.toFile(paths.getPpFile(module));
-        final File ppPackOutputPath = context.toFile(paths.getPpAfCompiledFile(module));
-
-        final File javaJarOutput = context.toFile(paths.strCompiledJavaJarFile());
+        final File strategiesMainFile = context.toFile(paths.strJavaStrategiesMainFile());
         // TODO: get javajar-includes from project settings?
         // String[] paths = context.props.getOrElse("javajar-includes",
         // context.settings.packageStrategiesPath()).split("[\\s]+");
-        final Collection<File> javaJarPaths =
+        final Collection<File> strategiesJarInputs =
             Lists.newArrayList(context.toFile(paths.strCompiledJavaStrategiesFolder()),
                 context.toFile(paths.dsGeneratedInterpreterCompiledJavaFolder()),
                 context.toFile(paths.dsManualInterpreterCompiledJavaFolder()));
+        final File strategiesJarOutput = context.toFile(paths.strCompiledJavaJarFile());
 
-        final FileObject target = paths.strCompiledJavaTransFolder();
-        final File jarTarget = context.toFile(target);
-        final File jarOutput = context.toFile(paths.strCompiledJarFile());
-
-        final File targetPpAfFile = context.toFile(target.resolveFile(paths.getPpAfFilename(module)));
-        final File targetGenPpAfFile = context.toFile(target.resolveFile(paths.getGeneratedPpAfFilename(module)));
-        final File targetTblFile = context.toFile(target.resolveFile(paths.getSdfTableFilename(module)));
-
-        return new PackageBuilder.Input(context, strategoMainFile, strategoJavaStrategiesMainFile, config.sdfArgs(),
-            baseDir, config.strFormat(), javaJarPaths, javaJarOutput, module, jarTarget, jarOutput, targetPpAfFile,
-            targetGenPpAfFile, targetTblFile, ppPackInputPath, ppPackOutputPath, ppGenInputPath, ppGenOutputPath,
-            afGenOutputPath, makePermissiveOutputPath, sdf2tableOutputPath, externalDef, packSdfInputPath,
-            packSdfOutputPath, syntaxFolder, genSyntaxFolder);
+        return new PackageBuilder.Input(context, generateSourcesInput, classesDir, format, strategoJavaSourceDir,
+            strategoJarInputDir, strategoJarOutput, strategiesMainFile, strategiesJarInputs, strategiesJarOutput);
     }
 }
