@@ -15,6 +15,13 @@ import org.metaborg.util.cmd.Arguments;
  */
 public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     /**
+     * Gets the SDF version to use.
+     *
+     * @return Sdf version to use.
+     */
+    SdfVersion sdfVersion();
+
+    /**
      * Gets the external def.
      *
      * @return The external def.

@@ -26,13 +26,8 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.sugarj.common.FileCommands;
 
 import com.google.inject.Injector;
-
-import build.pluto.builder.Builder;
-import build.pluto.stamp.FileExistsStamper;
-import build.pluto.stamp.LastModifiedStamper;
 
 public class SpoofaxContext implements Serializable {
     private static final long serialVersionUID = -1973461199459693455L;
@@ -100,7 +95,7 @@ public class SpoofaxContext implements Serializable {
             this.languageSpec = null;
             return;
         }
-        
+
         try {
             this.languageSpec = languageSpecService.get(project);
         } catch(ConfigException e) {
@@ -164,21 +159,6 @@ public class SpoofaxContext implements Serializable {
 
     public ITermFactory termFactory() {
         return termFactoryService.getGeneric();
-    }
-
-
-    public boolean isBuildStrategoEnabled(Builder<?, ?> result, File strategoMainFile) {
-        final File strategoPath = strategoMainFile;
-        result.require(strategoPath,
-            SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance : LastModifiedStamper.instance);
-        return FileCommands.exists(strategoPath);
-    }
-
-    public boolean isJavaJarEnabled(Builder<?, ?> result, File strategoJavaStrategiesMainFile) {
-        final File mainFile = strategoJavaStrategiesMainFile;
-        result.require(mainFile,
-            SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance : LastModifiedStamper.instance);
-        return FileCommands.exists(mainFile);
     }
 
 

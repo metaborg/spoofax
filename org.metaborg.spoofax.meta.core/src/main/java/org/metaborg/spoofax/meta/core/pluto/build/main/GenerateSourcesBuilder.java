@@ -2,108 +2,81 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.io.FileUtils;
+import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.build.MakePermissive;
 import org.metaborg.spoofax.meta.core.pluto.build.PackSdf;
+import org.metaborg.spoofax.meta.core.pluto.build.Rtg2Sig;
+import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
+import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
+import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.util.cmd.Arguments;
+
+import com.google.common.collect.Lists;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
+import build.pluto.stamp.FileExistsStamper;
 
-public class GenerateSourcesBuilder extends SpoofaxMainBuilder<GenerateSourcesBuilder.Input, None> {
+public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final File strategoMainFile;
-        public final File strategoJavaStrategiesMainFile;
-        public final String sdfName;
-        public final String metaSdfName;
-        public final Arguments sdfArgs;
-        @Nullable public final File externalJar;
-        @Nullable public final File strjTarget;
-        public final File strjInputFile;
-        public final File strjOutputFile;
-        public final File strjDepFile;
-        public final File strjCacheDir;
-        public final Arguments strategoArgs;
-        public final StrategoFormat format;
-        public final String strategiesPackageName;
-        public final String externalJarFlags;
-        public final File rtg2SigOutputFile;
-        public final File sdf2RtgInputFile;
-        public final File sdf2RtgOutputFile;
-        public final File sdf2ParenthesizeInputFile;
-        public final File sdf2ParenthesizeOutputFile;
-        public final String sdf2ParenthesizeOutputModule;
-        public final File ppPackInputPath;
-        public final File ppPackOutputPath;
-        public final File ppGenInputPath;
-        public final File ppGenOutputPath;
-        public final File afGenOutputPath;
-        @Nullable public final File externalDef;
-        public final File packSdfInputPath;
-        public final File packSdfOutputPath;
-        public final File packMetaSdfInputPath;
-        public final File packMetaSdfOutputPath;
-        public final File syntaxFolder;
-        public final File genSyntaxFolder;
-        public final File makePermissiveOutputPath;
-        public final File sdf2tableOutputPath;
+        public final @Nullable String sdfModule;
+        public final @Nullable File sdfFile;
+        public final SdfVersion sdfVersion;
+        public final @Nullable File sdfExternalDef;
+        public final List<File> packSdfIncludePaths;
+        public final Arguments packSdfArgs;
 
-        public Input(SpoofaxContext context, File strategoMainFile, File strategoJavaStrategiesMainFile, String sdfName,
-            String metaSdfName, Arguments sdfArgs, @Nullable File externalJar, @Nullable File strjTarget,
-            File strjInputFile, File strjOutputFile, File strjDepFile, File strjCacheDir, Arguments strategoArgs,
-            StrategoFormat format, String strategiesPackageName, String externalJarFlags, File rtg2SigOutputFile,
-            File sdf2RtgInputFile, File sdf2RtgOutputFile, File sdf2ParenthesizeInputFile,
-            File sdf2ParenthesizeOutputFile, String sdf2ParenthesizeOutputModule, File ppPackInputPath,
-            File ppPackOutputPath, File ppGenInputPath, File ppGenOutputPath, File afGenOutputPath,
-            File makePermissiveOutputPath, File sdf2tableOutputPath, @Nullable File externalDef, File packSdfInputPath,
-            File packSdfOutputPath, File packMetaSdfInputPath, File packMetaSdfOutputPath, File syntaxFolder,
-            File genSyntaxFolder) {
+        public final @Nullable String sdfMetaModule;
+        public final @Nullable File sdfMetaFile;
+
+        public final @Nullable File strFile;
+        public final @Nullable String strJavaStratPackage;
+        public final @Nullable File strJavaStratFile;
+        public final StrategoFormat strFormat;
+        public final @Nullable File strExternalJar;
+        public final @Nullable String strExternalJarFlags;
+        public final List<File> strjIncludeDirs;
+        public final Arguments strjArgs;
+
+
+        public Input(SpoofaxContext context, @Nullable String sdfModule, @Nullable File sdfFile, SdfVersion sdfVersion,
+            @Nullable File sdfExternalDef, List<File> packSdfIncludePaths, Arguments packSdfArgs,
+            @Nullable String sdfMetaModule, @Nullable File sdfMetaFile, @Nullable File strFile,
+            @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile, StrategoFormat strFormat,
+            @Nullable File strExternalJar, @Nullable String strExternalJarFlags, List<File> strjIncludeDirs,
+            Arguments strjArgs) {
             super(context);
-            this.strategoMainFile = strategoMainFile;
-            this.strategoJavaStrategiesMainFile = strategoJavaStrategiesMainFile;
-            this.sdfName = sdfName;
-            this.metaSdfName = metaSdfName;
-            this.sdfArgs = sdfArgs;
-            this.externalJar = externalJar;
-            this.strjTarget = strjTarget;
-            this.strjInputFile = strjInputFile;
-            this.strjOutputFile = strjOutputFile;
-            this.strjDepFile = strjDepFile;
-            this.strjCacheDir = strjCacheDir;
-            this.strategoArgs = strategoArgs;
-            this.format = format;
-            this.strategiesPackageName = strategiesPackageName;
-            this.externalJarFlags = externalJarFlags;
-            this.rtg2SigOutputFile = rtg2SigOutputFile;
-            this.sdf2RtgInputFile = sdf2RtgInputFile;
-            this.sdf2RtgOutputFile = sdf2RtgOutputFile;
-            this.sdf2ParenthesizeInputFile = sdf2ParenthesizeInputFile;
-            this.sdf2ParenthesizeOutputFile = sdf2ParenthesizeOutputFile;
-            this.sdf2ParenthesizeOutputModule = sdf2ParenthesizeOutputModule;
-            this.ppPackInputPath = ppPackInputPath;
-            this.ppPackOutputPath = ppPackOutputPath;
-            this.ppGenInputPath = ppGenInputPath;
-            this.ppGenOutputPath = ppGenOutputPath;
-            this.afGenOutputPath = afGenOutputPath;
-            this.makePermissiveOutputPath = makePermissiveOutputPath;
-            this.sdf2tableOutputPath = sdf2tableOutputPath;
-            this.externalDef = externalDef;
-            this.packSdfInputPath = packSdfInputPath;
-            this.packSdfOutputPath = packSdfOutputPath;
-            this.packMetaSdfInputPath = packMetaSdfInputPath;
-            this.packMetaSdfOutputPath = packMetaSdfOutputPath;
-            this.syntaxFolder = syntaxFolder;
-            this.genSyntaxFolder = genSyntaxFolder;
+            this.sdfModule = sdfModule;
+            this.sdfFile = sdfFile;
+            this.sdfVersion = sdfVersion;
+            this.sdfExternalDef = sdfExternalDef;
+            this.packSdfIncludePaths = packSdfIncludePaths;
+            this.packSdfArgs = packSdfArgs;
+            this.sdfMetaModule = sdfMetaModule;
+            this.sdfMetaFile = sdfMetaFile;
+            this.strFile = strFile;
+            this.strJavaStratPackage = strJavaStratPackage;
+            this.strJavaStratFile = strJavaStratFile;
+            this.strFormat = strFormat;
+            this.strExternalJar = strExternalJar;
+            this.strExternalJarFlags = strExternalJarFlags;
+            this.strjIncludeDirs = strjIncludeDirs;
+            this.strjArgs = strjArgs;
         }
     }
 
@@ -136,33 +109,128 @@ public class GenerateSourcesBuilder extends SpoofaxMainBuilder<GenerateSourcesBu
     }
 
     @Override public None build(GenerateSourcesBuilder.Input input) throws IOException {
+        final File baseDir = input.context.baseDir;
+        final File srcGenDir = srcGenDir();
+        final File srcGenSigDir = FileUtils.getFile(srcGenDir, "signatures");
+        final File srcGenSyntaxDir = FileUtils.getFile(srcGenDir, "syntax");
+        final File srcGenPpDir = FileUtils.getFile(srcGenDir, "pp");
+
+        final File targetDir = FileUtils.getFile(baseDir, "target");
+
         // SDF
-        final Arguments sdfArgs = sdfArgs(context, input.sdfArgs);
+        final @Nullable Origin parenthesizeOrigin;
+        final @Nullable Origin sigOrigin;
+        if(input.sdfModule != null && input.sdfFile != null) {
+            require(input.sdfFile, FileExistsStamper.instance);
+            if(!input.sdfFile.exists()) {
+                throw new IOException("Main SDF file at " + input.sdfFile + " does not exist");
+            }
 
-        final PackSdf.Input packSdfInput = packSdfInput(context, input.sdfName, sdfArgs, input.externalDef,
-            input.packSdfInputPath, input.packSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
-        final Origin packSdfOrigin = PackSdf.origin(packSdfInput);
-        final PackSdf.Input metaPackSdfInput =
-            packSdfInput(context, input.metaSdfName, new Arguments(sdfArgs), input.externalDef,
-                input.packMetaSdfInputPath, input.packMetaSdfOutputPath, input.syntaxFolder, input.genSyntaxFolder);
+            final String sdfModule = input.sdfModule;
 
-        sdf2Table(sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath, input.sdfName,
-            packSdfInput));
-        metaSdf2Table(sdf2TableInput(context, input.sdf2tableOutputPath, input.makePermissiveOutputPath,
-            input.metaSdfName, metaPackSdfInput));
-        ppGen(ppGenInput(context, input.ppGenInputPath, input.ppGenOutputPath, input.afGenOutputPath, input.sdfName,
-            packSdfOrigin));
-        ppPack(ppPackInput(context, input.ppPackInputPath, input.ppPackOutputPath, packSdfOrigin));
-        final Origin sdf2Parenthesize = sdf2Parenthesize(sdf2ParenthesizeInput(context, input, packSdfOrigin));
-        final Sdf2Rtg.Input sdf2RtgInput = sdf2Rtg(context, input, packSdfOrigin);
-        final Origin rtg2Sig = rtg2Sig(rtg2SigInput(context, input, sdf2RtgInput));
+            // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
+            // specification.
+            final File packSdfFile;
+            final @Nullable Origin packSdfOrigin;
+            if(input.sdfExternalDef != null) {
+                require(input.sdfExternalDef, FileExistsStamper.instance);
+                if(!input.sdfExternalDef.exists()) {
+                    throw new IOException("External SDF definition at " + input.sdfExternalDef + " does not exist");
+                }
+                packSdfFile = input.sdfExternalDef;
+                packSdfOrigin = null;
+            } else {
+                packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + ".def");
+                packSdfOrigin = PackSdf.origin(new PackSdf.Input(context, sdfModule, input.sdfFile, packSdfFile,
+                    input.packSdfIncludePaths, input.packSdfArgs, null));
+            }
 
-        // Stratego
-        if(!context.isBuildStrategoEnabled(this, input.strategoMainFile)) {
-            return None.val;
+            // Get Stratego signatures file when using an external def, or when using sdf2, from the SDF def file.
+            if(input.sdfExternalDef != null || input.sdfVersion == SdfVersion.sdf2) {
+                final File rtgFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".rtg");
+                final Origin rtgOrigin =
+                    Sdf2Rtg.origin(new Sdf2Rtg.Input(context, packSdfFile, rtgFile, sdfModule, packSdfOrigin));
+
+                final File sigFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".str");
+                sigOrigin = Rtg2Sig.origin(new Rtg2Sig.Input(context, rtgFile, sigFile, sdfModule, rtgOrigin));
+            } else {
+                sigOrigin = null;
+            }
+
+            // Get Stratego parenthesizer file, from the SDF def file.
+            final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
+            final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
+            parenthesizeOrigin = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile,
+                parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
+
+            // Get SDF permissive def file, from the SDF def file.
+            final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + "-permissive.def");
+            final Origin permissiveDefOrigin = MakePermissive
+                .origin(new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
+
+            // Get JSGLR parse table, from the SDF permissive def file.
+            final File tableFile = FileUtils.getFile(targetDir, "sdf.tbl");
+            final Origin sdf2TableOrigin = Sdf2Table
+                .origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfModule, permissiveDefOrigin));
+
+            requireBuild(sdf2TableOrigin);
+        } else {
+            parenthesizeOrigin = null;
+            sigOrigin = null;
         }
 
-        strj(input, sdf2Parenthesize, rtg2Sig);
+        // Stratego
+        if(input.strFile != null) {
+            require(input.strFile, FileExistsStamper.instance);
+            if(!input.strFile.exists()) {
+                throw new IOException("Main Stratego file at " + input.strFile + " does not exist");
+            }
+
+            boolean buildStrJavaStrat = input.strJavaStratPackage != null && input.strJavaStratFile != null;
+            if(buildStrJavaStrat) {
+                require(input.strJavaStratFile, FileExistsStamper.instance);
+                if(!input.strJavaStratFile.exists()) {
+                    throw new IOException(
+                        "Main Stratego Java strategies file at " + input.strJavaStratFile + " does not exist");
+                }
+            }
+
+            final Arguments extraArgs = new Arguments();
+            extraArgs.addAll(input.strjArgs);
+
+            final File outputFile;
+            final File depPath;
+            if(input.strFormat == StrategoFormat.ctree) {
+                outputFile = FileUtils.getFile(targetDir, "stratego.ctree");
+                depPath = outputFile;
+                extraArgs.add("-F");
+            } else {
+                depPath = strJavaTransDir();
+                outputFile = FileUtils.getFile(depPath, "Main.java");
+                extraArgs.add("-la", "java-front");
+                if(buildStrJavaStrat) {
+                    extraArgs.add("-la", input.strJavaStratPackage);
+                }
+            }
+
+            if(input.strExternalJarFlags != null) {
+                extraArgs.addLine(input.strExternalJarFlags);
+            }
+
+            // @formatter:off
+            final Origin origin = Origin.Builder()
+                .add(parenthesizeOrigin)
+                .add(sigOrigin)
+                .get();
+            // @formatter:on
+
+            final File cacheDir = FileUtils.getFile(targetDir, "stratego-cache");
+
+            final Strj.Input strjInput = new Strj.Input(context, input.strFile, outputFile, depPath, "trans", true,
+                true, input.strjIncludeDirs, Lists.<String>newArrayList(), cacheDir, extraArgs, origin);
+            final Origin strjOrigin = Strj.origin(strjInput);
+            requireBuild(strjOrigin);
+        }
 
         return None.val;
     }

@@ -21,11 +21,8 @@ import org.metaborg.core.messages.MessageBuilder;
  * object.
  */
 public class LanguageSpecConfig extends LanguageComponentConfig implements ILanguageSpecConfig, IConfig {
-    private static final long serialVersionUID = -7053551901853301773L;
-
     private static final String PROP_METABORG_VERSION = "metaborgVersion";
     private static final String PROP_PARDONED_LANGUAGES = "pardonedLanguages";
-
 
 
     public LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config) {

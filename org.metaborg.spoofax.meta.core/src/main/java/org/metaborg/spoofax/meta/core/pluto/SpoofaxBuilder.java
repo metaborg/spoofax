@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core.pluto;
 
 import java.io.File;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.util.file.FileAccess;
@@ -54,5 +55,18 @@ abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Output
 
     protected ResourceAgentTracker newResourceTracker(String... excludePatterns) {
         return context.newResourceTracker(excludePatterns);
+    }
+
+
+    public File srcGenDir() {
+        return FileUtils.getFile(context.baseDir, "src-gen");
+    }
+
+    public File strJavaTransDir() {
+        return FileUtils.getFile(srcGenDir(), "stratego-java", "trans");
+    }
+
+    public File classesDir() {
+        return FileUtils.getFile(context.baseDir, "target", "classes");
     }
 }

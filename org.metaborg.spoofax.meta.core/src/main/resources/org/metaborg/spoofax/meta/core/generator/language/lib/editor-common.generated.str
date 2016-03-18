@@ -11,27 +11,22 @@ strategies
   parse-{{strategoName}}-file =
     parse-file(
       strsglr-perror, strsglr-report-parse-error
-    | <import-term(include/{{name}}.tbl)>
+    | <import-term(target/sdf.tbl)>
     )
 
   parse-string = parse-{{strategoName}}-string
   parse-{{strategoName}}-string =
     parse-string(
       strsglr-report-parse-error
-    | <import-term(include/{{name}}.tbl)>
+    | <import-term(target/sdf.tbl)>
     )
   
   parse-stream = parse-{{strategoName}}-stream
   parse-{{strategoName}}-stream =
     parse-stream(
       strsglr-report-parse-error
-    | <import-term(include/{{name}}.tbl)>
+    | <import-term(target/sdf.tbl)>
     )
-
-  pp-{{strategoName}}-string =
-    ast2abox(|[<import-term(include/{{name}}.generated.pp.af)>,
-               <import-term(include/{{name}}.pp.af)>]);
-    box2text-string(|100)
  
   language = !"{{name}}"
 
