@@ -26,6 +26,7 @@ import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.core.unit.IUnitService;
 import org.metaborg.util.inject.GenericInjectUtils;
 
 import com.google.inject.TypeLiteral;
@@ -59,6 +60,8 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
     extends MetaBorg {
     public final IDialectService dialectService;
     public final IDialectIdentifier dialectIdentifier;
+
+    public final IUnitService<I, P, A, AU, TP, TA> unitService;
 
     public final ISyntaxService<I, P> syntaxService;
     public final IAnalysisService<P, A, AU> analysisService;
@@ -102,6 +105,9 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
 
         this.dialectService = injector.getInstance(IDialectService.class);
         this.dialectIdentifier = injector.getInstance(IDialectIdentifier.class);
+
+        this.unitService = instance(new TypeLiteral<IUnitService<I, P, A, AU, TP, TA>>() {}, iClass, pClass, aClass,
+            auClass, tpClass, taClass);
 
         this.syntaxService = instance(new TypeLiteral<ISyntaxService<I, P>>() {}, iClass, pClass);
         this.analysisService = instance(new TypeLiteral<IAnalysisService<P, A, AU>>() {}, pClass, aClass, auClass);
