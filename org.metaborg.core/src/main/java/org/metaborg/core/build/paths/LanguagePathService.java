@@ -16,6 +16,7 @@ import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguagePathService implements ILanguagePathService {
@@ -32,34 +33,39 @@ public class LanguagePathService implements ILanguagePathService {
     }
 
 
-    @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) {
-        final Collection<Iterable<FileObject>> sources = Lists.newArrayList();
+    @Override public Set<FileObject> sourcePaths(IProject project, String languageName) {
+        final Set<FileObject> sources = Sets.newLinkedHashSet();
         for(ILanguagePathProvider provider : providers) {
             try {
-                sources.add(provider.sourcePaths(project, languageName));
+                final Iterable<FileObject> providedSources = provider.sourcePaths(project, languageName);
+                Iterables.addAll(sources, providedSources);
             } catch(MetaborgException e) {
                 logger.error("Getting source paths from provider {} failed unexpectedly, skipping this provider", e,
                     provider);
             }
         }
-        return Iterables.concat(sources);
+        return sources;
     }
 
-    @Override public Iterable<FileObject> includePaths(IProject project, String languageName) {
-        final Collection<Iterable<FileObject>> includes = Lists.newArrayList();
+    @Override public Set<FileObject> includePaths(IProject project, String languageName) {
+        final Set<FileObject> includes = Sets.newLinkedHashSet();
         for(ILanguagePathProvider provider : providers) {
             try {
-                includes.add(provider.includePaths(project, languageName));
+                final Iterable<FileObject> providedIncludes = provider.includePaths(project, languageName);
+                Iterables.addAll(includes, providedIncludes);
             } catch(MetaborgException e) {
                 logger.error("Getting include paths from provider {} failed unexpectedly, skipping this provider", e,
                     provider);
             }
         }
-        return Iterables.concat(includes);
+        return includes;
     }
 
     @Override public Iterable<FileObject> sourceAndIncludePaths(IProject project, String languageName) {
-        return Iterables.concat(sourcePaths(project, languageName), includePaths(project, languageName));
+        final Set<FileObject> paths = Sets.newLinkedHashSet();
+        paths.addAll(sourcePaths(project, languageName));
+        paths.addAll(includePaths(project, languageName));
+        return paths;
     }
 
 
@@ -79,9 +85,9 @@ public class LanguagePathService implements ILanguagePathService {
     }
 
 
-    @Override public Iterable<IdentifiedResource> toFiles(Iterable<FileObject> paths, ILanguageImpl language) {
-        final Iterable<FileObject> files = ResourceUtils.expand(paths);
-        final Collection<IdentifiedResource> identifiedFiles = Lists.newArrayList();
+    @Override public Collection<IdentifiedResource> toFiles(Iterable<FileObject> paths, ILanguageImpl language) {
+        final Collection<FileObject> files = ResourceUtils.expand(paths);
+        final Collection<IdentifiedResource> identifiedFiles = Lists.newArrayListWithExpectedSize(files.size());
         for(FileObject file : files) {
             final IdentifiedResource identifiedFile =
                 languageIdentifierService.identifyToResource(file, Iterables2.singleton(language));

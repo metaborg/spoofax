@@ -121,60 +121,64 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // SDF
         final @Nullable Origin parenthesizeOrigin;
         final @Nullable Origin sigOrigin;
-        if(input.sdfModule != null && input.sdfFile != null) {
-            require(input.sdfFile, FileExistsStamper.instance);
-            if(!input.sdfFile.exists()) {
-                throw new IOException("Main SDF file at " + input.sdfFile + " does not exist");
-            }
-
+        if(input.sdfModule != null) {
             final String sdfModule = input.sdfModule;
 
             // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
             // specification.
-            final File packSdfFile;
+            final @Nullable File packSdfFile;
             final @Nullable Origin packSdfOrigin;
             if(input.sdfExternalDef != null) {
-                require(input.sdfExternalDef, FileExistsStamper.instance);
-                if(!input.sdfExternalDef.exists()) {
-                    throw new IOException("External SDF definition at " + input.sdfExternalDef + " does not exist");
-                }
                 packSdfFile = input.sdfExternalDef;
                 packSdfOrigin = null;
-            } else {
+            } else if(input.sdfFile != null) {
+                require(input.sdfFile, FileExistsStamper.instance);
+                if(!input.sdfFile.exists()) {
+                    throw new IOException("Main SDF file at " + input.sdfFile + " does not exist");
+                }
+
                 packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + ".def");
                 packSdfOrigin = PackSdf.origin(new PackSdf.Input(context, sdfModule, input.sdfFile, packSdfFile,
                     input.packSdfIncludePaths, input.packSdfArgs, null));
+            } else {
+                packSdfFile = null;
+                packSdfOrigin = null;
             }
 
-            // Get Stratego signatures file when using an external def, or when using sdf2, from the SDF def file.
-            if(input.sdfExternalDef != null || input.sdfVersion == SdfVersion.sdf2) {
-                final File rtgFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".rtg");
-                final Origin rtgOrigin =
-                    Sdf2Rtg.origin(new Sdf2Rtg.Input(context, packSdfFile, rtgFile, sdfModule, packSdfOrigin));
+            if(packSdfFile != null) {
+                // Get Stratego signatures file when using an external def, or when using sdf2, from the SDF def file.
+                if(input.sdfExternalDef != null || input.sdfVersion == SdfVersion.sdf2) {
+                    final File rtgFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".rtg");
+                    final Origin rtgOrigin =
+                        Sdf2Rtg.origin(new Sdf2Rtg.Input(context, packSdfFile, rtgFile, sdfModule, packSdfOrigin));
+                    final File sigFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".str");
+                    final String sigModule = "signatures/" + sdfModule;
+                    sigOrigin = Rtg2Sig.origin(new Rtg2Sig.Input(context, rtgFile, sigFile, sigModule, rtgOrigin));
+                } else {
+                    sigOrigin = null;
+                }
 
-                final File sigFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".str");
-                sigOrigin = Rtg2Sig.origin(new Rtg2Sig.Input(context, rtgFile, sigFile, sdfModule, rtgOrigin));
+                // Get Stratego parenthesizer file, from the SDF def file.
+                final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
+                final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
+                parenthesizeOrigin = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile,
+                    parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
+
+                // Get SDF permissive def file, from the SDF def file.
+                final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + "-permissive.def");
+                final Origin permissiveDefOrigin = MakePermissive.origin(
+                    new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
+
+                // Get JSGLR parse table, from the SDF permissive def file.
+                final File tableFile = FileUtils.getFile(targetMbDir, "sdf.tbl");
+                final Origin sdf2TableOrigin = Sdf2Table
+                    .origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfModule, permissiveDefOrigin));
+
+                requireBuild(sdf2TableOrigin);
             } else {
+                parenthesizeOrigin = null;
                 sigOrigin = null;
             }
-
-            // Get Stratego parenthesizer file, from the SDF def file.
-            final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
-            final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
-            parenthesizeOrigin = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile,
-                parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
-
-            // Get SDF permissive def file, from the SDF def file.
-            final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + "-permissive.def");
-            final Origin permissiveDefOrigin = MakePermissive
-                .origin(new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
-
-            // Get JSGLR parse table, from the SDF permissive def file.
-            final File tableFile = FileUtils.getFile(targetMbDir, "sdf.tbl");
-            final Origin sdf2TableOrigin = Sdf2Table
-                .origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfModule, permissiveDefOrigin));
-
-            requireBuild(sdf2TableOrigin);
         } else {
             parenthesizeOrigin = null;
             sigOrigin = null;

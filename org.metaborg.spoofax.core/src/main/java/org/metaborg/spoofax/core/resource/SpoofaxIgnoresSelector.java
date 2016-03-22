@@ -19,20 +19,28 @@ public class SpoofaxIgnoresSelector implements FileSelector {
         switch(depth) {
             case 1:
                 switch(base) {
+                    case "bin":
                     case "include":
                     case "target":
                     case ".cache":
+                    case ".settings":
+                    case ".mvn":
                         return false;
                 }
                 break;
             case 3:
                 switch(base) {
+                    // Ignore editor/java/trans and src-gen/stratego-java/trans.
                     case "trans": {
                         final FileObject parent1 = resource.getParent();
-                        if(parent1 != null && parent1.getName().getBaseName().equals("java")) {
-                            final FileObject parent2 = parent1.getParent();
-                            if(parent2 != null) {
-                                return !parent2.getName().getBaseName().equals("editor");
+                        if(parent1 != null) {
+                            final String parent1base = parent1.getName().getBaseName();
+                            if(parent1base.equals("java") || parent1base.equals("stratego-java")) {
+                                final FileObject parent2 = parent1.getParent();
+                                if(parent2 != null) {
+                                    final String parent2base = parent2.getName().getBaseName();
+                                    return !(parent2base.equals("editor") || parent2base.equals("src-gen"));
+                                }
                             }
                         }
                         break;

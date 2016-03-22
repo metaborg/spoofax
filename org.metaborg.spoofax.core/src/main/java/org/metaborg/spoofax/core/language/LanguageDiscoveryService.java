@@ -3,11 +3,14 @@ package org.metaborg.spoofax.core.language;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelectInfo;
+import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
@@ -58,15 +61,17 @@ import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.FileSelectorUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
@@ -97,7 +102,16 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final Collection<ILanguageDiscoveryRequest> requests = Lists.newLinkedList();
         final FileObject[] configFiles;
         try {
-            configFiles = location.findFiles(FileSelectorUtils.contains(MetaborgConstants.FILE_COMPONENT_CONFIG));
+            configFiles = location.findFiles(new FileSelector() {
+                @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
+                    final String baseName = fileInfo.getFile().getName().getBaseName();
+                    return !baseName.equals("bin");
+                }
+
+                @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
+                    return fileInfo.getFile().getName().getBaseName().equals(MetaborgConstants.FILE_COMPONENT_CONFIG);
+                }
+            });
         } catch(FileSystemException e) {
             throw new MetaborgException("Searching for language components failed unexpectedly", e);
         }
@@ -106,27 +120,39 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             return requests;
         }
 
-        final Set<FileObject> parents = Sets.newHashSet();
+        final Multimap<FileName, FileName> locToConfigs = ArrayListMultimap.create();
+        final Map<FileName, FileObject> nameToFile = Maps.newHashMap();
         for(FileObject configFile : configFiles) {
+            try {
+                final FileName configName = configFile.getName();
+                final FileObject languageLoc = configFile.getParent().getParent();
+                final FileName languageLocName = languageLoc.getName();
+                locToConfigs.put(languageLocName, configName);
+                nameToFile.put(languageLocName, languageLoc);
+            } catch(FileSystemException e) {
+                logger.error("Could not resolve parent directory of config file {}, skipping", e, configFile);
+                continue;
+            }
+        }
+
+        final Collection<FileObject> languageLocations = Lists.newArrayList();
+        for(Entry<FileName, Collection<FileName>> configEntry : locToConfigs.asMap().entrySet()) {
+            final FileName languageLocName = configEntry.getKey();
+            final FileObject languageLoc = nameToFile.get(languageLocName);
+            final Collection<FileName> configLocNames = configEntry.getValue();
+            if(configLocNames.size() > 1) {
+                final String message = logger.format("Found multiple config files at location {}: {}", languageLocName,
+                    Joiner.on(", ").join(configLocNames));
+                requests.add(new LanguageDiscoveryRequest(languageLoc, message));
+                continue;
+            } else {
+                languageLocations.add(languageLoc);
+            }
+        }
+
+        for(FileObject languageLocation : languageLocations) {
             final Collection<String> errors = Lists.newLinkedList();
             final Collection<Throwable> exceptions = Lists.newLinkedList();
-
-            final FileObject languageLocation;
-            try {
-                languageLocation = configFile.getParent().getParent();
-            } catch(FileSystemException e) {
-                logger.error("Could not resolve parent directory of ESV file {}, skipping.", e, configFile);
-                continue;
-            }
-
-            if(parents.contains(languageLocation)) {
-                final String message =
-                    logger.format("Found multiple packed ESV files at {}, skipping.", languageLocation);
-                errors.add(message);
-                requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
-                continue;
-            }
-            parents.add(languageLocation);
 
             final ConfigRequest<ILanguageComponentConfig> configRequest = componentConfigService.get(languageLocation);
             if(!configRequest.valid()) {

@@ -293,8 +293,13 @@ public class LanguageSpecBuilder {
             sdfFile = null;
         }
         final @Nullable File sdfExternalDef;
-        if(config.sdfExternalDef() != null) {
-            sdfExternalDef = new File(config.sdfExternalDef());
+        final String sdfExternalDefStr = config.sdfExternalDef();
+        if(sdfExternalDefStr != null) {
+            final FileObject sdfExternalDefLoc = resourceService.resolve(sdfExternalDefStr);
+            if(!sdfExternalDefLoc.exists()) {
+                throw new MetaborgException("External SDF definition at " + sdfExternalDefLoc + " does not exist");
+            }
+            sdfExternalDef = resourceService.localFile(sdfExternalDefLoc);
         } else {
             sdfExternalDef = null;
         }
@@ -334,8 +339,13 @@ public class LanguageSpecBuilder {
         }
         final StrategoFormat strFormat = config.strFormat();
         final @Nullable File strExternalJar;
-        if(config.strExternalJar() != null) {
-            strExternalJar = new File(config.strExternalJar());
+        final String strExternalJarStr = config.strExternalJar();
+        if(strExternalJarStr != null) {
+            final FileObject strExternalJarLoc = resourceService.resolve(strExternalJarStr);
+            if(!strExternalJarLoc.exists()) {
+                throw new MetaborgException("External Stratego JAR at " + strExternalJarLoc + " does not exist");
+            }
+            strExternalJar = resourceService.localFile(strExternalJarLoc);
         } else {
             strExternalJar = null;
         }
