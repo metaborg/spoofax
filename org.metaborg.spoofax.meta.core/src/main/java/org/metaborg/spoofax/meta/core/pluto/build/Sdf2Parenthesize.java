@@ -36,13 +36,13 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
         public final @Nullable Origin origin;
 
 
-        public Input(SpoofaxContext context, File inputFile, File outputFile, String outputModule, String inputModule,
+        public Input(SpoofaxContext context, File inputFile, File outputFile, String inputModule, String outputModule,
             @Nullable Origin origin) {
             super(context);
             this.inputFile = inputFile;
             this.outputFile = outputFile;
-            this.outputModule = outputModule;
             this.inputModule = inputModule;
+            this.outputModule = outputModule;
             this.origin = origin;
         }
     }
@@ -95,7 +95,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
             .addFile("-o", input.outputFile)
             .add("--main-strategy", "io-" + input.inputModule + "-parenthesize")
             .add("--rule-prefix", input.inputModule)
-            //.add( "--sig-module", SpoofaxConstants.DIR_INCLUDE + "/" + input.inputModule)
+            .add( "--sig-module", "signatures/" + input.inputModule + "-sig")
             ;
         
         final ExecutionResult result = new StrategoExecutor()

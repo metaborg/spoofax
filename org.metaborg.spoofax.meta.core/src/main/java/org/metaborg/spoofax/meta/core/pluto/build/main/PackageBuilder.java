@@ -18,7 +18,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.CopyPattern;
-import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryLastModifiedStamper;
+import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
 
 import com.google.common.collect.Lists;
 
@@ -80,12 +80,13 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     @Override protected None build(Input input) throws Throwable {
         final File baseDir = input.context.baseDir;
         final File targetDir = FileUtils.getFile(baseDir, "target");
+        final File targetMbDir = FileUtils.getFile(targetDir, "metaborg");
         final File classesDir = FileUtils.getFile(targetDir, "classes");
 
         if(input.strFormat == StrategoFormat.jar) {
             final File strJavaDir = strJavaTransDir();
             final File strJavaClassesDir = FileUtils.getFile(classesDir, "trans");
-            final File strJarFile = FileUtils.getFile(targetDir, "stratego.jar");
+            final File strJarFile = FileUtils.getFile(targetMbDir, "stratego.jar");
 
             // Copy .pp.af and .tbl to JAR target directory, so that they get included in the JAR file.
             // Required for being able to import-term those files from Stratego code.
@@ -104,7 +105,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
                     "Main Stratego Java strategies file at " + input.strJavaStratFile + " does not exist");
             }
 
-            final File strJavaStratJarFile = FileUtils.getFile(targetDir, "stratego-javastrats.jar");
+            final File strJavaStratJarFile = FileUtils.getFile(targetMbDir, "stratego-javastrat.jar");
 
             jar(strJavaStratJarFile, classesDir, null, input.strJavaStratIncludeDirs);
         }
@@ -120,7 +121,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
 
         for(File path : paths) {
-            require(path, new DirectoryLastModifiedStamper());
+            require(path, new DirectoryModifiedStamper());
             final Collection<File> files = findFiles(path);
             for(final File classFile : files) {
                 final String relative = relativize(classFile, baseDir);

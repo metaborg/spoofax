@@ -151,8 +151,11 @@ public class LanguageSpecBuilder {
 
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
-        final FileObject mainEsvFile = input.languageSpec().paths().mainEsvFile();
+        FileObject mainEsvFile = input.languageSpec().paths().mainEsvFile();
         try {
+            if(!mainEsvFile.exists()) {
+                mainEsvFile = input.languageSpec().location().resolveFile("editor/Main.esv");
+            }
             if(mainEsvFile.exists()) {
                 logger.info("Compiling ESV file {}", mainEsvFile);
                 // @formatter:off
@@ -227,12 +230,13 @@ public class LanguageSpecBuilder {
         logger.debug("Cleaning {}", input.languageSpec().location());
 
         final ISpoofaxLanguageSpecPaths paths = input.languageSpec().paths();
-        final AllFileSelector selector = new AllFileSelector();
+        final AllFileSelector allSelector = new AllFileSelector();
         try {
-            paths.strJavaTransFolder().delete(selector);
-            paths.includeFolder().delete(selector);
-            paths.generatedSourceFolder().delete(selector);
-            paths.cacheFolder().delete(selector);
+            paths.outputFolder().delete(allSelector);
+            paths.strJavaTransFolder().delete(allSelector);
+            paths.includeFolder().delete(allSelector);
+            paths.generatedSourceFolder().delete(allSelector);
+            paths.cacheFolder().delete(allSelector);
             paths.dsGeneratedInterpreterJava().delete(FileSelectorUtils.extension("java"));
         } catch(FileSystemException e) {
             throw new MetaborgException("Cleaning directories failed", e);
@@ -298,8 +302,14 @@ public class LanguageSpecBuilder {
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_SDF_NAME);
         final List<File> packSdfIncludePaths = Lists.newArrayList();
         for(FileObject path : sdfIncludePaths) {
-            final File localPath = resourceService.localFile(path);
+            final File localPath;
+            if(path.exists()) {
+                localPath = resourceService.localFile(path);
+            } else {
+                localPath = resourceService.localPath(path);
+            }
             packSdfIncludePaths.add(localPath);
+
         }
         final Arguments packSdfArgs = config.sdfArgs();
 

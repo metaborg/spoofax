@@ -71,7 +71,7 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, OutputPersisted<File>
     @Override public OutputPersisted<File> build(Input input) throws IOException {
         requireBuild(input.origin);
         require(input.inputFile);
-
+        
         // @formatter:off
         final Arguments arguments = new Arguments()
             .addFile("-i", input.inputFile)

@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.io.FileUtils;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -70,6 +71,9 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         requireBuild(input.origin);
         final PrepareNativeBundle.Output commands = requireBuild(PrepareNativeBundle.factory, input).val();
         require(input.inputFile);
+
+        // sdf2table fails when directory of output file does not exist; create it first.
+        FileUtils.forceMkdir(input.outputFile.getParentFile());
 
         final ExecutionResult result = commands.sdf2table.run("-t", "-i", input.inputFile.getAbsolutePath(), "-m",
             input.module, "-o", input.outputFile.getAbsolutePath());

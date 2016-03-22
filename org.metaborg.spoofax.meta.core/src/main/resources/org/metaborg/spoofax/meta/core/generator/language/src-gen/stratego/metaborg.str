@@ -1,6 +1,7 @@
-module editor-common.generated
+module stratego/metaborg
 
 imports
+
   libstratego-lib
   libstratego-sglr
   libstratego-gpp
@@ -11,21 +12,21 @@ strategies
   parse-{{strategoName}}-file =
     parse-file(
       strsglr-perror, strsglr-report-parse-error
-    | <import-term(target/sdf.tbl)>
+    | <import-term(target/metaborg/sdf.tbl)>
     )
 
   parse-string = parse-{{strategoName}}-string
   parse-{{strategoName}}-string =
     parse-string(
       strsglr-report-parse-error
-    | <import-term(target/sdf.tbl)>
+    | <import-term(target/metaborg/sdf.tbl)>
     )
   
   parse-stream = parse-{{strategoName}}-stream
   parse-{{strategoName}}-stream =
     parse-stream(
       strsglr-report-parse-error
-    | <import-term(target/sdf.tbl)>
+    | <import-term(target/metaborg/sdf.tbl)>
     )
  
   language = !"{{name}}"

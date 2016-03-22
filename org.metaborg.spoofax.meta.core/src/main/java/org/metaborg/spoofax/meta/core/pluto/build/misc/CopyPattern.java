@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryLastModifiedStamper;
+import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.BuildRequest;
@@ -111,7 +111,7 @@ public class CopyPattern extends Builder<CopyPattern.Input, None> {
     @Override public None build(Input input) throws IOException {
         requireBuild(input.origin);
 
-        require(input.srcDir, new DirectoryLastModifiedStamper());
+        require(input.srcDir, new DirectoryModifiedStamper());
 
         final Collection<File> files =
             FileUtils.listFiles(input.srcDir, new RegexFileFilter(input.pattern), FalseFileFilter.INSTANCE);

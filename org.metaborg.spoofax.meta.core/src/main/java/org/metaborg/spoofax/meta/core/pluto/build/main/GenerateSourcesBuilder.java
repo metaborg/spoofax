@@ -116,6 +116,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final File srcGenPpDir = FileUtils.getFile(srcGenDir, "pp");
 
         final File targetDir = FileUtils.getFile(baseDir, "target");
+        final File targetMbDir = FileUtils.getFile(targetDir, "metaborg");
 
         // SDF
         final @Nullable Origin parenthesizeOrigin;
@@ -169,7 +170,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 .origin(new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
 
             // Get JSGLR parse table, from the SDF permissive def file.
-            final File tableFile = FileUtils.getFile(targetDir, "sdf.tbl");
+            final File tableFile = FileUtils.getFile(targetMbDir, "sdf.tbl");
             final Origin sdf2TableOrigin = Sdf2Table
                 .origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfModule, permissiveDefOrigin));
 
@@ -201,7 +202,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final File outputFile;
             final File depPath;
             if(input.strFormat == StrategoFormat.ctree) {
-                outputFile = FileUtils.getFile(targetDir, "stratego.ctree");
+                outputFile = FileUtils.getFile(targetMbDir, "stratego.ctree");
                 depPath = outputFile;
                 extraArgs.add("-F");
             } else {
