@@ -2,7 +2,7 @@ module analysis
 
 imports
   
-  editor-common.generated
+  stratego/metaborg
   
   runtime/index/-
   runtime/nabl/-

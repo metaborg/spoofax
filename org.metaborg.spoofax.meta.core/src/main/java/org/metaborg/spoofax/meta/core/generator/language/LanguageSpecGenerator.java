@@ -79,7 +79,6 @@ public class LanguageSpecGenerator extends BaseGenerator {
         generateConfig();
         generateGrammar();
         generateTrans();
-        generateInclude();
         generateJavaStrategy();
         generateEditorServices();
         generateIgnoreFile();
@@ -104,11 +103,6 @@ public class LanguageSpecGenerator extends BaseGenerator {
         writer.write("trans/completion.str", false);
     }
 
-    public void generateInclude() throws IOException {
-        writer.write("include/{{strategoName}}.str", false);
-        writer.write("include/{{strategoName}}-parenthesize.str", false);
-    }
-
     public void generateJavaStrategy() throws IOException {
         String path = "editor/java/{{packagePath}}/strategies/";
         writer.write(path + "InteropRegisterer.java", false);
@@ -121,7 +115,7 @@ public class LanguageSpecGenerator extends BaseGenerator {
         writer.writeResolve("editor/Menus.{{analysisType}}.esv", "editor/Menus.esv", false);
         writer.write("editor/Syntax.esv", false);
         writer.write("editor/Views.esv", false);
-        writer.write("editor/{{name}}.main.esv", false);
+        writer.write("editor/Main.esv", false);
     }
 
     public void generateIgnoreFile() throws IOException {
@@ -144,5 +138,4 @@ public class LanguageSpecGenerator extends BaseGenerator {
         writer.write(".mvn/maven.config", false);
         writer.write(".mvn/settings.xml", false);
     }
-
 }
