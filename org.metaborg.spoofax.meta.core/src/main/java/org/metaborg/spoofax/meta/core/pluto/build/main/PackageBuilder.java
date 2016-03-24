@@ -78,24 +78,24 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     }
 
     @Override protected None build(Input input) throws Throwable {
-        final File baseDir = input.context.baseDir;
-        final File targetDir = FileUtils.getFile(baseDir, "target");
-        final File targetMbDir = FileUtils.getFile(targetDir, "metaborg");
-        final File classesDir = FileUtils.getFile(targetDir, "classes");
+        final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
+        final File targetClassesDir = toFile(paths.targetClassesDir());
 
         if(input.strFormat == StrategoFormat.jar) {
-            final File strJavaDir = strJavaTransDir();
-            final File strJavaClassesDir = FileUtils.getFile(classesDir, "trans");
-            final File strJarFile = FileUtils.getFile(targetMbDir, "stratego.jar");
+            final File strJavaTransDir = toFile(paths.strSrcGenJavaTransDir());
+            final File strClassesTransDir = toFile(paths.strTargetClassesTransDir());
 
             // Copy .pp.af and .tbl to JAR target directory, so that they get included in the JAR file.
             // Required for being able to import-term those files from Stratego code.
-            final CopyPattern.Input copyPatternInput = new CopyPattern.Input(strJavaDir, strJavaClassesDir,
+            final CopyPattern.Input copyPatternInput = new CopyPattern.Input(strJavaTransDir, strClassesTransDir,
                 ".+\\.(?:tbl|pp\\.af)", input.generateSourcesOrigin, context.baseDir, context.depDir);
             final Origin copyPatternOrigin = CopyPattern.origin(copyPatternInput);
             requireBuild(copyPatternOrigin);
 
-            jar(strJarFile, classesDir, copyPatternOrigin, strJavaClassesDir);
+            final String jarName = "stratego.jar";
+            final File jarFile = FileUtils.getFile(targetMetaborgDir, jarName);
+            final File depPath = FileUtils.getFile(context.depDir, jarName + ".dep");
+            jar(jarFile, targetClassesDir, copyPatternOrigin, depPath, strClassesTransDir);
         }
 
         if(input.strJavaStratFile != null) {
@@ -105,19 +105,22 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
                     "Main Stratego Java strategies file at " + input.strJavaStratFile + " does not exist");
             }
 
-            final File strJavaStratJarFile = FileUtils.getFile(targetMbDir, "stratego-javastrat.jar");
-
-            jar(strJavaStratJarFile, classesDir, null, input.strJavaStratIncludeDirs);
+            final String jarName = "stratego-javastrat.jar";
+            final File jarFile = FileUtils.getFile(targetMetaborgDir, jarName);
+            final File depPath = FileUtils.getFile(context.depDir, jarName + ".dep");
+            jar(jarFile, targetClassesDir, null, depPath, input.strJavaStratIncludeDirs);
         }
 
         return None.val;
     }
 
-    public void jar(File jarFile, File baseDir, @Nullable Origin origin, File... paths) throws IOException {
-        jar(jarFile, baseDir, origin, Lists.newArrayList(paths));
+    public void jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, File... paths)
+        throws IOException {
+        jar(jarFile, baseDir, origin, depPath, Lists.newArrayList(paths));
     }
 
-    public void jar(File jarFile, File baseDir, @Nullable Origin origin, Collection<File> paths) throws IOException {
+    public void jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, Collection<File> paths)
+        throws IOException {
         final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
 
         for(File path : paths) {
@@ -135,7 +138,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             }
         }
 
-        requireBuild(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin));
+        requireBuild(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin, depPath));
     }
 
     private @Nullable String relativize(File path, File base) {

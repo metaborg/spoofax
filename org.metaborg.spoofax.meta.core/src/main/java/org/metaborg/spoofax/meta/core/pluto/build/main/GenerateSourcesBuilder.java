@@ -109,14 +109,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     @Override public None build(GenerateSourcesBuilder.Input input) throws IOException {
-        final File baseDir = input.context.baseDir;
-        final File srcGenDir = srcGenDir();
-        final File srcGenSigDir = FileUtils.getFile(srcGenDir, "signatures");
-        final File srcGenSyntaxDir = FileUtils.getFile(srcGenDir, "syntax");
-        final File srcGenPpDir = FileUtils.getFile(srcGenDir, "pp");
+        final File srcGenSigDir = toFile(paths.syntaxSrcGenSignatureDir());
+        final File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
+        final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
 
-        final File targetDir = FileUtils.getFile(baseDir, "target");
-        final File targetMbDir = FileUtils.getFile(targetDir, "metaborg");
+        final File targetDir = toFile(paths.targetDir());
+        final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
 
         // SDF
         final @Nullable Origin parenthesizeOrigin;
@@ -170,7 +168,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
 
                 // Get JSGLR parse table, from the SDF permissive def file.
-                final File tableFile = FileUtils.getFile(targetMbDir, "sdf.tbl");
+                final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf.tbl");
                 final Origin sdf2TableOrigin = Sdf2Table
                     .origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfModule, permissiveDefOrigin));
 
@@ -206,11 +204,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final File outputFile;
             final File depPath;
             if(input.strFormat == StrategoFormat.ctree) {
-                outputFile = FileUtils.getFile(targetMbDir, "stratego.ctree");
+                outputFile = FileUtils.getFile(targetMetaborgDir, "stratego.ctree");
                 depPath = outputFile;
                 extraArgs.add("-F");
             } else {
-                depPath = strJavaTransDir();
+                depPath = toFile(paths.strSrcGenJavaTransDir());
                 outputFile = FileUtils.getFile(depPath, "Main.java");
                 extraArgs.add("-la", "java-front");
                 if(buildStrJavaStrat) {

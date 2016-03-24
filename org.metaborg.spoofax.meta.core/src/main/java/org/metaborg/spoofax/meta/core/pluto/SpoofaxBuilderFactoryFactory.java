@@ -4,8 +4,9 @@ import java.io.File;
 import java.io.Serializable;
 
 import build.pluto.builder.Builder;
-import build.pluto.builder.BuilderFactory;
-import build.pluto.builder.BuilderFactoryFactory;
+import build.pluto.builder.factory.BuilderFactory;
+import build.pluto.builder.factory.BuilderFactoryFactory;
+import build.pluto.executor.InputParser;
 import build.pluto.output.Output;
 
 public class SpoofaxBuilderFactoryFactory {
@@ -51,6 +52,11 @@ public class SpoofaxBuilderFactoryFactory {
                 BuilderFactory<?, ?, ?> otherFactory, Serializable otherInput) {
                 // TODO Auto-generated method stub
                 return false;
+            }
+
+            @Override public InputParser<In> inputParser() {
+                // TODO Auto-generated method stub
+                return null;
             }
 
         }

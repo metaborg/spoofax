@@ -1,9 +1,11 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.meta.core.build.CommonPaths;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.util.file.FileAccess;
 
@@ -15,11 +17,13 @@ import build.pluto.stamp.Stamper;
 
 abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Output> extends Builder<In, Out> {
     protected final SpoofaxContext context;
+    protected transient CommonPaths paths;
 
 
     public SpoofaxBuilder(In input) {
         super(input);
         this.context = input.context;
+        this.paths = new CommonPaths(context.base);
     }
 
 
@@ -58,15 +62,8 @@ abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Output
     }
 
 
-    public File srcGenDir() {
-        return FileUtils.getFile(context.baseDir, "src-gen");
-    }
-
-    public File strJavaTransDir() {
-        return FileUtils.getFile(srcGenDir(), "stratego-java", "trans");
-    }
-
-    public File classesDir() {
-        return FileUtils.getFile(context.baseDir, "target", "classes");
+    private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
+        in.defaultReadObject();
+        this.paths = new CommonPaths(context.base);
     }
 }
