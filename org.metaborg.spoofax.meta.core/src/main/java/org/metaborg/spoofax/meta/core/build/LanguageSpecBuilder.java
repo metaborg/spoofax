@@ -234,7 +234,7 @@ public class LanguageSpecBuilder {
             buildStep.execute(LanguageSpecBuildPhase.clean, input);
         }
     }
-    
+
     private void cleanAndLog(FileObject dir) {
         logger.info("Deleting {}", dir);
         try {
@@ -297,14 +297,10 @@ public class LanguageSpecBuilder {
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_SDF_NAME);
         final List<File> packSdfIncludePaths = Lists.newArrayList();
         for(FileObject path : sdfIncludePaths) {
-            final File localPath;
-            if(path.exists()) {
-                localPath = resourceService.localFile(path);
-            } else {
-                localPath = resourceService.localPath(path);
+            if(!path.exists()) {
+                continue;
             }
-            packSdfIncludePaths.add(localPath);
-
+            packSdfIncludePaths.add(resourceService.localFile(path));
         }
         final Arguments packSdfArgs = config.sdfArgs();
 
@@ -342,6 +338,9 @@ public class LanguageSpecBuilder {
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
         final List<File> strjIncludeDirs = Lists.newArrayList();
         for(FileObject path : strIncludePaths) {
+            if(!path.exists()) {
+                continue;
+            }
             final File localPath = resourceService.localFile(path);
             strjIncludeDirs.add(localPath);
         }
