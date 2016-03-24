@@ -8,9 +8,9 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
+import org.metaborg.spoofax.meta.core.build.CommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 
 /**
  * Provides the values that can be used in a generator template, e.g. a Mustache template.
@@ -18,11 +18,10 @@ import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 public class GeneratorSettings {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
-    private final ISpoofaxLanguageSpecPaths paths;
+    private final CommonPaths paths;
 
 
-    public GeneratorSettings(ISpoofaxLanguageSpecConfig config, ISpoofaxLanguageSpecPaths paths)
-        throws ProjectException {
+    public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
 
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());
@@ -49,9 +48,9 @@ public class GeneratorSettings {
             }
         }
 
-        this.paths = paths;
-        this.location = this.paths.rootFolder();
+        this.location = location;
         this.config = config;
+        this.paths = new CommonPaths(location);
     }
 
 
@@ -103,7 +102,7 @@ public class GeneratorSettings {
     }
 
     public String name() {
-        return this.config.name();
+        return config.name();
     }
 
     public FileObject location() {
@@ -130,6 +129,6 @@ public class GeneratorSettings {
     }
 
     public String packagePath() {
-        return paths.packagePath();
+        return paths.strJavaStratPkgPath(config.identifier().id);
     }
 }

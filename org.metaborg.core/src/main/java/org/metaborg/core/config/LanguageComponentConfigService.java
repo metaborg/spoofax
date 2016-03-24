@@ -31,7 +31,7 @@ public class LanguageComponentConfigService extends AConfigService<ILanguageComp
     }
 
     @Override protected FileObject getConfigFile(FileObject rootFolder) throws FileSystemException {
-        return rootFolder.resolveFile(MetaborgConstants.FILE_COMPONENT_CONFIG);
+        return rootFolder.resolveFile(MetaborgConstants.LOC_COMPONENT_CONFIG);
     }
 
     @Override protected ConfigRequest<ILanguageComponentConfig>

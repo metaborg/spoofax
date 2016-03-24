@@ -60,6 +60,7 @@ public class ExecutableCommandStrategy extends xtc_command_1_0 {
     private ExecutionResult runInternal(String[] commandAndArgs) {
         log.info("Execute {}", command);
         final Exec.ExecutionResult result = Exec.run(commandAndArgs);
-        return new ExecutionResult(true, StringUtils.join(result.outMsgs, '\n'), StringUtils.join(result.errMsgs, '\n'));
+        return new ExecutionResult(true, StringUtils.join(result.outMsgs, '\n'),
+            StringUtils.join(result.errMsgs, '\n'));
     }
 }
