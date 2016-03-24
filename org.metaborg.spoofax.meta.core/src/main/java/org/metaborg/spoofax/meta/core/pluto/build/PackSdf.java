@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -17,7 +16,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
-import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
 import org.metaborg.util.cmd.Arguments;
 import org.strategoxt.tools.main_pack_sdf_0_0;
 import org.sugarj.common.FileCommands;
@@ -27,7 +25,6 @@ import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.FileExistsStamper;
-import build.pluto.stamp.FileHashStamper;
 
 public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
@@ -88,16 +85,19 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
         for(File path : input.includePaths) {
+            require(path, FileExistsStamper.instance);
             if(!path.exists()) {
-                require(path, FileExistsStamper.instance);
                 continue;
             }
             if(FilenameUtils.isExtension(path.getName(), "def")) {
-                require(path);
                 args.addFile("-Idef", path);
             } else {
-                require(path, new DirectoryModifiedStamper(new SuffixFileFilter(new String[] { ".sdf", ".def" }),
-                    FileHashStamper.instance));
+                /*
+                 * HACK: for full incremental soundness, a require on the directory is needed here, since new files can
+                 * be added to the path, which influence pack-sdf. However, since the Spoofax build generates new files
+                 * into some of these directories, that would cause the requirement to always be inconsistent, always
+                 * triggering a rebuild. This is why we omit the requirement.
+                 */
                 args.addFile("-I", path);
             }
         }
