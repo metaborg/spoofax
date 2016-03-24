@@ -54,11 +54,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
         Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
-        Collection<String> pardonedLanguages, SdfVersion sdfVersion, String externalDef, Arguments sdfArgs,
-        StrategoFormat format, String externalJar, String externalJarFlags, Arguments strategoArgs,
+        Collection<String> pardonedLanguages, boolean useBuildSystemSpec, SdfVersion sdfVersion, String externalDef,
+        Arguments sdfArgs, StrategoFormat format, String externalJar, String externalJarFlags, Arguments strategoArgs,
         Collection<IBuildStepConfig> buildSteps) {
         super(config, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports, metaborgVersion,
-            pardonedLanguages);
+            pardonedLanguages, useBuildSystemSpec);
 
         config.setProperty(PROP_SDF_VERSION, sdfVersion);
         config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);

@@ -92,6 +92,11 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> contributions);
 
     /**
+     * {@inheritDoc}
+     */
+    ISpoofaxLanguageSpecConfigBuilder withUseBuildSystemSpec(boolean useBuildSystemSpec);
+
+    /**
      * Sets the SDF version.
      *
      * @param version

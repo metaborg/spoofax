@@ -46,8 +46,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps,
-            langContribs, generates, exports, metaborgVersion, pardonedLanguages, SdfVersion.sdf3, sdfExternalDef,
-            sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, SdfVersion.sdf3,
+            sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder reset() {
@@ -158,11 +158,16 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
+    @Override public ISpoofaxLanguageSpecConfigBuilder withUseBuildSystemSpec(boolean useBuildSystemSpec) {
+        super.withUseBuildSystemSpec(useBuildSystemSpec);
+        return this;
+    }
+
+
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion version) {
         // TODO Auto-generated method stub
         return null;
     }
-
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfExternalDef(String def) {
         this.sdfExternalDef = def;
@@ -173,6 +178,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         this.sdfArgs = args;
         return this;
     }
+
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withStrFormat(StrategoFormat format) {
         this.strFormat = format;
@@ -193,6 +199,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         this.strArgs = args;
         return this;
     }
+
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withBuildSteps(Iterable<IBuildStepConfig> buildSteps) {
         this.buildSteps.clear();

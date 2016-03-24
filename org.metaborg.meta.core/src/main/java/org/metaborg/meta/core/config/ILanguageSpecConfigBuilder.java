@@ -132,4 +132,13 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
      * @return This builder.
      */
     ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages);
+
+    /**
+     * Sets the flag to use the build system specification.
+     * 
+     * @param useBuildSystemSpec
+     *            True to use the build system specification, false otherwise.
+     * @return This builder.
+     */
+    ILanguageSpecConfigBuilder withUseBuildSystemSpec(boolean useBuildSystemSpec);
 }

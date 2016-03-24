@@ -24,4 +24,11 @@ public interface ILanguageSpecConfig extends ILanguageComponentConfig {
      * @return The pardoned languages.
      */
     Collection<String> pardonedLanguages();
+
+    /**
+     * Use the build system (Maven/Gradle) specification for building this language specification.
+     * 
+     * @return True to use the build system specification, false otherwise.
+     */
+    boolean useBuildSystemSpec();
 }
