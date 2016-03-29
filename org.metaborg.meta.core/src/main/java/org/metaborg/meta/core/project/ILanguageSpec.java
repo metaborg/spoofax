@@ -14,12 +14,4 @@ public interface ILanguageSpec extends IProject {
      * @return Configuration of the language specification.
      */
     ILanguageSpecConfig config();
-
-    /**
-     * Gets the paths of the language specification. The paths are read only once when this class is instantiated. To
-     * get new paths, get a new instance of this class.
-     * 
-     * @return Paths of the language specification.
-     */
-    ILanguageSpecPaths paths();
 }

@@ -60,8 +60,6 @@ public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
             return null;
         }
 
-        final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(location, config);
-
-        return new SpoofaxLanguageSpecWrapper(config, paths, project);
+        return new SpoofaxLanguageSpecWrapper(config, project);
     }
 }
