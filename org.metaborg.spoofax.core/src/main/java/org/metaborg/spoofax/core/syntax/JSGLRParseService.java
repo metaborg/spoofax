@@ -29,18 +29,21 @@ import com.google.inject.Inject;
 
 public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
     public static final String name = "jsglr";
-    
+
     private static final ILogger logger = LoggerUtils.logger(JSGLRParseService.class);
 
     private final ISpoofaxUnitService unitService;
     private final ITermFactoryService termFactoryService;
+    private final JSGLRParserConfiguration defaultParserConfig;
 
     private final Map<ILanguageImpl, IParserConfig> parserConfigs = Maps.newHashMap();
 
 
-    @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService) {
+    @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService,
+        JSGLRParserConfiguration defaultParserConfig) {
         this.unitService = unitService;
         this.termFactoryService = termFactoryService;
+        this.defaultParserConfig = defaultParserConfig;
     }
 
 
@@ -73,7 +76,11 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             } else {
                 parser = new JSGLRI(config, termFactoryService.get(langImpl), langImpl, null, source, text);
             }
-            final ParseContrib contrib = parser.parse(input.config());
+            JSGLRParserConfiguration parserConfig = input.config();
+            if(parserConfig == null) {
+                parserConfig = defaultParserConfig;
+            }
+            final ParseContrib contrib = parser.parse(parserConfig);
             final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
             return unit;
         } catch(IOException e) {

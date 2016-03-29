@@ -93,6 +93,7 @@ import org.metaborg.spoofax.core.style.StylerService;
 import org.metaborg.spoofax.core.syntax.ISpoofaxParser;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.syntax.JSGLRParseService;
+import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.metaborg.spoofax.core.syntax.SpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
@@ -226,6 +227,8 @@ public class SpoofaxModule extends MetaborgModule {
         parserBinder.addBinding(JSGLRParseService.name).to(JSGLRParseService.class);
         spoofaxParserBinder.addBinding(JSGLRParseService.name).to(JSGLRParseService.class);
         languageCacheBinder.addBinding().to(JSGLRParseService.class);
+
+        bind(JSGLRParserConfiguration.class).toInstance(new JSGLRParserConfiguration());
     }
 
     /**
