@@ -286,13 +286,13 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             if(extensions.length != 0) {
                 final Iterable<String> extensionsIterable = Iterables2.from(extensions);
 
-            final IdentificationFacet identificationFacet =
-                new IdentificationFacet(new ResourceExtensionsIdentifier(extensionsIterable));
-            request.addFacet(identificationFacet);
+                final IdentificationFacet identificationFacet =
+                    new IdentificationFacet(new ResourceExtensionsIdentifier(extensionsIterable));
+                request.addFacet(identificationFacet);
 
-            final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensionsIterable);
-            request.addFacet(resourceExtensionsFacet);
-        }
+                final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensionsIterable);
+                request.addFacet(resourceExtensionsFacet);
+            }
 
             if(ParseFacetFromESV.hasParser(esvTerm)) {
                 request.addFacet(ParseFacetFromESV.create(esvTerm));
@@ -300,75 +300,75 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                 request.addFacet(new ParseFacet("jsglr"));
             }
 
-        final boolean hasContext = ContextFacetFromESV.hasContext(esvTerm);
-        final boolean hasAnalysis = AnalysisFacetFromESV.hasAnalysis(esvTerm);
+            final boolean hasContext = ContextFacetFromESV.hasContext(esvTerm);
+            final boolean hasAnalysis = AnalysisFacetFromESV.hasAnalysis(esvTerm);
 
-        final IContextFactory contextFactory;
-        final ISpoofaxAnalyzer analyzer;
-        final AnalysisFacet analysisFacet;
-        if(!hasContext && !hasAnalysis) {
-            contextFactory = contextFactory(LegacyContextFactory.name);
-            analyzer = null;
-            analysisFacet = null;
-        } else if(hasContext && !hasAnalysis) {
-            final String type = ContextFacetFromESV.type(esvTerm);
-            contextFactory = contextFactory(type);
-            analyzer = null;
-            analysisFacet = null;
-        } else if(!hasContext && hasAnalysis) {
-            final String analysisType = AnalysisFacetFromESV.type(esvTerm);
-            assert analysisType != null : "Analyzer type cannot be null because hasAnalysis is true, no null check is needed.";
-            switch(analysisType) {
-                default:
-                case StrategoAnalyzer.name:
-                    contextFactory = contextFactory(LegacyContextFactory.name);
-                    break;
-                case TaskEngineAnalyzer.name:
-                    contextFactory = contextFactory(IndexTaskContextFactory.name);
-                    break;
+            final IContextFactory contextFactory;
+            final ISpoofaxAnalyzer analyzer;
+            final AnalysisFacet analysisFacet;
+            if(!hasContext && !hasAnalysis) {
+                contextFactory = contextFactory(LegacyContextFactory.name);
+                analyzer = null;
+                analysisFacet = null;
+            } else if(hasContext && !hasAnalysis) {
+                final String type = ContextFacetFromESV.type(esvTerm);
+                contextFactory = contextFactory(type);
+                analyzer = null;
+                analysisFacet = null;
+            } else if(!hasContext && hasAnalysis) {
+                final String analysisType = AnalysisFacetFromESV.type(esvTerm);
+                assert analysisType != null : "Analyzer type cannot be null because hasAnalysis is true, no null check is needed.";
+                switch(analysisType) {
+                    default:
+                    case StrategoAnalyzer.name:
+                        contextFactory = contextFactory(LegacyContextFactory.name);
+                        break;
+                    case TaskEngineAnalyzer.name:
+                        contextFactory = contextFactory(IndexTaskContextFactory.name);
+                        break;
+                }
+                analyzer = analyzers.get(analysisType);
+                analysisFacet = AnalysisFacetFromESV.create(esvTerm);
+            } else { // Both context and analysis are specified.
+                final String contextType = ContextFacetFromESV.type(esvTerm);
+                contextFactory = contextFactory(contextType);
+                final String analysisType = AnalysisFacetFromESV.type(esvTerm);
+                assert analysisType != null : "Analyzer type cannot be null because hasAnalysis is true, no null check is needed.";
+                analyzer = analyzers.get(analysisType);
+                analysisFacet = AnalysisFacetFromESV.create(esvTerm);
             }
-            analyzer = analyzers.get(analysisType);
-            analysisFacet = AnalysisFacetFromESV.create(esvTerm);
-        } else { // Both context and analysis are specified.
-            final String contextType = ContextFacetFromESV.type(esvTerm);
-            contextFactory = contextFactory(contextType);
-            final String analysisType = AnalysisFacetFromESV.type(esvTerm);
-            assert analysisType != null : "Analyzer type cannot be null because hasAnalysis is true, no null check is needed.";
-            analyzer = analyzers.get(analysisType);
-            analysisFacet = AnalysisFacetFromESV.create(esvTerm);
-        }
 
-        if(contextFactory != null) {
-            final IContextStrategy contextStrategy = contextStrategy(ProjectContextStrategy.name);
-            request.addFacet(new ContextFacet(contextFactory, contextStrategy));
-        }
-        if(analyzer != null) {
-            request.addFacet(new AnalyzerFacet<>(analyzer));
-        }
-        if(analysisFacet != null) {
-            request.addFacet(analysisFacet);
-        }
+            if(contextFactory != null) {
+                final IContextStrategy contextStrategy = contextStrategy(ProjectContextStrategy.name);
+                request.addFacet(new ContextFacet(contextFactory, contextStrategy));
+            }
+            if(analyzer != null) {
+                request.addFacet(new AnalyzerFacet<>(analyzer));
+            }
+            if(analysisFacet != null) {
+                request.addFacet(analysisFacet);
+            }
 
 
-        final ActionFacet menusFacet = ActionFacetFromESV.create(esvTerm);
-        if(menusFacet != null) {
-            request.addFacet(menusFacet);
-        }
+            final ActionFacet menusFacet = ActionFacetFromESV.create(esvTerm);
+            if(menusFacet != null) {
+                request.addFacet(menusFacet);
+            }
 
-        final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
-        if(stylerFacet != null) {
-            request.addFacet(stylerFacet);
-        }
+            final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
+            if(stylerFacet != null) {
+                request.addFacet(stylerFacet);
+            }
 
-        final ResolverFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
-        if(resolverFacet != null) {
-            request.addFacet(resolverFacet);
-        }
+            final ResolverFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
+            if(resolverFacet != null) {
+                request.addFacet(resolverFacet);
+            }
 
-        final HoverFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
-        if(hoverFacet != null) {
-            request.addFacet(hoverFacet);
-        }
+            final HoverFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
+            if(hoverFacet != null) {
+                request.addFacet(hoverFacet);
+            }
 
             final OutlineFacet outlineFacet = OutlineFacetFromESV.create(esvTerm);
             if(outlineFacet != null) {
