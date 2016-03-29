@@ -13,6 +13,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
@@ -129,10 +130,41 @@ public class ResourceService implements IResourceService {
     }
 
     @Override public File localFile(FileObject resource) {
+        if(resource instanceof LocalFile) {
+            return FileUtils.toFile(resource);
+        }
+
         try {
             return resource.getFileSystem().replicateFile(resource, new AllFileSelector());
         } catch(FileSystemException e) {
-            throw new MetaborgRuntimeException(e);
+            throw new MetaborgRuntimeException("Could not get local file for " + resource, e);
+        }
+    }
+
+    @Override public File localFile(FileObject resource, FileObject dir) {
+        if(resource instanceof LocalFile) {
+            return FileUtils.toFile(resource);
+        }
+
+        final File localDir = localPath(dir);
+        if(localDir == null) {
+            throw new MetaborgRuntimeException("Replication directory " + dir
+                + " is not on the local filesystem, cannot get local file for " + resource);
+        }
+        try {
+            dir.createFolder();
+
+            final FileObject copyLoc;
+            if(resource.getType() == FileType.FOLDER) {
+                copyLoc = dir;
+            } else {
+                copyLoc = dir.resolveFile(resource.getName().getBaseName());
+            }
+            copyLoc.copyFrom(resource, new AllFileSelector());
+
+            return localDir;
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException("Could not get local file for " + resource, e);
         }
     }
 

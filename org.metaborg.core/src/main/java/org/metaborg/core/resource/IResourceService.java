@@ -23,8 +23,9 @@ public interface IResourceService extends AutoCloseable {
     FileObject root();
 
     /**
-     * Returns a file system object for given absolute or relative to the root URI. See <a
-     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
+     * Returns a file system object for given absolute or relative to the root URI. See
+     * <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of
+     * URIs.
      * 
      * @param uri
      *            relative URI to resolve.
@@ -72,8 +73,9 @@ public interface IResourceService extends AutoCloseable {
     FileObject resolve(FileObject parent, String path);
 
     /**
-     * Returns a file system name for given absolute or relative to the root URI. See <a
-     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
+     * Returns a file system name for given absolute or relative to the root URI. See
+     * <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of
+     * URIs.
      * 
      * @param uri
      *            URI to resolve.
@@ -96,6 +98,21 @@ public interface IResourceService extends AutoCloseable {
     File localFile(FileObject resource);
 
     /**
+     * Attempts to get a local file for given resource, or copies the resource to the local file system at given
+     * directory if it does not reside on the local file system.
+     * 
+     * @param resource
+     *            Resource to get a local file for.
+     * @param dir
+     *            Directory to copy the resources to if they are not on a local filesystem. Must be on the local
+     *            filesystem.
+     * @return Local file.
+     * @throws MetaborgRuntimeException
+     *             When given resource does not exist.
+     */
+    File localFile(FileObject resource, FileObject dir);
+
+    /**
      * Attempts to get a local file handle for given resource.
      * 
      * @param resource
@@ -112,6 +129,5 @@ public interface IResourceService extends AutoCloseable {
      * 
      * @deprecated Wrong abstraction, will be removed in the future.
      */
-    @Deprecated
-    FileObject userStorage();
+    @Deprecated FileObject userStorage();
 }

@@ -262,8 +262,10 @@ public class LanguageSpecBuilder {
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 
+
         // SDF
         final String sdfModule = config.sdfName();
+
         final FileObject sdfFileCandidate;
         final SdfVersion sdfVersion = config.sdfVersion();
         switch(sdfVersion) {
@@ -282,6 +284,7 @@ public class LanguageSpecBuilder {
         } else {
             sdfFile = null;
         }
+
         final @Nullable File sdfExternalDef;
         final String sdfExternalDefStr = config.sdfExternalDef();
         if(sdfExternalDefStr != null) {
@@ -293,19 +296,25 @@ public class LanguageSpecBuilder {
         } else {
             sdfExternalDef = null;
         }
+
         final Iterable<FileObject> sdfIncludePaths =
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_SDF_NAME);
+        final FileObject packSdfIncludesReplicateDir = paths.replicateDir().resolveFile("pack-sdf-includes");
+        packSdfIncludesReplicateDir.delete(new AllFileSelector());
         final List<File> packSdfIncludePaths = Lists.newArrayList();
         for(FileObject path : sdfIncludePaths) {
             if(!path.exists()) {
                 continue;
             }
-            packSdfIncludePaths.add(resourceService.localFile(path));
+            packSdfIncludePaths.add(resourceService.localFile(path, packSdfIncludesReplicateDir));
         }
+
         final Arguments packSdfArgs = config.sdfArgs();
+
 
         // Stratego
         final String strModule = config.strategoName();
+
         final FileObject strFileCandidate = paths.strMainFile(strModule);
         final @Nullable File strFile;
         if(strFileCandidate.exists()) {
@@ -313,6 +322,7 @@ public class LanguageSpecBuilder {
         } else {
             strFile = null;
         }
+
         final String strJavaStratPkg = paths.strJavaStratPkg(config.identifier().id);
         final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id);
         final @Nullable File strJavaStratFile;
@@ -321,7 +331,9 @@ public class LanguageSpecBuilder {
         } else {
             strJavaStratFile = null;
         }
+
         final StrategoFormat strFormat = config.strFormat();
+
         final @Nullable File strExternalJar;
         final String strExternalJarStr = config.strExternalJar();
         if(strExternalJarStr != null) {
@@ -334,16 +346,19 @@ public class LanguageSpecBuilder {
             strExternalJar = null;
         }
         final String strExternalJarFlags = config.strExternalJarFlags();
+
         final Iterable<FileObject> strIncludePaths =
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
+        final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
+        strjIncludesReplicateDir.delete(new AllFileSelector());
         final List<File> strjIncludeDirs = Lists.newArrayList();
         for(FileObject path : strIncludePaths) {
             if(!path.exists()) {
                 continue;
             }
-            final File localPath = resourceService.localFile(path);
-            strjIncludeDirs.add(localPath);
+            strjIncludeDirs.add(resourceService.localFile(path, strjIncludesReplicateDir));
         }
+
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, sdfModule, sdfFile, sdfVersion, sdfExternalDef,
@@ -361,6 +376,7 @@ public class LanguageSpecBuilder {
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 
         final StrategoFormat strFormat = config.strFormat();
+
         final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id);
         final @Nullable File strJavaStratFile;
         if(strJavaStratFileCandidate.exists()) {
@@ -368,6 +384,7 @@ public class LanguageSpecBuilder {
         } else {
             strJavaStratFile = null;
         }
+
         final File javaStratClassesDir =
             resourceService.localPath(paths.strTargetClassesJavaStratDir(config.identifier().id));
         final File dsGeneratedClassesDir = resourceService.localPath(paths.dsTargetClassesGenerateDir());

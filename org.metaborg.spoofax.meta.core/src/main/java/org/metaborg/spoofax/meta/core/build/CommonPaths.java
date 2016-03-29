@@ -81,6 +81,13 @@ public class CommonPaths {
     }
 
     /**
+     * @return Target output directory for replicated resources.
+     */
+    public FileObject replicateDir() {
+        return resolve(targetDir(), "replicate");
+    }
+
+    /**
      * @return Old cache directory.
      * @deprecated Use subdirectory for {@link #targetDir()} instead.
      */
@@ -214,7 +221,7 @@ public class CommonPaths {
         final String pkg = languageId + ".strategies";
         return pkg;
     }
-    
+
     /**
      * @param languageId
      *            Identifier of the language.
