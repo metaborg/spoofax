@@ -24,6 +24,7 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder implements ILanguageSpecConfigBuilder {
     protected String metaborgVersion = MetaborgConstants.METABORG_VERSION;
     protected final Set<String> pardonedLanguages = Sets.newHashSet();
+    protected boolean useBuildSystemSpec = false;
 
 
     @Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -38,7 +39,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new LanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, langContribs,
-            generates, exports, metaborgVersion, pardonedLanguages);
+            generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec);
     }
 
     @Override public ILanguageSpecConfigBuilder reset() {
@@ -137,6 +138,11 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
     @Override public ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages) {
         this.pardonedLanguages.addAll(Lists.newArrayList(languages));
+        return this;
+    }
+
+    @Override public ILanguageSpecConfigBuilder withUseBuildSystemSpec(boolean useBuildSystemSpec) {
+        this.useBuildSystemSpec = useBuildSystemSpec;
         return this;
     }
 }

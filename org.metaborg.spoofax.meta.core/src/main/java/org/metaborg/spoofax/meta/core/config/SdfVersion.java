@@ -1,5 +1,5 @@
 package org.metaborg.spoofax.meta.core.config;
 
-public enum StrategoFormat {
-    ctree, jar
+public enum SdfVersion {
+    sdf2, sdf3
 }

@@ -26,40 +26,40 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -5234502421638344690L;
 
-        public final File inputPath;
+        public final File inputFile;
         public final File outputPath;
         public final File depPath;
         public final String packageName;
         public final boolean library;
         public final boolean clean;
-        public final File[] directoryIncludes;
-        public final String[] libraryIncludes;
+        public final List<File> includeDirs;
+        public final List<String> includeLibs;
         public final File cacheDir;
-        public final Arguments additionalArgs;
-        public final Origin requiredUnits;
+        public final Arguments extraArgs;
+        public final Origin origin;
 
 
         public Input(SpoofaxContext context, File inputPath, File outputPath, File depPath, String packageName,
-            boolean library, boolean clean, File[] directoryIncludes, String[] libraryIncludes, File cacheDir,
-            Arguments additionalArgs, Origin requiredUnits) {
+            boolean library, boolean clean, List<File> includeDirs, List<String> includeLibs, File cacheDir,
+            Arguments extraArgs, Origin origin) {
             super(context);
-            this.inputPath = inputPath;
+            this.inputFile = inputPath;
             this.outputPath = outputPath;
             this.depPath = depPath;
             this.packageName = packageName;
             this.library = library;
             this.clean = clean;
-            this.directoryIncludes = directoryIncludes;
-            this.libraryIncludes = libraryIncludes;
+            this.includeDirs = includeDirs;
+            this.includeLibs = includeLibs;
             this.cacheDir = cacheDir;
-            this.additionalArgs = additionalArgs;
-            this.requiredUnits = requiredUnits;
+            this.extraArgs = extraArgs;
+            this.origin = origin;
         }
     }
 
 
-    public static SpoofaxBuilderFactory<Input, None, Strj> factory = SpoofaxBuilderFactoryFactory.of(Strj.class,
-        Input.class);
+    public static SpoofaxBuilderFactory<Input, None, Strj> factory =
+        SpoofaxBuilderFactoryFactory.of(Strj.class, Input.class);
 
 
     public Strj(Input input) {
@@ -81,22 +81,22 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
     }
 
     @Override public File persistentPath(Input input) {
-        final Path rel = FileCommands.getRelativePath(context.baseDir, input.inputPath);
+        final Path rel = FileCommands.getRelativePath(context.baseDir, input.inputFile);
         final String relname = rel.toString().replace(File.separatorChar, '_');
         return context.depPath("strj." + relname + ".dep");
     }
 
     @Override public None build(Input input) throws IOException {
-        requireBuild(input.requiredUnits);
+        requireBuild(input.origin);
 
-        require(input.inputPath);
+        require(input.inputFile);
 
         final File rtree = FileCommands.replaceExtension(input.outputPath, "rtree");
         final File strdep = FileCommands.addExtension(input.outputPath, "dep");
 
         // @formatter:off            
         final Arguments arguments = new Arguments()
-            .addFile("-i", input.inputPath)
+            .addFile("-i", input.inputFile)
             .addFile("-o", input.outputPath)
             .addLine(input.packageName != null ? "-p " + input.packageName : "")
             .add(input.library ? "--library" : "")
@@ -104,12 +104,12 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
             ;
         // @formatter:on
 
-        for(File dir : input.directoryIncludes) {
+        for(File dir : input.includeDirs) {
             if(dir != null) {
                 arguments.addFile("-I", dir);
             }
         }
-        for(String lib : input.libraryIncludes) {
+        for(String lib : input.includeLibs) {
             if(lib != null && !lib.isEmpty()) {
                 arguments.add("-la", lib);
             }
@@ -117,7 +117,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         if(input.cacheDir != null) {
             arguments.addFile("--cache-dir", input.cacheDir);
         }
-        arguments.addAll(input.additionalArgs);
+        arguments.addAll(input.extraArgs);
 
         // Delete rtree file to prevent it influencing the build.
         rtree.delete();

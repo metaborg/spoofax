@@ -149,27 +149,27 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
     /**
      * Gets the ESV term.
      *
-     * @return The ESV term; or <code>null</code> when the language is not available.
+     * @return The ESV term; or <code>null</code> when there is no ESV term.
      */
-    @Nullable public IStrategoAppl esvTerm() {
+    public @Nullable IStrategoAppl esvTerm() {
         return this.esvTerm;
     }
 
     /**
      * Gets the syntax facet.
      *
-     * @return The syntax facet; or <code>null</code> when the language is not available.
+     * @return The syntax facet; or <code>null</code> when there is no Syntax facet.
      */
-    @Nullable public SyntaxFacet syntaxFacet() {
+    public @Nullable SyntaxFacet syntaxFacet() {
         return this.syntaxFacet;
     }
 
     /**
      * Gets the Stratego runtime facet.
      *
-     * @return The Stratego runtime facet; or <code>null</code> when the language is not available.
+     * @return The Stratego runtime facet; or <code>null</code> when there is no Stratego runtime facet.
      */
-    @Nullable public StrategoRuntimeFacet strategoRuntimeFacet() {
+    public @Nullable StrategoRuntimeFacet strategoRuntimeFacet() {
         return this.strategoRuntimeFacet;
     }
 

@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -23,20 +25,18 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, OutputP
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 4381601872931676757L;
 
-        public final File outputPath;
-        public final String depFilename;
-        public final PackSdf.Input packSdfInput;
+        public final File inputFile;
+        public final File outputFile;
+        public final String module;
+        public final @Nullable Origin origin;
 
-        public Input(SpoofaxContext context, File outputPath, String depFilename, PackSdf.Input packSdfInput) {
+
+        public Input(SpoofaxContext context, File inputFile, File outputFile, String module, @Nullable Origin origin) {
             super(context);
-            this.outputPath = outputPath;
-            this.depFilename = depFilename;
-            this.packSdfInput = packSdfInput;
-        }
-        
-        
-        public String sdfModule() {
-            return packSdfInput.sdfModule;
+            this.inputFile = inputFile;
+            this.outputFile = outputFile;
+            this.module = module;
+            this.origin = origin;
         }
     }
 
@@ -66,20 +66,20 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, OutputP
     }
 
     @Override public File persistentPath(Input input) {
-        return context.depPath(input.depFilename);
+        return context.depPath("make-permissive." + input.module + ".dep");
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
-        final OutputPersisted<File> out = requireBuild(PackSdf.factory, input.packSdfInput);
-        final File inputPath = out.val();
-
-        require(inputPath);
+        requireBuild(input.origin);
+        require(input.inputFile);
 
         // @formatter:off
         final Arguments arguments = new Arguments()
-            .addFile("-i", inputPath)
-            .addFile("-o", input.outputPath)
+            .addFile("-i", input.inputFile)
+            .addFile("-o", input.outputFile)
             .addLine("--optimize on")
+            .addLine("--semantic-completions off")
+            .addLine("--syntactic-completions off")
             ;
 
         final ExecutionResult result = new StrategoExecutor()
@@ -91,9 +91,9 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, OutputP
             ;
         // @formatter:on 
 
-        provide(input.outputPath);
+        provide(input.outputFile);
 
         setState(State.finished(result.success));
-        return OutputPersisted.of(input.outputPath);
+        return OutputPersisted.of(input.outputFile);
     }
 }

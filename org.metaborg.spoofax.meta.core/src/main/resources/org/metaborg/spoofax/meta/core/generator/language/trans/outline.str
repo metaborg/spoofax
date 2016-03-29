@@ -2,11 +2,10 @@ module outline
 
 imports
   
-  include/{{name}}
+  signatures/{{name}}-sig
   runtime/editor/outline-library
   runtime/editor/origins
 
 rules
   
   to-outline-label = fail
-  

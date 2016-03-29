@@ -27,12 +27,12 @@ import com.google.common.collect.Lists;
  * {@link ImmutableConfiguration} object.
  */
 public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISpoofaxLanguageSpecConfig {
-    private static final long serialVersionUID = -2143964605340506212L;
     private static final ILogger logger = LoggerUtils.logger(SpoofaxLanguageSpecConfig.class);
 
     private static final String PROP_SDF = "language.sdf";
-    private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
+    private static final String PROP_SDF_VERSION = PROP_SDF + ".version";
     private static final String PROP_SDF_EXTERNAL_DEF = PROP_SDF + ".externalDef";
+    private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
     private static final String PROP_STR = "language.stratego";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
@@ -54,16 +54,19 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
         Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
-        Collection<String> pardonedLanguages, StrategoFormat format, String externalDef, String externalJar,
-        String externalJarFlags, Arguments sdfArgs, Arguments strategoArgs, Collection<IBuildStepConfig> buildSteps) {
+        Collection<String> pardonedLanguages, boolean useBuildSystemSpec, SdfVersion sdfVersion, String externalDef,
+        Arguments sdfArgs, StrategoFormat format, String externalJar, String externalJarFlags, Arguments strategoArgs,
+        Collection<IBuildStepConfig> buildSteps) {
         super(config, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports, metaborgVersion,
-            pardonedLanguages);
+            pardonedLanguages, useBuildSystemSpec);
+
+        config.setProperty(PROP_SDF_VERSION, sdfVersion);
+        config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
+        config.setProperty(PROP_SDF_ARGS, sdfArgs);
 
         config.setProperty(PROP_STR_FORMAT, format);
-        config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
         config.setProperty(PROP_STR_EXTERNAL_JAR, externalJar);
         config.setProperty(PROP_STR_EXTERNAL_JAR_FLAGS, externalJarFlags);
-        config.setProperty(PROP_SDF_ARGS, sdfArgs);
         config.setProperty(PROP_STR_ARGS, strategoArgs);
 
         for(IBuildStepConfig buildStep : buildSteps) {
@@ -79,6 +82,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         }
     }
 
+
+    @Override public SdfVersion sdfVersion() {
+        final String value = this.config.getString(PROP_SDF_VERSION);
+        return value != null ? SdfVersion.valueOf(value) : SdfVersion.sdf3;
+    }
 
     @Nullable public String sdfExternalDef() {
         return config.getString(PROP_SDF_EXTERNAL_DEF);
@@ -193,9 +201,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = super.validate(mb);
-        
+
+        // TODO: validate sdf version
+        // TODO: validate Stratego format
         // TODO: validate buildSteps
-        
+
         return messages;
     }
 }

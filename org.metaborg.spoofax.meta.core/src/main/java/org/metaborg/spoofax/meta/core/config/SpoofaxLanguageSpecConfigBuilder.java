@@ -24,9 +24,10 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
  */
 public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     implements ISpoofaxLanguageSpecConfigBuilder {
+    protected SdfVersion sdfVersion = SdfVersion.sdf3;
     protected @Nullable String sdfExternalDef = null;
     protected Arguments sdfArgs = new Arguments();
-    protected @Nullable StrategoFormat strFormat = null;
+    protected StrategoFormat strFormat = StrategoFormat.ctree;
     protected @Nullable String strExternalJar = null;
     protected @Nullable String strExternalJarFlags = null;
     protected Arguments strArgs = new Arguments();
@@ -45,15 +46,16 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps,
-            langContribs, generates, exports, metaborgVersion, pardonedLanguages, strFormat, sdfExternalDef,
-            strExternalJar, strExternalJarFlags, sdfArgs, strArgs, buildSteps);
+            langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, SdfVersion.sdf3,
+            sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder reset() {
         super.reset();
+        this.sdfVersion = SdfVersion.sdf3;
         this.sdfExternalDef = null;
         this.sdfArgs.clear();
-        this.strFormat = null;
+        this.strFormat = StrategoFormat.ctree;
         this.strExternalJar = null;
         this.strExternalJarFlags = null;
         this.strArgs.clear();
@@ -63,6 +65,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig config) {
         super.copyFrom(config);
+        withSdfVersion(config.sdfVersion());
         withSdfExternalDef(config.sdfExternalDef());
         withStrFormat(config.strFormat());
         withSdfArgs(config.sdfArgs());
@@ -155,6 +158,17 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
+    @Override public ISpoofaxLanguageSpecConfigBuilder withUseBuildSystemSpec(boolean useBuildSystemSpec) {
+        super.withUseBuildSystemSpec(useBuildSystemSpec);
+        return this;
+    }
+
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion version) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfExternalDef(String def) {
         this.sdfExternalDef = def;
         return this;
@@ -164,6 +178,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         this.sdfArgs = args;
         return this;
     }
+
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withStrFormat(StrategoFormat format) {
         this.strFormat = format;
@@ -184,6 +199,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         this.strArgs = args;
         return this;
     }
+
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withBuildSteps(Iterable<IBuildStepConfig> buildSteps) {
         this.buildSteps.clear();

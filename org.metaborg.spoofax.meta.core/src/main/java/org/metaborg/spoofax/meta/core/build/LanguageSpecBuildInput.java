@@ -8,7 +8,7 @@ import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 public class LanguageSpecBuildInput extends ProjectBuildInput {
 
     public ISpoofaxLanguageSpec languageSpec() {
-        return (ISpoofaxLanguageSpec)super.project();
+        return (ISpoofaxLanguageSpec) super.project();
     }
 
     public LanguageSpecBuildInput(final ISpoofaxLanguageSpec languageSpec) {

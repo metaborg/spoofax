@@ -1,4 +1,4 @@
-module {{name}}.main
+module Main
 
 imports
 
@@ -8,17 +8,15 @@ imports
   Views
 
 language
-  
-  name : {{name}}
-  
+
 {{#fileExtensions}}  extensions : {{fileExtensions}}
 
 {{/fileExtensions}}
-  table         : include/{{name}}.tbl
+  table         : target/metaborg/sdf.tbl
   start symbols : {{startSymbol}}
   
-  provider : include/{{strategoName}}.ctree
-  provider : include/{{strategoName}}-java.jar
+  provider : target/metaborg/stratego.ctree
+  provider : target/metaborg/stratego-javastrat.jar
 {{#analysisEnabled}}
   observer : editor-analyze (multifile)
   

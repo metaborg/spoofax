@@ -197,9 +197,10 @@ public class SpoofaxModule extends MetaborgModule {
 
 
     @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-        super.bindLanguagePathProviders(binder);
-
+        // Bind builtin path provider before other providers such that builtin paths have preference over others.
         binder.addBinding().to(BuiltinLanguagePathProvider.class);
+
+        super.bindLanguagePathProviders(binder);
     }
 
     @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
