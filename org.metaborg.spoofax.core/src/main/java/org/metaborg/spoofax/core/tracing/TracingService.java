@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.tracing;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
@@ -59,14 +60,30 @@ public class TracingService implements ISpoofaxTracingService {
 
 
     @Override public Iterable<IStrategoTerm> fragments(ISpoofaxParseUnit result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for parse unit " + result + " because it is invalid");
+        }
         return toTerms(result.ast(), region);
     }
 
     @Override public Iterable<IStrategoTerm> fragments(ISpoofaxAnalyzeUnit result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for analyze unit " + result + " because it is invalid");
+        }
+        if(!result.hasAst()) {
+            return Iterables2.empty();
+        }
         return toTerms(result.ast(), region);
     }
 
     @Override public Iterable<IStrategoTerm> fragments(ISpoofaxTransformUnit<?> result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for transform unit " + result + " because it is invalid");
+        }
+
         return toTerms(result.ast(), region);
     }
 

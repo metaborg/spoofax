@@ -82,7 +82,7 @@ public class OutlineService implements ISpoofaxOutlineService {
     }
 
     @Override public IOutline outline(ISpoofaxAnalyzeUnit result) throws MetaborgException {
-        if(!result.valid()) {
+        if(!result.valid() || !result.hasAst()) {
             return null;
         }
 

@@ -62,13 +62,11 @@ public class UnitService implements ISpoofaxUnitService {
 
 
     @Override public ISpoofaxParseUnit parseUnit(ISpoofaxInputUnit input, ParseContrib contrib) {
-        final Unit unit;
         if(!(input instanceof UnitWrapper)) {
             throw new MetaborgRuntimeException("Input unit is not a SpoofaxUnitWrapper, cannot create a parse unit");
         }
         final UnitWrapper wrapper = (UnitWrapper) input;
-        unit = wrapper.unit;
-        final ParseUnit parseUnit = new ParseUnit(unit, contrib, input);
+        final ParseUnit parseUnit = new ParseUnit(wrapper.unit, contrib, input);
         return parseUnit;
     }
 
@@ -79,13 +77,11 @@ public class UnitService implements ISpoofaxUnitService {
 
     @Override public ISpoofaxAnalyzeUnit analyzeUnit(ISpoofaxParseUnit input, AnalyzeContrib contrib,
         IContext context) {
-        final Unit unit;
         if(!(input instanceof UnitWrapper)) {
             throw new MetaborgRuntimeException("Input unit is not a SpoofaxUnitWrapper, cannot create an analyze unit");
         }
         final UnitWrapper wrapper = (UnitWrapper) input;
-        unit = wrapper.unit;
-        final AnalyzeUnit analyzeUnit = new AnalyzeUnit(unit, contrib, input, context);
+        final AnalyzeUnit analyzeUnit = new AnalyzeUnit(wrapper.unit, contrib, input, context);
         return analyzeUnit;
     }
 
@@ -106,14 +102,12 @@ public class UnitService implements ISpoofaxUnitService {
 
     @Override public <I extends IUnit> ISpoofaxTransformUnit<I> transformUnit(I input, TransformContrib contrib,
         IContext context, TransformActionContrib action) {
-        final Unit unit;
         if(!(input instanceof UnitWrapper)) {
             throw new MetaborgRuntimeException(
                 "Input unit is not a SpoofaxUnitWrapper, cannot create a transform unit");
         }
         final UnitWrapper wrapper = (UnitWrapper) input;
-        unit = wrapper.unit;
-        final TransformUnit<I> analyzeUnit = new TransformUnit<>(unit, contrib, input, context, action);
+        final TransformUnit<I> analyzeUnit = new TransformUnit<>(wrapper.unit, contrib, input, context, action);
         return analyzeUnit;
     }
 

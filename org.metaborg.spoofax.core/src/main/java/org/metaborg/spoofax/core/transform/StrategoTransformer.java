@@ -65,6 +65,12 @@ public class StrategoTransformer implements IStrategoTransformer {
 
     @Override public ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit> transform(ISpoofaxAnalyzeUnit input, IContext context,
         TransformActionContrib action) throws TransformException {
+        if(!input.valid()) {
+            throw new TransformException("Cannot transform analyze unit " + input + ", it is not valid");
+        }
+        if(!input.hasAst()) {
+            throw new TransformException("Cannot transform analyze unit " + input + ", it has no AST");
+        }
         return transform(input, context, action, input.source(), input.ast());
     }
 
@@ -86,12 +92,18 @@ public class StrategoTransformer implements IStrategoTransformer {
         final Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> transformUnits =
             Lists.newArrayListWithCapacity(size);
         for(ISpoofaxAnalyzeUnit input : inputs) {
+            if(!input.valid()) {
+                throw new TransformException("Cannot transform analyze unit " + input + ", it is not valid");
+            }
+            if(!input.hasAst()) {
+                throw new TransformException("Cannot transform analyze unit " + input + ", it has no AST");
+            }
             transformUnits.add(transform(input, context, action, input.source(), input.ast()));
         }
         return transformUnits;
     }
 
-    
+
     private <I extends IUnit> ISpoofaxTransformUnit<I> transform(I input, IContext context,
         TransformActionContrib actionContribution, FileObject source, IStrategoTerm term) throws TransformException {
         final FileObject location = context.location();

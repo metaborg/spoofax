@@ -76,7 +76,7 @@ public class ResolverService implements ISpoofaxResolverService {
     }
 
     @Override public Resolution resolve(int offset, ISpoofaxAnalyzeUnit result) throws MetaborgException {
-        if(!result.valid()) {
+        if(!result.valid() || !result.hasAst()) {
             return null;
         }
 

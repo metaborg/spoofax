@@ -73,7 +73,7 @@ public class HoverService implements ISpoofaxHoverService {
     }
 
     @Override public Hover hover(int offset, ISpoofaxAnalyzeUnit result) throws MetaborgException {
-        if(!result.valid()) {
+        if(!result.valid() || !result.hasAst()) {
             return null;
         }
 

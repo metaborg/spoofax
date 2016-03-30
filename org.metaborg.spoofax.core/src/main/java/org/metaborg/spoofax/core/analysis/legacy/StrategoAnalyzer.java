@@ -222,8 +222,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(notes);
         messages.addAll(ambiguities);
 
-        return unitService.analyzeUnit(input, new AnalyzeContrib(true, errors.isEmpty(), ast, messages, duration),
-            context);
+        return unitService.analyzeUnit(input,
+            new AnalyzeContrib(true, errors.isEmpty(), true, ast, false, null, messages, duration), context);
     }
 
     private ISpoofaxAnalyzeUnit resultNoAst(IStrategoTerm result, ISpoofaxParseUnit input, IContext context,
@@ -242,8 +242,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(warnings);
         messages.addAll(notes);
 
-        return unitService.analyzeUnit(input, new AnalyzeContrib(true, errors.isEmpty(), null, messages, duration),
-            context);
+        return unitService.analyzeUnit(input,
+            new AnalyzeContrib(true, errors.isEmpty(), false, null, false, null, messages, duration), context);
     }
 
     private ISpoofaxAnalyzeUnit result(String error, ISpoofaxParseUnit input, IContext context, Throwable e,
@@ -251,6 +251,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final FileObject source = input.source();
         final IMessage message = MessageFactory.newAnalysisErrorAtTop(source, error, e);
         return unitService.analyzeUnit(input,
-            new AnalyzeContrib(false, false, null, Iterables2.singleton(message), duration), context);
+            new AnalyzeContrib(false, false, true, null, false, null, Iterables2.singleton(message), duration),
+            context);
     }
 }
