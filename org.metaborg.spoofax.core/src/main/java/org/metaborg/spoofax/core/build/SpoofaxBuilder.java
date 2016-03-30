@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.build;
 
 import org.metaborg.core.build.Builder;
+import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
@@ -19,6 +20,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Typedef class for {@link Builder} with Spoofax interfaces.
@@ -30,8 +32,10 @@ public class SpoofaxBuilder extends
         ILanguagePathService languagePathService, ISpoofaxUnitService unitService, ISourceTextService sourceTextService,
         ISpoofaxSyntaxService syntaxService, IContextService contextService, ISpoofaxAnalysisService analysisService,
         ISpoofaxTransformService transformService, ISpoofaxParseResultUpdater parseResultUpdater,
-        ISpoofaxAnalysisResultUpdater analysisResultUpdater) {
+        ISpoofaxAnalysisResultUpdater analysisResultUpdater,
+        Provider<IBuildOutputInternal<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>> buildOutputProvider) {
         super(resourceService, languageIdentifier, languagePathService, unitService, sourceTextService, syntaxService,
-            contextService, analysisService, transformService, parseResultUpdater, analysisResultUpdater);
+            contextService, analysisService, transformService, parseResultUpdater, analysisResultUpdater,
+            buildOutputProvider);
     }
 }

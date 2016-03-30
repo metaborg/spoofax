@@ -3,7 +3,11 @@ package org.metaborg.core;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.core.analysis.AnalysisService;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
+import org.metaborg.core.build.BuildOutput;
 import org.metaborg.core.build.Builder;
+import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.dependency.DefaultDependencyService;
 import org.metaborg.core.build.dependency.IDependencyService;
@@ -58,9 +62,12 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.resource.ResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.source.SourceTextService;
+import org.metaborg.core.syntax.IParseUnit;
+import org.metaborg.core.transform.ITransformUnit;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
@@ -205,6 +212,11 @@ public class MetaborgModule extends AbstractModule {
         bind(IAnalysisResultProcessor.class).to(AnalysisResultProcessor.class);
 
         bind(IBuilder.class).to(Builder.class).in(Singleton.class);
+
+        // No scope for build output, new instance for every request.
+        bind(
+            new TypeLiteral<IBuildOutputInternal<IParseUnit, IAnalyzeUnit, IAnalyzeUnitUpdate, ITransformUnit<?>>>() {})
+                .to(new TypeLiteral<BuildOutput<IParseUnit, IAnalyzeUnit, IAnalyzeUnitUpdate, ITransformUnit<?>>>() {});
     }
 
     protected void bindProcessorRunner() {

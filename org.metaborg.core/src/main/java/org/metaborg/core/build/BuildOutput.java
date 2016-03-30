@@ -16,9 +16,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>>
-    implements IBuildOutput<P, A, AU, T> {
+    implements IBuildOutputInternal<P, A, AU, T> {
     private boolean success = true;
-    public final BuildState state;
+    public BuildState state;
     public final Set<FileName> removedResources = Sets.newHashSet();
     public final Set<FileName> includedResources = Sets.newHashSet();
     public final Collection<FileObject> changedResources = Lists.newArrayList();
@@ -27,11 +27,6 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extend
     public final Collection<AU> analysisUpdates = Lists.newArrayList();
     public final Collection<T> transformResults = Lists.newArrayList();
     public final Collection<IMessage> extraMessages = Lists.newLinkedList();
-
-
-    public BuildOutput(BuildState state) {
-        this.state = state;
-    }
 
 
     @Override public boolean success() {
@@ -89,9 +84,14 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extend
     }
 
 
-    public void add(boolean success, Iterable<FileName> removedResources, Iterable<FileName> includedResources,
-        Iterable<FileObject> changedResources, Iterable<P> parseResults, Iterable<A> analysisResults,
-        Iterable<AU> analysisUpdates, Iterable<T> transformResults, Iterable<IMessage> extraMessages) {
+    @Override public void setState(BuildState state) {
+        this.state = state;
+    }
+
+    @Override public void add(boolean success, Iterable<FileName> removedResources,
+        Iterable<FileName> includedResources, Iterable<FileObject> changedResources, Iterable<P> parseResults,
+        Iterable<A> analysisResults, Iterable<AU> analysisUpdates, Iterable<T> transformResults,
+        Iterable<IMessage> extraMessages) {
         this.success &= success;
         Iterables.addAll(this.removedResources, removedResources);
         Iterables.addAll(this.includedResources, includedResources);

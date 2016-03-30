@@ -62,6 +62,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Builder implementation.
@@ -96,12 +97,15 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     private final IParseResultUpdater<P> parseResultUpdater;
     private final IAnalysisResultUpdater<P, A> analysisResultUpdater;
 
+    private final Provider<IBuildOutputInternal<P, A, AU, T>> buildOutputProvider;
+
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
         ILanguagePathService languagePathService, IUnitService<I, P, A, AU, TP, TA> unitService,
         ISourceTextService sourceTextService, ISyntaxService<I, P> syntaxService, IContextService contextService,
         IAnalysisService<P, A, AU> analysisService, ITransformService<P, A, TP, TA> transformService,
-        IParseResultUpdater<P> parseResultUpdater, IAnalysisResultUpdater<P, A> analysisResultUpdater) {
+        IParseResultUpdater<P> parseResultUpdater, IAnalysisResultUpdater<P, A> analysisResultUpdater,
+        Provider<IBuildOutputInternal<P, A, AU, T>> buildOutputProvider) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
         this.languagePathService = languagePathService;
@@ -114,6 +118,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         this.parseResultUpdater = parseResultUpdater;
         this.analysisResultUpdater = analysisResultUpdater;
+
+        this.buildOutputProvider = buildOutputProvider;
     }
 
 
@@ -152,7 +158,9 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         if(changes.size() == 0) {
             // When there are no source changes, keep the old state and skip building.
-            return new BuildOutput<>(input.state);
+            final IBuildOutputInternal<P, A, AU, T> buildOutput = buildOutputProvider.get();
+            buildOutput.setState(input.state);
+            return buildOutput;
         }
 
         logger.info("Building " + input.project.location());
@@ -160,7 +168,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         cancel.throwIfCancelled();
 
         final BuildState newState = new BuildState();
-        final BuildOutput<P, A, AU, T> buildOutput = new BuildOutput<>(newState);
+        final IBuildOutputInternal<P, A, AU, T> buildOutput = buildOutputProvider.get();
+        buildOutput.setState(newState);
         for(ILanguageImpl language : input.buildOrder.buildOrder()) {
             cancel.throwIfCancelled();
 
@@ -190,7 +199,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
 
     private void updateLanguageResources(BuildInput input, ILanguageImpl language, LanguageBuildDiff diff,
-        BuildOutput<P, A, AU, T> output, boolean pardoned, ICancellationToken cancel) throws InterruptedException {
+        IBuildOutputInternal<P, A, AU, T> output, boolean pardoned, ICancellationToken cancel)
+        throws InterruptedException {
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
