@@ -123,7 +123,16 @@ public class ResourceService implements IResourceService {
 
     @Override public FileName resolveToName(String uri) {
         try {
-            return fileSystemManager.resolveURI(uri);
+            final String uriEncoded = URIEncode.encode(uri);
+            return fileSystemManager.resolveURI(uriEncoded);
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException(e);
+        }
+    }
+
+    @Override public FileName resolveToName(URI uri) {
+        try {
+            return fileSystemManager.resolveURI(uri.toString());
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }
