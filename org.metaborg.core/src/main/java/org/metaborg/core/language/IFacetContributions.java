@@ -6,18 +6,17 @@ import org.metaborg.core.MetaborgRuntimeException;
 
 /**
  * Interface representing language facet contributions. Facets are retrieved by type, multiple facets of the same type
- * are allowed. It is implementation-specific how multiple facets of the same type are handled.
+ * are allowed. Clients determine how multiple facets of the same type are handled.
  */
 public interface IFacetContributions {
     /**
-     * @return All facets.
+     * Checks if there is at least one facet of given type.
+     * 
+     * @param type
+     *            Facet type.
+     * @return True if at least one facet of given type exists, false otherwise.
      */
-    Iterable<IFacet> facets();
-
-    /**
-     * @return All facet contributions.
-     */
-    Iterable<FacetContribution<IFacet>> facetContributions();
+    boolean hasFacet(Class<? extends IFacet> type);
 
     /**
      * Returns facets of given type.
@@ -41,7 +40,7 @@ public interface IFacetContributions {
      * Returns a facet of given type.
      * 
      * @param type
-     *            Facet type
+     *            Facet type.
      * @return Facet of given type, or null if there is no facet of given type.
      * @throws MetaborgRuntimeException
      *             When there are multiple facets of given type.
@@ -52,10 +51,20 @@ public interface IFacetContributions {
      * Returns a facet contribution of given type.
      * 
      * @param type
-     *            Facet type
+     *            Facet type.
      * @return Facet contribution of given type.
      * @throws MetaborgRuntimeException
      *             When there are multiple facets of given type.
      */
     @Nullable <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type);
+
+    /**
+     * @return All facets.
+     */
+    Iterable<IFacet> facets();
+
+    /**
+     * @return All facet contributions.
+     */
+    Iterable<FacetContribution<IFacet>> facetContributions();
 }

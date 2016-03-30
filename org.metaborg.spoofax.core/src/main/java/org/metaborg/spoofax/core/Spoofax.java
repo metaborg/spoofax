@@ -6,12 +6,20 @@ import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+
+import com.google.inject.util.Types;
 
 /**
  * Facade for instantiating and accessing the Metaborg API, instantiated with the Spoofax implementation.
  */
-public class Spoofax extends MetaBorgGeneric<IStrategoTerm, IStrategoTerm, IStrategoTerm> {
+public class Spoofax extends
+    MetaBorgGeneric<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, IStrategoTerm> {
     public final ITermFactoryService termFactoryService;
     public final IStrategoRuntimeService strategoRuntimeService;
     public final IStrategoCommon strategoCommon;
@@ -28,7 +36,11 @@ public class Spoofax extends MetaBorgGeneric<IStrategoTerm, IStrategoTerm, IStra
      *             When loading plugins or dependency injection fails.
      */
     public Spoofax(SpoofaxModule module, IModulePluginLoader loader) throws MetaborgException {
-        super(module, loader, IStrategoTerm.class, IStrategoTerm.class, IStrategoTerm.class);
+        super(module, loader, ISpoofaxInputUnit.class, ISpoofaxParseUnit.class, ISpoofaxAnalyzeUnit.class,
+            ISpoofaxAnalyzeUnitUpdate.class,
+            Types.newParameterizedType(ISpoofaxTransformUnit.class, Types.subtypeOf(Object.class)),
+            Types.newParameterizedType(ISpoofaxTransformUnit.class, ISpoofaxParseUnit.class),
+            Types.newParameterizedType(ISpoofaxTransformUnit.class, ISpoofaxAnalyzeUnit.class), IStrategoTerm.class);
 
         this.termFactoryService = injector.getInstance(ITermFactoryService.class);
         this.strategoRuntimeService = injector.getInstance(IStrategoRuntimeService.class);

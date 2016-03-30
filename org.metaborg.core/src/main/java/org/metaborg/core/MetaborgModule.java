@@ -3,17 +3,30 @@ package org.metaborg.core;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.core.analysis.AnalysisService;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
+import org.metaborg.core.build.BuildOutput;
 import org.metaborg.core.build.Builder;
+import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.dependency.DefaultDependencyService;
-// import org.metaborg.core.build.dependency.DependencyService;
-// import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.DependencyPathProvider;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.LanguagePathService;
-import org.metaborg.core.config.*;
+import org.metaborg.core.config.AConfigurationReaderWriter;
+import org.metaborg.core.config.ILanguageComponentConfigBuilder;
+import org.metaborg.core.config.ILanguageComponentConfigService;
+import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.config.IProjectConfigBuilder;
+import org.metaborg.core.config.IProjectConfigService;
+import org.metaborg.core.config.IProjectConfigWriter;
+import org.metaborg.core.config.LanguageComponentConfigBuilder;
+import org.metaborg.core.config.LanguageComponentConfigService;
+import org.metaborg.core.config.ProjectConfigBuilder;
+import org.metaborg.core.config.ProjectConfigService;
+import org.metaborg.core.config.YamlConfigurationReaderWriter;
 import org.metaborg.core.context.ContextService;
 import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.context.IContextProcessor;
@@ -49,9 +62,12 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.resource.ResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.source.SourceTextService;
+import org.metaborg.core.syntax.IParseUnit;
+import org.metaborg.core.transform.ITransformUnit;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
@@ -64,6 +80,9 @@ public class MetaborgModule extends AbstractModule {
 
     protected Multibinder<AutoCloseable> autoClosableBinder;
     protected Multibinder<ILanguageCache> languageCacheBinder;
+    protected MapBinder<String, IContextFactory> contextFactoryBinder;
+    protected MapBinder<String, IContextStrategy> contextStrategyBinder;
+    protected Multibinder<ILanguagePathProvider> languagePathProviderBinder;
 
 
     public MetaborgModule() {
@@ -79,17 +98,21 @@ public class MetaborgModule extends AbstractModule {
         autoClosableBinder = Multibinder.newSetBinder(binder(), AutoCloseable.class);
         languageCacheBinder = Multibinder.newSetBinder(binder(), ILanguageCache.class);
 
+        contextFactoryBinder = MapBinder.newMapBinder(binder(), String.class, IContextFactory.class);
+        contextStrategyBinder = MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class);
+        languagePathProviderBinder = Multibinder.newSetBinder(binder(), ILanguagePathProvider.class);
+
         bindResource();
         bindLanguage();
         bindContext();
-        bindContextFactories(MapBinder.newMapBinder(binder(), String.class, IContextFactory.class));
-        bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
+        bindContextFactories(contextFactoryBinder);
+        bindContextStrategies(contextStrategyBinder);
         bindProject();
         bindConfigMisc();
         bindProjectConfig();
         bindLanguageComponentConfig();
         bindLanguagePath();
-        bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
+        bindLanguagePathProviders(languagePathProviderBinder);
         bindDependency();
         bindSourceText();
         bindAnalysis();
@@ -106,7 +129,7 @@ public class MetaborgModule extends AbstractModule {
         bind(ResourceService.class).in(Singleton.class);
         bind(IResourceService.class).to(ResourceService.class);
         autoClosableBinder.addBinding().to(ResourceService.class);
-        
+
         bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
     }
 
@@ -126,6 +149,7 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindContextFactories(@SuppressWarnings("unused") MapBinder<String, IContextFactory> binder) {
+
     }
 
     protected void bindContextStrategies(MapBinder<String, IContextStrategy> binder) {
@@ -188,6 +212,11 @@ public class MetaborgModule extends AbstractModule {
         bind(IAnalysisResultProcessor.class).to(AnalysisResultProcessor.class);
 
         bind(IBuilder.class).to(Builder.class).in(Singleton.class);
+
+        // No scope for build output, new instance for every request.
+        bind(
+            new TypeLiteral<IBuildOutputInternal<IParseUnit, IAnalyzeUnit, IAnalyzeUnitUpdate, ITransformUnit<?>>>() {})
+                .to(new TypeLiteral<BuildOutput<IParseUnit, IAnalyzeUnit, IAnalyzeUnitUpdate, ITransformUnit<?>>>() {});
     }
 
     protected void bindProcessorRunner() {

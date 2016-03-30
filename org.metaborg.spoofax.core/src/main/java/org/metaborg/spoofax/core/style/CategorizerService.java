@@ -2,15 +2,14 @@ package org.metaborg.spoofax.core.style;
 
 import java.util.List;
 
-import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.ICategory;
 import org.metaborg.core.style.IRegionCategory;
 import org.metaborg.core.style.RegionCategory;
-import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -21,21 +20,15 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
-public class CategorizerService implements ICategorizerService<IStrategoTerm, IStrategoTerm> {
+public class CategorizerService implements ISpoofaxCategorizerService {
     private static final ILogger logger = LoggerUtils.logger(CategorizerService.class);
 
 
-    @Inject public CategorizerService() {
-
-    }
-
-
     @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguageImpl language,
-        ParseResult<IStrategoTerm> parseResult) {
+        ISpoofaxParseUnit parseResult) {
         final List<IRegionCategory<IStrategoTerm>> regionCategories = Lists.newLinkedList();
-        if(parseResult.result == null) {
+        if(!parseResult.valid()) {
             return regionCategories;
         }
 
@@ -46,7 +39,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
             return regionCategories;
         }
 
-        final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.result);
+        final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.ast());
         final ITokenizer tokenizer = rootImploderAttachment.getLeftToken().getTokenizer();
         final int tokenCount = tokenizer.getTokenCount();
         int offset = -1;
@@ -78,7 +71,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
     }
 
     @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguageImpl language,
-        AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult) {
+        ISpoofaxAnalyzeUnit analysisResult) {
         throw new UnsupportedOperationException();
     }
 

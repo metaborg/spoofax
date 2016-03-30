@@ -2,107 +2,79 @@ package org.metaborg.core.tracing;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.analysis.AnalysisFileResult;
+import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.core.syntax.ParseResult;
-import org.metaborg.core.transform.TransformResult;
+import org.metaborg.core.syntax.IParseUnit;
+import org.metaborg.core.transform.ITransformUnit;
 
 /**
  * Interface for tracing between parsed, analyzed, and transformed fragments and results, and their region in source
  * files.
  * 
  * @param <P>
- *            Type of parsed fragments.
+ *            Type of parse units
  * @param <A>
- *            Type of analyzed fragments.
+ *            Type of analyze units.
  * @param <T>
- *            Type of transformed fragments.
+ *            Type of transform units.
+ * @param <F>
+ *            Type of fragments.
  */
-public interface ITracingService<P, A, T> {
+public interface ITracingService<P extends IParseUnit, A extends IAnalyzeUnit, T extends ITransformUnit<?>, F> {
     /**
-     * Retrieves the source location of given parsed fragment.
+     * Retrieves the source location of given fragment.
      * 
      * @param fragment
-     *            Parsed fragment to get source location for.
+     *            Fragment to get source location for.
      * @return Source location, or null if it could not be determined.
      */
-    @Nullable ISourceLocation fromParsed(P fragment);
+    @Nullable ISourceLocation location(F fragment);
+
 
     /**
-     * Retrieves the source location of given analyzed fragment.
+     * Retrieves the originating fragment of given fragment.
      * 
      * @param fragment
-     *            Analyzed fragment to get source location for.
-     * @return Source location, or null if it could not be determined.
+     *            Fragment to get origin for.
+     * @return Originating fragment, or null if it could not be determined.
      */
-    @Nullable ISourceLocation fromAnalyzed(A fragment);
-
-    /**
-     * Retrieves the source location of given transformed fragment.
-     * 
-     * @param fragment
-     *            Transformed fragment to get source location for.
-     * @return Source location, or null if it could not be determined.
-     */
-    @Nullable ISourceLocation fromTransformed(T fragment);
+    @Nullable F origin(F fragment);
 
 
     /**
-     * Retrieves the originating parsed fragment of given analyzed fragment.
-     * 
-     * @param fragment
-     *            Analyzed fragment to get origin for.
-     * @return Originating parsed fragment, or null if it could not be determined.
-     */
-    @Nullable P originFromAnalyzed(A fragment);
-
-    /**
-     * Retrieves the originating parsed fragment of given transformed fragment.
-     * 
-     * @param fragment
-     *            Transformed fragment to get origin for.
-     * @return Originating parsed fragment, or null if it could not be determined.
-     */
-    @Nullable P originFromTransformed(T fragment);
-
-
-    /**
-     * Finds a parsed fragment and its ancestors that contain given region, in given parse result.
+     * Finds a fragment and its ancestors that contain given region, in given parse result.
      * 
      * @param result
-     *            Parse result to get fragments from.
+     *            Parsed result to get fragments from.
      * @param region
-     *            Region inside the parse result to get fragments for.
-     * @return Parsed fragment and its ancestors that contain given region. The returned iterable iterates from deepest
-     *         (leaf) fragment to outermost (root) fragment. An empty iterable is returned when no fragments could be
-     *         found.
+     *            Region inside the result to get fragments for.
+     * @return Fragment and its ancestors that contain given region. The returned iterable iterates from deepest (leaf)
+     *         fragment to outermost (root) fragment. An empty iterable is returned when no fragments could be found.
      */
-    Iterable<P> toParsed(ParseResult<P> result, ISourceRegion region);
+    Iterable<F> fragments(P result, ISourceRegion region);
 
     /**
-     * Finds an analyzed fragment and its ancestors that contain given region, in given analysis file result.
+     * Finds a fragment and its ancestors that contain given region, in given analysis file result.
      * 
      * @param result
-     *            Analysis file result to get fragments from.
+     *            Analyzed result to get fragments from.
      * @param region
-     *            Region inside the analysis file result to get fragments for.
-     * @return Analyzed fragment and its ancestors that contain given region. The returned iterable iterates from
-     *         deepest (leaf) fragment to outermost (root) fragment. An empty iterable is returned when no fragments
-     *         could be found.
+     *            Region inside the result to get fragments for.
+     * @return Fragment and its ancestors that contain given region. The returned iterable iterates from deepest (leaf)
+     *         fragment to outermost (root) fragment. An empty iterable is returned when no fragments could be found.
      */
-    Iterable<A> toAnalyzed(AnalysisFileResult<P, A> result, ISourceRegion region);
+    Iterable<F> fragments(A result, ISourceRegion region);
 
     /**
-     * Finds a transformed fragment and its ancestors that contain given region, in given transform result.
+     * Finds a fragment and its ancestors that contain given region, in given transform result.
      * 
      * @param result
-     *            Transform result to get fragments from.
+     *            Transformed result to get fragments from.
      * @param region
-     *            Region inside the transform result to get fragments for.
-     * @return Transformed fragment and its ancestors that contain given region. The returned iterable iterates from
-     *         deepest (leaf) fragment to outermost (root) fragment. An empty iterable is returned when no fragments
-     *         could be found.
+     *            Region inside the to get fragments for.
+     * @return Fragment and its ancestors that contain given region. The returned iterable iterates from deepest (leaf)
+     *         fragment to outermost (root) fragment. An empty iterable is returned when no fragments could be found.
      */
-    Iterable<T> toTransformed(TransformResult<?, T> result, ISourceRegion region);
+    Iterable<F> fragments(T result, ISourceRegion region);
 }

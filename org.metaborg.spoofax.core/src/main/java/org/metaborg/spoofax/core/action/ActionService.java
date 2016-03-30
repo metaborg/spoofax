@@ -5,7 +5,7 @@ import java.util.Collection;
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.action.ITransformAction;
 import org.metaborg.core.action.ITransformGoal;
-import org.metaborg.core.action.TransformActionContribution;
+import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -23,16 +23,16 @@ public class ActionService implements IActionService {
         return actions;
     }
 
-    @Override public Collection<TransformActionContribution> actionContributions(ILanguageImpl language,
+    @Override public Collection<TransformActionContrib> actionContributions(ILanguageImpl language,
         ITransformGoal goal) {
         final Iterable<FacetContribution<ActionFacet>> facetsContributions =
             language.facetContributions(ActionFacet.class);
-        final Collection<TransformActionContribution> actionContributions = Lists.newLinkedList();
+        final Collection<TransformActionContrib> actionContributions = Lists.newLinkedList();
         for(FacetContribution<ActionFacet> facetContribution : facetsContributions) {
             final ActionFacet facet = facetContribution.facet;
             final ILanguageComponent component = facetContribution.contributor;
             for(ITransformAction action : facet.actions(goal)) {
-                actionContributions.add(new TransformActionContribution(action, component));
+                actionContributions.add(new TransformActionContrib(action, component));
             }
         }
         return actionContributions;

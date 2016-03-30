@@ -66,16 +66,9 @@ public class LanguageComponent implements ILanguageComponentInternal {
         return config;
     }
 
-    @Override public Iterable<IFacet> facets() {
-        return facets.values();
-    }
 
-    @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
-        final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
-        for(IFacet facet : facets()) {
-            contributions.add(new FacetContribution<>(facet, this));
-        }
-        return contributions;
+    @Override public boolean hasFacet(Class<? extends IFacet> type) {
+        return facets.containsKey(type);
     }
 
     @SuppressWarnings("unchecked") @Override public <T extends IFacet> Iterable<T> facets(Class<T> type) {
@@ -114,6 +107,18 @@ public class LanguageComponent implements ILanguageComponentInternal {
                 "Multiple facets of type " + type + " found, while only a single facet is supported");
         }
         return Iterables.get(facetContributions, 0);
+    }
+
+    @Override public Iterable<IFacet> facets() {
+        return facets.values();
+    }
+
+    @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
+        final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
+        for(IFacet facet : facets()) {
+            contributions.add(new FacetContribution<>(facet, this));
+        }
+        return contributions;
     }
 
 

@@ -4,13 +4,13 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.source.ISourceRegion;
 
-public class RegionCategory<T> implements IRegionCategory<T> {
+public class RegionCategory<F> implements IRegionCategory<F> {
     private final ISourceRegion region;
     private final ICategory category;
-    private final @Nullable T fragment;
+    private final @Nullable F fragment;
 
 
-    public RegionCategory(ISourceRegion region, ICategory category, @Nullable T fragment) {
+    public RegionCategory(ISourceRegion region, ICategory category, @Nullable F fragment) {
         this.fragment = fragment;
         this.region = region;
         this.category = category;
@@ -25,7 +25,7 @@ public class RegionCategory<T> implements IRegionCategory<T> {
         return category;
     }
 
-    @Override public @Nullable T fragment() {
+    @Override public @Nullable F fragment() {
         return fragment;
     }
 
