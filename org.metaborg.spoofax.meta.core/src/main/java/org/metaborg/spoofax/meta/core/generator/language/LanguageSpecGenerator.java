@@ -104,7 +104,7 @@ public class LanguageSpecGenerator extends BaseGenerator {
     }
 
     public void generateJavaStrategy() throws IOException {
-        String path = "src/main/strategies/{{packagePath}}/strategies/";
+        String path = "src/main/strategies/{{strategiesPackagePath}}/";
         writer.write(path + "InteropRegisterer.java", false);
         writer.write(path + "Main.java", false);
     }

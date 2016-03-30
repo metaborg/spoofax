@@ -128,7 +128,7 @@ public class GeneratorSettings {
         return config.packageName();
     }
 
-    public String packagePath() {
+    public String strategiesPackagePath() {
         return paths.strJavaStratPkgPath(config.identifier().id);
     }
 }
