@@ -109,13 +109,6 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     String packageName();
 
     /**
-     * Gets the strategies package name.
-     *
-     * @return The strategies package name.
-     */
-    String strategiesPackageName();
-
-    /**
      * Gets the Java name.
      *
      * @return The Java name.

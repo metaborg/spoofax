@@ -190,10 +190,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return NameUtil.toJavaId(identifier().id);
     }
 
-    @Override public String strategiesPackageName() {
-        return packageName() + ".strategies";
-    }
-
     @Override public String javaName() {
         return NameUtil.toJavaId(name());
     }
