@@ -7,8 +7,8 @@ dependencies:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
 {{#syntaxSdf3}}  - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
 {{/syntaxSdf3}}{{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lang.nabl:${metaborgVersion}
-  - org.metaborg:org.metaborg.meta.lang.ts:${metaborgVersion}{{/analysisNablTs}}{{#analysisNabl2}}
-  - org.metaborg:org.metaborg.meta.lang.nabl2:${metaborgVersion}
+  - org.metaborg:org.metaborg.meta.lang.ts:${metaborgVersion}
+{{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.lang.nabl2:${metaborgVersion}
 {{/analysisNabl2}}
   source:
   - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
