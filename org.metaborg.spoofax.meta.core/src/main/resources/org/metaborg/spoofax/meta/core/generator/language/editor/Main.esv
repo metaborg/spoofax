@@ -1,26 +1,15 @@
 module Main
 
-imports
+{{#syntaxOrAnalysisEnabled}}imports
 
-  Colorer
-  Menus
-  Syntax
-  Views
+{{#syntaxEnabled}}  Syntax
+{{/syntaxEnabled}}{{#analysisEnabled}}  Analysis
 
-language
+{{/analysisEnabled}}
+{{/syntaxOrAnalysisEnabled}}language
 
 {{#fileExtensions}}  extensions : {{fileExtensions}}
-
 {{/fileExtensions}}
-  table         : target/metaborg/sdf.tbl
-  start symbols : {{startSymbol}}
-  
+
   provider : target/metaborg/stratego.ctree
   provider : target/metaborg/stratego-javastrat.jar
-{{#analysisEnabled}}
-  observer : editor-analyze (multifile)
-  
-references
-
-  reference _ : editor-resolve
-  hover _     : editor-hover{{/analysisEnabled}}

@@ -1,72 +1,95 @@
 package org.metaborg.spoofax.meta.core.generator.language;
 
 import java.io.IOException;
+import java.util.Collection;
 
-import org.apache.commons.lang3.StringUtils;
-import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
-import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 
 /**
  * Generates language project files that are only generated once when a new language project is created. Files are not
  * specific to an IDE.
  */
 public class LanguageSpecGenerator extends BaseGenerator {
-    private final String[] fileExtensions;
-    private final AnalysisType analysisType;
+    private final LanguageSpecGeneratorSettings config;
 
 
-    public LanguageSpecGenerator(GeneratorSettings config) throws ProjectException {
-        this(config, new String[0]);
+    public LanguageSpecGenerator(LanguageSpecGeneratorSettings config) throws ProjectException {
+        super(config.generatorSettings);
+
+        this.config = config;
     }
 
-    public LanguageSpecGenerator(GeneratorSettings config, AnalysisType analysisType) throws ProjectException {
-        this(config, new String[0], analysisType);
-    }
-
-    public LanguageSpecGenerator(GeneratorSettings config, String[] fileExtensions) throws ProjectException {
-        this(config, fileExtensions, AnalysisType.NaBL_TS);
-    }
-
-    public LanguageSpecGenerator(GeneratorSettings config, String[] fileExtensions, AnalysisType analysisType)
-        throws ProjectException {
-        super(config);
-
-        for(String ext : fileExtensions) {
-            if(!NameUtil.isValidFileExtension(ext)) {
-                throw new ProjectException("Invalid file extension: " + ext);
-            }
-        }
-        this.fileExtensions = fileExtensions;
-        this.analysisType = analysisType;
-    }
-
-
+    
     public String fileExtensions() {
-        if(fileExtensions == null || fileExtensions.length == 0) {
+        final Collection<String> extensions = config.extensions;
+        if(extensions == null || extensions.isEmpty()) {
             return null;
         }
-        return StringUtils.join(fileExtensions, ", ");
+        return Joiner.on(", ").join(extensions);
     }
 
     public String fileExtension() {
-        if(fileExtensions == null || fileExtensions.length == 0) {
+        final Collection<String> extensions = config.extensions;
+        if(extensions == null || extensions.isEmpty()) {
             return null;
         }
-        return fileExtensions[0];
+        return Iterables.get(extensions, 0);
+    }
+
+    public String syntaxType() {
+        return config.syntaxType.id;
+    }
+
+    public boolean syntaxEnabled() {
+        return config.syntaxType != SyntaxType.None;
+    }
+
+    public boolean syntaxSdf2() {
+        return config.syntaxType == SyntaxType.SDF2;
+    }
+
+    public boolean syntaxSdf3() {
+        return config.syntaxType == SyntaxType.SDF3;
     }
 
     public String startSymbol() {
         return "Start";
     }
 
+    public String signaturesModule() {
+        switch(config.syntaxType) {
+            case None:
+                return null;
+            case SDF2:
+                return "signatures/" + config.generatorSettings.name();
+            case SDF3:
+                return "signatures/" + config.generatorSettings.name() + "-sig";
+        }
+        return null;
+    }
+
     public String analysisType() {
-        return analysisType.name;
+        return config.analysisType.id;
     }
 
     public boolean analysisEnabled() {
-        return analysisType != AnalysisType.None;
+        return syntaxEnabled() && config.analysisType != AnalysisType.None;
+    }
+
+    public boolean analysisNablTs() {
+        return syntaxEnabled() && config.analysisType == AnalysisType.NaBL_TS;
+    }
+
+    public boolean analysisNabl2() {
+        return syntaxEnabled() && config.analysisType == AnalysisType.NaBL2;
+    }
+
+    public boolean syntaxOrAnalysisEnabled() {
+        return syntaxEnabled() || analysisEnabled();
     }
 
 
@@ -89,8 +112,21 @@ public class LanguageSpecGenerator extends BaseGenerator {
     }
 
     public void generateGrammar() throws IOException {
-        writer.write("syntax/Common.sdf3", false);
-        writer.write("syntax/{{name}}.sdf3", false);
+        if(syntaxEnabled()) {
+            switch(config.syntaxType) {
+                case SDF2:
+                    writer.write("syntax/Common.sdf", false);
+                    writer.write("syntax/{{name}}.sdf", false);
+                    break;
+                case SDF3:
+                    writer.write("syntax/Common.sdf3", false);
+                    writer.write("syntax/{{name}}.sdf3", false);
+                    break;
+                case None:
+                default:
+                    break;
+            }
+        }
     }
 
     public void generateTrans() throws IOException {
@@ -98,9 +134,13 @@ public class LanguageSpecGenerator extends BaseGenerator {
         if(analysisEnabled()) {
             writer.writeResolve("trans/analysis.{{analysisType}}.str", "trans/analysis.str", false);
         }
-        writer.write("trans/outline.str", false);
-        writer.write("trans/pp.str", false);
-        writer.write("trans/completion.str", false);
+        if(syntaxEnabled()) {
+            writer.write("trans/outline.str", false);
+            writer.writeResolve("trans/pp.{{syntaxType}}.str", "trans/pp.str", false);
+            if(syntaxSdf3()) {
+                writer.write("trans/completion.str", false);
+            }
+        }
     }
 
     public void generateJavaStrategy() throws IOException {
@@ -110,18 +150,20 @@ public class LanguageSpecGenerator extends BaseGenerator {
     }
 
     public void generateEditorServices() throws IOException {
-        writer.write("editor/Colorer.esv", false);
-        writer.writeResolve("editor/Menus.{{analysisType}}.esv", "editor/Menus.esv", false);
-        writer.write("editor/Syntax.esv", false);
-        writer.write("editor/Views.esv", false);
+        if(syntaxEnabled()) {
+            writer.writeResolve("editor/Syntax.{{syntaxType}}.esv", "editor/Syntax.esv", false);
+        }
+        if(analysisEnabled()) {
+            writer.writeResolve("editor/Analysis.{{analysisType}}.esv", "editor/Analysis.esv", false);
+        }
         writer.write("editor/Main.esv", false);
     }
 
     public void generateIgnoreFile() throws IOException {
         writer.write("vcsignore", ".gitignore", false);
     }
-    
-    
+
+
     public void generateAllMaven() throws IOException {
         generatePOM();
         generateDotMvn();
@@ -130,7 +172,7 @@ public class LanguageSpecGenerator extends BaseGenerator {
     public void generatePOM() throws IOException {
         writer.write("pom.xml", false);
     }
-    
+
     public void generateDotMvn() throws IOException {
         writer.write(".mvn/extensions.xml", false);
         writer.write(".mvn/jvm.config", false);

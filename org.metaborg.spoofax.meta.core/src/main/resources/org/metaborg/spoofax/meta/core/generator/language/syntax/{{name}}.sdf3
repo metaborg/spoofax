@@ -10,4 +10,4 @@ context-free start-symbols
 
 context-free syntax
   
-  {{startSymbol}}.Dummy = <>
+  {{startSymbol}}.Empty = <>

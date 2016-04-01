@@ -6,9 +6,9 @@ rules // Analysis
     (ast, path, project-path) -> (ast', error*, warning*, info*)
     with
       ast'     := <id> ast
-    ; error*   = <collect-all(constraint-error)> ast'
-    ; warning* = <collect-all(constraint-warning)> ast'
-    ; info*    = <collect-all(constraint-info)> ast'
+    ; error*   := <collect-all(constraint-error)> ast'
+    ; warning* := <collect-all(constraint-warning)> ast'
+    ; info*    := <collect-all(constraint-info)> ast'
   
   constraint-error = fail
   constraint-warning = fail

@@ -8,6 +8,15 @@ imports
   pp/{{name}}-pp
 
 rules
+
+  editor-format:
+    (node, _, ast, path, project-path) -> (filename, result)
+    with
+      ext      := <get-extension> path
+    ; filename := <guarantee-extension(|$[pp.[ext]])> path
+    ; result   := <pp-debug> node
+
+rules
   
   pp-{{name}}-string =
     parenthesize-{{name}}
@@ -30,11 +39,4 @@ rules
 
 rules
   
-  /**
-  * Given an old AST and a new AST, pretty-prints the new AST while presevering 
-  * layout (e.g. whitespacing and comments) associated with the old AST.
-  *
-  * Example:
-  *   new-text := <construct-textual-change> (old-ast, new-ast)
-  */
   construct-textual-change = construct-textual-change(pp-partial-{{name}}-string, parenthesize, override-reconstruction, resugar)

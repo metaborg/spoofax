@@ -1,0 +1,11 @@
+module Analysis
+
+imports
+
+  libanalysis2/Menus
+  libanalysis2/References
+
+language
+
+  observer : editor-analyze (multifile)
+  context  : taskengine

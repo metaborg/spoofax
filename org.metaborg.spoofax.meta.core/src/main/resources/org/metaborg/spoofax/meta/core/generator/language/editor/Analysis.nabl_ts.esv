@@ -1,28 +1,34 @@
-module Menus
+module Analysis
+
+language
+
+  observer : editor-analyze (multifile)
+  context  : taskengine
+  
+references
+
+  reference _ : editor-resolve
+  hover _     : editor-hover
 
 menus
   
-  menu: "Syntax" (openeditor)
-    
-    action: "Format"                 = editor-format (source)
-    action: "Show abstract syntax"   = debug-show-aterm (source)
-    action: "Show analyzed syntax"   = debug-show-analyzed
-    
-  menu: "Analysis"
+  menu: "Analysis" (openeditor)
 
-    submenu: "Show analysis" (openeditor)
+    action: "Show analyzed AST" = debug-show-analyzed
+
+    submenu: "Show analysis"
       action: "Project"   = debug-project
       action: "Partition" = debug-partition
     end
     
-    submenu: "Show index" (openeditor)
+    submenu: "Show index"
       action: "Project"              = debug-index-project
       action: "Project (resolved)"   = debug-index-project-resolve
       action: "Partition"            = debug-index-partition
       action: "Partition (resolved)" = debug-index-partition-resolve
     end
     
-    submenu: "Show tasks" (openeditor)
+    submenu: "Show tasks"
       action: "Project"   = debug-task-project
       action: "Partition" = debug-task-partition
       action: "Selection" = debug-task-selection

@@ -4,45 +4,15 @@ import java.util.Collection;
 import java.util.List;
 
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageVersion;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 
 /**
  * Helps with the validation and UI of a 'create language specification' wizard.
  */
-public abstract class CreateLanguageSpecWizard {
-    public static class ValidationResult {
-        public final boolean complete;
-        public final List<String> errors;
-
-
-        public ValidationResult(boolean complete, List<String> errors) {
-            this.complete = complete;
-            this.errors = errors;
-        }
-    }
-
-    private final boolean upgrade;
-
-
-    public CreateLanguageSpecWizard(boolean upgrade) {
-        this.upgrade = upgrade;
-    }
-
-
+public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard {
     public String projectName() {
         return inputProjectName();
-    }
-
-    public String languageName() {
-        return inputName();
-    }
-
-    public LanguageIdentifier languageIdentifier() {
-        final LanguageVersion version = LanguageVersion.parse(inputVersion());
-        return new LanguageIdentifier(inputGroupId(), inputId(), version);
     }
 
     public Collection<String> extensions() {
@@ -50,38 +20,9 @@ public abstract class CreateLanguageSpecWizard {
     }
 
 
-    public String id() {
-        return inputId();
-    }
-
-    public String groupId() {
-        return inputGroupId();
-    }
-
-    public String version() {
-        return inputVersion();
-    }
-
-
     protected abstract boolean inputProjectNameModified();
 
     protected abstract String inputProjectName();
-
-    protected abstract boolean inputNameModified();
-
-    protected abstract String inputName();
-
-    protected abstract boolean inputIdModified();
-
-    protected abstract String inputId();
-
-    protected abstract boolean inputGroupIdModified();
-
-    protected abstract String inputGroupId();
-
-    protected abstract boolean inputVersionModified();
-
-    protected abstract String inputVersion();
 
     protected abstract boolean inputExtensionsModified();
 
@@ -92,21 +33,8 @@ public abstract class CreateLanguageSpecWizard {
 
     protected abstract void setId(String id);
 
-    protected abstract void setGroupId(String groupId);
-
-    protected abstract void setVersion(String version);
-
     protected abstract void setExtensions(String extensions);
 
-
-    public void setDefaults() {
-        if(!inputGroupIdModified()) {
-            setGroupId("org.example");
-        }
-        if(!inputVersionModified()) {
-            setVersion("0.1.0-SNAPSHOT");
-        }
-    }
 
     public void distributeProjectName() {
         if(!inputNameModified() || inputName().isEmpty()) {
@@ -128,73 +56,27 @@ public abstract class CreateLanguageSpecWizard {
     }
 
     public ValidationResult validate() {
-        boolean complete = true;
-        final List<String> errors = Lists.newArrayList();
+        final ValidationResult superResult = super.validate();
 
-        if(!upgrade) {
-            final String projectName = inputProjectName();
-            if(inputProjectNameModified()) {
-                if(projectName.isEmpty()) {
-                    errors.add("Project name must be specified");
-                } else if(!LanguageIdentifier.validId(projectName)) {
-                    errors.add("Project name is invalid; " + LanguageIdentifier.errorDescription);
-                }
-            } else if(projectName.isEmpty()) {
-                complete = false;
-            }
-        }
+        boolean complete = superResult.complete;
+        final List<String> errors = superResult.errors;
 
-        final String name = inputName();
-        if(inputNameModified()) {
-            if(name.isEmpty()) {
-                errors.add("Language name must be specified");
-            } else if(!LanguageIdentifier.validId(name)) {
-                errors.add("Language name is invalid; " + LanguageIdentifier.errorDescription);
+        final String projectName = inputProjectName();
+        if(inputProjectNameModified()) {
+            if(projectName.isEmpty()) {
+                errors.add("Project name must be specified");
+            } else if(!LanguageIdentifier.validId(projectName)) {
+                errors.add("Project name is invalid; " + LanguageIdentifier.errorDescription);
             }
-        } else if(name.isEmpty()) {
+        } else if(projectName.isEmpty()) {
             complete = false;
         }
 
-        final String id = inputId();
-        if(inputIdModified()) {
-            if(id.isEmpty()) {
-                errors.add("Identifier must be specified");
-            } else if(!LanguageIdentifier.validId(id)) {
-                errors.add("Identifier is invalid; " + LanguageIdentifier.errorDescription);
-            }
-        } else if(id.isEmpty()) {
+        final String extensions = inputExtensions();
+        if(extensions.isEmpty() || extensions().isEmpty()) {
             complete = false;
-        }
-
-        final String groupId = inputGroupId();
-        if(inputGroupIdModified()) {
-            if(groupId.isEmpty()) {
-                errors.add("Group identifier must be specified");
-            } else if(!LanguageIdentifier.validId(groupId)) {
-                errors.add("Group identifier is invalid; " + LanguageIdentifier.errorDescription);
-            }
-        } else if(groupId.isEmpty()) {
-            complete = false;
-        }
-
-        final String version = inputVersion();
-        if(inputVersionModified()) {
-            if(version.isEmpty()) {
-                errors.add("Version must be specified");
-            } else if(!LanguageVersion.valid(version)) {
-                errors.add("Version is invalid; " + LanguageVersion.errorDescription);
-            }
-        } else if(version.isEmpty()) {
-            complete = false;
-        }
-
-        if(!upgrade) {
-            final String extensions = inputExtensions();
-            if(extensions.isEmpty() || extensions().isEmpty()) {
-                complete = false;
-                if(inputExtensionsModified()) {
-                    errors.add("At least one extension must be specified");
-                }
+            if(inputExtensionsModified()) {
+                errors.add("At least one extension must be specified");
             }
         }
 
