@@ -29,6 +29,7 @@ import org.metaborg.core.transform.ITransformUnit;
 import org.metaborg.core.unit.IUnitService;
 import org.metaborg.util.inject.GenericInjectUtils;
 
+import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 
 /**
@@ -90,18 +91,21 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
     /**
      * Instantiate the generic MetaBorg API.
      * 
+     * @param loader
+     *            Module plugin loader to use.
      * @param module
      *            MetaBorg module to use, which should implement all services in this facade. Do not use
      *            {@link MetaborgModule}.
-     * @param loader
-     *            Module plugin loader to use.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgGeneric(MetaborgModule module, IModulePluginLoader loader, Class<I> iClass, Class<P> pClass,
-        Class<A> aClass, Class<AU> auClass, Type tClass, Type tpClass, Type taClass, Class<F> fClass)
-        throws MetaborgException {
-        super(module, loader);
+    public MetaBorgGeneric(Class<I> iClass, Class<P> pClass, Class<A> aClass, Class<AU> auClass, Type tClass,
+        Type tpClass, Type taClass, Class<F> fClass, IModulePluginLoader loader, MetaborgModule module,
+        Module... additionalModules) throws MetaborgException {
+        super(loader, module);
 
         this.dialectService = injector.getInstance(IDialectService.class);
         this.dialectIdentifier = injector.getInstance(IDialectIdentifier.class);
@@ -142,12 +146,17 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
      * @param module
      *            MetaBorg module to use, which should implement all services in this facade. Do not use
      *            {@link MetaborgModule}.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgGeneric(MetaborgModule module, Class<I> iClass, Class<P> pClass, Class<A> aClass, Class<AU> auClass,
-        Class<T> tClass, Class<TP> tpClass, Class<TA> taClass, Class<F> fClass) throws MetaborgException {
-        this(module, defaultPluginLoader(), iClass, pClass, aClass, auClass, tClass, tpClass, taClass, fClass);
+    public MetaBorgGeneric(Class<I> iClass, Class<P> pClass, Class<A> aClass, Class<AU> auClass, Class<T> tClass,
+        Class<TP> tpClass, Class<TA> taClass, Class<F> fClass, MetaborgModule module, Module... additionalModules)
+        throws MetaborgException {
+        this(iClass, pClass, aClass, auClass, tClass, tpClass, taClass, fClass, defaultPluginLoader(), module,
+            additionalModules);
     }
 
 

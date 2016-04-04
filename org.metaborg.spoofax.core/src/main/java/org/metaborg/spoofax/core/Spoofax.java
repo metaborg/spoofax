@@ -13,6 +13,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.inject.Module;
 import com.google.inject.util.Types;
 
 /**
@@ -26,21 +27,26 @@ public class Spoofax extends
 
 
     /**
-     * Instantiate the Metaborg API with a Spoofax implementation.
+     * Instantiate the MetaBorg API with a Spoofax implementation.
      * 
-     * @param module
-     *            Spoofax module to use.
      * @param loader
      *            Module plugin loader to use.
+     * @param module
+     *            Spoofax module to use.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public Spoofax(SpoofaxModule module, IModulePluginLoader loader) throws MetaborgException {
-        super(module, loader, ISpoofaxInputUnit.class, ISpoofaxParseUnit.class, ISpoofaxAnalyzeUnit.class,
+    public Spoofax(IModulePluginLoader loader, SpoofaxModule module, Module... additionalModules)
+        throws MetaborgException {
+        super(ISpoofaxInputUnit.class, ISpoofaxParseUnit.class, ISpoofaxAnalyzeUnit.class,
             ISpoofaxAnalyzeUnitUpdate.class,
             Types.newParameterizedType(ISpoofaxTransformUnit.class, Types.subtypeOf(Object.class)),
             Types.newParameterizedType(ISpoofaxTransformUnit.class, ISpoofaxParseUnit.class),
-            Types.newParameterizedType(ISpoofaxTransformUnit.class, ISpoofaxAnalyzeUnit.class), IStrategoTerm.class);
+            Types.newParameterizedType(ISpoofaxTransformUnit.class, ISpoofaxAnalyzeUnit.class), IStrategoTerm.class,
+            loader, module, additionalModules);
 
         this.termFactoryService = injector.getInstance(ITermFactoryService.class);
         this.strategoRuntimeService = injector.getInstance(IStrategoRuntimeService.class);
@@ -48,37 +54,46 @@ public class Spoofax extends
     }
 
     /**
-     * Instantiate the Metaborg API with a Spoofax implementation.
+     * Instantiate the MetaBorg API with a Spoofax implementation.
      * 
      * @param module
      *            Spoofax module to use.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public Spoofax(SpoofaxModule module) throws MetaborgException {
-        this(module, defaultPluginLoader());
+    public Spoofax(SpoofaxModule module, Module... additionalModules) throws MetaborgException {
+        this(defaultPluginLoader(), module, additionalModules);
     }
 
     /**
-     * Instantiate the Metaborg API with a Spoofax implementation.
+     * Instantiate the MetaBorg API with a Spoofax implementation.
      * 
      * @param loader
      *            Module plugin loader to use.
-     * @throws MetaborgException
-     *             When loading plugins or dependency injection fails.
-     */
-    public Spoofax(IModulePluginLoader loader) throws MetaborgException {
-        this(defaultModule(), loader);
-    }
-
-    /**
-     * Instantiate the Metaborg API with a Spoofax implementation.
+     * @param additionalModules
+     *            Additional modules to use.
      * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public Spoofax() throws MetaborgException {
-        this(defaultModule());
+    public Spoofax(IModulePluginLoader loader, Module... additionalModules) throws MetaborgException {
+        this(loader, defaultModule(), additionalModules);
+    }
+
+    /**
+     * Instantiate the MetaBorg API with a Spoofax implementation.
+     * 
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
+     * @throws MetaborgException
+     *             When loading plugins or dependency injection fails.
+     */
+    public Spoofax(Module... additionalModules) throws MetaborgException {
+        this(defaultPluginLoader(), defaultModule(), additionalModules);
     }
 
 
