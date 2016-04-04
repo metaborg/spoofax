@@ -24,8 +24,6 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
         Pattern.compile("(?:(" + idPattern + "):)?(" + idPattern + ")(?::(.+))?");
     private static final Pattern fullPattern = Pattern.compile("(?:(" + idPattern + "):)(" + idPattern + ")(?::(.+))");
 
-    public static final LanguageIdentifier EMPTY = new LanguageIdentifier("", "", LanguageVersion.BASELINE_VERSION);
-
     public final String groupId;
     public final String id;
     public final LanguageVersion version;

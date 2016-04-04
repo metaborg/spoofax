@@ -227,7 +227,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 .get();
             // @formatter:on
 
-            final File cacheDir = FileUtils.getFile(targetDir, "stratego-cache");
+            final File cacheDir = toFile(paths.strCacheDir());
 
             final Strj.Input strjInput = new Strj.Input(context, input.strFile, outputFile, depPath, "trans", true,
                 true, input.strjIncludeDirs, Lists.<String>newArrayList(), cacheDir, extraArgs, origin);

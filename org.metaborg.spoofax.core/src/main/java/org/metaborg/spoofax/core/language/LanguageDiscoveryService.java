@@ -175,11 +175,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
             final IStrategoAppl esvTerm;
             try {
-                FileObject esvFile = languageLocation.resolveFile("target/metaborg/editor.esv.af");
-                if(!esvFile.exists()) {
-                    // BOOTSTRAPPING: support old packed ESV file location.
-                    esvFile = languageLocation.resolveFile("include/" + config.name() + ".packed.esv");
-                }
+                final FileObject esvFile = languageLocation.resolveFile("target/metaborg/editor.esv.af");
                 if(!esvFile.exists()) {
                     esvTerm = null;
                 } else {

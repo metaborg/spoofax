@@ -139,11 +139,6 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
         if(result.detached()) {
             throw new MetaborgRuntimeException("Cannot process updates for detached (no source) units");
         }
-        // LEGACY: analysis always returns resources on the local file system, but we expect resources in the Eclipse
-        // file system here. Need to rebase resources on the local file system to the Eclipse file system, otherwise
-        // updates will not match invalidates.
-        // final FileObject resource = resourceService.rebase(result.source);
-        // GTODO: enable this behavior again, disabled because it is Eclipse-dependent.
         final FileObject resource = result.source();
         final FileName name = resource.getName();
         if(removedResources.contains(name)) {

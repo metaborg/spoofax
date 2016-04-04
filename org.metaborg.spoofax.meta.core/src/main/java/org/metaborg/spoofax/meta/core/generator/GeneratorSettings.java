@@ -8,7 +8,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.meta.core.build.CommonPaths;
+import org.metaborg.spoofax.meta.core.build.LangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 
@@ -18,7 +18,7 @@ import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 public class GeneratorSettings {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
-    private final CommonPaths paths;
+    private final LangSpecCommonPaths paths;
 
 
     public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
@@ -50,7 +50,7 @@ public class GeneratorSettings {
 
         this.location = location;
         this.config = config;
-        this.paths = new CommonPaths(location);
+        this.paths = new LangSpecCommonPaths(location);
     }
 
 

@@ -85,7 +85,7 @@ public class LanguageSpecBuilder {
 
 
     public void initialize(LanguageSpecBuildInput input) throws MetaborgException {
-        final CommonPaths paths = new CommonPaths(input.languageSpec().location());
+        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
         try {
             paths.srcGenDir().createFolder();
             paths.targetMetaborgDir().createFolder();
@@ -137,14 +137,11 @@ public class LanguageSpecBuilder {
             throw new MetaborgException(e);
         }
 
-        final CommonPaths paths = new CommonPaths(input.languageSpec().location());
+        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
-        FileObject mainEsvFile = paths.esvMainFile();
+        final FileObject mainEsvFile = paths.esvMainFile();
         try {
-            if(!mainEsvFile.exists()) {
-                mainEsvFile = paths.esvOldMainFile(input.languageSpec().config().esvName());
-            }
             if(mainEsvFile.exists()) {
                 logger.info("Compiling ESV file {}", mainEsvFile);
                 // @formatter:off
@@ -218,11 +215,9 @@ public class LanguageSpecBuilder {
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
         logger.debug("Cleaning {}", input.languageSpec().location());
 
-        final CommonPaths paths = new CommonPaths(input.languageSpec().location());
+        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
         cleanAndLog(paths.srcGenDir());
         cleanAndLog(paths.targetDir());
-        cleanAndLog(paths.includeDir());
-        cleanAndLog(paths.cacheDir());
 
         try {
             Xattr.getDefault().clear();
@@ -258,7 +253,7 @@ public class LanguageSpecBuilder {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
-        final CommonPaths paths = new CommonPaths(baseLoc);
+        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 
@@ -371,7 +366,7 @@ public class LanguageSpecBuilder {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
-        final CommonPaths paths = new CommonPaths(baseLoc);
+        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 

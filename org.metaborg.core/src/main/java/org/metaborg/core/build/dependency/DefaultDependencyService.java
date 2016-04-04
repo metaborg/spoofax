@@ -64,7 +64,7 @@ public final class DefaultDependencyService implements IDependencyService {
         final Collection<LanguageIdentifier> compileDeps = config.compileDeps();
         final Collection<LanguageIdentifier> missingCompile = Lists.newLinkedList();
         for(LanguageIdentifier identifier : compileDeps) {
-            if(languageService.getComponentOrBaseline(identifier) == null) {
+            if(languageService.getComponent(identifier) == null) {
                 missingCompile.add(identifier);
             }
         }
@@ -72,7 +72,7 @@ public final class DefaultDependencyService implements IDependencyService {
         final Collection<LanguageIdentifier> sourceDeps = config.sourceDeps();
         final Collection<LanguageIdentifier> missingSource = Lists.newLinkedList();
         for(LanguageIdentifier identifier : sourceDeps) {
-            if(languageService.getComponentOrBaseline(identifier) == null) {
+            if(languageService.getComponent(identifier) == null) {
                 missingSource.add(identifier);
             }
         }
@@ -91,7 +91,7 @@ public final class DefaultDependencyService implements IDependencyService {
         throws MissingDependencyException {
         final Collection<ILanguageComponent> components = Lists.newLinkedList();
         for(LanguageIdentifier id : ids) {
-            final ILanguageComponent component = this.languageService.getComponentOrBaseline(id);
+            final ILanguageComponent component = this.languageService.getComponent(id);
             if(component == null) {
                 throw new MissingDependencyException(logger.format("Language for dependency {} does not exist", id));
             }
