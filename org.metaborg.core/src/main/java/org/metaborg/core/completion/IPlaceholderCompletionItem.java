@@ -4,4 +4,6 @@ public interface IPlaceholderCompletionItem extends ICompletionItem {
     String name();
 
     String placeholderText();
+    
+    boolean optional();
 }

@@ -40,6 +40,7 @@ import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.ListImploderAttachment;
 import org.spoofax.terms.StrategoAppl;
+import org.spoofax.terms.StrategoConstructor;
 import org.spoofax.terms.StrategoTerm;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.visitor.AStrategoTermVisitor;
@@ -72,22 +73,34 @@ public class JSGLRCompletionService implements ICompletionService {
     }
 
 
-    @Override public Iterable<ICompletion> get(ParseResult<?> parseResult, int position) throws MetaborgException {
+    @Override public Iterable<ICompletion> get(ParseResult<?> parseResult, int position, boolean nested)
+        throws MetaborgException {
 
         ParseResult<?> completionParseResult = null;
-        final IParserConfiguration config = new JSGLRParserConfiguration(true, true, true, 3000, position);
+        final IParserConfiguration config = new JSGLRParserConfiguration(true, true, true, 300000000, position);
 
-        if(parseResult.messages != null) {
+        if(!nested && !Iterables.isEmpty(parseResult.messages)) {
             completionParseResult =
                 syntaxService.parse(parseResult.input, parseResult.source, parseResult.language, config);
         }
 
         Collection<ICompletion> completions = Lists.newLinkedList();
 
-        completions.addAll(completionCorrectPrograms(position, parseResult));
+        Collection<IStrategoTerm> nestedCompletionTerms = getNestedCompletionTermsFromAST(completionParseResult);
+        Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
 
-        if(completionParseResult != null) {
-            completions.addAll(completionErroneousPrograms(completionParseResult));
+
+
+        if(!completionTerms.isEmpty()) {
+            completions.addAll(completionErroneousPrograms(completionTerms, completionParseResult));
+        }
+
+        if(!nestedCompletionTerms.isEmpty()) {
+            completions.addAll(completionErroneousProgramsNested(nestedCompletionTerms, completionParseResult));
+        }
+
+        if(completionTerms.isEmpty() && nestedCompletionTerms.isEmpty()) {
+            completions.addAll(completionCorrectPrograms(position, parseResult));
         }
 
         return completions;
@@ -111,15 +124,15 @@ public class JSGLRCompletionService implements ICompletionService {
 
         if(placeholder != null) {
             completions.addAll(placeholderCompletions(placeholder, input, language, location));
-        }
-        if(Iterables.size(lists) != 0) {
-            completions.addAll(listsCompletions(position, lists, input, language, location));
-        }
+        } else {
+            if(Iterables.size(lists) != 0) {
+                completions.addAll(listsCompletions(position, lists, input, language, location));
+            }
 
-        if(Iterables.size(optionals) != 0) {
-            completions.addAll(optionalCompletions(optionals, input, language, location));
+            if(Iterables.size(optionals) != 0) {
+                completions.addAll(optionalCompletions(optionals, input, language, location));
+            }
         }
-
         return completions;
     }
 
@@ -137,6 +150,7 @@ public class JSGLRCompletionService implements ICompletionService {
 
             if(proposalsPlaceholder == null) {
                 logger.error("Getting proposals for {} failed", placeholder);
+                continue;
             }
             for(IStrategoTerm proposalTerm : proposalsPlaceholder) {
                 if(!(proposalTerm instanceof IStrategoTuple)) {
@@ -156,7 +170,7 @@ public class JSGLRCompletionService implements ICompletionService {
                 final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
 
                 if(change.getConstructor().getName().contains("REPLACE_TERM")) {
-                    final ICompletion completion = createCompletionReplacement(name, description, change);
+                    final ICompletion completion = createCompletionReplaceTerm(name, description, change);
 
                     if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
@@ -217,7 +231,7 @@ public class JSGLRCompletionService implements ICompletionService {
 
                     if(change.getConstructor().getName().contains("REPLACE_TERM")) {
 
-                        final ICompletion completion = createCompletionReplacement(name, description, change);
+                        final ICompletion completion = createCompletionReplaceTerm(name, description, change);
 
                         if(completion == null) {
                             logger.error("Unexpected proposal term {}, skipping", proposalTerm);
@@ -303,7 +317,7 @@ public class JSGLRCompletionService implements ICompletionService {
     }
 
 
-    private ICompletion createCompletionReplacement(String name, String description, StrategoAppl change) {
+    private ICompletion createCompletionReplaceTerm(String name, String description, StrategoAppl change) {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -438,28 +452,28 @@ public class JSGLRCompletionService implements ICompletionService {
     }
 
 
-    public Collection<ICompletion> completionErroneousPrograms(ParseResult<?> completionParseResult)
-        throws MetaborgException {
+    public Collection<ICompletion> completionErroneousPrograms(Iterable<IStrategoTerm> completionTerms,
+        ParseResult<?> completionParseResult) throws MetaborgException {
 
         final FileObject location = completionParseResult.source;
         final ILanguageImpl language = completionParseResult.language;
         final Collection<ICompletion> completions = Lists.newLinkedList();
         final Collection<IStrategoTerm> proposalsTerm = Lists.newLinkedList();
 
-        // TODO: disambiguate the tree and break it into completion results
-        Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
-
         for(ILanguageComponent component : language.components()) {
             final ITermFactory termFactory = termFactoryService.get(component);
             for(IStrategoTerm completionTerm : completionTerms) {
                 IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.result;
-                final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm);
+                final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) completionTerm);
+                final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb, parenthesizeTerm(completionTerm, termFactory));
                 final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
                 final IStrategoTerm proposalTerm =
                     strategoCommon.invoke(runtime, inputStratego, "get-proposals-erroneous-programs");
                 if(proposalTerm == null) {
                     logger.error("Getting proposals for {} failed", inputStratego);
+                    continue;
                 }
+                            
                 proposalsTerm.add(proposalTerm);
             }
             for(IStrategoTerm proposalTerm : proposalsTerm) {
@@ -513,6 +527,16 @@ public class JSGLRCompletionService implements ICompletionService {
                     }
 
                     completions.add(completion);
+                } else if(change.getConstructor().getName().contains("REPLACE_TERM")) {
+
+                    final ICompletion completion = createCompletionReplaceTermFixing(name, description, change);
+
+                    if(completion == null) {
+                        logger.error("Unexpected proposal term {}, skipping", proposalTerm);
+                        continue;
+                    }
+
+                    completions.add(completion);
                 }
             }
         }
@@ -531,20 +555,23 @@ public class JSGLRCompletionService implements ICompletionService {
         int insertionPoint, suffixPoint;
 
         ITokenizer tokenizer = ImploderAttachment.getTokenizer(newNode);
-        final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
 
-        // get the last non-layout token before the new node
-        int tokenPosition = newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
+        final StrategoTerm topMostAmb = findTopMostAmbNode(newNode);
+        final ImploderAttachment topMostAmbIA = topMostAmb.getAttachment(ImploderAttachment.TYPE);
+
+        // get the last non-layout token before the topmost ambiguity
+        int tokenPosition =
+            topMostAmbIA.getLeftToken().getIndex() - 1 > 0 ? topMostAmbIA.getLeftToken().getIndex() - 1 : 0;
         while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(tokenPosition)
             .getKind() == IToken.TK_ERROR) && tokenPosition > 0)
             tokenPosition--;
 
         insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
 
-        if(newNodeIA.getRightToken().getEndOffset() < newNodeIA.getRightToken().getStartOffset()) {
+        if(topMostAmbIA.getRightToken().getEndOffset() < topMostAmbIA.getRightToken().getStartOffset()) {
             // keep all the characters after the last non-layout token if completion ends with a
             // placeholder
-            tokenPosition = newNodeIA.getRightToken().getIndex();
+            tokenPosition = topMostAmbIA.getRightToken().getIndex();
             while(tokenPosition > 0
                 && (tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition)
                     .getStartOffset() || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT))
@@ -553,9 +580,9 @@ public class JSGLRCompletionService implements ICompletionService {
 
         } else {
             // skip all the (erroneous) characters that were in the text already
-            suffixPoint = newNodeIA.getRightToken().getEndOffset() + 1;
+            suffixPoint = topMostAmbIA.getRightToken().getEndOffset() + 1;
         }
-        
+
         return new Completion(name, description, insertionPoint + 1, suffixPoint);
     }
 
@@ -577,17 +604,22 @@ public class JSGLRCompletionService implements ICompletionService {
         IStrategoTerm[] subterms = ((IStrategoList) oldList).getAllSubterms();
         int indexOfCompletion;
         for(indexOfCompletion = 0; indexOfCompletion < subterms.length; indexOfCompletion++) {
-            if(subterms[indexOfCompletion] == newNode)
+            if(subterms[indexOfCompletion] == oldNode)
                 break;
         }
         // if inserted element is first (only two elements)
-        if(indexOfCompletion == 0) {
-            // insert after the first non-layout token before the leftmost token of the completion node
-            ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
-            final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
+        if(indexOfCompletion == 1) {
+            // insert after the first non-layout token before the leftmost token of the list
+            ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldList);
+            
+            //to avoid keeping duplicate tokens due to ambiguity
+            IStrategoTerm topMostAmbOldList = findTopMostAmbNode(oldList);
+            final ImploderAttachment oldListIA = topMostAmbOldList.getAttachment(ImploderAttachment.TYPE);
+
             int tokenPosition =
-                newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
+                oldListIA.getLeftToken().getIndex() - 1 > 0 ? oldListIA.getLeftToken().getIndex() - 1 : 0;
+            while((checkEmptyOffset(tokenizer.getTokenAt(tokenPosition))
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
                 tokenPosition).getKind() == IToken.TK_ERROR)
                 && tokenPosition > 0)
                 tokenPosition--;
@@ -596,7 +628,7 @@ public class JSGLRCompletionService implements ICompletionService {
         } else {
             // if inserted element is not first
             // insert after at end offset of the rightmost token of the element before the completion
-            StrategoTerm elementBefore = (StrategoTerm) oldList.getSubterm(indexOfCompletion - 1);
+            StrategoTerm elementBefore = (StrategoTerm) oldList.getSubterm(indexOfCompletion - 2);
             insertionPoint = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
 
         }
@@ -608,7 +640,7 @@ public class JSGLRCompletionService implements ICompletionService {
 
 
     private ICompletion createCompletionInsertAtEndFixing(String name, String description, StrategoAppl change) {
-        // expected two lists
+
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
 
@@ -618,14 +650,15 @@ public class JSGLRCompletionService implements ICompletionService {
 
         int insertionPoint, suffixPoint;
         ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
-        final ImploderAttachment newNodeIA = newNode.getAttachment(ImploderAttachment.TYPE);
+        final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
 
         // if list is empty
         // insert after the first non-layout token before the leftmost token of the completion node
-        if(oldNode.getSubtermCount() == 1) {
+        if(((IStrategoList) oldNode).size() == 1) {
             int tokenPosition =
-                newNodeIA.getLeftToken().getIndex() - 1 > 0 ? newNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
+                oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
+            while((checkEmptyOffset(tokenizer.getTokenAt(tokenPosition))
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
                 tokenPosition).getKind() == IToken.TK_ERROR)
                 && tokenPosition > 0)
                 tokenPosition--;
@@ -638,10 +671,10 @@ public class JSGLRCompletionService implements ICompletionService {
         }
 
         suffixPoint = insertionPoint;
-        if(newNodeIA.getRightToken().getEndOffset() < newNodeIA.getRightToken().getStartOffset()) {
+        if(oldNodeIA.getRightToken().getEndOffset() < oldNodeIA.getRightToken().getStartOffset()) {
             // keep all the characters after the last non-layout token if completion ends with a
             // placeholder
-            int tokenPosition = newNodeIA.getRightToken().getIndex();
+            int tokenPosition = oldNodeIA.getRightToken().getIndex();
             while(tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition)
                 .getStartOffset()
                 || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
@@ -651,47 +684,324 @@ public class JSGLRCompletionService implements ICompletionService {
 
         } else {
             // skip all the (erroneous) characters that were in the text already
-            suffixPoint = newNodeIA.getRightToken().getEndOffset() + 1;
+            suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
         }
 
         return new Completion(name, description, insertionPoint + 1, suffixPoint);
     }
 
 
-    private Collection<IStrategoTerm> getCompletionTermsFromAST(ParseResult<?> completionParseResult) {
+    public Collection<? extends ICompletion> completionErroneousProgramsNested(
+        Collection<IStrategoTerm> nestedCompletionTerms, ParseResult<?> completionParseResult) throws MetaborgException {
+        final FileObject location = completionParseResult.source;
+        final ILanguageImpl language = completionParseResult.language;
+        final Collection<ICompletion> completions = Lists.newLinkedList();
+        IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.result;
+
+        for(ILanguageComponent component : language.components()) {
+            final ITermFactory termFactory = termFactoryService.get(component);
+            for(IStrategoTerm nestedCompletionTerm : nestedCompletionTerms) {
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
+
+                Collection<IStrategoTerm> inputsStrategoNested = Lists.newLinkedList();
+
+                // calculate direct proposals
+                inputsStrategoNested.addAll(calculateDirectCompletionProposals(nestedCompletionTerm, termFactory,
+                    completionAst, runtime));
+
+                // calculate inner nested proposals
+                Collection<IStrategoTerm> innerNestedCompletionTerms =
+                    findNestedCompletionTerm((StrategoTerm) nestedCompletionTerm, true);
+
+                for(IStrategoTerm innerNestedCompletionTerm : innerNestedCompletionTerms) {
+                    inputsStrategoNested.addAll(calculateNestedCompletionProposals(nestedCompletionTerm, innerNestedCompletionTerm,
+                        termFactory, completionAst, runtime));
+                }
+
+                for(IStrategoTerm inputStrategoNested : inputsStrategoNested) {
+                    final IStrategoTerm proposalTermNested =
+                        strategoCommon.invoke(runtime, inputStrategoNested, "get-proposals-erroneous-programs-nested");
+                    if(proposalTermNested == null) {
+                        logger.error("Getting proposals for {} failed", inputStrategoNested);
+                        continue;
+                    }
+
+                    final String name = Tools.asJavaString(proposalTermNested.getSubterm(0));
+                    final String description = Tools.asJavaString(proposalTermNested.getSubterm(1));
+                    final StrategoAppl change = (StrategoAppl) proposalTermNested.getSubterm(2);
+
+                    if(change.getConstructor().getName().contains("REPLACE_TERM")) {
+
+                        final ICompletion completion = createCompletionReplaceTermFixing(name, description, change);
+
+                        if(completion == null) {
+                            logger.error("Unexpected proposal term {}, skipping", inputStrategoNested);
+                            continue;
+                        }
+
+                        completions.add(completion);
+                    }
+                }
+            }
+        }
+
+        return completions;
+    }
+
+
+    private Collection<IStrategoTerm> calculateNestedCompletionProposals(IStrategoTerm mainNestedCompletionTerm, IStrategoTerm nestedCompletionTerm,
+        ITermFactory termFactory, IStrategoTerm completionAst, HybridInterpreter runtime) throws MetaborgException {
+        Collection<IStrategoTerm> inputsStratego = Lists.newLinkedList();
+
+        Collection<IStrategoTerm> nestedCompletionTerms =
+            findNestedCompletionTerm((StrategoTerm) nestedCompletionTerm, true);
+
+        for(IStrategoTerm innerNestedCompletionTerm : nestedCompletionTerms) {
+            Collection<IStrategoTerm> inputsStrategoInnerNested =
+                calculateNestedCompletionProposals(nestedCompletionTerm, innerNestedCompletionTerm, termFactory, completionAst, runtime);
+            for(IStrategoTerm inputStrategoNested : inputsStrategoInnerNested) {
+                final IStrategoTerm proposalTermNested =
+                    strategoCommon.invoke(runtime, inputStrategoNested, "get-proposals-erroneous-programs-nested");
+                if(proposalTermNested == null) {
+                    logger.error("Getting proposals for {} failed", inputStrategoNested);
+                    continue;
+                }
+                final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) nestedCompletionTerm);
+                final IStrategoTerm replaceTermText =
+                    termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2), topMostAmb,
+                        proposalTermNested.getSubterm(1));
+
+                final IStrategoTerm inputStrategoInnerNested =
+                    termFactory.makeTuple(completionAst, mainNestedCompletionTerm, proposalTermNested.getSubterm(0),
+                        replaceTermText, parenthesizeTerm(mainNestedCompletionTerm, termFactory));
+
+                inputsStratego.add(inputStrategoInnerNested);
+            }
+
+        }
+
+        Collection<IStrategoTerm> inputsStrategoInner =
+            calculateDirectCompletionProposals(nestedCompletionTerm, termFactory, completionAst, runtime);
+
+        for(IStrategoTerm inputStrategoNested : inputsStrategoInner) {
+            final IStrategoTerm proposalTermNested =
+                strategoCommon.invoke(runtime, inputStrategoNested, "get-proposals-erroneous-programs-nested");
+            if(proposalTermNested == null) {
+                logger.error("Getting proposals for {} failed", inputStrategoNested);
+                continue;
+            }
+            final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) nestedCompletionTerm);
+            final IStrategoTerm replaceTermText =
+                termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2), topMostAmb,
+                    proposalTermNested.getSubterm(1));
+
+            final IStrategoTerm inputStrategoInnerNested =
+                termFactory.makeTuple(completionAst, mainNestedCompletionTerm, proposalTermNested.getSubterm(0),
+                    replaceTermText, parenthesizeTerm(mainNestedCompletionTerm, termFactory));
+
+            inputsStratego.add(inputStrategoInnerNested);
+        }
+
+
+
+        return inputsStratego;
+    }
+
+
+    private Collection<IStrategoTerm> calculateDirectCompletionProposals(IStrategoTerm nestedCompletionTerm,
+        ITermFactory termFactory, IStrategoTerm completionAst, HybridInterpreter runtime) throws MetaborgException {
+
+        Collection<IStrategoTerm> inputsStratego = Lists.newLinkedList();
+        Collection<IStrategoTerm> completionTerms = findCompletionTermInsideNested((StrategoTerm) nestedCompletionTerm);
+
+        for(IStrategoTerm completionTerm : completionTerms) {
+            
+            final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) completionTerm);
+            
+            final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb, parenthesizeTerm(completionTerm, termFactory));
+
+            final IStrategoTerm proposalTerm =
+                strategoCommon.invoke(runtime, inputStratego, "get-proposals-erroneous-programs");
+            if(proposalTerm == null) {
+                logger.error("Getting proposals for {} failed", inputStratego);
+                continue;
+            }
+
+            final IStrategoTerm replaceTermText =
+                termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2), topMostAmb,
+                    proposalTerm.getSubterm(1));
+
+            final IStrategoTerm inputStrategoNested =
+                termFactory.makeTuple(completionAst, nestedCompletionTerm, proposalTerm.getSubterm(0), replaceTermText, parenthesizeTerm(nestedCompletionTerm, termFactory));
+
+            inputsStratego.add(inputStrategoNested);
+        }
+
+        return inputsStratego;
+    }
+
+    private IStrategoTerm parenthesizeTerm(IStrategoTerm completionTerm, ITermFactory termFactory) {
+        if (ImploderAttachment.get(completionTerm).isBracket()){
+            IStrategoTerm result = termFactory.makeAppl(termFactory.makeConstructor("Parenthetical", 1), completionTerm);
+            return result;
+        }
+        return completionTerm;
+    }
+
+
+    private ICompletion createCompletionReplaceTermFixing(String name, String description, StrategoAppl change) {
+        final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
+        final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
+
+        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl) || !(oldNode instanceof IStrategoAppl)) {
+            return null;
+        }
+
+        int insertionPoint, suffixPoint;
+
+        final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
+        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+
+        // check if it's an empty node
+        if(oldNodeIA.getLeftToken().getStartOffset() > oldNodeIA.getRightToken().getEndOffset()) {
+            // get the last non-layout token before the new node
+            int tokenPosition =
+                oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
+                tokenPosition).getKind() == IToken.TK_ERROR)
+                && tokenPosition > 0)
+                tokenPosition--;
+            insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
+        } else { // if not, do a regular replacement
+            insertionPoint = oldNodeIA.getLeftToken().getStartOffset() - 1;
+        }
+
+
+        // insert after the first non-layout token
+        int tokenPositionEnd = oldNodeIA.getRightToken().getIndex();
+
+        while((tokenizer.getTokenAt(tokenPositionEnd).getEndOffset() < tokenizer.getTokenAt(tokenPositionEnd)
+            .getStartOffset() || tokenizer.getTokenAt(tokenPositionEnd).getKind() == IToken.TK_LAYOUT || tokenizer
+            .getTokenAt(tokenPositionEnd).getKind() == IToken.TK_ERROR) && tokenPositionEnd > 0)
+            tokenPositionEnd--;
+
+        suffixPoint = tokenizer.getTokenAt(tokenPositionEnd).getEndOffset() + 1;
+
+        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+    }
+
+
+    private boolean checkEmptyOffset(IToken token) {
+        if(token.getStartOffset() > token.getEndOffset())
+            return true;
+
+        return false;
+    }
+
+
+    private Collection<IStrategoTerm> getNestedCompletionTermsFromAST(ParseResult<?> completionParseResult) {
+        if(completionParseResult == null) {
+            return Lists.newLinkedList();
+        }
 
         StrategoAppl ast = (StrategoAppl) completionParseResult.result;
+        Collection<IStrategoTerm> completionTerm = findNestedCompletionTerm(ast, false);
+
+        return completionTerm;
+    }
+
+
+    private Collection<IStrategoTerm> getCompletionTermsFromAST(ParseResult<?> completionParseResult) {
+
+        if(completionParseResult == null) {
+            return Lists.newLinkedList();
+        }
+
+        StrategoTerm ast = (StrategoTerm) completionParseResult.result;
         Collection<IStrategoTerm> completionTerm = findCompletionTerm(ast);
 
         return completionTerm;
     }
 
 
-    private Collection<IStrategoTerm> findCompletionTerm(StrategoAppl ast) {
+    private Collection<IStrategoTerm> findCompletionTerm(StrategoTerm ast) {
 
         final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
-        /*
-         * TODO: to be implemented
-         */
-        
-        /*final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
+        final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
 
-        @Override public boolean visit(IStrategoTerm term) {
-            ImploderAttachment ia = term.getAttachment(ImploderAttachment.TYPE);
-            if(ia.isCompletion()) {
-                completionTerms.add(term);
-                return false;
+            @Override public boolean visit(IStrategoTerm term) {
+                ImploderAttachment ia = term.getAttachment(ImploderAttachment.TYPE);
+                if(ia.isNestedCompletion()) {
+                    return false;
+                }
+                if(ia.isCompletion()) {
+                    completionTerms.add(term);
+                    return false;
+                }
+                return true;
             }
-            return true;
-        }
         };
-        StrategoTermVisitee.bottomup(visitor, ast);
-        */
-
+        StrategoTermVisitee.topdown(visitor, ast);
 
 
         return completionTerms;
     }
+
+    private Collection<IStrategoTerm> findCompletionTermInsideNested(final StrategoTerm ast) {
+
+        final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
+        final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
+
+            @Override public boolean visit(IStrategoTerm term) {
+                ImploderAttachment ia = term.getAttachment(ImploderAttachment.TYPE);
+                if(ia.isNestedCompletion() && !term.equals(ast)) {
+                    return false;
+                }
+                if(ia.isCompletion()) {
+                    completionTerms.add(term);
+                    return false;
+                }
+                return true;
+            }
+        };
+        StrategoTermVisitee.topdown(visitor, ast);
+
+
+        return completionTerms;
+    }
+
+    private Collection<IStrategoTerm> findNestedCompletionTerm(final StrategoTerm ast, final boolean excludeIdTerm) {
+        final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
+        final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
+
+            @Override public boolean visit(IStrategoTerm term) {
+
+                ImploderAttachment ia = term.getAttachment(ImploderAttachment.TYPE);
+                if(excludeIdTerm && term.equals(ast)) {
+                    return true;
+                }
+                if(ia.isNestedCompletion()) {
+                    completionTerms.add(term);
+                    return false;
+                }
+                return true;
+            }
+        };
+        StrategoTermVisitee.topdown(visitor, ast);
+
+
+        return completionTerms;
+    }
+
+
+    private StrategoTerm findTopMostAmbNode(StrategoTerm newNode) {
+        StrategoTerm parent = (StrategoTerm) ParentAttachment.getParent(newNode);
+        if(ImploderAttachment.getSort(parent) == null)
+            return findTopMostAmbNode(parent);
+
+        return newNode;
+    }
+
 
     private @Nullable IStrategoAppl getPlaceholder(final Iterable<IStrategoTerm> terms) {
         for(IStrategoTerm term : terms) {

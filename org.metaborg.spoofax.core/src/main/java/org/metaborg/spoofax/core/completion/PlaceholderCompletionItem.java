@@ -5,11 +5,13 @@ import org.metaborg.core.completion.IPlaceholderCompletionItem;
 public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
     public final String sort;
     public final String name;
+    public final boolean optional;
 
 
-    public PlaceholderCompletionItem(String sort, String name) {
+    public PlaceholderCompletionItem(String sort, String name, boolean optional) {
         this.sort = sort;
         this.name = name + hashCode();
+        this.optional = optional;
     }
 
 
@@ -24,5 +26,11 @@ public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
 
     @Override public String toString() {
         return "[[" + name + "]]";
+    }
+
+
+    @Override public boolean optional() {
+        // TODO Auto-generated method stub
+        return optional;
     }
 }
