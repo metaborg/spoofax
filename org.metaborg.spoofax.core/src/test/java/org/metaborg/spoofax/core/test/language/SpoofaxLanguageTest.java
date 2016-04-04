@@ -47,14 +47,14 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
 
         final SyntaxFacet syntaxFacet = impl.facet(SyntaxFacet.class);
 
-        assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTable);
+        assertEquals(resourceService.resolve("res:Entity/target/metaborg/sdf.tbl"), syntaxFacet.parseTable);
 
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
         final StrategoRuntimeFacet strategoFacet = impl.facet(StrategoRuntimeFacet.class);
 
-        assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/include/entity.ctree"));
-        assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/include/entity-java.jar"));
+        assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
+        assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));
 
         final AnalysisFacet analysisFacet = impl.facet(AnalysisFacet.class);
 
