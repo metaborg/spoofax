@@ -1,0 +1,15 @@
+module Main
+
+{{#syntaxOrAnalysisEnabled}}imports
+
+{{#syntaxEnabled}}  Syntax
+{{/syntaxEnabled}}{{#analysisEnabled}}  Analysis
+
+{{/analysisEnabled}}
+{{/syntaxOrAnalysisEnabled}}language
+
+{{#fileExtensions}}  extensions : {{fileExtensions}}
+{{/fileExtensions}}
+
+  provider : target/metaborg/stratego.ctree
+  provider : target/metaborg/stratego-javastrat.jar

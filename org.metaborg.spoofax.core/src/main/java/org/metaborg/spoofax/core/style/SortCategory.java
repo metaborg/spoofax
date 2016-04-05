@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.style;
 
+import org.metaborg.core.style.ICategory;
+
 public class SortCategory implements ICategory {
     private static final long serialVersionUID = 7423414710882093137L;
     

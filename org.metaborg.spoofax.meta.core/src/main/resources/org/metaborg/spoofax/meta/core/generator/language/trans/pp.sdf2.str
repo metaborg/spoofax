@@ -1,0 +1,17 @@
+module pp
+
+imports
+
+  libstratego-gpp
+  runtime/refactoring/-
+  pp/{{name}}-parenthesize
+
+rules
+
+  pp-{{name}}-string = fail
+  pp-partial-{{name}}-string = fail
+  pp-debug = fail
+
+rules
+  
+  construct-textual-change = construct-textual-change(pp-partial-{{name}}-string, parenthesize, override-reconstruction, resugar)

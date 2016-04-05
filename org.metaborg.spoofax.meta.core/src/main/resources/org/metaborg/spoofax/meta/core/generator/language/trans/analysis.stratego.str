@@ -1,0 +1,31 @@
+module analysis
+
+rules // Analysis
+
+  editor-analyze:
+    (ast, path, project-path) -> (ast', error*, warning*, info*)
+    with
+      ast'     := <id> ast
+    ; error*   := <collect-all(constraint-error)> ast'
+    ; warning* := <collect-all(constraint-warning)> ast'
+    ; info*    := <collect-all(constraint-info)> ast'
+  
+  constraint-error = fail
+  constraint-warning = fail
+  constraint-info = fail
+  
+rules // Editor services
+  
+  editor-resolve:
+    (node, position, ast, path, project-path) -> <fail>
+
+  editor-hover:
+    (node, position, ast, path, project-path) -> <fail>
+
+rules // Debugging
+
+  debug-show-analyzed:
+    (_, _, ast, path, _) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"analyzed.aterm")> path;
+      result   := ast

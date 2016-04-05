@@ -3,20 +3,25 @@ package org.metaborg.spoofax.core.style;
 import java.awt.Color;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
+import org.metaborg.core.style.IStyle;
+import org.metaborg.core.style.Style;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
 public class StylerFacetFromESV {
-    private static final Logger logger = LoggerFactory.getLogger(StylerFacetFromESV.class);
+    private static final ILogger logger = LoggerUtils.logger(StylerFacetFromESV.class);
 
 
-    public static StylerFacet create(IStrategoAppl esv) {
+    public static @Nullable StylerFacet create(IStrategoAppl esv) {
         final StylerFacet facet = new StylerFacet();
 
         final Iterable<IStrategoAppl> styleDefs = ESVReader.collectTerms(esv, "ColorDef");
@@ -43,6 +48,9 @@ public class StylerFacetFromESV {
         }
 
         final Iterable<IStrategoAppl> styleRules = ESVReader.collectTerms(esv, "ColorRule");
+        if(Iterables.isEmpty(styleRules)) {
+            return null;
+        }
         for(IStrategoAppl styleRule : styleRules) {
             final IStrategoAppl styleTerm = (IStrategoAppl) styleRule.getSubterm(1);
             final IStrategoConstructor styleCons = styleTerm.getConstructor();
@@ -94,33 +102,39 @@ public class StylerFacetFromESV {
         final boolean underline = false;
         final IStrategoAppl fontSetting = (IStrategoAppl) attribute.getSubterm(2);
         final String fontSettingCons = fontSetting.getConstructor().getName();
-        if(fontSettingCons.equals("BOLD")) {
-            bold = true;
-            italic = false;
-        } else if(fontSettingCons.equals("ITALIC")) {
-            bold = false;
-            italic = true;
-        } else if(fontSettingCons.equals("BOLD_ITALIC")) {
-            bold = true;
-            italic = true;
-        } else {
-            bold = false;
-            italic = false;
+        switch (fontSettingCons) {
+            case "BOLD":
+                bold = true;
+                italic = false;
+                break;
+            case "ITALIC":
+                bold = false;
+                italic = true;
+                break;
+            case "BOLD_ITALIC":
+                bold = true;
+                italic = true;
+                break;
+            default:
+                bold = false;
+                italic = false;
+                break;
         }
         return new Style(color, backgroundColor, bold, italic, underline);
     }
 
     private static Color color(IStrategoAppl color) {
         final String colorCons = color.getConstructor().getName();
-        if(colorCons.equals("ColorRGB")) {
-            final int r = Integer.parseInt(Tools.asJavaString(color.getSubterm(0)));
-            final int g = Integer.parseInt(Tools.asJavaString(color.getSubterm(1)));
-            final int b = Integer.parseInt(Tools.asJavaString(color.getSubterm(2)));
-            return new Color(r, g, b);
-        } else if(colorCons.equals("ColorDefault")) {
-            return new Color(0, 0, 0);
-        } else {
-            return null;
+        switch (colorCons) {
+            case "ColorRGB":
+                final int r = Integer.parseInt(Tools.asJavaString(color.getSubterm(0)));
+                final int g = Integer.parseInt(Tools.asJavaString(color.getSubterm(1)));
+                final int b = Integer.parseInt(Tools.asJavaString(color.getSubterm(2)));
+                return new Color(r, g, b);
+            case "ColorDefault":
+                return new Color(0, 0, 0);
+            default:
+                return null;
         }
     }
 }

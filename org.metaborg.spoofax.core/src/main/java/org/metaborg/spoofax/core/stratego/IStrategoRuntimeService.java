@@ -1,30 +1,46 @@
 package org.metaborg.spoofax.core.stratego;
 
-import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.context.IContext;
+import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.MetaborgException;
+import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageCache;
+import org.metaborg.core.language.ILanguageComponent;
 import org.strategoxt.HybridInterpreter;
 
 /**
- * Service for the production of language-specific Stratego Interpreters. Precisely one interpreter per language is
- * cached; subsequent requests for new interpreters are based on the cached ones as prototypes.
+ * Interface for a service that returns Stratego runtimes. Runtimes are created once and then cached, subsequent calls
+ * are faster.
  */
-public interface IStrategoRuntimeService {
+public interface IStrategoRuntimeService extends ILanguageCache {
     /**
-     * Obtain a new {@link HybridInterpreter} for given {@link IContext}. The produced interpreter is based on an
-     * internally cached interpreter instance for the language in given context. If such a cache does not exist, then
-     * this method first creates an internal cache for the language and then returns a new interpreter based on that
-     * prototype. Note therefore that multiple calls to this method will return a different interpreter every time.
+     * Returns a new Stratego runtime for given component, initialized with given context.
      * 
+     * @param component
+     *            Language component to load the Stratego CTree and JAR files from.
      * @param context
-     *            Context to create the interpreter with.
-     * @return A new interpreter for given language. All of the language's CTree and JAR files from
-     *         {@link StrategoFacet#ctreeFiles()} and {@link StrategoFacet#jarFiles()} respectively are loaded into the
-     *         interpreter.
-     * @throws SpoofaxException
-     *             When loading a CTree or JAR fails.
+     *            Context to initialize the runtime with.
+     * @return New Stratego runtime.
+     * @throws MetaborgException
+     *             When loading a Stratego CTree or JAR fails.
      */
-    public abstract HybridInterpreter runtime(IContext context) throws SpoofaxException;
+    HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException;
 
-    public abstract HybridInterpreter genericRuntime();
+    /**
+     * Returns a new Stratego runtime for given component, initialized without a context.
+     * 
+     * @param component
+     *            Language component to load the Stratego CTree and JAR files from.
+     * @param location
+     *            Location to initialize the runtime with.
+     * @return New Stratego runtime.
+     * @throws MetaborgException
+     *             When loading a Stratego CTree or JAR fails.
+     */
+    HybridInterpreter runtime(ILanguageComponent component, FileObject location)
+        throws MetaborgException;
+
+    /**
+     * @return Generic Stratego runtime, with just the standard libraries loaded.
+     */
+    HybridInterpreter genericRuntime();
 }

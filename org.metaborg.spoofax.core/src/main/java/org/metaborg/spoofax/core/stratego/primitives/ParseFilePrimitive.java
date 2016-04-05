@@ -4,14 +4,16 @@ import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
-import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.resource.IResourceService;
-import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.syntax.ParseException;
-import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.text.ISourceTextService;
+import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.IdentifiedResource;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
@@ -24,24 +26,26 @@ import com.google.inject.Inject;
 public class ParseFilePrimitive extends AbstractPrimitive {
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
+    private final ISpoofaxUnitService unitService;
     private final ISourceTextService sourceTextService;
-    private final ISyntaxService<IStrategoTerm> syntaxService;
+    private final ISpoofaxSyntaxService syntaxService;
 
 
     @Inject public ParseFilePrimitive(IResourceService resourceService,
-        ILanguageIdentifierService languageIdentifierService, ISourceTextService sourceTextService,
-        ISyntaxService<IStrategoTerm> syntaxService) {
-        this("STRSGLR_parse_string", resourceService, languageIdentifierService,
-                sourceTextService, syntaxService);
+        ILanguageIdentifierService languageIdentifierService, ISpoofaxUnitService unitService,
+        ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
+        this("STRSGLR_parse_string", resourceService, languageIdentifierService, unitService, sourceTextService,
+            syntaxService);
     }
 
     protected ParseFilePrimitive(String name, IResourceService resourceService,
-        ILanguageIdentifierService languageIdentifierService, ISourceTextService sourceTextService,
-        ISyntaxService<IStrategoTerm> syntaxService) {
+        ILanguageIdentifierService languageIdentifierService, ISpoofaxUnitService unitService,
+        ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
         super(name, 1, 4);
 
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
+        this.unitService = unitService;
         this.sourceTextService = sourceTextService;
         this.syntaxService = syntaxService;
     }
@@ -58,35 +62,38 @@ public class ParseFilePrimitive extends AbstractPrimitive {
             final String pathOrInput = Tools.asJavaString(terms[0]);
             final String pathOrInput2 = Tools.asJavaString(terms[3]);
             FileObject resource;
-            String input;
+            String text;
             try {
                 resource = resourceService.resolve(pathOrInput);
                 if(!resource.exists() || resource.getType() != FileType.FILE) {
                     resource = resourceService.resolve(pathOrInput2);
-                    input = pathOrInput;
+                    text = pathOrInput;
                 } else {
-                    input = sourceTextService.text(resource);
+                    text = sourceTextService.text(resource);
                 }
-            } catch(SpoofaxRuntimeException | IOException e) {
+            } catch(MetaborgRuntimeException | IOException e) {
                 resource = resourceService.resolve(pathOrInput2);
-                input = pathOrInput;
+                text = pathOrInput;
             }
 
             if(resource.getType() != FileType.FILE) {
                 return false;
             }
 
-            final ILanguage language = languageIdentifierService.identify(resource);
-            if(language == null) {
+            final IdentifiedResource identifiedResource = languageIdentifierService.identifyToResource(resource);
+            if(identifiedResource == null) {
                 return false;
             }
-            final ParseResult<IStrategoTerm> result = syntaxService.parse(input, resource, language);
-            if(result.result == null) {
+            final ISpoofaxInputUnit input =
+                unitService.inputUnit(resource, text, identifiedResource.language, identifiedResource.dialect);
+            final ISpoofaxParseUnit result = syntaxService.parse(input);
+            if(result.valid() && result.success()) {
+                env.setCurrent(result.ast());
+            } else {
                 return false;
             }
-            env.setCurrent(result.result);
         } catch(ParseException | IOException e) {
-            throw new InterpreterException("Parsing failed", e);
+            throw new InterpreterException("Parsing failed unexpectedly", e);
         }
 
         return true;

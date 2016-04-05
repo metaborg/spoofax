@@ -9,19 +9,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.util.log.Level;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOAgent;
+import org.spoofax.interpreter.library.PrintStreamWriter;
 
 import com.google.common.collect.Maps;
 
@@ -46,25 +48,53 @@ public class ResourceAgent extends IOAgent {
 
     private final Map<Integer, ResourceHandle> openFiles = Maps.newHashMap();
 
+    private final OutputStream stdout;
+    private final Writer stdoutWriter;
+
+    private final OutputStream stderr;
+    private final Writer stderrWriter;
+
     private FileObject workingDir;
     private FileObject definitionDir;
     private boolean acceptDirChanges = false;
 
 
+    public static OutputStream defaultStdout(String... excludePatterns) {
+        return LoggerUtils.stream(LoggerUtils.logger("stdout"), Level.Info, excludePatterns);
+    }
+    
+    public static OutputStream defaultStderr(String... excludePatterns) {
+        return LoggerUtils.stream(LoggerUtils.logger("stderr"), Level.Info, excludePatterns);
+    }
+    
+    
     public ResourceAgent(IResourceService resourceService) {
-        this(resourceService, resourceService.resolve(System.getProperty("java.io.tmpdir")), resourceService
-            .resolve(System.getProperty("user.dir")), resourceService.resolve(System.getProperty("user.dir")));
+        this(resourceService, resourceService.resolve(System.getProperty("user.dir")));
     }
 
-    public ResourceAgent(IResourceService resourceService, FileObject tempDir, FileObject workingDir,
-        FileObject definitionDir) {
+    public ResourceAgent(IResourceService resourceService, FileObject initialDir) {
+        this(resourceService, initialDir, defaultStdout());
+    }
+
+    public ResourceAgent(IResourceService resourceService, FileObject initialDir, OutputStream stdout) {
+        this(resourceService, initialDir, stdout, defaultStderr());
+    }
+
+    public ResourceAgent(IResourceService resourceService, FileObject initialDir, OutputStream stdout,
+        OutputStream stderr) {
         super();
         this.acceptDirChanges = true; // Start accepting dir changes after IOAgent constructor call.
 
         this.resourceService = resourceService;
-        this.tempDir = tempDir;
-        this.workingDir = workingDir;
-        this.definitionDir = definitionDir;
+        this.tempDir = resourceService.resolve(System.getProperty("java.io.tmpdir"));
+        this.workingDir = initialDir;
+        this.definitionDir = initialDir;
+
+        this.stdout = stdout;
+        this.stdoutWriter = new PrintStreamWriter(new PrintStream(stdout));
+
+        this.stderr = stderr;
+        this.stderrWriter = new PrintStreamWriter(new PrintStream(stderr));
     }
 
 
@@ -92,26 +122,22 @@ public class ResourceAgent extends IOAgent {
         return tempDir;
     }
 
-    @Override public void setWorkingDir(String newWorkingDir) throws FileNotFoundException, IOException {
+    @Override public void setWorkingDir(String newWorkingDir) throws IOException {
         if(!acceptDirChanges)
             return;
 
-        workingDir = resolve(workingDir, newWorkingDir);
+        workingDir = resourceService.resolve(workingDir, newWorkingDir);
     }
 
     public void setAbsoluteWorkingDir(FileObject dir) {
         workingDir = dir;
     }
 
-    @Override public void setDefinitionDir(String newDefinitionDir) throws FileNotFoundException {
+    @Override public void setDefinitionDir(String newDefinitionDir) {
         if(!acceptDirChanges)
             return;
 
-        try {
-            definitionDir = resolve(definitionDir, newDefinitionDir);
-        } catch(FileSystemException e) {
-            throw new FileNotFoundException(newDefinitionDir);
-        }
+        definitionDir = resourceService.resolve(definitionDir, newDefinitionDir);
     }
 
     public void setAbsoluteDefinitionDir(FileObject dir) {
@@ -204,12 +230,12 @@ public class ResourceAgent extends IOAgent {
     }
 
 
-    @Override public int openRandomAccessFile(String fn, String mode) throws FileNotFoundException, IOException {
+    @Override public int openRandomAccessFile(String fn, String mode) throws IOException {
         boolean appendMode = mode.indexOf('a') >= 0;
         boolean writeMode = appendMode || mode.indexOf('w') >= 0;
         boolean clearFile = false;
 
-        final FileObject resource = resolve(workingDir, fn);
+        final FileObject resource = resourceService.resolve(workingDir, fn);
 
         if(writeMode) {
             if(!resource.exists()) {
@@ -273,14 +299,14 @@ public class ResourceAgent extends IOAgent {
         try {
             getWriter(CONST_STDERR).write(error + "\n");
         } catch(IOException e) {
-            // Like System.err.println, we swallow excpetions
+            // Like System.err.println, we swallow exceptions
         }
     }
 
     @Override public InputStream openInputStream(String fn, boolean isDefinitionFile) throws FileNotFoundException {
         final FileObject dir = isDefinitionFile ? definitionDir : workingDir;
         try {
-            final FileObject file = resolve(dir, fn);
+            final FileObject file = resourceService.resolve(dir, fn);
             return file.getContent().getInputStream();
         } catch(FileSystemException e) {
             throw new RuntimeException("Could not get input stream for resource", e);
@@ -290,30 +316,25 @@ public class ResourceAgent extends IOAgent {
 
     @Override public OutputStream openFileOutputStream(String fn) throws FileNotFoundException {
         try {
-            return resolve(workingDir, fn).getContent().getOutputStream();
+            return resourceService.resolve(workingDir, fn).getContent().getOutputStream();
         } catch(FileSystemException e) {
             throw new RuntimeException("Could not get output stream for resource", e);
         }
     }
 
     @Override public File openFile(String fn) {
-        // GTODO: does not work for files that do not reside on the local file system
-        try {
-            final FileObject resource = resolve(workingDir, fn);
-            File localResource = resourceService.localPath(resource);
-            if(localResource == null) {
-                final File localWorkingDir = resourceService.localPath(workingDir);
-                if(localWorkingDir == null) {
-                    // Local working directory does not reside on the local file system, just return a File.
-                    return new File(fn);
-                }
-                // Could not get a local File using the FileObject interface, fall back to composing Files.
-                return new File(getAbsolutePath(localWorkingDir.getPath(), fn));
+        final FileObject resource = resourceService.resolve(workingDir, fn);
+        File localResource = resourceService.localPath(resource);
+        if(localResource == null) {
+            final File localWorkingDir = resourceService.localPath(workingDir);
+            if(localWorkingDir == null) {
+                // Local working directory does not reside on the local file system, just return a File.
+                return new File(fn);
             }
-            return localResource;
-        } catch(FileSystemException e) {
-            throw new RuntimeException("Could not open file", e);
+            // Could not get a local File using the FileObject interface, fall back to composing Files.
+            return new File(getAbsolutePath(localWorkingDir.getPath(), fn));
         }
+        return localResource;
     }
 
     @Override public String createTempFile(String prefix) throws IOException {
@@ -336,7 +357,7 @@ public class ResourceAgent extends IOAgent {
 
     @Override public boolean mkdir(String dn) {
         try {
-            final FileObject resource = resolve(workingDir, dn);
+            final FileObject resource = resourceService.resolve(workingDir, dn);
             final boolean created = !resource.exists();
             resource.createFolder();
             return created;
@@ -351,44 +372,10 @@ public class ResourceAgent extends IOAgent {
 
     @Override public boolean rmdir(String dn) {
         try {
-            final FileObject resource = resolve(workingDir, dn);
+            final FileObject resource = resourceService.resolve(workingDir, dn);
             return resource.delete(new AllFileSelector()) > 0;
         } catch(FileSystemException e) {
             throw new RuntimeException("Could not delete directory", e);
         }
-    }
-
-
-    /**
-     * Tries to resolve {@code path} as an absolute path first, if that fails, resolves {@code path} relative to
-     * {@code parent}.
-     * 
-     * @param parent
-     *            Parent file object to resolve relatively to, if {@code path} is a relative path.
-     * @param path
-     *            Path to resolve
-     * @return Resolved file object
-     * @throws FileSystemException
-     *             when absolute and relative resolution fails.
-     */
-    private FileObject resolve(FileObject parent, String path) throws FileSystemException {
-        final File file = new File(path);
-
-        try {
-            final URI uri = new URI(path);
-            if(uri.isAbsolute()) {
-                return resourceService.resolve(path);
-            } 
-        } catch(URISyntaxException e) {
-            // Ignore
-        }
-
-        if(file.isAbsolute()) {
-            return resourceService.resolve("file://" + path);
-        }
-        if(parent != null) {
-            return parent.resolveFile(path);
-        }
-        throw new RuntimeException("Cannot resolve relative path if base path is null");
     }
 }

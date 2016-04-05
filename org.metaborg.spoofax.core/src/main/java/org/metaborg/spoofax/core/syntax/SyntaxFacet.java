@@ -1,21 +1,21 @@
 package org.metaborg.spoofax.core.syntax;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.language.ILanguageFacet;
-import org.metaborg.spoofax.core.resource.ResourceService;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.language.IFacet;
+import org.metaborg.core.syntax.FenceCharacters;
+import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 /**
  * Represents the syntax (or parsing) facet of a language.
  */
-public class SyntaxFacet implements ILanguageFacet {
-    private static final long serialVersionUID = 2342326101518124130L;
+public class SyntaxFacet implements IFacet {
+    private static final ILogger logger = LoggerUtils.logger(SyntaxFacet.class);
 
-    public transient FileObject parseTable;
+    public final FileObject parseTable;
     public final Iterable<String> startSymbols;
     public final Iterable<String> singleLineCommentPrefixes;
     public final Iterable<MultiLineCommentCharacters> multiLineCommentCharacters;
@@ -25,8 +25,8 @@ public class SyntaxFacet implements ILanguageFacet {
     /**
      * Creates a syntax facet from a parse table provider and start symbols.
      * 
-     * @param parseTableProvider
-     *            Parse table provider.
+     * @param parseTable
+     *            Parse table.
      * @param startSymbols
      *            Set of start symbols.
      */
@@ -38,8 +38,8 @@ public class SyntaxFacet implements ILanguageFacet {
     /**
      * Creates a syntax facet from syntax configuration.
      * 
-     * @param parseTableProvider
-     *            Parse table provider.
+     * @param parseTable
+     *            Parse table.
      * @param startSymbols
      *            Set of start symbols.
      * @param singleLineCommentPrefixes
@@ -60,13 +60,18 @@ public class SyntaxFacet implements ILanguageFacet {
     }
 
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        ResourceService.writeFileObject(parseTable, out);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        parseTable = ResourceService.readFileObject(in);
+    /**
+     * Checks if the parse table file exists, returns errors if not.
+     * 
+     * @throws FileSystemException
+     *             When an error occurs while checking if the parse table file exists.
+     * @return Errors, or empty if there are no errors.
+     */
+    public Iterable<String> available() throws FileSystemException {
+        if(!parseTable.exists()) {
+            final String message = logger.format("Parse table {} does not exist", parseTable);
+            return Iterables2.singleton(message);
+        }
+        return Iterables2.empty();
     }
 }
