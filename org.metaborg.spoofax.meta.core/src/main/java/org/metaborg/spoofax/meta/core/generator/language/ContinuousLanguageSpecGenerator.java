@@ -19,13 +19,13 @@ public class ContinuousLanguageSpecGenerator extends BaseGenerator {
     }
 
     public void generateAll() throws IOException {
-        generateCommonLibrary();
+        generateMetaborgLibrary();
         generateEditorServices();
     }
 
 
-    public void generateCommonLibrary() throws IOException {
-        writer.write("lib/editor-common.generated.str", true);
+    public void generateMetaborgLibrary() throws IOException {
+        writer.write("src-gen/stratego/metaborg.str", true);
     }
 
     public void generateEditorServices() throws IOException {

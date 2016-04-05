@@ -34,6 +34,11 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.scopegraph</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.spoofax.interpreter.core</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
@@ -86,7 +91,7 @@
       <groupId>com.netflix.rxjava</groupId>
       <artifactId>rxjava-core</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>

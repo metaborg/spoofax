@@ -1,31 +1,41 @@
 package org.metaborg.spoofax.core.build;
 
-import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
+import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
-import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
-import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
-import org.metaborg.core.syntax.ISyntaxService;
-import org.metaborg.core.transform.ITransformService;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
+import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultUpdater;
+import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
+import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
- * Typedef class for {@link Builder} with {@link IStrategoTerm}.
+ * Typedef class for {@link Builder} with Spoofax interfaces.
  */
-public class SpoofaxBuilder extends Builder<IStrategoTerm, IStrategoTerm, IStrategoTerm> implements ISpoofaxBuilder {
+public class SpoofaxBuilder extends
+    Builder<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
+    implements ISpoofaxBuilder {
     @Inject public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-                                  ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
-                                  ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
-                                  ITransformService<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformService,
-                                  IParseResultUpdater<IStrategoTerm> parseResultProcessor,
-                                  IAnalysisResultUpdater<IStrategoTerm, IStrategoTerm> analysisResultProcessor) {
-        super(resourceService, languageIdentifier, languagePathService, contextService, sourceTextService,
-            syntaxService, analysisService, transformService, parseResultProcessor, analysisResultProcessor);
+        ILanguagePathService languagePathService, ISpoofaxUnitService unitService, ISourceTextService sourceTextService,
+        ISpoofaxSyntaxService syntaxService, IContextService contextService, ISpoofaxAnalysisService analysisService,
+        ISpoofaxTransformService transformService, ISpoofaxParseResultUpdater parseResultUpdater,
+        ISpoofaxAnalysisResultUpdater analysisResultUpdater,
+        Provider<IBuildOutputInternal<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>> buildOutputProvider) {
+        super(resourceService, languageIdentifier, languagePathService, unitService, sourceTextService, syntaxService,
+            contextService, analysisService, transformService, parseResultUpdater, analysisResultUpdater,
+            buildOutputProvider);
     }
 }

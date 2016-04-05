@@ -3,19 +3,19 @@ package org.metaborg.core.tracing;
 import javax.annotation.Nullable;
 
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.analysis.AnalysisFileResult;
+import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.syntax.ParseResult;
+import org.metaborg.core.syntax.IParseUnit;
 
 /**
  * Interface for reference resolution, resolving use sites to their definition sites.
  * 
  * @param <P>
- *            Type of parsed fragments
+ *            Type of parse units.
  * @param <A>
- *            Type of analyzed fragments
+ *            Type of analyze units.
  */
-public interface IResolverService<P, A> {
+public interface IResolverService<P extends IParseUnit, A extends IAnalyzeUnit> {
     /**
      * Checks if reference resolution is available for given language implementation.
      * 
@@ -31,14 +31,14 @@ public interface IResolverService<P, A> {
      * 
      * @param offset
      *            Offset in the source text to perform reference resolution for.
-     * @param result
-     *            Parse result to use for resolving and tracing.
+     * @param input
+     *            Parsed input to use for resolving and tracing.
      * 
      * @return Resolution if reference resolution was successful, or null if no resolution could be made.
      * @throws MetaborgException
      *             When reference resolution fails unexpectedly.
      */
-    @Nullable Resolution resolve(int offset, ParseResult<P> result) throws MetaborgException;
+    @Nullable Resolution resolve(int offset, P input) throws MetaborgException;
 
     /**
      * Attempt to resolve use site at {@code offset} in the source text, using given analysis result for resolving and
@@ -46,12 +46,12 @@ public interface IResolverService<P, A> {
      * 
      * @param offset
      *            Offset in the source text to perform reference resolution for.
-     * @param result
-     *            Analysis result to use for resolving and tracing.
+     * @param input
+     *            Analyzed input to use for resolving and tracing.
      * 
      * @return Resolution if reference resolution was successful, or null if no resolution could be made.
      * @throws MetaborgException
      *             When reference resolution fails unexpectedly.
      */
-    @Nullable Resolution resolve(int offset, AnalysisFileResult<P, A> result) throws MetaborgException;
+    @Nullable Resolution resolve(int offset, A input) throws MetaborgException;
 }

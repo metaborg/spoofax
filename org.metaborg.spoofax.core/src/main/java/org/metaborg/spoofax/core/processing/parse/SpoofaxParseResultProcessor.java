@@ -1,17 +1,18 @@
 package org.metaborg.spoofax.core.processing.parse;
 
 import org.metaborg.core.processing.parse.ParseResultProcessor;
-import org.metaborg.core.syntax.ISyntaxService;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 
 import com.google.inject.Inject;
 
 /**
- * Typedef class for {@link ParseResultProcessor} with {@link IStrategoTerm}.
+ * Typedef class for {@link ParseResultProcessor} with Spoofax interfaces.
  */
-public class SpoofaxParseResultProcessor extends ParseResultProcessor<IStrategoTerm> implements
-    ISpoofaxParseResultProcessor {
-    @Inject public SpoofaxParseResultProcessor(ISyntaxService<IStrategoTerm> syntaxService) {
+public class SpoofaxParseResultProcessor extends ParseResultProcessor<ISpoofaxInputUnit, ISpoofaxParseUnit>
+    implements ISpoofaxParseResultProcessor {
+    @Inject public SpoofaxParseResultProcessor(ISpoofaxSyntaxService syntaxService) {
         super(syntaxService);
     }
 }

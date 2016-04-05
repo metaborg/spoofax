@@ -2,11 +2,15 @@ module outline
 
 imports
   
-  include/{{name}}
+  {{signaturesModule}}
   runtime/editor/outline-library
   runtime/editor/origins
 
 rules
   
-  to-outline-label = fail
+  editor-outline:
+    (_, _, ast, path, project-path) -> outline
+    where
+      outline := <simple-label-outline(to-outline-label)> ast
   
+  to-outline-label = fail

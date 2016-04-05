@@ -8,7 +8,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.completion.Completion;
 import org.metaborg.core.completion.ICompletion;
-import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
@@ -16,15 +15,16 @@ import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceLocation;
 import org.metaborg.core.source.SourceRegion;
-import org.metaborg.core.syntax.IParserConfiguration;
-import org.metaborg.core.syntax.ISyntaxService;
-import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
 import org.metaborg.spoofax.core.syntax.SourceAttachment;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,36 +52,39 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class JSGLRCompletionService implements ICompletionService {
+public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private static final Logger logger = LoggerFactory.getLogger(JSGLRCompletionService.class);
 
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final IStrategoCommon strategoCommon;
     private final IResourceService resourceService;
-    private final ISyntaxService<?> syntaxService;
+    private final ISpoofaxUnitService unitService;
+    private final ISpoofaxSyntaxService syntaxService;
 
 
     @Inject public JSGLRCompletionService(ITermFactoryService termFactoryService,
         IStrategoRuntimeService strategoRuntimeService, IStrategoCommon strategoCommon,
-        IResourceService resourceService, ISyntaxService<?> syntaxService) {
+        IResourceService resourceService, ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService) {
         this.termFactoryService = termFactoryService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.strategoCommon = strategoCommon;
         this.resourceService = resourceService;
+        this.unitService = unitService;
         this.syntaxService = syntaxService;
     }
 
 
-    @Override public Iterable<ICompletion> get(ParseResult<?> parseResult, int position, boolean nested)
-        throws MetaborgException {
 
-        ParseResult<?> completionParseResult = null;
-        final IParserConfiguration config = new JSGLRParserConfiguration(true, true, true, 300000000, position);
+    @Override public Iterable<ICompletion> get(int position, ISpoofaxParseUnit parseInput, boolean nested) throws MetaborgException {
+        ISpoofaxParseUnit completionParseResult = null;
 
-        if(!nested && !Iterables.isEmpty(parseResult.messages)) {
-            completionParseResult =
-                syntaxService.parse(parseResult.input, parseResult.source, parseResult.language, config);
+        if(!nested && !parseInput.valid()) {
+            final JSGLRParserConfiguration config = new JSGLRParserConfiguration(true, true, true, 3000, position);
+            final ISpoofaxInputUnit input = parseInput.input();
+            final ISpoofaxInputUnit modifiedInput = unitService.inputUnit(input.source(), input.text(), input.langImpl(), input.dialect(), config);
+            completionParseResult = syntaxService.parse(modifiedInput);
+
         }
 
         Collection<ICompletion> completions = Lists.newLinkedList();
@@ -100,23 +103,23 @@ public class JSGLRCompletionService implements ICompletionService {
         }
 
         if(completionTerms.isEmpty() && nestedCompletionTerms.isEmpty()) {
-            completions.addAll(completionCorrectPrograms(position, parseResult));
+            completions.addAll(completionCorrectPrograms(position, parseInput));
         }
 
         return completions;
 
     }
 
-    public Collection<ICompletion> completionCorrectPrograms(int position, ParseResult<?> parseResult)
+    public Collection<ICompletion> completionCorrectPrograms(int position, ISpoofaxParseUnit parseResult)
         throws MetaborgException {
 
         Collection<ICompletion> completions = Lists.newLinkedList();
 
-        final Iterable<IStrategoTerm> terms = tracingTermsCompletions(parseResult.result, new SourceRegion(position));
+        final Iterable<IStrategoTerm> terms = tracingTermsCompletions(parseResult.ast(), new SourceRegion(position));
 
-        final String input = parseResult.input;
-        final FileObject location = parseResult.source;
-        final ILanguageImpl language = parseResult.language;
+        final String input = parseResult.input().text();
+        final FileObject location = parseResult.source();
+        final ILanguageImpl language = parseResult.input().langImpl();
 
         final IStrategoAppl placeholder = getPlaceholder(terms);
         final Iterable<IStrategoList> lists = getLists(terms);
@@ -452,20 +455,23 @@ public class JSGLRCompletionService implements ICompletionService {
     }
 
 
-    public Collection<ICompletion> completionErroneousPrograms(Iterable<IStrategoTerm> completionTerms,
-        ParseResult<?> completionParseResult) throws MetaborgException {
 
-        final FileObject location = completionParseResult.source;
-        final ILanguageImpl language = completionParseResult.language;
+    public Collection<ICompletion> completionErroneousPrograms(Iterable<IStrategoTerm> completionTerms, ISpoofaxParseUnit completionParseResult)
+        throws MetaborgException {
+
+        final FileObject location = completionParseResult.source();
+        final ILanguageImpl language = completionParseResult.input().langImpl();
         final Collection<ICompletion> completions = Lists.newLinkedList();
         final Collection<IStrategoTerm> proposalsTerm = Lists.newLinkedList();
 
         for(ILanguageComponent component : language.components()) {
             final ITermFactory termFactory = termFactoryService.get(component);
             for(IStrategoTerm completionTerm : completionTerms) {
-                IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.result;
+
+                IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.ast();
                 final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) completionTerm);
                 final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb, parenthesizeTerm(completionTerm, termFactory));
+
                 final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
                 final IStrategoTerm proposalTerm =
                     strategoCommon.invoke(runtime, inputStratego, "get-proposals-erroneous-programs");
@@ -692,11 +698,11 @@ public class JSGLRCompletionService implements ICompletionService {
 
 
     public Collection<? extends ICompletion> completionErroneousProgramsNested(
-        Collection<IStrategoTerm> nestedCompletionTerms, ParseResult<?> completionParseResult) throws MetaborgException {
-        final FileObject location = completionParseResult.source;
-        final ILanguageImpl language = completionParseResult.language;
+        Collection<IStrategoTerm> nestedCompletionTerms, ISpoofaxParseUnit completionParseResult) throws MetaborgException {
+        final FileObject location = completionParseResult.source();
+        final ILanguageImpl language = completionParseResult.input().langImpl();
         final Collection<ICompletion> completions = Lists.newLinkedList();
-        IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.result;
+        IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.ast();
 
         for(ILanguageComponent component : language.components()) {
             final ITermFactory termFactory = termFactoryService.get(component);
@@ -899,25 +905,26 @@ public class JSGLRCompletionService implements ICompletionService {
     }
 
 
-    private Collection<IStrategoTerm> getNestedCompletionTermsFromAST(ParseResult<?> completionParseResult) {
+    private Collection<IStrategoTerm> getNestedCompletionTermsFromAST(ISpoofaxParseUnit completionParseResult) {
         if(completionParseResult == null) {
             return Lists.newLinkedList();
         }
 
-        StrategoAppl ast = (StrategoAppl) completionParseResult.result;
+        StrategoAppl ast = (StrategoAppl) completionParseResult.ast();
         Collection<IStrategoTerm> completionTerm = findNestedCompletionTerm(ast, false);
 
         return completionTerm;
     }
 
 
-    private Collection<IStrategoTerm> getCompletionTermsFromAST(ParseResult<?> completionParseResult) {
+    private Collection<IStrategoTerm> getCompletionTermsFromAST(ISpoofaxParseUnit completionParseResult) {
 
         if(completionParseResult == null) {
             return Lists.newLinkedList();
         }
 
-        StrategoTerm ast = (StrategoTerm) completionParseResult.result;
+        StrategoTerm ast = (StrategoTerm) completionParseResult.ast();
+
         Collection<IStrategoTerm> completionTerm = findCompletionTerm(ast);
 
         return completionTerm;

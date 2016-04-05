@@ -5,31 +5,28 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.analysis.AnalysisFileResult;
-import org.metaborg.core.analysis.AnalysisResult;
+import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.syntax.ParseResult;
-import org.metaborg.core.transform.TransformResult;
+import org.metaborg.core.syntax.IParseUnit;
+import org.metaborg.core.transform.ITransformUnit;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-public class BuildOutput<P, A, T> implements IBuildOutput<P, A, T> {
+public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>>
+    implements IBuildOutputInternal<P, A, AU, T> {
     private boolean success = true;
-    public final BuildState state;
+    public BuildState state;
     public final Set<FileName> removedResources = Sets.newHashSet();
     public final Set<FileName> includedResources = Sets.newHashSet();
-    public final Collection<FileObject> changedResources = Lists.newLinkedList();
-    public final Collection<ParseResult<P>> parseResults = Lists.newLinkedList();
-    public final Collection<AnalysisResult<P, A>> analysisResults = Lists.newLinkedList();
-    public final Collection<TransformResult<A, T>> transformResults = Lists.newLinkedList();
+    public final Collection<FileObject> changedResources = Lists.newArrayList();
+    public final Collection<P> parseResults = Lists.newArrayList();
+    public final Collection<A> analysisResults = Lists.newArrayList();
+    public final Collection<AU> analysisUpdates = Lists.newArrayList();
+    public final Collection<T> transformResults = Lists.newArrayList();
     public final Collection<IMessage> extraMessages = Lists.newLinkedList();
-
-
-    public BuildOutput(BuildState state) {
-        this.state = state;
-    }
 
 
     @Override public boolean success() {
@@ -52,15 +49,19 @@ public class BuildOutput<P, A, T> implements IBuildOutput<P, A, T> {
         return changedResources;
     }
 
-    @Override public Iterable<ParseResult<P>> parseResults() {
+    @Override public Iterable<P> parseResults() {
         return parseResults;
     }
 
-    @Override public Iterable<AnalysisResult<P, A>> analysisResults() {
+    @Override public Iterable<A> analysisResults() {
         return analysisResults;
     }
 
-    @Override public Iterable<TransformResult<A, T>> transformResults() {
+    @Override public Iterable<AU> analysisUpdates() {
+        return analysisUpdates;
+    }
+
+    @Override public Iterable<T> transformResults() {
         return transformResults;
     }
 
@@ -70,24 +71,26 @@ public class BuildOutput<P, A, T> implements IBuildOutput<P, A, T> {
 
     @Override public Iterable<IMessage> allMessages() {
         final Collection<IMessage> messages = Lists.newLinkedList();
-        for(ParseResult<P> result : parseResults) {
-            Iterables.addAll(messages, result.messages);
+        for(P result : parseResults) {
+            Iterables.addAll(messages, result.messages());
         }
-        for(AnalysisResult<P, A> result : analysisResults) {
-            for(AnalysisFileResult<P, A> fileResult : result.fileResults) {
-                Iterables.addAll(messages, fileResult.messages);
-            }
+        for(A result : analysisResults) {
+            Iterables.addAll(messages, result.messages());
         }
-        for(TransformResult<A, T> result : transformResults) {
-            Iterables.addAll(messages, result.messages);
+        for(T result : transformResults) {
+            Iterables.addAll(messages, result.messages());
         }
         return messages;
     }
 
 
-    public void add(boolean success, Iterable<FileName> removedResources, Iterable<FileName> includedResources,
-        Iterable<FileObject> changedResources, Iterable<ParseResult<P>> parseResults,
-        Iterable<AnalysisResult<P, A>> analysisResults, Iterable<TransformResult<A, T>> transformResults,
+    @Override public void setState(BuildState state) {
+        this.state = state;
+    }
+
+    @Override public void add(boolean success, Iterable<FileName> removedResources,
+        Iterable<FileName> includedResources, Iterable<FileObject> changedResources, Iterable<P> parseResults,
+        Iterable<A> analysisResults, Iterable<AU> analysisUpdates, Iterable<T> transformResults,
         Iterable<IMessage> extraMessages) {
         this.success &= success;
         Iterables.addAll(this.removedResources, removedResources);
@@ -95,6 +98,7 @@ public class BuildOutput<P, A, T> implements IBuildOutput<P, A, T> {
         Iterables.addAll(this.changedResources, changedResources);
         Iterables.addAll(this.parseResults, parseResults);
         Iterables.addAll(this.analysisResults, analysisResults);
+        Iterables.addAll(this.analysisUpdates, analysisUpdates);
         Iterables.addAll(this.transformResults, transformResults);
         Iterables.addAll(this.extraMessages, extraMessages);
     }

@@ -1,9 +1,11 @@
 package org.metaborg.core;
 
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
@@ -16,15 +18,18 @@ import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
+import org.metaborg.core.syntax.IInputUnit;
+import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.tracing.IHoverService;
 import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.ITransformService;
+import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.core.unit.IUnitService;
+import org.metaborg.util.inject.GenericInjectUtils;
 
-import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
-import com.google.inject.util.Types;
 
 /**
  * Generic version of the {@link MetaBorg} facade. Call the public methods to perform common operations, or use the
@@ -34,42 +39,51 @@ import com.google.inject.util.Types;
  * subclassed facade like to the Spoofax facade. Using this facade with the {@link MetaborgModule} will cause an
  * exception on construction.
  * 
+ * @param <I>
+ *            Type of input units.
  * @param <P>
- *            Type of parsed fragments.
+ *            Type of parse units.
  * @param <A>
- *            Type of analyzed fragments.
+ *            Type of analyze units.
+ * @param <AU>
+ *            Type of analyze unit updates.
  * @param <T>
- *            Type of transformed fragments.
+ *            Type of transform units with any input.
+ * @param <TP>
+ *            Type of transform units with parse units as input.
+ * @param <TA>
+ *            Type of transform units with analyze units as input.
+ * @param <F>
+ *            Type of fragments.
  */
-public class MetaBorgGeneric<P, A, T> extends MetaBorg {
-    private final Class<P> pClass;
-    private final Class<A> aClass;
-    private final Class<T> tClass;
-
+public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>, F>
+    extends MetaBorg {
     public final IDialectService dialectService;
     public final IDialectIdentifier dialectIdentifier;
 
-    public final ISyntaxService<P> syntaxService;
-    public final IAnalysisService<P, A> analysisService;
-    public final ITransformService<P, A, T> transformService;
+    public final IUnitService<I, P, A, AU, TP, TA> unitService;
 
-    public final IBuilder<P, A, T> builder;
-    public final IProcessorRunner<P, A, T> processorRunner;
-    
-    public final IParseResultProcessor<P> parseResultProcessor;
-    public final IAnalysisResultProcessor<P, A> analysisResultProcessor;
+    public final ISyntaxService<I, P> syntaxService;
+    public final IAnalysisService<P, A, AU> analysisService;
+    public final ITransformService<P, A, TP, TA> transformService;
+
+    public final IBuilder<P, A, AU, T> builder;
+    public final IProcessorRunner<P, A, AU, T> processorRunner;
+
+    public final IParseResultProcessor<I, P> parseResultProcessor;
+    public final IAnalysisResultProcessor<I, P, A> analysisResultProcessor;
 
     public final IActionService actionService;
     public final IMenuService menuService;
 
-    public final ITracingService<P, A, T> tracingService;
+    public final ITracingService<P, A, T, F> tracingService;
 
-    public final ICategorizerService<P, A> categorizerService;
-    public final IStylerService<P, A> stylerService;
+    public final ICategorizerService<P, A, F> categorizerService;
+    public final IStylerService<F> stylerService;
     public final IHoverService<P, A> hoverService;
     public final IResolverService<P, A> resolverService;
     public final IOutlineService<P, A> outlineService;
-    public final ICompletionService completionService;
+    public final ICompletionService<P> completionService;
 
 
 
@@ -84,38 +98,42 @@ public class MetaBorgGeneric<P, A, T> extends MetaBorg {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgGeneric(MetaborgModule module, IModulePluginLoader loader, Class<P> pClass, Class<A> aClass,
-        Class<T> tClass) throws MetaborgException {
+    public MetaBorgGeneric(MetaborgModule module, IModulePluginLoader loader, Class<I> iClass, Class<P> pClass,
+        Class<A> aClass, Class<AU> auClass, Type tClass, Type tpClass, Type taClass, Class<F> fClass)
+        throws MetaborgException {
         super(module, loader);
-
-        this.pClass = pClass;
-        this.aClass = aClass;
-        this.tClass = tClass;
 
         this.dialectService = injector.getInstance(IDialectService.class);
         this.dialectIdentifier = injector.getInstance(IDialectIdentifier.class);
 
-        this.syntaxService = getP(new TypeLiteral<ISyntaxService<P>>() {});
-        this.analysisService = getA(new TypeLiteral<IAnalysisService<P, A>>() {});
-        this.transformService = getT(new TypeLiteral<ITransformService<P, A, T>>() {});
+        this.unitService = instance(new TypeLiteral<IUnitService<I, P, A, AU, TP, TA>>() {}, iClass, pClass, aClass,
+            auClass, tpClass, taClass);
 
-        this.builder = getT(new TypeLiteral<IBuilder<P, A, T>>() {});
-        this.processorRunner = getT(new TypeLiteral<IProcessorRunner<P, A, T>>() {});
+        this.syntaxService = instance(new TypeLiteral<ISyntaxService<I, P>>() {}, iClass, pClass);
+        this.analysisService = instance(new TypeLiteral<IAnalysisService<P, A, AU>>() {}, pClass, aClass, auClass);
+        this.transformService =
+            instance(new TypeLiteral<ITransformService<P, A, TP, TA>>() {}, pClass, aClass, tpClass, taClass);
 
-        this.parseResultProcessor = getP(new TypeLiteral<IParseResultProcessor<P>>() {});
-        this.analysisResultProcessor = getA(new TypeLiteral<IAnalysisResultProcessor<P, A>>() {});
+        this.builder = instance(new TypeLiteral<IBuilder<P, A, AU, T>>() {}, pClass, aClass, auClass, tClass);
+        this.processorRunner =
+            instance(new TypeLiteral<IProcessorRunner<P, A, AU, T>>() {}, pClass, aClass, auClass, tClass);
+
+        this.parseResultProcessor = instance(new TypeLiteral<IParseResultProcessor<I, P>>() {}, iClass, pClass);
+        this.analysisResultProcessor =
+            instance(new TypeLiteral<IAnalysisResultProcessor<I, P, A>>() {}, iClass, pClass, aClass);
 
         this.actionService = injector.getInstance(IActionService.class);
         this.menuService = injector.getInstance(IMenuService.class);
 
-        this.tracingService = getT(new TypeLiteral<ITracingService<P, A, T>>() {});
+        this.tracingService =
+            instance(new TypeLiteral<ITracingService<P, A, T, F>>() {}, pClass, aClass, tClass, fClass);
 
-        this.categorizerService = getA(new TypeLiteral<ICategorizerService<P, A>>() {});
-        this.stylerService = getA(new TypeLiteral<IStylerService<P, A>>() {});
-        this.hoverService = getA(new TypeLiteral<IHoverService<P, A>>() {});
-        this.resolverService = getA(new TypeLiteral<IResolverService<P, A>>() {});
-        this.outlineService = getA(new TypeLiteral<IOutlineService<P, A>>() {});
-        this.completionService = injector.getInstance(ICompletionService.class);
+        this.categorizerService = instance(new TypeLiteral<ICategorizerService<P, A, F>>() {}, pClass, aClass, fClass);
+        this.stylerService = instance(new TypeLiteral<IStylerService<F>>() {}, fClass);
+        this.hoverService = instance(new TypeLiteral<IHoverService<P, A>>() {}, pClass, aClass);
+        this.resolverService = instance(new TypeLiteral<IResolverService<P, A>>() {}, pClass, aClass);
+        this.outlineService = instance(new TypeLiteral<IOutlineService<P, A>>() {}, pClass, aClass);
+        this.completionService = instance(new TypeLiteral<ICompletionService<P>>() {}, pClass);
     }
 
     /**
@@ -127,53 +145,13 @@ public class MetaBorgGeneric<P, A, T> extends MetaBorg {
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgGeneric(MetaborgModule module, Class<P> pClass, Class<A> aClass, Class<T> tClass)
-        throws MetaborgException {
-        this(module, defaultPluginLoader(), pClass, aClass, tClass);
-    }
-
-    /**
-     * Instantiate the generic MetaBorg API.
-     * 
-     * @param loader
-     *            Module plugin loader to use.
-     * @throws MetaborgException
-     *             When loading plugins or dependency injection fails.
-     */
-    public MetaBorgGeneric(IModulePluginLoader loader, Class<P> pClass, Class<A> aClass, Class<T> tClass)
-        throws MetaborgException {
-        this(defaultModule(), loader, pClass, aClass, tClass);
-    }
-
-    /**
-     * Instantiate the generic MetaBorg API.
-     * 
-     * @throws MetaborgException
-     *             When loading plugins or dependency injection fails.
-     */
-    public MetaBorgGeneric(Class<P> pClass, Class<A> aClass, Class<T> tClass) throws MetaborgException {
-        this(defaultModule(), defaultPluginLoader(), pClass, aClass, tClass);
+    public MetaBorgGeneric(MetaborgModule module, Class<I> iClass, Class<P> pClass, Class<A> aClass, Class<AU> auClass,
+        Class<T> tClass, Class<TP> tpClass, Class<TA> taClass, Class<F> fClass) throws MetaborgException {
+        this(module, defaultPluginLoader(), iClass, pClass, aClass, auClass, tClass, tpClass, taClass, fClass);
     }
 
 
-    private <K> K getP(TypeLiteral<K> typeLiteral) {
-        final Class<? super K> rawType = typeLiteral.getRawType();
-        final ParameterizedType type = Types.newParameterizedType(rawType, pClass);
-        @SuppressWarnings("unchecked") final Key<K> key = (Key<K>) Key.get(type);
-        return injector.getInstance(key);
-    }
-
-    private <K> K getA(TypeLiteral<K> typeLiteral) {
-        final Class<? super K> rawType = typeLiteral.getRawType();
-        final ParameterizedType type = Types.newParameterizedType(rawType, pClass, aClass);
-        @SuppressWarnings("unchecked") final Key<K> key = (Key<K>) Key.get(type);
-        return injector.getInstance(key);
-    }
-
-    private <K> K getT(TypeLiteral<K> typeLiteral) {
-        final Class<? super K> rawType = typeLiteral.getRawType();
-        final ParameterizedType type = Types.newParameterizedType(rawType, pClass, aClass, tClass);
-        @SuppressWarnings("unchecked") final Key<K> key = (Key<K>) Key.get(type);
-        return injector.getInstance(key);
+    private <K> K instance(TypeLiteral<K> typeLiteral, Type... typeArgs) {
+        return GenericInjectUtils.<K>instance(injector, typeLiteral, typeArgs);
     }
 }

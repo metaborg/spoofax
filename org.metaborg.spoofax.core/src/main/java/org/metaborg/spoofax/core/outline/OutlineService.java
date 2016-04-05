@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageComponent;
@@ -18,10 +17,11 @@ import org.metaborg.core.outline.Outline;
 import org.metaborg.core.outline.OutlineNode;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
@@ -42,8 +42,8 @@ public class OutlineService implements ISpoofaxOutlineService {
     private final IStrategoCommon common;
 
 
-    @Inject public OutlineService(IStrategoRuntimeService strategoRuntimeService,
-        ISpoofaxTracingService tracingService, IStrategoCommon common) {
+    @Inject public OutlineService(IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService,
+        IStrategoCommon common) {
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;
         this.common = common;
@@ -54,22 +54,22 @@ public class OutlineService implements ISpoofaxOutlineService {
         return language.facet(OutlineFacet.class) != null;
     }
 
-    @Override public IOutline outline(ParseResult<IStrategoTerm> result) throws MetaborgException {
-        if(result.result == null) {
+    @Override public IOutline outline(ISpoofaxParseUnit result) throws MetaborgException {
+        if(!result.valid()) {
             return null;
         }
 
-        final FileObject resource = result.source;
-        final ILanguageImpl language = result.language;
+        final FileObject source = result.source();
+        final ILanguageImpl langImpl = result.input().langImpl();
 
-        final FacetContribution<OutlineFacet> facetContrib = facet(language);
+        final FacetContribution<OutlineFacet> facetContrib = facet(langImpl);
         final OutlineFacet facet = facetContrib.facet;
         final ILanguageComponent contributor = facetContrib.contributor;
         final String strategy = facet.strategyName;
 
         try {
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, resource);
-            final IStrategoTerm input = common.builderInputTerm(result.result, resource, resource);
+            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, source);
+            final IStrategoTerm input = common.builderInputTerm(result.ast(), source, source);
             final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
             if(outlineTerm == null) {
                 return null;
@@ -81,12 +81,13 @@ public class OutlineService implements ISpoofaxOutlineService {
         }
     }
 
-    @Override public IOutline outline(AnalysisFileResult<IStrategoTerm, IStrategoTerm> result) throws MetaborgException {
-        if(result.result == null) {
+    @Override public IOutline outline(ISpoofaxAnalyzeUnit result) throws MetaborgException {
+        if(!result.valid() || !result.hasAst()) {
             return null;
         }
 
-        final IContext context = result.context;
+        final FileObject source = result.source();
+        final IContext context = result.context();
         final ILanguageImpl language = context.language();
 
         final FacetContribution<OutlineFacet> facetContrib = facet(language);
@@ -96,7 +97,7 @@ public class OutlineService implements ISpoofaxOutlineService {
 
         try {
             final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, context);
-            final IStrategoTerm input = common.builderInputTerm(result.result, result.source, context.location());
+            final IStrategoTerm input = common.builderInputTerm(result.ast(), source, context.location());
             final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
             if(outlineTerm == null) {
                 return null;
@@ -142,8 +143,8 @@ public class OutlineService implements ISpoofaxOutlineService {
         return new Outline(roots, expandTo);
     }
 
-    private @Nullable IOutlineNode
-        toOutlineNode(IStrategoTerm term, @Nullable IOutlineNode parent, FileObject location) {
+    private @Nullable IOutlineNode toOutlineNode(IStrategoTerm term, @Nullable IOutlineNode parent,
+        FileObject location) {
         if(!(term instanceof IStrategoAppl)) {
             return null;
         }
@@ -202,7 +203,7 @@ public class OutlineService implements ISpoofaxOutlineService {
     }
 
     private @Nullable ISourceRegion region(IStrategoTerm term) {
-        final ISourceLocation location = tracingService.fromTransformed(term);
+        final ISourceLocation location = tracingService.location(term);
         if(location != null) {
             return location.region();
         }

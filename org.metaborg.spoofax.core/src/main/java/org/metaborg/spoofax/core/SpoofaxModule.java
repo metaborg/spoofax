@@ -4,6 +4,7 @@ import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzer;
+import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.completion.ICompletionService;
@@ -24,21 +25,25 @@ import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
-import org.metaborg.core.syntax.IParseService;
+import org.metaborg.core.syntax.IParser;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.tracing.IHoverService;
 import org.metaborg.core.tracing.IResolverService;
 import org.metaborg.core.tracing.ITracingService;
 import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformer;
+import org.metaborg.core.unit.IInputUnitService;
+import org.metaborg.core.unit.IUnitService;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.action.ActionService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
+import org.metaborg.spoofax.core.build.SpoofaxBuildOutput;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
 import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
@@ -84,9 +89,13 @@ import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.style.CategorizerService;
+import org.metaborg.spoofax.core.style.ISpoofaxCategorizerService;
+import org.metaborg.spoofax.core.style.ISpoofaxStylerService;
 import org.metaborg.spoofax.core.style.StylerService;
+import org.metaborg.spoofax.core.syntax.ISpoofaxParser;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.syntax.JSGLRParseService;
+import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.metaborg.spoofax.core.syntax.SpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
@@ -94,12 +103,21 @@ import org.metaborg.spoofax.core.tracing.HoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxResolverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
-import org.metaborg.spoofax.core.tracing.ReferenceResolver;
+import org.metaborg.spoofax.core.tracing.ResolverService;
 import org.metaborg.spoofax.core.tracing.TracingCommon;
 import org.metaborg.spoofax.core.tracing.TracingService;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
+import org.metaborg.spoofax.core.transform.IStrategoTransformer;
 import org.metaborg.spoofax.core.transform.SpoofaxTransformService;
 import org.metaborg.spoofax.core.transform.StrategoTransformer;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnitService;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.spoofax.core.unit.UnitService;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.library.index.primitives.legacy.LegacyIndexLibrary;
@@ -115,6 +133,12 @@ import com.google.inject.name.Names;
  * Guice module that specifies which implementations to use for services and factories.
  */
 public class SpoofaxModule extends MetaborgModule {
+    private MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder;
+    private MapBinder<String, ISpoofaxParser> spoofaxParserBinder;
+    private MapBinder<String, IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>> analyzerBinder;
+    private MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder;
+
+
     public SpoofaxModule() {
         this(SpoofaxModule.class.getClassLoader());
     }
@@ -127,7 +151,17 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void configure() {
         super.configure();
 
+        parserBinder = MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
+            new TypeLiteral<IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>>() {});
+        spoofaxParserBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxParser.class);
+        analyzerBinder = MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
+            new TypeLiteral<IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {});
+        spoofaxAnalyzerBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxAnalyzer.class);
+
+        bindUnit();
         bindSyntax();
+        bindParsers(parserBinder, spoofaxParserBinder);
+        bindAnalyzers(analyzerBinder, spoofaxAnalyzerBinder);
         bindCompletion();
         bindAction();
         bindTransformer();
@@ -138,6 +172,21 @@ public class SpoofaxModule extends MetaborgModule {
         bindMenu();
     }
 
+
+    protected void bindUnit() {
+        bind(UnitService.class).in(Singleton.class);
+        bind(ISpoofaxUnitService.class).to(UnitService.class);
+        bind(
+            new TypeLiteral<IUnitService<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>>() {})
+                .to(UnitService.class);
+        bind(new TypeLiteral<IUnitService<?, ?, ?, ?, ?, ?>>() {}).to(UnitService.class);
+        bind(IUnitService.class).to(UnitService.class);
+
+        bind(ISpoofaxInputUnitService.class).to(UnitService.class);
+        bind(new TypeLiteral<IInputUnitService<ISpoofaxInputUnit>>() {}).to(UnitService.class);
+        bind(new TypeLiteral<IInputUnitService<?>>() {}).to(UnitService.class);
+        bind(IInputUnitService.class).to(UnitService.class);
+    }
 
     @Override protected void bindLanguage() {
         super.bindLanguage();
@@ -151,9 +200,10 @@ public class SpoofaxModule extends MetaborgModule {
 
 
     @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-        super.bindLanguagePathProviders(binder);
-
+        // Bind builtin path provider before other providers such that builtin paths have preference over others.
         binder.addBinding().to(BuiltinLanguagePathProvider.class);
+
+        super.bindLanguagePathProviders(binder);
     }
 
     @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
@@ -164,42 +214,37 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
     protected void bindSyntax() {
-        bind(JSGLRParseService.class).in(Singleton.class);
-
-        final MapBinder<String, IParseService<IStrategoTerm>> parsers = MapBinder.newMapBinder(binder(),
-            new TypeLiteral<String>() {}, new TypeLiteral<IParseService<IStrategoTerm>>() {});
-        parsers.addBinding("jsglr").to(JSGLRParseService.class).in(Singleton.class);
-        languageCacheBinder.addBinding().to(JSGLRParseService.class);
-
         bind(SpoofaxSyntaxService.class).in(Singleton.class);
         bind(ISpoofaxSyntaxService.class).to(SpoofaxSyntaxService.class);
-        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(SpoofaxSyntaxService.class);
-        bind(new TypeLiteral<ISyntaxService<?>>() {}).to(SpoofaxSyntaxService.class);
+        bind(new TypeLiteral<ISyntaxService<ISpoofaxInputUnit, ISpoofaxParseUnit>>() {}).to(SpoofaxSyntaxService.class);
+        bind(new TypeLiteral<ISyntaxService<?, ?>>() {}).to(SpoofaxSyntaxService.class);
+        bind(ISyntaxService.class).to(SpoofaxSyntaxService.class);
 
         bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
     }
 
-    protected void bindCompletion() {
-        bind(ICompletionService.class).to(JSGLRCompletionService.class).in(Singleton.class);
+    protected void bindParsers(MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder,
+        MapBinder<String, ISpoofaxParser> spoofaxParserBinder) {
+        bind(JSGLRParseService.class).in(Singleton.class);
+        parserBinder.addBinding(JSGLRParseService.name).to(JSGLRParseService.class);
+        spoofaxParserBinder.addBinding(JSGLRParseService.name).to(JSGLRParseService.class);
+        languageCacheBinder.addBinding().to(JSGLRParseService.class);
+
+        bind(JSGLRParserConfiguration.class).toInstance(new JSGLRParserConfiguration());
     }
 
     /**
-     * Overrides {@link MetaborgModule#bindAnalysis()} to provide Spoofax-specific bindings with generics filled in as
-     * {@link IStrategoTerm}, and to provide analyzers.
+     * Overrides {@link MetaborgModule#bindAnalysis()} to provide Spoofax-specific bindings with Spoofax interfaces, and
+     * to provide analyzers.
      */
     @Override protected void bindAnalysis() {
         // Analysis service
         bind(SpoofaxAnalysisService.class).in(Singleton.class);
         bind(ISpoofaxAnalysisService.class).to(SpoofaxAnalysisService.class);
+        bind(new TypeLiteral<IAnalysisService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {})
+            .to(SpoofaxAnalysisService.class);
+        bind(new TypeLiteral<IAnalysisService<?, ?, ?>>() {}).to(SpoofaxAnalysisService.class);
         bind(IAnalysisService.class).to(SpoofaxAnalysisService.class);
-        bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxAnalysisService.class);
-        bind(new TypeLiteral<IAnalysisService<?, ?>>() {}).to(SpoofaxAnalysisService.class);
-
-        // Analyzers
-        final MapBinder<String, IAnalyzer<IStrategoTerm, IStrategoTerm>> analyzers = MapBinder.newMapBinder(binder(),
-            new TypeLiteral<String>() {}, new TypeLiteral<IAnalyzer<IStrategoTerm, IStrategoTerm>>() {});
-        analyzers.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class).in(Singleton.class);
-        analyzers.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class).in(Singleton.class);
 
         // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);
@@ -247,6 +292,18 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
     }
 
+    private void bindAnalyzers(
+        MapBinder<String, IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>> analyzerBinder,
+        MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder) {
+        bind(StrategoAnalyzer.class).in(Singleton.class);
+        bind(TaskEngineAnalyzer.class).in(Singleton.class);
+
+        analyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
+        analyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
+    }
+
     protected void bindAction() {
         bind(IActionService.class).to(ActionService.class).in(Singleton.class);
     }
@@ -255,14 +312,20 @@ public class SpoofaxModule extends MetaborgModule {
         // Analysis service
         bind(SpoofaxTransformService.class).in(Singleton.class);
         bind(ISpoofaxTransformService.class).to(SpoofaxTransformService.class);
+        bind(
+            new TypeLiteral<ITransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>>() {})
+                .to(SpoofaxTransformService.class);
+        bind(new TypeLiteral<ITransformService<?, ?, ?, ?>>() {}).to(SpoofaxTransformService.class);
         bind(ITransformService.class).to(SpoofaxTransformService.class);
-        bind(new TypeLiteral<ITransformService<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {})
-            .to(SpoofaxTransformService.class);
-        bind(new TypeLiteral<ITransformService<?, ?, ?>>() {}).to(SpoofaxTransformService.class);
 
         // Analyzers
-        bind(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {})
-            .to(StrategoTransformer.class);
+        bind(StrategoTransformer.class).in(Singleton.class);
+        bind(IStrategoTransformer.class).to(StrategoTransformer.class);
+        bind(
+            new TypeLiteral<ITransformer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>>() {})
+                .to(StrategoTransformer.class);
+        bind(new TypeLiteral<ITransformer<?, ?, ?, ?>>() {}).to(StrategoTransformer.class);
+        bind(ITransformer.class).to(StrategoTransformer.class);
     }
 
     /**
@@ -273,41 +336,56 @@ public class SpoofaxModule extends MetaborgModule {
         bind(SpoofaxParseResultProcessor.class).in(Singleton.class);
 
         bind(ISpoofaxParseResultRequester.class).to(SpoofaxParseResultProcessor.class);
-        bind(new TypeLiteral<IParseResultRequester<IStrategoTerm>>() {}).to(SpoofaxParseResultProcessor.class);
-        bind(new TypeLiteral<IParseResultRequester<?>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultRequester<ISpoofaxInputUnit, ISpoofaxParseUnit>>() {})
+            .to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultRequester<?, ?>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(IParseResultRequester.class).to(SpoofaxParseResultProcessor.class);
 
         bind(ISpoofaxParseResultUpdater.class).to(SpoofaxParseResultProcessor.class);
-        bind(new TypeLiteral<IParseResultUpdater<IStrategoTerm>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultUpdater<ISpoofaxParseUnit>>() {}).to(SpoofaxParseResultProcessor.class);
         bind(new TypeLiteral<IParseResultUpdater<?>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(IParseResultUpdater.class).to(SpoofaxParseResultProcessor.class);
 
         bind(ISpoofaxParseResultProcessor.class).to(SpoofaxParseResultProcessor.class);
-        bind(new TypeLiteral<IParseResultProcessor<IStrategoTerm>>() {}).to(SpoofaxParseResultProcessor.class);
-        bind(new TypeLiteral<IParseResultProcessor<?>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultProcessor<ISpoofaxInputUnit, ISpoofaxParseUnit>>() {})
+            .to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultProcessor<?, ?>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(IParseResultProcessor.class).to(SpoofaxParseResultProcessor.class);
 
 
         bind(SpoofaxAnalysisResultProcessor.class).in(Singleton.class);
 
         bind(ISpoofaxAnalysisResultRequester.class).to(SpoofaxAnalysisResultProcessor.class);
-        bind(new TypeLiteral<IAnalysisResultRequester<IStrategoTerm, IStrategoTerm>>() {})
+        bind(new TypeLiteral<IAnalysisResultRequester<ISpoofaxInputUnit, ISpoofaxAnalyzeUnit>>() {})
             .to(SpoofaxAnalysisResultProcessor.class);
         bind(new TypeLiteral<IAnalysisResultRequester<?, ?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
+        bind(IAnalysisResultRequester.class).to(SpoofaxAnalysisResultProcessor.class);
 
         bind(ISpoofaxAnalysisResultUpdater.class).to(SpoofaxAnalysisResultProcessor.class);
-        bind(new TypeLiteral<IAnalysisResultUpdater<IStrategoTerm, IStrategoTerm>>() {})
+        bind(new TypeLiteral<IAnalysisResultUpdater<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit>>() {})
             .to(SpoofaxAnalysisResultProcessor.class);
         bind(new TypeLiteral<IAnalysisResultUpdater<?, ?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
+        bind(IAnalysisResultUpdater.class).to(SpoofaxAnalysisResultProcessor.class);
 
         bind(ISpoofaxAnalysisResultProcessor.class).to(SpoofaxAnalysisResultProcessor.class);
-        bind(new TypeLiteral<IAnalysisResultProcessor<IStrategoTerm, IStrategoTerm>>() {})
+        bind(new TypeLiteral<IAnalysisResultProcessor<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit>>() {})
             .to(SpoofaxAnalysisResultProcessor.class);
-        bind(new TypeLiteral<IAnalysisResultProcessor<?, ?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultProcessor<?, ?, ?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
+        bind(IAnalysisResultProcessor.class).to(SpoofaxAnalysisResultProcessor.class);
 
 
         bind(SpoofaxBuilder.class).in(Singleton.class);
         bind(ISpoofaxBuilder.class).to(SpoofaxBuilder.class);
+        bind(
+            new TypeLiteral<IBuilder<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>>() {})
+                .to(SpoofaxBuilder.class);
+        bind(new TypeLiteral<IBuilder<?, ?, ?, ?>>() {}).to(SpoofaxBuilder.class);
         bind(IBuilder.class).to(SpoofaxBuilder.class);
-        bind(new TypeLiteral<IBuilder<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxBuilder.class);
-        bind(new TypeLiteral<IBuilder<?, ?, ?>>() {}).to(SpoofaxBuilder.class);
+        
+        // No scope for build output, new instance for every request.
+        bind(
+            new TypeLiteral<IBuildOutputInternal<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>>() {})
+                .to(SpoofaxBuildOutput.class);
     }
 
     /**
@@ -317,10 +395,11 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void bindProcessorRunner() {
         bind(SpoofaxProcessorRunner.class).in(Singleton.class);
         bind(ISpoofaxProcessorRunner.class).to(SpoofaxProcessorRunner.class);
+        bind(
+            new TypeLiteral<IProcessorRunner<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>>() {})
+                .to(SpoofaxProcessorRunner.class);
+        bind(new TypeLiteral<IProcessorRunner<?, ?, ?, ?>>() {}).to(SpoofaxProcessorRunner.class);
         bind(IProcessorRunner.class).to(SpoofaxProcessorRunner.class);
-        bind(new TypeLiteral<IProcessorRunner<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {})
-            .to(SpoofaxProcessorRunner.class);
-        bind(new TypeLiteral<IProcessorRunner<?, ?, ?>>() {}).to(SpoofaxProcessorRunner.class);
     }
 
     /**
@@ -330,43 +409,67 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void bindProcessor() {
         bind(SpoofaxBlockingProcessor.class).in(Singleton.class);
         bind(ISpoofaxProcessor.class).to(SpoofaxBlockingProcessor.class);
+        bind(
+            new TypeLiteral<IProcessor<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>>() {})
+                .to(SpoofaxBlockingProcessor.class);
+        bind(new TypeLiteral<IProcessor<?, ?, ?, ?>>() {}).to(SpoofaxBlockingProcessor.class);
         bind(IProcessor.class).to(SpoofaxBlockingProcessor.class);
-        bind(new TypeLiteral<IProcessor<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {})
-            .to(SpoofaxBlockingProcessor.class);
-        bind(new TypeLiteral<IProcessor<?, ?, ?>>() {}).to(SpoofaxBlockingProcessor.class);
     }
 
     protected void bindCategorizer() {
-        bind(new TypeLiteral<ICategorizerService<IStrategoTerm, IStrategoTerm>>() {}).to(CategorizerService.class)
-            .in(Singleton.class);
+        bind(CategorizerService.class).in(Singleton.class);
+        bind(ISpoofaxCategorizerService.class).to(CategorizerService.class);
+        bind(new TypeLiteral<ICategorizerService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, IStrategoTerm>>() {})
+            .to(CategorizerService.class);
+        bind(new TypeLiteral<ICategorizerService<?, ?, ?>>() {}).to(CategorizerService.class);
+        bind(ICategorizerService.class).to(CategorizerService.class);
     }
 
     protected void bindStyler() {
-        bind(new TypeLiteral<IStylerService<IStrategoTerm, IStrategoTerm>>() {}).to(StylerService.class)
-            .in(Singleton.class);
+        bind(StylerService.class).in(Singleton.class);
+        bind(ISpoofaxStylerService.class).to(StylerService.class);
+        bind(new TypeLiteral<IStylerService<IStrategoTerm>>() {}).to(StylerService.class);
+        bind(new TypeLiteral<IStylerService<?>>() {}).to(StylerService.class);
+        bind(IStylerService.class).to(StylerService.class);
     }
 
     protected void bindTracing() {
         bind(TracingService.class).in(Singleton.class);
         bind(ISpoofaxTracingService.class).to(TracingService.class);
-        bind(new TypeLiteral<ITracingService<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {})
-            .to(TracingService.class);
+        bind(
+            new TypeLiteral<ITracingService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<?>, IStrategoTerm>>() {})
+                .to(TracingService.class);
+        bind(new TypeLiteral<ITracingService<?, ?, ?, ?>>() {}).to(TracingService.class);
+        bind(ITracingService.class).to(TracingService.class);
 
         bind(TracingCommon.class).in(Singleton.class);
 
-        bind(ReferenceResolver.class).in(Singleton.class);
-        bind(ISpoofaxResolverService.class).to(ReferenceResolver.class);
-        bind(new TypeLiteral<IResolverService<IStrategoTerm, IStrategoTerm>>() {}).to(ReferenceResolver.class);
+        bind(ResolverService.class).in(Singleton.class);
+        bind(ISpoofaxResolverService.class).to(ResolverService.class);
+        bind(new TypeLiteral<IResolverService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit>>() {}).to(ResolverService.class);
+        bind(new TypeLiteral<IResolverService<?, ?>>() {}).to(ResolverService.class);
+        bind(IResolverService.class).to(ResolverService.class);
 
         bind(HoverService.class).in(Singleton.class);
         bind(ISpoofaxHoverService.class).to(HoverService.class);
-        bind(new TypeLiteral<IHoverService<IStrategoTerm, IStrategoTerm>>() {}).to(HoverService.class);
+        bind(new TypeLiteral<IHoverService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit>>() {}).to(HoverService.class);
+        bind(new TypeLiteral<IHoverService<?, ?>>() {}).to(HoverService.class);
+        bind(IHoverService.class).to(HoverService.class);
+    }
+
+    protected void bindCompletion() {
+        bind(JSGLRCompletionService.class).in(Singleton.class);
+        bind(new TypeLiteral<ICompletionService<ISpoofaxParseUnit>>() {}).to(JSGLRCompletionService.class);
+        bind(new TypeLiteral<ICompletionService<?>>() {}).to(JSGLRCompletionService.class);
+        bind(ICompletionService.class).to(JSGLRCompletionService.class);
     }
 
     protected void bindOutline() {
         bind(OutlineService.class).in(Singleton.class);
         bind(ISpoofaxOutlineService.class).to(OutlineService.class);
-        bind(new TypeLiteral<IOutlineService<IStrategoTerm, IStrategoTerm>>() {}).to(OutlineService.class);
+        bind(new TypeLiteral<IOutlineService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit>>() {}).to(OutlineService.class);
+        bind(new TypeLiteral<IOutlineService<?, ?>>() {}).to(OutlineService.class);
+        bind(IOutlineService.class).to(OutlineService.class);
     }
 
     protected void bindMenu() {

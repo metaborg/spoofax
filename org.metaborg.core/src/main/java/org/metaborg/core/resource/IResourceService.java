@@ -23,14 +23,18 @@ public interface IResourceService extends AutoCloseable {
     FileObject root();
 
     /**
-     * Returns a file system object for given absolute or relative to the root URI. See <a
-     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
+     * Returns a file system object for given (absolute or relative to the root) URI. The given URI will be encoded (\,
+     * /, and : symbols will not be encoded) in its entirely. If your URI is already encoded, convert it to an
+     * {@link URI} and call {@link #resolve(URI)} instead.
+     * 
+     * See <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of
+     * URIs.
      * 
      * @param uri
-     *            relative URI to resolve.
+     *            Absolute or relative to the root URI to resolve.
      * @return File system object for given URI.
      * @throws MetaborgRuntimeException
-     *             when uri is invalid.
+     *             When <code>uri</code> is invalid.
      */
     FileObject resolve(String uri);
 
@@ -41,18 +45,21 @@ public interface IResourceService extends AutoCloseable {
      *            Java file system object to resolve.
      * @return File system object for given Java file system object.
      * @throws MetaborgRuntimeException
-     *             when file is invalid.
+     *             When file is invalid.
      */
     FileObject resolve(File file);
 
     /**
-     * Returns a local file system object for given Java URI object.
+     * Returns a file system object for given Java URI object.
+     * 
+     * See <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of
+     * URIs.
      * 
      * @param uri
      *            Java URI object to resolve.
      * @return File system object for given Java URI object.
      * @throws MetaborgRuntimeException
-     *             when uri is invalid.
+     *             When <code>uri</code> is invalid.
      */
     FileObject resolve(URI uri);
 
@@ -71,17 +78,37 @@ public interface IResourceService extends AutoCloseable {
      */
     FileObject resolve(FileObject parent, String path);
 
+
     /**
-     * Returns a file system name for given absolute or relative to the root URI. See <a
-     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
+     * Returns a file name for given URI. The given URI will be encoded (\, /, and : symbols will not be encoded) in its
+     * entirely. If your URI is already encoded, convert it to an {@link URI} and call {@link #resolveToName(URI)}
+     * instead.
+     * 
+     * See <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of
+     * URIs.
      * 
      * @param uri
-     *            URI to resolve.
-     * @return File system name for given URI.
+     *            URI to resolve to a name.
+     * @return File name for given URI.
      * @throws MetaborgRuntimeException
-     *             when uri is invalid.
+     *             When <code>uri</code> is invalid.
      */
     FileName resolveToName(String uri);
+
+    /**
+     * Returns a file name for given Java URI object.
+     * 
+     * See <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of
+     * URIs.
+     * 
+     * @param uri
+     *            Java URI object to resolve to a name.
+     * @return File name for given Java URI object.
+     * @throws MetaborgRuntimeException
+     *             When <code>uri</code> is invalid.
+     */
+    FileName resolveToName(URI uri);
+
 
     /**
      * Attempts to get a local file for given resource, or copies the resource to the local file system if it does not
@@ -96,6 +123,21 @@ public interface IResourceService extends AutoCloseable {
     File localFile(FileObject resource);
 
     /**
+     * Attempts to get a local file for given resource, or copies the resource to the local file system at given
+     * directory if it does not reside on the local file system.
+     * 
+     * @param resource
+     *            Resource to get a local file for.
+     * @param dir
+     *            Directory to copy the resources to if they are not on a local filesystem. Must be on the local
+     *            filesystem.
+     * @return Local file.
+     * @throws MetaborgRuntimeException
+     *             When given resource does not exist.
+     */
+    File localFile(FileObject resource, FileObject dir);
+
+    /**
      * Attempts to get a local file handle for given resource.
      * 
      * @param resource
@@ -103,6 +145,7 @@ public interface IResourceService extends AutoCloseable {
      * @return Local file handle, or null if given resource does not reside on the local file system.
      */
     @Nullable File localPath(FileObject resource);
+
 
     /**
      * Returns a file system object that points to a directory where user-specific data can be stored.
@@ -112,6 +155,5 @@ public interface IResourceService extends AutoCloseable {
      * 
      * @deprecated Wrong abstraction, will be removed in the future.
      */
-    @Deprecated
-    FileObject userStorage();
+    @Deprecated FileObject userStorage();
 }

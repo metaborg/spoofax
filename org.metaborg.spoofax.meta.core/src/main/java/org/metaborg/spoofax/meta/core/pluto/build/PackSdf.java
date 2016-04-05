@@ -2,15 +2,13 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.FilenameUtils;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -26,37 +24,35 @@ import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.OutputPersisted;
-import build.pluto.stamp.LastModifiedStamper;
+import build.pluto.stamp.FileExistsStamper;
 
 public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 2058684747897720328L;
 
-        public final String sdfModule;
-        public final Arguments sdfArgs;
-        public final @Nullable File externalDef;
-        public final File inputPath;
-        public final File outputPath;
+        public final String module;
+        public final File inputFile;
+        public final File outputFile;
+        public final List<File> includePaths;
+        public final Arguments extraArgs;
+        public final @Nullable Origin origin;
 
-        public final File syntaxFolder;
-        public final File genSyntaxFolder;
 
-        public Input(SpoofaxContext context, String sdfModule, Arguments sdfArgs, @Nullable File externalDef,
-            File inputPath, File outputPath, File syntaxFolder, File genSyntaxFolder) {
+        public Input(SpoofaxContext context, String module, File inputFile, File outputFile, List<File> includePaths,
+            Arguments extraArgs, @Nullable Origin origin) {
             super(context);
-            this.sdfModule = sdfModule;
-            this.sdfArgs = sdfArgs;
-            this.externalDef = externalDef;
-            this.inputPath = inputPath;
-            this.outputPath = outputPath;
-            this.syntaxFolder = syntaxFolder;
-            this.genSyntaxFolder = genSyntaxFolder;
+            this.module = module;
+            this.extraArgs = extraArgs;
+            this.inputFile = inputFile;
+            this.includePaths = includePaths;
+            this.outputFile = outputFile;
+            this.origin = origin;
         }
     }
 
 
-    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, PackSdf> factory = SpoofaxBuilderFactoryFactory
-        .of(PackSdf.class, Input.class);
+    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, PackSdf> factory =
+        SpoofaxBuilderFactoryFactory.of(PackSdf.class, Input.class);
 
 
     public PackSdf(Input input) {
@@ -80,26 +76,37 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
     }
 
     @Override public File persistentPath(Input input) {
-        return context.depPath("pack-sdf." + input.sdfModule + ".dep");
+        return context.depPath("pack-sdf." + input.module + ".dep");
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
-        if(input.externalDef != null) {
-            require(input.externalDef, LastModifiedStamper.instance);
-            FileCommands.copyFile(input.externalDef, input.outputPath, StandardCopyOption.COPY_ATTRIBUTES);
-            provide(input.outputPath);
-            return OutputPersisted.of(input.outputPath);
+        require(input.inputFile);
+
+        final Arguments args = new Arguments();
+        args.addAll(input.extraArgs);
+        for(File path : input.includePaths) {
+            require(path, FileExistsStamper.instance);
+            if(!path.exists()) {
+                continue;
+            }
+            if(FilenameUtils.isExtension(path.getName(), "def")) {
+                args.addFile("-Idef", path);
+            } else {
+                /*
+                 * HACK: for full incremental soundness, a require on the directory is needed here, since new files can
+                 * be added to the path, which influence pack-sdf. However, since the Spoofax build generates new files
+                 * into some of these directories, that would cause the requirement to always be inconsistent, always
+                 * triggering a rebuild. This is why we omit the requirement.
+                 */
+                args.addFile("-I", path);
+            }
         }
-
-        copySdf2(input);
-
-        require(input.inputPath);
 
         // @formatter:off
         final Arguments arguments = new Arguments()
-            .addFile("-i", input.inputPath)
-            .addFile("-o", input.outputPath)
-            .addAll(input.sdfArgs)
+            .addFile("-i", input.inputFile)
+            .addFile("-o", input.outputFile)
+            .addAll(args)
             ;
         
         final ExecutionResult result = new StrategoExecutor()
@@ -111,13 +118,13 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
             ;
         // @formatter:on 
 
-        provide(input.outputPath);
+        provide(input.outputFile);
         for(File required : extractRequiredPaths(result.errLog)) {
             require(required);
         }
 
         setState(State.finished(result.success));
-        return OutputPersisted.of(input.outputPath);
+        return OutputPersisted.of(input.outputFile);
     }
 
 
@@ -134,25 +141,12 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
                     paths.add(new File(s.substring(prefix.length())));
                 } else if(infixIndex >= 0) {
                     String def = module.substring(infixIndex + infix.length());
-                    if(FileCommands.acceptable(def))
+                    if(FileCommands.acceptable(def)) {
                         paths.add(new File(def));
+                    }
                 }
             }
         }
         return paths;
-    }
-
-    /**
-     * Copy SDF2 files from syntax/ to src-gen/syntax, to support projects that do not use SDF3.
-     */
-    private void copySdf2(Input input) {
-        // TODO: identify sdf2 files using Spoofax core
-        List<Path> srcSdfFiles = FileCommands.listFilesRecursive(input.syntaxFolder.toPath(), new SuffixFileFilter("sdf"));
-        for(Path p : srcSdfFiles) {
-            require(p.toFile(), LastModifiedStamper.instance);
-            File target =
-                FileCommands.copyFile(input.syntaxFolder, input.genSyntaxFolder, p.toFile(), StandardCopyOption.COPY_ATTRIBUTES);
-            provide(target);
-        }
     }
 }

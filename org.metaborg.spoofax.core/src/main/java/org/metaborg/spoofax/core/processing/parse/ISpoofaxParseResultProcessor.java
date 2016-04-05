@@ -1,12 +1,13 @@
 package org.metaborg.spoofax.core.processing.parse;
 
 import org.metaborg.core.processing.parse.IParseResultProcessor;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 
 /**
- * Typedef interface for {@link IParseResultProcessor} with {@link IStrategoTerm}.
+ * Typedef interface for {@link IParseResultProcessor} with Spoofax interfaces.
  */
-public interface ISpoofaxParseResultProcessor extends IParseResultProcessor<IStrategoTerm>,
+public interface ISpoofaxParseResultProcessor extends IParseResultProcessor<ISpoofaxInputUnit, ISpoofaxParseUnit>,
     ISpoofaxParseResultRequester, ISpoofaxParseResultUpdater {
 
 }

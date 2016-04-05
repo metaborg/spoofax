@@ -1,17 +1,16 @@
 package org.metaborg.core.style;
 
 import java.awt.Color;
+
 import javax.annotation.Nullable;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class Style implements IStyle {
     private static final long serialVersionUID = -8435127070824031921L;
-    
-	private final @Nullable Color color;
+
+    private final @Nullable Color color;
     private final @Nullable Color backgroundColor;
     private final boolean bold;
     private final boolean italic;
@@ -49,29 +48,33 @@ public class Style implements IStyle {
     }
 
     @Override public int hashCode() {
+        // @formatter:off
         return new HashCodeBuilder(17, 37)
-                .append(this.color)
-                .append(this.backgroundColor)
-                .append(this.bold)
-                .append(this.italic)
-                .append(this.underscore)
-                .toHashCode();
+            .append(this.color)
+            .append(this.backgroundColor)
+            .append(this.bold)
+            .append(this.italic)
+            .append(this.underscore)
+            .toHashCode();
+        // @formatter:on
     }
 
     @Override public boolean equals(Object obj) {
-        if (obj == this)
+        if(obj == this)
             return true;
-        if (!(obj instanceof Style))
+        if(!(obj instanceof Style))
             return false;
 
-        Style other = (Style)obj;
+        final Style other = (Style) obj;
+        // @formatter:off
         return new EqualsBuilder()
-                .append(this.color, other.color)
-                .append(this.backgroundColor, other.backgroundColor)
-                .append(this.bold, other.bold)
-                .append(this.italic, other.italic)
-                .append(this.underscore, other.underscore)
-                .isEquals();
+            .append(this.color, other.color)
+            .append(this.backgroundColor, other.backgroundColor)
+            .append(this.bold, other.bold)
+            .append(this.italic, other.italic)
+            .append(this.underscore, other.underscore)
+            .isEquals();
+        // @formatter:on
     }
 
     @Override public String toString() {

@@ -7,12 +7,15 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.UpdateKind;
-import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.syntax.IInputUnit;
+import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
-import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -20,33 +23,30 @@ import rx.Subscriber;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
-
-public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
+public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> implements IParseResultProcessor<I, P> {
     private static final ILogger logger = LoggerUtils.logger(ParseResultProcessor.class);
 
-    private final ISyntaxService<P> syntaxService;
+    private final ISyntaxService<I, P> syntaxService;
 
     private final ConcurrentMap<FileName, BehaviorSubject<ParseChange<P>>> updatesPerResource = Maps.newConcurrentMap();
 
 
-    @Inject public ParseResultProcessor(ISyntaxService<P> syntaxService) {
+    @Inject public ParseResultProcessor(ISyntaxService<I, P> syntaxService) {
         this.syntaxService = syntaxService;
     }
 
 
-    @Override public Observable<ParseResult<P>> request(final FileObject resource, final ILanguageImpl language,
-        final String text) {
-        return Observable.create(new OnSubscribe<ParseResult<P>>() {
-            @Override public void call(Subscriber<? super ParseResult<P>> observer) {
+    @Override public Observable<P> request(final I input) {
+        final FileObject resource = input.source();
+        return Observable.create(new OnSubscribe<P>() {
+            @Override public void call(Subscriber<? super P> observer) {
                 if(observer.isUnsubscribed()) {
-                    logger.trace("Unsubscribed from parse result request for {}", resource);
+                    logger.trace("Unsubscribed from parse result request for {}", input);
                     return;
                 }
 
-                final BehaviorSubject<ParseChange<P>> updates = getUpdates(resource, language, text);
+                final BehaviorSubject<ParseChange<P>> updates = getUpdates(input);
                 final ParseChange<P> update = updates.toBlocking().first(new Func1<ParseChange<P>, Boolean>() {
                     @Override public Boolean call(ParseChange<P> updateToFilter) {
                         final UpdateKind kind = updateToFilter.kind;
@@ -62,7 +62,7 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
                 switch(update.kind) {
                     case Update:
                         logger.trace("Returning cached parse result for {}", resource);
-                        observer.onNext(update.result);
+                        observer.onNext(update.unit);
                         observer.onCompleted();
                         break;
                     case Error:
@@ -70,16 +70,16 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
                         observer.onError(update.exception);
                         break;
                     case Remove: {
-                        final String message = String.format("Parse result for %s was removed unexpectedly", resource);
+                        final String message = logger.format("Parse result for {} was removed unexpectedly", resource);
                         logger.error(message);
-                        observer.onError(new ParseException(resource, language, message));
+                        observer.onError(new ParseException(input, message));
                         break;
                     }
                     default: {
                         final String message =
-                            String.format("Unexpected parse update kind %s for %s", update.kind, resource);
+                            logger.format("Unexpected parse update kind {} for {}", update.kind, resource);
                         logger.error(message);
-                        observer.onError(new ParseException(resource, language, message));
+                        observer.onError(new ParseException(input, message));
                         break;
                     }
                 }
@@ -91,7 +91,7 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
         return getUpdates(resource.getName());
     }
 
-    @Override public @Nullable ParseResult<P> get(FileObject resource) {
+    @Override public @Nullable P get(FileObject resource) {
         final BehaviorSubject<ParseChange<P>> subject = updatesPerResource.get(resource.getName());
         if(subject == null) {
             return null;
@@ -100,7 +100,7 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
         if(change == null) {
             return null;
         }
-        return change.result;
+        return change.unit;
     }
 
 
@@ -110,10 +110,10 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
         updates.onNext(ParseChange.<P>invalidate(resource));
     }
 
-    @Override public void update(FileObject resource, ParseResult<P> result) {
+    @Override public void update(FileObject resource, P unit) {
         logger.trace("Pushing parse result for {}", resource);
         final BehaviorSubject<ParseChange<P>> updates = getUpdates(resource.getName());
-        updates.onNext(ParseChange.update(result));
+        updates.onNext(ParseChange.<P>update(unit));
     }
 
     @Override public void error(FileObject resource, ParseException exception) {
@@ -135,7 +135,8 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
         return prevUpdates == null ? newUpdates : prevUpdates;
     }
 
-    private BehaviorSubject<ParseChange<P>> getUpdates(FileObject resource, ILanguageImpl language, String text) {
+    private BehaviorSubject<ParseChange<P>> getUpdates(I unit) {
+        final FileObject resource = unit.source();
         final FileName name = resource.getName();
 
         // THREADING: it is possible that two different threads asking for a subject may do the parsing twice here, as
@@ -147,7 +148,7 @@ public class ParseResultProcessor<P> implements IParseResultProcessor<P> {
             updatesPerResource.put(name, updates);
             try {
                 logger.trace("Parsing for {}", resource);
-                final ParseResult<P> result = syntaxService.parse(text, resource, language, null);
+                final P result = syntaxService.parse(unit);
                 updates.onNext(ParseChange.update(result));
             } catch(ParseException e) {
                 final String message = String.format("Parsing for %s failed", name);

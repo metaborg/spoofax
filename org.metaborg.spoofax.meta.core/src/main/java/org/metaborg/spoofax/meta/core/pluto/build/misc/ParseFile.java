@@ -4,7 +4,8 @@ import java.io.File;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.syntax.ParseResult;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -83,11 +84,12 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, OutputPersisted<I
             return null;
         }
         final String text = context.sourceTextService().text(resource);
-        final ParseResult<IStrategoTerm> result = context.syntaxService().parse(text, resource, language, null);
-        if(result.result == null) {
+        final ISpoofaxInputUnit inputUnit = context.unitService().inputUnit(resource, text, language, null);
+        final ISpoofaxParseUnit result = context.syntaxService().parse(inputUnit);
+        if(!result.valid()) {
             return null;
         }
 
-        return OutputPersisted.of(result.result);
+        return OutputPersisted.of(result.ast());
     }
 }

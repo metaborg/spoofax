@@ -1,10 +1,8 @@
 package org.metaborg.spoofax.core.esv;
 
 import static org.spoofax.interpreter.core.Tools.termAt;
-import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
-import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
-import static org.spoofax.terms.Term.asJavaString;
-import static org.spoofax.terms.Term.tryGetName;
+import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.terms.Term.*;
 
 import java.util.ArrayList;
 import java.util.List;

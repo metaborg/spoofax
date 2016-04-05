@@ -58,7 +58,7 @@ public class TracingCommon {
                 continue;
             }
 
-            final ISourceLocation highlightLocation = tracingService.fromAnalyzed(term);
+            final ISourceLocation highlightLocation = tracingService.location(term);
             if(highlightLocation == null) {
                 logger.debug("Cannot get source region for {}", term);
                 continue;
@@ -71,7 +71,7 @@ public class TracingCommon {
     }
 
     public @Nullable ISourceLocation getTargetLocation(IStrategoTerm term) {
-        final ISourceLocation targetLocation = tracingService.fromAnalyzed(term);
+        final ISourceLocation targetLocation = tracingService.location(term);
         if(targetLocation == null || targetLocation.resource() == null) {
             return null;
         }

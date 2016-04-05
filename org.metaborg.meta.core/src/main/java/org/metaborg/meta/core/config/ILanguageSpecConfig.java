@@ -1,6 +1,5 @@
 package org.metaborg.meta.core.config;
 
-import java.io.Serializable;
 import java.util.Collection;
 
 import org.metaborg.core.config.ILanguageComponentConfig;
@@ -11,7 +10,7 @@ import org.metaborg.core.config.ILanguageComponentConfig;
  *
  * To create a new instance of this interface, use an {@link ILanguageSpecConfigBuilder} interface.
  */
-public interface ILanguageSpecConfig extends ILanguageComponentConfig, Serializable {
+public interface ILanguageSpecConfig extends ILanguageComponentConfig {
     /**
      * Gets the version of MetaBorg tooling to use.
      * 
@@ -25,4 +24,11 @@ public interface ILanguageSpecConfig extends ILanguageComponentConfig, Serializa
      * @return The pardoned languages.
      */
     Collection<String> pardonedLanguages();
+
+    /**
+     * Use the build system (Maven/Gradle) specification for building this language specification.
+     * 
+     * @return True to use the build system specification, false otherwise.
+     */
+    boolean useBuildSystemSpec();
 }

@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
+import java.io.File;
 import java.util.Set;
 
 import org.metaborg.util.log.ILogger;
@@ -12,6 +13,7 @@ import build.pluto.builder.BuildRequest;
 import build.pluto.builder.Builder;
 import build.pluto.builder.CycleHandler;
 import build.pluto.builder.RequiredBuilderFailed;
+import build.pluto.dependency.FileRequirement;
 import build.pluto.dependency.Requirement;
 import build.pluto.output.Output;
 import build.pluto.util.IReporting;
@@ -42,7 +44,7 @@ public class SpoofaxReporting implements IReporting {
     }
 
     @Override public <O extends Output> void canceledBuilderFailure(BuildRequest<?, O, ?, ?> req, BuildUnit<O> unit) {
-        
+
     }
 
     @Override public <O extends Output> void canceledBuilderException(BuildRequest<?, O, ?, ?> req, BuildUnit<O> unit,
@@ -79,7 +81,17 @@ public class SpoofaxReporting implements IReporting {
     }
 
     @Override public void inconsistentRequirement(Requirement req) {
-        log.info("Requirement inconsistent: {}", req);
+        if(req instanceof FileRequirement) {
+            final FileRequirement fileReq = (FileRequirement) req;
+            final File file = fileReq.file;
+            if(file.isDirectory()) {
+                log.debug("Directory structure changed: {}", file);
+            } else {
+                log.debug("File changed: {}", file);
+            }
+        } else {
+            log.debug("Requirement inconsistent: {}", req);
+        }
     }
 
     @Override public void messageFromBuilder(String message, boolean isError, Builder<?, ?> from) {
@@ -94,7 +106,7 @@ public class SpoofaxReporting implements IReporting {
         if(message.contains("Incrementally rebuild inconsistent units")) {
             return;
         }
-        
+
         if(verbosity <= 3) {
             log.info(message);
         } else {

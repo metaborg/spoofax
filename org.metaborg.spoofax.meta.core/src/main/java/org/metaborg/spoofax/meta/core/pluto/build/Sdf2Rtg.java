@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -26,25 +28,24 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -4487049822305558202L;
 
-        public final File inputPath;
-        public final File outputPath;
-        public final String sdfModule;
+        public final File inputFile;
+        public final File outputFile;
+        public final String module;
+        public final @Nullable Origin origin;
 
-        public final Origin origin;
 
-
-        public Input(SpoofaxContext context, File inputPath, File outputPath, String sdfModule, Origin origin) {
+        public Input(SpoofaxContext context, File inputFile, File outputFile, String module, @Nullable Origin origin) {
             super(context);
-            this.inputPath = inputPath;
-            this.outputPath = outputPath;
-            this.sdfModule = sdfModule;
+            this.inputFile = inputFile;
+            this.outputFile = outputFile;
+            this.module = module;
             this.origin = origin;
         }
     }
 
 
-    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, Sdf2Rtg> factory = SpoofaxBuilderFactoryFactory
-        .of(Sdf2Rtg.class, Input.class);
+    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, Sdf2Rtg> factory =
+        SpoofaxBuilderFactoryFactory.of(Sdf2Rtg.class, Input.class);
 
 
     public Sdf2Rtg(Input input) {
@@ -68,7 +69,7 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>
     }
 
     @Override public File persistentPath(Input input) {
-        return context.depPath("sdf2rtg." + input.sdfModule + ".dep");
+        return context.depPath("sdf2rtg." + input.module + ".dep");
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
@@ -76,18 +77,17 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>
 
         if(SpoofaxContext.BETTER_STAMPERS) {
             final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
-                ParseFile.request(new ParseFile.Input(context, input.inputPath, input.origin));
-            require(input.inputPath, new Sdf2RtgStamper(parseSdf));
+                ParseFile.request(new ParseFile.Input(context, input.inputFile, input.origin));
+            require(input.inputFile, new Sdf2RtgStamper(parseSdf));
         } else {
-            require(input.inputPath);
+            require(input.inputFile);
         }
 
         // @formatter:off
-        // TODO: set nativepath to the native bundle, so that sdf2table can be found?
         final Arguments arguments = new Arguments()
-            .addFile("-i", input.inputPath)
-            .add("-m", input.sdfModule)
-            .addFile("-o", input.outputPath)
+            .addFile("-i", input.inputFile)
+            .add("-m", input.module)
+            .addFile("-o", input.outputFile)
             .add("--ignore-missing-cons")
             ;
         
@@ -100,9 +100,9 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>
             ;
         // @formatter:on 
 
-        provide(input.outputPath);
+        provide(input.outputFile);
 
         setState(State.finished(result.success));
-        return OutputPersisted.of(input.outputPath);
+        return OutputPersisted.of(input.outputFile);
     }
 }

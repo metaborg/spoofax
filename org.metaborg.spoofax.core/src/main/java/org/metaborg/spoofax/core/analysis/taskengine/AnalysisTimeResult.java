@@ -14,8 +14,8 @@ public class AnalysisTimeResult implements Serializable {
     public final long taskPersist;
 
 
-    public AnalysisTimeResult(long parse, long preTrans, long collect, long taskEval, long postTrans,
-        long indexPersist, long taskPersist) {
+    public AnalysisTimeResult(long parse, long preTrans, long collect, long taskEval, long postTrans, long indexPersist,
+        long taskPersist) {
         this.parse = parse;
         this.preTrans = preTrans;
         this.collect = collect;

@@ -1,8 +1,8 @@
 package org.metaborg.core.completion;
 
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.syntax.ParseResult;
+import org.metaborg.core.syntax.IParseUnit;
 
-public interface ICompletionService {
-    Iterable<ICompletion> get(ParseResult<?> parseResult, int offset, boolean nested) throws MetaborgException;
+public interface ICompletionService<P extends IParseUnit> {
+    Iterable<ICompletion> get(int offset, P result, boolean nested) throws MetaborgException;
 }

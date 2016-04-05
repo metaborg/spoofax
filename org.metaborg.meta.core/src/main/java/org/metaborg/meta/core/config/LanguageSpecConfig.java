@@ -21,11 +21,9 @@ import org.metaborg.core.messages.MessageBuilder;
  * object.
  */
 public class LanguageSpecConfig extends LanguageComponentConfig implements ILanguageSpecConfig, IConfig {
-    private static final long serialVersionUID = -7053551901853301773L;
-
     private static final String PROP_METABORG_VERSION = "metaborgVersion";
     private static final String PROP_PARDONED_LANGUAGES = "pardonedLanguages";
-
+    private static final String PROP_USE_BUILD_SYSTEM_SPEC = "build.useBuildSystemSpec";
 
 
     public LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config) {
@@ -36,11 +34,12 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
         Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
-        Collection<String> pardonedLanguages) {
+        Collection<String> pardonedLanguages, boolean useBuildSystemSpec) {
         super(config, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports);
 
         config.setProperty(PROP_METABORG_VERSION, metaborgVersion);
         config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
+        config.setProperty(PROP_USE_BUILD_SYSTEM_SPEC, useBuildSystemSpec);
     }
 
 
@@ -52,6 +51,9 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         return config.getList(String.class, PROP_PARDONED_LANGUAGES, Collections.<String>emptyList());
     }
 
+    @Override public boolean useBuildSystemSpec() {
+        return config.getBoolean(PROP_USE_BUILD_SYSTEM_SPEC, false);
+    }
 
     public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = super.validate(mb);
