@@ -46,7 +46,6 @@ public class SyntaxFacetFromESV {
     }
 
     private static Iterable<String> startSymbols(IStrategoAppl document) {
-        // GTODO: multiple start symbols
         final IStrategoAppl result = ESVReader.findTerm(document, "StartSymbols");
         if(result == null) {
             return null;

@@ -91,7 +91,7 @@ strategies
     full-path -> cache-path
     with
       project-path := <project-path>;
-      cache-dir    := <file-exists <+ mkdir> $[[project-path]/.cache];
+      cache-dir    := <file-exists <+ mkdir> $[[project-path]/target/import-cache];
       full-path'   := <string-replace(|"/", "+"); string-replace(|"\\", "+"); string-replace(|":", "+")> full-path;
       cache-path   := $[[cache-dir]/[full-path'].sig]
 

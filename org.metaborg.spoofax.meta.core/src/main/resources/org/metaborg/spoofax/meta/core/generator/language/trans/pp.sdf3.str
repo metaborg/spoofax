@@ -26,7 +26,7 @@ rules
       
   pp-partial-{{name}}-string =
     parenthesize-{{name}}
-    ; prettyprint-example
+    ; prettyprint-{{name}}
     ; !V([], <id>)
     ; box2text-string(|120)
       

@@ -1,5 +1,6 @@
 package org.metaborg.meta.core;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.metaborg.core.MetaBorg;
@@ -13,6 +14,7 @@ import org.metaborg.meta.core.project.ILanguageSpecService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
@@ -39,16 +41,21 @@ public class MetaBorgMeta implements AutoCloseable {
      * 
      * @param metaborg
      *            MetaBorg API to extend.
-     * @param module
-     *            MetaBorg meta-module to use.
      * @param loader
      *            Meta-module plugin loader to use.
+     * @param module
+     *            MetaBorg meta-module to use.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    @SuppressWarnings("unchecked") public MetaBorgMeta(MetaBorg metaborg, MetaborgMetaModule module,
-        IModulePluginLoader loader) throws MetaborgException {
-        final Iterable<Module> modules = InjectorFactory.modules(module, loader);
+    @SuppressWarnings("unchecked") public MetaBorgMeta(MetaBorg metaborg, IModulePluginLoader loader,
+        MetaborgMetaModule module, Module... additionalModules) throws MetaborgException {
+        final Collection<Module> metaborgModules = Lists.newArrayList(additionalModules);
+        metaborgModules.add(module);
+        final Iterable<Module> modules = InjectorFactory.modules(loader, metaborgModules);
         this.injector = InjectorFactory.createChild(metaborg.injector, modules);
         this.parent = metaborg;
 
@@ -66,11 +73,15 @@ public class MetaBorgMeta implements AutoCloseable {
      *            MetaBorg API to extend.
      * @param module
      *            MetaBorg meta-module to use.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgMeta(MetaBorg metaborg, MetaborgMetaModule module) throws MetaborgException {
-        this(metaborg, module, defaultPluginLoader());
+    public MetaBorgMeta(MetaBorg metaborg, MetaborgMetaModule module, Module... additionalModules)
+        throws MetaborgException {
+        this(metaborg, defaultPluginLoader(), module, additionalModules);
     }
 
     /**
@@ -80,11 +91,15 @@ public class MetaBorgMeta implements AutoCloseable {
      *            MetaBorg API to extend.
      * @param loader
      *            Meta-module plugin loader to use.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgMeta(MetaBorg metaborg, IModulePluginLoader loader) throws MetaborgException {
-        this(metaborg, defaultModule(), loader);
+    public MetaBorgMeta(MetaBorg metaborg, IModulePluginLoader loader, Module... additionalModules)
+        throws MetaborgException {
+        this(metaborg, loader, defaultModule(), additionalModules);
     }
 
     /**
@@ -92,12 +107,16 @@ public class MetaBorgMeta implements AutoCloseable {
      * 
      * @param metaborg
      *            MetaBorg API to extend.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorgMeta(MetaBorg metaborg) throws MetaborgException {
-        this(metaborg, defaultModule(), defaultPluginLoader());
+    public MetaBorgMeta(MetaBorg metaborg, Module... additionalModules) throws MetaborgException {
+        this(metaborg, defaultPluginLoader(), defaultModule(), additionalModules);
     }
+
 
     /**
      * Closes the MetaBorg meta API, closing any resources and services created by the API. The parent MetaBorg

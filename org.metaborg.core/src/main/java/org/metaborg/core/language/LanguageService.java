@@ -63,17 +63,6 @@ public class LanguageService implements ILanguageService {
         return identifierToComponent.get(identifier);
     }
 
-    @Nullable @Override public ILanguageComponent getComponentOrBaseline(LanguageIdentifier identifier) {
-        ILanguageComponent component = getComponent(identifier);
-        if(component == null) {
-            // BOOTSTRAPPING: baseline languages have version 0.0.0, try to get impl with that version.
-            final LanguageIdentifier baselineIdentifier =
-                new LanguageIdentifier(identifier, LanguageVersion.BASELINE_VERSION);
-            component = getComponent(baselineIdentifier);
-        }
-        return component;
-    }
-
     @Override public ILanguageComponent getComponent(FileName location) {
         return locationToComponent.get(location);
     }

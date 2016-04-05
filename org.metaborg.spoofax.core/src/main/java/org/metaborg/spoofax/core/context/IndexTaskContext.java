@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextInternal;
@@ -36,7 +37,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
     private final ITermFactory termFactory;
     private final ReadWriteLock lock;
-    private final String cachePath;
+    private final String persistentIdentifier;
 
     private final ContextIdentifier identifier;
 
@@ -49,7 +50,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
         this.termFactory = termFactoryService.get(identifier.language);
         this.lock = new ReentrantReadWriteLock(true);
-        this.cachePath = ".cache/" + FileUtils.sanitize(identifier.language.id().toString());
+        this.persistentIdentifier = FileUtils.sanitize(identifier.language.id().toString());
         this.identifier = identifier;
     }
 
@@ -213,7 +214,8 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
 
     private FileObject indexFile() throws FileSystemException {
-        return identifier.location.resolveFile(cachePath).resolveFile("index");
+        final CommonPaths paths = new CommonPaths(identifier.location);
+        return paths.targetDir().resolveFile("analysis").resolveFile(persistentIdentifier).resolveFile("index");
     }
 
     private IIndex initIndex() {
@@ -234,8 +236,9 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                 }
             }
         } catch(FileSystemException e) {
-            logger.error("Locating index file for {} failed, returning an empty index. "
-                + "Clean the project to reanalyze", e, this);
+            logger.error(
+                "Locating index file for {} failed, returning an empty index. " + "Clean the project to reanalyze", e,
+                this);
         }
         return initIndex();
     }
@@ -250,7 +253,8 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
 
 
     private FileObject taskEngineFile() throws FileSystemException {
-        return identifier.location.resolveFile(cachePath).resolveFile("tasks");
+        final CommonPaths paths = new CommonPaths(identifier.location);
+        return paths.targetDir().resolveFile("analysis").resolveFile(persistentIdentifier).resolveFile("tasks");
     }
 
     private ITaskEngine initTaskEngine() {
@@ -267,7 +271,8 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                 } catch(Exception e) {
                     logger.error(
                         "Loading task engine from {} failed, deleting that file and returning an empty task engine. "
-                            + "Clean the project to reanalyze", e, taskEngineFile);
+                            + "Clean the project to reanalyze",
+                        e, taskEngineFile);
                     deleteTaskEngineFile(taskEngineFile);
                 }
             }

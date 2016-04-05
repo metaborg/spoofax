@@ -26,10 +26,10 @@ Module(
       , Description(String("\"Spoofax-generated editor for the Entity language\""))
       , URL("http://strategoxt.org")
       , Extensions(Values(["ent"]))
-      , Table("include/Entity.tbl")
+      , Table("target/metaborg/sdf.tbl")
       , StartSymbols([Sort("Start")])
-      , SemanticProvider("include/entity.ctree")
-      , SemanticProvider("include/entity-java.jar")
+      , SemanticProvider("target/metaborg/stratego.ctree")
+      , SemanticProvider("target/metaborg/stratego-javastrat.jar")
       , SemanticObserver(Strategy("editor-analyze"), [MultiFile()])
       , OnSave(Strategy("editor-save"), None())
       ]

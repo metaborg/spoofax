@@ -1,5 +1,6 @@
 package org.metaborg.core;
 
+import java.util.Collection;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -26,6 +27,7 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
@@ -64,16 +66,21 @@ public class MetaBorg implements AutoCloseable {
     /**
      * Instantiate the MetaBorg API.
      * 
-     * @param module
-     *            MetaBorg module to use.
      * @param loader
      *            Module plugin loader to use.
+     * @param module
+     *            MetaBorg module to use.
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    @SuppressWarnings("unchecked") public MetaBorg(MetaborgModule module, IModulePluginLoader loader)
-        throws MetaborgException {
-        final Iterable<Module> modules = InjectorFactory.modules(module, loader);
+    @SuppressWarnings("unchecked") public MetaBorg(IModulePluginLoader loader, MetaborgModule module,
+        Module... additionalModules) throws MetaborgException {
+        final Collection<Module> metaborgModules = Lists.newArrayList(additionalModules);
+        metaborgModules.add(module);
+        final Iterable<Module> modules = InjectorFactory.modules(loader, metaborgModules);
         this.injector = InjectorFactory.create(modules);
 
         this.autoCloseables = (Set<AutoCloseable>) injector.getInstance(Key.get(Types.setOf(AutoCloseable.class)));
@@ -100,11 +107,13 @@ public class MetaBorg implements AutoCloseable {
      * 
      * @param module
      *            MetaBorg module to use.
+     * @param additionalModules
+     *            Additional modules to use.
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorg(MetaborgModule module) throws MetaborgException {
-        this(module, defaultPluginLoader());
+    public MetaBorg(MetaborgModule module, Module... additionalModules) throws MetaborgException {
+        this(defaultPluginLoader(), module, additionalModules);
     }
 
     /**
@@ -112,21 +121,26 @@ public class MetaBorg implements AutoCloseable {
      * 
      * @param loader
      *            Module plugin loader to use.
+     * @param additionalModules
+     *            Additional modules to use.
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorg(IModulePluginLoader loader) throws MetaborgException {
-        this(defaultModule(), loader);
+    public MetaBorg(IModulePluginLoader loader, Module... additionalModules) throws MetaborgException {
+        this(loader, defaultModule(), additionalModules);
     }
 
     /**
      * Instantiate the MetaBorg API.
      * 
+     * @param additionalModules
+     *            Additional modules to use.
+     * 
      * @throws MetaborgException
      *             When loading plugins or dependency injection fails.
      */
-    public MetaBorg() throws MetaborgException {
-        this(defaultModule(), defaultPluginLoader());
+    public MetaBorg(Module... additionalModules) throws MetaborgException {
+        this(defaultPluginLoader(), defaultModule(), additionalModules);
     }
 
     /**

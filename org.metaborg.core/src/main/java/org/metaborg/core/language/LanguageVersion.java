@@ -15,18 +15,16 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
     private static final long serialVersionUID = -4814753959508772739L;
     private static final String SNAPSHOT = "SNAPSHOT";
     private static final Pattern pattern = Pattern.compile("(\\d+)?(?:\\.(\\d+)(?:\\.(\\d+))?)?(?:(?:\\-)(.+))?");
-    
-    public static final String errorDescription = "must consist of 1, 2, or 3 numbers separated by dots, optionally followed by a -qualifier string (e.g. 1.0.0-SNAPSHOT)";
 
-    // BOOTSTRAPPING: The version of a baseline language.
-    public static final LanguageVersion BASELINE_VERSION = new LanguageVersion(0, 0, 0, "");
+    public static final String errorDescription =
+        "must consist of 1, 2, or 3 numbers separated by dots, optionally followed by a -qualifier string (e.g. 1.0.0-SNAPSHOT)";
 
     public final int major;
     public final int minor;
     public final int patch;
     public final String qualifier;
 
-    
+
     public LanguageVersion(int major, int minor, int patch, String qualifier) {
         this.major = major;
         this.minor = minor;
@@ -77,7 +75,8 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
         String qualifier = matcher.group(4);
         qualifier = qualifier == null || qualifier.isEmpty() ? "" : qualifier;
 
-        return new LanguageVersion(Integer.parseInt(major), Integer.parseInt(minor), Integer.parseInt(patch), qualifier);
+        return new LanguageVersion(Integer.parseInt(major), Integer.parseInt(minor), Integer.parseInt(patch),
+            qualifier);
     }
 
 

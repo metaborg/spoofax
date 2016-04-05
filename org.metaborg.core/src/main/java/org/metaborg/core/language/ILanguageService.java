@@ -23,17 +23,6 @@ public interface ILanguageService {
     @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier);
 
     /**
-     * Gets a language component by its identifier; or otherwise the baseline language component with the same
-     * identifier.
-     *
-     * @param identifier
-     *            Identifier of the implementation to get.
-     * @return Component with given identifier; or the baseline component with the given identifier; or
-     *         <code>null</code> if it could not be found.
-     */
-    @Nullable ILanguageComponent getComponentOrBaseline(LanguageIdentifier identifier);
-
-    /**
      * Gets a language component by its location.
      * 
      * @param location

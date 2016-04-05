@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.completion;
+package  org.metaborg.spoofax.core.completion;
 
 import org.metaborg.core.completion.IPlaceholderCompletionItem;
 
