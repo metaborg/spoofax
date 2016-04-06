@@ -3,6 +3,7 @@ package org.metaborg.core.build;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.project.NameUtil;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -143,7 +144,7 @@ public class CommonPaths {
      * @return Main Stratego file.
      */
     public FileObject strMainFile(String languageName) {
-        return resolve(transDir(), languageName + ".str");
+        return resolve(transDir(), NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
     }
 
     /**
@@ -159,7 +160,7 @@ public class CommonPaths {
      * @return Stratego Java strategies package.
      */
     public String strJavaStratPkg(String languageId) {
-        final String pkg = languageId + ".strategies";
+        final String pkg = NameUtil.toJavaId(languageId) + ".strategies";
         return pkg;
     }
 
