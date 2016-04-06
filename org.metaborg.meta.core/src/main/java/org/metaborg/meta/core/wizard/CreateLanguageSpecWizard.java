@@ -93,7 +93,7 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
      *            Project name.
      * @return Language name.
      */
-    private static String toName(String name) {
+    public static String toName(String name) {
         final char[] input = name.replace(' ', '-').toCharArray();
         final StringBuilder output = new StringBuilder();
 
@@ -122,7 +122,7 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
      *            Project name.
      * @return Language identifier.
      */
-    private static String toId(String name) {
+    public static String toId(String name) {
         final char[] input = name.replace(' ', '-').toCharArray();
         final StringBuilder output = new StringBuilder();
 
@@ -151,7 +151,7 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
      *            Language name.
      * @return Extension.
      */
-    private static String toExtension(String name) {
+    public static String toExtension(String name) {
         final String input = name.toLowerCase().replace("-", "").replace(".", "").replace(" ", "").replace(":", "");
         final String prefix = input.substring(0, Math.min(input.length(), 3));
         if(input.length() == 0) {
