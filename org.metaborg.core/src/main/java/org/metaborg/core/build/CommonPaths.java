@@ -4,6 +4,9 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 public class CommonPaths {
     protected final FileObject root;
 
@@ -212,6 +215,20 @@ public class CommonPaths {
      */
     public FileObject dsSrcGenJavaDir() {
         return resolve(srcGenDir(), "ds-java");
+    }
+
+    /**
+     * Gets all the Java source root folders.
+     * @return A list of Java source root folders.
+     */
+    public Collection<FileObject> javaSrcDirs() {
+        return Arrays.asList(
+                // Add all Java source folders here too!
+                // These must be the package root folders.
+                strJavaStratDir(),
+                dsManualJavaDir(),
+                dsSrcGenJavaDir()
+        );
     }
 
 
