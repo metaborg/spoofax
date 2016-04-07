@@ -16,7 +16,7 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
     }
 
     public Collection<String> extensions() {
-        return Splitter.on(',').trimResults().omitEmptyStrings().splitToList(inputExtensions());
+        return splitExtensions(inputExtensions());
     }
 
 
@@ -165,5 +165,12 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
                 return prefix + input.substring(i);
             }
         }
+    }
+
+    public static Collection<String> splitExtensions(final String extensions) {
+        return Splitter.on(',')
+                .trimResults()
+                .omitEmptyStrings()
+                .splitToList(extensions);
     }
 }
