@@ -14,5 +14,4 @@ public interface IMenuService {
      * @return Top-level menu items.
      */
     Iterable<IMenuItem> menuItems(ILanguageImpl language);
-
 }
