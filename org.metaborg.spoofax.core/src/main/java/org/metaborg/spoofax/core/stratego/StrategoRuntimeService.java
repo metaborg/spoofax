@@ -36,21 +36,24 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     private final ITermFactoryService termFactoryService;
     private final Set<IOperatorRegistry> strategoLibraries;
     private final ParseStrategoFileStrategy parseStrategoFileStrategy;
+    private final Set<ClassLoader> additionalClassLoaders;
 
-    private final Map<ILanguageComponent, HybridInterpreter> prototypes =
-            new HashMap<>();
+    private final Map<ILanguageComponent, HybridInterpreter> prototypes = new HashMap<>();
 
 
     @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
-        Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy) {
+        Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy,
+        Set<ClassLoader> additionalClassLoaders) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.strategoLibraries = strategoLibraries;
         this.parseStrategoFileStrategy = parseStrategoFileStrategy;
+        this.additionalClassLoaders = additionalClassLoaders;
     }
 
 
-    @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException {
+    @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context)
+        throws MetaborgException {
         HybridInterpreter prototype = prototypes.get(component);
         if(prototype == null) {
             prototype = createPrototype(component);
@@ -165,7 +168,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
-            final ClassLoader classLoader = new StrategoRuntimeClassLoader();
+            final ClassLoader classLoader = new StrategoRuntimeClassLoader(additionalClassLoaders);
             runtime.loadJars(classLoader, classpath);
         } catch(IncompatibleJarException | IOException | MetaborgRuntimeException e) {
             throw new MetaborgException("Failed to load JAR", e);
