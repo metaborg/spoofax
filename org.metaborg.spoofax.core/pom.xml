@@ -57,11 +57,11 @@
       <artifactId>org.metaborg.runtime.task</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
-    <dependency>
+    <!-- <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.meta.lang.dynsem.interpreter</artifactId>
       <version>${metaborg-version}</version>
-    </dependency>
+    </dependency> -->
 
     <dependency>
       <groupId>org.slf4j</groupId>
