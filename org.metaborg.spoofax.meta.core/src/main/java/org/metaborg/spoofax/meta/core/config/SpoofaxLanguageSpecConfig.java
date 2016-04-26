@@ -39,6 +39,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
     private static final String PROP_STR_EXTERNAL_JAR_FLAGS = PROP_STR + ".externalJar.flags";
     private static final String PROP_STR_ARGS = PROP_STR + ".args";
+    private static final String PROP_STR_TYPESMART = PROP_STR + ".typesmart";
 
     private static final LanguageSpecBuildPhase defaultPhase = LanguageSpecBuildPhase.compile;
     private static final String PROP_BUILD = "build";
@@ -56,7 +57,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
         Collection<String> pardonedLanguages, boolean useBuildSystemSpec, SdfVersion sdfVersion, String externalDef,
         Arguments sdfArgs, StrategoFormat format, String externalJar, String externalJarFlags, Arguments strategoArgs,
-        Collection<IBuildStepConfig> buildSteps) {
+        boolean typesmart, Collection<IBuildStepConfig> buildSteps) {
         super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports,
             pardonedLanguages, useBuildSystemSpec);
 
@@ -68,6 +69,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         config.setProperty(PROP_STR_EXTERNAL_JAR, externalJar);
         config.setProperty(PROP_STR_EXTERNAL_JAR_FLAGS, externalJarFlags);
         config.setProperty(PROP_STR_ARGS, strategoArgs);
+        config.setProperty(PROP_STR_TYPESMART, typesmart);
 
         for(IBuildStepConfig buildStep : buildSteps) {
             buildStep.accept(new IBuildStepVisitor() {
@@ -128,6 +130,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return arguments;
     }
 
+    @Override public boolean typesmart() {
+        return config.getBoolean(PROP_STR_TYPESMART, false);
+    }
 
     @Override public Collection<IBuildStepConfig> buildSteps() {
         final List<HierarchicalConfiguration<ImmutableNode>> antConfigs = config.configurationsAt(PROP_BUILD_ANT);

@@ -53,6 +53,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable File strExternalJar;
         public final @Nullable String strExternalJarFlags;
         public final List<File> strjIncludeDirs;
+        public final boolean typesmart;
         public final Arguments strjArgs;
 
 
@@ -61,7 +62,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable String sdfMetaModule, @Nullable File sdfMetaFile, @Nullable File strFile,
             @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile, StrategoFormat strFormat,
             @Nullable File strExternalJar, @Nullable String strExternalJarFlags, List<File> strjIncludeDirs,
-            Arguments strjArgs) {
+            boolean typesmart, Arguments strjArgs) {
             super(context);
             this.sdfModule = sdfModule;
             this.sdfFile = sdfFile;
@@ -78,6 +79,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strExternalJar = strExternalJar;
             this.strExternalJarFlags = strExternalJarFlags;
             this.strjIncludeDirs = strjIncludeDirs;
+            this.typesmart = typesmart;
             this.strjArgs = strjArgs;
         }
     }

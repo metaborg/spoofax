@@ -31,6 +31,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable String strExternalJar = null;
     protected @Nullable String strExternalJarFlags = null;
     protected Arguments strArgs = new Arguments();
+    protected boolean typesmart = false;
     protected Collection<IBuildStepConfig> buildSteps = Lists.newArrayList();
 
 
@@ -47,7 +48,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps,
             langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion,
-            sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, typesmart, buildSteps);
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder reset() {
@@ -59,6 +60,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         this.strExternalJar = null;
         this.strExternalJarFlags = null;
         this.strArgs.clear();
+        this.typesmart = false;
         this.buildSteps.clear();
         return this;
     }
@@ -71,6 +73,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         withStrFormat(config.strFormat());
         withStrExternalJar(config.strExternalJar());
         withStrExternalJarFlags(config.strExternalJarFlags());
+        withStrTypesmart(config.typesmart());
         withStrArgs(config.strArgs());
         withBuildSteps(config.buildSteps());
         return this;
@@ -198,6 +201,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withStrExternalJarFlags(String flags) {
         this.strExternalJarFlags = flags;
+        return this;
+    }
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withStrTypesmart(boolean typesmart) {
+        this.typesmart = typesmart;
         return this;
     }
 
