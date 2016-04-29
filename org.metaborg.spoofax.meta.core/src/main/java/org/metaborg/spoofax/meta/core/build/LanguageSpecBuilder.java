@@ -307,6 +307,17 @@ public class LanguageSpecBuilder {
         final Arguments packSdfArgs = config.sdfArgs();
 
 
+        // Meta-SDF
+        final String sdfMetaModule = config.metaSdfName();
+        final FileObject sdfMetaFileCandidate = paths.syntaxMainFile(sdfMetaModule);
+        final @Nullable File sdfMetaFile;
+        if(sdfMetaFileCandidate.exists()) {
+            sdfMetaFile = resourceService.localPath(sdfMetaFileCandidate);
+        } else {
+            sdfMetaFile = null;
+        }
+
+
         // Stratego
         final String strModule = config.strategoName();
 
@@ -357,8 +368,8 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, sdfModule, sdfFile, sdfVersion, sdfExternalDef,
-            packSdfIncludePaths, packSdfArgs, null, null, strFile, strJavaStratPkg, strJavaStratFile, strFormat,
-            strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+            packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, strJavaStratPkg, strJavaStratFile,
+            strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin generateSourcesOrigin)
