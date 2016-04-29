@@ -39,67 +39,87 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
 
     @Override public Collection<TP> transform(P input, IContext context, ITransformGoal goal)
         throws TransformException {
+        return transform(input, context, goal, new TransformConfig());
+    }
+
+    @Override public Collection<TP> transform(P input, IContext context, ITransformGoal goal, ITransformConfig config)
+        throws TransformException {
         if(!input.valid()) {
             throw new TransformException("Cannot transform parse unit " + input + ", it is not valid");
         }
-        
-        final Iterable<TransformActionContrib> actions =
-            actionService.actionContributions(context.language(), goal);
+
+        final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TP> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
             checkAnalyzed(action);
-            final TP result = transformer.transform(input, context, action);
+            final TP result = transformer.transform(input, context, action, config);
             results.add(result);
         }
         return results;
     }
 
-    @Override public TP transform(P input, IContext context, TransformActionContrib action)
+    @Override public TP transform(P input, IContext context, TransformActionContrib action) throws TransformException {
+        return transform(input, context, action, new TransformConfig());
+    }
+
+    @Override public TP transform(P input, IContext context, TransformActionContrib action, ITransformConfig config)
         throws TransformException {
         if(!input.valid()) {
             throw new TransformException("Cannot transform parse unit " + input + ", it is not valid");
         }
         checkAnalyzed(action);
-        
-        final TP result = transformer.transform(input, context, action);
+
+        final TP result = transformer.transform(input, context, action, config);
         return result;
     }
 
     @Override public Collection<TA> transform(A input, IContext context, ITransformGoal goal)
         throws TransformException {
+        return transform(input, context, goal, new TransformConfig());
+    }
+
+    @Override public Collection<TA> transform(A input, IContext context, ITransformGoal goal, ITransformConfig config)
+        throws TransformException {
         if(!input.valid()) {
             throw new TransformException("Cannot transform analyze unit " + input + ", it is not valid");
         }
-        
-        final Iterable<TransformActionContrib> actions =
-            actionService.actionContributions(context.language(), goal);
+
+        final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TA> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
-            final TA result = transformer.transform(input, context, action);
+            final TA result = transformer.transform(input, context, action, config);
             results.add(result);
         }
         return results;
     }
 
-    @Override public TA transform(A input, IContext context, TransformActionContrib action)
+    @Override public TA transform(A input, IContext context, TransformActionContrib action) throws TransformException {
+        return transform(input, context, action, new TransformConfig());
+    }
+
+    @Override public TA transform(A input, IContext context, TransformActionContrib action, ITransformConfig config)
         throws TransformException {
         if(!input.valid()) {
             throw new TransformException("Cannot transform parse unit " + input + ", it is not valid");
         }
-        
-        final TA result = transformer.transform(input, context, action);
+
+        final TA result = transformer.transform(input, context, action, config);
         return result;
     }
 
 
     @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal)
         throws TransformException {
-        final Iterable<TransformActionContrib> actions =
-            actionService.actionContributions(context.language(), goal);
+        return transformAllParsed(inputs, context, goal, new TransformConfig());
+    }
+
+    @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal,
+        ITransformConfig config) throws TransformException {
+        final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TP> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
             checkAnalyzed(action);
-            final Collection<TP> result = transformer.transformAllParsed(inputs, context, action);
+            final Collection<TP> result = transformer.transformAllParsed(inputs, context, action, config);
             results.addAll(result);
         }
         return results;
@@ -107,18 +127,27 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
 
     @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context,
         TransformActionContrib action) throws TransformException {
+        return transformAllParsed(inputs, context, action, new TransformConfig());
+    }
+
+    @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context,
+        TransformActionContrib action, ITransformConfig config) throws TransformException {
         checkAnalyzed(action);
-        final Collection<TP> result = transformer.transformAllParsed(inputs, context, action);
+        final Collection<TP> result = transformer.transformAllParsed(inputs, context, action, config);
         return result;
     }
 
     @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, ITransformGoal goal)
         throws TransformException {
-        final Iterable<TransformActionContrib> actions =
-            actionService.actionContributions(context.language(), goal);
+        return transformAllAnalyzed(inputs, context, goal, new TransformConfig());
+    }
+
+    @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, ITransformGoal goal,
+        ITransformConfig config) throws TransformException {
+        final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TA> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
-            final Collection<TA> result = transformer.transformAllAnalyzed(inputs, context, action);
+            final Collection<TA> result = transformer.transformAllAnalyzed(inputs, context, action, config);
             results.addAll(result);
         }
         return results;
@@ -126,7 +155,12 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
 
     @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context,
         TransformActionContrib action) throws TransformException {
-        final Collection<TA> result = transformer.transformAllAnalyzed(inputs, context, action);
+        return transformAllAnalyzed(inputs, context, action, new TransformConfig());
+    }
+
+    @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context,
+        TransformActionContrib action, ITransformConfig config) throws TransformException {
+        final Collection<TA> result = transformer.transformAllAnalyzed(inputs, context, action, config);
         return result;
     }
 
