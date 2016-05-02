@@ -28,13 +28,22 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, Out<IStrategoTerm
 
         public final File file;
         public final boolean persistResult;
+        public final boolean silent;
         public final Origin requiredUnits;
-
 
         public Input(SpoofaxContext context, File file, boolean persistResult, Origin requiredUnits) {
             super(context);
             this.file = file;
             this.persistResult = persistResult;
+            this.silent = false;
+            this.requiredUnits = requiredUnits;
+        }
+
+        public Input(SpoofaxContext context, File file, boolean persistResult, boolean silent, Origin requiredUnits) {
+            super(context);
+            this.file = file;
+            this.persistResult = persistResult;
+            this.silent = silent;
             this.requiredUnits = requiredUnits;
         }
     }
@@ -61,7 +70,7 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, Out<IStrategoTerm
 
 
     @Override protected String description(Input input) {
-        return "Parse file " + input.file;
+        return input.silent ? null : "Parse file " + input.file;
     }
 
     @Override protected Stamper defaultStamper() {
