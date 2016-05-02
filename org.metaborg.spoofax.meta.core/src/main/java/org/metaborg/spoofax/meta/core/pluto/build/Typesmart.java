@@ -103,6 +103,10 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
 
         while(!todo.isEmpty()) {
             String next = todo.pop();
+            if(next.startsWith("runtime/")) {
+                continue;
+            }
+
             Collection<File> files = findStrFiles(next, input.strjIncludeDirs);
 
             if(files.isEmpty() && !next.startsWith("lib")) {
@@ -111,6 +115,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
 
             for(File file : files) {
                 if(seen.add(file)) {
+                    // logger.debug("Entering module " + next);
                     term = parseStratego(file);
                     todo.addAll(processModule(term));
                 }
@@ -118,6 +123,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
         }
 
         constructorSignatures = Collections.unmodifiableMap(constructorSignatures);
+        lexicals.add(SortType.LEXICAL_SORT);
         lexicals = Collections.unmodifiableSet(lexicals);
         injections = Collections.unmodifiableSet(injections);
         TypesmartContext typesmartContext = new TypesmartContext(constructorSignatures, lexicals, injections);
@@ -125,6 +131,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(input.outFile))) {
             oos.writeObject(typesmartContext);
         }
+        provide(input.outFile);
 
         return OutputPersisted.of(input.outFile);
     }
@@ -243,6 +250,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
             }
         } else {
             // constructor signature
+            // logger.debug(" " + cname + ": " + sortTypes);
             Set<List<SortType>> csigs = constructorSignatures.get(cname);
             if(csigs == null) {
                 csigs = new HashSet<>();
