@@ -277,7 +277,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final File typesmartFile = toFile(paths.strTypesmartFile());
             if(input.strTypesmart) {
                 final Typesmart.Input typesmartInput =
-                    new Typesmart.Input(context, input.strFile, input.strjIncludeDirs, typesmartFile, null);
+                    new Typesmart.Input(context, input.strFile, input.strjIncludeDirs, typesmartFile, origin);
                 final Origin typesmartOrigin = Typesmart.origin(typesmartInput);
                 requireBuild(typesmartOrigin);
             } else {

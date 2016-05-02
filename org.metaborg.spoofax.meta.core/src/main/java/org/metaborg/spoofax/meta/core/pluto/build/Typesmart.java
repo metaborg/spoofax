@@ -44,7 +44,7 @@ import build.pluto.output.OutputPersisted;
 
 public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<File>> {
     private static final ILogger logger = LoggerUtils.logger("Typesmart");
-    
+
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
@@ -95,8 +95,6 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
     private Set<Entry<SortType, SortType>> injections = new HashSet<>();
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
-        requireBuild(input.origin);
-
         Set<File> seen = new HashSet<>();
         LinkedList<String> todo = new LinkedList<>();
 
@@ -106,11 +104,11 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
         while(!todo.isEmpty()) {
             String next = todo.pop();
             Collection<File> files = findStrFiles(next, input.strjIncludeDirs);
-            
-            if(files.isEmpty()) {
-                logger.warn("Could not resolve import " + next);
+
+            if(files.isEmpty() && !next.startsWith("lib")) {
+                logger.warn("Could not extract typesmart info for unresolvable import " + next);
             }
-            
+
             for(File file : files) {
                 if(seen.add(file)) {
                     term = parseStratego(file);
@@ -132,7 +130,8 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
     }
 
     private IStrategoTerm parseStratego(File file) throws IOException {
-        Out<IStrategoTerm> out = requireBuild(ParseFile.factory, new ParseFile.Input(context, file, false, null));
+        Out<IStrategoTerm> out =
+            requireBuild(ParseFile.factory, new ParseFile.Input(context, file, true, true, getInput().origin));
         return out.val();
     }
 
@@ -165,9 +164,9 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
         for(IStrategoTerm decl : decls) {
             String declName = ((IStrategoAppl) decl).getName();
             if(declName.equals("Imports")) {
-                extractImports(decl, imports);
+                extractImports(decl.getSubterm(0), imports);
             } else if(declName.equals("Signature")) {
-                processSignature(decl);
+                processSignature(decl.getSubterm(0));
             }
         }
 
@@ -195,26 +194,32 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
                 continue;
             }
 
-            for(IStrategoTerm constr : decl) {
-                assert ((IStrategoAppl) constr).getName().endsWith("OpDecl");
+            for(IStrategoTerm constr : decl.getSubterm(0)) {
+                String kind = ((IStrategoAppl) constr).getName();
 
-                String cname = ((IStrategoString) constr.getSubterm(0)).stringValue();
-                IStrategoAppl typeTerm = (IStrategoAppl) constr.getSubterm(1);
+                String cname;
+                IStrategoAppl typeTerm;
+                if(kind.equals("OpDeclInj") || kind.equals("ExtOpDeclInj")) {
+                    cname = "";
+                    typeTerm = (IStrategoAppl) constr.getSubterm(0);
+                } else {
+                    cname = ((IStrategoString) constr.getSubterm(0)).stringValue();
+                    typeTerm = (IStrategoAppl) constr.getSubterm(1);
+                }
 
                 List<SortType> sortTypes;
-
                 if(typeTerm.getName().equals("ConstType")) {
                     // no constructor arguments
                     sortTypes = new ArrayList<>(1);
-                    sortTypes.set(0, extractConstType(typeTerm));
+                    sortTypes.add(extractSortType(typeTerm.getSubterm(0)));
                 } else if(typeTerm.getName().equals("FunType")) {
                     IStrategoTerm[] argTypes = typeTerm.getSubterm(0).getAllSubterms();
                     sortTypes = new ArrayList<>(argTypes.length + 1);
 
-                    for(int j = 0; j < argTypes.length; j++) {
-                        sortTypes.set(j, extractConstType((IStrategoAppl) argTypes[j]));
+                    for(IStrategoTerm argType : argTypes) {
+                        sortTypes.add(extractSortType(argType.getSubterm(0)));
                     }
-                    sortTypes.set(argTypes.length, extractConstType((IStrategoAppl) typeTerm.getSubterm(1)));
+                    sortTypes.add(extractSortType(typeTerm.getSubterm(1).getSubterm(0)));
                 } else {
                     throw new IllegalArgumentException("Found constructor declaration in unexpected format " + constr);
                 }
@@ -247,21 +252,17 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
         }
     }
 
-    private SortType extractConstType(IStrategoAppl term) {
-        assert term.getName().equals("ConstType");
-
-        IStrategoAppl sort = (IStrategoAppl) term.getSubterm(0);
-
+    private SortType extractSortType(IStrategoTerm sort) {
         String sortName = ((IStrategoString) sort.getSubterm(0)).stringValue();
 
         if(sortName.equals("List")) {
-            return new TList(extractConstType((IStrategoAppl) sort.getSubterm(1).getSubterm(0)));
+            return new TList(extractSortType((IStrategoAppl) sort.getSubterm(1).getSubterm(0)));
         } else if(sortName.equals("Option")) {
-            return new TOption(extractConstType((IStrategoAppl) sort.getSubterm(1).getSubterm(0)));
+            return new TOption(extractSortType((IStrategoAppl) sort.getSubterm(1).getSubterm(0)));
         } else if(sort.getSubtermCount() == 1) {
             return new TSort(sortName);
         } else {
-            throw new IllegalArgumentException("Found type in unexpected format " + term);
+            throw new IllegalArgumentException("Found type in unexpected format " + sort);
         }
     }
 }
