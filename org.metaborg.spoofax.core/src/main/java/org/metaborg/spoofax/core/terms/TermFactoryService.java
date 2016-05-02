@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.terms;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.CommonPaths;
@@ -12,7 +11,6 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
-import org.spoofax.terms.typesmart.TypesmartContext;
 import org.spoofax.terms.typesmart.TypesmartTermFactory;
 
 public class TermFactoryService implements ITermFactoryService {
@@ -28,12 +26,9 @@ public class TermFactoryService implements ITermFactoryService {
         FileObject typesmartFile = new CommonPaths(component.location()).strTypesmartFile();
         try {
             if(typesmartFile.exists()) {
-                try(ObjectInputStream ois = new ObjectInputStream(typesmartFile.getContent().getInputStream())) {
-                    TypesmartContext context = (TypesmartContext) ois.readObject();
-                    return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
-                }
+                return new TypesmartTermFactory(genericFactory, typesmartLogger, typesmartFile);
             }
-        } catch(IOException | ClassNotFoundException e) {
+        } catch(IOException e) {
             typesmartLogger.error("Error while loading typesmart term factory", e);;
         }
         return genericFactory;
