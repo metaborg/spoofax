@@ -24,6 +24,9 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -36,10 +39,12 @@ import org.spoofax.terms.typesmart.types.TSort;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
+import build.pluto.output.Out;
 import build.pluto.output.OutputPersisted;
 
 public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<File>> {
-
+    private static final ILogger logger = LoggerUtils.logger("Typesmart");
+    
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
@@ -101,10 +106,11 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
         while(!todo.isEmpty()) {
             String next = todo.pop();
             Collection<File> files = findStrFiles(next, input.strjIncludeDirs);
+            
             if(files.isEmpty()) {
-                // TODO log warning
+                logger.warn("Could not resolve import " + next);
             }
-
+            
             for(File file : files) {
                 if(seen.add(file)) {
                     term = parseStratego(file);
@@ -125,10 +131,9 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, OutputPersisted<F
         return OutputPersisted.of(input.outFile);
     }
 
-    private IStrategoTerm parseStratego(File file) {
-        require(file);
-        // TODO
-        return null;
+    private IStrategoTerm parseStratego(File file) throws IOException {
+        Out<IStrategoTerm> out = requireBuild(ParseFile.factory, new ParseFile.Input(context, file, false, null));
+        return out.val();
     }
 
     private Collection<File> findStrFiles(String imp, List<File> strjIncludeDirs) {
