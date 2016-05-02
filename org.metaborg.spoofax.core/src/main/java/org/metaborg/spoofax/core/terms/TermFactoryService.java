@@ -16,8 +16,9 @@ import org.spoofax.terms.typesmart.TypesmartContext;
 import org.spoofax.terms.typesmart.TypesmartTermFactory;
 
 public class TermFactoryService implements ITermFactoryService {
-    private final ITermFactory genericFactory = new ImploderOriginTermFactory(new TermFactory());
+    private static final ILogger typesmartLogger = LoggerUtils.logger("Typesmart");
 
+    private final ITermFactory genericFactory = new ImploderOriginTermFactory(new TermFactory());
 
     @Override public ITermFactory get(ILanguageImpl impl) {
         return genericFactory;
@@ -29,12 +30,11 @@ public class TermFactoryService implements ITermFactoryService {
             if(typesmartFile.exists()) {
                 try(ObjectInputStream ois = new ObjectInputStream(typesmartFile.getContent().getInputStream())) {
                     TypesmartContext context = (TypesmartContext) ois.readObject();
-                    ILogger logger = LoggerUtils.logger(TermFactory.class);
-                    return new TypesmartTermFactory(genericFactory, logger, context);
+                    return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
                 }
             }
         } catch(IOException | ClassNotFoundException e) {
-            LoggerUtils.logger("Typesmart").error("Error while loading typesmart term factory", e);;
+            typesmartLogger.error("Error while loading typesmart term factory", e);;
         }
         return genericFactory;
     }
