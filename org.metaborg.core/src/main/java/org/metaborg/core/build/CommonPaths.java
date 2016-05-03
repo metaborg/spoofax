@@ -233,8 +233,12 @@ public class CommonPaths {
         return resolve(targetDir(), "stratego-cache");
     }
 
-    public FileObject strTypesmartFile() {
-        return resolve(targetMetaborgDir(), "stratego.typesmart");
+    public FileObject strTypesmartMergedFile() {
+        return resolve(resolve(targetDir(), "analysis"), "typesmart.merged.context");
+    }
+
+    public FileObject strTypesmartExportedFile() {
+        return resolve(targetMetaborgDir(), "typesmart.context");
     }
 
     /* DynSem */

@@ -370,14 +370,12 @@ public class LanguageSpecBuilder {
             }
             strjIncludeDirs.add(resourceService.localFile(path, strjIncludesReplicateDir));
         }
-        
-        boolean typesmart = config.typesmart();
 
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, sdfModule, sdfFile, sdfVersion, sdfExternalDef,
             packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, strJavaStratPkg, strJavaStratFile,
-            strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, typesmart, strjArgs);
+            strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin generateSourcesOrigin)

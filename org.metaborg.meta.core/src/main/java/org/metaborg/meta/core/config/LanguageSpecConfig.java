@@ -32,8 +32,9 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         LanguageIdentifier id, String name, Collection<LanguageIdentifier> compileDeps,
         Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps,
         Collection<LanguageContributionIdentifier> langContribs, Collection<IGenerateConfig> generates,
-        Collection<IExportConfig> exports, Collection<String> pardonedLanguages, boolean useBuildSystemSpec) {
-        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports);
+        Collection<IExportConfig> exports, boolean typesmart, Collection<String> pardonedLanguages,
+        boolean useBuildSystemSpec) {
+        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports, typesmart);
 
         config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
         config.setProperty(PROP_USE_BUILD_SYSTEM_SPEC, useBuildSystemSpec);

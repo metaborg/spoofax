@@ -65,13 +65,6 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     Arguments strArgs();
 
     /**
-     * Gets the typesmart property;
-     * 
-     * @return the typesmart property.
-     */
-    boolean typesmart();
-
-    /**
      * Gets additional build step configurations.
      * 
      * @return Additional build step configurations.

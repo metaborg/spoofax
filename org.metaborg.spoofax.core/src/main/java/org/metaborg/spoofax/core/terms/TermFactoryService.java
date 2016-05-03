@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.terms;
 
-import java.io.IOException;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.language.ILanguageComponent;
@@ -19,19 +17,17 @@ public class TermFactoryService implements ITermFactoryService {
     private final ITermFactory genericFactory = new ImploderOriginTermFactory(new TermFactory());
 
     @Override public ITermFactory get(ILanguageImpl impl) {
+        // TODO find typesmart contexts and merge them
         return genericFactory;
     }
 
     @Override public ITermFactory get(ILanguageComponent component) {
-        FileObject typesmartFile = new CommonPaths(component.location()).strTypesmartFile();
-        try {
-            if(typesmartFile.exists()) {
-                return new TypesmartTermFactory(genericFactory, typesmartLogger, typesmartFile);
-            }
-        } catch(IOException e) {
-            typesmartLogger.error("Error while loading typesmart term factory", e);;
+        if(component.config().typesmart()) {
+            FileObject typesmartFile = new CommonPaths(component.location()).strTypesmartMergedFile();
+            return new TypesmartTermFactory(genericFactory, typesmartLogger, typesmartFile);
+        } else {
+            return genericFactory;
         }
-        return genericFactory;
     }
 
     @Override public ITermFactory getGeneric() {
