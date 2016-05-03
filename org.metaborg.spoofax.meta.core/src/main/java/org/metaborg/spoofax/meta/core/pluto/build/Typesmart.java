@@ -51,16 +51,14 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
         public final File strFile;
         public final List<File> strjIncludeDirs;
         public final File typesmartExportedFile;
-        public final File typesmartMergedFile;
         public final Origin origin;
 
         public Input(SpoofaxContext context, File strFile, List<File> strjIncludeDirs, File typesmartExportedFile,
-            @Nullable File typesmartMergedFile, @Nullable Origin origin) {
+            @Nullable Origin origin) {
             super(context);
             this.strFile = strFile;
             this.strjIncludeDirs = strjIncludeDirs;
             this.typesmartExportedFile = typesmartExportedFile;
-            this.typesmartMergedFile = typesmartMergedFile;
             this.origin = origin;
         }
     }
@@ -96,47 +94,50 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
     private Set<Entry<SortType, SortType>> injections = new HashSet<>();
 
     @Override public None build(Input input) throws IOException {
-        Set<File> seen = new HashSet<>();
-        LinkedList<String> todo = new LinkedList<>();
 
-        String basePath = context.baseDir.getAbsolutePath();
-        IStrategoTerm term = parseStratego(input.strFile);
-        todo.addAll(processModule(term));
-
-        while(!todo.isEmpty()) {
-            String next = todo.pop();
-            if(next.startsWith("runtime/")) {
-                continue;
-            }
-
-            Collection<File> files = findStrFiles(next, input.strjIncludeDirs);
-
-            if(files.isEmpty() && !next.startsWith("lib")) {
-                logger.warn("Could not extract typesmart info for unresolvable import " + next);
-            }
-
-            for(File file : files) {
-                if(file.getAbsolutePath().startsWith(basePath) && seen.add(file)) {
-                    // logger.debug("Entering module " + next);
-                    term = parseStratego(file);
-                    todo.addAll(processModule(term));
-                }
-            }
-        }
+        processMainStrategoFile(input.strFile, input.strjIncludeDirs);
 
         constructorSignatures = Collections.unmodifiableMap(constructorSignatures);
         lexicals.add(SortType.LEXICAL_SORT);
         lexicals = Collections.unmodifiableSet(lexicals);
         injections = Collections.unmodifiableSet(injections);
         TypesmartContext typesmartContext = new TypesmartContext(constructorSignatures, lexicals, injections);
-
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(input.typesmartExportedFile))) {
             oos.writeObject(typesmartContext);
         }
         provide(input.typesmartExportedFile);
 
-        
         return None.val;
+    }
+
+    private void processMainStrategoFile(File strFile, List<File> strjIncludeDirs) throws IOException {
+        Set<String> seenImports = new HashSet<>();
+        Set<File> seenFiles = new HashSet<>();
+        LinkedList<String> todo = new LinkedList<>();
+        String basePath = context.baseDir.getAbsolutePath();
+        IStrategoTerm term = parseStratego(strFile);
+        todo.addAll(processModule(term));
+
+        while(!todo.isEmpty()) {
+            String next = todo.pop();
+            if(next.startsWith("runtime/") || !seenImports.add(next)) {
+                continue;
+            }
+
+            Collection<File> files = findStrFiles(next, strjIncludeDirs);
+
+            if(files.isEmpty() && !next.startsWith("lib")) {
+                logger.warn("Could not extract typesmart info for unresolvable import " + next);
+            }
+
+            for(File file : files) {
+                if(file.getAbsolutePath().startsWith(basePath) && seenFiles.add(file)) {
+                    // logger.debug("Entering module " + next);
+                    term = parseStratego(file);
+                    todo.addAll(processModule(term));
+                }
+            }
+        }
     }
 
     private IStrategoTerm parseStratego(File file) throws IOException {
@@ -263,7 +264,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
                 // non-lexical
                 injections.add(new SimpleEntry<>(sortTypes.get(0), sortTypes.get(1)));
             }
-        } else if (!cname.equals("")) {
+        } else if(!cname.equals("")) {
             // constructor signature
             // logger.debug(" " + cname + ": " + sortTypes);
             Set<List<SortType>> csigs = constructorSignatures.get(cname);

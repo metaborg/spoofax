@@ -233,10 +233,6 @@ public class CommonPaths {
         return resolve(targetDir(), "stratego-cache");
     }
 
-    public FileObject strTypesmartMergedFile() {
-        return resolve(resolve(targetDir(), "analysis"), "typesmart.merged.context");
-    }
-
     public FileObject strTypesmartExportedFile() {
         return resolve(targetMetaborgDir(), "typesmart.context");
     }
