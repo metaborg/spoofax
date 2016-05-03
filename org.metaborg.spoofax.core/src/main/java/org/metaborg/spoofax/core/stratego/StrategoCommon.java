@@ -5,8 +5,8 @@ import java.io.File;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -48,8 +48,8 @@ public class StrategoCommon implements IStrategoCommon {
     }
 
 
-    @Override public @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context,
-        IStrategoTerm input, String strategy) throws MetaborgException {
+    @Override public @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
+        String strategy) throws MetaborgException {
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
         return invoke(runtime, input, strategy);
     }
@@ -86,22 +86,22 @@ public class StrategoCommon implements IStrategoCommon {
         }
     }
 
-//    @Override public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
-//        Strategy[] sp, IStrategoTerm... tp) {
-//        final SDefT def = runtime.lookupUncifiedSVar(strategy);
-//        final Strategy strat = def.getBody();
-//        final CallT callT = (CallT) strat;
-//
-//        final org.spoofax.interpreter.core.IContext context = runtime.getContext();
-//        context.setCurrent(input);
-//        boolean success = false;
-//        try {
-//            success = callT.evaluateWithArgs(context, sp, tp);
-//        } catch(InterpreterException e) {
-//            throw new RuntimeException("Failed to evaluate strategy " + strategy, e);
-//        }
-//        return success ? context.current() : null;
-//    }
+    // @Override public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
+    // Strategy[] sp, IStrategoTerm... tp) {
+    // final SDefT def = runtime.lookupUncifiedSVar(strategy);
+    // final Strategy strat = def.getBody();
+    // final CallT callT = (CallT) strat;
+    //
+    // final org.spoofax.interpreter.core.IContext context = runtime.getContext();
+    // context.setCurrent(input);
+    // boolean success = false;
+    // try {
+    // success = callT.evaluateWithArgs(context, sp, tp);
+    // } catch(InterpreterException e) {
+    // throw new RuntimeException("Failed to evaluate strategy " + strategy, e);
+    // }
+    // return success ? context.current() : null;
+    // }
 
     private void handleException(InterpreterException ex, String strategy) throws MetaborgException {
         try {
@@ -158,28 +158,21 @@ public class StrategoCommon implements IStrategoCommon {
         throws MetaborgException {
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        // GTODO: support selected node
+        // TODO: support selected node
         final IStrategoTerm node = ast;
-        // GTODO: support position
+        // TODO: support position
         final IStrategoTerm position = termFactory.makeList();
 
-        final File localLocation;
-        try {
-            localLocation = resourceService.localFile(location);
-        } catch(MetaborgRuntimeException e) {
-            final String message = String.format("Location %s does not exist", location);
-            logger.error(message, e);
-            throw new MetaborgException(message, e);
-        }
-        final IStrategoString locationTerm = localLocationTerm(localLocation);
+        final String locationURI = location.getName().getURI();
+        final IStrategoString locationTerm = termFactory.makeString(locationURI);
 
-        final File localResource = resourceService.localPath(resource);
-        if(localResource == null) {
-            final String message = String.format("Resource %s does not reside on the local file system", resource);
-            logger.error(message);
-            throw new MetaborgException(message);
+        String resourceURI;
+        try {
+            resourceURI = location.getName().getRelativeName(resource.getName());
+        } catch(FileSystemException e) {
+            resourceURI = resource.getName().getURI();
         }
-        final IStrategoString resourceTerm = localResourceTerm(localResource, localLocation);
+        final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
 
         return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);
     }
