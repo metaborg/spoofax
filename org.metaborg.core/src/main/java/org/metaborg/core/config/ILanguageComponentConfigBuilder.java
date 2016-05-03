@@ -142,7 +142,7 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      *            The typesmart property.
      * @return This builder.
      */
-    public ILanguageComponentConfigBuilder withTypesmart(boolean typesmart);
+    ILanguageComponentConfigBuilder withTypesmart(boolean typesmart);
 
     /**
      * Adds file exports.

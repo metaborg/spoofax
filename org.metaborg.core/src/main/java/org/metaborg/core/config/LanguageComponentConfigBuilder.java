@@ -74,6 +74,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         withLangContribs(config.langContribs());
         withGenerates(config.generates());
         withExports(config.exports());
+        withTypesmart(config.typesmart());
         return this;
     }
 
