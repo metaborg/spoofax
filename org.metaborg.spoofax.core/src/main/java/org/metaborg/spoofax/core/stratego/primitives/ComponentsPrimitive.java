@@ -1,10 +1,7 @@
 package org.metaborg.spoofax.core.stratego.primitives;
 
-import java.io.File;
-
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.resource.IResourceService;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
@@ -18,13 +15,8 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.inject.Inject;
 
 public class ComponentsPrimitive extends AbstractPrimitive {
-    private final IResourceService resourceService;
-
-
-    @Inject public ComponentsPrimitive(IResourceService resourceService) {
+    @Inject public ComponentsPrimitive() {
         super("language_components", 0, 0);
-
-        this.resourceService = resourceService;
     }
 
 
@@ -39,8 +31,7 @@ public class ComponentsPrimitive extends AbstractPrimitive {
             final IStrategoString groupIdTerm = factory.makeString(id.groupId);
             final IStrategoString idTerm = factory.makeString(id.id);
             final IStrategoString versionTerm = factory.makeString(id.version.toString());
-            final File localFile = resourceService.localFile(component.location());
-            final IStrategoString locationTerm = factory.makeString(localFile.toString());
+            final IStrategoString locationTerm = factory.makeString(component.location().getName().getURI());
             final IStrategoTuple tuple = factory.makeTuple(groupIdTerm, idTerm, versionTerm, locationTerm);
             list = factory.makeListCons(tuple, list);
         }

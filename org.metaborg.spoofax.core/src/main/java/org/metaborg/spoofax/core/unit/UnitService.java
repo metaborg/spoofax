@@ -9,8 +9,19 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.unit.IUnit;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
+import org.metaborg.spoofax.core.terms.ITermFactoryService;
+
+import com.google.inject.Inject;
 
 public class UnitService implements ISpoofaxUnitService {
+    private final ITermFactoryService termFactoryService;
+
+
+    @Inject public UnitService(ITermFactoryService termFactoryService) {
+        this.termFactoryService = termFactoryService;
+    }
+
+
     private Unit unit() {
         return new Unit();
     }
@@ -71,7 +82,7 @@ public class UnitService implements ISpoofaxUnitService {
     }
 
     @Override public ISpoofaxParseUnit emptyParseUnit(ISpoofaxInputUnit input) {
-        return parseUnit(input, new ParseContrib());
+        return parseUnit(input, new ParseContrib(termFactoryService.getGeneric().makeTuple()));
     }
 
 

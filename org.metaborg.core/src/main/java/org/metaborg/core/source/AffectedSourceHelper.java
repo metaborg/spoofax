@@ -69,10 +69,16 @@ public class AffectedSourceHelper {
             builder.append(lines[i].replace('\t', ' '));
             builder.append('\n');
         }
-        builder.append(indentation);
-        builder.append(Strings.repeat(" ", startExtend));
-        builder.append(Strings.repeat("^", endExtend - startExtend));
-        builder.append('\n');
+        if (startExtend <= endExtend) {
+            // WORKAROUND: On Windows apparently startExtend can be bigger than endExtend,
+            // causing an IllegalArgumentException: invalid count: -22
+            // As a workaround, we skip generating the ^^^^, but this is of course a bug.
+
+            builder.append(indentation);
+            builder.append(Strings.repeat(" ", startExtend));
+            builder.append(Strings.repeat("^", endExtend - startExtend));
+            builder.append('\n');
+        }
 
         return builder.toString();
     }
