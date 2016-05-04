@@ -81,6 +81,8 @@ import org.metaborg.spoofax.core.stratego.primitives.LanguageSourceFilesPrimitiv
 import org.metaborg.spoofax.core.stratego.primitives.LanguageSourceLocationsPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LegacyLanguageIncludeLocationsPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LegacyLanguageSourceLocationsPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.LocalPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.LocalReplicatePrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ParseFilePrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ProjectPathPrimitive;
@@ -277,6 +279,8 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeFilesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ForeignCallPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ComponentsPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LocalPathPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LocalReplicatePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_refreshresource", 0, 1));
@@ -381,7 +385,7 @@ public class SpoofaxModule extends MetaborgModule {
                 .to(SpoofaxBuilder.class);
         bind(new TypeLiteral<IBuilder<?, ?, ?, ?>>() {}).to(SpoofaxBuilder.class);
         bind(IBuilder.class).to(SpoofaxBuilder.class);
-        
+
         // No scope for build output, new instance for every request.
         bind(
             new TypeLiteral<IBuildOutputInternal<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>>() {})
