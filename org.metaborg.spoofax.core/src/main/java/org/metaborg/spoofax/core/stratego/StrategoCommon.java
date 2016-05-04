@@ -81,7 +81,7 @@ public class StrategoCommon implements IStrategoCommon {
             }
             return runtime.current();
         } catch(InterpreterException e) {
-            handleException(e, strategy);
+            handleException(e, runtime, strategy);
             throw new MetaborgException("Invoking Stratego strategy failed unexpectedly", e);
         }
     }
@@ -103,7 +103,8 @@ public class StrategoCommon implements IStrategoCommon {
     // return success ? context.current() : null;
     // }
 
-    private void handleException(InterpreterException ex, String strategy) throws MetaborgException {
+    private void handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) throws MetaborgException {
+        String trace = "Stratego trace:\n" + runtime.getCompiledContext().getTraceString();
         try {
             throw ex;
         } catch(InterpreterErrorExit e) {
@@ -121,21 +122,21 @@ public class StrategoCommon implements IStrategoCommon {
             } else {
                 message = logger.format("Invoking Stratego strategy {} failed", strategy);
             }
-            throw new MetaborgException(message, e);
+            throw new MetaborgException(message + "\n" + trace, e);
         } catch(InterpreterExit e) {
             final String message =
                 logger.format("Invoking Stratego strategy {} failed with exit code {}", strategy, e.getValue());
-            throw new MetaborgException(message, e);
+            throw new MetaborgException(message + "\n" + trace, e);
         } catch(UndefinedStrategyException e) {
             final String message =
                 logger.format("Invoking Stratego strategy {} failed, strategy is undefined", strategy);
-            throw new MetaborgException(message, e);
+            throw new MetaborgException(message + "\n" + trace, e);
         } catch(InterpreterException e) {
             final Throwable cause = e.getCause();
             if(cause != null && cause instanceof InterpreterException) {
-                handleException((InterpreterException) cause, strategy);
+                handleException((InterpreterException) cause, runtime, strategy);
             } else {
-                throw new MetaborgException("Invoking Stratego strategy failed unexpectedly", e);
+                throw new MetaborgException("Invoking Stratego strategy failed unexpectedly: " + cause.getMessage() + "\n" + trace, cause);
             }
         }
     }
