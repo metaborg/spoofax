@@ -121,7 +121,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         // Get Stratego runtime
         final HybridInterpreter runtime;
         try {
-            runtime = strategoRuntimeService.runtime(component, context);
+            runtime = strategoRuntimeService.runtime(component, context, true);
         } catch(MetaborgException e) {
             throw new TransformException("Transformation failed unexpectedly; cannot get Stratego interpreter", e);
         }

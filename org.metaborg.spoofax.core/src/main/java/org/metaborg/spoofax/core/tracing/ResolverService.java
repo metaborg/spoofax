@@ -63,8 +63,8 @@ public class ResolverService implements ISpoofaxResolverService {
         final String strategy = facet.strategyName;
 
         try {
-            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor);
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(facetContrib.contributor, source);
+            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor, true);
+            final HybridInterpreter interpreter = strategoRuntimeService.runtime(facetContrib.contributor, source, true);
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple =
                 common.outputs(termFactory, interpreter, source, source, result.ast(), inRegion, strategy);
@@ -88,8 +88,8 @@ public class ResolverService implements ISpoofaxResolverService {
         final String strategy = facet.strategyName;
 
         try {
-            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor);
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(facetContrib.contributor, context);
+            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor, true);
+            final HybridInterpreter interpreter = strategoRuntimeService.runtime(facetContrib.contributor, context, true);
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple;
             try(IClosableLock lock = context.read()) {

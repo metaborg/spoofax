@@ -9,7 +9,6 @@ import org.metaborg.core.build.dependency.MissingDependencyException;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.LanguageComponent;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -32,15 +31,36 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
 
     private final ITermFactory genericFactory = new ImploderOriginTermFactory(new TermFactory());
 
+    private final Map<ILanguageImpl, TypesmartContext> implMergedTypesmartContexts = Maps.newHashMap();
     private final Map<ILanguageComponent, TypesmartContext> mergedTypesmartContexts = Maps.newHashMap();
 
 
     @Override public ITermFactory get(ILanguageImpl impl) {
-        // TODO find typesmart contexts and merge them
-        return genericFactory;
+        return get(impl, false);
+    }
+    
+    @Override public ITermFactory get(ILanguageImpl impl, boolean typesmart) {
+        if(!typesmart) {
+            return genericFactory;
+        }
+        
+        TypesmartContext context = getTypesmartContext(impl);
+        if(!context.isEmpty()) {
+            return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
+        } else {
+            return genericFactory;
+        }
     }
 
     @Override public ITermFactory get(ILanguageComponent component) {
+        return get(component, false);
+    }
+    
+    @Override public ITermFactory get(ILanguageComponent component, boolean typesmart) {
+        if(!typesmart) {
+            return genericFactory;
+        }
+        
         if(component.config().typesmart()) {
             TypesmartContext context = getTypesmartContext(component);
             return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
@@ -60,12 +80,25 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
         mergedTypesmartContexts.remove(component);
     }
 
+    private TypesmartContext getTypesmartContext(ILanguageImpl impl) {
+        TypesmartContext context = implMergedTypesmartContexts.get(impl);
+        if(context == null) {
+            context = TypesmartContext.empty();
+            for(ILanguageComponent component : impl.components()) {
+                if(component.config().typesmart()) {
+                    context = context.merge(getTypesmartContext(component));
+                }
+            }
+            implMergedTypesmartContexts.put(impl, context);
+        }
+        return context;
+    }
+
     private TypesmartContext getTypesmartContext(ILanguageComponent component) {
         TypesmartContext context = mergedTypesmartContexts.get(component);
         if(context == null) {
             FileObject localContextFile = new CommonPaths(component.location()).strTypesmartExportedFile();
             context = TypesmartContext.load(localContextFile, typesmartLogger);
-
             try {
                 for(ILanguageComponent other : dependencyService.sourceDeps(component)) {
                     FileObject otherContextFile = new CommonPaths(other.location()).strTypesmartExportedFile();
@@ -73,8 +106,10 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
                     context = context.merge(otherContext);
                 }
             } catch(MissingDependencyException e) {
-                typesmartLogger.error("Could not load source dependencies of " + component + " to resolve typesmart contexts.", e);
+                typesmartLogger
+                    .error("Could not load source dependencies of " + component + " to resolve typesmart contexts.", e);
             }
+            mergedTypesmartContexts.put(component, context);
         }
         return context;
     }

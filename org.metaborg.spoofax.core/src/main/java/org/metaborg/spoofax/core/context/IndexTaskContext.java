@@ -48,7 +48,7 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
     public IndexTaskContext(Injector injector, ITermFactoryService termFactoryService, ContextIdentifier identifier) {
         this.injector = injector;
 
-        this.termFactory = termFactoryService.get(identifier.language);
+        this.termFactory = termFactoryService.get(identifier.language, false);
         this.lock = new ReentrantReadWriteLock(true);
         this.persistentIdentifier = FileUtils.sanitize(identifier.language.id().toString());
         this.identifier = identifier;

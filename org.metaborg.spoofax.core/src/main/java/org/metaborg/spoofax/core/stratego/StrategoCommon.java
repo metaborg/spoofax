@@ -50,7 +50,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
         String strategy) throws MetaborgException {
-        final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
+        final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
         return invoke(runtime, input, strategy);
     }
 
@@ -61,7 +61,7 @@ public class StrategoCommon implements IStrategoCommon {
                 continue;
             }
 
-            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
+            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
             final IStrategoTerm result = invoke(runtime, input, strategy);
             if(result != null) {
                 return result;
