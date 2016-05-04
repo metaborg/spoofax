@@ -181,7 +181,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, false);
 
             for(IStrategoTerm optional : optionals) {
 
@@ -241,7 +241,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<ICompletion> completions = Lists.newLinkedList();
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, false);
 
             for(IStrategoList list : lists) {
                 ListImploderAttachment attachment = list.getAttachment(null);
@@ -452,7 +452,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, false);
             for(IStrategoTerm completionTerm : completionTerms) {
                 IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.ast();
                 final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm);

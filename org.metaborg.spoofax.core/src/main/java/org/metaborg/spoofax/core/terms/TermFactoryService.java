@@ -35,10 +35,6 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
     private final Map<ILanguageComponent, TypesmartContext> mergedTypesmartContexts = Maps.newHashMap();
 
 
-    @Override public ITermFactory get(ILanguageImpl impl) {
-        return get(impl, false);
-    }
-    
     @Override public ITermFactory get(ILanguageImpl impl, boolean typesmart) {
         if(!typesmart) {
             return genericFactory;
@@ -52,10 +48,6 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
         }
     }
 
-    @Override public ITermFactory get(ILanguageComponent component) {
-        return get(component, false);
-    }
-    
     @Override public ITermFactory get(ILanguageComponent component, boolean typesmart) {
         if(!typesmart) {
             return genericFactory;
