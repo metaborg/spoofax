@@ -66,9 +66,12 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
     }
 
     @Override public void invalidateCache(ILanguageImpl impl) {
+        // TODO invalidate if required language changes
+        implMergedTypesmartContexts.remove(impl);
     }
 
     @Override public void invalidateCache(ILanguageComponent component) {
+        // TODO invalidate if required language changes
         mergedTypesmartContexts.remove(component);
     }
 

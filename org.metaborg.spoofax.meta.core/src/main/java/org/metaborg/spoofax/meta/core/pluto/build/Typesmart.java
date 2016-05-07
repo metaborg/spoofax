@@ -33,6 +33,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.typesmart.TypesmartContext;
 import org.spoofax.terms.typesmart.types.SortType;
+import org.spoofax.terms.typesmart.types.TAny;
 import org.spoofax.terms.typesmart.types.TLexical;
 import org.spoofax.terms.typesmart.types.TList;
 import org.spoofax.terms.typesmart.types.TOption;
@@ -285,6 +286,8 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
 
         if(kind.equals("SortNoArgs") && sortName.equals(SortType.LEXICAL_SORT)) {
             return TLexical.instance;
+        } else if(kind.equals("SortNoArgs") && sortName.equals(SortType.ANY_SORT)) {
+            return TAny.instance;
         } else if(kind.equals("SortNoArgs")) {
             return new TSort(sortName);
         } else if(kind.equals("Sort") && sortName.equals("List")) {
