@@ -33,6 +33,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.typesmart.TypesmartContext;
 import org.spoofax.terms.typesmart.types.SortType;
+import org.spoofax.terms.typesmart.types.TLexical;
 import org.spoofax.terms.typesmart.types.TList;
 import org.spoofax.terms.typesmart.types.TOption;
 import org.spoofax.terms.typesmart.types.TSort;
@@ -98,7 +99,6 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
         processMainStrategoFile(input.strFile, input.strjIncludeDirs);
 
         constructorSignatures = Collections.unmodifiableMap(constructorSignatures);
-        lexicals.add(SortType.LEXICAL_SORT);
         lexicals = Collections.unmodifiableSet(lexicals);
         injections = Collections.unmodifiableSet(injections);
         TypesmartContext typesmartContext = new TypesmartContext(constructorSignatures, lexicals, injections);
@@ -118,9 +118,12 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
         IStrategoTerm term = parseStratego(strFile);
         todo.addAll(processModule(term));
 
+        boolean isRuntimeLibrary =
+            strFile.getAbsolutePath().endsWith("org.metaborg.meta.lib.analysis/trans/runtime_libraries.str");
+
         while(!todo.isEmpty()) {
             String next = todo.pop();
-            if(next.startsWith("runtime/") || !seenImports.add(next)) {
+            if(!isRuntimeLibrary && next.startsWith("runtime/") || !seenImports.add(next)) {
                 continue;
             }
 
@@ -257,7 +260,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
             // injection
             assert sortTypes.size() == 2;
 
-            if(sortTypes.get(0).equals(SortType.LEXICAL_SORT)) {
+            if(sortTypes.get(0).equals(TLexical.instance)) {
                 // lexical
                 lexicals.add(sortTypes.get(1));
             } else {
@@ -280,7 +283,9 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
         String kind = ((IStrategoAppl) sort).getName();
         String sortName = ((IStrategoString) sort.getSubterm(0)).stringValue();
 
-        if(kind.equals("SortNoArgs")) {
+        if(kind.equals("SortNoArgs") && sortName.equals(SortType.LEXICAL_SORT)) {
+            return TLexical.instance;
+        } else if(kind.equals("SortNoArgs")) {
             return new TSort(sortName);
         } else if(kind.equals("Sort") && sortName.equals("List")) {
             SortType t = extractSortType((IStrategoAppl) sort.getSubterm(1).getSubterm(0));
