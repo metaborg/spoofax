@@ -13,20 +13,21 @@ import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class LanguageSpecNamePrimitive extends AbstractPrimitive {
-    private static final ILogger logger = LoggerUtils.logger(LanguageSpecNamePrimitive.class);
+public class PlaceholderCharsPrimitive extends AbstractPrimitive {
+    private static final ILogger logger = LoggerUtils.logger(PlaceholderCharsPrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
-    @Inject public LanguageSpecNamePrimitive(IProjectService projectService) {
-        super("SSL_EXT_language_spec_name", 0, 0);
+    @Inject public PlaceholderCharsPrimitive(IProjectService projectService) {
+        super("SSL_EXT_placeholder_chars", 0, 0);
 
         this.projectService = projectService;
     }
@@ -60,10 +61,17 @@ public class LanguageSpecNamePrimitive extends AbstractPrimitive {
         if(languageSpec == null) {
             return false;
         }
-        
-        PlaceholderCharacters placeholderChars = languageSpec.config().placeholderChars();
 
-        env.setCurrent(env.getFactory().makeString(languageSpec.config().name()));
+        PlaceholderCharacters placeholderChars = languageSpec.config().placeholderChars();
+        IStrategoString prefix = env.getFactory().makeString(placeholderChars.prefix);
+        IStrategoString suffix = null;
+        if(placeholderChars.suffix != null) {
+            suffix = env.getFactory().makeString(placeholderChars.suffix);
+        } else {
+            suffix = env.getFactory().makeString("");
+        }
+        
+        env.setCurrent(env.getFactory().makeTuple(prefix, suffix));
         return true;
     }
 }
