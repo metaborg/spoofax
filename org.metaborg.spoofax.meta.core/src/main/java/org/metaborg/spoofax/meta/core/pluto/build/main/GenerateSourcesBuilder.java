@@ -186,6 +186,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // SDF meta-module for creating a Stratego concrete syntax extension parse table
         final File sdfMetaFile = input.sdfMetaFile;
+        final Origin sdfMetaOrigin;
         if(sdfMetaFile != null) {
             require(sdfMetaFile, FileExistsStamper.instance);
             if(!sdfMetaFile.exists()) {
@@ -210,9 +211,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             final File transDir = toFile(paths.transDir());
             final File tableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
-            final Origin sdf2TableOrigin = Sdf2Table
+            sdfMetaOrigin = Sdf2Table
                 .origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfMetaModule, permissiveDefOrigin));
-            requireBuild(sdf2TableOrigin);
+            requireBuild(sdfMetaOrigin);
+        } else {
+            sdfMetaOrigin = null;
         }
 
         // Stratego
@@ -258,6 +261,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final Origin origin = Origin.Builder()
                 .add(parenthesizeOrigin)
                 .add(sigOrigin)
+                .add(sdfMetaOrigin)
                 .get();
             // @formatter:on
 
