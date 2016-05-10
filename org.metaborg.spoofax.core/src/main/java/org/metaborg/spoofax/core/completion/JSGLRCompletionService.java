@@ -76,23 +76,22 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
 
-    @Override public Iterable<ICompletion> get(int position, ISpoofaxParseUnit parseInput, boolean nested) throws MetaborgException {
+    @Override public Iterable<ICompletion> get(int position, ISpoofaxParseUnit parseInput, boolean nested)
+        throws MetaborgException {
         ISpoofaxParseUnit completionParseResult = null;
 
-        if(!nested && !parseInput.valid()) {
+        if(!nested && !parseInput.success()) {
             final JSGLRParserConfiguration config = new JSGLRParserConfiguration(true, true, true, 3000, position);
             final ISpoofaxInputUnit input = parseInput.input();
-            final ISpoofaxInputUnit modifiedInput = unitService.inputUnit(input.source(), input.text(), input.langImpl(), input.dialect(), config);
+            final ISpoofaxInputUnit modifiedInput =
+                unitService.inputUnit(input.source(), input.text(), input.langImpl(), input.dialect(), config);
             completionParseResult = syntaxService.parse(modifiedInput);
 
         }
 
         Collection<ICompletion> completions = Lists.newLinkedList();
-
         Collection<IStrategoTerm> nestedCompletionTerms = getNestedCompletionTermsFromAST(completionParseResult);
         Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
-
-
 
         if(!completionTerms.isEmpty()) {
             completions.addAll(completionErroneousPrograms(completionTerms, completionParseResult));
@@ -344,11 +343,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 && tokenPosition > 0)
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
+            suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
         } else { // if not, do a regular replacement
             insertionPoint = oldNodeIA.getLeftToken().getStartOffset() - 1;
+            suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
         }
 
-        suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
+
 
         return new Completion(name, description, insertionPoint + 1, suffixPoint);
     }
@@ -399,16 +400,20 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             insertionPoint = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
         }
 
-        // if suffix point should be the first token of the next element, next element also gets
-        // pp but it should keep its indentation
+        // if completion is separated by a newline, preserve indentation of the subsequent node
+        // else separation follows from the grammar
         IToken checkToken = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken();
         int checkTokenIdx = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getIndex();
         suffixPoint = insertionPoint;
-        for(; checkTokenIdx >= 0; checkTokenIdx--) {
-            checkToken = tokenizer.getTokenAt(checkTokenIdx);
-            if(tokenizer.toString(checkToken, checkToken).contains("\n")) {
-                break;
+        if(description.contains("\n")) {
+            for(; checkTokenIdx >= 0; checkTokenIdx--) {
+                checkToken = tokenizer.getTokenAt(checkTokenIdx);
+                if(tokenizer.toString(checkToken, checkToken).contains("\n")) {
+                    break;
+                }
+                suffixPoint = checkToken.getStartOffset();
             }
+        } else {
             suffixPoint = checkToken.getStartOffset();
         }
 
@@ -456,8 +461,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
 
-    public Collection<ICompletion> completionErroneousPrograms(Iterable<IStrategoTerm> completionTerms, ISpoofaxParseUnit completionParseResult)
-        throws MetaborgException {
+    public Collection<ICompletion> completionErroneousPrograms(Iterable<IStrategoTerm> completionTerms,
+        ISpoofaxParseUnit completionParseResult) throws MetaborgException {
 
         final FileObject location = completionParseResult.source();
         final ILanguageImpl language = completionParseResult.input().langImpl();
@@ -470,7 +475,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                 IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.ast();
                 final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) completionTerm);
-                final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb, parenthesizeTerm(completionTerm, termFactory));
+                final IStrategoTerm inputStratego =
+                    termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
+                        parenthesizeTerm(completionTerm, termFactory));
 
                 final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
                 final IStrategoTerm proposalTerm =
@@ -479,7 +486,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     logger.error("Getting proposals for {} failed", inputStratego);
                     continue;
                 }
-                            
+
                 proposalsTerm.add(proposalTerm);
             }
             for(IStrategoTerm proposalTerm : proposalsTerm) {
@@ -617,8 +624,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         if(indexOfCompletion == 1) {
             // insert after the first non-layout token before the leftmost token of the list
             ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldList);
-            
-            //to avoid keeping duplicate tokens due to ambiguity
+
+            // to avoid keeping duplicate tokens due to ambiguity
             IStrategoTerm topMostAmbOldList = findTopMostAmbNode(oldList);
             final ImploderAttachment oldListIA = topMostAmbOldList.getAttachment(ImploderAttachment.TYPE);
 
@@ -698,7 +705,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
     public Collection<? extends ICompletion> completionErroneousProgramsNested(
-        Collection<IStrategoTerm> nestedCompletionTerms, ISpoofaxParseUnit completionParseResult) throws MetaborgException {
+        Collection<IStrategoTerm> nestedCompletionTerms, ISpoofaxParseUnit completionParseResult)
+        throws MetaborgException {
         final FileObject location = completionParseResult.source();
         final ILanguageImpl language = completionParseResult.input().langImpl();
         final Collection<ICompletion> completions = Lists.newLinkedList();
@@ -720,8 +728,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     findNestedCompletionTerm((StrategoTerm) nestedCompletionTerm, true);
 
                 for(IStrategoTerm innerNestedCompletionTerm : innerNestedCompletionTerms) {
-                    inputsStrategoNested.addAll(calculateNestedCompletionProposals(nestedCompletionTerm, innerNestedCompletionTerm,
-                        termFactory, completionAst, runtime));
+                    inputsStrategoNested.addAll(calculateNestedCompletionProposals(nestedCompletionTerm,
+                        innerNestedCompletionTerm, termFactory, completionAst, runtime));
                 }
 
                 for(IStrategoTerm inputStrategoNested : inputsStrategoNested) {
@@ -755,8 +763,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
 
-    private Collection<IStrategoTerm> calculateNestedCompletionProposals(IStrategoTerm mainNestedCompletionTerm, IStrategoTerm nestedCompletionTerm,
-        ITermFactory termFactory, IStrategoTerm completionAst, HybridInterpreter runtime) throws MetaborgException {
+    private Collection<IStrategoTerm> calculateNestedCompletionProposals(IStrategoTerm mainNestedCompletionTerm,
+        IStrategoTerm nestedCompletionTerm, ITermFactory termFactory, IStrategoTerm completionAst,
+        HybridInterpreter runtime) throws MetaborgException {
         Collection<IStrategoTerm> inputsStratego = Lists.newLinkedList();
 
         Collection<IStrategoTerm> nestedCompletionTerms =
@@ -764,7 +773,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         for(IStrategoTerm innerNestedCompletionTerm : nestedCompletionTerms) {
             Collection<IStrategoTerm> inputsStrategoInnerNested =
-                calculateNestedCompletionProposals(nestedCompletionTerm, innerNestedCompletionTerm, termFactory, completionAst, runtime);
+                calculateNestedCompletionProposals(nestedCompletionTerm, innerNestedCompletionTerm, termFactory,
+                    completionAst, runtime);
             for(IStrategoTerm inputStrategoNested : inputsStrategoInnerNested) {
                 final IStrategoTerm proposalTermNested =
                     strategoCommon.invoke(runtime, inputStrategoNested, "get-proposals-erroneous-programs-nested");
@@ -821,10 +831,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<IStrategoTerm> completionTerms = findCompletionTermInsideNested((StrategoTerm) nestedCompletionTerm);
 
         for(IStrategoTerm completionTerm : completionTerms) {
-            
+
             final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) completionTerm);
-            
-            final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb, parenthesizeTerm(completionTerm, termFactory));
+
+            final IStrategoTerm inputStratego =
+                termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
+                    parenthesizeTerm(completionTerm, termFactory));
 
             final IStrategoTerm proposalTerm =
                 strategoCommon.invoke(runtime, inputStratego, "get-proposals-erroneous-programs");
@@ -838,7 +850,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     proposalTerm.getSubterm(1));
 
             final IStrategoTerm inputStrategoNested =
-                termFactory.makeTuple(completionAst, nestedCompletionTerm, proposalTerm.getSubterm(0), replaceTermText, parenthesizeTerm(nestedCompletionTerm, termFactory));
+                termFactory.makeTuple(completionAst, nestedCompletionTerm, proposalTerm.getSubterm(0), replaceTermText,
+                    parenthesizeTerm(nestedCompletionTerm, termFactory));
 
             inputsStratego.add(inputStrategoNested);
         }
@@ -847,8 +860,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     private IStrategoTerm parenthesizeTerm(IStrategoTerm completionTerm, ITermFactory termFactory) {
-        if (ImploderAttachment.get(completionTerm).isBracket()){
-            IStrategoTerm result = termFactory.makeAppl(termFactory.makeConstructor("Parenthetical", 1), completionTerm);
+        if(ImploderAttachment.get(completionTerm).isBracket()) {
+            IStrategoTerm result =
+                termFactory.makeAppl(termFactory.makeConstructor("Parenthetical", 1), completionTerm);
             return result;
         }
         return completionTerm;
@@ -1003,6 +1017,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     private StrategoTerm findTopMostAmbNode(StrategoTerm newNode) {
         StrategoTerm parent = (StrategoTerm) ParentAttachment.getParent(newNode);
+        if(parent == null) {
+            return newNode;
+        }
         if(ImploderAttachment.getSort(parent) == null)
             return findTopMostAmbNode(parent);
 
@@ -1031,9 +1048,15 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             if(term instanceof IStrategoList) {
                 final IStrategoList list = (IStrategoList) term;
                 lists.add(list);
-            } else
-                break;
+            } else {
+                IToken left = ImploderAttachment.getLeftToken(term);
+                IToken right = ImploderAttachment.getRightToken(term);
+                if(left.getStartOffset() <= right.getEndOffset()) {
+                    break;
+                }
+            }
         }
+
 
         return lists;
     }
