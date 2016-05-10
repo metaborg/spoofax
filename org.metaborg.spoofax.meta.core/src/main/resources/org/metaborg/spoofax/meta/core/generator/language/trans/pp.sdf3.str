@@ -20,7 +20,7 @@ rules
   
   pp-{{name}}-string =
     parenthesize-{{name}}
-    ; prettyprint-SDF-start-symbols
+    ; prettyprint-{{name}}-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       

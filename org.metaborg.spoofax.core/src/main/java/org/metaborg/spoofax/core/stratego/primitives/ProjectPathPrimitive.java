@@ -1,9 +1,5 @@
 package org.metaborg.spoofax.core.stratego.primitives;
 
-import java.io.File;
-
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.resource.IResourceService;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
@@ -14,24 +10,16 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.inject.Inject;
 
 public class ProjectPathPrimitive extends AbstractPrimitive {
-    private final IResourceService resourceService;
-
-
-    @Inject public ProjectPathPrimitive(IResourceService resourceService) {
+    @Inject public ProjectPathPrimitive() {
         super("SSL_EXT_projectpath", 0, 0);
-
-        this.resourceService = resourceService;
     }
 
 
     @Override public boolean call(IContext env, Strategy[] strategies, IStrategoTerm[] terms)
         throws InterpreterException {
         final ITermFactory factory = env.getFactory();
-        final org.metaborg.core.context.IContext context =
-            (org.metaborg.core.context.IContext) env.contextObject();
-        final FileObject resource = context.location();
-        final File localFile = resourceService.localFile(resource);
-        final IStrategoTerm pathTerm = factory.makeString(localFile.toString());
+        final org.metaborg.core.context.IContext context = (org.metaborg.core.context.IContext) env.contextObject();
+        final IStrategoTerm pathTerm = factory.makeString(context.location().getName().getURI());
         env.setCurrent(pathTerm);
         return true;
     }

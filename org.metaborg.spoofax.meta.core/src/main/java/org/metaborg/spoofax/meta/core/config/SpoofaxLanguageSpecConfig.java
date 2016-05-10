@@ -185,7 +185,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
     @Override public String metaSdfName() {
-        return sdfName() + "-Stratego";
+        return "Stratego-" + sdfName();
     }
 
     @Override public String strategoName() {

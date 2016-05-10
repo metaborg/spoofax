@@ -3,6 +3,10 @@ package org.metaborg.core.build;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.project.NameUtil;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public class CommonPaths {
     protected final FileObject root;
@@ -140,7 +144,7 @@ public class CommonPaths {
      * @return Main Stratego file.
      */
     public FileObject strMainFile(String languageName) {
-        return resolve(transDir(), languageName + ".str");
+        return resolve(transDir(), NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
     }
 
     /**
@@ -156,7 +160,7 @@ public class CommonPaths {
      * @return Stratego Java strategies package.
      */
     public String strJavaStratPkg(String languageId) {
-        final String pkg = languageId + ".strategies";
+        final String pkg = NameUtil.toJavaId(languageId) + ".strategies";
         return pkg;
     }
 
@@ -212,6 +216,20 @@ public class CommonPaths {
      */
     public FileObject dsSrcGenJavaDir() {
         return resolve(srcGenDir(), "ds-java");
+    }
+
+    /**
+     * Gets all the Java source root folders.
+     * @return A list of Java source root folders.
+     */
+    public Collection<FileObject> javaSrcDirs() {
+        return Arrays.asList(
+                // Add all Java source folders here too!
+                // These must be the package root folders.
+                strJavaStratDir(),
+                dsManualJavaDir(),
+                dsSrcGenJavaDir()
+        );
     }
 
 
