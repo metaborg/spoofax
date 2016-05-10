@@ -5,5 +5,8 @@ public interface IPlaceholderCompletionItem extends ICompletionItem {
 
     String placeholderText();
     
+    int startOffset();
+    int endOffset();
+    
     boolean optional();
 }

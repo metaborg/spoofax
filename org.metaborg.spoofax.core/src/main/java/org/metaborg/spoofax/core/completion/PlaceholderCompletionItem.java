@@ -5,13 +5,18 @@ import org.metaborg.core.completion.IPlaceholderCompletionItem;
 public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
     public final String sort;
     public final String name;
+    public final int startOffset;
+    public final int endOffset;
+    
     public final boolean optional;
 
 
-    public PlaceholderCompletionItem(String sort, String name, boolean optional) {
+    public PlaceholderCompletionItem(String sort, int startOffset, int endOffset, boolean optional) {
         this.sort = sort;
-        this.name = name + hashCode();
+        this.name = sort + hashCode();
         this.optional = optional;
+        this.startOffset = startOffset;
+        this.endOffset = endOffset;
     }
 
 
@@ -32,5 +37,17 @@ public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
     @Override public boolean optional() {
         // TODO Auto-generated method stub
         return optional;
+    }
+
+
+    @Override public int startOffset() {
+        // TODO Auto-generated method stub
+        return startOffset;
+    }
+
+
+    @Override public int endOffset() {
+        // TODO Auto-generated method stub
+        return endOffset;
     }
 }
