@@ -200,8 +200,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             packSdfMetaArgs.addFile("-Idef", strategoMixFile);
             provide(strategoMixFile);
 
-            final File syntaxDir = toFile(paths.syntaxDir());
-            final File packSdfFile = FileUtils.getFile(syntaxDir, sdfMetaModule + ".def");
+            final File packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + ".def");
             final Origin packSdfOrigin = PackSdf.origin(new PackSdf.Input(context, sdfMetaModule, sdfMetaFile,
                 packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, null));
 
