@@ -5,6 +5,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.common.collect.Iterables;
@@ -18,6 +19,7 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 public class ProjectConfigBuilder implements IProjectConfigBuilder {
     protected final AConfigurationReaderWriter configReaderWriter;
 
+    protected String metaborgVersion = MetaborgConstants.METABORG_VERSION;
     protected final Set<LanguageIdentifier> compileDeps = Sets.newHashSet();
     protected final Set<LanguageIdentifier> sourceDeps = Sets.newHashSet();
     protected final Set<LanguageIdentifier> javaDeps = Sets.newHashSet();
@@ -31,10 +33,11 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     @Override public IProjectConfig build(@Nullable FileObject rootFolder) {
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
 
-        return new ProjectConfig(configuration, compileDeps, sourceDeps, javaDeps);
+        return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps);
     }
 
     @Override public IProjectConfigBuilder reset() {
+        metaborgVersion = MetaborgConstants.METABORG_VERSION;
         compileDeps.clear();
         sourceDeps.clear();
         javaDeps.clear();
@@ -42,9 +45,16 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     }
 
     @Override public IProjectConfigBuilder copyFrom(IProjectConfig config) {
+        withMetaborgVersion(config.metaborgVersion());
         withCompileDeps(config.compileDeps());
         withSourceDeps(config.sourceDeps());
         withJavaDeps(config.javaDeps());
+        return this;
+    }
+
+
+    @Override public IProjectConfigBuilder withMetaborgVersion(String metaborgVersion) {
+        this.metaborgVersion = metaborgVersion;
         return this;
     }
 

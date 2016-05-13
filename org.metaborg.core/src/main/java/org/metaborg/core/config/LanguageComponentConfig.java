@@ -29,11 +29,12 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         super(config);
     }
 
-    protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier identifier,
-        String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
-        Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<IGenerateConfig> generates, Collection<IExportConfig> exports) {
-        super(config, compileDeps, sourceDeps, javaDeps);
+    protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
+        LanguageIdentifier identifier, String name, Collection<LanguageIdentifier> compileDeps,
+        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps,
+        Collection<LanguageContributionIdentifier> langContribs, Collection<IGenerateConfig> generates,
+        Collection<IExportConfig> exports) {
+        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps);
 
         config.setProperty(PROP_NAME, name);
         config.setProperty(PROP_IDENTIFIER, identifier);

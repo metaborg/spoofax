@@ -16,17 +16,17 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
+    @Override ILanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
      * {@inheritDoc}
      */
-    boolean isValid();
+    @Override boolean isValid();
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder reset();
+    @Override ILanguageSpecConfigBuilder reset();
 
     /**
      * Copies the values from the specified configuration.
@@ -36,84 +36,82 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
      */
     ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig obj);
 
-    /**
-     * {@inheritDoc}
-     */
-    ILanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withName(String name);
+    @Override ILanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
+    @Override ILanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps);
+    @Override ILanguageSpecConfigBuilder withName(String name);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps);
+    @Override ILanguageSpecConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps);
+    @Override ILanguageSpecConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps);
+    @Override ILanguageSpecConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
+    @Override ILanguageSpecConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs);
+    @Override ILanguageSpecConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addLangContribs(Iterable<LanguageContributionIdentifier> contribs);
+    @Override ILanguageSpecConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withGenerates(Iterable<IGenerateConfig> generates);
+    @Override ILanguageSpecConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addGenerates(Iterable<IGenerateConfig> generates);
+    @Override ILanguageSpecConfigBuilder addLangContribs(Iterable<LanguageContributionIdentifier> contribs);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withExports(Iterable<IExportConfig> exports);
+    @Override ILanguageSpecConfigBuilder withGenerates(Iterable<IGenerateConfig> generates);
 
     /**
      * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder addExports(Iterable<IExportConfig> exports);
+    @Override ILanguageSpecConfigBuilder addGenerates(Iterable<IGenerateConfig> generates);
 
     /**
-     * Sets the MetaBorg version.
-     *
-     * @param metaborgVersion
-     *            The MetaBorg version.
-     * @return This builder.
+     * {@inheritDoc}
      */
-    ILanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion);
+    @Override ILanguageSpecConfigBuilder withExports(Iterable<IExportConfig> exports);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageSpecConfigBuilder addExports(Iterable<IExportConfig> exports);
+
 
     /**
      * Sets the pardoned languages.

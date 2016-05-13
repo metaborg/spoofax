@@ -46,7 +46,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps,
-            langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, SdfVersion.sdf3,
+            langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion,
             sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
     }
 
@@ -73,6 +73,12 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         withStrExternalJarFlags(config.strExternalJarFlags());
         withStrArgs(config.strArgs());
         withBuildSteps(config.buildSteps());
+        return this;
+    }
+
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion) {
+        super.withMetaborgVersion(metaborgVersion);
         return this;
     }
 
@@ -164,8 +170,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     }
 
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion version) {
-        // TODO Auto-generated method stub
+    @Override public ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion sdfVersion) {
+        this.sdfVersion = sdfVersion;
         return null;
     }
 

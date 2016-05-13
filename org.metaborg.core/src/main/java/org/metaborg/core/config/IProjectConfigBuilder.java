@@ -31,6 +31,16 @@ public interface IProjectConfigBuilder {
      */
     IProjectConfigBuilder copyFrom(IProjectConfig config);
 
+
+    /**
+     * Sets the MetaBorg version.
+     *
+     * @param metaborgVersion
+     *            The MetaBorg version.
+     * @return This builder.
+     */
+    IProjectConfigBuilder withMetaborgVersion(String metaborgVersion);
+
     /**
      * Sets the compile-time dependencies.
      *

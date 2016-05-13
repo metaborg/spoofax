@@ -13,7 +13,7 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
     /**
      * {@inheritDoc}
      */
-    ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
+    @Override ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
      * Determines whether the builder's state is valid.
@@ -25,7 +25,7 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
     /**
      * {@inheritDoc}
      */
-    ILanguageComponentConfigBuilder reset();
+    @Override ILanguageComponentConfigBuilder reset();
 
     /**
      * Copies the values from the specified configuration.
@@ -34,6 +34,43 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      *            The configuration to copy values from.
      */
     ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig config);
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder withMetaborgVersion(String metaborgVersion);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
+
 
     /**
      * Sets the language identifier.
@@ -52,36 +89,6 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withName(String name);
-
-    /**
-     * {@inheritDoc}
-     */
-    ILanguageComponentConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
-
-    /**
-     * {@inheritDoc}
-     */
-    ILanguageComponentConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps);
-
-    /**
-     * {@inheritDoc}
-     */
-    ILanguageComponentConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps);
-
-    /**
-     * {@inheritDoc}
-     */
-    ILanguageComponentConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps);
-
-    /**
-     * {@inheritDoc}
-     */
-    ILanguageComponentConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps);
-
-    /**
-     * {@inheritDoc}
-     */
-    ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
 
     /**
      * Sets the language contributions.
