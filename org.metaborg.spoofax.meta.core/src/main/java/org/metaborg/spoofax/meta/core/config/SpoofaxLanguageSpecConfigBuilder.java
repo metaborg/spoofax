@@ -67,8 +67,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         super.copyFrom(config);
         withSdfVersion(config.sdfVersion());
         withSdfExternalDef(config.sdfExternalDef());
-        withStrFormat(config.strFormat());
         withSdfArgs(config.sdfArgs());
+        withStrFormat(config.strFormat());
         withStrExternalJar(config.strExternalJar());
         withStrExternalJarFlags(config.strExternalJarFlags());
         withStrArgs(config.strArgs());

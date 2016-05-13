@@ -44,8 +44,9 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
     @Override public ILanguageSpecConfigBuilder reset() {
         super.reset();
-        metaborgVersion = null;
+        metaborgVersion = MetaborgConstants.METABORG_VERSION;
         pardonedLanguages.clear();
+        useBuildSystemSpec = false;
         return this;
     }
 
@@ -53,6 +54,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         super.copyFrom(config);
         withMetaborgVersion(config.metaborgVersion());
         withPardonedLanguages(config.pardonedLanguages());
+        withUseBuildSystemSpec(config.useBuildSystemSpec());
         return this;
     }
 
