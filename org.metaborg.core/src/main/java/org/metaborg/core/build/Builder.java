@@ -463,6 +463,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
     private boolean printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
         boolean pardoned) {
+        logger.error(message);
         final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(resource, message, e, pardoned);
