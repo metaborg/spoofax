@@ -147,7 +147,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
     private IStrategoTerm parseStratego(File file) throws IOException {
         Out<IStrategoTerm> out =
             requireBuild(ParseFile.factory, new ParseFile.Input(context, file, true, true, getInput().origin));
-        return out.val();
+        return out == null ? null : out.val();
     }
 
     private Collection<File> findStrFiles(String imp, List<File> strjIncludeDirs) {
@@ -171,6 +171,9 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
     }
 
     private List<String> processModule(IStrategoTerm module) {
+    	if(module == null) {
+    		return Collections.emptyList();
+    	}
         assert ((IStrategoAppl) module).getName().equals("Module");
 
         List<String> imports = new ArrayList<>();
