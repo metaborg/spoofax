@@ -24,8 +24,8 @@ public class ParseContrib implements IUnitContrib {
         this.duration = duration;
     }
 
-    public ParseContrib() {
-        this(true, true, null, Iterables2.<IMessage>empty(), -1);
+    public ParseContrib(IStrategoTerm emptyAst) {
+        this(true, true, emptyAst, Iterables2.<IMessage>empty(), -1);
     }
 
 

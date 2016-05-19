@@ -1,11 +1,11 @@
 package org.metaborg.spoofax.meta.core.build;
 
+import java.util.Collection;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.CommonPaths;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import com.google.common.collect.Lists;
 
 public class LangSpecCommonPaths extends CommonPaths {
     public LangSpecCommonPaths(FileObject root) {
@@ -90,15 +90,10 @@ public class LangSpecCommonPaths extends CommonPaths {
         return resolve(targetDir(), "pluto");
     }
 
-    @Override
-    public Collection<FileObject> javaSrcDirs() {
-        final Collection<FileObject> dirs = new ArrayList<>();
+    @Override public Collection<FileObject> javaSrcDirs() {
+        final Collection<FileObject> dirs = Lists.newArrayList();
         dirs.addAll(super.javaSrcDirs());
-        dirs.addAll(Arrays.asList(
-                // Add all Java source folders here too!
-                // These must be the package root folders.
-                strSrcGenJavaTransDir()
-        ));
+        dirs.add(strSrcGenJavaTransDir());
         return dirs;
     }
 }

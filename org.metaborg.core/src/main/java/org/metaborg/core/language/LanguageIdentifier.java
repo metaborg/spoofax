@@ -139,4 +139,8 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
     @Override public String toString() {
         return groupId + ":" + id + ":" + version;
     }
+    
+    public String toFileString() {
+        return id + "-" + version;
+    }
 }

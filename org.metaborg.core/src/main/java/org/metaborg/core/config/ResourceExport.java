@@ -4,6 +4,8 @@ package org.metaborg.core.config;
  * Generic resource export.
  */
 public class ResourceExport implements IExportConfig {
+    private static final long serialVersionUID = 5130391001472648535L;
+
     /**
      * Directory which is exported, relative to the location of the language component that exports sources.
      */
@@ -33,5 +35,10 @@ public class ResourceExport implements IExportConfig {
 
     @Override public void accept(IExportVisitor visitor) {
         visitor.visit(this);
+    }
+
+
+    @Override public String toString() {
+        return "Directory " + directory;
     }
 }

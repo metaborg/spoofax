@@ -5,7 +5,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.AConfigurationReaderWriter;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
@@ -22,7 +21,6 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
  */
 public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder implements ILanguageSpecConfigBuilder {
-    protected String metaborgVersion = MetaborgConstants.METABORG_VERSION;
     protected final Set<String> pardonedLanguages = Sets.newHashSet();
     protected boolean useBuildSystemSpec = false;
 
@@ -38,21 +36,27 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         }
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
-        return new LanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, langContribs,
-            generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec);
+        return new LanguageSpecConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps,
+            javaDeps, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
     }
 
     @Override public ILanguageSpecConfigBuilder reset() {
         super.reset();
-        metaborgVersion = null;
         pardonedLanguages.clear();
+        useBuildSystemSpec = false;
         return this;
     }
 
     @Override public ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig config) {
         super.copyFrom(config);
-        withMetaborgVersion(config.metaborgVersion());
         withPardonedLanguages(config.pardonedLanguages());
+        withUseBuildSystemSpec(config.useBuildSystemSpec());
+        return this;
+    }
+
+
+    @Override public ILanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion) {
+        super.withMetaborgVersion(metaborgVersion);
         return this;
     }
 
@@ -126,10 +130,6 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion) {
-        this.metaborgVersion = metaborgVersion;
-        return this;
-    }
 
     @Override public ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages) {
         this.pardonedLanguages.clear();

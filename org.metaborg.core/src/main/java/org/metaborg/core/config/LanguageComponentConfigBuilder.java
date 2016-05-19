@@ -37,8 +37,8 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         }
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
-        return new LanguageComponentConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps,
-            langContribs, generates, exports);
+        return new LanguageComponentConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps,
+            javaDeps, langContribs, generates, exports);
     }
 
     @Override public boolean isValid() {
@@ -76,13 +76,9 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder withIdentifier(LanguageIdentifier identifier) {
-        this.identifier = identifier;
-        return this;
-    }
 
-    @Override public ILanguageComponentConfigBuilder withName(String name) {
-        this.name = name;
+    @Override public ILanguageComponentConfigBuilder withMetaborgVersion(String metaborgVersion) {
+        super.withMetaborgVersion(metaborgVersion);
         return this;
     }
 
@@ -113,6 +109,17 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
     @Override public ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps) {
         super.addJavaDeps(deps);
+        return this;
+    }
+
+
+    @Override public ILanguageComponentConfigBuilder withIdentifier(LanguageIdentifier identifier) {
+        this.identifier = identifier;
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withName(String name) {
+        this.name = name;
         return this;
     }
 

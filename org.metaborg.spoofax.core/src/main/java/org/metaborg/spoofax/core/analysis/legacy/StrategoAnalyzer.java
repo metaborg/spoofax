@@ -198,8 +198,9 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                 return result(message, input, context, null, duration);
             }
         } catch(MetaborgException e) {
-            logger.trace("Analysis for {} failed", e, source);
-            return result(analysisCommon.analysisFailedMessage(runtime), input, context, e, -1);
+            final String message = logger.format("Analysis for {} failed", source);
+            logger.trace(message, e);
+            throw new AnalysisException(context, message, e);
         }
     }
 

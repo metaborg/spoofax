@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
@@ -18,6 +19,7 @@ import com.google.common.collect.Lists;
  * {@link ImmutableConfiguration} object.
  */
 public class ProjectConfig implements IProjectConfig, IConfig {
+    private static final String PROP_METABORG_VERSION = "metaborgVersion";
     private static final String PROP_COMPILE_DEPENDENCIES = "dependencies.compile";
     private static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
     private static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
@@ -27,11 +29,19 @@ public class ProjectConfig implements IProjectConfig, IConfig {
 
     public ProjectConfig(HierarchicalConfiguration<ImmutableNode> config) {
         this.config = config;
+        
+        // Set metaborgVersion to default if it was not set in the config.
+        if(!config.containsKey(PROP_METABORG_VERSION)) {
+            config.setProperty(PROP_METABORG_VERSION, MetaborgConstants.METABORG_VERSION);
+        }
     }
 
-    protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, Collection<LanguageIdentifier> compileDeps,
-        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps) {
+    protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
+        Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
+        Collection<LanguageIdentifier> javaDeps) {
         this(config);
+
+        config.setProperty(PROP_METABORG_VERSION, metaborgVersion);
         config.setProperty(PROP_COMPILE_DEPENDENCIES, compileDeps);
         config.setProperty(PROP_SOURCE_DEPENDENCIES, sourceDeps);
         config.setProperty(PROP_JAVA_DEPENDENCIES, javaDeps);
@@ -40,6 +50,12 @@ public class ProjectConfig implements IProjectConfig, IConfig {
 
     @Override public HierarchicalConfiguration<ImmutableNode> getConfig() {
         return this.config;
+    }
+
+
+
+    @Override public String metaborgVersion() {
+        return config.getString(PROP_METABORG_VERSION, MetaborgConstants.METABORG_VERSION);
     }
 
     @Override public Collection<LanguageIdentifier> compileDeps() {

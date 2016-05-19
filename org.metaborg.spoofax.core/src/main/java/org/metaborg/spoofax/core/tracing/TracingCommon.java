@@ -19,10 +19,22 @@ import org.strategoxt.HybridInterpreter;
 
 import com.google.inject.Inject;
 
-import fj.P;
-import fj.P2;
-
 public class TracingCommon {
+    /**
+     * Data class representing a term with its corresponding region in the source text.
+     */
+    public static class TermWithRegion {
+        public final IStrategoTerm term;
+        public final ISourceRegion region;
+
+
+        public TermWithRegion(IStrategoTerm term, ISourceRegion region) {
+            this.term = term;
+            this.region = region;
+        }
+    }
+
+
     private static final ILogger logger = LoggerUtils.logger(TracingCommon.class);
 
     private final IResourceService resourceService;
@@ -39,9 +51,9 @@ public class TracingCommon {
     }
 
 
-    public P2<IStrategoTerm, ISourceRegion> outputs(ITermFactory termFactory, HybridInterpreter runtime,
-        FileObject location, FileObject resource, IStrategoTerm result, Iterable<IStrategoTerm> inRegion,
-        String strategy) throws MetaborgException {
+    public TermWithRegion outputs(ITermFactory termFactory, HybridInterpreter runtime, FileObject location,
+        FileObject resource, IStrategoTerm result, Iterable<IStrategoTerm> inRegion, String strategy)
+        throws MetaborgException {
         final File localContextLocation = resourceService.localFile(location);
         final File localResource = resourceService.localPath(resource);
         if(localContextLocation == null || localResource == null) {
@@ -64,7 +76,7 @@ public class TracingCommon {
                 continue;
             }
 
-            return P.p(output, highlightLocation.region());
+            return new TermWithRegion(output, highlightLocation.region());
         }
 
         return null;
