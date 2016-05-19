@@ -149,7 +149,6 @@ public class SpoofaxModule extends MetaborgModule {
         super(resourceClassLoader);
     }
 
-
     @Override protected void configure() {
         super.configure();
 

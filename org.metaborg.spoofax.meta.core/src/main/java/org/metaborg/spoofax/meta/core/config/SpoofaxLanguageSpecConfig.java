@@ -40,7 +40,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_STR_EXTERNAL_JAR_FLAGS = PROP_STR + ".externalJar.flags";
     private static final String PROP_STR_ARGS = PROP_STR + ".args";
 
-    private static final LanguageSpecBuildPhase defaultPhase = LanguageSpecBuildPhase.preJava;
+    private static final LanguageSpecBuildPhase defaultPhase = LanguageSpecBuildPhase.compile;
     private static final String PROP_BUILD = "build";
     private static final String PROP_BUILD_ANT = PROP_BUILD + ".ant";
     private static final String PROP_BUILD_STR = PROP_BUILD + ".stratego-cli";

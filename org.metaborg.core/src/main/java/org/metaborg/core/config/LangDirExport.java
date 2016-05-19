@@ -4,6 +4,8 @@ package org.metaborg.core.config;
  * Language-specific directory export.
  */
 public class LangDirExport implements IExportConfig {
+    private static final long serialVersionUID = -5524778122837327631L;
+
     /**
      * Name of the language for which source files are exported.
      */
@@ -39,5 +41,10 @@ public class LangDirExport implements IExportConfig {
 
     @Override public void accept(IExportVisitor visitor) {
         visitor.visit(this);
+    }
+
+
+    @Override public String toString() {
+        return "Directory " + directory + " of " + language;
     }
 }

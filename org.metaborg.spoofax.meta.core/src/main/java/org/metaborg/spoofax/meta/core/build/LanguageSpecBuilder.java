@@ -17,9 +17,11 @@ import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
@@ -37,7 +39,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.util.cmd.Arguments;
-import org.metaborg.util.file.FileAccess;
+import org.metaborg.util.file.IFileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -98,7 +100,7 @@ public class LanguageSpecBuilder {
         }
     }
 
-    public void generateSources(LanguageSpecBuildInput input, @Nullable FileAccess access) throws Exception {
+    public void generateSources(LanguageSpecBuildInput input, @Nullable IFileAccess access) throws Exception {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final FileObject location = languageSpec.location();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
@@ -119,7 +121,7 @@ public class LanguageSpecBuilder {
         }
     }
 
-    public void compilePreJava(LanguageSpecBuildInput input) throws MetaborgException {
+    public void compile(LanguageSpecBuildInput input) throws MetaborgException {
         logger.debug("Running pre-Java build for {}", input.languageSpec().location());
 
         initPluto();
@@ -185,17 +187,18 @@ public class LanguageSpecBuilder {
         }
 
         for(IBuildStep buildStep : buildSteps) {
-            buildStep.execute(LanguageSpecBuildPhase.preJava, input);
+            buildStep.execute(LanguageSpecBuildPhase.compile, input);
         }
     }
 
-    public void compilePostJava(LanguageSpecBuildInput input) throws MetaborgException {
+    public FileObject pkg(LanguageSpecBuildInput input) throws MetaborgException {
         logger.debug("Running post-Java build for {}", input.languageSpec().location());
 
         initPluto();
+        final File spxArchiveFile;
         try {
             final Origin origin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
-            plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin)));
+            spxArchiveFile = plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin))).val();
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
@@ -208,8 +211,10 @@ public class LanguageSpecBuilder {
         }
 
         for(IBuildStep buildStep : buildSteps) {
-            buildStep.execute(LanguageSpecBuildPhase.postJava, input);
+            buildStep.execute(LanguageSpecBuildPhase.pkg, input);
         }
+
+        return resourceService.resolve(spxArchiveFile);
     }
 
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
@@ -398,7 +403,10 @@ public class LanguageSpecBuilder {
         final List<File> strJavaStratIncludeDirs =
             Lists.newArrayList(javaStratClassesDir, dsGeneratedClassesDir, dsManualClassesDir);
 
+        final Iterable<IExportConfig> exports = config.exports();
+        final LanguageIdentifier languageIdentifier = config.identifier();
+
         return new PackageBuilder.Input(context, generateSourcesOrigin, strFormat, strJavaStratFile,
-            strJavaStratIncludeDirs);
+            strJavaStratIncludeDirs, exports, languageIdentifier);
     }
 }

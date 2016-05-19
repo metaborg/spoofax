@@ -1,12 +1,13 @@
 package org.metaborg.core.build;
 
+import java.util.Collection;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.NameUtil;
 
-import java.util.Arrays;
-import java.util.Collection;
+import com.google.common.collect.Lists;
 
 public class CommonPaths {
     protected final FileObject root;
@@ -14,6 +15,14 @@ public class CommonPaths {
 
     public CommonPaths(FileObject root) {
         this.root = root;
+    }
+
+
+    /**
+     * @return Root directory.
+     */
+    public FileObject root() {
+        return root;
     }
 
 
@@ -69,6 +78,29 @@ public class CommonPaths {
         return resolve(targetDir(), "replicate");
     }
 
+    
+    /* Metaborg */
+
+    /**
+     * @return Metaborg component configuration file.
+     */
+    public FileObject mbComponentConfigFile() {
+        return resolve(srcGenDir(), "metaborg.component.yaml");
+    }
+    
+    
+    /* Spoofax */
+    
+    /**
+     * @param languageId
+     *            Identifier of the language.
+     * @return Archived Spoofax language file.
+     */
+    public FileObject spxArchiveFile(String languageId) {
+        return resolve(targetDir(), languageId + ".spoofax-language");
+    }
+    
+    
 
     /* ESV */
 
@@ -184,7 +216,7 @@ public class CommonPaths {
         final String path = strJavaStratPkgPath(languageId);
         return resolve(strJavaStratDir(), path, "Main.java");
     }
-    
+
     /**
      * @return Stratego parse cache directory.
      */
@@ -220,16 +252,11 @@ public class CommonPaths {
 
     /**
      * Gets all the Java source root folders.
+     * 
      * @return A list of Java source root folders.
      */
     public Collection<FileObject> javaSrcDirs() {
-        return Arrays.asList(
-                // Add all Java source folders here too!
-                // These must be the package root folders.
-                strJavaStratDir(),
-                dsManualJavaDir(),
-                dsSrcGenJavaDir()
-        );
+        return Lists.newArrayList(strJavaStratDir(), dsManualJavaDir(), dsSrcGenJavaDir());
     }
 
 
