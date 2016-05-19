@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.terms;
 
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.build.dependency.IDependencyService;
@@ -9,6 +11,7 @@ import org.metaborg.core.build.dependency.MissingDependencyException;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -34,8 +37,8 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
     private final Map<ILanguageImpl, TypesmartContext> implMergedTypesmartContexts = Maps.newHashMap();
     private final Map<ILanguageComponent, TypesmartContext> mergedTypesmartContexts = Maps.newHashMap();
 
-    @Override public ITermFactory get(ILanguageImpl impl, boolean typesmart) {
-        if(!typesmart) {
+    @Override public ITermFactory get(ILanguageImpl impl, @Nullable IProject project, boolean supportsTypesmart) {
+        if(!supportsTypesmart || project == null || !project.config().typesmart()) {
             return genericFactory;
         }
 
@@ -47,13 +50,13 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
         }
     }
 
-    @Override public ITermFactory get(ILanguageComponent component, boolean typesmart) {
-        if(!typesmart) {
+    @Override public ITermFactory get(ILanguageComponent component, @Nullable IProject project, boolean supportsTypesmart) {
+        if(!supportsTypesmart || project == null || !project.config().typesmart()) {
             return genericFactory;
         }
 
-        if(component.config().typesmart()) {
-            TypesmartContext context = getTypesmartContext(component);
+        TypesmartContext context = getTypesmartContext(component);
+        if(!context.isEmpty()) {
             return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
         } else {
             return genericFactory;
