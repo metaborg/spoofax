@@ -23,7 +23,6 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     private static final String PROP_LANGUAGE_CONTRIBUTIONS = "contributions";
     private static final String PROP_GENERATES = "generates";
     private static final String PROP_EXPORTS = "exports";
-    private static final String PROP_STR_TYPESMART = "language.stratego.typesmart";
 
     public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config) {
         super(config);
@@ -31,17 +30,16 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
         LanguageIdentifier identifier, String name, Collection<LanguageIdentifier> compileDeps,
-        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps,
+        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps, boolean typesmart,
         Collection<LanguageContributionIdentifier> langContribs, Collection<IGenerateConfig> generates,
-        Collection<IExportConfig> exports, boolean typesmart) {
-        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps);
+        Collection<IExportConfig> exports) {
+        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart);
 
         config.setProperty(PROP_NAME, name);
         config.setProperty(PROP_IDENTIFIER, identifier);
         config.setProperty(PROP_LANGUAGE_CONTRIBUTIONS, langContribs);
         config.setProperty(PROP_GENERATES, generates);
         config.setProperty(PROP_EXPORTS, exports);
-        config.setProperty(PROP_STR_TYPESMART, typesmart);
     }
 
 
@@ -102,10 +100,6 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
             }
         }
         return exports;
-    }
-
-    @Override public boolean typesmart() {
-        return config.getBoolean(PROP_STR_TYPESMART, false);
     }
 
     public Collection<IMessage> validate(MessageBuilder mb) {

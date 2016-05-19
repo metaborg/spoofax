@@ -45,12 +45,4 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      * @return The file exports.
      */
     Collection<IExportConfig> exports();
-
-   
-    /**
-     * Gets the typesmart property;
-     * 
-     * @return the typesmart property.
-     */
-    boolean typesmart();
 }

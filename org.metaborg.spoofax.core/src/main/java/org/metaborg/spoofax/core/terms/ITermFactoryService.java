@@ -18,7 +18,7 @@ public interface ITermFactoryService {
      *            Whether the factory should do typesmart analysis.
      * @return Language-specific term factory.
      */
-    ITermFactory get(ILanguageImpl component, boolean typesmart);
+    ITermFactory get(ILanguageImpl impl, boolean typesmart);
 
     /**
      * Return the term factory to be used when constructing new terms for given language component.

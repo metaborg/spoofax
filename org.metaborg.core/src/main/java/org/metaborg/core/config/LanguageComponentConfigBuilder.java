@@ -24,7 +24,6 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
     protected final Set<LanguageContributionIdentifier> langContribs = Sets.newHashSet();
     protected final List<IGenerateConfig> generates = Lists.newArrayList();
     protected final List<IExportConfig> exports = Lists.newArrayList();
-    protected boolean typesmart = false;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -38,7 +37,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new LanguageComponentConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps,
-            javaDeps, langContribs, generates, exports, typesmart);
+            javaDeps, typesmart, langContribs, generates, exports);
     }
 
     @Override public boolean isValid() {
@@ -63,7 +62,6 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         langContribs.clear();
         generates.clear();
         exports.clear();
-        typesmart = false;
         return this;
     }
 
@@ -74,7 +72,6 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         withLangContribs(config.langContribs());
         withGenerates(config.generates());
         withExports(config.exports());
-        withTypesmart(config.typesmart());
         return this;
     }
 
@@ -152,11 +149,6 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
     @Override public ILanguageComponentConfigBuilder withExports(Iterable<IExportConfig> exports) {
         this.exports.clear();
         addExports(exports);
-        return this;
-    }
-
-    @Override public ILanguageComponentConfigBuilder withTypesmart(boolean typesmart) {
-        this.typesmart = typesmart;
         return this;
     }
 

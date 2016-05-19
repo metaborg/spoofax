@@ -34,12 +34,11 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
     private final Map<ILanguageImpl, TypesmartContext> implMergedTypesmartContexts = Maps.newHashMap();
     private final Map<ILanguageComponent, TypesmartContext> mergedTypesmartContexts = Maps.newHashMap();
 
-
     @Override public ITermFactory get(ILanguageImpl impl, boolean typesmart) {
         if(!typesmart) {
             return genericFactory;
         }
-        
+
         TypesmartContext context = getTypesmartContext(impl);
         if(!context.isEmpty()) {
             return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
@@ -52,7 +51,7 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
         if(!typesmart) {
             return genericFactory;
         }
-        
+
         if(component.config().typesmart()) {
             TypesmartContext context = getTypesmartContext(component);
             return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
@@ -66,12 +65,10 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
     }
 
     @Override public void invalidateCache(ILanguageImpl impl) {
-        // TODO invalidate if required language changes
         implMergedTypesmartContexts.remove(impl);
     }
 
     @Override public void invalidateCache(ILanguageComponent component) {
-        // TODO invalidate if required language changes
         mergedTypesmartContexts.remove(component);
     }
 
@@ -80,9 +77,7 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
         if(context == null) {
             context = TypesmartContext.empty();
             for(ILanguageComponent component : impl.components()) {
-                if(component.config().typesmart()) {
-                    context = context.merge(getTypesmartContext(component));
-                }
+                context = context.merge(getTypesmartContext(component));
             }
             implMergedTypesmartContexts.put(impl, context);
         }

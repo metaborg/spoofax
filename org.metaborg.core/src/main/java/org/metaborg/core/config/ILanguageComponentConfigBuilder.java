@@ -136,15 +136,6 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
     ILanguageComponentConfigBuilder withExports(Iterable<IExportConfig> exports);
 
     /**
-     * Sets the typesmart property.
-     *
-     * @param typesmart
-     *            The typesmart property.
-     * @return This builder.
-     */
-    ILanguageComponentConfigBuilder withTypesmart(boolean typesmart);
-
-    /**
      * Adds file exports.
      *
      * @param exports
