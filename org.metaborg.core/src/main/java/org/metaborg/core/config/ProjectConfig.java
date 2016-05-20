@@ -14,6 +14,8 @@ import org.metaborg.core.messages.MessageBuilder;
 
 import com.google.common.collect.Lists;
 
+import javax.annotation.Nullable;
+
 /**
  * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
  * {@link ImmutableConfiguration} object.
@@ -37,18 +39,20 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         }
     }
 
-    protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
-        Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
-        Collection<LanguageIdentifier> javaDeps, boolean typesmart) {
+    protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config,
+                @Nullable String metaborgVersion,
+                @Nullable Collection<LanguageIdentifier> compileDeps,
+                @Nullable Collection<LanguageIdentifier> sourceDeps,
+                @Nullable Collection<LanguageIdentifier> javaDeps,
+                @Nullable Boolean typesmart) {
         this(config);
 
-        config.setProperty(PROP_METABORG_VERSION, metaborgVersion);
-        config.setProperty(PROP_COMPILE_DEPENDENCIES, compileDeps);
-        config.setProperty(PROP_SOURCE_DEPENDENCIES, sourceDeps);
-        config.setProperty(PROP_JAVA_DEPENDENCIES, javaDeps);
-        config.setProperty(PROP_DEBUG_TYPESMART, typesmart);
+        if (metaborgVersion != null) config.setProperty(PROP_METABORG_VERSION, metaborgVersion);
+        if (compileDeps != null) config.setProperty(PROP_COMPILE_DEPENDENCIES, compileDeps);
+        if (sourceDeps != null) config.setProperty(PROP_SOURCE_DEPENDENCIES, sourceDeps);
+        if (javaDeps != null) config.setProperty(PROP_JAVA_DEPENDENCIES, javaDeps);
+        if (typesmart != null) config.setProperty(PROP_DEBUG_TYPESMART, typesmart);
     }
-
 
     @Override public HierarchicalConfiguration<ImmutableNode> getConfig() {
         return this.config;

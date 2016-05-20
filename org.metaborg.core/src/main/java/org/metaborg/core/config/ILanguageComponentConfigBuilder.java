@@ -16,13 +16,6 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
     @Override ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
-     * Determines whether the builder's state is valid.
-     *
-     * @return <code>true</code> when the builder's state is valid; otherwise, <code>false</code>.
-     */
-    boolean isValid();
-
-    /**
      * {@inheritDoc}
      */
     @Override ILanguageComponentConfigBuilder reset();
