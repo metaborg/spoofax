@@ -160,7 +160,7 @@ public class SpoofaxModule extends MetaborgModule {
             new TypeLiteral<IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {});
         spoofaxAnalyzerBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxAnalyzer.class);
 
-        strategoRuntimeClassloaderBinder = Multibinder.newSetBinder(binder(), ClassLoader.class);
+        strategoRuntimeClassloaderBinder = Multibinder.newSetBinder(binder(), ClassLoader.class).permitDuplicates();
 
         bindUnit();
         bindSyntax();
