@@ -21,11 +21,6 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
     /**
      * {@inheritDoc}
      */
-    @Override boolean isValid();
-
-    /**
-     * {@inheritDoc}
-     */
     @Override ILanguageSpecConfigBuilder reset();
 
     /**

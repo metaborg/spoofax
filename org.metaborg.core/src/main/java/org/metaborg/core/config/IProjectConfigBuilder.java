@@ -94,4 +94,13 @@ public interface IProjectConfigBuilder {
      * @return This builder.
      */
     IProjectConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * Sets the typesmart property.
+     *
+     * @param typesmart
+     *            The typesmart property.
+     * @return This builder.
+     */
+    IProjectConfigBuilder withTypesmart(boolean typesmart);
 }

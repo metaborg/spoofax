@@ -32,4 +32,12 @@ public interface IProjectConfig {
      * @return The Java dependency identifiers.
      */
     Collection<LanguageIdentifier> javaDeps();
+
+    
+    /**
+     * Gets the typesmart property;
+     * 
+     * @return the typesmart property.
+     */
+    boolean typesmart();
 }

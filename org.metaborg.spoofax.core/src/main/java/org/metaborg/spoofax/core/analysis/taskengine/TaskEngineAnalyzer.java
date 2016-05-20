@@ -104,7 +104,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
         final HybridInterpreter runtime;
         try {
-            runtime = runtimeService.runtime(facetContribution.contributor, context);
+            runtime = runtimeService.runtime(facetContribution.contributor, context, false);
         } catch(MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }

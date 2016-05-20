@@ -15,6 +15,7 @@ import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.IExportConfig;
@@ -87,7 +88,7 @@ public class LanguageSpecBuilder {
 
 
     public void initialize(LanguageSpecBuildInput input) throws MetaborgException {
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
         try {
             paths.srcGenDir().createFolder();
             paths.targetMetaborgDir().createFolder();
@@ -139,7 +140,7 @@ public class LanguageSpecBuilder {
             throw new MetaborgException(e);
         }
 
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
         final FileObject mainEsvFile = paths.esvMainFile();
@@ -220,7 +221,7 @@ public class LanguageSpecBuilder {
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
         logger.debug("Cleaning {}", input.languageSpec().location());
 
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
         cleanAndLog(paths.srcGenDir());
         cleanAndLog(paths.targetDir());
 

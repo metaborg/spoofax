@@ -224,7 +224,9 @@ public class SpoofaxModule extends MetaborgModule {
         bind(new TypeLiteral<ISyntaxService<?, ?>>() {}).to(SpoofaxSyntaxService.class);
         bind(ISyntaxService.class).to(SpoofaxSyntaxService.class);
 
-        bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
+        bind(TermFactoryService.class).in(Singleton.class);
+        bind(ITermFactoryService.class).to(TermFactoryService.class);
+        languageCacheBinder.addBinding().to(TermFactoryService.class);
     }
 
     protected void bindParsers(MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder,

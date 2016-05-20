@@ -64,7 +64,6 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      */
     Arguments strArgs();
 
-
     /**
      * Gets additional build step configurations.
      * 

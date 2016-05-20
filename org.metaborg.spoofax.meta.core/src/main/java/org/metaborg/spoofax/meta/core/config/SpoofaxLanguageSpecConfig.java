@@ -50,35 +50,53 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         super(config);
     }
 
-    protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier id,
-        String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
-        Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
-        Collection<String> pardonedLanguages, boolean useBuildSystemSpec, SdfVersion sdfVersion, String externalDef,
-        Arguments sdfArgs, StrategoFormat format, String externalJar, String externalJarFlags, Arguments strategoArgs,
-        Collection<IBuildStepConfig> buildSteps) {
-        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports,
-            pardonedLanguages, useBuildSystemSpec);
+    protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
+                                        @Nullable LanguageIdentifier id,
+                                        @Nullable String name,
+                                        @Nullable Collection<LanguageIdentifier> compileDeps,
+                                        @Nullable Collection<LanguageIdentifier> sourceDeps,
+                                        @Nullable Collection<LanguageIdentifier> javaDeps,
+                                        @Nullable boolean typesmart,
+                                        @Nullable Collection<LanguageContributionIdentifier> langContribs,
+                                        @Nullable Collection<IGenerateConfig> generates,
+                                        @Nullable Collection<IExportConfig> exports,
+                                        @Nullable String metaborgVersion,
+                                        @Nullable Collection<String> pardonedLanguages,
+                                        @Nullable Boolean useBuildSystemSpec,
+                                        @Nullable SdfVersion sdfVersion,
+                                        @Nullable String externalDef,
+                                        @Nullable Arguments sdfArgs,
+                                        @Nullable StrategoFormat format,
+                                        @Nullable String externalJar,
+                                        @Nullable String externalJarFlags,
+                                        @Nullable Arguments strategoArgs,
+                                        @Nullable Collection<IBuildStepConfig> buildSteps) {
+        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates,
+            exports, pardonedLanguages, useBuildSystemSpec);
 
-        config.setProperty(PROP_SDF_VERSION, sdfVersion);
-        config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
-        config.setProperty(PROP_SDF_ARGS, sdfArgs);
+        if (sdfVersion != null) config.setProperty(PROP_SDF_VERSION, sdfVersion);
+        if (externalDef != null) config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
+        if (sdfArgs != null) config.setProperty(PROP_SDF_ARGS, sdfArgs);
 
-        config.setProperty(PROP_STR_FORMAT, format);
-        config.setProperty(PROP_STR_EXTERNAL_JAR, externalJar);
-        config.setProperty(PROP_STR_EXTERNAL_JAR_FLAGS, externalJarFlags);
-        config.setProperty(PROP_STR_ARGS, strategoArgs);
+        if (format != null) config.setProperty(PROP_STR_FORMAT, format);
+        if (externalJar != null) config.setProperty(PROP_STR_EXTERNAL_JAR, externalJar);
+        if (externalJarFlags != null) config.setProperty(PROP_STR_EXTERNAL_JAR_FLAGS, externalJarFlags);
+        if (strategoArgs != null) config.setProperty(PROP_STR_ARGS, strategoArgs);
 
-        for(IBuildStepConfig buildStep : buildSteps) {
-            buildStep.accept(new IBuildStepVisitor() {
-                @Override public void visit(AntBuildStepConfig buildStep) {
-                    config.addProperty(PROP_BUILD_ANT, buildStep);
-                }
+        if (buildSteps != null) {
+            for (IBuildStepConfig buildStep : buildSteps) {
+                buildStep.accept(new IBuildStepVisitor() {
+                    @Override
+                    public void visit(AntBuildStepConfig buildStep) {
+                        config.addProperty(PROP_BUILD_ANT, buildStep);
+                    }
 
-                @Override public void visit(StrategoBuildStepConfig buildStep) {
-                    config.addProperty(PROP_BUILD_STR, buildStep);
-                }
-            });
+                    @Override
+                    public void visit(StrategoBuildStepConfig buildStep) {
+                        config.addProperty(PROP_BUILD_STR, buildStep);
+                    }
+                });
+            }
         }
     }
 
@@ -127,7 +145,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         }
         return arguments;
     }
-
 
     @Override public Collection<IBuildStepConfig> buildSteps() {
         final List<HierarchicalConfiguration<ImmutableNode>> antConfigs = config.configurationsAt(PROP_BUILD_ANT);

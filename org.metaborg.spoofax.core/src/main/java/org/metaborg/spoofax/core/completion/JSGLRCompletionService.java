@@ -133,7 +133,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         for(ILanguageComponent component : language.components()) {
 
             // call Stratego part of the framework to compute change
-            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
+            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
             final IStrategoTerm proposalsPlaceholder =
                 strategoCommon.invoke(runtime, placeholder, "get-proposals-placeholder");
 
@@ -181,7 +181,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, null, false);
 
             for(IStrategoTerm optional : optionals) {
 
@@ -192,7 +192,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 final IStrategoTerm strategoInput = termFactory.makeTuple(optional, optionalPlaceholder);
 
                 // call Stratego part of the framework to compute change
-                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
                 final IStrategoTerm proposalsOptional =
                     strategoCommon.invoke(runtime, strategoInput, "get-proposals-optional");
 
@@ -241,7 +241,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<ICompletion> completions = Lists.newLinkedList();
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, null, false);
 
             for(IStrategoList list : lists) {
                 ListImploderAttachment attachment = list.getAttachment(null);
@@ -250,7 +250,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 IStrategoAppl listPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
                 final IStrategoTerm strategoInput =
                     termFactory.makeTuple(list, listPlaceholder, termFactory.makeInt(position));
-                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
                 final IStrategoTerm proposalsLists =
                     strategoCommon.invoke(runtime, strategoInput, "get-proposals-list");
                 if(proposalsLists == null) {
@@ -452,11 +452,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, null, false);
             for(IStrategoTerm completionTerm : completionTerms) {
                 IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.ast();
                 final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm);
-                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
                 final IStrategoTerm proposalTerm =
                     strategoCommon.invoke(runtime, inputStratego, "get-proposals-erroneous-programs");
                 if(proposalTerm == null) {

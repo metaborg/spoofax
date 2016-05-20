@@ -22,6 +22,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
+import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
 import org.metaborg.util.cmd.Arguments;
 
@@ -270,6 +271,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 input.strjIncludeDirs, Lists.<String>newArrayList(), cacheDir, extraArgs, origin);
             final Origin strjOrigin = Strj.origin(strjInput);
             requireBuild(strjOrigin);
+
+            // Typesmart
+            final File typesmartExportedFile = toFile(paths.strTypesmartExportedFile());
+            final Typesmart.Input typesmartInput =
+                new Typesmart.Input(context, input.strFile, input.strjIncludeDirs, typesmartExportedFile, origin);
+            final Origin typesmartOrigin = Typesmart.origin(typesmartInput);
+            requireBuild(typesmartOrigin);
         }
 
         return None.val;
