@@ -97,6 +97,9 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
                  * be added to the path, which influence pack-sdf. However, since the Spoofax build generates new files
                  * into some of these directories, that would cause the requirement to always be inconsistent, always
                  * triggering a rebuild. This is why we omit the requirement.
+                 * 
+                 * seba: This could be solved using a customary stamper that only tracks files matching some naming
+                 * convention.
                  */
                 args.addFile("-I", path);
             }

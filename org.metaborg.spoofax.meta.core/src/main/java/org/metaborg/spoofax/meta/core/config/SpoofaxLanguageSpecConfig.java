@@ -52,13 +52,13 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier id,
         String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
-        Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
-        Collection<String> pardonedLanguages, boolean useBuildSystemSpec, SdfVersion sdfVersion, String externalDef,
-        Arguments sdfArgs, StrategoFormat format, String externalJar, String externalJarFlags, Arguments strategoArgs,
-        Collection<IBuildStepConfig> buildSteps) {
-        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports,
-            pardonedLanguages, useBuildSystemSpec);
+        Collection<LanguageIdentifier> javaDeps, boolean typesmart,
+        Collection<LanguageContributionIdentifier> langContribs, Collection<IGenerateConfig> generates,
+        Collection<IExportConfig> exports, String metaborgVersion, Collection<String> pardonedLanguages,
+        boolean useBuildSystemSpec, SdfVersion sdfVersion, String externalDef, Arguments sdfArgs, StrategoFormat format,
+        String externalJar, String externalJarFlags, Arguments strategoArgs, Collection<IBuildStepConfig> buildSteps) {
+        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates,
+            exports, pardonedLanguages, useBuildSystemSpec);
 
         config.setProperty(PROP_SDF_VERSION, sdfVersion);
         config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
@@ -127,7 +127,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         }
         return arguments;
     }
-
 
     @Override public Collection<IBuildStepConfig> buildSteps() {
         final List<HierarchicalConfiguration<ImmutableNode>> antConfigs = config.configurationsAt(PROP_BUILD_ANT);

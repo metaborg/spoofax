@@ -72,6 +72,15 @@ public class CommonPaths {
     }
 
     /**
+     * @return Target output directory for compiled MetaBorg artifacts (Stratego JAR, parse table, etc.). All compiled
+     *         artifacts that should be included with the language go into this directory.
+     */
+    public FileObject targetMetaborgDir() {
+        return resolve(targetDir(), "metaborg");
+    }
+
+
+    /**
      * @return Target output directory for replicated resources.
      */
     public FileObject replicateDir() {
@@ -224,6 +233,9 @@ public class CommonPaths {
         return resolve(targetDir(), "stratego-cache");
     }
 
+    public FileObject strTypesmartExportedFile() {
+        return resolve(targetMetaborgDir(), "typesmart.context");
+    }
 
     /* DynSem */
 

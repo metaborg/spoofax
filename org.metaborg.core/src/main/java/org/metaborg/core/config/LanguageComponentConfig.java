@@ -24,17 +24,16 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     private static final String PROP_GENERATES = "generates";
     private static final String PROP_EXPORTS = "exports";
 
-
     public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config) {
         super(config);
     }
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
         LanguageIdentifier identifier, String name, Collection<LanguageIdentifier> compileDeps,
-        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps,
+        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps, boolean typesmart,
         Collection<LanguageContributionIdentifier> langContribs, Collection<IGenerateConfig> generates,
         Collection<IExportConfig> exports) {
-        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps);
+        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart);
 
         config.setProperty(PROP_NAME, name);
         config.setProperty(PROP_IDENTIFIER, identifier);
@@ -102,7 +101,6 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         }
         return exports;
     }
-
 
     public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = super.validate(mb);

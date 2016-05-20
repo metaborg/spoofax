@@ -37,7 +37,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new LanguageSpecConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps,
-            javaDeps, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+            javaDeps, typesmart, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
     }
 
     @Override public ILanguageSpecConfigBuilder reset() {

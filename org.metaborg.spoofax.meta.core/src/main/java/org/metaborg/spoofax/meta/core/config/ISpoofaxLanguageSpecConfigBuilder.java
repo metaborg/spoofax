@@ -159,6 +159,15 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder withStrExternalJarFlags(String flags);
 
     /**
+     * Sets the Stratego typesmart property.
+     *
+     * @param args
+     *            The Stratego typesmart property.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withStrTypesmart(boolean typesmart);
+    
+    /**
      * Sets the Stratego arguments.
      *
      * @param args

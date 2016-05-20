@@ -22,6 +22,7 @@ import org.strategoxt.tools.main_sdf2rtg_0_0;
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
+import build.pluto.output.Out;
 import build.pluto.output.OutputPersisted;
 
 public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>> {
@@ -76,8 +77,8 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>
         requireBuild(input.origin);
 
         if(SpoofaxContext.BETTER_STAMPERS) {
-            final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
-                ParseFile.request(new ParseFile.Input(context, input.inputFile, input.origin));
+            final BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf =
+                ParseFile.request(new ParseFile.Input(context, input.inputFile, true, input.origin));
             require(input.inputFile, new Sdf2RtgStamper(parseSdf));
         } else {
             require(input.inputFile);

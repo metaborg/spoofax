@@ -25,7 +25,6 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
     protected final List<IGenerateConfig> generates = Lists.newArrayList();
     protected final List<IExportConfig> exports = Lists.newArrayList();
 
-
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
@@ -38,7 +37,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new LanguageComponentConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps,
-            javaDeps, langContribs, generates, exports);
+            javaDeps, typesmart, langContribs, generates, exports);
     }
 
     @Override public boolean isValid() {

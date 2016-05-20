@@ -23,13 +23,14 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     private static final String PROP_COMPILE_DEPENDENCIES = "dependencies.compile";
     private static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
     private static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
+    private static final String PROP_DEBUG_TYPESMART = "debug.typesmart";
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
 
 
     public ProjectConfig(HierarchicalConfiguration<ImmutableNode> config) {
         this.config = config;
-        
+
         // Set metaborgVersion to default if it was not set in the config.
         if(!config.containsKey(PROP_METABORG_VERSION)) {
             config.setProperty(PROP_METABORG_VERSION, MetaborgConstants.METABORG_VERSION);
@@ -38,13 +39,14 @@ public class ProjectConfig implements IProjectConfig, IConfig {
 
     protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
         Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
-        Collection<LanguageIdentifier> javaDeps) {
+        Collection<LanguageIdentifier> javaDeps, boolean typesmart) {
         this(config);
 
         config.setProperty(PROP_METABORG_VERSION, metaborgVersion);
         config.setProperty(PROP_COMPILE_DEPENDENCIES, compileDeps);
         config.setProperty(PROP_SOURCE_DEPENDENCIES, sourceDeps);
         config.setProperty(PROP_JAVA_DEPENDENCIES, javaDeps);
+        config.setProperty(PROP_DEBUG_TYPESMART, typesmart);
     }
 
 
@@ -73,6 +75,9 @@ public class ProjectConfig implements IProjectConfig, IConfig {
             Collections.<LanguageIdentifier>emptyList());
     }
 
+    @Override public boolean typesmart() {
+        return config.getBoolean(PROP_DEBUG_TYPESMART, false);
+    }
 
     public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = Lists.newArrayList();

@@ -121,7 +121,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         // Get Stratego runtime
         final HybridInterpreter runtime;
         try {
-            runtime = strategoRuntimeService.runtime(component, context);
+            runtime = strategoRuntimeService.runtime(component, context, true);
         } catch(MetaborgException e) {
             throw new TransformException("Transformation failed unexpectedly; cannot get Stratego interpreter", e);
         }
@@ -133,7 +133,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         try {
             outputTerm = common.invoke(runtime, inputTerm, action.strategy);
         } catch(MetaborgException e) {
-            throw new TransformException("Transformation failed unexpectedly", e);
+            throw new TransformException(e.getMessage(), e.getCause());
         }
         final long duration = timer.stop();
         if(outputTerm == null) {

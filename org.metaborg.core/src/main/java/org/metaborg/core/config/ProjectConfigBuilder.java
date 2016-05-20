@@ -23,7 +23,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     protected final Set<LanguageIdentifier> compileDeps = Sets.newHashSet();
     protected final Set<LanguageIdentifier> sourceDeps = Sets.newHashSet();
     protected final Set<LanguageIdentifier> javaDeps = Sets.newHashSet();
-
+    protected boolean typesmart = false;
 
     @Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         this.configReaderWriter = configReaderWriter;
@@ -33,7 +33,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     @Override public IProjectConfig build(@Nullable FileObject rootFolder) {
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
 
-        return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps);
+        return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart);
     }
 
     @Override public IProjectConfigBuilder reset() {
@@ -41,6 +41,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         compileDeps.clear();
         sourceDeps.clear();
         javaDeps.clear();
+        typesmart = false;
         return this;
     }
 
@@ -49,6 +50,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         withCompileDeps(config.compileDeps());
         withSourceDeps(config.sourceDeps());
         withJavaDeps(config.javaDeps());
+        withTypesmart(config.typesmart());
         return this;
     }
 
@@ -83,6 +85,11 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     @Override public IProjectConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps) {
         this.javaDeps.clear();
         addJavaDeps(deps);
+        return this;
+    }
+
+    @Override public IProjectConfigBuilder withTypesmart(boolean typesmart) {
+        this.typesmart = typesmart;
         return this;
     }
 

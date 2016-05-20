@@ -30,10 +30,11 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
 
     protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
         LanguageIdentifier id, String name, Collection<LanguageIdentifier> compileDeps,
-        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps,
+        Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps, boolean typesmart,
         Collection<LanguageContributionIdentifier> langContribs, Collection<IGenerateConfig> generates,
         Collection<IExportConfig> exports, Collection<String> pardonedLanguages, boolean useBuildSystemSpec) {
-        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports);
+        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates,
+            exports);
 
         config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
         config.setProperty(PROP_USE_BUILD_SYSTEM_SPEC, useBuildSystemSpec);
