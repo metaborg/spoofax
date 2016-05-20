@@ -45,7 +45,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         return config;
     }
 
-    private void validateOrThrow(LanguageComponentConfig config) {
+    protected void validateOrThrow(LanguageComponentConfig config) {
         final Collection<IMessage> messages = config.validate(MessageBuilder.create());
         if (messages.isEmpty())
             return;

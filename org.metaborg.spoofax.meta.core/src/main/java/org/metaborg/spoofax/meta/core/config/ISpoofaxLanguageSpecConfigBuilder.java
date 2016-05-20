@@ -26,11 +26,6 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * {@inheritDoc}
      */
-    @Override boolean isValid();
-
-    /**
-     * {@inheritDoc}
-     */
     @Override ISpoofaxLanguageSpecConfigBuilder reset();
 
     /**
