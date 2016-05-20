@@ -1,9 +1,11 @@
 package org.metaborg.spoofax.meta.core.config;
 
+import java.io.Serializable;
+
 /**
  * Configuration for additional build steps. Use the visitor pattern access implementations.
  */
-public interface IBuildStepConfig {
+public interface IBuildStepConfig extends Serializable {
     /**
      * @return The phase in which the build step is configured to run.
      */

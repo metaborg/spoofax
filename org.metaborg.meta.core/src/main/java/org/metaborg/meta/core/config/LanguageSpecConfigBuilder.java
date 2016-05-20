@@ -4,9 +4,9 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.config.IConfig;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.AConfigurationReaderWriter;
+import org.metaborg.core.config.IConfig;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.LanguageComponentConfigBuilder;
@@ -16,7 +16,6 @@ import org.metaborg.core.language.LanguageIdentifier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 
 /**
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
@@ -32,14 +31,12 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
 
     @Override public ILanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
-        if (this.configuration == null)
-            this.configuration = this.configReaderWriter.create(null, rootFolder);
-
-        final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
-        LanguageSpecConfig config = new LanguageSpecConfig(configuration,
-                metaborgVersion, identifier, name, compileDeps, sourceDeps,
-            javaDeps, typesmart, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
-        validateOrThrow(config);
+        if(configuration == null) {
+            configuration = configReaderWriter.create(null, rootFolder);
+        }
+        final LanguageSpecConfig config =
+            new LanguageSpecConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps, javaDeps,
+                typesmart, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         return config;
     }
 
@@ -52,7 +49,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
     @Override public ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig config) {
         super.copyFrom(config);
-        if (!(config instanceof IConfig)) {
+        if(!(config instanceof IConfig)) {
             withPardonedLanguages(config.pardonedLanguages());
             withUseBuildSystemSpec(config.useBuildSystemSpec());
         }
@@ -137,15 +134,17 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
 
     @Override public ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages) {
-        if (this.pardonedLanguages != null)
+        if(this.pardonedLanguages != null) {
             this.pardonedLanguages.clear();
+        }
 
         return addPardonedLanguages(languages);
     }
 
     @Override public ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages) {
-        if (this.pardonedLanguages == null)
+        if(this.pardonedLanguages == null) {
             this.pardonedLanguages = Sets.newHashSet();
+        }
 
         this.pardonedLanguages.addAll(Lists.newArrayList(languages));
         return this;

@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.project.IProject;
 import org.metaborg.meta.core.project.ILanguageSpecService;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 
 /**
  * Service for getting a Spoofax language specification.
@@ -18,7 +17,7 @@ public interface ISpoofaxLanguageSpecService extends ILanguageSpecService {
      *            Project to check.
      * @return True if project is a language specification, false otherwise.
      */
-    boolean available(IProject project);
+    @Override boolean available(IProject project);
 
     /**
      * Gets a Spoofax language specification from the specified project.
@@ -30,5 +29,5 @@ public interface ISpoofaxLanguageSpecService extends ILanguageSpecService {
      * @throws ConfigException
      *             When reading Spoofax language specification configuration fails.
      */
-    @Nullable ISpoofaxLanguageSpec get(IProject project) throws ConfigException;
+    @Override @Nullable ISpoofaxLanguageSpec get(IProject project) throws ConfigException;
 }
