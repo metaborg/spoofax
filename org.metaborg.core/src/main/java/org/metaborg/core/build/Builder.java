@@ -434,7 +434,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                         }
                     } catch(TransformException e) {
                         final String message = String.format("Transformation failed unexpectedly for %s", name);
-                        logger.error(message);
+                        logger.error(message, e);
                         final boolean noErrors = printMessage(resource, message, e, input, pardoned);
                         success.and(noErrors);
                         extraMessages.add(
