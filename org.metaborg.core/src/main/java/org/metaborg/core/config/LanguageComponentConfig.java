@@ -3,6 +3,8 @@ package org.metaborg.core.config;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -12,8 +14,6 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 
 import com.google.common.collect.Lists;
-
-import javax.annotation.Nullable;
 
 /**
  * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
@@ -26,28 +26,34 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     private static final String PROP_GENERATES = "generates";
     private static final String PROP_EXPORTS = "exports";
 
+
     public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config) {
         super(config);
     }
 
-    protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config,
-                                      @Nullable String metaborgVersion,
-                                      @Nullable LanguageIdentifier identifier,
-                                      @Nullable String name,
-                                      @Nullable Collection<LanguageIdentifier> compileDeps,
-                                      @Nullable Collection<LanguageIdentifier> sourceDeps,
-                                      @Nullable Collection<LanguageIdentifier> javaDeps,
-                                      @Nullable Boolean typesmart,
-                                      @Nullable Collection<LanguageContributionIdentifier> langContribs,
-                                      @Nullable Collection<IGenerateConfig> generates,
-                                      @Nullable Collection<IExportConfig> exports) {
+    protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
+        @Nullable LanguageIdentifier identifier, @Nullable String name,
+        @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
+        @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart);
 
-        if (name != null) config.setProperty(PROP_NAME, name);
-        if (identifier != null) config.setProperty(PROP_IDENTIFIER, identifier);
-        if (langContribs != null) config.setProperty(PROP_LANGUAGE_CONTRIBUTIONS, langContribs);
-        if (generates != null) config.setProperty(PROP_GENERATES, generates);
-        if (exports != null) config.setProperty(PROP_EXPORTS, exports);
+        if(name != null) {
+            config.setProperty(PROP_NAME, name);
+        }
+        if(identifier != null) {
+            config.setProperty(PROP_IDENTIFIER, identifier);
+        }
+        if(langContribs != null) {
+            config.setProperty(PROP_LANGUAGE_CONTRIBUTIONS, langContribs);
+        }
+        if(generates != null) {
+            config.setProperty(PROP_GENERATES, generates);
+        }
+        if(exports != null) {
+            config.setProperty(PROP_EXPORTS, exports);
+        }
     }
 
 
@@ -110,8 +116,8 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         return exports;
     }
 
-    @Override
-    public Collection<IMessage> validate(MessageBuilder mb) {
+
+    @Override public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = super.validate(mb);
         final String idStr = config.getString(PROP_IDENTIFIER);
         if(idStr == null) {

@@ -3,15 +3,26 @@ package org.metaborg.spoofax.meta.core.config;
 import org.metaborg.util.cmd.Arguments;
 
 public class StrategoBuildStepConfig implements IBuildStepConfig {
+    private static final long serialVersionUID = -6818519311323411847L;
+
     public final LanguageSpecBuildPhase phase;
     public final String strategy;
-    public final Arguments arguments;
+    public final Iterable<String> args;
 
 
-    public StrategoBuildStepConfig(LanguageSpecBuildPhase phase, String strategy, Arguments arguments) {
+    public StrategoBuildStepConfig(LanguageSpecBuildPhase phase, String strategy, Iterable<String> args) {
         this.phase = phase;
         this.strategy = strategy;
-        this.arguments = arguments;
+        this.args = args;
+    }
+
+
+    public Arguments arguments() {
+        final Arguments arguments = new Arguments();
+        for(String arg : args) {
+            arguments.add(arg);
+        }
+        return arguments;
     }
 
 

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import javax.annotation.Nullable;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -29,26 +30,22 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         super(config);
     }
 
-    protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config,
-                                 @Nullable String metaborgVersion,
-                                 @Nullable LanguageIdentifier id,
-                                 @Nullable String name,
-                                 @Nullable Collection<LanguageIdentifier> compileDeps,
-                                 @Nullable Collection<LanguageIdentifier> sourceDeps,
-                                 @Nullable Collection<LanguageIdentifier> javaDeps,
-                                 @Nullable Boolean typesmart,
-                                 @Nullable Collection<LanguageContributionIdentifier> langContribs,
-                                 @Nullable Collection<IGenerateConfig> generates,
-                                 @Nullable Collection<IExportConfig> exports,
-                                 @Nullable Collection<String> pardonedLanguages,
-                                 @Nullable Boolean useBuildSystemSpec) {
-        super(config, metaborgVersion, id, name, compileDeps, sourceDeps,
-                javaDeps, typesmart, langContribs, generates, exports);
+    protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
+        @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Collection<LanguageIdentifier> compileDeps,
+        @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps,
+        @Nullable Boolean typesmart, @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
+        @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
+        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates,
+            exports);
 
-        if (pardonedLanguages != null) config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
-        if (useBuildSystemSpec != null) config.setProperty(PROP_USE_BUILD_SYSTEM_SPEC, useBuildSystemSpec);
+        if(pardonedLanguages != null) {
+            config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
+        }
+        if(useBuildSystemSpec != null) {
+            config.setProperty(PROP_USE_BUILD_SYSTEM_SPEC, useBuildSystemSpec);
+        }
     }
-
 
 
     @Override public Collection<String> pardonedLanguages() {
@@ -59,7 +56,8 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         return config.getBoolean(PROP_USE_BUILD_SYSTEM_SPEC, false);
     }
 
-    public Collection<IMessage> validate(MessageBuilder mb) {
+
+    @Override public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = super.validate(mb);
 
         // TODO: validate pardonedLanguages

@@ -1,6 +1,5 @@
 package org.metaborg.core.config;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -14,19 +13,17 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
-import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.messages.MessageBuilder;
 
 /**
  * Configuration-based builder for {@link ILanguageComponentConfig} objects.
  */
 public class LanguageComponentConfigBuilder extends ProjectConfigBuilder implements ILanguageComponentConfigBuilder {
-    protected @Nullable LanguageIdentifier identifier = null;
-    protected @Nullable String name = null;
+    protected @Nullable LanguageIdentifier identifier;
+    protected @Nullable String name;
     protected @Nullable Set<LanguageContributionIdentifier> langContribs;
     protected @Nullable List<IGenerateConfig> generates;
     protected @Nullable List<IExportConfig> exports;
+
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -34,39 +31,28 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
 
     @Override public ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
-        if (this.configuration == null)
-            this.configuration = this.configReaderWriter.create(null, rootFolder);
-
-        final LanguageComponentConfig config = new LanguageComponentConfig(
-                this.configuration, this.metaborgVersion, this.identifier, this.name,
-                this.compileDeps, this.sourceDeps, this.javaDeps, this.typesmart,
-                this.langContribs, this.generates, this.exports);
-        validateOrThrow(config);
+        if(configuration == null) {
+            configuration = configReaderWriter.create(null, rootFolder);
+        }
+        final LanguageComponentConfig config = new LanguageComponentConfig(configuration, metaborgVersion, identifier,
+            name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates, exports);
         return config;
     }
 
-    protected void validateOrThrow(LanguageComponentConfig config) {
-        final Collection<IMessage> messages = config.validate(MessageBuilder.create());
-        if (messages.isEmpty())
-            return;
-
-        throw new IllegalStateException(messages.iterator().next().toString());
-    }
 
     @Override public ILanguageComponentConfigBuilder reset() {
         super.reset();
-        this.identifier = null;
-        this.name = null;
-        this.langContribs = null;
-        this.generates = null;
-        this.exports = null;
-
+        identifier = null;
+        name = null;
+        langContribs = null;
+        generates = null;
+        exports = null;
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig config) {
         super.copyFrom(config);
-        if (!(config instanceof IConfig)) {
+        if(!(config instanceof IConfig)) {
             withIdentifier(config.identifier());
             withName(config.name());
             withLangContribs(config.langContribs());
@@ -125,8 +111,9 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
     @Override public ILanguageComponentConfigBuilder
         withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
-        if (this.langContribs != null)
+        if(this.langContribs != null) {
             this.langContribs.clear();
+        }
 
         addLangContribs(contribs);
         return this;
@@ -134,40 +121,45 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
     @Override public ILanguageComponentConfigBuilder
         addLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
-        if (this.langContribs == null)
+        if(this.langContribs == null) {
             this.langContribs = Sets.newHashSet();
+        }
 
         Iterables.addAll(this.langContribs, contribs);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder withGenerates(Iterable<IGenerateConfig> generates) {
-        if (this.generates != null)
+        if(this.generates != null) {
             this.generates.clear();
+        }
 
         addGenerates(generates);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder addGenerates(Iterable<IGenerateConfig> generates) {
-        if (this.generates == null)
+        if(this.generates == null) {
             this.generates = Lists.newArrayList();
+        }
 
         Iterables.addAll(this.generates, generates);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder withExports(Iterable<IExportConfig> exports) {
-        if (this.exports != null)
+        if(this.exports != null) {
             this.exports.clear();
+        }
 
         addExports(exports);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder addExports(Iterable<IExportConfig> exports) {
-        if (this.exports == null)
+        if(this.exports == null) {
             this.exports = Lists.newArrayList();
+        }
 
         Iterables.addAll(this.exports, exports);
         return this;
