@@ -50,8 +50,9 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
         }
     }
 
-    @Override public ITermFactory get(ILanguageComponent component, @Nullable IProject project, boolean supportsTypesmart) {
-        if(!supportsTypesmart || project == null || !project.config().typesmart()) {
+    @Override public ITermFactory get(ILanguageComponent component, @Nullable IProject project,
+        boolean supportsTypesmart) {
+        if(!supportsTypesmart || project == null || project.config() == null || !project.config().typesmart()) {
             return genericFactory;
         }
 

@@ -41,18 +41,20 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     private final Set<IOperatorRegistry> strategoLibraries;
     private final ParseStrategoFileStrategy parseStrategoFileStrategy;
     private final IProjectService projectService;
+    private final Set<ClassLoader> additionalClassLoaders;
 
     private final Map<ILanguageComponent, HybridInterpreter> prototypes = new HashMap<>();
 
 
     @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
         Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy,
-        IProjectService projectService) {
+        IProjectService projectService, Set<ClassLoader> additionalClassLoaders) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.strategoLibraries = strategoLibraries;
         this.parseStrategoFileStrategy = parseStrategoFileStrategy;
         this.projectService = projectService;
+        this.additionalClassLoaders = additionalClassLoaders;
     }
 
     @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context, boolean typesmart)
@@ -176,7 +178,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
-            final ClassLoader classLoader = new StrategoRuntimeClassLoader();
+            final ClassLoader classLoader = new StrategoRuntimeClassLoader(additionalClassLoaders);
             runtime.loadJars(classLoader, classpath);
         } catch(IncompatibleJarException | IOException | MetaborgRuntimeException e) {
             throw new MetaborgException("Failed to load JAR", e);

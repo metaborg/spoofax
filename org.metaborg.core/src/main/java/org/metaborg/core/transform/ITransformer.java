@@ -20,13 +20,15 @@ import org.metaborg.core.syntax.IParseUnit;
  *            Type of transform units with analyze units as input.
  */
 public interface ITransformer<P extends IParseUnit, A extends IAnalyzeUnit, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>> {
-    TP transform(P input, IContext context, TransformActionContrib action) throws TransformException;
-
-    TA transform(A input, IContext context, TransformActionContrib action) throws TransformException;
-
-    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContrib action)
+    TP transform(P input, IContext context, TransformActionContrib action, ITransformConfig config)
         throws TransformException;
 
-    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib action)
+    TA transform(A input, IContext context, TransformActionContrib action, ITransformConfig config)
         throws TransformException;
+
+    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContrib action,
+        ITransformConfig config) throws TransformException;
+
+    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib action,
+        ITransformConfig config) throws TransformException;
 }

@@ -139,6 +139,7 @@ public class SpoofaxModule extends MetaborgModule {
     private MapBinder<String, ISpoofaxParser> spoofaxParserBinder;
     private MapBinder<String, IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>> analyzerBinder;
     private MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder;
+    private Multibinder<ClassLoader> strategoRuntimeClassloaderBinder;
 
 
     public SpoofaxModule() {
@@ -158,6 +159,8 @@ public class SpoofaxModule extends MetaborgModule {
         analyzerBinder = MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
             new TypeLiteral<IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {});
         spoofaxAnalyzerBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxAnalyzer.class);
+
+        strategoRuntimeClassloaderBinder = Multibinder.newSetBinder(binder(), ClassLoader.class).permitDuplicates();
 
         bindUnit();
         bindSyntax();
@@ -253,6 +256,7 @@ public class SpoofaxModule extends MetaborgModule {
         bind(StrategoRuntimeService.class).in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class);
         languageCacheBinder.addBinding().to(StrategoRuntimeService.class);
+
 
         // Utilities
         bind(IStrategoCommon.class).to(StrategoCommon.class).in(Singleton.class);
