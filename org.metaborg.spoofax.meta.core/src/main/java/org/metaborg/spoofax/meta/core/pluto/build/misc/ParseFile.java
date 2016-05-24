@@ -79,7 +79,7 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, Out<IStrategoTerm
 
     @Override public File persistentPath(Input input) {
         final String rel = input.file.getPath();
-        final String relname = rel.replace(File.separatorChar, '_');
+        final String relname = rel.replace(File.separatorChar, '_').replace(':', '_');
         return context.depPath("parse." + relname + ".dep");
     }
 
