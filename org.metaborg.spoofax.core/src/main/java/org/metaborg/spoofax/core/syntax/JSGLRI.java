@@ -102,7 +102,7 @@ public class JSGLRI {
         parser.setUseStructureRecovery(parserConfig.recovery);
         parser.setCompletionParse(parserConfig.completion, parserConfig.cursorPosition);
         parser.setTimeout(parserConfig.timeout);
-      
+
         final Disambiguator disambiguator = parser.getDisambiguator();
 
         if(dialect != null) {
@@ -111,20 +111,33 @@ public class JSGLRI {
             disambiguator.setHeuristicFilters(false);
         }
 
+        String startSymbol = getOrDefaultStartSymbol(parserConfig);
         try {
-            return parser.parse(text, filename, config.getStartSymbol());
+            return parser.parse(text, filename, startSymbol);
         } catch(FilterException e) {
             if(e.getCause() == null && disambiguator.getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
                 try {
-                    return parser.parse(text, filename, config.getStartSymbol());
+                    return parser.parse(text, filename, startSymbol);
                 } finally {
                     disambiguator.setFilterPriorities(true);
                 }
             }
             throw e;
         } catch(StartSymbolException e) {
+            // we don't want to allow any start symbol if it has been explicitly provided
+            if(parserConfig != null && parserConfig.overridingStartSymbol != null) {
+                throw e;
+            }
             return parser.parse(text, filename, null);
+        }
+    }
+
+    private String getOrDefaultStartSymbol(@Nullable JSGLRParserConfiguration parserConfig) {
+        if(parserConfig != null && parserConfig.overridingStartSymbol != null) {
+            return parserConfig.overridingStartSymbol;
+        } else {
+            return config.getStartSymbol();
         }
     }
 
