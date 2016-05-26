@@ -160,6 +160,7 @@ public class SpoofaxModule extends MetaborgModule {
             new TypeLiteral<IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {});
         spoofaxAnalyzerBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxAnalyzer.class);
 
+        // Permit duplicate entries, on non-OSGI systems there will probably only be a single class loader.
         strategoRuntimeClassloaderBinder = Multibinder.newSetBinder(binder(), ClassLoader.class).permitDuplicates();
 
         bindUnit();

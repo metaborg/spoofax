@@ -360,6 +360,7 @@ public class LanguageSpecBuilder {
         } else {
             strFile = null;
         }
+        final String strStratPkg = paths.strJavaTransPkg(config.identifier().id);
 
         final String strJavaStratPkg = paths.strJavaStratPkg(config.identifier().id);
         final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id);
@@ -399,9 +400,10 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, sdfModule, sdfFile, sdfVersion, sdfExternalDef,
-            packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, strJavaStratPkg, strJavaStratFile,
-            strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, sdfModule, sdfFile, sdfVersion,
+            sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, strStratPkg,
+            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
+            strjArgs);
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin origin)
@@ -430,7 +432,8 @@ public class LanguageSpecBuilder {
         final List<File> strJavaStratIncludeDirs =
             Lists.newArrayList(javaStratClassesDir, dsGeneratedClassesDir, dsManualClassesDir);
 
-        return new PackageBuilder.Input(context, origin, strFormat, strJavaStratFile, strJavaStratIncludeDirs);
+        return new PackageBuilder.Input(context, config.identifier().id, origin, strFormat, strJavaStratFile,
+            strJavaStratIncludeDirs);
     }
 
     private ArchiveBuilder.Input archiveBuilderInput(LanguageSpecBuildInput input, Origin origin) {

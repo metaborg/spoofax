@@ -87,7 +87,7 @@ public class CommonPaths {
         return resolve(targetDir(), "replicate");
     }
 
-    
+
     /* Metaborg */
 
     /**
@@ -96,10 +96,10 @@ public class CommonPaths {
     public FileObject mbComponentConfigFile() {
         return resolve(srcGenDir(), "metaborg.component.yaml");
     }
-    
-    
+
+
     /* Spoofax */
-    
+
     /**
      * @param languageId
      *            Identifier of the language.
@@ -108,8 +108,8 @@ public class CommonPaths {
     public FileObject spxArchiveFile(String languageId) {
         return resolve(targetDir(), languageId + ".spoofax-language");
     }
-    
-    
+
+
 
     /* ESV */
 
@@ -186,6 +186,15 @@ public class CommonPaths {
      */
     public FileObject strMainFile(String languageName) {
         return resolve(transDir(), NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
+    }
+
+    /**
+     * @param languageId
+     *            Identifier of the language.
+     * @return Stratego Java transformation package.
+     */
+    public String strJavaTransPkg(String languageId) {
+        return NameUtil.toJavaId(languageId) + ".trans";
     }
 
     /**
@@ -267,7 +276,7 @@ public class CommonPaths {
      * 
      * @return A list of Java source root folders.
      */
-    public Collection<FileObject> javaSrcDirs() {
+    public Collection<FileObject> javaSrcDirs(String languageId) {
         return Lists.newArrayList(strJavaStratDir(), dsManualJavaDir(), dsSrcGenJavaDir());
     }
 
