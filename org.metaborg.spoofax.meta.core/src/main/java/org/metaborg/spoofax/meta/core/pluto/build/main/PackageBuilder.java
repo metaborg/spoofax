@@ -33,16 +33,19 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
 
         public final Origin origin;
 
+        public final String languageId;
+
         public final StrategoFormat strFormat;
         public final @Nullable File strJavaStratFile;
 
         public final Iterable<File> strJavaStratIncludeDirs;
 
 
-        public Input(SpoofaxContext context, Origin origin, StrategoFormat strFormat, @Nullable File strJavaStratFile,
-            Iterable<File> strJavaStratIncludeDirs) {
+        public Input(SpoofaxContext context, String languageId, Origin origin, StrategoFormat strFormat,
+            @Nullable File strJavaStratFile, Iterable<File> strJavaStratIncludeDirs) {
             super(context);
             this.origin = origin;
+            this.languageId = languageId;
             this.strFormat = strFormat;
             this.strJavaStratFile = strJavaStratFile;
             this.strJavaStratIncludeDirs = strJavaStratIncludeDirs;
@@ -83,8 +86,8 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         final File targetClassesDir = toFile(paths.targetClassesDir());
 
         if(input.strFormat == StrategoFormat.jar) {
-            final File strJavaTransDir = toFile(paths.strSrcGenJavaTransDir());
-            final File strClassesTransDir = toFile(paths.strTargetClassesTransDir());
+            final File strJavaTransDir = toFile(paths.strSrcGenJavaTransDir(input.languageId));
+            final File strClassesTransDir = toFile(paths.strTargetClassesTransDir(input.languageId));
 
             // Copy .pp.af and .tbl to JAR target directory, so that they get included in the JAR file.
             // Required for being able to import-term those files from Stratego code.

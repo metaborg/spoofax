@@ -29,7 +29,6 @@ public class LangSpecCommonPaths extends CommonPaths {
         return resolve(targetDir(), "test-classes");
     }
 
-    
 
 
     /* Stratego */
@@ -37,15 +36,19 @@ public class LangSpecCommonPaths extends CommonPaths {
     /**
      * @return Generated Stratego Java directory, generated from Stratego definition.
      */
-    public FileObject strSrcGenJavaTransDir() {
-        return resolve(srcGenDir(), "stratego-java", "trans");
+    public FileObject strSrcGenJavaTransDir(String languageId) {
+        final String pkg = strJavaTransPkg(languageId);
+        final String pkgPath = pkg.replace('.', '/');
+        return resolve(srcGenDir(), "stratego-java", pkgPath);
     }
 
     /**
      * @return Target output directory for compiled Stratego Java classes.
      */
-    public FileObject strTargetClassesTransDir() {
-        return resolve(targetClassesDir(), "trans");
+    public FileObject strTargetClassesTransDir(String languageId) {
+        final String pkg = strJavaTransPkg(languageId);
+        final String pkgPath = pkg.replace('.', '/');
+        return resolve(targetClassesDir(), pkgPath);
     }
 
     /**
@@ -84,10 +87,10 @@ public class LangSpecCommonPaths extends CommonPaths {
         return resolve(targetDir(), "pluto");
     }
 
-    @Override public Collection<FileObject> javaSrcDirs() {
+    @Override public Collection<FileObject> javaSrcDirs(String languageId) {
         final Collection<FileObject> dirs = Lists.newArrayList();
-        dirs.addAll(super.javaSrcDirs());
-        dirs.add(strSrcGenJavaTransDir());
+        dirs.addAll(super.javaSrcDirs(languageId));
+        dirs.add(strSrcGenJavaTransDir(languageId));
         return dirs;
     }
 }

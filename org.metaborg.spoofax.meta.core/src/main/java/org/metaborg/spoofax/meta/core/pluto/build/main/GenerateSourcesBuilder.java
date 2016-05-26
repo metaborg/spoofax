@@ -37,6 +37,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
+        public final String languageId;
+
         public final @Nullable String sdfModule;
         public final @Nullable File sdfFile;
         public final SdfVersion sdfVersion;
@@ -48,6 +50,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable File sdfMetaFile;
 
         public final @Nullable File strFile;
+        public final @Nullable String strJavaPackage;
         public final @Nullable String strJavaStratPackage;
         public final @Nullable File strJavaStratFile;
         public final StrategoFormat strFormat;
@@ -57,13 +60,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final Arguments strjArgs;
 
 
-        public Input(SpoofaxContext context, @Nullable String sdfModule, @Nullable File sdfFile, SdfVersion sdfVersion,
-            @Nullable File sdfExternalDef, List<File> packSdfIncludePaths, Arguments packSdfArgs,
+        public Input(SpoofaxContext context, String languageId, @Nullable String sdfModule, @Nullable File sdfFile,
+            SdfVersion sdfVersion, @Nullable File sdfExternalDef, List<File> packSdfIncludePaths, Arguments packSdfArgs,
             @Nullable String sdfMetaModule, @Nullable File sdfMetaFile, @Nullable File strFile,
-            @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile, StrategoFormat strFormat,
-            @Nullable File strExternalJar, @Nullable String strExternalJarFlags, List<File> strjIncludeDirs,
-            Arguments strjArgs) {
+            @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
+            StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
+            List<File> strjIncludeDirs, Arguments strjArgs) {
             super(context);
+            this.languageId = languageId;
             this.sdfModule = sdfModule;
             this.sdfFile = sdfFile;
             this.sdfVersion = sdfVersion;
@@ -73,6 +77,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.sdfMetaModule = sdfMetaModule;
             this.sdfMetaFile = sdfMetaFile;
             this.strFile = strFile;
+            this.strJavaPackage = strJavaPackage;
             this.strJavaStratPackage = strJavaStratPackage;
             this.strJavaStratFile = strJavaStratFile;
             this.strFormat = strFormat;
@@ -245,7 +250,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 depPath = outputFile;
                 extraArgs.add("-F");
             } else {
-                depPath = toFile(paths.strSrcGenJavaTransDir());
+                depPath = toFile(paths.strSrcGenJavaTransDir(input.languageId));
                 outputFile = FileUtils.getFile(depPath, "Main.java");
                 extraArgs.add("-la", "java-front");
                 if(buildStrJavaStrat) {
@@ -267,8 +272,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             final File cacheDir = toFile(paths.strCacheDir());
 
-            final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, "trans", true, true,
-                input.strjIncludeDirs, Lists.<String>newArrayList(), cacheDir, extraArgs, origin);
+            final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
+                true, true, input.strjIncludeDirs, Lists.<String>newArrayList(), cacheDir, extraArgs, origin);
             final Origin strjOrigin = Strj.origin(strjInput);
             requireBuild(strjOrigin);
 
