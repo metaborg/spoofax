@@ -27,6 +27,7 @@ import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
@@ -147,7 +148,7 @@ public class LanguageSpecBuilder {
         final FileObject mainEsvFile = paths.esvMainFile();
         try {
             if(mainEsvFile.exists()) {
-                logger.info("Compiling ESV file {}", mainEsvFile);
+                logger.info("Compiling Main ESV file {}", mainEsvFile);
                 // @formatter:off
                 final BuildInput buildInput = 
                     new BuildInputBuilder(input.languageSpec())
@@ -156,7 +157,10 @@ public class LanguageSpecBuilder {
                     .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
                     .build(dependencyService, languagePathService);
                 // @formatter:on
-                runner.build(buildInput, null, null).schedule().block();
+                final ISpoofaxBuildOutput result = runner.build(buildInput, null, null).schedule().block().result();
+                if(!result.success()) {
+                    throw new MetaborgException("Compiling Main ESV file failed");
+                }
             }
         } catch(FileSystemException e) {
             final String message = logger.format("Could not compile ESV file {}", mainEsvFile);
@@ -170,7 +174,7 @@ public class LanguageSpecBuilder {
         final FileObject mainDsFile = paths.dsMainFile(input.languageSpec().config().strategoName());
         try {
             if(mainDsFile.exists()) {
-                logger.info("Compiling DynSem file {}", mainDsFile);
+                logger.info("Compiling Main DynSem file {}", mainDsFile);
                 // @formatter:off
                 final BuildInput buildInput =
                     new BuildInputBuilder(input.languageSpec())
@@ -179,7 +183,10 @@ public class LanguageSpecBuilder {
                     .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
                     .build(dependencyService, languagePathService);
                 // @formatter:on
-                runner.build(buildInput, null, null).schedule().block();
+                final ISpoofaxBuildOutput result = runner.build(buildInput, null, null).schedule().block().result();
+                if(!result.success()) {
+                    throw new MetaborgException("Compiling Main DynSem file failed");
+                }
             }
         } catch(FileSystemException e) {
             final String message = logger.format("Could not compile DynSem file {}", mainDsFile);
