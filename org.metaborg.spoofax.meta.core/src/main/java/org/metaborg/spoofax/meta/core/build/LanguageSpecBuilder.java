@@ -55,7 +55,6 @@ import build.pluto.builder.BuildRequest;
 import build.pluto.builder.RequiredBuilderFailed;
 import build.pluto.dependency.Origin;
 import build.pluto.output.Output;
-import build.pluto.xattr.Xattr;
 
 public class LanguageSpecBuilder {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecBuilder.class);
@@ -129,7 +128,8 @@ public class LanguageSpecBuilder {
 
         initPluto();
         try {
-            plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)));
+            final String path = input.languageSpec().location().getName().getPath();
+            plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage, e);
@@ -206,7 +206,8 @@ public class LanguageSpecBuilder {
         initPluto();
         try {
             final Origin origin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
-            plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin)));
+            final String path = input.languageSpec().location().getName().getPath();
+            plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
@@ -232,7 +233,8 @@ public class LanguageSpecBuilder {
             final Origin generateSourcesOrigin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
             final Origin packageOrigin = PackageBuilder.origin(packageBuilderInput(input, generateSourcesOrigin));
             final Origin origin = Origin.Builder().add(generateSourcesOrigin).add(packageOrigin).get();
-            archiveFile = plutoBuild(ArchiveBuilder.request(archiveBuilderInput(input, origin))).val();
+            final String path = input.languageSpec().location().getName().getPath();
+            archiveFile = plutoBuild(ArchiveBuilder.request(archiveBuilderInput(input, origin)), path).val();
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
@@ -252,14 +254,16 @@ public class LanguageSpecBuilder {
     }
 
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
-        logger.debug("Cleaning {}", input.languageSpec().location());
+        final FileObject location = input.languageSpec().location();
 
-        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        logger.debug("Cleaning {}", location);
+
+        final CommonPaths paths = new LangSpecCommonPaths(location);
         cleanAndLog(paths.srcGenDir());
         cleanAndLog(paths.targetDir());
 
         try {
-            Xattr.getDefault().clear();
+            plutoClean(location.getName().getPath());
         } catch(IOException e) {
             throw new MetaborgException("Cleaning Pluto file attributes failed", e);
         }
@@ -283,9 +287,14 @@ public class LanguageSpecBuilder {
         SpoofaxContext.init(injector);
     }
 
-    private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest) throws Throwable {
-        return BuildManagers.build(buildRequest, new SpoofaxReporting());
+    private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest, String path) throws Throwable {
+        return BuildManagers.build(buildRequest, new SpoofaxReporting(), path);
     }
+
+    private void plutoClean(String path) throws IOException {
+        BuildManagers.resetDynamicAnalysis(path);
+    }
+
 
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(LanguageSpecBuildInput input)
         throws FileSystemException, MetaborgException {
