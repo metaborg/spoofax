@@ -38,6 +38,7 @@ import org.spoofax.terms.typesmart.types.TLexical;
 import org.spoofax.terms.typesmart.types.TList;
 import org.spoofax.terms.typesmart.types.TOption;
 import org.spoofax.terms.typesmart.types.TSort;
+import org.spoofax.terms.typesmart.types.TTuple;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
@@ -285,8 +286,24 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
 
     private SortType extractSortType(IStrategoTerm sort) {
         String kind = ((IStrategoAppl) sort).getName();
-        String sortName = ((IStrategoString) sort.getSubterm(0)).stringValue();
 
+        if(kind.equals("SortList") || kind.equals("SortListTl") || kind.equals("SortVar")) {
+            logger.error("Unsupported Stratego signature: " + sort);
+            return TAny.instance;
+        } else if(kind.equals("SortTuple")) {
+            IStrategoTerm[] kids = sort.getSubterm(0).getAllSubterms();
+            SortType[] sorts = new SortType[kids.length];
+            for(int i = 0; i < kids.length; i++) {
+                sorts[i] = extractSortType(kids[i]);
+            }
+            return new TTuple(sorts);
+        }
+        
+        if(sort.getSubterm(0).getTermType() != IStrategoTerm.STRING) {
+            throw new IllegalArgumentException("Found type in unexpected format " + sort);
+        }
+        
+        String sortName = ((IStrategoString) sort.getSubterm(0)).stringValue();
         if(kind.equals("SortNoArgs") && sortName.equals(SortType.LEXICAL_SORT)) {
             return TLexical.instance;
         } else if(kind.equals("SortNoArgs") && sortName.equals(SortType.ANY_SORT)) {
