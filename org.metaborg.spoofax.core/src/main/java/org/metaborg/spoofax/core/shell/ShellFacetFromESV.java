@@ -14,7 +14,8 @@ public class ShellFacetFromESV {
         }
         String commandPrefix = commandPrefix(shellTerm);
         String evaluationMethod = evaluationMethod(shellTerm);
-        return new ShellFacet(commandPrefix, evaluationMethod);
+        String shellStartSymbol = shellStartSymbol(shellTerm);
+        return new ShellFacet(commandPrefix, evaluationMethod, shellStartSymbol);
     }
 
     private static String commandPrefix(IStrategoAppl term) {
@@ -25,5 +26,10 @@ public class ShellFacetFromESV {
     private static String evaluationMethod(IStrategoAppl term) {
         // Default is "dynsem"
         return ESVReader.getProperty(term, "EvaluationMethod", "dynsem");
+    }
+
+    private static String shellStartSymbol(IStrategoAppl term) {
+        // Default is "Shell"
+        return ESVReader.getProperty(term, "ShellStartSymbol", "Shell");
     }
 }

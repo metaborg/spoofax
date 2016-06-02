@@ -10,10 +10,13 @@ import org.metaborg.core.language.IFacet;
 public class ShellFacet implements IFacet {
     private final String commandPrefix;
     private final String evaluationMethod;
+    private final String shellStartSymbol;
 
-    public ShellFacet(@Nullable String commandPrefix, @Nullable String evaluationMethod) {
+    public ShellFacet(@Nullable String commandPrefix, @Nullable String evaluationMethod,
+                      String shellStartSymbol) {
         this.commandPrefix = commandPrefix;
         this.evaluationMethod = evaluationMethod;
+        this.shellStartSymbol = shellStartSymbol;
     }
 
     /**
@@ -30,10 +33,17 @@ public class ShellFacet implements IFacet {
         return evaluationMethod;
     }
 
+    /**
+     * @return The start symbol for shell-specific language syntax.
+     */
+    public String getShellStartSymbol() {
+        return shellStartSymbol;
+    }
+
     @Override
     public String toString() {
         return "ShellFacet [commandPrefix=" + commandPrefix + ", evaluationMethod="
-               + evaluationMethod + "]";
+               + evaluationMethod + ", shellStartSymbol=" + shellStartSymbol + "]";
     }
 
 }
