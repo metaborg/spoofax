@@ -2,8 +2,8 @@ module Analysis
 
 imports
 
-  libanalysis2/Menus
-  libanalysis2/References
+  nabl2/Menus
+  nabl2/References
 
 language
 
