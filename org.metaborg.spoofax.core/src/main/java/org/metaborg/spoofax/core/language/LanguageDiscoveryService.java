@@ -47,6 +47,8 @@ import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
+import org.metaborg.spoofax.core.shell.ShellFacet;
+import org.metaborg.spoofax.core.shell.ShellFacetFromESV;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
@@ -369,6 +371,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             final OutlineFacet outlineFacet = OutlineFacetFromESV.create(esvTerm);
             if(outlineFacet != null) {
                 request.addFacet(outlineFacet);
+            }
+
+            final ShellFacet shellFacet = ShellFacetFromESV.create(esvTerm);
+            if(shellFacet != null) {
+                request.addFacet(shellFacet);
             }
         }
 
