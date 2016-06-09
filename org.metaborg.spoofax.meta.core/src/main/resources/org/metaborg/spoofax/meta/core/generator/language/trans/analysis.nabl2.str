@@ -5,6 +5,8 @@ imports
   nabl2shared
   nabl2runtime
   
+  static-semantics
+
   pp
 
 rules // Analysis

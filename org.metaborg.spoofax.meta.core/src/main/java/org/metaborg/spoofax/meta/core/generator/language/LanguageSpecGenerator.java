@@ -133,6 +133,9 @@ public class LanguageSpecGenerator extends BaseGenerator {
         writer.write("trans/{{strategoName}}.str", false);
         if(analysisEnabled()) {
             writer.writeResolve("trans/analysis.{{analysisType}}.str", "trans/analysis.str", false);
+            if(analysisNabl2()) {
+                writer.write("trans/static-semantics.nabl2", false);
+            }
         }
         if(syntaxEnabled()) {
             writer.write("trans/outline.str", false);

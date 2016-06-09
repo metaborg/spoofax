@@ -1,0 +1,14 @@
+module analysis-rules
+
+imports
+
+  signatures/-
+
+constraint-generation rules
+
+  init [[ start ]] :=
+    [[ start ^ (global) ]].
+
+  [[ Empty() ^ (s) ]] :=
+    false | note "Specify static semantic rules in analysis-rules.nabl2".
+
