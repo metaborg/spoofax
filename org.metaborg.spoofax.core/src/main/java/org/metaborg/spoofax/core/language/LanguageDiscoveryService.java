@@ -292,7 +292,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
             if(ParseFacetFromESV.hasParser(esvTerm)) {
                 request.addFacet(ParseFacetFromESV.create(esvTerm));
-            } else {
+            } else if(syntaxFacet != null) {
                 request.addFacet(new ParseFacet("jsglr"));
             }
 
