@@ -106,4 +106,53 @@ public class TracingService implements ISpoofaxTracingService {
         StrategoTermVisitee.bottomup(visitor, ast);
         return parsed;
     }
+
+    private Iterable<IStrategoTerm> toTermsWithin(IStrategoTerm ast, final ISourceRegion region) {
+        if(ast == null || region == null) {
+            return Iterables2.empty();
+        }
+        final Collection<IStrategoTerm> parsed = Lists.newLinkedList();
+        final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
+            @Override public boolean visit(IStrategoTerm term) {
+                final ISourceLocation location = location(term);
+                if(location != null && region.contains(location.region())) {
+                    parsed.add(term);
+                    // no need to check the children, as this term is already within the given region
+                    return false;
+                }
+                return true;
+            }
+        };
+        StrategoTermVisitee.topdown(visitor, ast);
+        return parsed;
+    }
+
+    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxParseUnit result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for parse unit " + result + " because it is invalid");
+        }
+
+        return toTermsWithin(result.ast(), region);
+    }
+
+
+    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxAnalyzeUnit result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for analyze unit " + result + " because it is invalid");
+        }
+
+        return toTermsWithin(result.ast(), region);
+    }
+
+
+    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxTransformUnit<?> result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for transform unit " + result + " because it is invalid");
+        }
+
+        return toTermsWithin(result.ast(), region);
+    }
 }
