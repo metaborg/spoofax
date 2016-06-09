@@ -77,4 +77,49 @@ public interface ITracingService<P extends IParseUnit, A extends IAnalyzeUnit, T
      *         fragment to outermost (root) fragment. An empty iterable is returned when no fragments could be found.
      */
     Iterable<F> fragments(T result, ISourceRegion region);
+
+    /**
+     * Finds all fragments contained within the given region.
+     * 
+     * This only returns the outermost fragments that are contained in the region. Their children are trivially also
+     * contained in the region and will not be added separately to the returned result.
+     * 
+     * @param result
+     *            Parsed result to get fragments from.
+     * @param region
+     *            Region inside the result to get fragments for.
+     * @return Fragments contained within the given region. An empty iterable is returned when no fragments could be
+     *         found.
+     */
+    Iterable<F> fragmentsWithin(P result, ISourceRegion region);
+
+    /**
+     * Finds all fragments contained within the given region.
+     * 
+     * This only returns the outermost fragments that are contained in the region. Their children are trivially also
+     * contained in the region and will not be added separately to the returned result.
+     * 
+     * @param result
+     *            Analyzed result to get fragments from.
+     * @param region
+     *            Region inside the result to get fragments for.
+     * @return Fragments contained within the given region. An empty iterable is returned when no fragments could be
+     *         found.
+     */
+    Iterable<F> fragmentsWithin(A result, ISourceRegion region);
+
+    /**
+     * Finds all fragments contained within the given region.
+     * 
+     * This only returns the outermost fragments that are contained in the region. Their children are trivially also
+     * contained in the region and will not be added separately to the returned result.
+     * 
+     * @param result
+     *            Transformed result to get fragments from.
+     * @param region
+     *            Region inside the result to get fragments for.
+     * @return Fragments contained within the given region. An empty iterable is returned when no fragments could be
+     *         found.
+     */
+    Iterable<F> fragmentsWithin(T result, ISourceRegion region);
 }
