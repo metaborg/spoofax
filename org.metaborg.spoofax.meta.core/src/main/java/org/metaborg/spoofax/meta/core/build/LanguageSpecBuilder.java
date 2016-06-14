@@ -31,6 +31,7 @@ import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
+import org.metaborg.spoofax.meta.core.config.Sdf2tableVersion;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
@@ -311,6 +312,7 @@ public class LanguageSpecBuilder {
 
         final FileObject sdfFileCandidate;
         final SdfVersion sdfVersion = config.sdfVersion();
+        final Sdf2tableVersion sdf2tableVersion = config.sdf2tableVersion();
         switch(sdfVersion) {
             case sdf2:
                 sdfFileCandidate = paths.syntaxMainFile(sdfModule);
@@ -417,8 +419,8 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, sdfModule, sdfFile, sdfVersion,
-            sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, strStratPkg,
-            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
+            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, 
+            strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
             strjArgs);
     }
 
