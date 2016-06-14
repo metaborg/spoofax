@@ -107,6 +107,15 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion sdfVersion);
+    
+    /**
+     * Sets the sdf2table version.
+     *
+     * @param sdf2tableVersion
+     *            The sdf2table version.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion);
 
     /**
      * Sets the external def.

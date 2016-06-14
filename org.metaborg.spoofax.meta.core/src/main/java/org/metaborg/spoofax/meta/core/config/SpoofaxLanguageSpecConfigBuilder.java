@@ -25,6 +25,7 @@ import com.google.inject.Inject;
 public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     implements ISpoofaxLanguageSpecConfigBuilder {
     protected @Nullable SdfVersion sdfVersion;
+    protected @Nullable Sdf2tableVersion sdf2tableVersion;
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
     protected @Nullable StrategoFormat strFormat;
@@ -45,14 +46,15 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
         final SpoofaxLanguageSpecConfig config =
             new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, typesmart,
-                langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion,
-                sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+                langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion, 
+                sdf2tableVersion, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder reset() {
         super.reset();
         sdfVersion = null;
+        sdf2tableVersion = null;
         sdfExternalDef = null;
         sdfArgs = null;
         strFormat = null;
@@ -67,6 +69,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         super.copyFrom(config);
         if(!(config instanceof IConfig)) {
             withSdfVersion(config.sdfVersion());
+            withSdf2tableVersion(config.sdf2tableVersion());
             withSdfExternalDef(config.sdfExternalDef());
             withSdfArgs(config.sdfArgs());
             withStrFormat(config.strFormat());
@@ -174,6 +177,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion sdfVersion) {
         this.sdfVersion = sdfVersion;
+        return null;
+    }
+    
+    @Override public ISpoofaxLanguageSpecConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion) {
+        this.sdf2tableVersion = sdf2tableVersion;
         return null;
     }
 
