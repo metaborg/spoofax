@@ -55,8 +55,8 @@ public class DialectProcessor implements IDialectProcessor {
         }
         final ILanguageImpl strategoImpl = strategoLanguage.activeImpl();
         if(strategoImpl == null) {
-            logger.debug("Could not find active Stratego language implementation, "
-                + "Stratego dialects cannot be updated");
+            logger.debug(
+                "Could not find active Stratego language implementation, " + "Stratego dialects cannot be updated");
             return;
         }
 
@@ -64,6 +64,11 @@ public class DialectProcessor implements IDialectProcessor {
 
         // HACK: assuming single syntax facet
         final SyntaxFacet baseFacet = strategoImpl.facet(SyntaxFacet.class);
+        if(baseFacet == null) {
+            logger.debug("Active Stratego language implementation has no syntax facet, "
+                + "Stratego dialects cannot be updated");
+            return;
+        }
 
         for(ResourceChange change : changes) {
             final FileObject resource = change.resource;
@@ -76,9 +81,8 @@ public class DialectProcessor implements IDialectProcessor {
             }
 
             final String fileName = FilenameUtils.getBaseName(resource.getName().getBaseName());
-            final SyntaxFacet newFacet =
-                new SyntaxFacet(resource, baseFacet.startSymbols, baseFacet.singleLineCommentPrefixes,
-                    baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters);
+            final SyntaxFacet newFacet = new SyntaxFacet(resource, baseFacet.startSymbols,
+                baseFacet.singleLineCommentPrefixes, baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters);
             final ResourceChangeKind changeKind = change.kind;
             try {
                 switch(changeKind) {
