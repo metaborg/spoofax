@@ -171,6 +171,11 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         final IBuildOutputInternal<P, A, AU, T> buildOutput = buildOutputProvider.get();
         buildOutput.setState(newState);
         for(ILanguageImpl language : input.buildOrder.buildOrder()) {
+            final String id = language.id().id;
+            if(id.equals("org.metaborg.meta.lang.stratego") || id.equals("org.metaborg.meta.lang.sdf")) {
+                // HACK: skip building Stratego and SDF files, it does nothing anyway.
+                continue;
+            }
             cancel.throwIfCancelled();
 
             final LanguageBuildState languageState = input.state.get(resourceService, languageIdentifier, language);
