@@ -107,7 +107,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             configFiles = location.findFiles(new FileSelector() {
                 @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
                     final String baseName = fileInfo.getFile().getName().getBaseName();
-                    return !baseName.equals("bin");
+                    return !baseName.equals("bin") && !baseName.equals("target");
                 }
 
                 @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
