@@ -1,16 +1,11 @@
 package org.metaborg.spoofax.core.stratego.primitives;
 
-import java.io.File;
 import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
@@ -23,17 +18,13 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
-    private static final ILogger logger = LoggerUtils.logger(LanguageSourceLocationsPrimitive.class);
-
-    private final IResourceService resourceService;
     private final ILanguagePathService languagePathService;
     private final IProjectService projectService;
 
 
-    @Inject public LanguageSourceLocationsPrimitive(IResourceService resourceService,
-        ILanguagePathService languagePathService, IProjectService projectService) {
+    @Inject public LanguageSourceLocationsPrimitive(ILanguagePathService languagePathService,
+        IProjectService projectService) {
         super("SSL_EXT_language_source_locations", 0, 1);
-        this.resourceService = resourceService;
         this.languagePathService = languagePathService;
         this.projectService = projectService;
     }
@@ -62,27 +53,9 @@ public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
         final Iterable<FileObject> sourceLocations = languagePathService.sourcePaths(project, languageName);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject sourceLocation : sourceLocations) {
-            try {
-                File localFile = resourceService.localPath(sourceLocation);
-                if(localFile == null) {
-                    if(!sourceLocation.exists()) {
-                        warnNotExists(sourceLocation);
-                    }
-                    localFile = resourceService.localFile(sourceLocation);
-                }
-
-                terms.add(factory.makeString(localFile.getPath()));
-            } catch(FileSystemException e) {
-                warnNotExists(sourceLocation);
-            }
+            terms.add(factory.makeString(sourceLocation.getName().getURI()));
         }
         env.setCurrent(factory.makeList(terms));
         return true;
-    }
-
-
-    private void warnNotExists(FileObject location) {
-        logger.warn("Cannot add source location {}, it is not located on the local file system and does not exist",
-            location);
     }
 }
