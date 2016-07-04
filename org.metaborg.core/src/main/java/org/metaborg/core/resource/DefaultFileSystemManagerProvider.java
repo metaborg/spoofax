@@ -3,10 +3,11 @@ package org.metaborg.core.resource;
 import java.io.File;
 import java.util.Random;
 
+import org.apache.commons.logging.impl.NoOpLog;
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.cache.DefaultFilesCache;
+import org.apache.commons.vfs2.cache.SoftRefFilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.bzip2.Bzip2FileProvider;
@@ -36,8 +37,9 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
     @Override public FileSystemManager get() {
         try {
             final DefaultFileSystemManager manager = new DefaultFileSystemManager();
-
-            manager.setFilesCache(new DefaultFilesCache());
+            
+            manager.setLogger(new NoOpLog());
+            manager.setFilesCache(new SoftRefFilesCache());
             manager.setCacheStrategy(CacheStrategy.ON_RESOLVE);
 
             final String baseTmpDir = System.getProperty("java.io.tmpdir");
