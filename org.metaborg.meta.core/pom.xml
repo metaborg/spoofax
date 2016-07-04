@@ -19,6 +19,11 @@
       <artifactId>org.metaborg.core</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
+     <dependency>
+       <groupId>com.google.code.findbugs</groupId>
+       <artifactId>annotations</artifactId>
+       <scope>provided</scope>
+     </dependency>
   </dependencies>
 
   <developers>
