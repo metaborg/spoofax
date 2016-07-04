@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.meta.core.generator;
 
 import java.io.Writer;
+import java.util.List;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.DefaultMustacheVisitor;
@@ -26,7 +27,7 @@ public class StrictMustacheFactory extends DefaultMustacheFactory {
             super(tc, df, variable, encoded);
         }
 
-        @Override public Writer execute(Writer writer, Object[] scopes) {
+        @Override public Writer execute(Writer writer, List<Object> scopes) {
             try {
                 // this depends on ValueCode implementation, which uses get(Object) to get the (possibly null) value.
                 final Object object = get(scopes);
