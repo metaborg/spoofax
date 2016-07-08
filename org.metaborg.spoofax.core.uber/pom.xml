@@ -1,0 +1,79 @@
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>org.metaborg.spoofax.core.uber</artifactId>
+
+  <parent>
+    <groupId>org.metaborg</groupId>
+    <artifactId>parent</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+    <relativePath>../../parent</relativePath>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.spoofax.core</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>.</directory>
+        <includes>
+          <include>LICENSE</include>
+          <include>NOTICE</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <!-- Only include artifacts with groupId org.metaborg -->
+              <artifactSet>
+                <includes>
+                  <include>org.metaborg</include>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>org.metaborg:org.strategoxt.strj</artifact>
+                  <excludes>
+                    <exclude>java/**/*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>*.pp.af</exclude>
+                    <exclude>*.tbl</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <!-- Create a dependency reduced POM file that only depends on non-included artifacts -->
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <!-- Promote transitive dependencies such that external libraries (artifacts not in org.metaborg) 
+                get included into the dependenct reduced POM file -->
+              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+              <!-- Replace artifact with shaded artifact -->
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
