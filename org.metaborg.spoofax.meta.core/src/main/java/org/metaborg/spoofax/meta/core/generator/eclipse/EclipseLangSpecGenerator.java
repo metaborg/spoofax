@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
-import org.metaborg.util.file.FileAccess;
+import org.metaborg.util.file.IFileAccess;
 
 /**
  * Generates Eclipse support files for language specification projects.
  */
 public class EclipseLangSpecGenerator extends BaseGenerator {
-    public EclipseLangSpecGenerator(GeneratorSettings settings, FileAccess access) {
+    public EclipseLangSpecGenerator(GeneratorSettings settings, IFileAccess access) {
         super(settings, access);
     }
 

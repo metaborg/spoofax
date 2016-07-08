@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -32,18 +31,21 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final Origin generateSourcesOrigin;
+        public final Origin origin;
+
+        public final String languageId;
 
         public final StrategoFormat strFormat;
         public final @Nullable File strJavaStratFile;
 
-        public final List<File> strJavaStratIncludeDirs;
+        public final Iterable<File> strJavaStratIncludeDirs;
 
 
-        public Input(SpoofaxContext context, Origin generateSourcesOrigin, StrategoFormat strFormat,
-            @Nullable File strJavaStratFile, List<File> strJavaStratIncludeDirs) {
+        public Input(SpoofaxContext context, String languageId, Origin origin, StrategoFormat strFormat,
+            @Nullable File strJavaStratFile, Iterable<File> strJavaStratIncludeDirs) {
             super(context);
-            this.generateSourcesOrigin = generateSourcesOrigin;
+            this.origin = origin;
+            this.languageId = languageId;
             this.strFormat = strFormat;
             this.strJavaStratFile = strJavaStratFile;
             this.strJavaStratIncludeDirs = strJavaStratIncludeDirs;
@@ -70,7 +72,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
 
 
     @Override protected String description(Input input) {
-        return "Package";
+        return "Package language implementation";
     }
 
     @Override public File persistentPath(Input input) {
@@ -78,24 +80,27 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     }
 
     @Override protected None build(Input input) throws Throwable {
+        requireBuild(input.origin);
+
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
         final File targetClassesDir = toFile(paths.targetClassesDir());
 
         if(input.strFormat == StrategoFormat.jar) {
-            final File strJavaTransDir = toFile(paths.strSrcGenJavaTransDir());
-            final File strClassesTransDir = toFile(paths.strTargetClassesTransDir());
+            final File strJavaTransDir = toFile(paths.strSrcGenJavaTransDir(input.languageId));
+            final File strClassesTransDir = toFile(paths.strTargetClassesTransDir(input.languageId));
 
             // Copy .pp.af and .tbl to JAR target directory, so that they get included in the JAR file.
             // Required for being able to import-term those files from Stratego code.
             final CopyPattern.Input copyPatternInput = new CopyPattern.Input(strJavaTransDir, strClassesTransDir,
-                ".+\\.(?:tbl|pp\\.af)", input.generateSourcesOrigin, context.baseDir, context.depDir);
+                ".+\\.(?:tbl|pp\\.af)", input.origin, context.baseDir, context.depDir);
             final Origin copyPatternOrigin = CopyPattern.origin(copyPatternInput);
             requireBuild(copyPatternOrigin);
 
             final String jarName = "stratego.jar";
             final File jarFile = FileUtils.getFile(targetMetaborgDir, jarName);
             final File depPath = FileUtils.getFile(context.depDir, jarName + ".dep");
-            jar(jarFile, targetClassesDir, copyPatternOrigin, depPath, strClassesTransDir);
+            final Origin origin = jar(jarFile, targetClassesDir, copyPatternOrigin, depPath, strClassesTransDir);
+            requireBuild(origin);
         }
 
         if(input.strJavaStratFile != null) {
@@ -108,18 +113,19 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             final String jarName = "stratego-javastrat.jar";
             final File jarFile = FileUtils.getFile(targetMetaborgDir, jarName);
             final File depPath = FileUtils.getFile(context.depDir, jarName + ".dep");
-            jar(jarFile, targetClassesDir, null, depPath, input.strJavaStratIncludeDirs);
+            final Origin origin = jar(jarFile, targetClassesDir, null, depPath, input.strJavaStratIncludeDirs);
+            requireBuild(origin);
         }
 
         return None.val;
     }
 
-    public void jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, File... paths)
+    public Origin jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, File... paths)
         throws IOException {
-        jar(jarFile, baseDir, origin, depPath, Lists.newArrayList(paths));
+        return jar(jarFile, baseDir, origin, depPath, Lists.newArrayList(paths));
     }
 
-    public void jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, Collection<File> paths)
+    public Origin jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, Iterable<File> paths)
         throws IOException {
         final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
 
@@ -138,19 +144,25 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
             }
         }
 
-        requireBuild(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin, depPath));
+        final BuildRequest<?, ?, ?, ?> buildRequest =
+            new BuildRequest<>(JarBuilder.factory, new JarBuilder.Input(jarFile, fileEntries, origin, depPath));
+        final Origin jarOrigin = Origin.from(buildRequest);
+        requireBuild(jarOrigin);
+        return jarOrigin;
     }
 
     private @Nullable String relativize(File path, File base) {
         final String relative = FilenameUtils.normalize(base.toPath().relativize(path.toPath()).toString());
-        if(relative == null || relative.equals(""))
+        if(relative == null || relative.equals("")) {
             return null;
+        }
         return relative;
     }
 
     private Collection<File> findFiles(File directory) {
-        if(!directory.isDirectory())
+        if(!directory.isDirectory()) {
             return Collections.emptyList();
+        }
         return FileUtils.listFilesAndDirs(directory, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
     }
 }

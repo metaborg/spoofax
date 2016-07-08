@@ -5,11 +5,17 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
+
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class LanguageUtils {
+    private static final ILogger logger = LoggerUtils.logger(LanguageUtils.class);
+
+
     public static Set<ILanguageImpl> toImpls(Iterable<? extends ILanguageComponent> components) {
         final Set<ILanguageImpl> impls = Sets.newHashSet();
         for(ILanguageComponent component : components) {
@@ -33,9 +39,12 @@ public class LanguageUtils {
         final Iterable<? extends ILanguage> languages = languageService.getAllLanguages();
         final Collection<ILanguageImpl> activeImpls = Lists.newLinkedList();
         for(ILanguage language : languages) {
-            @Nullable final ILanguageImpl impl = language.activeImpl();
-            if (impl == null) {
-                throw new IllegalStateException("Unexpected null for active implementation of language " + language);
+            final ILanguageImpl impl = language.activeImpl();
+            if(impl == null) {
+                logger.debug(
+                    "Unexpected null for active implementation of language {}, skipping in active language implementations",
+                    language);
+                continue;
             }
             activeImpls.add(impl);
         }

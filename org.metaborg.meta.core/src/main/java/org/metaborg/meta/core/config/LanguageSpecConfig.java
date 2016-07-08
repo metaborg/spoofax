@@ -3,10 +3,11 @@ package org.metaborg.meta.core.config;
 import java.util.Collection;
 import java.util.Collections;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.IConfig;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
@@ -21,7 +22,6 @@ import org.metaborg.core.messages.MessageBuilder;
  * object.
  */
 public class LanguageSpecConfig extends LanguageComponentConfig implements ILanguageSpecConfig, IConfig {
-    private static final String PROP_METABORG_VERSION = "metaborgVersion";
     private static final String PROP_PARDONED_LANGUAGES = "pardonedLanguages";
     private static final String PROP_USE_BUILD_SYSTEM_SPEC = "build.useBuildSystemSpec";
 
@@ -30,22 +30,23 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         super(config);
     }
 
-    protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, LanguageIdentifier id, String name,
-        Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
-        Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
-        Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
-        Collection<String> pardonedLanguages, boolean useBuildSystemSpec) {
-        super(config, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports);
+    protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
+        @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Collection<LanguageIdentifier> compileDeps,
+        @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps,
+        @Nullable Boolean typesmart, @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
+        @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
+        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates,
+            exports);
 
-        config.setProperty(PROP_METABORG_VERSION, metaborgVersion);
-        config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
-        config.setProperty(PROP_USE_BUILD_SYSTEM_SPEC, useBuildSystemSpec);
+        if(pardonedLanguages != null) {
+            config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
+        }
+        if(useBuildSystemSpec != null) {
+            config.setProperty(PROP_USE_BUILD_SYSTEM_SPEC, useBuildSystemSpec);
+        }
     }
 
-
-    @Override public String metaborgVersion() {
-        return config.getString(PROP_METABORG_VERSION, MetaborgConstants.METABORG_VERSION);
-    }
 
     @Override public Collection<String> pardonedLanguages() {
         return config.getList(String.class, PROP_PARDONED_LANGUAGES, Collections.<String>emptyList());
@@ -55,10 +56,10 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         return config.getBoolean(PROP_USE_BUILD_SYSTEM_SPEC, false);
     }
 
-    public Collection<IMessage> validate(MessageBuilder mb) {
+
+    @Override public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = super.validate(mb);
 
-        // TODO: validate metaborgVersion
         // TODO: validate pardonedLanguages
 
         return messages;

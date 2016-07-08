@@ -60,6 +60,24 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
     Collection<TP> transform(P input, IContext context, ITransformGoal goal) throws TransformException;
 
     /**
+     * Transforms parse input in a context with given goal.
+     * 
+     * @param input
+     *            Parsed input to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param goal
+     *            Transform goal to execute.
+     * @param config
+     *            Configuration settings for the execution of the transformation.
+     * @return Transformation result.
+     * @throws TransformException
+     *             When the transformation fails unexpectedly.
+     */
+    Collection<TP> transform(P input, IContext context, ITransformGoal goal, ITransformConfig config)
+        throws TransformException;
+
+    /**
      * Transforms parse input in a context with given action.
      * 
      * @param input
@@ -77,6 +95,26 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
     TP transform(P input, IContext context, TransformActionContrib action) throws TransformException;
 
     /**
+     * Transforms parse input in a context with given action.
+     * 
+     * @param input
+     *            Parsed input to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param action
+     *            Transform action to execute.
+     * @param config
+     *            Configuration settings for the execution of the transformation.
+     * @return Transformation result.
+     * @throws TransformException
+     *             When the transformation fails unexpectedly.
+     * @throws TransformException
+     *             When transformation action requires analysis.
+     */
+    TP transform(P input, IContext context, TransformActionContrib action, ITransformConfig config)
+        throws TransformException;
+
+    /**
      * Transforms analyzed input in a context with given goal.
      * 
      * @param input
@@ -90,6 +128,24 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      *             When the transformation fails unexpectedly.
      */
     Collection<TA> transform(A input, IContext context, ITransformGoal goal) throws TransformException;
+
+    /**
+     * Transforms analyzed input in a context with given goal.
+     * 
+     * @param input
+     *            Analyzed input to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param goal
+     *            Transform goal to execute.
+     * @param config
+     *            Configuration settings for the execution of the transformation.
+     * @return Transformation result.
+     * @throws TransformException
+     *             When the transformation fails unexpectedly.
+     */
+    Collection<TA> transform(A input, IContext context, ITransformGoal goal, ITransformConfig config)
+        throws TransformException;
 
     /**
      * Transforms analyzed input in a context with given action.
@@ -106,6 +162,23 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      */
     TA transform(A input, IContext context, TransformActionContrib action) throws TransformException;
 
+    /**
+     * Transforms analyzed input in a context with given action.
+     * 
+     * @param input
+     *            Analyzed input to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param action
+     *            Transform action to execute.
+     * @param config
+     *            Configuration settings for the execution of the transformation.
+     * @return Transformation result.
+     * @throws TransformException
+     *             When the transformation fails unexpectedly.
+     */
+    TA transform(A input, IContext context, TransformActionContrib action, ITransformConfig config)
+        throws TransformException;
 
     /**
      * Transforms parse inputs in a context with given goal.
@@ -122,6 +195,24 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      */
     Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal)
         throws TransformException;
+
+    /**
+     * Transforms parse inputs in a context with given goal.
+     * 
+     * @param inputs
+     *            Parsed inputs to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param goal
+     *            Transform goal to execute.
+     * @param config
+     *            Configuration settings for the execution of the transformation.
+     * @return Transformation results.
+     * @throws TransformException
+     *             When the transformation fails unexpectedly.
+     */
+    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal,
+        ITransformConfig config) throws TransformException;
 
     /**
      * Transforms parse input in a context with given action.
@@ -142,6 +233,26 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
         throws TransformException;
 
     /**
+     * Transforms parse input in a context with given action.
+     * 
+     * @param inputs
+     *            Parsed inputs to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param action
+     *            Transform action to execute.
+     * @param config
+     *            Configuration settings for the execution of the transformation.
+     * @return Transformation results.
+     * @throws TransformException
+     *             When the transformation fails unexpectedly.
+     * @throws TransformException
+     *             When transformation action requires analysis.
+     */
+    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContrib action,
+        ITransformConfig config) throws TransformException;
+
+    /**
      * Transforms analyzed inputs in a context with given goal.
      * 
      * @param inputs
@@ -158,6 +269,24 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
         throws TransformException;
 
     /**
+     * Transforms analyzed inputs in a context with given goal.
+     * 
+     * @param inputs
+     *            Analyzed inputs to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param goal
+     *            Transform goal to execute.
+     * @param config
+     *            Configuration settings for the execution of the transformation.
+     * @return Transformation results.
+     * @throws TransformException
+     *             When the transformation fails unexpectedly.
+     */
+    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, ITransformGoal goal,
+        ITransformConfig config) throws TransformException;
+
+    /**
      * Transforms analyzed inputs in a context with given action.
      * 
      * @param input
@@ -172,4 +301,22 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      */
     Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib action)
         throws TransformException;
+
+    /**
+     * Transforms analyzed inputs in a context with given action.
+     * 
+     * @param input
+     *            Analyzed inputs to transform.
+     * @param context
+     *            Context in which to apply transformation.
+     * @param action
+     *            Transform action to execute.
+     * @param config
+     *            Configuration settings for the execution of the transformation.
+     * @return Transformation results.
+     * @throws TransformException
+     *             When the transformation fails unexpectedly.
+     */
+    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib action,
+        ITransformConfig config) throws TransformException;
 }

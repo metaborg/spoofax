@@ -68,7 +68,7 @@ public class OutlineService implements ISpoofaxOutlineService {
         final String strategy = facet.strategyName;
 
         try {
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, source);
+            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, source, true);
             final IStrategoTerm input = common.builderInputTerm(result.ast(), source, source);
             final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
             if(outlineTerm == null) {
@@ -96,7 +96,7 @@ public class OutlineService implements ISpoofaxOutlineService {
         final String strategy = facet.strategyName;
 
         try {
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, context);
+            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, context, true);
             final IStrategoTerm input = common.builderInputTerm(result.ast(), source, context.location());
             final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
             if(outlineTerm == null) {

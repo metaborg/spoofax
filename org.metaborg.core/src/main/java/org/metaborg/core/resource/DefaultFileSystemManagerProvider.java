@@ -1,5 +1,8 @@
 package org.metaborg.core.resource;
 
+import java.io.File;
+import java.util.Random;
+
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -37,7 +40,9 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
             manager.setFilesCache(new DefaultFilesCache());
             manager.setCacheStrategy(CacheStrategy.ON_RESOLVE);
 
-            final DefaultFileReplicator replicator = new DefaultFileReplicator();
+            final String baseTmpDir = System.getProperty("java.io.tmpdir");
+            final File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
+            final DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
             manager.setTemporaryFileStore(replicator);
             manager.setReplicator(replicator);
 

@@ -60,7 +60,7 @@ strategies
             file := <parse-file> path;
             if <file-exists> path then
               // Only cache if on filesystem (e.g., ignore libstratego-lib)
-              <WriteToBinaryFile> (cache-path, file)
+              <try(WriteToBinaryFile)> (cache-path, file)
             end        
           );
           {| CurrentFile:
@@ -92,7 +92,7 @@ strategies
     with
       project-path := <project-path>;
       cache-dir    := <file-exists <+ mkdir> $[[project-path]/target/import-cache];
-      full-path'   := <string-replace(|"/", "+"); string-replace(|"\\", "+"); string-replace(|":", "+")> full-path;
+      full-path'   := <prim("digest")> full-path;
       cache-path   := $[[cache-dir]/[full-path'].sig]
 
   project-path = prim("SSL_EXT_projectpath")

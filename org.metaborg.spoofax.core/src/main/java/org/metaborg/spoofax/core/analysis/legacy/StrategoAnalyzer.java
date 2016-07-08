@@ -91,7 +91,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
 
         final HybridInterpreter runtime;
         try {
-            runtime = runtimeService.runtime(facetContribution.contributor, context);
+            runtime = runtimeService.runtime(facetContribution.contributor, context, true);
         } catch(MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
@@ -114,7 +114,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
 
         final HybridInterpreter runtime;
         try {
-            runtime = runtimeService.runtime(facetContribution.contributor, context);
+            runtime = runtimeService.runtime(facetContribution.contributor, context, true);
         } catch(MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
@@ -198,8 +198,9 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                 return result(message, input, context, null, duration);
             }
         } catch(MetaborgException e) {
-            logger.trace("Analysis for {} failed", e, source);
-            return result(analysisCommon.analysisFailedMessage(runtime), input, context, e, -1);
+            final String message = logger.format("Analysis for {} failed", source);
+            logger.trace(message, e);
+            throw new AnalysisException(context, message, e);
         }
     }
 

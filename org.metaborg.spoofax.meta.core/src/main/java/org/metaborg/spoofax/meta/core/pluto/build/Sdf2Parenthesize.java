@@ -23,7 +23,7 @@ import org.sugarj.common.FileCommands;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
-import build.pluto.output.OutputPersisted;
+import build.pluto.output.Out;
 
 public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, None> {
     public static class Input extends SpoofaxInput {
@@ -79,8 +79,8 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
         requireBuild(input.origin);
 
         if(SpoofaxContext.BETTER_STAMPERS) {
-            final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf =
-                ParseFile.request(new ParseFile.Input(context, input.inputFile, input.origin));
+            final BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf =
+                ParseFile.request(new ParseFile.Input(context, input.inputFile, true, input.origin));
             require(input.inputFile, new Sdf2ParenthesizeStamper(parseSdf));
         } else {
             require(input.inputFile);

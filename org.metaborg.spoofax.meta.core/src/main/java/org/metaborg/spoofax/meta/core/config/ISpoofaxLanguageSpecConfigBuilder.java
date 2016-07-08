@@ -21,17 +21,12 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @throws IllegalStateException
      *             The builder state is not valid, i.e. {@link #isValid()} returned <code>false</code>.
      */
-    ISpoofaxLanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
+    @Override ISpoofaxLanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
      * {@inheritDoc}
      */
-    boolean isValid();
-
-    /**
-     * {@inheritDoc}
-     */
-    ISpoofaxLanguageSpecConfigBuilder reset();
+    @Override ISpoofaxLanguageSpecConfigBuilder reset();
 
     /**
      * Copies the values from the specified object.
@@ -41,69 +36,86 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      */
     ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig obj);
 
-    /**
-     * {@inheritDoc}
-     */
-    ISpoofaxLanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder withName(String name);
+    @Override ISpoofaxLanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> dependencies);
+    @Override ISpoofaxLanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> dependencies);
+    @Override ISpoofaxLanguageSpecConfigBuilder withName(String name);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> dependencies);
+    @Override ISpoofaxLanguageSpecConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> dependencies);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> dependencies);
+    @Override ISpoofaxLanguageSpecConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> dependencies);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contributions);
+    @Override ISpoofaxLanguageSpecConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> dependencies);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder addLangContribs(Iterable<LanguageContributionIdentifier> contributions);
+    @Override ISpoofaxLanguageSpecConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> dependencies);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> contributions);
+    @Override ISpoofaxLanguageSpecConfigBuilder
+        withLangContribs(Iterable<LanguageContributionIdentifier> contributions);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> contributions);
+    @Override ISpoofaxLanguageSpecConfigBuilder addLangContribs(Iterable<LanguageContributionIdentifier> contributions);
 
     /**
      * {@inheritDoc}
      */
-    ISpoofaxLanguageSpecConfigBuilder withUseBuildSystemSpec(boolean useBuildSystemSpec);
+    @Override ISpoofaxLanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> contributions);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ISpoofaxLanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> contributions);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ISpoofaxLanguageSpecConfigBuilder withUseBuildSystemSpec(boolean useBuildSystemSpec);
+
 
     /**
      * Sets the SDF version.
      *
-     * @param version
+     * @param sdfVersion
      *            The SDF version.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion version);
+    ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion sdfVersion);
+    
+    /**
+     * Sets the sdf2table version.
+     *
+     * @param sdf2tableVersion
+     *            The sdf2table version.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion);
 
     /**
      * Sets the external def.
@@ -150,6 +162,15 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      */
     ISpoofaxLanguageSpecConfigBuilder withStrExternalJarFlags(String flags);
 
+    /**
+     * Sets the Stratego typesmart property.
+     *
+     * @param args
+     *            The Stratego typesmart property.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withStrTypesmart(boolean typesmart);
+    
     /**
      * Sets the Stratego arguments.
      *

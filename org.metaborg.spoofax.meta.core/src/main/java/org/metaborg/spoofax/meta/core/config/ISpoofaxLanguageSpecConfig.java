@@ -20,6 +20,13 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      * @return Sdf version to use.
      */
     SdfVersion sdfVersion();
+    
+    /**
+     * Gets the sdf2table version to use.
+     *
+     * @return sdf2table version to use.
+     */
+    Sdf2tableVersion sdf2tableVersion();
 
     /**
      * Gets the external def.
@@ -63,7 +70,6 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      * @return The Stratego arguments.
      */
     Arguments strArgs();
-
 
     /**
      * Gets additional build step configurations.

@@ -1,0 +1,14 @@
+module static-semantics
+
+imports
+
+  signatures/-
+
+constraint-generation rules
+
+  init [[ start ]] :=
+    [[ start ^ (global) ]].
+
+  [[ Empty() ^ (s) ]] :=
+    false | note "Specify name binding and typing rules in static-semantics.nabl2".
+

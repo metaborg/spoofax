@@ -105,7 +105,7 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
     public MetaBorgGeneric(Class<I> iClass, Class<P> pClass, Class<A> aClass, Class<AU> auClass, Type tClass,
         Type tpClass, Type taClass, Class<F> fClass, IModulePluginLoader loader, MetaborgModule module,
         Module... additionalModules) throws MetaborgException {
-        super(loader, module);
+        super(loader, module, additionalModules);
 
         this.dialectService = injector.getInstance(IDialectService.class);
         this.dialectIdentifier = injector.getInstance(IDialectIdentifier.class);

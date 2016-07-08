@@ -14,6 +14,7 @@ import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.resource.IResourceService;
+import org.metaborg.core.transform.ITransformConfig;
 import org.metaborg.core.transform.TransformException;
 import org.metaborg.core.unit.IUnit;
 import org.metaborg.spoofax.core.action.TransformAction;
@@ -59,35 +60,36 @@ public class StrategoTransformer implements IStrategoTransformer {
 
 
     @Override public ISpoofaxTransformUnit<ISpoofaxParseUnit> transform(ISpoofaxParseUnit input, IContext context,
-        TransformActionContrib action) throws TransformException {
-        return transform(input, context, action, input.source(), input.ast());
+        TransformActionContrib action, ITransformConfig config) throws TransformException {
+        return transform(input, context, action, input.source(), input.ast(), config);
     }
 
     @Override public ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit> transform(ISpoofaxAnalyzeUnit input, IContext context,
-        TransformActionContrib action) throws TransformException {
+        TransformActionContrib action, ITransformConfig config) throws TransformException {
         if(!input.valid()) {
             throw new TransformException("Cannot transform analyze unit " + input + ", it is not valid");
         }
         if(!input.hasAst()) {
             throw new TransformException("Cannot transform analyze unit " + input + ", it has no AST");
         }
-        return transform(input, context, action, input.source(), input.ast());
+        return transform(input, context, action, input.source(), input.ast(), config);
     }
 
     @Override public Collection<ISpoofaxTransformUnit<ISpoofaxParseUnit>> transformAllParsed(
-        Iterable<ISpoofaxParseUnit> inputs, IContext context, TransformActionContrib action) throws TransformException {
+        Iterable<ISpoofaxParseUnit> inputs, IContext context, TransformActionContrib action, ITransformConfig config)
+        throws TransformException {
         final int size = Iterables.size(inputs);
         final Collection<ISpoofaxTransformUnit<ISpoofaxParseUnit>> transformUnits =
             Lists.newArrayListWithCapacity(size);
         for(ISpoofaxParseUnit input : inputs) {
-            transformUnits.add(transform(input, context, action, input.source(), input.ast()));
+            transformUnits.add(transform(input, context, action, input.source(), input.ast(), config));
         }
         return transformUnits;
     }
 
-    @Override public Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
-        transformAllAnalyzed(Iterable<ISpoofaxAnalyzeUnit> inputs, IContext context, TransformActionContrib action)
-            throws TransformException {
+    @Override public Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> transformAllAnalyzed(
+        Iterable<ISpoofaxAnalyzeUnit> inputs, IContext context, TransformActionContrib action, ITransformConfig config)
+        throws TransformException {
         final int size = Iterables.size(inputs);
         final Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> transformUnits =
             Lists.newArrayListWithCapacity(size);
@@ -98,14 +100,15 @@ public class StrategoTransformer implements IStrategoTransformer {
             if(!input.hasAst()) {
                 throw new TransformException("Cannot transform analyze unit " + input + ", it has no AST");
             }
-            transformUnits.add(transform(input, context, action, input.source(), input.ast()));
+            transformUnits.add(transform(input, context, action, input.source(), input.ast(), config));
         }
         return transformUnits;
     }
 
 
     private <I extends IUnit> ISpoofaxTransformUnit<I> transform(I input, IContext context,
-        TransformActionContrib actionContribution, FileObject source, IStrategoTerm term) throws TransformException {
+        TransformActionContrib actionContribution, FileObject source, IStrategoTerm term, ITransformConfig config)
+        throws TransformException {
         final FileObject location = context.location();
         final ILanguageComponent component = actionContribution.contributor;
         final TransformAction action = action(actionContribution.action);
@@ -121,7 +124,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         // Get Stratego runtime
         final HybridInterpreter runtime;
         try {
-            runtime = strategoRuntimeService.runtime(component, context);
+            runtime = strategoRuntimeService.runtime(component, context, true);
         } catch(MetaborgException e) {
             throw new TransformException("Transformation failed unexpectedly; cannot get Stratego interpreter", e);
         }
@@ -133,7 +136,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         try {
             outputTerm = common.invoke(runtime, inputTerm, action.strategy);
         } catch(MetaborgException e) {
-            throw new TransformException("Transformation failed unexpectedly", e);
+            throw new TransformException(e.getMessage(), e.getCause());
         }
         final long duration = timer.stop();
         if(outputTerm == null) {
@@ -141,7 +144,7 @@ public class StrategoTransformer implements IStrategoTransformer {
             throw new TransformException(message);
         }
 
-        // Write to file
+        // Get the result and, if allowed and required, write to file
         final IStrategoTerm resultTerm;
         final FileObject outputFile;
         if(outputTerm.getSubtermCount() == 2 && (outputTerm instanceof IStrategoTuple)) {
@@ -150,7 +153,8 @@ public class StrategoTransformer implements IStrategoTransformer {
             if(!(resourceTerm instanceof IStrategoString)) {
                 outputFile = null;
                 logger.error("First term of result tuple {} is not a string, cannot write output file");
-            } else {
+            } else if(!config.dryRun()) {
+                // writing to output file is allowed
                 final String resourceString = Tools.asJavaString(resourceTerm);
                 final String resultContents = common.toString(resultTerm);
 
@@ -160,6 +164,9 @@ public class StrategoTransformer implements IStrategoTransformer {
                 } catch(IOException e) {
                     logger.error("Error occurred while writing output file", e);
                 }
+            } else {
+                // not allowed to write the output file
+                outputFile = null;
             }
         } else {
             resultTerm = outputTerm;

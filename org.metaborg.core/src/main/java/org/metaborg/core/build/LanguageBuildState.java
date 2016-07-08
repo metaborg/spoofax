@@ -15,10 +15,11 @@ import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.util.iterators.Iterables2;
 
-import com.carrotsearch.hppc.ObjectLongHashMap;
-import com.carrotsearch.hppc.ObjectLongMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 public class LanguageBuildState {
     private final IResourceService resourceService;
@@ -117,7 +118,7 @@ public class LanguageBuildState {
 
 class FilesBuildState {
     public final Set<FileName> files = Sets.newHashSet();
-    public final ObjectLongMap<FileName> modification = new ObjectLongHashMap<>();
+    public final Object2LongMap<FileName> modification = new Object2LongOpenHashMap<FileName>();
 
 
     public long add(FileObject resource) {

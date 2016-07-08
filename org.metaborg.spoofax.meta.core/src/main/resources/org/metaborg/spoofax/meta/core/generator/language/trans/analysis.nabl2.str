@@ -2,15 +2,16 @@ module analysis
 
 imports
   
-  libanalysis2/-
-  libanalysis2/editor/-
-  libanalysis2/nabl2/-
+  nabl2shared
+  nabl2runtime
   
+  static-semantics
+
   pp
 
 rules // Analysis
 
-  editor-analyze = analyze(id)
+  editor-analyze = analyze(id,id)
 
 rules // Debugging
   

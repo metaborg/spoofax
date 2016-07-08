@@ -11,9 +11,9 @@
 {{/generateVersion}}  <packaging>spoofax-language</packaging>
 
   <parent>
-  <groupId>org.metaborg</groupId>
-  <artifactId>parent.language</artifactId>
-  <version>{{metaborgVersion}}</version>
+    <groupId>org.metaborg</groupId>
+    <artifactId>parent.language</artifactId>
+    <version>{{metaborgVersion}}</version>
   </parent>
   
   <repositories>

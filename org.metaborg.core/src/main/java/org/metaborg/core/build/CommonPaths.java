@@ -1,8 +1,13 @@
 package org.metaborg.core.build;
 
+import java.util.Collection;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.project.NameUtil;
+
+import com.google.common.collect.Lists;
 
 public class CommonPaths {
     protected final FileObject root;
@@ -10,6 +15,14 @@ public class CommonPaths {
 
     public CommonPaths(FileObject root) {
         this.root = root;
+    }
+
+
+    /**
+     * @return Root directory.
+     */
+    public FileObject root() {
+        return root;
     }
 
 
@@ -59,11 +72,43 @@ public class CommonPaths {
     }
 
     /**
+     * @return Target output directory for compiled MetaBorg artifacts (Stratego JAR, parse table, etc.). All compiled
+     *         artifacts that should be included with the language go into this directory.
+     */
+    public FileObject targetMetaborgDir() {
+        return resolve(targetDir(), "metaborg");
+    }
+
+
+    /**
      * @return Target output directory for replicated resources.
      */
     public FileObject replicateDir() {
         return resolve(targetDir(), "replicate");
     }
+
+
+    /* Metaborg */
+
+    /**
+     * @return Metaborg component configuration file.
+     */
+    public FileObject mbComponentConfigFile() {
+        return resolve(srcGenDir(), "metaborg.component.yaml");
+    }
+
+
+    /* Spoofax */
+
+    /**
+     * @param languageId
+     *            Identifier of the language.
+     * @return Archived Spoofax language file.
+     */
+    public FileObject spxArchiveFile(String languageId) {
+        return resolve(targetDir(), languageId + ".spoofax-language");
+    }
+
 
 
     /* ESV */
@@ -91,7 +136,7 @@ public class CommonPaths {
     public FileObject syntaxDir() {
         return resolve(root, "syntax");
     }
-
+    
     /**
      * @param languageName
      *            Name of the language.
@@ -107,6 +152,13 @@ public class CommonPaths {
     public FileObject syntaxSrcGenDir() {
         return resolve(srcGenDir(), "syntax");
     }
+    
+    /**
+     * @return Normalized syntax directory. Contains the SDF3 normalized files.
+     */
+    public FileObject syntaxNormDir() {
+        return resolve(syntaxSrcGenDir(), "normalized");
+    }
 
     /**
      * @param languageName
@@ -115,6 +167,15 @@ public class CommonPaths {
      */
     public FileObject syntaxSrcGenMainFile(String languageName) {
         return resolve(syntaxSrcGenDir(), languageName + ".sdf");
+    }
+    
+    /**
+     * @param languageName
+     *            Name of the language.
+     * @return Main generated SDF2 file, generated from main SDF3 file.
+     */
+    public FileObject syntaxSrcGenMainNormFile(String languageName) {
+        return resolve(syntaxNormDir(), languageName + "-norm.aterm");
     }
 
     /**
@@ -140,7 +201,16 @@ public class CommonPaths {
      * @return Main Stratego file.
      */
     public FileObject strMainFile(String languageName) {
-        return resolve(transDir(), languageName + ".str");
+        return resolve(transDir(), NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
+    }
+
+    /**
+     * @param languageId
+     *            Identifier of the language.
+     * @return Stratego Java transformation package.
+     */
+    public String strJavaTransPkg(String languageId) {
+        return NameUtil.toJavaId(languageId) + ".trans";
     }
 
     /**
@@ -156,7 +226,7 @@ public class CommonPaths {
      * @return Stratego Java strategies package.
      */
     public String strJavaStratPkg(String languageId) {
-        final String pkg = languageId + ".strategies";
+        final String pkg = NameUtil.toJavaId(languageId) + ".strategies";
         return pkg;
     }
 
@@ -180,7 +250,7 @@ public class CommonPaths {
         final String path = strJavaStratPkgPath(languageId);
         return resolve(strJavaStratDir(), path, "Main.java");
     }
-    
+
     /**
      * @return Stratego parse cache directory.
      */
@@ -188,6 +258,9 @@ public class CommonPaths {
         return resolve(targetDir(), "stratego-cache");
     }
 
+    public FileObject strTypesmartExportedFile() {
+        return resolve(targetMetaborgDir(), "typesmart.context");
+    }
 
     /* DynSem */
 
@@ -212,6 +285,15 @@ public class CommonPaths {
      */
     public FileObject dsSrcGenJavaDir() {
         return resolve(srcGenDir(), "ds-java");
+    }
+
+    /**
+     * Gets all the Java source root folders.
+     * 
+     * @return A list of Java source root folders.
+     */
+    public Collection<FileObject> javaSrcDirs(String languageId) {
+        return Lists.newArrayList(strJavaStratDir(), dsManualJavaDir(), dsSrcGenJavaDir());
     }
 
 

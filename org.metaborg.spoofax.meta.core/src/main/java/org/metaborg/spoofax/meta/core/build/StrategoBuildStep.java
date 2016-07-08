@@ -31,7 +31,7 @@ public class StrategoBuildStep extends AConfigBuildStep<StrategoBuildStepConfig>
             .withName(config.strategy)
             ;
         // @formatter:on
-        final ExecutionResult result = executor.executeCLI(config.arguments);
+        final ExecutionResult result = executor.executeCLI(config.arguments());
 
         if(!result.success) {
             throw new MetaborgException("Stratego execution of " + config.strategy + " failed");
