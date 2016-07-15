@@ -305,7 +305,16 @@ public class LanguageSpecBuilder {
         }
 
         final Arguments packSdfArgs = config.sdfArgs();
-
+        
+        // SDF completions
+        final String sdfCompletionModule = config.sdfName() + "-completion-syntax";
+        final @Nullable File sdfCompletionFile;
+        final FileObject sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);;
+        if(sdfCompletionFileCandidate.exists()) {
+            sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
+        } else {
+            sdfCompletionFile = null;
+        }
 
         // Meta-SDF
         final String sdfMetaModule = config.metaSdfName();
@@ -316,7 +325,6 @@ public class LanguageSpecBuilder {
         } else {
             sdfMetaFile = null;
         }
-
 
         // Stratego
         final String strModule = config.strategoName();
@@ -368,7 +376,7 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, sdfModule, sdfFile, sdfVersion, sdfExternalDef,
-            packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, strJavaStratPkg, strJavaStratFile,
+            packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strJavaStratPkg, strJavaStratFile,
             strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
     }
 

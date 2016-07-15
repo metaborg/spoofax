@@ -16,6 +16,7 @@ public class SyntaxFacet implements IFacet {
     private static final ILogger logger = LoggerUtils.logger(SyntaxFacet.class);
 
     public final FileObject parseTable;
+    public final FileObject completionParseTable;
     public final Iterable<String> startSymbols;
     public final Iterable<String> singleLineCommentPrefixes;
     public final Iterable<MultiLineCommentCharacters> multiLineCommentCharacters;
@@ -30,8 +31,8 @@ public class SyntaxFacet implements IFacet {
      * @param startSymbols
      *            Set of start symbols.
      */
-    public SyntaxFacet(FileObject parseTable, Iterable<String> startSymbols) {
-        this(parseTable, startSymbols, Iterables2.<String>empty(), Iterables2.<MultiLineCommentCharacters>empty(),
+    public SyntaxFacet(FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols) {
+        this(parseTable, completionParseTable, startSymbols, Iterables2.<String>empty(), Iterables2.<MultiLineCommentCharacters>empty(),
             Iterables2.<FenceCharacters>empty());
     }
 
@@ -49,10 +50,11 @@ public class SyntaxFacet implements IFacet {
      * @param fenceCharacters
      *            Fence characters.
      */
-    public SyntaxFacet(FileObject parseTable, Iterable<String> startSymbols,
+    public SyntaxFacet(FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols,
         Iterable<String> singleLineCommentPrefixes, Iterable<MultiLineCommentCharacters> multiLineCommentCharacters,
         Iterable<FenceCharacters> fenceCharacters) {
         this.parseTable = parseTable;
+        this.completionParseTable = completionParseTable;
         this.startSymbols = startSymbols;
         this.singleLineCommentPrefixes = singleLineCommentPrefixes;
         this.multiLineCommentCharacters = multiLineCommentCharacters;

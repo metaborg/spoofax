@@ -104,12 +104,28 @@ public class CommonPaths {
     public FileObject syntaxMainFile(String languageName) {
         return resolve(syntaxDir(), languageName + ".sdf");
     }
+    
+    /**
+     * @param languageName
+     *            Name of the language.
+     * @return Main SDF2 completion file.
+     */
+    public FileObject syntaxCompletionMainFile(String languageName) {
+        return resolve(syntaxCompletionSrcGenDir(), languageName + ".sdf");
+    }
 
     /**
      * @return Generated SDF2 syntax directory, generated from SDF3 definition.
      */
     public FileObject syntaxSrcGenDir() {
         return resolve(srcGenDir(), "syntax");
+    }
+    
+    /**
+     * @return Generated SDF2 completion syntax directory, generated from SDF3 definition.
+     */
+    public FileObject syntaxCompletionSrcGenDir() {
+        return resolve(syntaxSrcGenDir(), "completion");
     }
 
     /**

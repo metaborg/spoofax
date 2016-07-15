@@ -77,7 +77,7 @@ public class DialectProcessor implements IDialectProcessor {
 
             final String fileName = FilenameUtils.getBaseName(resource.getName().getBaseName());
             final SyntaxFacet newFacet =
-                new SyntaxFacet(resource, baseFacet.startSymbols, baseFacet.singleLineCommentPrefixes,
+                new SyntaxFacet(resource, baseFacet.completionParseTable, baseFacet.startSymbols, baseFacet.singleLineCommentPrefixes,
                     baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters);
             final ResourceChangeKind changeKind = change.kind;
             try {
