@@ -8,4 +8,7 @@ public interface ICompletion {
     void setItems(Iterable<ICompletionItem> items);
     void setNested(boolean nested);
     boolean isNested();
+    CompletionKind kind();
+    String prefix();
+    String suffix();
 }

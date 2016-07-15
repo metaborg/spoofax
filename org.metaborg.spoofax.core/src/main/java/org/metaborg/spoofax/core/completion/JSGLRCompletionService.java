@@ -4,9 +4,11 @@ import java.util.Collection;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.completion.Completion;
+import org.metaborg.core.completion.CompletionKind;
 import org.metaborg.core.completion.ICompletion;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -39,6 +41,7 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.ListImploderAttachment;
+import org.spoofax.jsglr.client.imploder.Tokenizer;
 import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.StrategoConstructor;
 import org.spoofax.terms.StrategoTerm;
@@ -86,7 +89,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final ISpoofaxInputUnit modifiedInput =
                 unitService.inputUnit(input.source(), input.text(), input.langImpl(), input.dialect(), config);
             completionParseResult = syntaxService.parse(modifiedInput);
-
         }
 
         Collection<ICompletion> completions = Lists.newLinkedList();
@@ -94,7 +96,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
 
         if(!completionTerms.isEmpty()) {
-            completions.addAll(completionErroneousPrograms(completionTerms, completionParseResult));
+            completions.addAll(completionErroneousPrograms(position, completionTerms, completionParseResult));
         }
 
         if(!nestedCompletionTerms.isEmpty()) {
@@ -351,7 +353,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
 
-        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+        return new Completion(name, description, insertionPoint + 1, suffixPoint, CompletionKind.expansion);
     }
 
 
@@ -417,7 +419,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             suffixPoint = checkToken.getStartOffset();
         }
 
-        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+        return new Completion(name, description, insertionPoint + 1, suffixPoint, CompletionKind.expansion);
     }
 
 
@@ -456,18 +458,20 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         }
         suffixPoint = insertionPoint + 1;
 
-        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+        return new Completion(name, description, insertionPoint + 1, suffixPoint, CompletionKind.expansion);
     }
 
 
 
-    public Collection<ICompletion> completionErroneousPrograms(Iterable<IStrategoTerm> completionTerms,
-        ISpoofaxParseUnit completionParseResult) throws MetaborgException {
+    public Collection<ICompletion> completionErroneousPrograms(int cursorPosition,
+        Iterable<IStrategoTerm> completionTerms, ISpoofaxParseUnit completionParseResult) throws MetaborgException {
 
         final FileObject location = completionParseResult.source();
         final ILanguageImpl language = completionParseResult.input().langImpl();
         final Collection<ICompletion> completions = Lists.newLinkedList();
         final Collection<IStrategoTerm> proposalsTerm = Lists.newLinkedList();
+
+
 
         for(ILanguageComponent component : language.components()) {
             final ITermFactory termFactory = termFactoryService.get(component);
@@ -502,15 +506,18 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
                 final String name = Tools.asJavaString(tuple.getSubterm(0));
-                final String description = Tools.asJavaString(tuple.getSubterm(1));
+                String description = Tools.asJavaString(tuple.getSubterm(1));
                 final StrategoAppl change = (StrategoAppl) tuple.getSubterm(2);
 
 
                 // if the change is inserting at the end of a list
                 if(change.getConstructor().getName().contains("INSERT_AT_END")) {
 
+                    String prefix = calculatePrefix(cursorPosition, description, change.getSubterm(change.getSubtermCount() - 1));
+                    String suffix = calculateSuffix(cursorPosition, description, change.getSubterm(change.getSubtermCount() - 1));
+                    
                     // calls a different method because now, the program has errors that should be fixed
-                    final ICompletion completion = createCompletionInsertAtEndFixing(name, description, change);
+                    final ICompletion completion = createCompletionInsertAtEndFixing(name, description, prefix, suffix, change);
 
                     if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
@@ -557,6 +564,45 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return completions;
     }
 
+    private String calculatePrefix(int cursorPosition, String description, IStrategoTerm proposalTerm) {
+
+        String prefix = "";
+        ITokenizer tokenizer = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken().getTokenizer();
+        IToken leftToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken();
+        IToken rightToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getRightToken();
+        IToken current = leftToken;
+
+        while(current.getEndOffset() < cursorPosition && current != rightToken) {
+            prefix += current.toString();
+            current = tokenizer.getTokenAt(current.getIndex() + 1);
+        }
+
+        return prefix;
+    }
+
+
+    private String calculateSuffix(int cursorPosition, String description, IStrategoTerm proposalTerm) {
+
+        String suffix = "";
+        ITokenizer tokenizer = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken().getTokenizer();
+        IToken leftToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken();
+        IToken rightToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getRightToken();
+        IToken current = rightToken;
+        while(current.getStartOffset() > cursorPosition && current != leftToken) {
+            suffix = current.toString() + suffix;
+            current = tokenizer.getTokenAt(current.getIndex() - 1);
+        }
+
+        return suffix;
+    }
+
+
+    private String highlightSuffix(String suffix, String description) {
+        // TODO Auto-generated method stub
+        return description;
+    }
+
+
 
     private ICompletion createCompletionInsertionTermFixing(String name, String description, StrategoAppl change) {
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(0);
@@ -596,7 +642,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             suffixPoint = topMostAmbIA.getRightToken().getEndOffset() + 1;
         }
 
-        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+        return new Completion(name, description, insertionPoint + 1, suffixPoint, CompletionKind.recovery);
     }
 
 
@@ -648,11 +694,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // suffix point should be the first token of the next element
         suffixPoint = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getStartOffset();
 
-        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+        return new Completion(name, description, insertionPoint + 1, suffixPoint, CompletionKind.recovery);
     }
 
 
-    private ICompletion createCompletionInsertAtEndFixing(String name, String description, StrategoAppl change) {
+    private ICompletion createCompletionInsertAtEndFixing(String name, String description, String prefix, String suffix, StrategoAppl change) {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -700,7 +746,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
         }
 
-        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+        return new Completion(name, description, insertionPoint + 1, suffixPoint, CompletionKind.recovery, prefix, suffix);
     }
 
 
@@ -907,7 +953,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         suffixPoint = tokenizer.getTokenAt(tokenPositionEnd).getEndOffset() + 1;
 
-        return new Completion(name, description, insertionPoint + 1, suffixPoint);
+        return new Completion(name, description, insertionPoint + 1, suffixPoint, CompletionKind.recovery);
     }
 
 
