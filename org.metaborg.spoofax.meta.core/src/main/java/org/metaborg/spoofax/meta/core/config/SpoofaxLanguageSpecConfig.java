@@ -67,8 +67,14 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         config.setProperty(PROP_SDF_VERSION, sdfVersion);
         config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
         config.setProperty(PROP_SDF_ARGS, sdfArgs);
-        config.setProperty(PROP_PLACEHOLDER_PREFIX, placeholderCharacters.prefix);
-        config.setProperty(PROP_PLACEHOLDER_SUFFIX, placeholderCharacters.suffix);
+
+        if(placeholderCharacters != null) {
+            config.setProperty(PROP_PLACEHOLDER_PREFIX, placeholderCharacters.prefix);
+            config.setProperty(PROP_PLACEHOLDER_SUFFIX, placeholderCharacters.suffix);
+        } else {
+            config.setProperty(PROP_PLACEHOLDER_PREFIX, null);
+            config.setProperty(PROP_PLACEHOLDER_SUFFIX, null);
+        }
 
         config.setProperty(PROP_STR_FORMAT, format);
         config.setProperty(PROP_STR_EXTERNAL_JAR, externalJar);
@@ -214,14 +220,16 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     @Override public PlaceholderCharacters placeholderChars() {
         PlaceholderCharacters placeholderChars = null;
         String prefix = this.config.getString(PROP_PLACEHOLDER_PREFIX);
-        String sufffix = this.config.getString(PROP_PLACEHOLDER_SUFFIX);
-        if(prefix == null && sufffix == null) {
+        String suffix = this.config.getString(PROP_PLACEHOLDER_SUFFIX);
+        if(prefix == null && suffix == null) {
             placeholderChars = new PlaceholderCharacters("[[", "]]");
         } else {
             try {
-                placeholderChars = new PlaceholderCharacters(prefix, sufffix);
+                placeholderChars = new PlaceholderCharacters(prefix, suffix);
             } catch(IllegalArgumentException e) {
-                logger.warn("Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead", sufffix);
+                logger.warn(
+                    "Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead",
+                    suffix);
                 placeholderChars = new PlaceholderCharacters("[[", "]]");
             }
         }

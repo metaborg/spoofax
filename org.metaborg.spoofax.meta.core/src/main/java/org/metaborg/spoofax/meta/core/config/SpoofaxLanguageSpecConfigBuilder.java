@@ -25,7 +25,7 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     implements ISpoofaxLanguageSpecConfigBuilder {
     protected SdfVersion sdfVersion = SdfVersion.sdf3;
-    protected PlaceholderCharacters placeholderCharacters = null;  
+    protected @Nullable PlaceholderCharacters placeholderCharacters = null;  
     protected @Nullable String sdfExternalDef = null;
     protected Arguments sdfArgs = new Arguments();
     protected StrategoFormat strFormat = StrategoFormat.ctree;
