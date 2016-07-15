@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgConstants;
+import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
@@ -18,7 +19,7 @@ import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 public class GeneratorSettings {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
-    private final LangSpecCommonPaths paths;
+    private final CommonPaths paths;
 
 
     public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {

@@ -62,12 +62,12 @@ public class ResourceAgent extends IOAgent {
     public static OutputStream defaultStdout(String... excludePatterns) {
         return LoggerUtils.stream(LoggerUtils.logger("stdout"), Level.Info, excludePatterns);
     }
-    
+
     public static OutputStream defaultStderr(String... excludePatterns) {
         return LoggerUtils.stream(LoggerUtils.logger("stderr"), Level.Info, excludePatterns);
     }
-    
-    
+
+
     public ResourceAgent(IResourceService resourceService) {
         this(resourceService, resourceService.resolve(System.getProperty("user.dir")));
     }
@@ -375,7 +375,34 @@ public class ResourceAgent extends IOAgent {
             final FileObject resource = resourceService.resolve(workingDir, dn);
             return resource.delete(new AllFileSelector()) > 0;
         } catch(FileSystemException e) {
-            throw new RuntimeException("Could not delete directory", e);
+            throw new RuntimeException("Could not delete directory " + dn, e);
+        }
+    }
+
+    @Override public boolean exists(String fn) {
+        try {
+            final FileObject resource = resourceService.resolve(workingDir, fn);
+            return resource.exists();
+        } catch(FileSystemException e) {
+            throw new RuntimeException("Could check if file " + fn + " exists", e);
+        }
+    }
+
+    @Override public boolean readable(String fn) {
+        try {
+            final FileObject resource = resourceService.resolve(workingDir, fn);
+            return resource.isReadable();
+        } catch(FileSystemException e) {
+            throw new RuntimeException("Could check if file " + fn + " is readable", e);
+        }
+    }
+
+    @Override public boolean writable(String fn) {
+        try {
+            final FileObject resource = resourceService.resolve(workingDir, fn);
+            return resource.isWriteable();
+        } catch(FileSystemException e) {
+            throw new RuntimeException("Could check if file " + fn + " is writeable", e);
         }
     }
 }

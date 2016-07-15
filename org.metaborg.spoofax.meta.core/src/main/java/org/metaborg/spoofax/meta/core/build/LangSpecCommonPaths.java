@@ -1,11 +1,11 @@
 package org.metaborg.spoofax.meta.core.build;
 
+import java.util.Collection;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.CommonPaths;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import com.google.common.collect.Lists;
 
 public class LangSpecCommonPaths extends CommonPaths {
     public LangSpecCommonPaths(FileObject root) {
@@ -29,13 +29,6 @@ public class LangSpecCommonPaths extends CommonPaths {
         return resolve(targetDir(), "test-classes");
     }
 
-    /**
-     * @return Target output directory for compiled MetaBorg artifacts (Stratego JAR, parse table, etc.). All compiled
-     *         artifacts that should be included with the language go into this directory.
-     */
-    public FileObject targetMetaborgDir() {
-        return resolve(targetDir(), "metaborg");
-    }
 
 
     /* Stratego */
@@ -43,15 +36,19 @@ public class LangSpecCommonPaths extends CommonPaths {
     /**
      * @return Generated Stratego Java directory, generated from Stratego definition.
      */
-    public FileObject strSrcGenJavaTransDir() {
-        return resolve(srcGenDir(), "stratego-java", "trans");
+    public FileObject strSrcGenJavaTransDir(String languageId) {
+        final String pkg = strJavaTransPkg(languageId);
+        final String pkgPath = pkg.replace('.', '/');
+        return resolve(srcGenDir(), "stratego-java", pkgPath);
     }
 
     /**
      * @return Target output directory for compiled Stratego Java classes.
      */
-    public FileObject strTargetClassesTransDir() {
-        return resolve(targetClassesDir(), "trans");
+    public FileObject strTargetClassesTransDir(String languageId) {
+        final String pkg = strJavaTransPkg(languageId);
+        final String pkgPath = pkg.replace('.', '/');
+        return resolve(targetClassesDir(), pkgPath);
     }
 
     /**
@@ -90,15 +87,10 @@ public class LangSpecCommonPaths extends CommonPaths {
         return resolve(targetDir(), "pluto");
     }
 
-    @Override
-    public Collection<FileObject> javaSrcDirs() {
-        final Collection<FileObject> dirs = new ArrayList<>();
-        dirs.addAll(super.javaSrcDirs());
-        dirs.addAll(Arrays.asList(
-                // Add all Java source folders here too!
-                // These must be the package root folders.
-                strSrcGenJavaTransDir()
-        ));
+    @Override public Collection<FileObject> javaSrcDirs(String languageId) {
+        final Collection<FileObject> dirs = Lists.newArrayList();
+        dirs.addAll(super.javaSrcDirs(languageId));
+        dirs.add(strSrcGenJavaTransDir(languageId));
         return dirs;
     }
 }

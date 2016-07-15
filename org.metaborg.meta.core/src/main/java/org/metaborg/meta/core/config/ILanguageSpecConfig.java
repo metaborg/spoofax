@@ -12,13 +12,6 @@ import org.metaborg.core.config.ILanguageComponentConfig;
  */
 public interface ILanguageSpecConfig extends ILanguageComponentConfig {
     /**
-     * Gets the version of MetaBorg tooling to use.
-     * 
-     * @return The version of MetaBorg tooling to use.
-     */
-    String metaborgVersion();
-
-    /**
      * Gets a sequence of languages whose errors are ignored.
      *
      * @return The pardoned languages.

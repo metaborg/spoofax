@@ -86,9 +86,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
  
             final JSGLRI parser;
             if(base != null) {
-                parser = new JSGLRI(config, termFactoryService.get(langImpl), base, langImpl, source, text);
+                parser = new JSGLRI(config, termFactoryService.get(langImpl, null, false), base, langImpl, source, text);
             } else {
-                parser = new JSGLRI(config, termFactoryService.get(langImpl), langImpl, null, source, text);
+                parser = new JSGLRI(config, termFactoryService.get(langImpl, null, false), langImpl, null, source, text);
             }
 
             final ParseContrib contrib = parser.parse(parserConfig);

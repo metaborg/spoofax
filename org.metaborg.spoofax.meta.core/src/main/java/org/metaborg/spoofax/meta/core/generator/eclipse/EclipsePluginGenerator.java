@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
-import org.metaborg.util.file.FileAccess;
+import org.metaborg.util.file.IFileAccess;
 
 /**
  * Generates a companion Eclipse plugin project for a language specification project, that lifts the language
@@ -13,7 +13,7 @@ import org.metaborg.util.file.FileAccess;
  * Eclipse.
  */
 public class EclipsePluginGenerator extends BaseGenerator {
-    public EclipsePluginGenerator(GeneratorSettings scope, FileAccess access) {
+    public EclipsePluginGenerator(GeneratorSettings scope, IFileAccess access) {
         super(scope, access);
     }
 

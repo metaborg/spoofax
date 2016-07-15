@@ -5,8 +5,8 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.AConfigurationReaderWriter;
+import org.metaborg.core.config.IConfig;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.LanguageComponentConfigBuilder;
@@ -16,15 +16,13 @@ import org.metaborg.core.language.LanguageIdentifier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 
 /**
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
  */
 public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder implements ILanguageSpecConfigBuilder {
-    protected String metaborgVersion = MetaborgConstants.METABORG_VERSION;
-    protected final Set<String> pardonedLanguages = Sets.newHashSet();
-    protected boolean useBuildSystemSpec = false;
+    protected @Nullable Set<String> pardonedLanguages;
+    protected @Nullable Boolean useBuildSystemSpec;
 
 
     @Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -33,26 +31,34 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
 
     @Override public ILanguageSpecConfig build(@Nullable FileObject rootFolder) throws IllegalStateException {
-        if(!isValid()) {
-            throw new IllegalStateException(validateOrError());
+        if(configuration == null) {
+            configuration = configReaderWriter.create(null, rootFolder);
         }
-
-        final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
-        return new LanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, langContribs,
-            generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec);
+        final LanguageSpecConfig config =
+            new LanguageSpecConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps, javaDeps,
+                typesmart, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+        return config;
     }
 
     @Override public ILanguageSpecConfigBuilder reset() {
         super.reset();
-        metaborgVersion = null;
-        pardonedLanguages.clear();
+        pardonedLanguages = null;
+        useBuildSystemSpec = null;
         return this;
     }
 
     @Override public ILanguageSpecConfigBuilder copyFrom(ILanguageSpecConfig config) {
         super.copyFrom(config);
-        withMetaborgVersion(config.metaborgVersion());
-        withPardonedLanguages(config.pardonedLanguages());
+        if(!(config instanceof IConfig)) {
+            withPardonedLanguages(config.pardonedLanguages());
+            withUseBuildSystemSpec(config.useBuildSystemSpec());
+        }
+        return this;
+    }
+
+
+    @Override public ILanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion) {
+        super.withMetaborgVersion(metaborgVersion);
         return this;
     }
 
@@ -126,17 +132,20 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion) {
-        this.metaborgVersion = metaborgVersion;
-        return this;
-    }
 
     @Override public ILanguageSpecConfigBuilder withPardonedLanguages(Iterable<String> languages) {
-        this.pardonedLanguages.clear();
+        if(this.pardonedLanguages != null) {
+            this.pardonedLanguages.clear();
+        }
+
         return addPardonedLanguages(languages);
     }
 
     @Override public ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages) {
+        if(this.pardonedLanguages == null) {
+            this.pardonedLanguages = Sets.newHashSet();
+        }
+
         this.pardonedLanguages.addAll(Lists.newArrayList(languages));
         return this;
     }

@@ -12,7 +12,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-import org.metaborg.util.file.FileAccess;
+import org.metaborg.util.file.IFileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -116,7 +116,7 @@ public abstract class AConfigService<TSubject, TConfig> {
      *            The configuration, or <code>null</code> to remove an existing configuration.
      * @param access
      */
-    public void write(TSubject subject, TConfig config, @Nullable FileAccess access) throws ConfigException {
+    public void write(TSubject subject, TConfig config, @Nullable IFileAccess access) throws ConfigException {
         final FileObject rootDirectory;
         try {
             rootDirectory = getRootDirectory(subject);
@@ -135,7 +135,7 @@ public abstract class AConfigService<TSubject, TConfig> {
      *            The configuration, or <code>null</code> to remove an existing configuration.
      * @param access
      */
-    public void write(FileObject rootDirectory, TConfig config, @Nullable FileAccess access) throws ConfigException {
+    public void write(FileObject rootDirectory, TConfig config, @Nullable IFileAccess access) throws ConfigException {
         final FileObject configFile;
         try {
             configFile = getConfigFile(rootDirectory);
@@ -143,7 +143,7 @@ public abstract class AConfigService<TSubject, TConfig> {
             throw new ConfigException("Unable to locate configuration at root directory " + rootDirectory, e);
         }
         if(access != null) {
-            access.addWrite(configFile);
+            access.write(configFile);
         }
         final HierarchicalConfiguration<ImmutableNode> configuration = fromConfig(config);
         writeConfig(configFile, configuration, rootDirectory);

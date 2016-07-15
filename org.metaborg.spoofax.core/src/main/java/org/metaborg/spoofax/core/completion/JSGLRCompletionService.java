@@ -197,7 +197,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, null, false);
 
             for(IStrategoTerm optional : optionals) {
 
@@ -257,7 +257,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<ICompletion> completions = Lists.newLinkedList();
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, null, false);
 
             for(IStrategoList list : lists) {
                 ListImploderAttachment attachment = list.getAttachment(null);
@@ -474,14 +474,16 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, null, false);
             for(IStrategoTerm completionTerm : completionTerms) {
 
                 IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.ast();
+
                 final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) completionTerm);
                 final IStrategoTerm inputStratego =
                     termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
                         parenthesizeTerm(completionTerm, termFactory));
+
 
                 final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
                 final IStrategoTerm proposalTerm =
@@ -595,14 +597,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         return suffix;
     }
-
-
-    private String highlightSuffix(String suffix, String description) {
-        // TODO Auto-generated method stub
-        return description;
-    }
-
-
 
     private ICompletion createCompletionInsertionTermFixing(String name, String description, StrategoAppl change) {
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(0);
@@ -759,7 +753,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         IStrategoTerm completionAst = (IStrategoTerm) completionParseResult.ast();
 
         for(ILanguageComponent component : language.components()) {
-            final ITermFactory termFactory = termFactoryService.get(component);
+            final ITermFactory termFactory = termFactoryService.get(component, null, false);
             for(IStrategoTerm nestedCompletionTerm : nestedCompletionTerms) {
                 final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
 

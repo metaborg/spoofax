@@ -8,12 +8,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -36,40 +40,45 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     private final ITermFactoryService termFactoryService;
     private final Set<IOperatorRegistry> strategoLibraries;
     private final ParseStrategoFileStrategy parseStrategoFileStrategy;
+    private final IProjectService projectService;
+    private final Set<ClassLoader> additionalClassLoaders;
 
-    private final Map<ILanguageComponent, HybridInterpreter> prototypes =
-            new HashMap<>();
+    private final Map<ILanguageComponent, HybridInterpreter> prototypes = new HashMap<>();
 
 
     @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
-        Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy) {
+        Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy,
+        IProjectService projectService, Set<ClassLoader> additionalClassLoaders) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.strategoLibraries = strategoLibraries;
         this.parseStrategoFileStrategy = parseStrategoFileStrategy;
+        this.projectService = projectService;
+        this.additionalClassLoaders = additionalClassLoaders;
     }
 
-
-    @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException {
-        HybridInterpreter prototype = prototypes.get(component);
-        if(prototype == null) {
-            prototype = createPrototype(component);
-        }
-
-        final HybridInterpreter runtime = clone(prototype, context.location(), component.location());
-        runtime.getContext().setContextObject(context);
-        runtime.getCompiledContext().setContextObject(context);
-        return runtime;
-    }
-
-    @Override public HybridInterpreter runtime(ILanguageComponent component, FileObject location)
+    @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context, boolean typesmart)
         throws MetaborgException {
         HybridInterpreter prototype = prototypes.get(component);
         if(prototype == null) {
             prototype = createPrototype(component);
         }
 
-        final HybridInterpreter runtime = clone(prototype, location, component.location());
+        final HybridInterpreter runtime = clone(prototype, context.location(), component, context.project(), typesmart);
+        runtime.getContext().setContextObject(context);
+        runtime.getCompiledContext().setContextObject(context);
+        return runtime;
+    }
+
+    @Override public HybridInterpreter runtime(ILanguageComponent component, FileObject location, boolean typesmart)
+        throws MetaborgException {
+        HybridInterpreter prototype = prototypes.get(component);
+        if(prototype == null) {
+            prototype = createPrototype(component);
+        }
+
+        final IProject project = projectService.get(location);
+        final HybridInterpreter runtime = clone(prototype, location, component, project, typesmart);
         return runtime;
     }
 
@@ -89,13 +98,13 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
 
 
     private HybridInterpreter clone(HybridInterpreter prototype, FileObject workingLocation,
-        FileObject definitionLocation) {
+        ILanguageComponent component, @Nullable IProject project, boolean typesmart) {
         // TODO: this seems to copy operator registries, but they should be recreated to isolate interpreters?
         final HybridInterpreter runtime = new HybridInterpreter(prototype);
 
         final ResourceAgent agent = new ResourceAgent(resourceService);
         agent.setAbsoluteWorkingDir(workingLocation);
-        agent.setAbsoluteDefinitionDir(definitionLocation);
+        agent.setAbsoluteDefinitionDir(component.location());
         runtime.setIOAgent(agent);
 
         runtime.getCompiledContext().getExceptionHandler().setEnabled(false);
@@ -104,6 +113,10 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         for(IOperatorRegistry library : strategoLibraries) {
             runtime.getCompiledContext().addOperatorRegistry(library);
         }
+
+        final ITermFactory termFactory = termFactoryService.get(component, project, typesmart);
+        runtime.getContext().setFactory(termFactory);
+        runtime.getCompiledContext().setFactory(termFactory);
 
         runtime.init();
 
@@ -128,7 +141,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
 
     private HybridInterpreter createPrototype(ILanguageComponent component) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", component);
-        final ITermFactory termFactory = termFactoryService.get(component);
+        final ITermFactory termFactory = termFactoryService.get(component, null, false);
         final HybridInterpreter runtime = createNew(termFactory);
         loadFiles(runtime, component);
         prototypes.put(component, runtime);
@@ -165,7 +178,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
-            final ClassLoader classLoader = new StrategoRuntimeClassLoader();
+            final ClassLoader classLoader = new StrategoRuntimeClassLoader(additionalClassLoaders);
             runtime.loadJars(classLoader, classpath);
         } catch(IncompatibleJarException | IOException | MetaborgRuntimeException e) {
             throw new MetaborgException("Failed to load JAR", e);

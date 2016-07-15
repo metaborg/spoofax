@@ -101,7 +101,7 @@ public class BuildInputBuilder {
     }
 
     /**
-     * Sets the languages to given languague implementations.
+     * Sets the languages to given language implementations.
      */
     public BuildInputBuilder withLanguages(Set<ILanguageImpl> languages) {
         this.languages = languages;

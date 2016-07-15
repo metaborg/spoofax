@@ -16,7 +16,7 @@ import org.sugarj.common.util.Pair;
 
 import build.pluto.builder.BuildManagers;
 import build.pluto.builder.BuildRequest;
-import build.pluto.output.OutputPersisted;
+import build.pluto.output.Out;
 import build.pluto.stamp.LastModifiedStamper;
 import build.pluto.stamp.Stamp;
 import build.pluto.stamp.Stamper;
@@ -25,10 +25,10 @@ import build.pluto.stamp.ValueStamp;
 public class Sdf2ParenthesizeStamper implements Stamper {
     private static final long serialVersionUID = 3294157251470549994L;
 
-    private final BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf;
+    private final BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf;
 
 
-    public Sdf2ParenthesizeStamper(BuildRequest<ParseFile.Input, OutputPersisted<IStrategoTerm>, ?, ?> parseSdf) {
+    public Sdf2ParenthesizeStamper(BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf) {
         this.parseSdf = parseSdf;
     }
 
@@ -37,19 +37,19 @@ public class Sdf2ParenthesizeStamper implements Stamper {
         if(!FileCommands.exists(p))
             return new ValueStamp<>(this, null);
 
-        final OutputPersisted<IStrategoTerm> term;
+        final Out<IStrategoTerm> term;
         try {
             term = BuildManagers.build(parseSdf);
         } catch(Throwable e) {
             return LastModifiedStamper.instance.stampOf(p);
         }
 
-        if(term == null || term.val == null) {
+        if(term == null || term.val() == null) {
             return LastModifiedStamper.instance.stampOf(p);
         }
 
         final ParenExtractor parenExtractor = new ParenExtractor(parseSdf.input.context.termFactory());
-        parenExtractor.visit(term.val);
+        parenExtractor.visit(term.val());
         return new ValueStamp<>(this, Pair.create(parenExtractor.getRelevantProds(), parenExtractor.getPriorities()));
     }
 

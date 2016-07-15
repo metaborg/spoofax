@@ -257,7 +257,9 @@ public class LanguageSpecBuilder {
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
         final FileObject location = input.languageSpec().location();
 
+
         logger.debug("Cleaning {}", location);
+
 
         final CommonPaths paths = new LangSpecCommonPaths(location);
         cleanAndLog(paths.srcGenDir());
@@ -428,7 +430,7 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, sdfModule, sdfFile, sdfVersion,
-            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, 
+            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, 
             strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
             strjArgs);
     }
@@ -476,4 +478,6 @@ public class LanguageSpecBuilder {
 
         return new ArchiveBuilder.Input(context, origin, exports, languageIdentifier);
     }
+
 }
+

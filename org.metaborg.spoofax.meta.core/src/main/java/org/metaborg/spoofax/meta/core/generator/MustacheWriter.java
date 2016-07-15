@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.util.file.FileAccess;
+import org.metaborg.util.file.IFileAccess;
 
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
@@ -17,10 +17,10 @@ public class MustacheWriter {
     private final FileObject root;
     private final Object[] objects;
     private final MustacheFactory factory;
-    private final @Nullable FileAccess access;
+    private final @Nullable IFileAccess access;
 
 
-    public MustacheWriter(FileObject root, Object[] objects, Class<?> clazz, @Nullable FileAccess access) {
+    public MustacheWriter(FileObject root, Object[] objects, Class<?> clazz, @Nullable IFileAccess access) {
         this.root = root;
         this.objects = objects;
         this.factory = new StrictMustacheFactory(new ClassResolver(clazz));
@@ -72,7 +72,7 @@ public class MustacheWriter {
             mustache.execute(writer, objects);
         }
         if(access != null) {
-            access.addWrite(dst);
+            access.write(dst);
         }
     }
 

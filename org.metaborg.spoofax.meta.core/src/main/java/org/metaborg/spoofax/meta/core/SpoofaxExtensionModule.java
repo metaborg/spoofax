@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core;
 
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.spoofax.core.SpoofaxModule;
+import org.metaborg.spoofax.meta.core.stratego.primitives.CheckSdf2TablePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitives.LanguageSpecNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitives.PlaceholderCharsPrimitive;
 import org.spoofax.interpreter.library.AbstractPrimitive;

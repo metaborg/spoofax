@@ -31,6 +31,16 @@ public interface IProjectConfigBuilder {
      */
     IProjectConfigBuilder copyFrom(IProjectConfig config);
 
+
+    /**
+     * Sets the MetaBorg version.
+     *
+     * @param metaborgVersion
+     *            The MetaBorg version.
+     * @return This builder.
+     */
+    IProjectConfigBuilder withMetaborgVersion(String metaborgVersion);
+
     /**
      * Sets the compile-time dependencies.
      *
@@ -84,4 +94,13 @@ public interface IProjectConfigBuilder {
      * @return This builder.
      */
     IProjectConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
+
+    /**
+     * Sets the typesmart property.
+     *
+     * @param typesmart
+     *            The typesmart property.
+     * @return This builder.
+     */
+    IProjectConfigBuilder withTypesmart(boolean typesmart);
 }

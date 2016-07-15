@@ -47,6 +47,8 @@ import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
+import org.metaborg.spoofax.core.shell.ShellFacet;
+import org.metaborg.spoofax.core.shell.ShellFacetFromESV;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
@@ -105,7 +107,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             configFiles = location.findFiles(new FileSelector() {
                 @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
                     final String baseName = fileInfo.getFile().getName().getBaseName();
-                    return !baseName.equals("bin");
+                    return !baseName.equals("bin") && !baseName.equals("target");
                 }
 
                 @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
@@ -292,7 +294,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
             if(ParseFacetFromESV.hasParser(esvTerm)) {
                 request.addFacet(ParseFacetFromESV.create(esvTerm));
-            } else {
+            } else if(syntaxFacet != null) {
                 request.addFacet(new ParseFacet("jsglr"));
             }
 
@@ -369,6 +371,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             final OutlineFacet outlineFacet = OutlineFacetFromESV.create(esvTerm);
             if(outlineFacet != null) {
                 request.addFacet(outlineFacet);
+            }
+
+            final ShellFacet shellFacet = ShellFacetFromESV.create(esvTerm);
+            if(shellFacet != null) {
+                request.addFacet(shellFacet);
             }
         }
 

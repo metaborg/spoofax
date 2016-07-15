@@ -16,27 +16,40 @@ import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
+import build.pluto.output.Out;
 import build.pluto.output.OutputPersisted;
+import build.pluto.output.OutputTransient;
 import build.pluto.stamp.FileHashStamper;
 import build.pluto.stamp.Stamper;
 
-public class ParseFile extends SpoofaxBuilder<ParseFile.Input, OutputPersisted<IStrategoTerm>> {
+public class ParseFile extends SpoofaxBuilder<ParseFile.Input, Out<IStrategoTerm>> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -4790160594622807382L;
 
         public final File file;
+        public final boolean persistResult;
+        public final boolean silent;
         public final Origin requiredUnits;
 
-
-        public Input(SpoofaxContext context, File defPath, Origin requiredUnits) {
+        public Input(SpoofaxContext context, File file, boolean persistResult, Origin requiredUnits) {
             super(context);
-            this.file = defPath;
+            this.file = file;
+            this.persistResult = persistResult;
+            this.silent = false;
+            this.requiredUnits = requiredUnits;
+        }
+
+        public Input(SpoofaxContext context, File file, boolean persistResult, boolean silent, Origin requiredUnits) {
+            super(context);
+            this.file = file;
+            this.persistResult = persistResult;
+            this.silent = silent;
             this.requiredUnits = requiredUnits;
         }
     }
 
 
-    public final static SpoofaxBuilderFactory<Input, OutputPersisted<IStrategoTerm>, ParseFile> factory =
+    public final static SpoofaxBuilderFactory<Input, Out<IStrategoTerm>, ParseFile> factory =
         SpoofaxBuilderFactoryFactory.of(ParseFile.class, Input.class);
 
 
@@ -46,7 +59,7 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, OutputPersisted<I
 
 
     public static
-        BuildRequest<Input, OutputPersisted<IStrategoTerm>, ParseFile, SpoofaxBuilderFactory<Input, OutputPersisted<IStrategoTerm>, ParseFile>>
+        BuildRequest<Input, Out<IStrategoTerm>, ParseFile, SpoofaxBuilderFactory<Input, Out<IStrategoTerm>, ParseFile>>
         request(Input input) {
         return new BuildRequest<>(factory, input);
     }
@@ -57,7 +70,7 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, OutputPersisted<I
 
 
     @Override protected String description(Input input) {
-        return "Parse SDF definition";
+        return input.silent ? null : "Parse file " + input.file;
     }
 
     @Override protected Stamper defaultStamper() {
@@ -66,11 +79,11 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, OutputPersisted<I
 
     @Override public File persistentPath(Input input) {
         final String rel = input.file.getPath();
-        final String relname = rel.replace(File.separatorChar, '_');
+        final String relname = rel.replace(File.separatorChar, '_').replace(':', '_');
         return context.depPath("parse." + relname + ".dep");
     }
 
-    @Override protected OutputPersisted<IStrategoTerm> build(Input input) throws Throwable {
+    @Override protected Out<IStrategoTerm> build(Input input) throws Throwable {
         requireBuild(input.requiredUnits);
 
         require(input.file);
@@ -90,6 +103,6 @@ public class ParseFile extends SpoofaxBuilder<ParseFile.Input, OutputPersisted<I
             return null;
         }
 
-        return OutputPersisted.of(result.ast());
+        return input.persistResult ? OutputPersisted.of(result.ast()) : OutputTransient.of(result.ast());
     }
 }

@@ -19,6 +19,7 @@ import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigBuilder;
 import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecService;
+import org.metaborg.spoofax.meta.core.stratego.primitives.CheckSdf2TablePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitives.LanguageSpecNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitives.PlaceholderCharsPrimitive;
 

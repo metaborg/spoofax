@@ -1,6 +1,8 @@
 package org.metaborg.spoofax.meta.core.config;
 
 public class AntBuildStepConfig implements IBuildStepConfig {
+    private static final long serialVersionUID = 3262264433105541201L;
+
     public final LanguageSpecBuildPhase phase;
     public final String file;
     public final String target;
