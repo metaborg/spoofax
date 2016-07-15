@@ -39,6 +39,7 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
 
         // Static injections for SpoofaxExtensionModule bindings.
         requestStaticInjection(LanguageSpecNamePrimitive.class);
+        requestStaticInjection(CheckSdf2TablePrimitive.class);
         requestStaticInjection(PlaceholderCharsPrimitive.class);
     }
 

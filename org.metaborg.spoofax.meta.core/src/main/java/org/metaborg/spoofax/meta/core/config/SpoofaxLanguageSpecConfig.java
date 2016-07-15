@@ -31,6 +31,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     private static final String PROP_SDF = "language.sdf";
     private static final String PROP_SDF_VERSION = PROP_SDF + ".version";
+    private static final String PROP_SDF2TABLE_VERSION = PROP_SDF + ".sdf2table";
     private static final String PROP_SDF_EXTERNAL_DEF = PROP_SDF + ".externalDef";
     private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
@@ -58,8 +59,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         String name, Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
         Collection<LanguageIdentifier> javaDeps, Collection<LanguageContributionIdentifier> langContribs,
         Collection<IGenerateConfig> generates, Collection<IExportConfig> exports, String metaborgVersion,
-        Collection<String> pardonedLanguages, boolean useBuildSystemSpec, SdfVersion sdfVersion,
-        PlaceholderCharacters placeholderCharacters, String externalDef, Arguments sdfArgs, StrategoFormat format,
+        Collection<String> pardonedLanguages, boolean useBuildSystemSpec, SdfVersion sdfVersion, @Nullable Sdf2tableVersion sdf2tableVersion,
+        @Nullable PlaceholderCharacters placeholderCharacters, String externalDef, Arguments sdfArgs, StrategoFormat format,
         String externalJar, String externalJarFlags, Arguments strategoArgs, Collection<IBuildStepConfig> buildSteps) {
         super(config, id, name, compileDeps, sourceDeps, javaDeps, langContribs, generates, exports, metaborgVersion,
             pardonedLanguages, useBuildSystemSpec);
@@ -67,6 +68,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         config.setProperty(PROP_SDF_VERSION, sdfVersion);
         config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
         config.setProperty(PROP_SDF_ARGS, sdfArgs);
+        
+        if(sdf2tableVersion != null) {
+            config.setProperty(PROP_SDF2TABLE_VERSION, sdf2tableVersion);
+        }    
 
         if(placeholderCharacters != null) {
             config.setProperty(PROP_PLACEHOLDER_PREFIX, placeholderCharacters.prefix);
@@ -98,6 +103,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     @Override public SdfVersion sdfVersion() {
         final String value = this.config.getString(PROP_SDF_VERSION);
         return value != null ? SdfVersion.valueOf(value) : SdfVersion.sdf3;
+    }
+    
+    @Override public Sdf2tableVersion sdf2tableVersion() {
+        final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
+        return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.c;
     }
 
     @Nullable public String sdfExternalDef() {

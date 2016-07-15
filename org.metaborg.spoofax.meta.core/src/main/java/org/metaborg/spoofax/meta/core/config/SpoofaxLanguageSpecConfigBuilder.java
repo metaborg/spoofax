@@ -25,6 +25,7 @@ import com.virtlink.commons.configuration2.jackson.JacksonConfiguration;
 public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     implements ISpoofaxLanguageSpecConfigBuilder {
     protected SdfVersion sdfVersion = SdfVersion.sdf3;
+    protected @Nullable Sdf2tableVersion sdf2tableVersion;
     protected @Nullable PlaceholderCharacters placeholderCharacters = null;  
     protected @Nullable String sdfExternalDef = null;
     protected Arguments sdfArgs = new Arguments();
@@ -47,13 +48,14 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
         final JacksonConfiguration configuration = configReaderWriter.create(null, rootFolder);
         return new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps,
-            langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, SdfVersion.sdf3,
+            langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, SdfVersion.sdf3, sdf2tableVersion,
             placeholderCharacters, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder reset() {
         super.reset();
         this.sdfVersion = SdfVersion.sdf3;
+        sdf2tableVersion = null;
         this.placeholderCharacters = new PlaceholderCharacters("\"[[\"", "\"]]\"");
         this.sdfExternalDef = null;
         this.sdfArgs.clear();
@@ -68,6 +70,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     @Override public ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig config) {
         super.copyFrom(config);
         withSdfVersion(config.sdfVersion());
+        withSdf2tableVersion(config.sdf2tableVersion());
         withPlaceholderPrefix(config.placeholderChars().prefix);
         withPlaceholderPostfix(config.placeholderChars().suffix);
         withSdfExternalDef(config.sdfExternalDef());
@@ -170,6 +173,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion version) {
         // TODO Auto-generated method stub
+        return null;
+    }
+    
+    @Override public ISpoofaxLanguageSpecConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion) {
+        this.sdf2tableVersion = sdf2tableVersion;
         return null;
     }
 

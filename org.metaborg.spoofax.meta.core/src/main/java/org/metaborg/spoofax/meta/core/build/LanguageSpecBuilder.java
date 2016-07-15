@@ -15,29 +15,35 @@ import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
+import org.metaborg.spoofax.meta.core.config.Sdf2tableVersion;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
+import org.metaborg.spoofax.meta.core.pluto.build.main.ArchiveBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.util.cmd.Arguments;
-import org.metaborg.util.file.FileAccess;
+import org.metaborg.util.file.IFileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -50,7 +56,6 @@ import build.pluto.builder.BuildRequest;
 import build.pluto.builder.RequiredBuilderFailed;
 import build.pluto.dependency.Origin;
 import build.pluto.output.Output;
-import build.pluto.xattr.Xattr;
 
 public class LanguageSpecBuilder {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecBuilder.class);
@@ -85,7 +90,7 @@ public class LanguageSpecBuilder {
 
 
     public void initialize(LanguageSpecBuildInput input) throws MetaborgException {
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
         try {
             paths.srcGenDir().createFolder();
             paths.targetMetaborgDir().createFolder();
@@ -98,7 +103,7 @@ public class LanguageSpecBuilder {
         }
     }
 
-    public void generateSources(LanguageSpecBuildInput input, @Nullable FileAccess access) throws Exception {
+    public void generateSources(LanguageSpecBuildInput input, @Nullable IFileAccess access) throws Exception {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final FileObject location = languageSpec.location();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
@@ -119,12 +124,13 @@ public class LanguageSpecBuilder {
         }
     }
 
-    public void compilePreJava(LanguageSpecBuildInput input) throws MetaborgException {
+    public void compile(LanguageSpecBuildInput input) throws MetaborgException {
         logger.debug("Running pre-Java build for {}", input.languageSpec().location());
 
         initPluto();
         try {
-            plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)));
+            final String path = input.languageSpec().location().getName().getPath();
+            plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage, e);
@@ -137,13 +143,13 @@ public class LanguageSpecBuilder {
             throw new MetaborgException(e);
         }
 
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
         final FileObject mainEsvFile = paths.esvMainFile();
         try {
             if(mainEsvFile.exists()) {
-                logger.info("Compiling ESV file {}", mainEsvFile);
+                logger.info("Compiling Main ESV file {}", mainEsvFile);
                 // @formatter:off
                 final BuildInput buildInput = 
                     new BuildInputBuilder(input.languageSpec())
@@ -152,7 +158,10 @@ public class LanguageSpecBuilder {
                     .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
                     .build(dependencyService, languagePathService);
                 // @formatter:on
-                runner.build(buildInput, null, null).schedule().block();
+                final ISpoofaxBuildOutput result = runner.build(buildInput, null, null).schedule().block().result();
+                if(!result.success()) {
+                    throw new MetaborgException("Compiling Main ESV file failed");
+                }
             }
         } catch(FileSystemException e) {
             final String message = logger.format("Could not compile ESV file {}", mainEsvFile);
@@ -166,7 +175,7 @@ public class LanguageSpecBuilder {
         final FileObject mainDsFile = paths.dsMainFile(input.languageSpec().config().strategoName());
         try {
             if(mainDsFile.exists()) {
-                logger.info("Compiling DynSem file {}", mainDsFile);
+                logger.info("Compiling Main DynSem file {}", mainDsFile);
                 // @formatter:off
                 final BuildInput buildInput =
                     new BuildInputBuilder(input.languageSpec())
@@ -175,7 +184,10 @@ public class LanguageSpecBuilder {
                     .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
                     .build(dependencyService, languagePathService);
                 // @formatter:on
-                runner.build(buildInput, null, null).schedule().block();
+                final ISpoofaxBuildOutput result = runner.build(buildInput, null, null).schedule().block().result();
+                if(!result.success()) {
+                    throw new MetaborgException("Compiling Main DynSem file failed");
+                }
             }
         } catch(FileSystemException e) {
             final String message = logger.format("Could not compile DynSem file {}", mainDsFile);
@@ -185,17 +197,18 @@ public class LanguageSpecBuilder {
         }
 
         for(IBuildStep buildStep : buildSteps) {
-            buildStep.execute(LanguageSpecBuildPhase.preJava, input);
+            buildStep.execute(LanguageSpecBuildPhase.compile, input);
         }
     }
 
-    public void compilePostJava(LanguageSpecBuildInput input) throws MetaborgException {
-        logger.debug("Running post-Java build for {}", input.languageSpec().location());
+    public void pkg(LanguageSpecBuildInput input) throws MetaborgException {
+        logger.debug("Packaging language implementation for {}", input.languageSpec().location());
 
         initPluto();
         try {
             final Origin origin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
-            plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin)));
+            final String path = input.languageSpec().location().getName().getPath();
+            plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
@@ -208,19 +221,50 @@ public class LanguageSpecBuilder {
         }
 
         for(IBuildStep buildStep : buildSteps) {
-            buildStep.execute(LanguageSpecBuildPhase.postJava, input);
+            buildStep.execute(LanguageSpecBuildPhase.pkg, input);
         }
     }
 
-    public void clean(LanguageSpecBuildInput input) throws MetaborgException {
-        logger.debug("Cleaning {}", input.languageSpec().location());
+    public FileObject archive(LanguageSpecBuildInput input) throws MetaborgException {
+        logger.debug("Archiving language implementation for {}", input.languageSpec().location());
 
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        initPluto();
+        final File archiveFile;
+        try {
+            final Origin generateSourcesOrigin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
+            final Origin packageOrigin = PackageBuilder.origin(packageBuilderInput(input, generateSourcesOrigin));
+            final Origin origin = Origin.Builder().add(generateSourcesOrigin).add(packageOrigin).get();
+            final String path = input.languageSpec().location().getName().getPath();
+            archiveFile = plutoBuild(ArchiveBuilder.request(archiveBuilderInput(input, origin)), path).val();
+        } catch(RequiredBuilderFailed e) {
+            if(e.getMessage().contains("no rebuild of failing builder")) {
+                throw new MetaborgException(failingRebuildMessage);
+            }
+            throw new MetaborgException();
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Throwable e) {
+            throw new MetaborgException(e);
+        }
+
+        for(IBuildStep buildStep : buildSteps) {
+            buildStep.execute(LanguageSpecBuildPhase.pkg, input);
+        }
+
+        return resourceService.resolve(archiveFile);
+    }
+
+    public void clean(LanguageSpecBuildInput input) throws MetaborgException {
+        final FileObject location = input.languageSpec().location();
+
+        logger.debug("Cleaning {}", location);
+
+        final CommonPaths paths = new LangSpecCommonPaths(location);
         cleanAndLog(paths.srcGenDir());
         cleanAndLog(paths.targetDir());
 
         try {
-            Xattr.getDefault().clear();
+            plutoClean(location.getName().getPath());
         } catch(IOException e) {
             throw new MetaborgException("Cleaning Pluto file attributes failed", e);
         }
@@ -244,9 +288,14 @@ public class LanguageSpecBuilder {
         SpoofaxContext.init(injector);
     }
 
-    private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest) throws Throwable {
-        return BuildManagers.build(buildRequest, new SpoofaxReporting());
+    private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest, String path) throws Throwable {
+        return BuildManagers.build(buildRequest, new SpoofaxReporting(), path);
     }
+
+    private void plutoClean(String path) throws IOException {
+        BuildManagers.resetDynamicAnalysis(path);
+    }
+
 
     private GenerateSourcesBuilder.Input generateSourcesBuilderInput(LanguageSpecBuildInput input)
         throws FileSystemException, MetaborgException {
@@ -263,6 +312,7 @@ public class LanguageSpecBuilder {
 
         final FileObject sdfFileCandidate;
         final SdfVersion sdfVersion = config.sdfVersion();
+        final Sdf2tableVersion sdf2tableVersion = config.sdf2tableVersion();
         switch(sdfVersion) {
             case sdf2:
                 sdfFileCandidate = paths.syntaxMainFile(sdfModule);
@@ -305,7 +355,7 @@ public class LanguageSpecBuilder {
         }
 
         final Arguments packSdfArgs = config.sdfArgs();
-        
+
         // SDF completions
         final String sdfCompletionModule = config.sdfName() + "-completion-syntax";
         final @Nullable File sdfCompletionFile;
@@ -314,7 +364,7 @@ public class LanguageSpecBuilder {
             sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
         } else {
             sdfCompletionFile = null;
-        }
+        }       
 
         // Meta-SDF
         final String sdfMetaModule = config.metaSdfName();
@@ -326,6 +376,7 @@ public class LanguageSpecBuilder {
             sdfMetaFile = null;
         }
 
+
         // Stratego
         final String strModule = config.strategoName();
 
@@ -336,6 +387,7 @@ public class LanguageSpecBuilder {
         } else {
             strFile = null;
         }
+        final String strStratPkg = paths.strJavaTransPkg(config.identifier().id);
 
         final String strJavaStratPkg = paths.strJavaStratPkg(config.identifier().id);
         final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id);
@@ -375,12 +427,13 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, sdfModule, sdfFile, sdfVersion, sdfExternalDef,
-            packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strJavaStratPkg, strJavaStratFile,
-            strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, sdfModule, sdfFile, sdfVersion,
+            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, 
+            strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
+            strjArgs);
     }
 
-    private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin generateSourcesOrigin)
+    private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin origin)
         throws FileSystemException {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
@@ -406,7 +459,21 @@ public class LanguageSpecBuilder {
         final List<File> strJavaStratIncludeDirs =
             Lists.newArrayList(javaStratClassesDir, dsGeneratedClassesDir, dsManualClassesDir);
 
-        return new PackageBuilder.Input(context, generateSourcesOrigin, strFormat, strJavaStratFile,
+        return new PackageBuilder.Input(context, config.identifier().id, origin, strFormat, strJavaStratFile,
             strJavaStratIncludeDirs);
+    }
+
+    private ArchiveBuilder.Input archiveBuilderInput(LanguageSpecBuildInput input, Origin origin) {
+        final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
+        final ISpoofaxLanguageSpecConfig config = languageSpec.config();
+        final FileObject baseLoc = input.languageSpec().location();
+        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
+        final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
+        final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
+
+        final Iterable<IExportConfig> exports = config.exports();
+        final LanguageIdentifier languageIdentifier = config.identifier();
+
+        return new ArchiveBuilder.Input(context, origin, exports, languageIdentifier);
     }
 }

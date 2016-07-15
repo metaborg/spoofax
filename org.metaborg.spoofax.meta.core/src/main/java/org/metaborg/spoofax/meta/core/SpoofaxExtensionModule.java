@@ -24,6 +24,7 @@ public class SpoofaxExtensionModule extends AbstractModule {
         final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxPrimitiveLibrary"));
         spoofaxPrimitiveLibrary.addBinding().to(LanguageSpecNamePrimitive.class).in(Singleton.class);
+        spoofaxPrimitiveLibrary.addBinding().to(CheckSdf2TablePrimitive.class).in(Singleton.class);
         spoofaxPrimitiveLibrary.addBinding().to(PlaceholderCharsPrimitive.class).in(Singleton.class);
     }
 }

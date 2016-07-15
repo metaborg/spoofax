@@ -113,6 +113,13 @@ public class CommonPaths {
     public FileObject syntaxCompletionMainFile(String languageName) {
         return resolve(syntaxCompletionSrcGenDir(), languageName + ".sdf");
     }
+    
+    /**
+     * @return Normalized syntax directory. Contains the SDF3 normalized files.
+     */
+    public FileObject syntaxNormDir() {
+        return resolve(syntaxSrcGenDir(), "normalized");
+    }
 
     /**
      * @return Generated SDF2 syntax directory, generated from SDF3 definition.
@@ -135,6 +142,15 @@ public class CommonPaths {
      */
     public FileObject syntaxSrcGenMainFile(String languageName) {
         return resolve(syntaxSrcGenDir(), languageName + ".sdf");
+    }
+    
+    /**
+     * @param languageName
+     *            Name of the language.
+     * @return Main generated SDF2 file, generated from main SDF3 file.
+     */
+    public FileObject syntaxSrcGenMainNormFile(String languageName) {
+        return resolve(syntaxNormDir(), languageName + "-norm.aterm");
     }
 
     /**
