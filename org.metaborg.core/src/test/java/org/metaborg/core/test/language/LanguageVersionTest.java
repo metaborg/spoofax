@@ -25,11 +25,17 @@ public class LanguageVersionTest {
         assertTrue(result < 0);
         result = new LanguageVersion(2, 1, 0, "").compareTo(new LanguageVersion(1, 2, 0, ""));
         assertTrue(result > 0);
+        
         result = new LanguageVersion(1, 2, 0, "SNAPSHOT").compareTo(new LanguageVersion(1, 2, 0, ""));
         assertTrue(result > 0);
         result = new LanguageVersion(1, 2, 0, "SNAPSHOT").compareTo(new LanguageVersion(1, 2, 0, "baseline-1234"));
         assertTrue(result > 0);
         result = new LanguageVersion(1, 2, 0, "SNAPSHOT").compareTo(new LanguageVersion(1, 2, 0, "snapshot"));
         assertTrue(result == 0);
+        
+        result = new LanguageVersion(1, 0, 0, "").compareTo(new LanguageVersion(1, 0, 0, "SNAPSHOT"));
+        assertTrue(result < 0);
+        result = new LanguageVersion(1, 0, 0, "").compareTo(new LanguageVersion(1, 0, 0, "baseline-1234"));
+        assertTrue(result > 0);
     }
 }

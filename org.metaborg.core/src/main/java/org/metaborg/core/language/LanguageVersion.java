@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ComparisonChain;
 
 /**
@@ -94,6 +95,8 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
                             return 1;
                         } else if(SNAPSHOT.equalsIgnoreCase(other)) {
                             return -1;
+                        } else if(!Strings.isNullOrEmpty(other)) {
+                            return 1;
                         } else {
                             return result;
                         }
