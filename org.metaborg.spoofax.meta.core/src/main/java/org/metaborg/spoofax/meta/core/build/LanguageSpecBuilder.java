@@ -2,13 +2,11 @@ package org.metaborg.spoofax.meta.core.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -24,22 +22,13 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
-import org.metaborg.core.language.ILanguageIdentifierService;
-import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
-import org.metaborg.mbt.core.model.ITestCase;
-import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
-import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
-import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxInputUnitService;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
 import org.metaborg.spoofax.meta.core.config.Sdf2tableVersion;
@@ -53,20 +42,11 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.ArchiveBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
-import org.metaborg.spt.core.SPTModule;
-import org.metaborg.spt.core.extract.ISpoofaxTestCaseExtractionResult;
-import org.metaborg.spt.core.extract.ISpoofaxTestCaseExtractor;
-import org.metaborg.spt.core.run.ISpoofaxFragmentParserConfig;
-import org.metaborg.spt.core.run.ISpoofaxTestCaseRunner;
-import org.metaborg.spt.core.run.ISpoofaxTestResult;
-import org.metaborg.spt.core.run.SpoofaxFragmentParserConfig;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.IFileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.FileSelectorUtils;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -85,32 +65,24 @@ public class LanguageSpecBuilder {
     private final Injector injector;
     private final IResourceService resourceService;
     private final ISourceTextService sourceTextService;
-    private final ILanguageService languageService;
-    private final ILanguageIdentifierService languageIdentifierService;
     private final IDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
-    private final ISpoofaxInputUnitService unitService;
     private final Set<IBuildStep> buildSteps;
     private final ILanguageComponentConfigBuilder componentConfigBuilder;
     private final ILanguageComponentConfigWriter componentConfigWriter;
 
 
     @Inject public LanguageSpecBuilder(Injector injector, IResourceService resourceService,
-        ISourceTextService sourceTextService, ILanguageService languageService,
-        ILanguageIdentifierService languageIdentifierService, IDependencyService dependencyService,
-        ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, ISpoofaxInputUnitService unitService,
-        Set<IBuildStep> buildSteps, ILanguageComponentConfigBuilder componentConfigBuilder,
-        ILanguageComponentConfigWriter componentConfigWriter) {
+        ISourceTextService sourceTextService, IDependencyService dependencyService,
+        ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, Set<IBuildStep> buildSteps,
+        ILanguageComponentConfigBuilder componentConfigBuilder, ILanguageComponentConfigWriter componentConfigWriter) {
         this.injector = injector;
         this.resourceService = resourceService;
         this.sourceTextService = sourceTextService;
-        this.languageService = languageService;
-        this.languageIdentifierService = languageIdentifierService;
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
         this.runner = runner;
-        this.unitService = unitService;
         this.componentConfigBuilder = componentConfigBuilder;
         this.componentConfigWriter = componentConfigWriter;
         this.buildSteps = buildSteps;
@@ -280,98 +252,6 @@ public class LanguageSpecBuilder {
         }
 
         return resourceService.resolve(archiveFile);
-    }
-
-    public void test(LanguageSpecBuildInput input) throws MetaborgException {
-        final ILanguageSpec languageSpec = input.languageSpec();
-
-        // TODO: activate SPT module when Spoofax Meta starts.
-        final Injector sptInjector = injector.createChildInjector(new SPTModule());
-        final ISpoofaxTestCaseExtractor extractor = sptInjector.getInstance(ISpoofaxTestCaseExtractor.class);
-        final ISpoofaxTestCaseRunner executor = sptInjector.getInstance(ISpoofaxTestCaseRunner.class);
-
-        final Iterable<? extends ILanguageImpl> sptLangs =
-            languageService.getAllImpls("org.metaborg", "org.metaborg.meta.lang.spt");
-        final int sptLangsSize = Iterables.size(sptLangs);
-        if(sptLangsSize > 1) {
-            throw new MetaborgException("Multiple implementations for SPT found");
-        }
-        if(sptLangsSize == 0) {
-            throw new MetaborgException("No implemenetations of SPT found");
-        }
-        final ILanguageImpl sptLang = Iterables.get(sptLangs, 0);
-        final ILanguageImpl testLang = languageService.getImpl(languageSpec.config().identifier());
-        if(testLang == null) {
-            throw new MetaborgException("Language under test not found");
-        }
-
-        try {
-            final FileObject[] sptFiles = languageSpec.location().findFiles(FileSelectorUtils.extension("spt"));
-            if(sptFiles == null || sptFiles.length == 0) {
-                return;
-            }
-
-            for(FileObject testSuite : sptFiles) {
-                logger.info("Processing test suite {}", testSuite);
-                final String text;
-                try(InputStream in = testSuite.getContent().getInputStream()) {
-                    text = IOUtils.toString(in);
-                } catch(IOException e) {
-                    logger.error("Unable to process file {}", e, testSuite);
-                    continue;
-                }
-                final ISpoofaxInputUnit testInput = unitService.inputUnit(testSuite, text, sptLang, null);
-                final ISpoofaxTestCaseExtractionResult extractionResult = extractor.extract(testInput, languageSpec);
-
-                // use the start symbol of the test suite if no overriding start symbol has been given to this method
-                ISpoofaxFragmentParserConfig moduleFragmentConfig = null;
-                if(extractionResult.getStartSymbol() != null) {
-                    moduleFragmentConfig = new SpoofaxFragmentParserConfig();
-                    moduleFragmentConfig.putConfig(testLang,
-                        new JSGLRParserConfiguration(extractionResult.getStartSymbol()));
-                }
-
-                boolean failed = false;
-                if(extractionResult.isSuccessful()) {
-                    final Iterable<ITestCase> tests = extractionResult.getTests();
-                    for(ITestCase test : tests) {
-                        logger.debug("Running test '{}'", test.getDescription());
-                        ISpoofaxTestResult res = executor.run(languageSpec, test, testLang, null, moduleFragmentConfig);
-                        if(!res.isSuccessful()) {
-                            failed = true;
-                            logger.error("Test '{}' failed", test.getDescription());
-                            for(IMessage m : res.getAllMessages()) {
-                                if(m.region() == null) {
-                                    logger.error("  {} : {}", m.severity(), m.message());
-                                } else {
-                                    logger.error("  @({}, {}) {} : {}", m.region().startOffset(),
-                                        m.region().endOffset(), m.severity(), m.message());
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    failed = true;
-                    final String message = logger.format("Extraction of tests failed for {}", testSuite);
-                    logger.error(message);
-                    for(IMessage m : extractionResult.getAllMessages()) {
-                        if(m.region() == null) {
-                            logger.error("  {} : {}", m.severity(), m.message());
-                        } else {
-                            logger.error("  @({}, {}) {} : {}", m.region().startOffset(), m.region().endOffset(),
-                                m.severity(), m.message());
-                        }
-                    }
-                    throw new MetaborgException(message);
-                }
-
-                if(failed) {
-                    throw new MetaborgException("Testing failed");
-                }
-            }
-        } catch(FileSystemException e) {
-            throw new MetaborgException("Running tests failed unexpectedly", e);
-        }
     }
 
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
