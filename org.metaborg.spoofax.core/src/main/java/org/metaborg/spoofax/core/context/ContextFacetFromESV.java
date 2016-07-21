@@ -24,6 +24,8 @@ public class ContextFacetFromESV {
                 return LegacyContextFactory.name;
             case "TaskEngine":
                 return IndexTaskContextFactory.name;
+            case "ScopeGraph":
+                return ScopeGraphContextFactory.name;
             default:
                 return null;
         }

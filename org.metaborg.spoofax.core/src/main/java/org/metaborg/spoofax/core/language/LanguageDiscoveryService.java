@@ -39,11 +39,14 @@ import org.metaborg.spoofax.core.action.ActionFacetFromESV;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.ConstraintMultiFileAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.ConstraintSingleFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
+import org.metaborg.spoofax.core.context.ScopeGraphContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
@@ -323,6 +326,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                         break;
                     case TaskEngineAnalyzer.name:
                         contextFactory = contextFactory(IndexTaskContextFactory.name);
+                        break;
+                    case ConstraintSingleFileAnalyzer.name:
+                    case ConstraintMultiFileAnalyzer.name:
+                        contextFactory = contextFactory(ScopeGraphContextFactory.name);
                         break;
                 }
                 analyzer = analyzers.get(analysisType);

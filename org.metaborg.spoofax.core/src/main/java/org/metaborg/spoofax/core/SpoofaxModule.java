@@ -40,6 +40,8 @@ import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.constraint.ConstraintMultiFileAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.ConstraintSingleFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
@@ -49,6 +51,7 @@ import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
+import org.metaborg.spoofax.core.context.ScopeGraphContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
@@ -217,6 +220,7 @@ public class SpoofaxModule extends MetaborgModule {
 
         binder.addBinding(IndexTaskContextFactory.name).to(IndexTaskContextFactory.class).in(Singleton.class);
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
+        binder.addBinding(ScopeGraphContextFactory.name).to(ScopeGraphContextFactory.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {
@@ -309,11 +313,17 @@ public class SpoofaxModule extends MetaborgModule {
         MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder) {
         bind(StrategoAnalyzer.class).in(Singleton.class);
         bind(TaskEngineAnalyzer.class).in(Singleton.class);
+        bind(ConstraintSingleFileAnalyzer.class).in(Singleton.class);
+        bind(ConstraintMultiFileAnalyzer.class).in(Singleton.class);
 
         analyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
         spoofaxAnalyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
         analyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
         spoofaxAnalyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
+        analyzerBinder.addBinding(ConstraintSingleFileAnalyzer.name).to(ConstraintSingleFileAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(ConstraintSingleFileAnalyzer.name).to(ConstraintSingleFileAnalyzer.class);
+        analyzerBinder.addBinding(ConstraintMultiFileAnalyzer.name).to(ConstraintMultiFileAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(ConstraintMultiFileAnalyzer.name).to(ConstraintMultiFileAnalyzer.class);
     }
 
     protected void bindAction() {
