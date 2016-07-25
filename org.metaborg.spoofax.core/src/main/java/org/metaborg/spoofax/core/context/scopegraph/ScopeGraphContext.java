@@ -1,9 +1,8 @@
-package org.metaborg.spoofax.core.context;
+package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.io.IOException;
 import java.util.Collection;
-
-import javax.annotation.Nullable;
+import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.ContextIdentifier;
@@ -15,9 +14,8 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
 public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, ITemporaryContextInternal {
@@ -26,8 +24,8 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, 
     private final ContextIdentifier identifier;
     private final Injector injector;
 
-    private final Collection<FileObject> sources = Lists.newArrayList();
-    private IStrategoTerm initial = null;
+    private IScopeGraphInitial initial = null;
+    private final Map<FileObject,IScopeGraphUnit> units = Maps.newHashMap();
     
     public ScopeGraphContext(Injector injector, ContextIdentifier identifier) {
         this.identifier = identifier;
@@ -73,8 +71,8 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, 
     @Override
     public void reset() throws IOException {
         logger.warn("ScopeGraphContext.reset");
-        this.sources.clear();
         this.initial = null;
+        this.units.clear();
     }
 
     @Override
@@ -103,20 +101,24 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, 
     }
 
     @Override
-    public @Nullable IStrategoTerm getInitial() {
+    public IScopeGraphInitial initial() {
         return initial;
     }
-    
-    public void setInitial(IStrategoTerm initial) {
+
+    public void setInitial(IScopeGraphInitial initial) {
         if(this.initial != null) {
             logger.warn("Should only initialize once.");
         }
         this.initial = initial;
     }
-    
-    @Override
-    public Collection<FileObject> sources() {
-        return sources;
-    }
 
+    @Override
+    public Collection<IScopeGraphUnit> units() {
+        return units.values();
+    }
+    
+    public void addUnit(IScopeGraphUnit unit) {
+        units.put(unit.source(), unit);
+    }
+    
 }

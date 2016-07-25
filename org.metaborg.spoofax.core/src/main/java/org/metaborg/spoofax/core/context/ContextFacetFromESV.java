@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.context;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 

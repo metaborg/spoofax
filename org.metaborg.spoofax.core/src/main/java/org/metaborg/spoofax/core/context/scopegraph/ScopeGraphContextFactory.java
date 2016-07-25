@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.context;
+package org.metaborg.spoofax.core.context.scopegraph;
 
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextFactory;
