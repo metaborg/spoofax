@@ -44,13 +44,13 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     private static final String CONJ = "CConj";
 
-    private static final String INIT_ACTION = "Init";
-    private static final String INDEX_AST_ACTION = "IndexAST";
-    private static final String PREPROCESS_AST_ACTION = "PreprocessAST";
-    private static final String GENERATE_CONSTRAINT_ACTION = "GenerateConstraint";
-    private static final String NORMALIZE_CONSTRAINT_ACTION = "NormalizeConstraint";
-    private static final String SOLVE_CONSTRAINT_ACTION = "SolveConstraint";
-    private static final String POSTPROCESS_AST_ACTION = "PostprocessAST";
+    private static final String INITIALIZE = "Initialize";
+    private static final String INDEX_AST = "IndexAST";
+    private static final String PREPROCESS_AST = "PreprocessAST";
+    private static final String GENERATE_CONSTRAINT = "GenerateConstraint";
+    private static final String NORMALIZE_CONSTRAINT = "NormalizeConstraint";
+    private static final String SOLVE_CONSTRAINT = "SolveConstraint";
+    private static final String POSTPROCESS_AST = "PostprocessAST";
 
     private final AnalysisCommon analysisCommon;
     private final IStrategoRuntimeService runtimeService;
@@ -119,7 +119,10 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     protected ScopeGraphInitial initialize(String strategy, ScopeGraphContext context,
             HybridInterpreter runtime, ITermFactory termFactory) throws AnalysisException {
-        IStrategoTerm paramsAndConstraint = doAction(INIT_ACTION, strategy, context, runtime, termFactory);
+        IStrategoTerm global = termFactory.makeAppl(termFactory.makeConstructor("Global", 0),
+                new IStrategoTerm[0],
+                termFactory.makeList(termFactory.makeInt(0)));
+        IStrategoTerm paramsAndConstraint = doAction(INITIALIZE, strategy, context, runtime, termFactory, global);
         return new ScopeGraphInitial(paramsAndConstraint.getSubterm(0),
                 paramsAndConstraint.getSubterm(1));
     }
@@ -127,37 +130,37 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     protected IStrategoTerm preprocessAST(IStrategoTerm ast, String strategy,
             ScopeGraphContext context, HybridInterpreter runtime,
             ITermFactory termFactory) throws AnalysisException {
-        return doAction(PREPROCESS_AST_ACTION, strategy, context, runtime, termFactory, ast);
+        return doAction(PREPROCESS_AST, strategy, context, runtime, termFactory, ast);
     }
 
     protected IStrategoTerm indexAST(IStrategoTerm ast, String strategy,
             ScopeGraphContext context, HybridInterpreter runtime,
             ITermFactory termFactory) throws AnalysisException {
-        return doAction(INDEX_AST_ACTION, strategy, context, runtime, termFactory, ast);
+        return doAction(INDEX_AST, strategy, context, runtime, termFactory, ast);
     }
 
     protected IStrategoTerm generateConstraint(IStrategoTerm ast, IStrategoTerm params,
             String strategy, ScopeGraphContext context, HybridInterpreter runtime,
             ITermFactory termFactory) throws AnalysisException {
-        return doAction(GENERATE_CONSTRAINT_ACTION, strategy, context, runtime, termFactory, ast,params);
+        return doAction(GENERATE_CONSTRAINT, strategy, context, runtime, termFactory, ast,params);
     }
  
     protected IStrategoTerm normalizeConstraint(IStrategoTerm constraint, String strategy,
             ScopeGraphContext context, HybridInterpreter runtime, ITermFactory termFactory)
                     throws AnalysisException {
-        return doAction(NORMALIZE_CONSTRAINT_ACTION, strategy, context, runtime, termFactory, constraint);
+        return doAction(NORMALIZE_CONSTRAINT, strategy, context, runtime, termFactory, constraint);
     }
  
     protected IStrategoTerm solveConstraint(IStrategoTerm constraint, String strategy,
             ScopeGraphContext context, HybridInterpreter runtime, ITermFactory termFactory)
                     throws AnalysisException {
-        return doAction(SOLVE_CONSTRAINT_ACTION, strategy, context, runtime, termFactory, constraint);
+        return doAction(SOLVE_CONSTRAINT, strategy, context, runtime, termFactory, constraint);
     }
  
     protected IStrategoTerm postpocessAST(IStrategoTerm ast, String strategy,
             ScopeGraphContext context, HybridInterpreter runtime,
             ITermFactory termFactory) throws AnalysisException {
-        return doAction(POSTPROCESS_AST_ACTION, strategy, context, runtime, termFactory, ast);
+        return doAction(POSTPROCESS_AST, strategy, context, runtime, termFactory, ast);
     }
 
     private IStrategoTerm doAction(String actionName, String strategy,
