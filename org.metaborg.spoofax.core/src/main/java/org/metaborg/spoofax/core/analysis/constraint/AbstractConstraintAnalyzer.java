@@ -48,6 +48,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     private static final String INDEX_AST_ACTION = "IndexAST";
     private static final String PREPROCESS_AST_ACTION = "PreprocessAST";
     private static final String GENERATE_CONSTRAINT_ACTION = "GenerateConstraint";
+    private static final String NORMALIZE_CONSTRAINT_ACTION = "NormalizeConstraint";
     private static final String SOLVE_CONSTRAINT_ACTION = "SolveConstraint";
     private static final String POSTPROCESS_AST_ACTION = "PostprocessAST";
 
@@ -139,6 +140,12 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             String strategy, ScopeGraphContext context, HybridInterpreter runtime,
             ITermFactory termFactory) throws AnalysisException {
         return doAction(GENERATE_CONSTRAINT_ACTION, strategy, context, runtime, termFactory, ast,params);
+    }
+ 
+    protected IStrategoTerm normalizeConstraint(IStrategoTerm constraint, String strategy,
+            ScopeGraphContext context, HybridInterpreter runtime, ITermFactory termFactory)
+                    throws AnalysisException {
+        return doAction(NORMALIZE_CONSTRAINT_ACTION, strategy, context, runtime, termFactory, constraint);
     }
  
     protected IStrategoTerm solveConstraint(IStrategoTerm constraint, String strategy,

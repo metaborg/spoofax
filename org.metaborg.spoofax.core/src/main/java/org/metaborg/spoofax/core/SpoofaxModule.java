@@ -79,6 +79,7 @@ import org.metaborg.spoofax.core.stratego.primitives.ComponentsPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.DigestPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ForeignCallPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.GetAnalysisPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludeFilesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludeLocationsPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageSourceFilesPrimitive;
@@ -292,6 +293,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, ComponentsPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalPathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalReplicatePrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, GetAnalysisPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, DigestPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));

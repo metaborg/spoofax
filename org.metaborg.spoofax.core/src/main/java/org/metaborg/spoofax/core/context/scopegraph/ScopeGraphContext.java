@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
@@ -14,6 +13,7 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
@@ -26,6 +26,7 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, 
 
     private IScopeGraphInitial initial = null;
     private final Map<FileObject,IScopeGraphUnit> units = Maps.newHashMap();
+    private IStrategoTerm analysis = null;
     
     public ScopeGraphContext(Injector injector, ContextIdentifier identifier) {
         this.identifier = identifier;
@@ -113,12 +114,21 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, 
     }
 
     @Override
-    public Collection<IScopeGraphUnit> units() {
-        return units.values();
+    public Map<FileObject,IScopeGraphUnit> units() {
+        return units;
     }
     
     public void addUnit(IScopeGraphUnit unit) {
         units.put(unit.source(), unit);
     }
+ 
+    public void setAnalysis(IStrategoTerm analysis) {
+        this.analysis = analysis;
+    }
     
+    @Override
+    public IStrategoTerm analysis() {
+        return analysis;
+    }
+
 }

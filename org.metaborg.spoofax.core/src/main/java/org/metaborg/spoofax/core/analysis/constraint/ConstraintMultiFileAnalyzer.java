@@ -82,20 +82,22 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
 
         final Collection<IStrategoTerm> constraints =
                 Lists.newArrayList(initial.constraint());
-        for(IScopeGraphUnit unit : context.units()) {
+        for(IScopeGraphUnit unit : context.units().values()) {
             constraints.add(unit.constraint());
         }
-        IStrategoTerm constraint = conj(constraints, termFactory);
-        IStrategoTerm messageTuple = solveConstraint(constraint, strategy, context, runtime, termFactory);
-        Multimap<FileObject,IMessage> errorsByFile = messages(messageTuple.getSubterm(0), MessageSeverity.ERROR);
-        Multimap<FileObject,IMessage> warningsByFile = messages(messageTuple.getSubterm(1), MessageSeverity.WARNING);
-        Multimap<FileObject,IMessage> notesByFile = messages(messageTuple.getSubterm(2), MessageSeverity.NOTE);
+        IStrategoTerm constraint = normalizeConstraint(conj(constraints, termFactory),
+                strategy, context, runtime, termFactory);
+        IStrategoTerm result = solveConstraint(constraint, strategy, context, runtime, termFactory);
+        Multimap<FileObject,IMessage> errorsByFile = messages(result.getSubterm(0), MessageSeverity.ERROR);
+        Multimap<FileObject,IMessage> warningsByFile = messages(result.getSubterm(1), MessageSeverity.WARNING);
+        Multimap<FileObject,IMessage> notesByFile = messages(result.getSubterm(2), MessageSeverity.NOTE);
+        context.setAnalysis(result.getSubterm(3));
 
         final Collection<ISpoofaxAnalyzeUnit> results =
             Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults =
             Lists.newArrayList();
-        for(IScopeGraphUnit unit : context.units()) {
+        for(IScopeGraphUnit unit : context.units().values()) {
             final FileObject source = unit.source();
             final Collection<IMessage> errors = errorsByFile.get(source);
             final Collection<IMessage> warnings = warningsByFile.get(source);

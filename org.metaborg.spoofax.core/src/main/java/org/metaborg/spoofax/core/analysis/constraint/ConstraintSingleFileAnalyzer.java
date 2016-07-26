@@ -12,6 +12,7 @@ import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContext;
 import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphInitial;
+import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -65,13 +66,13 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             final IStrategoTerm constraint =
                     conj(Lists.newArrayList(initial.constraint(), fileConstraint), termFactory);
 
-            final IStrategoTerm messageTuple = solveConstraint(constraint, strategy, context, runtime, termFactory);
+            final IStrategoTerm result = solveConstraint(constraint, strategy, context, runtime, termFactory);
             final Collection<IMessage> errors =
-                    analysisCommon.messages(input.source(), MessageSeverity.ERROR, messageTuple.getSubterm(0));
+                    analysisCommon.messages(input.source(), MessageSeverity.ERROR, result.getSubterm(0));
             final Collection<IMessage> warnings =
-                    analysisCommon.messages(input.source(), MessageSeverity.WARNING, messageTuple.getSubterm(1));
+                    analysisCommon.messages(input.source(), MessageSeverity.WARNING, result.getSubterm(1));
             final Collection<IMessage> notes =
-                    analysisCommon.messages(input.source(), MessageSeverity.NOTE, messageTuple.getSubterm(2));
+                    analysisCommon.messages(input.source(), MessageSeverity.NOTE, result.getSubterm(2));
             final Collection<IMessage> ambiguities = analysisCommon.ambiguityMessages(input.source(), input.ast());
             final Collection<IMessage> messages =
                 Lists.newArrayListWithCapacity(errors.size() + warnings.size() + notes.size() + ambiguities.size());
@@ -80,6 +81,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             messages.addAll(notes);
             messages.addAll(ambiguities);
 
+            context.addUnit(new ScopeGraphUnit(input.source(), fileConstraint, result.getSubterm(3)));
             results.add(unitService.analyzeUnit(input,
                     new AnalyzeContrib(true, true, true, input.ast(),
                             false, null, messages, -1), context));
