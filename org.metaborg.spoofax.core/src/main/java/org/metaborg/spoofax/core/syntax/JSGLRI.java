@@ -57,7 +57,7 @@ public class JSGLRI {
 
         // NOTE: FileObject.getName().getPath() will not include the drive letter on Windows.
         // To fix this, use FileObject.getURL().getPath() instead.
-        final String fileName = resource != null ? resource.getURL().getPath() : null;
+        final String fileName = resource != null ? resource.getName().getURI() : null;
 
         final JSGLRParseErrorHandler errorHandler =
             new JSGLRParseErrorHandler(this, resource, config.getParseTableProvider().parseTable().hasRecovers());
