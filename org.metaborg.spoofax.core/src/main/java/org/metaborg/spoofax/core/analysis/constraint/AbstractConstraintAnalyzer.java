@@ -2,11 +2,16 @@ package org.metaborg.spoofax.core.analysis.constraint;
 
 import java.util.Collection;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageFactory;
+import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -14,12 +19,12 @@ import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContext;
 import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphInitial;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
@@ -29,11 +34,13 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
 public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
-    private static final ILogger logger = LoggerUtils.logger(TaskEngineAnalyzer.class);
+    private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     private static final String CONJ = "CConj";
 
@@ -46,19 +53,22 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     private final AnalysisCommon analysisCommon;
     private final IStrategoRuntimeService runtimeService;
-    private final ITermFactoryService termFactoryService;
     private final IStrategoCommon strategoCommon;
+    private final ITermFactoryService termFactoryService;
+    private final ISpoofaxTracingService tracingService;
 
     public AbstractConstraintAnalyzer(
             final AnalysisCommon analysisCommon,
             final IStrategoRuntimeService runtimeService,
             final IStrategoCommon strategoCommon,
-            final ITermFactoryService termFactoryService
+            final ITermFactoryService termFactoryService,
+            final ISpoofaxTracingService tracingService
     ) {
         this.analysisCommon = analysisCommon;
         this.runtimeService = runtimeService;
         this.strategoCommon = strategoCommon;
         this.termFactoryService = termFactoryService;
+        this.tracingService = tracingService;
     }
 
     @Override
@@ -170,5 +180,24 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         IStrategoConstructor conj = termFactory.makeConstructor(CONJ, 1);
         return termFactory.makeAppl(conj, termFactory.makeList(constraints));
     }
-    
+ 
+    protected Multimap<FileObject,IMessage> messages(IStrategoTerm messageList, MessageSeverity severity) {
+        Multimap<FileObject,IMessage> messages = HashMultimap.create();
+        for(IStrategoTerm messageTerm : messageList) {
+            if(messageTerm.getSubtermCount() != 2) {
+                logger.error("Analysis message has wrong format, skipping: {}", messageTerm);
+                continue;
+            }
+            final IStrategoTerm originTerm = messageTerm.getSubterm(0);
+            final String message = messageTerm.getSubterm(1).toString();
+            final ISourceLocation location = tracingService.location(originTerm);
+            if(location == null) {
+                logger.error("Analysis message has no origin, skipping: {}", messageTerm);
+                continue;
+            }
+            messages.put(location.resource(), MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null));
+        }
+        return messages;
+    }
+ 
 }
