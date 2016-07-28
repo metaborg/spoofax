@@ -13,7 +13,6 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
@@ -24,10 +23,8 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, 
     private final ContextIdentifier identifier;
     private final Injector injector;
 
-    private IScopeGraphInitial initial = null;
-    private final Map<FileObject,IScopeGraphUnit> units = Maps.newHashMap();
-    private IStrategoTerm analysis = null;
-    
+    private final Map<String,IScopeGraphUnit> units = Maps.newHashMap();
+ 
     public ScopeGraphContext(Injector injector, ContextIdentifier identifier) {
         this.identifier = identifier;
         this.injector = injector;
@@ -71,9 +68,7 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, 
 
     @Override
     public void reset() throws IOException {
-        logger.warn("ScopeGraphContext.reset");
-        this.initial = null;
-        this.units.clear();
+        units.clear();
     }
 
     @Override
@@ -101,34 +96,25 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal, 
         logger.warn("ScopeGraphContext.unload");
     }
 
-    @Override
-    public IScopeGraphInitial initial() {
-        return initial;
-    }
-
-    public void setInitial(IScopeGraphInitial initial) {
-        if(this.initial != null) {
-            logger.warn("Should only initialize once.");
-        }
-        this.initial = initial;
-    }
 
     @Override
-    public Map<FileObject,IScopeGraphUnit> units() {
-        return units;
-    }
-    
     public void addUnit(IScopeGraphUnit unit) {
         units.put(unit.source(), unit);
     }
  
-    public void setAnalysis(IStrategoTerm analysis) {
-        this.analysis = analysis;
-    }
-    
     @Override
-    public IStrategoTerm analysis() {
-        return analysis;
+    public IScopeGraphUnit unit(String source) {
+        return units.get(source);
+    }
+
+    @Override   
+    public Iterable<IScopeGraphUnit> units() {
+        return units.values();
+    }
+
+    @Override
+    public void removeUnit(String source) {
+        units.remove(source);
     }
 
 }

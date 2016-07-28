@@ -1,7 +1,8 @@
-package org.metaborg.spoofax.core.context.scopegraph;
+package org.metaborg.spoofax.core.context;
 
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextFactory;
+import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContext;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;

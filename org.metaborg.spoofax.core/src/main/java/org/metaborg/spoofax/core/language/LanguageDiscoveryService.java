@@ -46,7 +46,7 @@ import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContextFactory;
+import org.metaborg.spoofax.core.context.ScopeGraphContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;

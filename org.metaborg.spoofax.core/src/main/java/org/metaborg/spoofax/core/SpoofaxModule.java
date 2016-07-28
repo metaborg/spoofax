@@ -51,7 +51,7 @@ import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContextFactory;
+import org.metaborg.spoofax.core.context.ScopeGraphContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
@@ -79,7 +79,6 @@ import org.metaborg.spoofax.core.stratego.primitives.ComponentsPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.DigestPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ForeignCallPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.GetAnalysisPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludeFilesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludeLocationsPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageSourceFilesPrimitive;
@@ -93,6 +92,10 @@ import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ProjectPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxJSGLRLibrary;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
+import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_analysis;
+import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_ast_metadata;
+import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_set_ast_metadata;
+import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.style.CategorizerService;
@@ -279,6 +282,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitiveLibrary(libraryBinder, LegacyIndexLibrary.class);
         bindPrimitiveLibrary(libraryBinder, SpoofaxPrimitiveLibrary.class);
         bindPrimitiveLibrary(libraryBinder, SpoofaxJSGLRLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, ScopeGraphLibrary.class);
 
         final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxPrimitiveLibrary"));
@@ -293,7 +297,6 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, ComponentsPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalPathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalReplicatePrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, GetAnalysisPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, DigestPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));
@@ -308,6 +311,12 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxJSGLRLibrary, ParseFilePtPrimitive.class);
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
+
+        final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
+            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("ScopeGraphLibrary"));
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_analysis.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_metadata.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_metadata.class);
     }
 
     private void bindAnalyzers(
