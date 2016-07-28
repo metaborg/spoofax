@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.generator.language;
+package org.metaborg.spoofax.meta.core.generator.general;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +19,7 @@ import org.metaborg.util.prompt.Prompter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
-public class LanguageSpecGeneratorSettingsBuilder {
+public class LangSpecGeneratorSettingsBuilder {
     public static final String standardGroupId = "org.example";
     public static final String standardVersionString = "0.1.0-SNAPSHOT";
     public static final AnalysisType standardAnalysisType = AnalysisType.NaBL_TS;
@@ -42,52 +42,52 @@ public class LanguageSpecGeneratorSettingsBuilder {
     private @Nullable String defaultMetaborgVersion = standardMetaborgVersion;
 
 
-    public LanguageSpecGeneratorSettingsBuilder withGroupId(@Nullable String groupId) {
+    public LangSpecGeneratorSettingsBuilder withGroupId(@Nullable String groupId) {
         this.groupId = groupId;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withId(@Nullable String id) {
+    public LangSpecGeneratorSettingsBuilder withId(@Nullable String id) {
         this.id = id;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withVersion(@Nullable LanguageVersion version) {
+    public LangSpecGeneratorSettingsBuilder withVersion(@Nullable LanguageVersion version) {
         this.version = version;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withName(@Nullable String name) {
+    public LangSpecGeneratorSettingsBuilder withName(@Nullable String name) {
         this.name = name;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withExtensions(@Nullable Collection<String> extensions) {
+    public LangSpecGeneratorSettingsBuilder withExtensions(@Nullable Collection<String> extensions) {
         this.extensions = extensions;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withoutExtensions() {
+    public LangSpecGeneratorSettingsBuilder withoutExtensions() {
         withExtensions(Lists.<String>newArrayList());
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withSyntaxType(@Nullable SyntaxType syntaxType) {
+    public LangSpecGeneratorSettingsBuilder withSyntaxType(@Nullable SyntaxType syntaxType) {
         this.syntaxType = syntaxType;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withAnalysisType(@Nullable AnalysisType analysisType) {
+    public LangSpecGeneratorSettingsBuilder withAnalysisType(@Nullable AnalysisType analysisType) {
         this.analysisType = analysisType;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withMetaborgVersion(@Nullable String metaborgVersion) {
+    public LangSpecGeneratorSettingsBuilder withMetaborgVersion(@Nullable String metaborgVersion) {
         this.metaborgVersion = metaborgVersion;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withConfig(ISpoofaxLanguageSpecConfig config) {
+    public LangSpecGeneratorSettingsBuilder withConfig(ISpoofaxLanguageSpecConfig config) {
         withGroupId(config.identifier().groupId);
         withId(config.identifier().id);
         withVersion(config.identifier().version);
@@ -97,34 +97,34 @@ public class LanguageSpecGeneratorSettingsBuilder {
     }
 
 
-    public LanguageSpecGeneratorSettingsBuilder withDefaultGroupId(@Nullable String defaultGroupId) {
+    public LangSpecGeneratorSettingsBuilder withDefaultGroupId(@Nullable String defaultGroupId) {
         this.defaultGroupId = defaultGroupId;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withDefaultVersion(@Nullable String defaultVersionString) {
+    public LangSpecGeneratorSettingsBuilder withDefaultVersion(@Nullable String defaultVersionString) {
         this.defaultVersion = (defaultVersionString != null && LanguageVersion.valid(defaultVersionString))
             ? LanguageVersion.parse(defaultVersionString) : null;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withDefaultAnalysisType(@Nullable AnalysisType defaultAnalysisType) {
+    public LangSpecGeneratorSettingsBuilder withDefaultAnalysisType(@Nullable AnalysisType defaultAnalysisType) {
         this.defaultAnalysisType = defaultAnalysisType;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withDefaultSyntaxType(@Nullable SyntaxType defaultSyntaxType) {
+    public LangSpecGeneratorSettingsBuilder withDefaultSyntaxType(@Nullable SyntaxType defaultSyntaxType) {
         this.defaultSyntaxType = defaultSyntaxType;
         return this;
     }
 
-    public LanguageSpecGeneratorSettingsBuilder withDefaultMetaborgVersion(@Nullable String defaultMetaborgVersion) {
+    public LangSpecGeneratorSettingsBuilder withDefaultMetaborgVersion(@Nullable String defaultMetaborgVersion) {
         this.defaultMetaborgVersion = defaultMetaborgVersion;
         return this;
     }
 
 
-    public LanguageSpecGeneratorSettingsBuilder configureFromPrompt(Prompter prompter) {
+    public LangSpecGeneratorSettingsBuilder configureFromPrompt(Prompter prompter) {
         while(groupId == null || groupId.isEmpty()) {
             groupId = prompter.readString("Group ID [" + defaultGroupId + "]").trim();
             if(groupId.isEmpty()) {
@@ -240,7 +240,7 @@ public class LanguageSpecGeneratorSettingsBuilder {
     }
 
 
-    public LanguageSpecGeneratorSettings build(FileObject projectLocation,
+    public LangSpecGeneratorSettings build(FileObject projectLocation,
         final ISpoofaxLanguageSpecConfigBuilder languageSpecConfigBuilder) throws ProjectException {
         if(!canBuild()) {
             throw new ProjectException(
@@ -270,7 +270,7 @@ public class LanguageSpecGeneratorSettingsBuilder {
         final GeneratorSettings generatorSettings = new GeneratorSettings(projectLocation, config);
         generatorSettings.setMetaborgVersion(metaborgVersion);
 
-        return new LanguageSpecGeneratorSettings(generatorSettings, extensions, syntaxType, analysisType);
+        return new LangSpecGeneratorSettings(generatorSettings, extensions, syntaxType, analysisType);
     }
 
     public boolean canBuild() {

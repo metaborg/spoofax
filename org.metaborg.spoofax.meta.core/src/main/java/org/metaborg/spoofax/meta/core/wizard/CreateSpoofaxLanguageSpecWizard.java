@@ -1,9 +1,9 @@
 package org.metaborg.spoofax.meta.core.wizard;
 
 import org.metaborg.meta.core.wizard.CreateLanguageSpecWizard;
-import org.metaborg.spoofax.meta.core.generator.language.AnalysisType;
-import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGeneratorSettingsBuilder;
-import org.metaborg.spoofax.meta.core.generator.language.SyntaxType;
+import org.metaborg.spoofax.meta.core.generator.general.AnalysisType;
+import org.metaborg.spoofax.meta.core.generator.general.LangSpecGeneratorSettingsBuilder;
+import org.metaborg.spoofax.meta.core.generator.general.SyntaxType;
 
 /**
  * Spoofax specialization of the 'create language specification' wizard helper.
@@ -16,6 +16,16 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
     public AnalysisType analysisType() {
         return AnalysisType.mapping().get(inputAnalysisTypeString());
     }
+
+    public abstract boolean generateExampleProject();
+
+    public abstract boolean generateTestProject();
+
+    public abstract boolean generateEclipsePluginProject();
+
+    public abstract boolean generateEclipseFeatureProject();
+
+    public abstract boolean generateEclipseUpdatesiteProject();
 
 
     protected abstract boolean inputSyntaxTypeModified();
@@ -32,14 +42,31 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
     protected abstract void setAnalysisType(String analysisTypeString);
 
 
+    protected abstract void setGenerateExampleProject(boolean generate);
+
+    protected abstract void setGenerateTestProject(boolean generate);
+
+    protected abstract void setGenerateEclipsePluginProject(boolean generate);
+
+    protected abstract void setGenerateEclipseFeatureProject(boolean generate);
+
+    protected abstract void setGenerateEclipseUpdatesiteProject(boolean generate);
+
+
     @Override public void setDefaults() {
         super.setDefaults();
 
         if(!inputSyntaxTypeModified()) {
-            setSyntaxType(LanguageSpecGeneratorSettingsBuilder.standardSyntaxType.name);
+            setSyntaxType(LangSpecGeneratorSettingsBuilder.standardSyntaxType.name);
         }
         if(!inputAnalysisTypeModified()) {
-            setAnalysisType(LanguageSpecGeneratorSettingsBuilder.standardAnalysisType.name);
+            setAnalysisType(LangSpecGeneratorSettingsBuilder.standardAnalysisType.name);
         }
+
+        setGenerateExampleProject(false);
+        setGenerateTestProject(false);
+        setGenerateEclipsePluginProject(false);
+        setGenerateEclipseFeatureProject(false);
+        setGenerateEclipseUpdatesiteProject(false);
     }
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+  id="{{id}}.eclipse.feature"
+  label="{{name}} language Eclipse plugin"
+  version="{{eclipseVersion}}"
+>
+  <includes
+    id="org.metaborg.spoofax.eclipse.feature"
+    version="0.0.0"
+    search-location="both"
+  />
+  <plugin
+    id="{{id}}.eclipse"
+    version="{{eclipseVersion}}"
+    unpack="true"     
+  />
+</feature>

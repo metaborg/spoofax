@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.generator.language;
+package org.metaborg.spoofax.meta.core.generator.general;
 
 import java.io.IOException;
 
@@ -25,10 +25,10 @@ public class ContinuousLanguageSpecGenerator extends BaseGenerator {
 
 
     public void generateMetaborgLibrary() throws IOException {
-        writer.write("src-gen/stratego/metaborg.str", true);
+        writer.write("langspec/src-gen/stratego/metaborg.str", "src-gen/stratego/metaborg.str", true);
     }
 
     public void generateEditorServices() throws IOException {
-        writer.write("src-gen/editor/Colorer.generated.esv", true);
+        writer.write("langspec/src-gen/editor/Colorer.generated.esv", "src-gen/editor/Colorer.generated.esv", true);
     }
 }

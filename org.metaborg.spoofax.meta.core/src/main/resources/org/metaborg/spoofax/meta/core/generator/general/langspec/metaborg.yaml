@@ -1,7 +1,6 @@
 ---
 id: {{fullIdentifier}}
 name: {{name}}
-metaborgVersion: {{metaborgVersion}}
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}

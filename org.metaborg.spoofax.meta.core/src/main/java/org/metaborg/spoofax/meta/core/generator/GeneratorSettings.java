@@ -23,7 +23,6 @@ public class GeneratorSettings {
 
 
     public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
-
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());
         }

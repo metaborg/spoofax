@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.generator.language;
+package org.metaborg.spoofax.meta.core.generator.general;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -13,17 +13,17 @@ import com.google.common.collect.Iterables;
  * Generates language project files that are only generated once when a new language project is created. Files are not
  * specific to an IDE.
  */
-public class LanguageSpecGenerator extends BaseGenerator {
-    private final LanguageSpecGeneratorSettings config;
+public class LangSpecGenerator extends BaseGenerator {
+    private final LangSpecGeneratorSettings config;
 
 
-    public LanguageSpecGenerator(LanguageSpecGeneratorSettings config) throws ProjectException {
+    public LangSpecGenerator(LangSpecGeneratorSettings config) throws ProjectException {
         super(config.generatorSettings);
 
         this.config = config;
     }
 
-    
+
     public String fileExtensions() {
         final Collection<String> extensions = config.extensions;
         if(extensions == null || extensions.isEmpty()) {
@@ -108,19 +108,19 @@ public class LanguageSpecGenerator extends BaseGenerator {
     }
 
     public void generateConfig() throws IOException {
-        writer.write("metaborg.yaml", false);
+        writer.write("langspec/metaborg.yaml", "metaborg.yaml", false);
     }
 
     public void generateGrammar() throws IOException {
         if(syntaxEnabled()) {
             switch(config.syntaxType) {
                 case SDF2:
-                    writer.write("syntax/Common.sdf", false);
-                    writer.write("syntax/{{name}}.sdf", false);
+                    writer.write("langspec/syntax/Common.sdf", "syntax/Common.sdf", false);
+                    writer.write("langspec/syntax/{{name}}.sdf", "syntax/{{name}}.sdf", false);
                     break;
                 case SDF3:
-                    writer.write("syntax/Common.sdf3", false);
-                    writer.write("syntax/{{name}}.sdf3", false);
+                    writer.write("langspec/syntax/Common.sdf3", "syntax/Common.sdf3", false);
+                    writer.write("langspec/syntax/{{name}}.sdf3", "syntax/{{name}}.sdf3", false);
                     break;
                 case None:
                 default:
@@ -130,40 +130,40 @@ public class LanguageSpecGenerator extends BaseGenerator {
     }
 
     public void generateTrans() throws IOException {
-        writer.write("trans/{{strategoName}}.str", false);
+        writer.write("langspec/trans/{{strategoName}}.str", "trans/{{strategoName}}.str", false);
         if(analysisEnabled()) {
-            writer.writeResolve("trans/analysis.{{analysisType}}.str", "trans/analysis.str", false);
+            writer.writeResolve("langspec/trans/analysis.{{analysisType}}.str", "trans/analysis.str", false);
             if(analysisNabl2()) {
-                writer.write("trans/static-semantics.nabl2", false);
+                writer.write("langspec/trans/static-semantics.nabl2", "trans/static-semantics.nabl2", false);
             }
         }
         if(syntaxEnabled()) {
-            writer.write("trans/outline.str", false);
-            writer.writeResolve("trans/pp.{{syntaxType}}.str", "trans/pp.str", false);
+            writer.write("langspec/trans/outline.str", "trans/outline.str", false);
+            writer.writeResolve("langspec/trans/pp.{{syntaxType}}.str", "trans/pp.str", false);
             if(syntaxSdf3()) {
-                writer.write("trans/completion.str", false);
+                writer.write("langspec/trans/completion.str", "trans/completion.str", false);
             }
         }
     }
 
     public void generateJavaStrategy() throws IOException {
         String path = "src/main/strategies/{{strategiesPackagePath}}/";
-        writer.write(path + "InteropRegisterer.java", false);
-        writer.write(path + "Main.java", false);
+        writer.write("langspec/" + path + "InteropRegisterer.java", path + "InteropRegisterer.java", false);
+        writer.write("langspec/" + path + "Main.java", path + "Main.java", false);
     }
 
     public void generateEditorServices() throws IOException {
         if(syntaxEnabled()) {
-            writer.writeResolve("editor/Syntax.{{syntaxType}}.esv", "editor/Syntax.esv", false);
+            writer.writeResolve("langspec/editor/Syntax.{{syntaxType}}.esv", "editor/Syntax.esv", false);
         }
         if(analysisEnabled()) {
-            writer.writeResolve("editor/Analysis.{{analysisType}}.esv", "editor/Analysis.esv", false);
+            writer.writeResolve("langspec/editor/Analysis.{{analysisType}}.esv", "editor/Analysis.esv", false);
         }
-        writer.write("editor/Main.esv", false);
+        writer.write("langspec/editor/Main.esv", "editor/Main.esv", false);
     }
 
     public void generateIgnoreFile() throws IOException {
-        writer.write("vcsignore", ".gitignore", false);
+        writer.write("langspec/vcsignore", ".gitignore", false);
     }
 
 
@@ -173,13 +173,13 @@ public class LanguageSpecGenerator extends BaseGenerator {
     }
 
     public void generatePOM() throws IOException {
-        writer.write("pom.xml", false);
+        writer.write("langspec/pom.xml", "pom.xml", false);
     }
 
     public void generateDotMvn() throws IOException {
-        writer.write(".mvn/extensions.xml", false);
-        writer.write(".mvn/jvm.config", false);
-        writer.write(".mvn/maven.config", false);
-        writer.write(".mvn/settings.xml", false);
+        writer.write("langspec/.mvn/extensions.xml", ".mvn/extensions.xml", false);
+        writer.write("langspec/.mvn/jvm.config", ".mvn/jvm.config", false);
+        writer.write("langspec/.mvn/maven.config", ".mvn/maven.config", false);
+        writer.write("langspec/.mvn/settings.xml", ".mvn/settings.xml", false);
     }
 }
