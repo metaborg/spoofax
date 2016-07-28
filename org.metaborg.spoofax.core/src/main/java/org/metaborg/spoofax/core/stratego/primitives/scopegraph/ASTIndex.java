@@ -7,6 +7,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 public class ASTIndex {
+    private static final String CTOR_NAME = "I";
 
     public final String source;
     public final IStrategoTerm index;
@@ -18,13 +19,13 @@ public class ASTIndex {
 
     public IStrategoTerm toTerm(ITermFactory termFactory) {
         IStrategoConstructor ctor =
-                termFactory.makeConstructor(ASTIndex.class.getSimpleName(), 2);
+                termFactory.makeConstructor(CTOR_NAME, 2);
         return termFactory.makeAppl(ctor, termFactory.makeString(source), index);
     }
  
     public static boolean isASTIndex(IStrategoTerm term) {
         return term.getTermType() == IStrategoTerm.APPL &&
-                Tools.hasConstructor((IStrategoAppl)term, ASTIndex.class.getSimpleName(), 2);
+                Tools.hasConstructor((IStrategoAppl)term, CTOR_NAME, 2);
     }
     
     public static ASTIndex fromTerm(IStrategoTerm term) {
