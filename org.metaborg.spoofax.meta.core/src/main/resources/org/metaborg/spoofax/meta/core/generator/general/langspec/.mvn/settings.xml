@@ -32,6 +32,7 @@
         </pluginRepository>
       </pluginRepositories>
     </profile>
+
     <profile>
       <id>add-metaborg-snapshot-repos</id>
       <repositories>
@@ -60,6 +61,7 @@
       </pluginRepositories>
     </profile>
   </profiles>
+
   <activeProfiles>
     <activeProfile>add-metaborg-release-repos</activeProfile>
     <activeProfile>add-metaborg-snapshot-repos</activeProfile>
