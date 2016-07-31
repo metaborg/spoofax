@@ -94,6 +94,7 @@ import org.metaborg.spoofax.core.stratego.primitives.SpoofaxJSGLRLibrary;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_analysis;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_ast_metadata;
+import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_ast_references;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_set_ast_metadata;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
@@ -147,7 +148,6 @@ public class SpoofaxModule extends MetaborgModule {
     private MapBinder<String, ISpoofaxParser> spoofaxParserBinder;
     private MapBinder<String, IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>> analyzerBinder;
     private MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder;
-    private Multibinder<ClassLoader> strategoRuntimeClassloaderBinder;
 
 
     public SpoofaxModule() {
@@ -168,8 +168,7 @@ public class SpoofaxModule extends MetaborgModule {
             new TypeLiteral<IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {});
         spoofaxAnalyzerBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxAnalyzer.class);
 
-        // Permit duplicate entries, on non-OSGI systems there will probably only be a single class loader.
-        strategoRuntimeClassloaderBinder = Multibinder.newSetBinder(binder(), ClassLoader.class).permitDuplicates();
+        Multibinder.newSetBinder(binder(), ClassLoader.class).permitDuplicates();
 
         bindUnit();
         bindSyntax();
@@ -317,6 +316,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_metadata.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_metadata.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_references.class);
     }
 
     private void bindAnalyzers(

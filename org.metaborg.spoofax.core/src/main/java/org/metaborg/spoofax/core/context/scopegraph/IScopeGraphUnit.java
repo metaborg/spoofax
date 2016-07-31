@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
+import java.util.Collection;
+
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -28,6 +30,13 @@ public interface IScopeGraphUnit {
     @Nullable IStrategoTerm metadata(IStrategoTerm node, IStrategoTerm key);
  
 
+    /** Set name resolution result of this unit */
+    void addNameResolution(IStrategoTerm index, IStrategoTerm originTerm);
+
+    /** Get name resolution result of this unit */  
+    Collection<IStrategoTerm> nameResolution(IStrategoTerm index);
+
+
     /** Set analysis result of this unit */  
     void setAnalysis(IStrategoTerm analysis);
 
@@ -37,5 +46,5 @@ public interface IScopeGraphUnit {
 
     /** Reset this unit */
     void reset();
- 
+
 }

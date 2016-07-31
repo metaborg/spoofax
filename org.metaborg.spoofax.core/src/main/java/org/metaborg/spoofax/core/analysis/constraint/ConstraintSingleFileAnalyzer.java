@@ -86,7 +86,11 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             final IStrategoTerm constraint = conj(Lists.newArrayList(globalConstraint, fileConstraint));
 
             final IStrategoTerm result = solveConstraint(constraint, strategy, context, runtime);
-            unit.setAnalysis(result.getSubterm(3));
+            for(IStrategoTerm entry : result.getSubterm(3)) {
+                ASTIndex index = ASTIndex.fromTerm(entry.getSubterm(0));
+                unit.addNameResolution(index.index, entry.getSubterm(1));
+            }
+            unit.setAnalysis(result.getSubterm(4));
 
             final Collection<IMessage> errors =
                     analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR, result.getSubterm(0));

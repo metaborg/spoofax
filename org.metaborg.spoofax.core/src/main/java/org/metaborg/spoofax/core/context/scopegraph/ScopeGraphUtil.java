@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ASTIndex;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 

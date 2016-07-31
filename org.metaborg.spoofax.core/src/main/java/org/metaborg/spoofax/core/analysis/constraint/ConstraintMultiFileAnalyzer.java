@@ -26,6 +26,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -36,6 +38,8 @@ import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
 public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
+    public static final ILogger logger = LoggerUtils.logger(ConstraintMultiFileAnalyzer.class);
+
     public static final String name = "constraint-multifile";
 
     private final ISpoofaxUnitService unitService;
@@ -107,7 +111,16 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
         }
         IStrategoTerm constraint = normalizeConstraint(conj(constraints), strategy, context, runtime);
         IStrategoTerm result = solveConstraint(constraint, strategy, context, runtime);
-        global.setAnalysis(result.getSubterm(3));
+        for(IStrategoTerm entry : result.getSubterm(3)) {
+            ASTIndex index = ASTIndex.fromTerm(entry.getSubterm(0));
+            IScopeGraphUnit unit = context.unit(index.source);
+            if(unit == null) {
+                logger.warn("Resolution refers to non-analyzed file {}", index.source);
+            } else {
+                unit.addNameResolution(index.index, entry.getSubterm(1));
+            }
+        }
+        global.setAnalysis(result.getSubterm(4));
 
         Multimap<String,IMessage> errorsByFile = messages(result.getSubterm(0), MessageSeverity.ERROR);
         Multimap<String,IMessage> warningsByFile = messages(result.getSubterm(1), MessageSeverity.WARNING);
