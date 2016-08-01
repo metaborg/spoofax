@@ -108,7 +108,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             messages.addAll(ambiguities);
 
             results.add(unitService.analyzeUnit(parseUnit,
-                    new AnalyzeContrib(true, true, true, parseUnit.ast(), messages, -1), context));
+                    new AnalyzeContrib(true, errors.isEmpty(), true,
+                            indexed, messages, -1), context));
         }
         return new SpoofaxAnalyzeResults(results,
                 Collections.<ISpoofaxAnalyzeUnitUpdate>emptyList(), context);
