@@ -57,6 +57,8 @@ import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.processing.parse.ParseResultProcessor;
 import org.metaborg.core.project.DummyProjectService;
 import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.project.ISimpleProjectService;
+import org.metaborg.core.project.SimpleProjectService;
 import org.metaborg.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.resource.ResourceService;
@@ -139,7 +141,9 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindProject() {
-        bind(IProjectService.class).to(DummyProjectService.class).in(Singleton.class);
+        bind(SimpleProjectService.class).in(Singleton.class);
+        bind(ISimpleProjectService.class).to(SimpleProjectService.class);
+        bind(IProjectService.class).to(SimpleProjectService.class);
     }
 
     protected void bindContext() {
