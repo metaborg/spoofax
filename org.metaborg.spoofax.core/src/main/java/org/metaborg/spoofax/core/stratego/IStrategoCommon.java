@@ -29,8 +29,8 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
-                         String strategy) throws MetaborgException;
+    IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input, String strategy)
+        throws MetaborgException;
 
     /**
      * Invokes a Stratego strategy in components of given language implementation. Returns the first result that
@@ -66,8 +66,7 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
-        throws MetaborgException;
+    IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy) throws MetaborgException;
 
     /**
      * Converts a location into a Stratego string.
