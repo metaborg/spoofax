@@ -24,17 +24,17 @@ public interface IScopeGraphUnit {
 
 
     /** Set meta data associated with an AST node of this unit */
-    void setMetadata(IStrategoTerm node, IStrategoTerm key, IStrategoTerm value);
+    void setMetadata(int nodeId, IStrategoTerm key, IStrategoTerm value);
 
     /** Get meta data associated with an AST node of this unit */
-    @Nullable IStrategoTerm metadata(IStrategoTerm node, IStrategoTerm key);
+    @Nullable IStrategoTerm metadata(int nodeId, IStrategoTerm key);
  
 
     /** Set name resolution result of this unit */
-    void addNameResolution(IStrategoTerm index, IStrategoTerm originTerm);
+    void addNameResolution(int nodeId, IStrategoTerm originTerm);
 
     /** Get name resolution result of this unit */  
-    Collection<IStrategoTerm> nameResolution(IStrategoTerm index);
+    Collection<IStrategoTerm> nameResolution(int nodeId);
 
 
     /** Set analysis result of this unit */  

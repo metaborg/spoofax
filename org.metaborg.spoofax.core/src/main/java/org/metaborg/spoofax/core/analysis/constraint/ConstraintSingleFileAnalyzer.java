@@ -16,14 +16,16 @@ import org.metaborg.spoofax.core.context.scopegraph.IScopeGraphUnit;
 import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ASTIndex;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.terms.index.TermIndex;
+import org.metaborg.spoofax.core.terms.index.TermIndexCommon;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -44,8 +46,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             final ITermFactoryService termFactoryService,
             final ISpoofaxTracingService tracingService
     ) {
-        super(analysisCommon , runtimeService, strategoCommon, termFactoryService,
-                tracingService);
+        super(analysisCommon , runtimeService, strategoCommon, termFactoryService, tracingService);
         this.analysisCommon = analysisCommon;
         this.unitService = unitService;
     }
@@ -68,27 +69,28 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             IScopeGraphUnit unit = new ScopeGraphUnit(source, parseUnit);
             context.addUnit(unit);
             
-            ASTIndex globalIndex = new ASTIndex(source, defaultIndex);
-            IStrategoTerm globalTerm = makeAppl("Global", new IStrategoTerm[0],
-                    termFactory.makeList(globalIndex.toTerm(termFactory)));
+            IStrategoTerm globalTerm = makeAppl("Global");
+            TermIndex.put(globalTerm, source, 0);
 
-            IStrategoTerm globalConstraint = initialize(source, globalTerm, strategy, context, runtime);
-            IStrategoTerm globalParams = unit.metadata(defaultIndex, paramsKey);
-            IStrategoTerm globalType = unit.metadata(defaultIndex, typeKey);
+            IStrategoTerm globalConstraint = initialize(source, globalTerm,
+                    strategy, context, runtime);
+            IStrategoTerm globalParams = unit.metadata(0, paramsKey);
+            IStrategoTerm globalType = unit.metadata(0, typeKey);
             IStrategoTerm fullParams = globalType == null ?
                     globalParams : termFactory.makeTuple(globalParams, globalType);
  
-            final IStrategoTerm desugared = preprocessAST(source, parseUnit.ast(), strategy, context, runtime);
-            final IStrategoTerm indexed = indexAST(source, desugared, strategy, context, runtime);
-            final IStrategoTerm fileConstraint = generateConstraint(source, indexed, fullParams,
+            final IStrategoTerm desugared = preprocessAST(source, parseUnit.ast(),
                     strategy, context, runtime);
+            TermIndexCommon.index(source, desugared);
+            final IStrategoTerm fileConstraint = generateConstraint(source, desugared,
+                    fullParams, strategy, context, runtime);
             unit.setConstraint(fileConstraint);
             final IStrategoTerm constraint = conj(Lists.newArrayList(globalConstraint, fileConstraint));
 
             final IStrategoTerm result = solveConstraint(constraint, strategy, context, runtime);
             for(IStrategoTerm entry : result.getSubterm(3)) {
-                ASTIndex index = ASTIndex.fromTerm(entry.getSubterm(0));
-                unit.addNameResolution(index.index, entry.getSubterm(1));
+                TermIndex index = TermIndex.TYPE.fromTerm((IStrategoAppl) entry.getSubterm(0));
+                unit.addNameResolution(index.nodeId(), entry.getSubterm(1));
             }
             unit.setAnalysis(result.getSubterm(4));
 
@@ -109,7 +111,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
 
             results.add(unitService.analyzeUnit(parseUnit,
                     new AnalyzeContrib(true, errors.isEmpty(), true,
-                            indexed, messages, -1), context));
+                            desugared, messages, -1), context));
         }
         return new SpoofaxAnalyzeResults(results,
                 Collections.<ISpoofaxAnalyzeUnitUpdate>emptyList(), context);

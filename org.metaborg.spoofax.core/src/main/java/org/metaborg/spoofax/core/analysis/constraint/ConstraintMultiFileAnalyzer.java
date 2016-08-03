@@ -17,8 +17,9 @@ import org.metaborg.spoofax.core.context.scopegraph.IScopeGraphUnit;
 import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ASTIndex;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.terms.index.TermIndex;
+import org.metaborg.spoofax.core.terms.index.TermIndexCommon;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.AnalyzeUpdateData;
@@ -28,6 +29,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -67,19 +69,18 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
 
         String globalSource = context.location().getName().getURI();
         IScopeGraphUnit global = context.unit(globalSource);
-        ASTIndex globalIndex = new ASTIndex(globalSource, defaultIndex);
         if(global == null) {
             global = new ScopeGraphUnit(globalSource, null);
             context.addUnit(global);
-            IStrategoTerm globalTerm = makeAppl("Global", new IStrategoTerm[0],
-                    termFactory.makeList(globalIndex.toTerm(termFactory)));
+            IStrategoTerm globalTerm = makeAppl("Global");
+            TermIndex.put(globalTerm, globalSource, 0);
             global.setConstraint(initialize(globalSource, globalTerm, strategy, context, runtime));
         }
-        IStrategoTerm globalParams = global.metadata(defaultIndex, paramsKey);
+        IStrategoTerm globalParams = global.metadata(0, paramsKey);
         if(globalParams == null) {
             throw new AnalysisException(context, "Initial parameters missing.");
         }
-        IStrategoTerm globalType = global.metadata(defaultIndex, typeKey);
+        IStrategoTerm globalType = global.metadata(0, typeKey);
         IStrategoTerm fullParams = globalType == null ?
                 globalParams : termFactory.makeTuple(globalParams, globalType);
  
@@ -96,10 +97,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             context.addUnit(unit);
             IStrategoTerm desugared = preprocessAST(source, parseUnit.ast(), strategy,
                     context, runtime);
-            IStrategoTerm indexed = indexAST(source, desugared, strategy, context, runtime);
-            IStrategoTerm fileConstraint = generateConstraint(source, indexed,
+            TermIndexCommon.index(source, desugared);
+            IStrategoTerm fileConstraint = generateConstraint(source, desugared,
                     fullParams, strategy, context, runtime);
-            astsByFile.put(source, indexed);
+            astsByFile.put(source, desugared);
             ambiguitiesByFile.putAll(source, analysisCommon.ambiguityMessages(
                     parseUnit.source(), parseUnit.ast()));
             unit.setConstraint(fileConstraint);
@@ -112,12 +113,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
         IStrategoTerm constraint = normalizeConstraint(conj(constraints), strategy, context, runtime);
         IStrategoTerm result = solveConstraint(constraint, strategy, context, runtime);
         for(IStrategoTerm entry : result.getSubterm(3)) {
-            ASTIndex index = ASTIndex.fromTerm(entry.getSubterm(0));
-            IScopeGraphUnit unit = context.unit(index.source);
+            TermIndex index = TermIndex.TYPE.fromTerm((IStrategoAppl) entry.getSubterm(0));
+            IScopeGraphUnit unit = context.unit(index.resource());
             if(unit == null) {
-                logger.warn("Resolution refers to non-analyzed file {}", index.source);
+                logger.warn("Resolution refers to non-analyzed file {}", index.resource());
             } else {
-                unit.addNameResolution(index.index, entry.getSubterm(1));
+                unit.addNameResolution(index.nodeId(), entry.getSubterm(1));
             }
         }
         global.setAnalysis(result.getSubterm(4));
@@ -147,7 +148,6 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
                         changed.get(source),
                         new AnalyzeContrib(true, errors.isEmpty(), true, astsByFile.get(source), messages, -1), context));
             } else {
-                // GTODO : set success value here too
                 FileObject file = null;
                 if(unit.parseUnit() != null) {
                     file = unit.parseUnit().source();

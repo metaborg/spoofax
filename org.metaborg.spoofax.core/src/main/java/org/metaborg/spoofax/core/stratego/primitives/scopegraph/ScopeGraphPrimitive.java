@@ -8,6 +8,7 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public abstract class ScopeGraphPrimitive extends AbstractPrimitive {
+
     public ScopeGraphPrimitive(String name, int svars, int tvars) {
         super(name, svars, tvars);
     }
@@ -24,4 +25,5 @@ public abstract class ScopeGraphPrimitive extends AbstractPrimitive {
 
     public abstract boolean call(IScopeGraphContext context, IContext env,
             Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException;
+
 }

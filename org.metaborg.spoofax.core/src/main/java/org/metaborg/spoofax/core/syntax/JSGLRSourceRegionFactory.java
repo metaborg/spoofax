@@ -17,7 +17,6 @@ public class JSGLRSourceRegionFactory {
 
     public static ISourceRegion fromTokensLayout(IToken left, IToken right, boolean isNullable) {
         int leftStartOffset = left.getStartOffset();
-        int rightStartOffset = right.getStartOffset();
         int rightEndOffset = right.getEndOffset();
 
         // To fix the difference between offset and cursor position

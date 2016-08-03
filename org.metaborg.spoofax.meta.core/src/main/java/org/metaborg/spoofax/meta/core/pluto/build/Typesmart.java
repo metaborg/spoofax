@@ -67,7 +67,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
     }
 
 
-    public static SpoofaxBuilderFactory<Input, None, Typesmart> factory =
+    public static final SpoofaxBuilderFactory<Input, None, Typesmart> factory =
         SpoofaxBuilderFactoryFactory.of(Typesmart.class, Input.class);
 
 

@@ -18,8 +18,8 @@ public class ScopeGraphUnit implements IScopeGraphUnit {
     private final ISpoofaxParseUnit parseUnit;
 
     private IStrategoTerm constraint;
-    private final Table<IStrategoTerm,IStrategoTerm,IStrategoTerm> metadata;
-    private final Multimap<IStrategoTerm,IStrategoTerm> nameResolution;
+    private final Table<Integer,IStrategoTerm,IStrategoTerm> metadata;
+    private final Multimap<Integer,IStrategoTerm> nameResolution;
     private @Nullable IStrategoTerm typing;
     private @Nullable IStrategoTerm analysis;
 
@@ -53,24 +53,24 @@ public class ScopeGraphUnit implements IScopeGraphUnit {
 
 
     @Override
-    public void setMetadata(IStrategoTerm node, IStrategoTerm key, IStrategoTerm value) {
-        metadata.put(node, key, value);
+    public void setMetadata(int nodeId, IStrategoTerm key, IStrategoTerm value) {
+        metadata.put(nodeId, key, value);
     }
 
     @Override
-    public IStrategoTerm metadata(IStrategoTerm node, IStrategoTerm key) {
-        return metadata.get(node, key);
+    public IStrategoTerm metadata(int nodeId, IStrategoTerm key) {
+        return metadata.get(nodeId, key);
     }
 
 
     @Override
-    public void addNameResolution(IStrategoTerm index, IStrategoTerm originTerm) {
-        nameResolution.put(index, originTerm);
+    public void addNameResolution(int nodeId, IStrategoTerm originTerm) {
+        nameResolution.put(nodeId, originTerm);
     }
 
     @Override
-    public Collection<IStrategoTerm> nameResolution(IStrategoTerm index) {
-        return nameResolution.get(index);
+    public Collection<IStrategoTerm> nameResolution(int nodeId) {
+        return nameResolution.get(nodeId);
     }
 
 

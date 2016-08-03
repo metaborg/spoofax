@@ -31,7 +31,6 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
@@ -47,7 +46,6 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     private static final String CONJ = "CConj";
 
     private static final String INITIALIZE = "Initialize";
-    private static final String INDEX_AST = "IndexAST";
     private static final String PREPROCESS_AST = "PreprocessAST";
     private static final String GENERATE_CONSTRAINT = "GenerateConstraint";
     private static final String NORMALIZE_CONSTRAINT = "NormalizeConstraint";
@@ -59,7 +57,6 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     protected final ISpoofaxTracingService tracingService;
 
     protected final ITermFactory termFactory;
-    protected final IStrategoTerm defaultIndex;
     protected final IStrategoTerm typeKey;
     protected final IStrategoTerm paramsKey;
 
@@ -75,7 +72,6 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         this.strategoCommon = strategoCommon;
         this.tracingService = tracingService;
         termFactory = termFactoryService.getGeneric();
-        defaultIndex = termFactory.makeTuple();
         typeKey = makeAppl("Type");
         paramsKey = makeAppl("Params");
     }
@@ -142,12 +138,6 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 termFactory.makeString(source), ast);
     }
 
-    protected IStrategoTerm indexAST(String source, IStrategoTerm ast, String strategy,
-            IScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
-        return doAction(INDEX_AST, strategy, context, runtime,
-                termFactory.makeString(source), ast);
-    }
-
     protected IStrategoTerm generateConstraint(String source, IStrategoTerm ast,
             IStrategoTerm params, String strategy, IScopeGraphContext context,
             HybridInterpreter runtime) throws AnalysisException {
@@ -209,10 +199,6 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
  
     protected IStrategoAppl makeAppl(String ctr, IStrategoTerm... terms) {
         return termFactory.makeAppl(termFactory.makeConstructor(ctr, terms.length), terms);
-    }
-    
-    protected IStrategoAppl makeAppl(String ctr, IStrategoTerm[] terms, IStrategoList annos) {
-        return termFactory.makeAppl(termFactory.makeConstructor(ctr, terms.length), terms, annos);
     }
     
 }
