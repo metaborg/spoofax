@@ -6,7 +6,7 @@
 >
   <modelVersion>4.0.0</modelVersion>
 {{#generateGroupId}}  <groupId>{{groupId}}</groupId>
-{{/generateGroupId}}  <artifactId>{{id}}.project</artifactId>
+{{/generateGroupId}}  <artifactId>{{id}}.example</artifactId>
 {{#generateVersion}}  <version>{{version}}</version>
 {{/generateVersion}}  <packaging>spoofax-project</packaging>
 
