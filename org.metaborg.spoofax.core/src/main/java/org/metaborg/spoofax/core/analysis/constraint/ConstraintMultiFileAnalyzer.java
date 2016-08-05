@@ -121,7 +121,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
 
         final Collection<IStrategoTerm> unitSolutions = Lists.newArrayList();
         for(IScopeGraphUnit unit : context.units()) {
-            unitSolutions.add(unit.unitResult());
+            IStrategoTerm unitSolution = unit.unitResult();
+            if(unitSolution != null) {
+                unitSolutions.add(unitSolution);
+            }
         }
 
         IStrategoTerm finalResultTerm = doAction(strategy,
