@@ -1,14 +1,29 @@
 package org.metaborg.core.completion;
 
-public interface ICompletion {
-    Iterable<ICompletionItem> items();
+import java.io.Serializable;
+
+public interface ICompletion extends Serializable {
+    
+    /** Serializable because it is necessary to pass an object as a String to Eclipse additional info menu */
+    
+    String name();
+    String sort();
     String text();
-    int startOffset();
-    int endOffset();
-    void setItems(Iterable<ICompletionItem> items);
-    void setNested(boolean nested);
-    boolean isNested();
-    CompletionKind kind();
+    String additionalInfo();
+    
     String prefix();
     String suffix();
+    
+    Iterable<ICompletionItem> items();
+    void setItems(Iterable<ICompletionItem> items);
+    
+    int startOffset();
+    int endOffset();
+    
+    void setNested(boolean nested);
+    boolean isNested();
+    boolean fromOptionalPlaceholder();
+    void setOptionalPlaceholder(boolean optional); 
+    
+    CompletionKind kind();    
 }
