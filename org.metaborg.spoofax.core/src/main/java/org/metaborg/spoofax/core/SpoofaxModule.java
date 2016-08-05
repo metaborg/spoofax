@@ -95,7 +95,7 @@ import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_analysis;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_ast_index;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_ast_metadata;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_ast_references;
+import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_index_ast;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_set_ast_index;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_set_ast_metadata;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ScopeGraphLibrary;
@@ -316,11 +316,11 @@ public class SpoofaxModule extends MetaborgModule {
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("ScopeGraphLibrary"));
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_analysis.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_index_ast.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_metadata.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_metadata.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_references.class);
     }
 
     private void bindAnalyzers(

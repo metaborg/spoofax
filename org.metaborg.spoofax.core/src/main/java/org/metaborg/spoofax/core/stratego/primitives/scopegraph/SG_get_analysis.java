@@ -25,7 +25,10 @@ public class SG_get_analysis extends ScopeGraphPrimitive {
         if(unit == null) {
             return false;
         }
-        IStrategoTerm analysis = unit.analysis();
+        IStrategoTerm analysis = unit.finalResult();
+        if(analysis == null) {
+            analysis = unit.unitResult();
+        }
         if(analysis == null) {
             return false;
         }

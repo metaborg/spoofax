@@ -133,7 +133,7 @@ public class StrategoCommon implements IStrategoCommon {
             if(cause != null && cause instanceof InterpreterException) {
                 handleException((InterpreterException) cause, runtime, strategy);
             } else {
-                throw new MetaborgException("Invoking Stratego strategy failed unexpectedly: " + cause.getMessage() + "\n" + trace, cause);
+                throw new MetaborgException("Invoking Stratego strategy failed unexpectedly:" + "\n" + trace, e);
             }
         }
     }

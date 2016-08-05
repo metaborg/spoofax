@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
@@ -18,14 +19,12 @@ import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.index.TermIndex;
-import org.metaborg.spoofax.core.terms.index.TermIndexCommon;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -68,40 +67,49 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
 
             IScopeGraphUnit unit = new ScopeGraphUnit(source, parseUnit);
             context.addUnit(unit);
-            
-            IStrategoTerm globalTerm = makeAppl("Global");
-            TermIndex.put(globalTerm, source, 0);
-
-            IStrategoTerm globalConstraint = initialize(source, globalTerm,
-                    strategy, context, runtime);
-            IStrategoTerm globalParams = unit.metadata(0, paramsKey);
-            IStrategoTerm globalType = unit.metadata(0, typeKey);
-            IStrategoTerm fullParams = globalType == null ?
-                    globalParams : termFactory.makeTuple(globalParams, globalType);
  
-            final IStrategoTerm desugared = preprocessAST(source, parseUnit.ast(),
-                    strategy, context, runtime);
-            TermIndexCommon.index(source, desugared);
-            final IStrategoTerm fileConstraint = generateConstraint(source, desugared,
-                    fullParams, strategy, context, runtime);
-            unit.setConstraint(fileConstraint);
-            final IStrategoTerm constraint = conj(Lists.newArrayList(globalConstraint, fileConstraint));
+            IStrategoTerm sourceTerm = termFactory.makeString(source);
+            TermIndex.put(sourceTerm, source, 0);
 
-            final IStrategoTerm result = solveConstraint(constraint, strategy, context, runtime);
-            for(IStrategoTerm entry : result.getSubterm(3)) {
-                TermIndex index = TermIndex.TYPE.fromTerm((IStrategoAppl) entry.getSubterm(0));
-                unit.addNameResolution(index.nodeId(), entry.getSubterm(1));
+            IStrategoTerm initialResultTerm = doAction(strategy,
+                    termFactory.makeAppl(analyzeInitial, sourceTerm),
+                    context, runtime);
+            InitialResult initialResult;
+            try {
+                initialResult = InitialResult.fromTerm(initialResultTerm);
+            } catch (MetaborgException e) {
+                throw new AnalysisException(context, e);
             }
-            unit.setAnalysis(result.getSubterm(4));
+ 
+            IStrategoTerm unitResultTerm = doAction(strategy,
+                    termFactory.makeAppl(analyzeUnit, sourceTerm, parseUnit.ast(), initialResult.solution),
+                    context, runtime);
+            UnitResult unitResult;
+            try {
+                unitResult = UnitResult.fromTerm(unitResultTerm);
+            } catch (MetaborgException e) {
+                throw new AnalysisException(context,e);
+            }
+ 
+            IStrategoTerm finalResultTerm = doAction(strategy,
+                    termFactory.makeAppl(analyzeFinal, sourceTerm, initialResult.solution, termFactory.makeList(unitResult.solution)),
+                    context, runtime);
+            FinalResult finalResult;
+            try {
+                finalResult = FinalResult.fromTerm(finalResultTerm);
+            } catch (MetaborgException e) {
+                throw new AnalysisException(context,e);
+            }
+            unit.setFinalResult(finalResult.solution);
 
             final Collection<IMessage> errors =
-                    analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR, result.getSubterm(0));
+                    analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR, finalResult.errors);
             final Collection<IMessage> warnings =
-                    analysisCommon.messages(parseUnit.source(), MessageSeverity.WARNING, result.getSubterm(1));
+                    analysisCommon.messages(parseUnit.source(), MessageSeverity.WARNING, finalResult.warnings);
             final Collection<IMessage> notes =
-                    analysisCommon.messages(parseUnit.source(), MessageSeverity.NOTE, result.getSubterm(2));
+                    analysisCommon.messages(parseUnit.source(), MessageSeverity.NOTE, finalResult.notes);
             final Collection<IMessage> ambiguities =
-                    analysisCommon.ambiguityMessages(parseUnit.source(), parseUnit.ast());
+                    analysisCommon.ambiguityMessages(parseUnit.source(), unitResult.ast);
             final Collection<IMessage> messages =
                 Lists.newArrayListWithCapacity(errors.size() + warnings.size() + notes.size() + ambiguities.size());
             messages.addAll(errors);
@@ -111,7 +119,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
 
             results.add(unitService.analyzeUnit(parseUnit,
                     new AnalyzeContrib(true, errors.isEmpty(), true,
-                            desugared, messages, -1), context));
+                            unitResult.ast, messages, -1), context));
         }
         return new SpoofaxAnalyzeResults(results,
                 Collections.<ISpoofaxAnalyzeUnitUpdate>emptyList(), context);

@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,7 +28,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -43,22 +41,15 @@ import com.google.common.collect.Multimap;
 abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
-    private static final String CONJ = "CConj";
-
-    private static final String INITIALIZE = "Initialize";
-    private static final String PREPROCESS_AST = "PreprocessAST";
-    private static final String GENERATE_CONSTRAINT = "GenerateConstraint";
-    private static final String NORMALIZE_CONSTRAINT = "NormalizeConstraint";
-    private static final String SOLVE_CONSTRAINT = "SolveConstraint";
-
     protected final AnalysisCommon analysisCommon;
     protected final IStrategoRuntimeService runtimeService;
     protected final IStrategoCommon strategoCommon;
     protected final ISpoofaxTracingService tracingService;
 
     protected final ITermFactory termFactory;
-    protected final IStrategoTerm typeKey;
-    protected final IStrategoTerm paramsKey;
+    protected final IStrategoConstructor analyzeInitial;
+    protected final IStrategoConstructor analyzeUnit;
+    protected final IStrategoConstructor analyzeFinal;
 
     public AbstractConstraintAnalyzer(
             final AnalysisCommon analysisCommon,
@@ -72,8 +63,9 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         this.strategoCommon = strategoCommon;
         this.tracingService = tracingService;
         termFactory = termFactoryService.getGeneric();
-        typeKey = makeAppl("Type");
-        paramsKey = makeAppl("Params");
+        analyzeInitial = termFactory.makeConstructor("AnalyzeInitial", 1);
+        analyzeUnit = termFactory.makeConstructor("AnalyzeUnit", 3);
+        analyzeFinal = termFactory.makeConstructor("AnalyzeFinal", 3);
     }
 
     @Override
@@ -126,39 +118,8 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             Map<String,ISpoofaxParseUnit> removed, IScopeGraphContext genericContext,
             HybridInterpreter runtime, String strategy) throws AnalysisException;
 
-    protected IStrategoTerm initialize(String source, IStrategoTerm term, String strategy,
+    protected IStrategoTerm doAction(String strategy, IStrategoTerm action,
             IScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
-        return doAction(INITIALIZE, strategy, context, runtime,
-                termFactory.makeString(source), term);
-    }
- 
-    protected IStrategoTerm preprocessAST(String source, IStrategoTerm ast, String strategy,
-            IScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
-        return doAction(PREPROCESS_AST, strategy, context, runtime,
-                termFactory.makeString(source), ast);
-    }
-
-    protected IStrategoTerm generateConstraint(String source, IStrategoTerm ast,
-            IStrategoTerm params, String strategy, IScopeGraphContext context,
-            HybridInterpreter runtime) throws AnalysisException {
-        return doAction(GENERATE_CONSTRAINT, strategy, context, runtime,
-                termFactory.makeString(source), ast, params);
-    }
- 
-    protected IStrategoTerm normalizeConstraint(IStrategoTerm constraint, String strategy,
-            IScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
-        return doAction(NORMALIZE_CONSTRAINT, strategy, context, runtime, constraint);
-    }
- 
-    protected IStrategoTerm solveConstraint(IStrategoTerm constraint, String strategy,
-            IScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
-        return doAction(SOLVE_CONSTRAINT, strategy, context, runtime, constraint);
-    }
- 
-    private IStrategoTerm doAction(String actionName, String strategy,
-            IScopeGraphContext context, HybridInterpreter runtime,
-            IStrategoTerm... args) throws AnalysisException {
-        IStrategoTerm action = makeAppl(actionName, args);
         try {
             IStrategoTerm result = strategoCommon.invoke(runtime, action, strategy);
             if(result == null) {
@@ -169,11 +130,6 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             final String message = analysisCommon.analysisFailedMessage(runtime);
             throw new AnalysisException(context,message,ex);
         }
-    }
- 
-    protected IStrategoTerm conj(Collection<IStrategoTerm> constraints) {
-        IStrategoConstructor conj = termFactory.makeConstructor(CONJ, 1);
-        return termFactory.makeAppl(conj, termFactory.makeList(constraints));
     }
  
     protected Multimap<String,IMessage> messages(IStrategoTerm messageList, MessageSeverity severity) {
@@ -197,8 +153,4 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         return messages;
     }
  
-    protected IStrategoAppl makeAppl(String ctr, IStrategoTerm... terms) {
-        return termFactory.makeAppl(termFactory.makeConstructor(ctr, terms.length), terms);
-    }
-    
 }
