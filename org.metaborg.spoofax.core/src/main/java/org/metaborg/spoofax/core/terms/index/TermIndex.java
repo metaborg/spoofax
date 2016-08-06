@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.terms.index;
 
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -63,7 +65,7 @@ public class TermIndex extends AbstractTermAttachment implements ITermIndex {
         term.putAttachment(TermIndex.TYPE.fromTerm(index));
     }
 
-    public static TermIndex get(ISimpleTerm term) {
+    public static @Nullable TermIndex get(ISimpleTerm term) {
 		return term.getAttachment(TYPE);
 	}
 	

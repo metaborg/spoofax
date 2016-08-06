@@ -2,16 +2,12 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface IScopeGraphUnit {
 
     /** Source resource of this unit */
     String source();
-
-    /** Parse unit of this unit */
-    @Nullable ISpoofaxParseUnit parseUnit();
 
 
     /** Set meta data associated with an AST node of this unit */
@@ -21,17 +17,13 @@ public interface IScopeGraphUnit {
     @Nullable IStrategoTerm metadata(int nodeId, IStrategoTerm key);
  
 
-    void setInitialResult(IStrategoTerm result);
+    void setInitial(IStrategoTerm result);
 
-    @Nullable IStrategoTerm initialResult();
+    @Nullable IStrategoTerm initial();
 
-    void setUnitResult(IStrategoTerm result);
+    void setResult(IStrategoTerm result);
 
-    @Nullable IStrategoTerm unitResult();
-
-    void setFinalResult(IStrategoTerm result);
-
-    @Nullable IStrategoTerm finalResult();
+    @Nullable IStrategoTerm result();
 
 
     /** Reset this unit */

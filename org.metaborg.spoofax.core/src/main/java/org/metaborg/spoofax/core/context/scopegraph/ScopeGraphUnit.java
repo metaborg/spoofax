@@ -1,27 +1,27 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
-public class ScopeGraphUnit implements IScopeGraphUnit {
+public class ScopeGraphUnit implements IScopeGraphUnit, Serializable {
+
+    private static final long serialVersionUID = 2505224489843232373L;
 
     private final String source;
-    private final ISpoofaxParseUnit parseUnit;
 
     private final Table<Integer,IStrategoTerm,IStrategoTerm> metadata;
 
-    private @Nullable IStrategoTerm initialResult;
-    private @Nullable IStrategoTerm unitResult;
-    private @Nullable IStrategoTerm finalResult;
+    private @Nullable IStrategoTerm initial;
+    private @Nullable IStrategoTerm result;
 
-    public ScopeGraphUnit(String source, ISpoofaxParseUnit parseUnit) {
+    public ScopeGraphUnit(String source) {
         this.source = source;
-        this.parseUnit = parseUnit;
         this.metadata = HashBasedTable.create();
     }
 
@@ -29,10 +29,6 @@ public class ScopeGraphUnit implements IScopeGraphUnit {
     @Override
     public String source() {
         return source;
-    }
-
-    public ISpoofaxParseUnit parseUnit() {
-        return parseUnit;
     }
 
 
@@ -48,46 +44,31 @@ public class ScopeGraphUnit implements IScopeGraphUnit {
 
 
     @Override
-    public void setInitialResult(IStrategoTerm result) {
-        this.initialResult = result;
-    }
-
-
-    @Override
-    public IStrategoTerm initialResult() {
-        return initialResult;
-    }
-
-
-    @Override
-    public void setUnitResult(IStrategoTerm result) {
-        this.unitResult = result;
-    }
-
-
-    @Override
-    public IStrategoTerm unitResult() {
-        return unitResult;
+    public void setInitial(IStrategoTerm result) {
+        this.initial = result;
     }
 
     @Override
-    public void setFinalResult(IStrategoTerm result) {
-        this.finalResult = result;
+    public IStrategoTerm initial() {
+        return initial;
     }
 
+    @Override
+    public void setResult(IStrategoTerm result) {
+        this.result = result;
+    }
 
     @Override
-    public IStrategoTerm finalResult() {
-        return finalResult;
+    public IStrategoTerm result() {
+        return result;
     }
 
 
     @Override
     public void reset() {
         metadata.clear();
-        initialResult = null;
-        unitResult = null;
-        finalResult = null;
+        initial = null;
+        result = null;
     }
  
 }

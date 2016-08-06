@@ -19,7 +19,7 @@ import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.context.scopegraph.IScopeGraphContext;
+import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContext;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -75,6 +75,9 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(genericContext, message);
         }
         final ISpoofaxAnalyzeResults results = analyzeAll(Iterables2.singleton(input), genericContext);
+        if(results.results().isEmpty()) {
+            throw new AnalysisException(genericContext,"Analysis failed.");
+        }
         return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()),
                 results.updates(), results.context());
     }
@@ -82,9 +85,9 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     @Override
     public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs,
             IContext genericContext) throws AnalysisException {
-        IScopeGraphContext context;
+        ScopeGraphContext context;
         try {
-            context = (IScopeGraphContext) genericContext;
+            context = (ScopeGraphContext) genericContext;
         } catch(ClassCastException ex) {
             throw new AnalysisException(genericContext,"Scope graph context required for constraint analysis.",ex);
         }
@@ -115,11 +118,11 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, IScopeGraphContext genericContext,
+            Map<String,ISpoofaxParseUnit> removed, ScopeGraphContext genericContext,
             HybridInterpreter runtime, String strategy) throws AnalysisException;
 
     protected IStrategoTerm doAction(String strategy, IStrategoTerm action,
-            IScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
+            ScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
         try {
             IStrategoTerm result = strategoCommon.invoke(runtime, action, strategy);
             if(result == null) {

@@ -2,10 +2,7 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.context.IContext;
-import org.metaborg.core.context.ITemporaryContext;
-
-public interface IScopeGraphContext extends IContext, ITemporaryContext {
+public interface IScopeGraphContext {
 
     /** Add a unit to this context */
     void addUnit(IScopeGraphUnit unit);
