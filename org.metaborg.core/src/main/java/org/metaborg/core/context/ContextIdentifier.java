@@ -45,4 +45,10 @@ public class ContextIdentifier {
             return false;
         return true;
     }
+
+
+    @Override
+    public String toString() {
+        return String.format("context id for %s, %s", location, language);
+    }
 }
