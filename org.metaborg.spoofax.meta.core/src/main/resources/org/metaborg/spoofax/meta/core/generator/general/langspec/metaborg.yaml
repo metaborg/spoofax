@@ -14,10 +14,6 @@ dependencies:
 {{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.shared:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.nabl2.runtime:${metaborgVersion}
 {{/analysisNabl2}}
-pardonedLanguages:
-- EditorService
-- Stratego-Sugar
-- SDF
 language:
 {{#syntaxSdf2}}  sdf:
     version: sdf2

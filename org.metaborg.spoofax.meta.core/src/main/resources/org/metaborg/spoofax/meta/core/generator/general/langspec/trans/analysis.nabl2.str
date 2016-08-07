@@ -11,7 +11,7 @@ imports
 
 rules // Analysis
 
-  editor-analyze = analyze(id,id)
+  editor-analyze = analyze(id)
 
 rules // Debugging
   

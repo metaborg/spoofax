@@ -6,8 +6,7 @@ imports
 
 constraint-generation rules
 
-  init [[ start ]] :=
-    [[ start ^ (global) ]].
+  init ^ (s) := new s.
 
   [[ Empty() ^ (s) ]] :=
     false | note "Specify name binding and typing rules in static-semantics.nabl2".
