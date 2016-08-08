@@ -53,9 +53,9 @@ public class MetaBorgMeta implements AutoCloseable {
      */
     @SuppressWarnings("unchecked") public MetaBorgMeta(MetaBorg metaborg, IModulePluginLoader loader,
         MetaborgMetaModule module, Module... additionalModules) throws MetaborgException {
-        final Collection<Module> metaborgModules = Lists.newArrayList(additionalModules);
-        metaborgModules.add(module);
-        final Iterable<Module> modules = InjectorFactory.modules(loader, metaborgModules);
+        final Collection<Module> metaModules = Lists.newArrayList(additionalModules);
+        metaModules.add(module);
+        final Iterable<Module> modules = InjectorFactory.modules(loader, metaModules);
         this.injector = InjectorFactory.createChild(metaborg.injector, modules);
         this.parent = metaborg;
 
