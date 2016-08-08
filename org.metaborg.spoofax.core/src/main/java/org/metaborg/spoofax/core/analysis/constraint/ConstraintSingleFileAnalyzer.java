@@ -8,17 +8,16 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.scopegraph.indices.TermIndex;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.context.scopegraph.IScopeGraphUnit;
 import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContext;
 import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.terms.index.TermIndex;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
@@ -69,9 +68,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             ISpoofaxParseUnit parseUnit = input.getValue();
 
             try {
-                IScopeGraphUnit unit = new ScopeGraphUnit(source);
-                context.addUnit(unit);
-     
+                ScopeGraphUnit unit = context.getOrCreateUnit(source);
+                unit.reset();
+
                 IStrategoTerm sourceTerm = termFactory.makeString(source);
                 TermIndex.put(sourceTerm, source, 0);
 
@@ -90,7 +89,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                         termFactory.makeAppl(analyzeFinal, sourceTerm, initialResult.solution, termFactory.makeList(unitResult.solution)),
                         context, runtime);
                 FinalResult finalResult = FinalResult.fromTerm(finalResultTerm);
-                unit.setResult(finalResult.solution);
+                unit.setScopeGraph(finalResult.scopeGraph);
+                unit.setNameResolution(finalResult.nameResolution);
+                unit.setAnalysis(finalResult.analysis);
 
                 final Collection<IMessage> errors =
                         analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR, finalResult.errors);

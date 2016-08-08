@@ -1,9 +1,13 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.scopegraph.INameResolution;
+import org.metaborg.scopegraph.IScopeGraph;
+import org.metaborg.scopegraph.context.IScopeGraphUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.HashBasedTable;
@@ -15,14 +19,18 @@ public class ScopeGraphUnit implements IScopeGraphUnit, Serializable {
 
     private final String source;
 
-    private final Table<Integer,IStrategoTerm,IStrategoTerm> metadata;
+    private Table<Integer,IStrategoTerm,IStrategoTerm> rawData;
+    private Table<Integer,IStrategoTerm,IStrategoTerm> finalData;
 
     private @Nullable IStrategoTerm initial;
-    private @Nullable IStrategoTerm result;
+    private @Nullable IScopeGraph scopeGraph;
+    private @Nullable INameResolution nameResolution;
+    private @Nullable IStrategoTerm analysis;
 
     public ScopeGraphUnit(String source) {
         this.source = source;
-        this.metadata = HashBasedTable.create();
+        this.rawData = HashBasedTable.create();
+        this.finalData = HashBasedTable.create();
     }
 
 
@@ -34,41 +42,65 @@ public class ScopeGraphUnit implements IScopeGraphUnit, Serializable {
 
     @Override
     public void setMetadata(int nodeId, IStrategoTerm key, IStrategoTerm value) {
-        metadata.put(nodeId, key, value);
+        rawData.put(nodeId, key, value);
     }
 
+    public Collection<IStrategoTerm> processRawData() {
+        finalData.clear();
+        finalData.putAll(rawData);
+        return finalData.values();
+    }
+    
     @Override
     public IStrategoTerm metadata(int nodeId, IStrategoTerm key) {
-        return metadata.get(nodeId, key);
+        return finalData.get(nodeId, key);
     }
 
 
-    @Override
     public void setInitial(IStrategoTerm result) {
         this.initial = result;
     }
 
-    @Override
     public IStrategoTerm initial() {
         return initial;
     }
 
-    @Override
-    public void setResult(IStrategoTerm result) {
-        this.result = result;
+    public void setAnalysis(IStrategoTerm analysis) {
+        this.analysis = analysis;
     }
 
     @Override
-    public IStrategoTerm result() {
-        return result;
+    public IStrategoTerm analysis() {
+        return analysis;
     }
 
 
     @Override
-    public void reset() {
-        metadata.clear();
-        initial = null;
-        result = null;
+    public IScopeGraph scopeGraph() {
+        return scopeGraph;
+    }
+
+    public void setScopeGraph(IScopeGraph scopeGraph) {
+        this.scopeGraph = scopeGraph;
+    }
+
+    @Override
+    public INameResolution nameResolution() {
+        return nameResolution;
+    }
+
+    public void setNameResolution(INameResolution nameResolution) {
+        this.nameResolution = nameResolution;
     }
  
+    
+    public void reset() {
+        rawData.clear();
+        finalData.clear();
+        initial = null;
+        scopeGraph = null;
+        nameResolution = null;
+        analysis = null;
+    }
+    
 }

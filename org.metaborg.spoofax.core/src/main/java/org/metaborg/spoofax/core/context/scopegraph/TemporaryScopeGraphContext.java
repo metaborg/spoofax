@@ -1,18 +1,20 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
+import org.metaborg.scopegraph.context.IScopeGraphContext;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 
 import com.google.inject.Injector;
 
-public class TemporaryScopeGraphContext implements IScopeGraphContext, ITemporaryContextInternal {
+public class TemporaryScopeGraphContext implements IScopeGraphContext<ScopeGraphUnit>, ITemporaryContextInternal {
 
     private final ScopeGraphContext context;
     
@@ -88,17 +90,12 @@ public class TemporaryScopeGraphContext implements IScopeGraphContext, ITemporar
 
 
     @Override
-    public void addUnit(IScopeGraphUnit unit) {
-        context.addUnit(unit);
-    }
-
-    @Override
-    public IScopeGraphUnit unit(String source) {
+    public ScopeGraphUnit unit(String source) {
         return context.unit(source);
     }
 
     @Override
-    public Iterable<IScopeGraphUnit> units() {
+    public Collection<ScopeGraphUnit> units() {
         return context.units();
     }
 

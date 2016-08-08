@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.context.scopegraph;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -16,6 +17,7 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
+import org.metaborg.scopegraph.context.IScopeGraphContext;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
@@ -25,7 +27,7 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
-public class ScopeGraphContext implements IScopeGraphContext, IContextInternal {
+public class ScopeGraphContext implements IScopeGraphContext<ScopeGraphUnit>, IContextInternal {
     private static final ILogger logger = LoggerUtils.logger(ScopeGraphContext.class);
 
     private final ContextIdentifier identifier;
@@ -33,7 +35,7 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal {
     private final Injector injector;
     private final ReadWriteLock lock;
 
-    private Map<String,IScopeGraphUnit> units = null;
+    private Map<String,ScopeGraphUnit> units = null;
 
  
     public ScopeGraphContext(Injector injector, ContextIdentifier identifier) {
@@ -154,7 +156,7 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal {
     }
 
 
-    private Map<String, IScopeGraphUnit> loadOrInitUnits() {
+    private Map<String, ScopeGraphUnit> loadOrInitUnits() {
         try {
             final FileObject contextFile = contextFile();
             try {
@@ -171,7 +173,7 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal {
         return initUnits();
     }
     
-    private Map<String, IScopeGraphUnit> initUnits() {
+    private Map<String, ScopeGraphUnit> initUnits() {
         return Maps.newHashMap();
     }
     
@@ -184,9 +186,9 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal {
     }
     
     @SuppressWarnings("unchecked")
-    private Map<String, IScopeGraphUnit> readContext(FileObject file) throws IOException, ClassNotFoundException {
+    private Map<String, ScopeGraphUnit> readContext(FileObject file) throws IOException, ClassNotFoundException {
         try(ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
-            return (Map<String, IScopeGraphUnit>) ois.readObject();
+            return (Map<String, ScopeGraphUnit>) ois.readObject();
         }
     }
  
@@ -217,19 +219,21 @@ public class ScopeGraphContext implements IScopeGraphContext, IContextInternal {
         }
     }
     
+    public ScopeGraphUnit getOrCreateUnit(String source) {
+        ScopeGraphUnit unit;
+        if((unit = units.get(source)) == null) {
+            units.put(source, (unit = new ScopeGraphUnit(source)));
+        }
+        return unit;
+    }
 
     @Override
-    public void addUnit(IScopeGraphUnit unit) {
-        units.put(unit.source(), unit);
-    }
- 
-    @Override
-    public IScopeGraphUnit unit(String source) {
+    public ScopeGraphUnit unit(String source) {
         return units.get(source);
     }
 
     @Override   
-    public Iterable<IScopeGraphUnit> units() {
+    public Collection<ScopeGraphUnit> units() {
         return units.values();
     }
 

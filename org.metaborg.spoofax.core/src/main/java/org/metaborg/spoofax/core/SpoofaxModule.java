@@ -35,6 +35,14 @@ import org.metaborg.core.transform.ITransformer;
 import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
+import org.metaborg.scopegraph.indices.SG_get_analysis;
+import org.metaborg.scopegraph.indices.SG_get_ast_index;
+import org.metaborg.scopegraph.indices.SG_get_ast_metadata;
+import org.metaborg.scopegraph.indices.SG_get_ast_references;
+import org.metaborg.scopegraph.indices.SG_index_ast;
+import org.metaborg.scopegraph.indices.SG_index_sublist;
+import org.metaborg.scopegraph.indices.SG_set_ast_index;
+import org.metaborg.scopegraph.indices.SG_set_ast_metadata;
 import org.metaborg.spoofax.core.action.ActionService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
@@ -92,13 +100,6 @@ import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ProjectPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxJSGLRLibrary;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_analysis;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_ast_index;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_get_ast_metadata;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_index_ast;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_index_sublist;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_set_ast_index;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.SG_set_ast_metadata;
 import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
@@ -323,6 +324,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_metadata.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_metadata.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_references.class);
     }
 
     private void bindAnalyzers(
