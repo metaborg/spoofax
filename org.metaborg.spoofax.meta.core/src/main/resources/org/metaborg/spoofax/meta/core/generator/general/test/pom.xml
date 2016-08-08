@@ -32,6 +32,19 @@
     </dependency>
   </dependencies>
   
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.metaborg</groupId>
+        <artifactId>spoofax-maven-plugin</artifactId>
+        <version>${metaborg-version}</version>
+        <configuration>
+          <languageUnderTest>{{groupId}}:{{id}}:{{version}}</languageUnderTest>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
   <repositories>
     <repository>
       <id>metaborg-release-repo</id>

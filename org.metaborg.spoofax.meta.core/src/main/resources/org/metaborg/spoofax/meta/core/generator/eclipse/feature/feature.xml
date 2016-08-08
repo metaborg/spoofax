@@ -4,14 +4,7 @@
   label="{{name}} language Eclipse plugin"
   version="{{eclipseVersion}}"
 >
-  <includes
-    id="org.metaborg.spoofax.eclipse.feature"
-    version="0.0.0"
-    search-location="both"
-  />
-  <plugin
-    id="{{id}}.eclipse"
-    version="{{eclipseVersion}}"
-    unpack="true"     
-  />
+  <plugin id="{{id}}.eclipse" version="{{eclipseVersion}}" unpack="true" />
+  
+  <includes id="org.metaborg.spoofax.eclipse.feature" />
 </feature>
