@@ -37,6 +37,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 
 abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
@@ -50,6 +51,7 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     protected final IStrategoConstructor analyzeInitial;
     protected final IStrategoConstructor analyzeUnit;
     protected final IStrategoConstructor analyzeFinal;
+    protected final IStrategoConstructor applyAnalysis;
 
     public AbstractConstraintAnalyzer(
             final AnalysisCommon analysisCommon,
@@ -66,6 +68,7 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         analyzeInitial = termFactory.makeConstructor("AnalyzeInitial", 1);
         analyzeUnit = termFactory.makeConstructor("AnalyzeUnit", 3);
         analyzeFinal = termFactory.makeConstructor("AnalyzeFinal", 3);
+        applyAnalysis = termFactory.makeConstructor("ApplyAnalysis", 2);
     }
 
     @Override
@@ -156,4 +159,19 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         return messages;
     }
  
+    protected void applySolution(Table<Integer,IStrategoTerm,IStrategoTerm> data,
+            IStrategoTerm solution, String strategy, ScopeGraphContext context,
+            HybridInterpreter runtime) throws AnalysisException {
+        for(Integer i : data.rowKeySet()) {
+            for(IStrategoTerm key : data.columnKeySet()) {
+                IStrategoTerm value;
+                if((value = data.get(i, key)) != null) {
+                    IStrategoTerm action = termFactory.makeAppl(applyAnalysis, value, solution);
+                    value = doAction(strategy, action, context, runtime);
+                    data.put(i, key, value);
+                }
+            }
+        }
+    }
+    
 }

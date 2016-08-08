@@ -127,7 +127,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
         }
 
         IStrategoTerm finalResultTerm = doAction(strategy,
-                termFactory.makeAppl(analyzeFinal, globalTerm, globalUnit.initial(), termFactory.makeList(unitSolutions)),
+                termFactory.makeAppl(analyzeFinal, globalTerm,
+                globalUnit.initial(), termFactory.makeList(unitSolutions)),
                 context, runtime);
         FinalResult finalResult;
         try {
@@ -159,8 +160,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             messages.addAll(warnings);
             messages.addAll(notes);
             messages.addAll(ambiguities);
-            // set name resolution here, or lookups will fail
+            // set scope graph and name resolution here, or lookups will fail
+            unit.setScopeGraph(finalResult.scopeGraph);
             unit.setNameResolution(finalResult.nameResolution);
+            applySolution(unit.processRawData(), finalResult.analysis, strategy, context, runtime);
             if(changed.containsKey(source)) {
                 results.add(unitService.analyzeUnit(
                         changed.get(source),

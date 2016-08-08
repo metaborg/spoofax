@@ -92,6 +92,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                 unit.setScopeGraph(finalResult.scopeGraph);
                 unit.setNameResolution(finalResult.nameResolution);
                 unit.setAnalysis(finalResult.analysis);
+                applySolution(unit.processRawData(), finalResult.analysis, strategy, context, runtime);
 
                 final Collection<IMessage> errors =
                         analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR, finalResult.errors);

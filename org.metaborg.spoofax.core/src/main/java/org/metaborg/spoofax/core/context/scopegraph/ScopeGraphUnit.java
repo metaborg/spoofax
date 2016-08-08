@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 import javax.annotation.Nullable;
 
@@ -45,10 +44,10 @@ public class ScopeGraphUnit implements IScopeGraphUnit, Serializable {
         rawData.put(nodeId, key, value);
     }
 
-    public Collection<IStrategoTerm> processRawData() {
+    public Table<Integer,IStrategoTerm,IStrategoTerm> processRawData() {
         finalData.clear();
         finalData.putAll(rawData);
-        return finalData.values();
+        return finalData;
     }
     
     @Override
