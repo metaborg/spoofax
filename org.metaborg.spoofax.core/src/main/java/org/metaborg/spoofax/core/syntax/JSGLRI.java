@@ -55,8 +55,6 @@ public class JSGLRI {
             parserConfig = new JSGLRParserConfiguration();
         }
 
-        // NOTE: FileObject.getName().getPath() will not include the drive letter on Windows.
-        // To fix this, use FileObject.getURL().getPath() instead.
         final String fileName = resource != null ? resource.getName().getURI() : null;
 
         final JSGLRParseErrorHandler errorHandler =
