@@ -9,7 +9,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.CommonPaths;
@@ -117,8 +116,6 @@ public class ScopeGraphContext implements IScopeGraphContext<ScopeGraphUnit>, IC
                 units.clear();
                 units = null;
             }
-            final FileObject cacheDir = identifier.location.resolveFile(".cache");
-            cacheDir.delete(new AllFileSelector());
         }
     }
 
