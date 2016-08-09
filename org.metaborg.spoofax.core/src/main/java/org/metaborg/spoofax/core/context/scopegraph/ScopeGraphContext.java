@@ -75,7 +75,6 @@ public class ScopeGraphContext implements IScopeGraphContext<ScopeGraphUnit>, IC
                 }
             }
         }
-
         return readLock();
     }
 
@@ -99,7 +98,7 @@ public class ScopeGraphContext implements IScopeGraphContext<ScopeGraphUnit>, IC
         final IClosableLock lock = new ClosableLock(writeLock);
         return lock;
     }
-    
+ 
     @Override
     public void persist() throws IOException {
         if(units == null) {
@@ -114,7 +113,10 @@ public class ScopeGraphContext implements IScopeGraphContext<ScopeGraphUnit>, IC
     @Override
     public void reset() throws IOException {
         try(IClosableLock lock = writeLock()) {
-            units.clear();
+            if(units != null) {
+                units.clear();
+                units = null;
+            }
             final FileObject cacheDir = identifier.location.resolveFile(".cache");
             cacheDir.delete(new AllFileSelector());
         }
@@ -188,7 +190,11 @@ public class ScopeGraphContext implements IScopeGraphContext<ScopeGraphUnit>, IC
     @SuppressWarnings("unchecked")
     private Map<String, ScopeGraphUnit> readContext(FileObject file) throws IOException, ClassNotFoundException {
         try(ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
-            return (Map<String, ScopeGraphUnit>) ois.readObject();
+            Map<String, ScopeGraphUnit> fileUnits = (Map<String, ScopeGraphUnit>) ois.readObject();
+            if(fileUnits == null) {
+                throw new IOException("Context file contains null.");
+            }
+            return fileUnits;
         }
     }
  
