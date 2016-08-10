@@ -80,8 +80,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         this.syntaxService = syntaxService;
     }
 
-
-
     @Override public Iterable<ICompletion> get(int position, ISpoofaxParseUnit parseInput, boolean nested)
         throws MetaborgException {
         ISpoofaxParseUnit completionParseResult = null;
@@ -99,7 +97,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
 
         String inputText = parseInput.input().text();
-        
+
         // Completion in case of empty input
         if(inputText.trim().isEmpty()) {
             final ILanguageImpl language = parseInput.input().langImpl();
@@ -107,7 +105,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final Iterable<String> startSymbols = language.facet(SyntaxFacet.class).startSymbols;
             completions.addAll(completionEmptyProgram(startSymbols, inputText.length(), language, location));
         }
-
 
         boolean blankLineCompletion = isCompletionBlankLine(position, parseInput.input().text());
 
@@ -202,8 +199,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return true;
     }
 
-
-
     public Collection<ICompletion> completionCorrectPrograms(int position, boolean blankLineCompletion,
         ISpoofaxParseUnit parseResult) throws MetaborgException {
 
@@ -248,7 +243,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return completions;
     }
 
-
     private Collection<? extends ICompletion> recursiveCompletions(Iterable<IStrategoTerm> leftRecursive,
         Iterable<IStrategoTerm> rightRecursive, ILanguageComponent component, FileObject location)
         throws MetaborgException {
@@ -257,7 +251,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // call Stratego part of the framework to compute change
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
         final ITermFactory termFactory = termFactoryService.get(component, null, false);
-        
+
         for(IStrategoTerm term : leftRecursive) {
             IStrategoTerm sort = termFactory.makeString(ImploderAttachment.getSort(term));
 
@@ -299,11 +293,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                     completions.add(completion);
                 }
-
             }
-
         }
-
 
         for(IStrategoTerm term : rightRecursive) {
             IStrategoTerm sort = termFactory.makeString(ImploderAttachment.getSort(term));
@@ -346,12 +337,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                     completions.add(completion);
                 }
-
             }
-
         }
-
-
 
         return completions;
     }
@@ -478,7 +465,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         }
 
         return completions;
-
     }
 
     public Collection<ICompletion> listsCompletions(int position, boolean blankLineCompletion,
@@ -543,20 +529,17 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                     completions.add(completion);
                 }
-
             }
         }
 
         return completions;
     }
 
-
     private ICompletion createCompletionReplaceTerm(String name, String text, String additionalInfo,
         StrategoAppl change, boolean blankLineCompletion, String prefix, String suffix) {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
-
 
         if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl) || !(oldNode instanceof IStrategoAppl)) {
             return null;
@@ -615,7 +598,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         return new Completion(name, sort, text, additionalInfo, insertionPoint + 1, suffixPoint, kind, prefix, suffix);
     }
-
 
     private ICompletion createCompletionInsertBefore(String name, String text, String additionalInfo,
         StrategoAppl change) {
@@ -693,7 +675,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
-
 
         // expected two lists
         if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList) || !(newNode instanceof IStrategoList)) {
@@ -1061,7 +1042,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         final String sort = ImploderAttachment.getElementSort(oldNode);
 
-
         int insertionPoint, suffixPoint;
         ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
         final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
@@ -1113,7 +1093,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return new Completion(name, sort, text, additionalInfo, insertionPoint + 1, suffixPoint, kind, prefix, suffix);
     }
 
-
     public Collection<? extends ICompletion> completionErroneousProgramsNested(int cursorPosition,
         Collection<IStrategoTerm> nestedCompletionTerms, ISpoofaxParseUnit completionParseResult)
         throws MetaborgException {
@@ -1159,7 +1138,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     String suffix = calculateSuffix(cursorPosition, completionTerm);
                     String completionKind = "recovery";
 
-                 // if the change is inserting at the end of a list
+                    // if the change is inserting at the end of a list
                     if(change.getConstructor().getName().contains("INSERT_AT_END")) {
 
                         // calls a different method because now, the program has errors that should be fixed
@@ -1275,8 +1254,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             inputsStratego.add(inputStrategoInnerNested);
         }
 
-
-
         return inputsStratego;
     }
 
@@ -1378,14 +1355,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return new Completion(name, sort, text, additionalInfo, insertionPoint + 1, suffixPoint, kind, prefix, suffix);
     }
 
-
     private boolean checkEmptyOffset(IToken token) {
         if(token.getStartOffset() > token.getEndOffset())
             return true;
 
         return false;
     }
-
 
     private @Nullable IStrategoAppl getPlaceholder(int position, final Iterable<IStrategoTerm> terms) {
         for(IStrategoTerm term : terms) {
@@ -1403,7 +1378,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         return null;
     }
-
 
     private @Nullable Iterable<IStrategoList> getLists(final Iterable<IStrategoTerm> terms,
         Map<IStrategoTerm, Boolean> leftRecursiveTerms, Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
@@ -1427,10 +1401,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             }
         }
 
-
         return lists;
     }
-
 
     private @Nullable Iterable<IStrategoTerm> getOptionals(final Iterable<IStrategoTerm> terms,
         Map<IStrategoTerm, Boolean> leftRecursiveTerms, Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
@@ -1473,13 +1445,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             } else {
                 break;
             }
-
         }
 
         return rightRecursive;
     }
-
-
 
     private Iterable<IStrategoTerm> getLeftRecursiveTerms(int position, Iterable<IStrategoTerm> terms,
         Map<IStrategoTerm, Boolean> leftRecursiveTerms) {
@@ -1497,13 +1466,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             } else {
                 break;
             }
-
         }
-
+        
         return leftRecursive;
     }
-
-
 
     private Collection<IStrategoTerm> getCompletionTermsFromAST(ISpoofaxParseUnit completionParseResult) {
 
@@ -1521,9 +1487,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         return completionTerm;
     }
-
-
-
+    
     private Collection<IStrategoTerm> getNestedCompletionTermsFromAST(ISpoofaxParseUnit completionParseResult) {
         if(completionParseResult == null) {
             return Lists.newLinkedList();
@@ -1539,9 +1503,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         return completionTerm;
     }
-
-
-
+    
     private Iterable<IStrategoTerm> tracingTermsCompletions(final int position, Object result,
         final ISourceRegion region, final HybridInterpreter runtime, final ITermFactory termFactory,
         final Map<IStrategoTerm, Boolean> leftRecursiveTerms, final Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
@@ -1705,11 +1667,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 || isLeftRecursive || isRightRecursive));
 
         return new SourceLocation(region, resource);
-
-
     }
-
-
 
     private Collection<IStrategoTerm> findCompletionTerm(StrategoTerm ast) {
 
@@ -1731,11 +1689,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         };
         StrategoTermVisitee.topdown(visitor, ast);
 
-
         return completionTerms;
     }
-
-
 
     private Collection<IStrategoTerm> findPlaceholderTerms(IStrategoTerm ast) {
 
@@ -1758,8 +1713,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return placeholderTerms;
     }
 
-
-
     private Collection<IStrategoTerm> findCompletionTermInsideNested(final StrategoTerm ast) {
 
         final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
@@ -1779,11 +1732,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         };
         StrategoTermVisitee.topdown(visitor, ast);
 
-
         return completionTerms;
     }
-
-
 
     private Collection<IStrategoTerm> findNestedCompletionTerm(final StrategoTerm ast, final boolean excludeIdTerm) {
         final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
@@ -1804,11 +1754,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         };
         StrategoTermVisitee.topdown(visitor, ast);
 
-
         return completionTerms;
     }
-
-
 
     private StrategoTerm findTopMostAmbNode(StrategoTerm newNode) {
         StrategoTerm parent = (StrategoTerm) ParentAttachment.getParent(newNode);
@@ -1820,17 +1767,15 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         return newNode;
     }
-    
+
     private StrategoTerm findTopMostCompletionNode(StrategoTerm newNode) {
         StrategoTerm parent = (StrategoTerm) ParentAttachment.getParent(newNode);
         if(parent == null || ImploderAttachment.getSort(parent) == null) {
             return newNode;
         }
-        
+
         return findTopMostCompletionNode(parent);
 
     }
-
-
 
 }
