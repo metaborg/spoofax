@@ -4,7 +4,7 @@ imports
 
   signatures/-
 
-constraint-generation rules
+rules
 
   init ^ (s) := new s.
 
