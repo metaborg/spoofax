@@ -35,7 +35,7 @@ import org.metaborg.spoofax.meta.core.config.Sdf2tableVersion;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
-import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator;
+import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.ArchiveBuilder;
@@ -361,12 +361,13 @@ public class LanguageSpecBuilder {
         // SDF completions
         final String sdfCompletionModule = config.sdfName() + "-completion-syntax";
         final @Nullable File sdfCompletionFile;
-        final FileObject sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);;
+        final FileObject sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
+        ;
         if(sdfCompletionFileCandidate.exists()) {
             sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
         } else {
             sdfCompletionFile = null;
-        }       
+        }
 
         // Meta-SDF
         final String sdfMetaModule = config.metaSdfName();
@@ -430,9 +431,10 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, sdfModule, sdfFile, sdfVersion,
-            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, 
-            strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
-            strjArgs);
+            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile,
+            sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat,
+            strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin origin)
@@ -480,4 +482,3 @@ public class LanguageSpecBuilder {
     }
 
 }
-

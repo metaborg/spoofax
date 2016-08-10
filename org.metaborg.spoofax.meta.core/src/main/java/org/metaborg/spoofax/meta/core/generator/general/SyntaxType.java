@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.generator.language;
+package org.metaborg.spoofax.meta.core.generator.general;
 
 import java.util.Map;
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/{{id}}.eclipse.feature_{{eclipseVersion}}.jar" id="{{id}}.eclipse.feature" version="{{eclipseVersion}}">
+      <category name="{{name}}"/>
+   </feature>
+   <category-def name="{{name}}" label="{{name}} language Eclipse plugin">
+      <description>
+         {{name}} language Eclipse plugin.
+      </description>
+   </category-def>
+</site>

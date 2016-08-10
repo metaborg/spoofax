@@ -1,8 +1,9 @@
 package org.metaborg.spoofax.meta.core.generator.eclipse;
 
-import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.util.file.IFileAccess;
@@ -22,13 +23,16 @@ public class EclipsePluginGenerator extends BaseGenerator {
     }
 
 
-    public static File childBaseDir(File baseDir, String id) {
-        return new File(baseDir, id + ".eclipse");
+    public static String siblingName(String id) {
+        return id + ".eclipse";
+    }
+
+    public static FileObject siblingDir(FileObject baseDir, String id) throws FileSystemException {
+        return baseDir.resolveFile(siblingName(id));
     }
 
 
     public void generateAll() throws IOException {
-        generateProject();
         generateClasspath();
         generatePOM();
         generateManifest();
@@ -37,10 +41,6 @@ public class EclipsePluginGenerator extends BaseGenerator {
         generateIgnoreFile();
     }
 
-
-    public void generateProject() throws IOException {
-        writer.write("plugin/.project", ".project", false);
-    }
 
     public void generateClasspath() throws IOException {
         writer.write("plugin/.classpath", ".classpath", false);

@@ -49,8 +49,9 @@ public class MustacheWriter {
     }
 
 
-    public void write(String srcName, String dstName, boolean overwrite) throws FileSystemException {
+    public void write(String srcName, String dstNameTemplate, boolean overwrite) throws FileSystemException {
         final Mustache content = factory.compile(srcName);
+        final String dstName = writeString(dstNameTemplate);
         write(content, root.resolveFile(dstName), overwrite);
     }
 

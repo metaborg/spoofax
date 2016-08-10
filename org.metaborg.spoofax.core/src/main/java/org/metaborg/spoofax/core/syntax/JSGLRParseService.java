@@ -8,19 +8,20 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.core.unit.ParseContrib;
-import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.jsglr.client.imploder.NullTokenizer;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -61,11 +62,23 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         }
         final String text = input.text();
 
-        // WORKAROUND: The parser can't handle an empty input string.
+        final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
+
+        // WORKAROUND: JSGLR can't handle an empty input string, return empty tuple with null tokenizer.
         if(text == null || text.isEmpty()) {
-            final IMessage message = MessageFactory.newParseErrorAtTop(source, "The input is empty", null);
-            return unitService
-                .parseUnit(input, new ParseContrib(false, false, null, Iterables2.singleton(message), -1));
+
+            final IStrategoTerm emptyTuple = termFactory.makeTuple();
+            final String filename;
+            if(input.detached()) {
+                filename = "";
+            } else {
+                filename = input.source().getName().getURI();
+            }
+            final ITokenizer tokenizer = new NullTokenizer("", filename);
+            final IToken token = tokenizer.currentToken();
+            ImploderAttachment.putImploderAttachment(emptyTuple, false, "", token, token, false, false, false, false);
+            return unitService.parseUnit(input, new ParseContrib(emptyTuple));
+
         }
 
         final IParserConfig config;
@@ -86,9 +99,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
  
             final JSGLRI parser;
             if(base != null) {
-                parser = new JSGLRI(config, termFactoryService.get(langImpl, null, false), base, langImpl, source, text);
+                parser = new JSGLRI(config, termFactory, base, langImpl, source, text);
             } else {
-                parser = new JSGLRI(config, termFactoryService.get(langImpl, null, false), langImpl, null, source, text);
+                parser = new JSGLRI(config, termFactory, langImpl, null, source, text);
             }
 
             final ParseContrib contrib = parser.parse(parserConfig);
