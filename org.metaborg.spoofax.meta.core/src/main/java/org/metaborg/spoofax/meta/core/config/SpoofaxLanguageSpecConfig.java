@@ -35,6 +35,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_EXTERNAL_DEF = PROP_SDF + ".externalDef";
     private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
+    private static final String PROP_PLACEHOLDER_PREFIX = "placeholder.prefix";
+    private static final String PROP_PLACEHOLDER_SUFFIX = "placeholder.suffix";
+
+
     private static final String PROP_STR = "language.stratego";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
@@ -57,8 +61,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable Boolean typesmart, @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable String metaborgVersion, @Nullable Collection<String> pardonedLanguages,
-        @Nullable Boolean useBuildSystemSpec, @Nullable SdfVersion sdfVersion, @Nullable Sdf2tableVersion sdf2tableVersion,
-        @Nullable String externalDef, @Nullable Arguments sdfArgs, @Nullable StrategoFormat format, 
+        @Nullable Boolean useBuildSystemSpec, @Nullable SdfVersion sdfVersion,
+        @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable PlaceholderCharacters placeholderCharacters,
+        @Nullable String externalDef, @Nullable Arguments sdfArgs, @Nullable StrategoFormat format,
         @Nullable String externalJar, @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
         @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates,
@@ -69,7 +74,14 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         }
         if(sdf2tableVersion != null) {
             config.setProperty(PROP_SDF2TABLE_VERSION, sdf2tableVersion);
-        }        
+        }
+        if(placeholderCharacters != null) {
+            config.setProperty(PROP_PLACEHOLDER_PREFIX, placeholderCharacters.prefix);
+            config.setProperty(PROP_PLACEHOLDER_SUFFIX, placeholderCharacters.suffix);
+        } else {
+            config.setProperty(PROP_PLACEHOLDER_PREFIX, null);
+            config.setProperty(PROP_PLACEHOLDER_SUFFIX, null);
+        }
         if(externalDef != null) {
             config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
         }
@@ -102,6 +114,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
                     }
                 });
             }
+
         }
     }
 
@@ -110,7 +123,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         final String value = this.config.getString(PROP_SDF_VERSION);
         return value != null ? SdfVersion.valueOf(value) : SdfVersion.sdf3;
     }
-    
+
     @Override public Sdf2tableVersion sdf2tableVersion() {
         final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
         return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.c;
@@ -186,8 +199,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         try {
             return phaseStr != null ? LanguageSpecBuildPhase.valueOf(phaseStr) : defaultPhase;
         } catch(IllegalArgumentException e) {
-            logger.warn("Language specification build phase with name {} does not exist, defaulting to {}", e, phaseStr,
-                defaultPhase);
+            logger.warn("Language specification build phase with name {} does not exist, defaulting to {}", e,
+                phaseStr, defaultPhase);
             return defaultPhase;
         }
     }
@@ -226,5 +239,24 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         // TODO: validate buildSteps
 
         return messages;
+    }
+
+    @Override public PlaceholderCharacters placeholderChars() {
+        PlaceholderCharacters placeholderChars = null;
+        String prefix = this.config.getString(PROP_PLACEHOLDER_PREFIX);
+        String suffix = this.config.getString(PROP_PLACEHOLDER_SUFFIX);
+        if(prefix == null && suffix == null) {
+            placeholderChars = new PlaceholderCharacters("[[", "]]");
+        } else {
+            try {
+                placeholderChars = new PlaceholderCharacters(prefix, suffix);
+            } catch(IllegalArgumentException e) {
+                logger.warn(
+                    "Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead",
+                    suffix);
+                placeholderChars = new PlaceholderCharacters("[[", "]]");
+            }
+        }
+        return placeholderChars;
     }
 }

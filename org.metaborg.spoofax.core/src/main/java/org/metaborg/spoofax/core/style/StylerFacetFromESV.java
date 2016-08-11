@@ -100,6 +100,7 @@ public class StylerFacetFromESV {
         final boolean bold;
         final boolean italic;
         final boolean underline = false;
+        final boolean strikeout = false;
         final IStrategoAppl fontSetting = (IStrategoAppl) attribute.getSubterm(2);
         final String fontSettingCons = fontSetting.getConstructor().getName();
         switch (fontSettingCons) {
@@ -120,7 +121,7 @@ public class StylerFacetFromESV {
                 italic = false;
                 break;
         }
-        return new Style(color, backgroundColor, bold, italic, underline);
+        return new Style(color, backgroundColor, bold, italic, underline, strikeout);
     }
 
     private static Color color(IStrategoAppl color) {

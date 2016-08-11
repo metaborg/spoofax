@@ -27,6 +27,13 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      * @return sdf2table version to use.
      */
     Sdf2tableVersion sdf2tableVersion();
+    
+    /**
+     * Gets the Placeholder fences.
+     * 
+     * @return Placeholder fences
+     */
+    PlaceholderCharacters placeholderChars();
 
     /**
      * Gets the external def.

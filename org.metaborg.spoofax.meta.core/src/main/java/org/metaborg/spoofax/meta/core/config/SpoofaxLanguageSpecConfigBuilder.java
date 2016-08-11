@@ -24,8 +24,10 @@ import com.google.inject.Inject;
  */
 public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     implements ISpoofaxLanguageSpecConfigBuilder {
+
     protected @Nullable SdfVersion sdfVersion;
     protected @Nullable Sdf2tableVersion sdf2tableVersion;
+    protected @Nullable PlaceholderCharacters placeholderCharacters;
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
     protected @Nullable StrategoFormat strFormat;
@@ -44,17 +46,21 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
+
         final SpoofaxLanguageSpecConfig config =
             new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, typesmart,
                 langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion, 
-                sdf2tableVersion, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+                sdf2tableVersion, placeholderCharacters, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
+
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder reset() {
         super.reset();
+
         sdfVersion = null;
         sdf2tableVersion = null;
+        this.placeholderCharacters = null;
         sdfExternalDef = null;
         sdfArgs = null;
         strFormat = null;
@@ -67,9 +73,12 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig config) {
         super.copyFrom(config);
+
         if(!(config instanceof IConfig)) {
             withSdfVersion(config.sdfVersion());
             withSdf2tableVersion(config.sdf2tableVersion());
+            withPlaceholderPrefix(config.placeholderChars().prefix);
+            withPlaceholderPostfix(config.placeholderChars().suffix);
             withSdfExternalDef(config.sdfExternalDef());
             withSdfArgs(config.sdfArgs());
             withStrFormat(config.strFormat());
@@ -80,7 +89,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
         return this;
     }
-
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion) {
         super.withMetaborgVersion(metaborgVersion);
@@ -237,6 +245,18 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
 
         Iterables.addAll(this.buildSteps, buildSteps);
+        return this;
+    }
+
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withPlaceholderPrefix(String placeholderPrefix) {
+        this.placeholderCharacters.prefix = placeholderPrefix;
+        return this;
+    }
+
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withPlaceholderPostfix(String placeholderPostfix) {
+        this.placeholderCharacters.suffix = placeholderPostfix;
         return this;
     }
 }

@@ -38,6 +38,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
     private final JSGLRParserConfiguration defaultParserConfig;
 
     private final Map<ILanguageImpl, IParserConfig> parserConfigs = Maps.newHashMap();
+    private final Map<ILanguageImpl, IParserConfig> completionParserConfigs = Maps.newHashMap();
 
 
     @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService,
@@ -65,6 +66,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
         // WORKAROUND: JSGLR can't handle an empty input string, return empty tuple with null tokenizer.
         if(text == null || text.isEmpty()) {
+
             final IStrategoTerm emptyTuple = termFactory.makeTuple();
             final String filename;
             if(input.detached()) {
@@ -74,23 +76,34 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             }
             final ITokenizer tokenizer = new NullTokenizer("", filename);
             final IToken token = tokenizer.currentToken();
-            ImploderAttachment.putImploderAttachment(emptyTuple, false, "", token, token);
+            ImploderAttachment.putImploderAttachment(emptyTuple, false, "", token, token, false, false, false, false);
             return unitService.parseUnit(input, new ParseContrib(emptyTuple));
+
         }
 
-        final IParserConfig config = getParserConfig(langImpl);
+        final IParserConfig config;
+        
+        JSGLRParserConfiguration parserConfig = input.config();
+        if(parserConfig == null) {
+            parserConfig = defaultParserConfig;
+        }
+        
+        if(parserConfig.completion) {
+            config = getCompletionParserConfig(langImpl);
+        } else {
+            config = getParserConfig(langImpl);
+        }
+        
         try {
-            logger.trace("Parsing {}", source);
+            logger.trace("Parsing {}", source);          
+ 
             final JSGLRI parser;
             if(base != null) {
                 parser = new JSGLRI(config, termFactory, base, langImpl, source, text);
             } else {
                 parser = new JSGLRI(config, termFactory, langImpl, null, source, text);
             }
-            JSGLRParserConfiguration parserConfig = input.config();
-            if(parserConfig == null) {
-                parserConfig = defaultParserConfig;
-            }
+
             final ParseContrib contrib = parser.parse(parserConfig);
             final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
             return unit;
@@ -119,11 +132,25 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         }
         return config;
     }
+    
+    public IParserConfig getCompletionParserConfig(ILanguageImpl lang) {
+        IParserConfig config = completionParserConfigs.get(lang);
+        if(config == null) {
+            final ITermFactory termFactory =
+                termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
+            final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
+            final IParseTableProvider provider = new FileParseTableProvider(facet.completionParseTable, termFactory);
+            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
+            completionParserConfigs.put(lang, config);
+        }
+        return config;
+    }
 
 
     @Override public void invalidateCache(ILanguageImpl impl) {
         logger.debug("Removing cached parse table for {}", impl);
         parserConfigs.remove(impl);
+        completionParserConfigs.remove(impl);
     }
 
     @Override public void invalidateCache(ILanguageComponent component) {
