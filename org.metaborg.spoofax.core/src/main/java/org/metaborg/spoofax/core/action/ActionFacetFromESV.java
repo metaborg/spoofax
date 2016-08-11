@@ -138,13 +138,12 @@ public class ActionFacetFromESV {
         final List<IStrategoAppl> onSaveHandlers = ESVReader.collectTerms(esv, "OnSave");
         if(onSaveHandlers.isEmpty()) {
             return;
-        } else if(onSaveHandlers.size() > 1) {
-            logger.warn("Found multiple on-save handlers, this is not supported, using the first on-save handler");
         }
-        final IStrategoAppl onSaveHandler = onSaveHandlers.get(0);
-        final String strategyName = Tools.asJavaString(onSaveHandler.getSubterm(0).getSubterm(0));
-        final ITransformGoal goal = new CompileGoal();
-        final ITransformAction action = new TransformAction("Compile", goal, new TransformActionFlags(), strategyName);
-        actions.put(goal, action);
+        for(IStrategoAppl onSaveHandler : onSaveHandlers) {
+            final String strategyName = Tools.asJavaString(onSaveHandler.getSubterm(0).getSubterm(0));
+            final ITransformGoal goal = new CompileGoal();
+            final ITransformAction action = new TransformAction("Compile", goal, new TransformActionFlags(), strategyName);
+            actions.put(goal, action);
+        }
     }
 }

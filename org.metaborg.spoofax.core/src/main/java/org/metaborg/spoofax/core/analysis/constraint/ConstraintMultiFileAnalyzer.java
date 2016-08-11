@@ -139,7 +139,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
         globalUnit.setScopeGraph(finalResult.scopeGraph);
         globalUnit.setNameResolution(finalResult.nameResolution);
         globalUnit.setAnalysis(finalResult.analysis);
-        
+ 
         Multimap<String,IMessage> errorsByFile = messages(finalResult.errors, MessageSeverity.ERROR);
         Multimap<String,IMessage> warningsByFile = messages(finalResult.warnings, MessageSeverity.WARNING);
         Multimap<String,IMessage> notesByFile = messages(finalResult.notes, MessageSeverity.NOTE);
