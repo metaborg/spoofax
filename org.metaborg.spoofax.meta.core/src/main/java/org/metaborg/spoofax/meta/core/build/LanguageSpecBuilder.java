@@ -257,7 +257,9 @@ public class LanguageSpecBuilder {
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
         final FileObject location = input.languageSpec().location();
 
+
         logger.debug("Cleaning {}", location);
+
 
         final CommonPaths paths = new LangSpecCommonPaths(location);
         cleanAndLog(paths.srcGenDir());
@@ -356,6 +358,16 @@ public class LanguageSpecBuilder {
 
         final Arguments packSdfArgs = config.sdfArgs();
 
+        // SDF completions
+        final String sdfCompletionModule = config.sdfName() + "-completion-syntax";
+        final @Nullable File sdfCompletionFile;
+        final FileObject sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
+        ;
+        if(sdfCompletionFileCandidate.exists()) {
+            sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
+        } else {
+            sdfCompletionFile = null;
+        }
 
         // Meta-SDF
         final String sdfMetaModule = config.metaSdfName();
@@ -419,9 +431,10 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, sdfModule, sdfFile, sdfVersion,
-            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile,
-            strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags,
-            strjIncludeDirs, strjArgs);
+            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile,
+            sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat,
+            strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin origin)
@@ -467,4 +480,5 @@ public class LanguageSpecBuilder {
 
         return new ArchiveBuilder.Input(context, origin, exports, languageIdentifier);
     }
+
 }

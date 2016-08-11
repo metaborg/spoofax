@@ -95,7 +95,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
             .addFile("-o", input.outputFile)
             .add("--main-strategy", "io-" + input.inputModule + "-parenthesize")
             .add("--rule-prefix", input.inputModule)
-            .add( "--sig-module", "signatures/" + input.inputModule + "-sig")
+            .add( "--sig-module", "signatures/-")
             ;
         
         final ExecutionResult result = new StrategoExecutor()
