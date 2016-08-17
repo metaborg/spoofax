@@ -2,8 +2,6 @@ package org.metaborg.spoofax.meta.core.generator.general;
 
 import java.io.IOException;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.util.file.IFileAccess;
@@ -23,10 +21,6 @@ public class LangProjectGenerator extends BaseGenerator {
 
     public static String siblingName(String id) {
         return id + ".example";
-    }
-
-    public static FileObject siblingDir(FileObject baseDir, String id) throws FileSystemException {
-        return baseDir.resolveFile(siblingName(id));
     }
 
 

@@ -27,10 +27,6 @@ public class EclipsePluginGenerator extends BaseGenerator {
         return id + ".eclipse";
     }
 
-    public static FileObject siblingDir(FileObject baseDir, String id) throws FileSystemException {
-        return baseDir.resolveFile(siblingName(id));
-    }
-
 
     public void generateAll() throws IOException {
         generateClasspath();
