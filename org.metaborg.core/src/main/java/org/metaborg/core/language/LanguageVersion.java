@@ -6,6 +6,8 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.ComparisonChain;
 
@@ -15,38 +17,34 @@ import com.google.common.collect.ComparisonChain;
 public class LanguageVersion implements Comparable<LanguageVersion>, Serializable {
     private static final long serialVersionUID = -4814753959508772739L;
     private static final String SNAPSHOT = "SNAPSHOT";
-    private static final Pattern pattern = Pattern.compile("(\\d+)?(?:\\.(\\d+)(?:\\.(\\d+))?)?(?:(?:\\-)(.+))?");
+    private static final Pattern pattern = Pattern.compile("(\\d+)(?:\\.(\\d+)(?:\\.(\\d+))?)?(?:(?:\\-)(.+))?");
 
     public static final String errorDescription =
         "must consist of 1, 2, or 3 numbers separated by dots, optionally followed by a -qualifier string (e.g. 1.0.0-SNAPSHOT)";
 
     public final int major;
-    public final int minor;
-    public final int patch;
-    public final String qualifier;
+    public final @Nullable Integer minor;
+    public final @Nullable Integer patch;
+    public final @Nullable String qualifier;
 
 
-    public LanguageVersion(int major, int minor, int patch, String qualifier) {
+    public LanguageVersion(int major) {
+        this(major, null, null, null);
+    }
+
+    public LanguageVersion(int major, int minor) {
+        this(major, minor, null, null);
+    }
+
+    public LanguageVersion(int major, int minor, int patch) {
+        this(major, minor, patch, null);
+    }
+
+    public LanguageVersion(int major, @Nullable Integer minor, @Nullable Integer patch, @Nullable String qualifier) {
         this.major = major;
         this.minor = minor;
         this.patch = patch;
         this.qualifier = qualifier;
-    }
-
-    public int major() {
-        return major;
-    }
-
-    public int minor() {
-        return minor;
-    }
-
-    public int patch() {
-        return patch;
-    }
-
-    public String qualifier() {
-        return qualifier;
     }
 
 
@@ -64,20 +62,21 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
             throw new IllegalArgumentException("Invalid version string " + version);
         }
 
-        String major = matcher.group(1);
-        major = major == null || major.isEmpty() ? "0" : major;
+        final String majorStr = matcher.group(1);
+        if(majorStr == null) {
+            // Should never happen according to regex pattern, but check just in case.
+            throw new IllegalArgumentException(
+                "Invalid version string " + version + ", major version may not be empty");
+        }
+        final String minorStr = matcher.group(2);
+        final String patchStr = matcher.group(3);
 
-        String minor = matcher.group(2);
-        minor = minor == null || minor.isEmpty() ? "0" : minor;
+        final int major = Integer.parseInt(majorStr);
+        final Integer minor = (minorStr == null || minorStr.isEmpty()) ? null : Integer.parseInt(minorStr);
+        final Integer patch = (patchStr == null || patchStr.isEmpty()) ? null : Integer.parseInt(patchStr);
+        final String qualifier = matcher.group(4);
 
-        String patch = matcher.group(3);
-        patch = patch == null || patch.isEmpty() ? "0" : patch;
-
-        String qualifier = matcher.group(4);
-        qualifier = qualifier == null || qualifier.isEmpty() ? "" : qualifier;
-
-        return new LanguageVersion(Integer.parseInt(major), Integer.parseInt(minor), Integer.parseInt(patch),
-            qualifier);
+        return new LanguageVersion(major, minor, patch, qualifier);
     }
 
 
@@ -88,20 +87,32 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
             .compare(this.minor, other.minor)
             .compare(this.patch, other.patch)
             .compare(this.qualifier, other.qualifier, new Comparator<String>() {
-                @Override public int compare(String qualifier, String other) {
-                    int result = qualifier.compareToIgnoreCase(other);
-                    if(result != 0) {
-                        if(SNAPSHOT.equalsIgnoreCase(qualifier)) {
+                @Override public int compare(@Nullable String left, @Nullable String right) {
+                    final boolean leftNull = Strings.isNullOrEmpty(left);
+                    final boolean rightNull = Strings.isNullOrEmpty(right);
+                    if(leftNull && rightNull) {
+                        return 0;
+                    }
+                    
+                    final boolean leftSnapshot = SNAPSHOT.equalsIgnoreCase(left);
+                    final boolean rightSnapshot = SNAPSHOT.equalsIgnoreCase(right);
+                    if(leftSnapshot && rightSnapshot) {
+                        return 0;  
+                    }
+                    
+                    if(leftNull) {
+                        return rightSnapshot ? -1 : 1;
+                    } else if(rightNull) {
+                        return leftSnapshot ? 1 : -1;
+                    } else {
+                        if(leftSnapshot) {
                             return 1;
-                        } else if(SNAPSHOT.equalsIgnoreCase(other)) {
+                        } else if(rightSnapshot) {
                             return -1;
-                        } else if(!Strings.isNullOrEmpty(other)) {
-                            return 1;
                         } else {
-                            return result;
+                            return left.compareTo(right);
                         }
                     }
-                    return 0;
                 }})
             .result()
             ;
@@ -112,9 +123,15 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
         final int prime = 31;
         int result = 1;
         result = prime * result + major;
-        result = prime * result + minor;
-        result = prime * result + patch;
-        result = prime * result + Objects.hashCode(qualifier);
+        if(minor != null) {
+            result = prime * result + minor;
+        }
+        if(patch != null) {
+            result = prime * result + patch;
+        }
+        if(qualifier != null) {
+            result = prime * result + qualifier.hashCode();
+        }
         return result;
     }
 
@@ -128,16 +145,30 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
         final LanguageVersion other = (LanguageVersion) obj;
         if(major != other.major)
             return false;
-        if(minor != other.minor)
+        if(!Objects.equals(minor, other.minor))
             return false;
-        if(patch != other.patch)
+        if(!Objects.equals(patch, other.patch))
             return false;
-        if(!qualifier.equalsIgnoreCase(other.qualifier))
+        if(!Strings.nullToEmpty(qualifier).equalsIgnoreCase(Strings.nullToEmpty(other.qualifier)))
             return false;
         return true;
     }
 
     @Override public String toString() {
-        return String.format("%d.%d.%d%s", major, minor, patch, (qualifier.isEmpty() ? "" : ("-" + qualifier)));
+        final StringBuilder sb = new StringBuilder();
+        sb.append(major);
+        if(minor != null) {
+            sb.append('.');
+            sb.append(minor);
+            if(patch != null) {
+                sb.append('.');
+                sb.append(patch);
+            }
+        }
+        if(qualifier != null) {
+            sb.append('-');
+            sb.append(qualifier);
+        }
+        return sb.toString();
     }
 }
