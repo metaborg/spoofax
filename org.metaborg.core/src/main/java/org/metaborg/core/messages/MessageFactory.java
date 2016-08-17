@@ -62,6 +62,10 @@ public class MessageFactory {
         return newAtTop(resource, msg, type, MessageSeverity.WARNING, cause);
     }
 
+    public static Message newNoteAtTop(@Nullable FileObject resource, String msg, MessageType type, @Nullable Throwable cause) {
+        return newAtTop(resource, msg, type, MessageSeverity.NOTE, cause);
+    }
+
 
     public static Message newParseErrorAtTop(@Nullable FileObject resource, String msg, @Nullable Throwable cause) {
         return newErrorAtTop(resource, msg, MessageType.PARSER, cause);
@@ -83,6 +87,10 @@ public class MessageFactory {
 
     public static Message newAnalysisWarningAtTop(@Nullable FileObject resource, String msg, @Nullable Throwable cause) {
         return newWarningAtTop(resource, msg, MessageType.ANALYSIS, cause);
+    }
+
+    public static Message newAnalysisNoteAtTop(@Nullable FileObject resource, String msg, @Nullable Throwable cause) {
+        return newNoteAtTop(resource, msg, MessageType.ANALYSIS, cause);
     }
 
 

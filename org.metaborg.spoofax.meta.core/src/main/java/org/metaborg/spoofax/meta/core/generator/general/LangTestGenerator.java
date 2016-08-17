@@ -25,10 +25,6 @@ public class LangTestGenerator extends BaseGenerator {
         return id + ".test";
     }
 
-    public static FileObject siblingDir(FileObject baseDir, String id) throws FileSystemException {
-        return baseDir.resolveFile(siblingName(id));
-    }
-
 
     public void generateAll() throws IOException {
         generateConfig();
