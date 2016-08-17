@@ -35,11 +35,21 @@ import org.metaborg.core.transform.ITransformer;
 import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
+import org.metaborg.scopegraph.indices.SG_get_analysis;
+import org.metaborg.scopegraph.indices.SG_get_ast_index;
+import org.metaborg.scopegraph.indices.SG_get_ast_metadata;
+import org.metaborg.scopegraph.indices.SG_get_ast_references;
+import org.metaborg.scopegraph.indices.SG_index_ast;
+import org.metaborg.scopegraph.indices.SG_index_sublist;
+import org.metaborg.scopegraph.indices.SG_set_ast_index;
+import org.metaborg.scopegraph.indices.SG_set_ast_metadata;
 import org.metaborg.spoofax.core.action.ActionService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.constraint.ConstraintMultiFileAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.ConstraintSingleFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
@@ -49,6 +59,7 @@ import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
+import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
@@ -89,6 +100,7 @@ import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ProjectPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxJSGLRLibrary;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
+import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.style.CategorizerService;
@@ -140,7 +152,6 @@ public class SpoofaxModule extends MetaborgModule {
     private MapBinder<String, ISpoofaxParser> spoofaxParserBinder;
     private MapBinder<String, IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>> analyzerBinder;
     private MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder;
-    private Multibinder<ClassLoader> strategoRuntimeClassloaderBinder;
 
 
     public SpoofaxModule() {
@@ -161,8 +172,7 @@ public class SpoofaxModule extends MetaborgModule {
             new TypeLiteral<IAnalyzer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>>() {});
         spoofaxAnalyzerBinder = MapBinder.newMapBinder(binder(), String.class, ISpoofaxAnalyzer.class);
 
-        // Permit duplicate entries, on non-OSGI systems there will probably only be a single class loader.
-        strategoRuntimeClassloaderBinder = Multibinder.newSetBinder(binder(), ClassLoader.class).permitDuplicates();
+        Multibinder.newSetBinder(binder(), ClassLoader.class).permitDuplicates();
 
         bindUnit();
         bindSyntax();
@@ -217,6 +227,7 @@ public class SpoofaxModule extends MetaborgModule {
 
         binder.addBinding(IndexTaskContextFactory.name).to(IndexTaskContextFactory.class).in(Singleton.class);
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
+        binder.addBinding(ScopeGraphContextFactory.name).to(ScopeGraphContextFactory.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {
@@ -274,6 +285,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitiveLibrary(libraryBinder, LegacyIndexLibrary.class);
         bindPrimitiveLibrary(libraryBinder, SpoofaxPrimitiveLibrary.class);
         bindPrimitiveLibrary(libraryBinder, SpoofaxJSGLRLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, ScopeGraphLibrary.class);
 
         final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxPrimitiveLibrary"));
@@ -302,6 +314,17 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxJSGLRLibrary, ParseFilePtPrimitive.class);
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
+
+        final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
+            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("ScopeGraphLibrary"));
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_analysis.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_index_ast.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_index_sublist.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_metadata.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_metadata.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_references.class);
     }
 
     private void bindAnalyzers(
@@ -309,11 +332,17 @@ public class SpoofaxModule extends MetaborgModule {
         MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder) {
         bind(StrategoAnalyzer.class).in(Singleton.class);
         bind(TaskEngineAnalyzer.class).in(Singleton.class);
+        bind(ConstraintSingleFileAnalyzer.class).in(Singleton.class);
+        bind(ConstraintMultiFileAnalyzer.class).in(Singleton.class);
 
         analyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
         spoofaxAnalyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
         analyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
         spoofaxAnalyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
+        analyzerBinder.addBinding(ConstraintSingleFileAnalyzer.name).to(ConstraintSingleFileAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(ConstraintSingleFileAnalyzer.name).to(ConstraintSingleFileAnalyzer.class);
+        analyzerBinder.addBinding(ConstraintMultiFileAnalyzer.name).to(ConstraintMultiFileAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(ConstraintMultiFileAnalyzer.name).to(ConstraintMultiFileAnalyzer.class);
     }
 
     protected void bindAction() {

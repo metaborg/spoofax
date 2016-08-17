@@ -10,7 +10,6 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -35,14 +34,12 @@ import com.google.inject.Inject;
 public class StrategoCommon implements IStrategoCommon {
     private static final ILogger logger = LoggerUtils.logger(StrategoCommon.class);
 
-    private final IResourceService resourceService;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ITermFactoryService termFactoryService;
 
 
-    @Inject public StrategoCommon(IResourceService resourceService, IStrategoRuntimeService strategoRuntimeService,
+    @Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
         ITermFactoryService termFactoryService) {
-        this.resourceService = resourceService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.termFactoryService = termFactoryService;
     }
@@ -136,7 +133,7 @@ public class StrategoCommon implements IStrategoCommon {
             if(cause != null && cause instanceof InterpreterException) {
                 handleException((InterpreterException) cause, runtime, strategy);
             } else {
-                throw new MetaborgException("Invoking Stratego strategy failed unexpectedly: " + cause.getMessage() + "\n" + trace, cause);
+                throw new MetaborgException("Invoking Stratego strategy failed unexpectedly:" + "\n" + trace, e);
             }
         }
     }

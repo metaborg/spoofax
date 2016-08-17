@@ -2,7 +2,6 @@ package org.metaborg.spoofax.core.unit;
 
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.messages.IMessage;
-import org.metaborg.scopegraph.IScopeGraph;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class AnalyzeUnit extends UnitWrapper implements ISpoofaxAnalyzeUnit {
@@ -33,14 +32,6 @@ public class AnalyzeUnit extends UnitWrapper implements ISpoofaxAnalyzeUnit {
 
     @Override public IStrategoTerm ast() {
         return contrib.ast;
-    }
-
-    @Override public boolean hasScopeGraph() {
-        return contrib.hasScopeGraph;
-    }
-
-    @Override public IScopeGraph scopeGraph() {
-        return contrib.scopeGraph;
     }
 
     @Override public Iterable<IMessage> messages() {

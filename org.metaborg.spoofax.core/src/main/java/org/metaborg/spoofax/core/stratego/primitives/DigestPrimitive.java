@@ -1,8 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitives;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -15,12 +13,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import com.google.common.hash.Hashing;
 
 public class DigestPrimitive extends AbstractPrimitive {
-    private final MessageDigest digest;
 
-
-    public DigestPrimitive() throws NoSuchAlgorithmException {
+    public DigestPrimitive() {
         super("digest", 0, 0);
-        this.digest = MessageDigest.getInstance("SHA-256");
     }
 
 
