@@ -154,6 +154,15 @@ public class CommonPaths {
     public FileObject syntaxCompletionMainFile(String languageName) {
         return resolve(syntaxCompletionSrcGenDir(), languageName + ".sdf");
     }
+    
+    /**
+     * @param languageName
+     *            Name of the language.
+     * @return Main normalized aterm completion file.
+     */
+    public FileObject syntaxCompletionMainFileNormalized(String languageName) {
+        return resolve(syntaxNormalizedCompletionSrcGenDir(), languageName + "-norm.aterm");
+    }
 
     /**
      * @return Normalized syntax directory. Contains the SDF3 normalized files.
@@ -176,6 +185,15 @@ public class CommonPaths {
     public FileObject syntaxCompletionSrcGenDir() {
         return resolve(syntaxSrcGenDir(), "completion");
     }
+    
+    /**
+     * 
+     * @return Generated normalized completion syntax directory, generated from SDF3 definition.
+     */
+    private FileObject syntaxNormalizedCompletionSrcGenDir() {
+        return resolve(syntaxNormDir(), "completion");
+    }
+
 
     /**
      * @param languageName

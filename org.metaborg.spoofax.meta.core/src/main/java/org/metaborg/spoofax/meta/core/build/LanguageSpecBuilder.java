@@ -359,11 +359,18 @@ public class LanguageSpecBuilder {
         final Arguments packSdfArgs = config.sdfArgs();
 
         // SDF completions
-        final String sdfCompletionModule = config.sdfName() + "-completion-syntax";
+        final String sdfCompletionModule = config.sdfName() + "-completion-insertions";
         final @Nullable File sdfCompletionFile;
-        final FileObject sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
-        ;
-        if(sdfCompletionFileCandidate.exists()) {
+
+        FileObject sdfCompletionFileCandidate = null;
+        
+        if(sdf2tableVersion == Sdf2tableVersion.c) {
+            sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
+        } else if(sdf2tableVersion == Sdf2tableVersion.java) {
+            sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
+        }
+        
+        if(sdfCompletionFileCandidate != null && sdfCompletionFileCandidate.exists()) {
             sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
         } else {
             sdfCompletionFile = null;
