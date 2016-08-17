@@ -96,7 +96,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
         for(Map.Entry<String,ISpoofaxParseUnit> input : changed.entrySet()) {
             String source = input.getKey();
             ISpoofaxParseUnit parseUnit = input.getValue();
-            
+ 
             ScopeGraphUnit unit = context.getOrCreateUnit(source);
             unit.reset();
 
@@ -120,6 +120,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
 
         final Collection<IStrategoTerm> unitSolutions = Lists.newArrayList();
         for(IScopeGraphUnit unit : context.units()) {
+            if(unit == globalUnit) {
+                continue;
+            }
             IStrategoTerm unitSolution = unit.analysis();
             if(unitSolution != null) {
                 unitSolutions.add(unitSolution);
