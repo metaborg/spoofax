@@ -103,7 +103,8 @@ public class LanguageSpecBuilder {
         }
     }
 
-    public void generateSources(LanguageSpecBuildInput input, @Nullable IFileAccess access) throws Exception {
+    public void generateSources(LanguageSpecBuildInput input, @Nullable IFileAccess access)
+        throws IOException, MetaborgException {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final FileObject location = languageSpec.location();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
@@ -135,7 +136,7 @@ public class LanguageSpecBuilder {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage, e);
             } else {
-                throw new MetaborgException("Rebuilding failed.", e);
+                throw new MetaborgException();
             }
         } catch(RuntimeException e) {
             throw e;
@@ -359,11 +360,18 @@ public class LanguageSpecBuilder {
         final Arguments packSdfArgs = config.sdfArgs();
 
         // SDF completions
-        final String sdfCompletionModule = config.sdfName() + "-completion-syntax";
+        final String sdfCompletionModule = config.sdfName() + "-completion-insertions";
         final @Nullable File sdfCompletionFile;
-        final FileObject sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
-        ;
-        if(sdfCompletionFileCandidate.exists()) {
+
+        FileObject sdfCompletionFileCandidate = null;
+        
+        if(sdf2tableVersion == Sdf2tableVersion.c) {
+            sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
+        } else if(sdf2tableVersion == Sdf2tableVersion.java) {
+            sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
+        }
+        
+        if(sdfCompletionFileCandidate != null && sdfCompletionFileCandidate.exists()) {
             sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
         } else {
             sdfCompletionFile = null;
