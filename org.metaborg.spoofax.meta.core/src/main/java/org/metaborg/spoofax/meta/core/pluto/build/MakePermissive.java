@@ -11,8 +11,8 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
+import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
+import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 import org.metaborg.util.cmd.Arguments;
 import org.strategoxt.permissivegrammars.make_permissive;
 

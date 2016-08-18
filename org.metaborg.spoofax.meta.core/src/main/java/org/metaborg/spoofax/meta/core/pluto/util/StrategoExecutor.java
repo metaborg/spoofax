@@ -1,8 +1,7 @@
-package org.metaborg.spoofax.meta.core.pluto;
+package org.metaborg.spoofax.meta.core.pluto.util;
 
 import java.util.List;
 
-import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -159,5 +158,4 @@ public class StrategoExecutor {
         List<String> strings = arguments.asStrings(null);
         return strings.toArray(new String[strings.size()]);
     }
-
 }
