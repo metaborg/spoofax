@@ -103,7 +103,8 @@ public class LanguageSpecBuilder {
         }
     }
 
-    public void generateSources(LanguageSpecBuildInput input, @Nullable IFileAccess access) throws Exception {
+    public void generateSources(LanguageSpecBuildInput input, @Nullable IFileAccess access)
+        throws IOException, MetaborgException {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final FileObject location = languageSpec.location();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
@@ -135,7 +136,7 @@ public class LanguageSpecBuilder {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage, e);
             } else {
-                throw new MetaborgException("Rebuilding failed.", e);
+                throw new MetaborgException();
             }
         } catch(RuntimeException e) {
             throw e;
