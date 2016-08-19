@@ -2,7 +2,6 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.metaborg.sdf2table.parsetable.ParseTable;

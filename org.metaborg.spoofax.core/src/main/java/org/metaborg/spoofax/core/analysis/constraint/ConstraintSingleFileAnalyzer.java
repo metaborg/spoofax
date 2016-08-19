@@ -36,7 +36,6 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
     public static final ILogger logger = LoggerUtils.logger(ConstraintSingleFileAnalyzer.class);
     public static final String name = "constraint-singlefile";
 
-    private final AnalysisCommon analysisCommon;
     private final ISpoofaxUnitService unitService;
 
     @Inject public ConstraintSingleFileAnalyzer(
@@ -48,7 +47,6 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             final ISpoofaxTracingService tracingService
     ) {
         super(analysisCommon , runtimeService, strategoCommon, termFactoryService, tracingService);
-        this.analysisCommon = analysisCommon;
         this.unitService = unitService;
     }
 

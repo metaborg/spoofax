@@ -4,7 +4,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
-import org.metaborg.spoofax.meta.core.config.PlaceholderCharacters;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.log.ILogger;
@@ -61,8 +60,6 @@ public class LanguageSpecNamePrimitive extends AbstractPrimitive {
             return false;
         }
         
-        PlaceholderCharacters placeholderChars = languageSpec.config().placeholderChars();
-
         env.setCurrent(env.getFactory().makeString(languageSpec.config().name()));
         return true;
     }
