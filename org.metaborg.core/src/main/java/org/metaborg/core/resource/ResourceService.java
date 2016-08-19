@@ -99,8 +99,6 @@ public class ResourceService implements IResourceService {
     }
 
     @Override public FileObject resolve(FileObject parent, String path) {
-        final File file = new File(path);
-
         try {
             final URI uri = new URI(path);
             if(uri.isAbsolute()) {
@@ -110,6 +108,7 @@ public class ResourceService implements IResourceService {
             // Ignore
         }
 
+        final File file = new File(path);
         if(file.isAbsolute()) {
             return resolve("file://" + path);
         }

@@ -224,7 +224,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(ambiguities);
 
         return unitService.analyzeUnit(input,
-            new AnalyzeContrib(true, errors.isEmpty(), true, ast, false, null, messages, duration), context);
+            new AnalyzeContrib(true, errors.isEmpty(), true, ast, messages, duration), context);
     }
 
     private ISpoofaxAnalyzeUnitUpdate updateResult(IStrategoTerm result, IContext context) {

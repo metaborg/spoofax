@@ -118,8 +118,7 @@ public class StrategoCommon implements IStrategoCommon {
     // return success ? context.current() : null;
     // }
 
-    private void handleException(InterpreterException ex, HybridInterpreter runtime, String strategy)
-        throws MetaborgException {
+    private void handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) throws MetaborgException {
         String trace = "Stratego trace:\n" + runtime.getCompiledContext().getTraceString();
         try {
             throw ex;
@@ -152,8 +151,7 @@ public class StrategoCommon implements IStrategoCommon {
             if(cause != null && cause instanceof InterpreterException) {
                 handleException((InterpreterException) cause, runtime, strategy);
             } else {
-                throw new MetaborgException(
-                    "Invoking Stratego strategy failed unexpectedly: " + cause.getMessage() + "\n" + trace, cause);
+                throw new MetaborgException("Invoking Stratego strategy failed unexpectedly:" + "\n" + trace, e);
             }
         }
     }

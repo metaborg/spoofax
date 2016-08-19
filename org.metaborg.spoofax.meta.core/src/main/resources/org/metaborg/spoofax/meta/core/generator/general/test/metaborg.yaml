@@ -1,0 +1,5 @@
+---
+dependencies:
+  compile:
+  - {{groupId}}:{{id}}:{{version}}
+  - org.metaborg:org.metaborg.meta.lang.spt:${metaborgVersion}

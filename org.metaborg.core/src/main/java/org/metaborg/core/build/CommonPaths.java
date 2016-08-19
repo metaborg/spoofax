@@ -136,7 +136,7 @@ public class CommonPaths {
     public FileObject syntaxDir() {
         return resolve(root, "syntax");
     }
-    
+
     /**
      * @param languageName
      *            Name of the language.
@@ -147,18 +147,53 @@ public class CommonPaths {
     }
 
     /**
-     * @return Generated SDF2 syntax directory, generated from SDF3 definition.
+     * @param languageName
+     *            Name of the language.
+     * @return Main SDF2 completion file.
      */
-    public FileObject syntaxSrcGenDir() {
-        return resolve(srcGenDir(), "syntax");
+    public FileObject syntaxCompletionMainFile(String languageName) {
+        return resolve(syntaxCompletionSrcGenDir(), languageName + ".sdf");
     }
-    
+
+    /**
+     * @param languageName
+     *            Name of the language.
+     * @return Main normalized aterm completion file.
+     */
+    public FileObject syntaxCompletionMainFileNormalized(String languageName) {
+        return resolve(syntaxNormalizedCompletionSrcGenDir(), languageName + "-norm.aterm");
+    }
+
     /**
      * @return Normalized syntax directory. Contains the SDF3 normalized files.
      */
     public FileObject syntaxNormDir() {
         return resolve(syntaxSrcGenDir(), "normalized");
     }
+
+    /**
+     * @return Generated SDF2 syntax directory, generated from SDF3 definition.
+     */
+    public FileObject syntaxSrcGenDir() {
+        return resolve(srcGenDir(), "syntax");
+    }
+
+    /**
+     * 
+     * @return Generated SDF2 completion syntax directory, generated from SDF3 definition.
+     */
+    public FileObject syntaxCompletionSrcGenDir() {
+        return resolve(syntaxSrcGenDir(), "completion");
+    }
+
+    /**
+     * 
+     * @return Generated normalized completion syntax directory, generated from SDF3 definition.
+     */
+    private FileObject syntaxNormalizedCompletionSrcGenDir() {
+        return resolve(syntaxNormDir(), "completion");
+    }
+
 
     /**
      * @param languageName
@@ -168,7 +203,7 @@ public class CommonPaths {
     public FileObject syntaxSrcGenMainFile(String languageName) {
         return resolve(syntaxSrcGenDir(), languageName + ".sdf");
     }
-    
+
     /**
      * @param languageName
      *            Name of the language.
@@ -290,6 +325,8 @@ public class CommonPaths {
     /**
      * Gets all the Java source root folders.
      * 
+     * @param languageId
+     *            Identifier of the language.
      * @return A list of Java source root folders.
      */
     public Collection<FileObject> javaSrcDirs(String languageId) {

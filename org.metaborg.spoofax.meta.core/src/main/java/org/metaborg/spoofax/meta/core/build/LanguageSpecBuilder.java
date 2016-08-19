@@ -35,7 +35,7 @@ import org.metaborg.spoofax.meta.core.config.Sdf2tableVersion;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
-import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator;
+import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.ArchiveBuilder;
@@ -103,7 +103,8 @@ public class LanguageSpecBuilder {
         }
     }
 
-    public void generateSources(LanguageSpecBuildInput input, @Nullable IFileAccess access) throws Exception {
+    public void generateSources(LanguageSpecBuildInput input, @Nullable IFileAccess access)
+        throws IOException, MetaborgException {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final FileObject location = languageSpec.location();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
@@ -135,7 +136,7 @@ public class LanguageSpecBuilder {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage, e);
             } else {
-                throw new MetaborgException("Rebuilding failed.", e);
+                throw new MetaborgException();
             }
         } catch(RuntimeException e) {
             throw e;
@@ -257,7 +258,9 @@ public class LanguageSpecBuilder {
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
         final FileObject location = input.languageSpec().location();
 
+
         logger.debug("Cleaning {}", location);
+
 
         final CommonPaths paths = new LangSpecCommonPaths(location);
         cleanAndLog(paths.srcGenDir());
@@ -356,6 +359,23 @@ public class LanguageSpecBuilder {
 
         final Arguments packSdfArgs = config.sdfArgs();
 
+        // SDF completions
+        final String sdfCompletionModule = config.sdfName() + "-completion-insertions";
+        final @Nullable File sdfCompletionFile;
+
+        FileObject sdfCompletionFileCandidate = null;
+        
+        if(sdf2tableVersion == Sdf2tableVersion.c) {
+            sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
+        } else if(sdf2tableVersion == Sdf2tableVersion.java) {
+            sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
+        }
+        
+        if(sdfCompletionFileCandidate != null && sdfCompletionFileCandidate.exists()) {
+            sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
+        } else {
+            sdfCompletionFile = null;
+        }
 
         // Meta-SDF
         final String sdfMetaModule = config.metaSdfName();
@@ -419,9 +439,10 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, sdfModule, sdfFile, sdfVersion,
-            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfMetaModule, sdfMetaFile, strFile, 
-            strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
-            strjArgs);
+            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile,
+            sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat,
+            strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin origin)
@@ -467,4 +488,5 @@ public class LanguageSpecBuilder {
 
         return new ArchiveBuilder.Input(context, origin, exports, languageIdentifier);
     }
+
 }

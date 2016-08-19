@@ -1,0 +1,11 @@
+module Analysis
+
+imports
+
+  nabl2/Menus
+  nabl2/References
+
+language
+
+  observer : editor-analyze (constraint)
+  context  : scopegraph

@@ -59,7 +59,7 @@ public class LanguageSpecNamePrimitive extends AbstractPrimitive {
         if(languageSpec == null) {
             return false;
         }
-
+        
         env.setCurrent(env.getFactory().makeString(languageSpec.config().name()));
         return true;
     }

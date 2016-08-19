@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.transform;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Collection;
 
 import org.apache.commons.io.IOUtils;
@@ -160,7 +161,7 @@ public class StrategoTransformer implements IStrategoTransformer {
 
                 outputFile = resourceService.resolve(location, resourceString);
                 try(OutputStream stream = outputFile.getContent().getOutputStream()) {
-                    IOUtils.write(resultContents, stream);
+                    IOUtils.write(resultContents, stream, Charset.defaultCharset());
                 } catch(IOException e) {
                     logger.error("Error occurred while writing output file", e);
                 }
