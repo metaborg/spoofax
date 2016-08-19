@@ -9,6 +9,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.util.ExecutableCommandStrategy;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
@@ -16,7 +17,20 @@ import org.metaborg.spoofax.nativebundle.NativeBundle;
 import build.pluto.output.OutputTransient;
 import build.pluto.stamp.LastModifiedStamper;
 
-public class PrepareNativeBundle extends SpoofaxBuilder<SpoofaxInput, OutputTransient<PrepareNativeBundle.Output>> {
+public class PrepareNativeBundle
+    extends SpoofaxBuilder<PrepareNativeBundle.Input, OutputTransient<PrepareNativeBundle.Output>> {
+    /**
+     * Empty input class to ensure that a new input instance is always created, which is always exactly the same, such
+     * that this builder is only executed once.
+     */
+    public static class Input extends SpoofaxInput {
+        private static final long serialVersionUID = -4515278489604797843L;
+
+        public Input(SpoofaxContext context) {
+            super(context);
+        }
+    }
+
     public static class Output implements Serializable {
         private static final long serialVersionUID = -6018464107000421068L;
 
@@ -31,24 +45,24 @@ public class PrepareNativeBundle extends SpoofaxBuilder<SpoofaxInput, OutputTran
     }
 
 
-    public static SpoofaxBuilderFactory<SpoofaxInput, OutputTransient<PrepareNativeBundle.Output>, PrepareNativeBundle> factory =
-        SpoofaxBuilderFactoryFactory.of(PrepareNativeBundle.class, SpoofaxInput.class);
+    public static SpoofaxBuilderFactory<Input, OutputTransient<PrepareNativeBundle.Output>, PrepareNativeBundle> factory =
+        SpoofaxBuilderFactoryFactory.of(PrepareNativeBundle.class, Input.class);
 
 
-    public PrepareNativeBundle(SpoofaxInput input) {
+    public PrepareNativeBundle(Input input) {
         super(input);
     }
 
 
-    @Override protected String description(SpoofaxInput input) {
+    @Override protected String description(Input input) {
         return "Prepare native executables";
     }
 
-    @Override public File persistentPath(SpoofaxInput input) {
+    @Override public File persistentPath(Input input) {
         return context.depPath("native-executables.dep");
     }
 
-    @Override public OutputTransient<Output> build(SpoofaxInput input) throws IOException {
+    @Override public OutputTransient<Output> build(Input input) throws IOException {
         final URI nativeBundleURI = NativeBundle.getNativeDirectory();
         final FileObject nativeBundleLocation = context.resourceService().resolve(nativeBundleURI);
         final File nativeBundleDir = toFileReplicate(nativeBundleLocation);
@@ -56,8 +70,6 @@ public class PrepareNativeBundle extends SpoofaxBuilder<SpoofaxInput, OutputTran
         final File sdf2TableFile = new File(nativeBundleDir, NativeBundle.getSdf2TableName());
         final File implodePtFile = new File(nativeBundleDir, NativeBundle.getImplodePTName());
 
-        // HACK: disable provides requirement on native bundle directory, since it is always inconsistent.
-        //provide(nativeBundleDir, LastModifiedStamper.instance);
         provide(sdf2TableFile, LastModifiedStamper.instance);
         provide(implodePtFile, LastModifiedStamper.instance);
 
@@ -70,7 +82,9 @@ public class PrepareNativeBundle extends SpoofaxBuilder<SpoofaxInput, OutputTran
             if(fileOrDirectory.isDirectory()) {
                 restoreExecutablePermissions(fileOrDirectory);
             } else {
-                fileOrDirectory.setExecutable(true);
+                if(!fileOrDirectory.canExecute()) {
+                    fileOrDirectory.setExecutable(true);
+                }
             }
         }
     }

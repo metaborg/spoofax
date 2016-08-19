@@ -154,7 +154,7 @@ public class CommonPaths {
     public FileObject syntaxCompletionMainFile(String languageName) {
         return resolve(syntaxCompletionSrcGenDir(), languageName + ".sdf");
     }
-    
+
     /**
      * @param languageName
      *            Name of the language.
@@ -185,7 +185,7 @@ public class CommonPaths {
     public FileObject syntaxCompletionSrcGenDir() {
         return resolve(syntaxSrcGenDir(), "completion");
     }
-    
+
     /**
      * 
      * @return Generated normalized completion syntax directory, generated from SDF3 definition.
@@ -325,6 +325,8 @@ public class CommonPaths {
     /**
      * Gets all the Java source root folders.
      * 
+     * @param languageId
+     *            Identifier of the language.
      * @return A list of Java source root folders.
      */
     public Collection<FileObject> javaSrcDirs(String languageId) {
