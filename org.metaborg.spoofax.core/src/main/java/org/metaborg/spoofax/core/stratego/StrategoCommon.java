@@ -10,7 +10,6 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -35,14 +34,12 @@ import com.google.inject.Inject;
 public class StrategoCommon implements IStrategoCommon {
     private static final ILogger logger = LoggerUtils.logger(StrategoCommon.class);
 
-    private final IResourceService resourceService;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ITermFactoryService termFactoryService;
 
 
-    @Inject public StrategoCommon(IResourceService resourceService, IStrategoRuntimeService strategoRuntimeService,
+    @Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
         ITermFactoryService termFactoryService) {
-        this.resourceService = resourceService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.termFactoryService = termFactoryService;
     }
@@ -62,6 +59,24 @@ public class StrategoCommon implements IStrategoCommon {
             }
 
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
+            final IStrategoTerm result = invoke(runtime, input, strategy);
+            if(result != null) {
+                return result;
+            }
+
+        }
+        return null;
+    }
+
+    @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
+        String strategy) throws MetaborgException {
+        for(ILanguageComponent component : impl.components()) {
+            if(component.facet(StrategoRuntimeFacet.class) == null) {
+                continue;
+            }
+
+            // TODO: do we really want to be typesmart? Does that need to be configurable?
+            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
             final IStrategoTerm result = invoke(runtime, input, strategy);
             if(result != null) {
                 return result;
@@ -103,7 +118,8 @@ public class StrategoCommon implements IStrategoCommon {
     // return success ? context.current() : null;
     // }
 
-    private void handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) throws MetaborgException {
+    private void handleException(InterpreterException ex, HybridInterpreter runtime, String strategy)
+        throws MetaborgException {
         String trace = "Stratego trace:\n" + runtime.getCompiledContext().getTraceString();
         try {
             throw ex;
@@ -136,7 +152,8 @@ public class StrategoCommon implements IStrategoCommon {
             if(cause != null && cause instanceof InterpreterException) {
                 handleException((InterpreterException) cause, runtime, strategy);
             } else {
-                throw new MetaborgException("Invoking Stratego strategy failed unexpectedly: " + cause.getMessage() + "\n" + trace, cause);
+                throw new MetaborgException(
+                    "Invoking Stratego strategy failed unexpectedly: " + cause.getMessage() + "\n" + trace, cause);
             }
         }
     }
