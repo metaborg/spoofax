@@ -4,10 +4,36 @@ imports
   
   runtime/completion/-
   completion/{{name}}-cp
+  pp/-
   pp
-  pp/{{name}}-parenthesize
+ 
   
 rules
   
-  pp-completion = pp-partial-{{name}}-string
-  parenthesize-completion = parenthesize-{{name}}
+  get-proposals-empty-program-{{name}}                         = get-proposals-empty-program(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
+  get-proposals-left-recursive-{{name}}                        = get-proposals-left-recursive(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
+  get-proposals-right-recursive-{{name}}                       = get-proposals-right-recursive(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
+  get-proposals-placeholder-{{name}}                           = get-proposals-placeholder(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
+  get-proposals-optional-{{name}}                              = get-proposals-optional(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
+  get-proposals-list-{{name}}                                  = get-proposals-list(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
+  get-proposals-incorrect-programs-{{name}}                    = get-proposals-incorrect-programs(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
+  get-proposals-incorrect-programs-nested-{{name}}             = get-proposals-incorrect-programs-nested(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
+  get-proposals-incorrect-programs-single-placeholder-{{name}} = get-proposals-incorrect-programs-single-placeholder(pp-partial-{{name}}-string, parenthesize-{{name}}, 
+                                                                                             {{name}}-get-indent, {{name}}-get-leading-ws, 
+                                                                                             {{name}}-get-separator)
