@@ -33,6 +33,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.Tools;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -129,6 +130,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         ILanguageImpl language, FileObject location) throws MetaborgException {
         Collection<ICompletion> completions = Lists.newLinkedList();
 
+        final String languageName = language.belongsTo().name();
+
         for(ILanguageComponent component : language.components()) {
             // call Stratego part of the framework to compute change
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
@@ -139,7 +142,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 IStrategoAppl placeholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
 
                 final IStrategoTerm proposalsPlaceholder =
-                    strategoCommon.invoke(runtime, placeholder, "get-proposals-empty-program");
+                    strategoCommon.invoke(runtime, placeholder, "get-proposals-empty-program-" + languageName);
 
                 if(proposalsPlaceholder == null) {
                     logger.error("Getting proposals for {} failed", placeholder);
@@ -205,8 +208,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<ICompletion> completions = Lists.newLinkedList();
         final FileObject location = parseResult.source();
         final ILanguageImpl language = parseResult.input().langImpl();
+        final String languageName = language.belongsTo().name();
 
         for(ILanguageComponent component : language.components()) {
+
 
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
             final ITermFactory termFactory = termFactoryService.get(component, null, false);
@@ -216,7 +221,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
             final Iterable<IStrategoTerm> terms =
                 tracingTermsCompletions(position, parseResult.ast(), new SourceRegion(position), runtime, termFactory,
-                    leftRecursiveTerms, rightRecursiveTerms);
+                    languageName, leftRecursiveTerms, rightRecursiveTerms);
 
             final IStrategoAppl placeholder = getPlaceholder(position, terms);
             final Iterable<IStrategoList> lists = getLists(terms, leftRecursiveTerms, rightRecursiveTerms);
@@ -225,18 +230,21 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final Iterable<IStrategoTerm> rightRecursive = getRightRecursiveTerms(position, terms, rightRecursiveTerms);
 
             if(placeholder != null) {
-                completions.addAll(placeholderCompletions(placeholder, component, location));
+                completions.addAll(placeholderCompletions(placeholder, languageName, component, location));
             } else {
                 if(Iterables.size(leftRecursive) != 0 || Iterables.size(rightRecursive) != 0) {
-                    completions.addAll(recursiveCompletions(leftRecursive, rightRecursive, component, location));
+                    completions
+                        .addAll(recursiveCompletions(leftRecursive, rightRecursive, languageName, component, location));
                 }
 
                 if(Iterables.size(lists) != 0) {
-                    completions.addAll(listsCompletions(position, blankLineCompletion, lists, component, location));
+                    completions.addAll(
+                        listsCompletions(position, blankLineCompletion, lists, languageName, component, location));
                 }
 
                 if(Iterables.size(optionals) != 0) {
-                    completions.addAll(optionalCompletions(optionals, blankLineCompletion, component, location));
+                    completions
+                        .addAll(optionalCompletions(optionals, blankLineCompletion, languageName, component, location));
                 }
             }
         }
@@ -244,7 +252,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     private Collection<? extends ICompletion> recursiveCompletions(Iterable<IStrategoTerm> leftRecursive,
-        Iterable<IStrategoTerm> rightRecursive, ILanguageComponent component, FileObject location)
+        Iterable<IStrategoTerm> rightRecursive, String languageName, ILanguageComponent component, FileObject location)
         throws MetaborgException {
         Collection<ICompletion> completions = Lists.newLinkedList();
 
@@ -258,7 +266,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final IStrategoTerm strategoInput = termFactory.makeTuple(sort, term);
 
             final IStrategoTerm proposals =
-                strategoCommon.invoke(runtime, strategoInput, "get-proposals-left-recursive");
+                strategoCommon.invoke(runtime, strategoInput, "get-proposals-left-recursive-" + languageName);
 
             if(proposals == null) {
                 logger.error("Getting proposals for {} failed", term);
@@ -302,7 +310,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final IStrategoTerm strategoInput = termFactory.makeTuple(sort, term);
 
             final IStrategoTerm proposals =
-                strategoCommon.invoke(runtime, strategoInput, "get-proposals-right-recursive");
+                strategoCommon.invoke(runtime, strategoInput, "get-proposals-right-recursive-" + languageName);
 
             if(proposals == null) {
                 logger.error("Getting proposals for {} failed", term);
@@ -343,8 +351,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return completions;
     }
 
-    public Collection<ICompletion> placeholderCompletions(IStrategoAppl placeholder, ILanguageComponent component,
-        FileObject location) throws MetaborgException {
+    public Collection<ICompletion> placeholderCompletions(IStrategoAppl placeholder, String languageName,
+        ILanguageComponent component, FileObject location) throws MetaborgException {
         Collection<ICompletion> completions = Lists.newLinkedList();
 
         // call Stratego part of the framework to compute change
@@ -367,7 +375,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm strategoInput = termFactory.makeTuple(placeholder, placeholderParent, placeholderIdx);
 
         final IStrategoTerm proposalsPlaceholder =
-            strategoCommon.invoke(runtime, strategoInput, "get-proposals-placeholder");
+            strategoCommon.invoke(runtime, strategoInput, "get-proposals-placeholder-" + languageName);
 
         if(proposalsPlaceholder == null) {
             logger.error("Getting proposals for {} failed", placeholder);
@@ -381,7 +389,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final IStrategoTuple tuple = (IStrategoTuple) proposalTerm;
             if(tuple.getSubtermCount() != 4 || !(tuple.getSubterm(0) instanceof IStrategoString)
                 || !(tuple.getSubterm(1) instanceof IStrategoString)
-                || !(tuple.getSubterm(2) instanceof IStrategoString) || !(tuple.getSubterm(3) instanceof IStrategoAppl)) {
+                || !(tuple.getSubterm(2) instanceof IStrategoString)
+                || !(tuple.getSubterm(3) instanceof IStrategoAppl)) {
                 logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                 continue;
             }
@@ -408,7 +417,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     public Collection<ICompletion> optionalCompletions(Iterable<IStrategoTerm> optionals, boolean blankLineCompletion,
-        ILanguageComponent component, FileObject location) throws MetaborgException {
+        String languageName, ILanguageComponent component, FileObject location) throws MetaborgException {
 
         Collection<ICompletion> completions = Lists.newLinkedList();
 
@@ -424,7 +433,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // call Stratego part of the framework to compute change
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
             final IStrategoTerm proposalsOptional =
-                strategoCommon.invoke(runtime, strategoInput, "get-proposals-optional");
+                strategoCommon.invoke(runtime, strategoInput, "get-proposals-optional-" + languageName);
 
             if(proposalsOptional == null) {
                 logger.error("Getting proposals for {} failed", strategoInput);
@@ -468,7 +477,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     public Collection<ICompletion> listsCompletions(int position, boolean blankLineCompletion,
-        Iterable<IStrategoList> lists, ILanguageComponent component, FileObject location) throws MetaborgException {
+        Iterable<IStrategoList> lists, String languageName, ILanguageComponent component, FileObject location)
+        throws MetaborgException {
 
         Collection<ICompletion> completions = Lists.newLinkedList();
 
@@ -481,7 +491,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final IStrategoTerm strategoInput =
                 termFactory.makeTuple(list, listPlaceholder, termFactory.makeInt(position));
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
-            final IStrategoTerm proposalsLists = strategoCommon.invoke(runtime, strategoInput, "get-proposals-list");
+            final IStrategoTerm proposalsLists =
+                strategoCommon.invoke(runtime, strategoInput, "get-proposals-list-" + languageName);
             if(proposalsLists == null) {
                 logger.error("Getting proposals for {} failed", strategoInput);
                 continue;
@@ -541,7 +552,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
 
-        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl) || !(oldNode instanceof IStrategoAppl)) {
+        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl)
+            || !(oldNode instanceof IStrategoAppl)) {
             return null;
         }
 
@@ -557,9 +569,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // get the last non-layout token before the new node
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
-                tokenPosition).getKind() == IToken.TK_ERROR)
-                && tokenPosition > 0)
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
 
@@ -634,9 +645,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
-                tokenPosition).getKind() == IToken.TK_ERROR)
-                && tokenPosition > 0)
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
 
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
@@ -677,7 +687,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
 
         // expected two lists
-        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList) || !(newNode instanceof IStrategoList)) {
+        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList)
+            || !(newNode instanceof IStrategoList)) {
             return null;
         }
 
@@ -693,9 +704,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // node
         if(oldNode.getSubtermCount() == 0) {
             tokenPosition = oldListIA.getLeftToken().getIndex() - 1 > 0 ? oldListIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
-                tokenPosition).getKind() == IToken.TK_ERROR)
-                && tokenPosition > 0)
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
         } else {
@@ -734,6 +744,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         final FileObject location = completionParseResult.source();
         final ILanguageImpl language = completionParseResult.input().langImpl();
+        final String languageName = language.belongsTo().name();
         final Collection<ICompletion> completions = Lists.newLinkedList();
         final Collection<IStrategoTerm> proposalsTerm = Lists.newLinkedList();
 
@@ -752,17 +763,15 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     }
 
                     IStrategoAppl placeholderTerm = (IStrategoAppl) Iterables.get(placeholders, 0);
-                    IStrategoAppl placeholder =
-                        termFactory
-                            .makeAppl(termFactory.makeConstructor(placeholderTerm.getConstructor().getName(), 0));
+                    IStrategoAppl placeholder = termFactory
+                        .makeAppl(termFactory.makeConstructor(placeholderTerm.getConstructor().getName(), 0));
 
-                    final IStrategoTerm inputStratego =
-                        termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
-                            parenthesizeTerm(completionTerm, termFactory), placeholder, placeholderTerm);
+                    final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
+                        parenthesizeTerm(completionTerm, termFactory), placeholder, placeholderTerm);
 
                     final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
-                    final IStrategoTerm proposalTerm =
-                        strategoCommon.invoke(runtime, inputStratego, "get-proposals-erroneous-single-placeholder");
+                    final IStrategoTerm proposalTerm = strategoCommon.invoke(runtime, inputStratego,
+                        "get-proposals-incorrect-programs-single-placeholder-" + languageName);
                     if(proposalTerm == null || !(proposalTerm instanceof IStrategoList)) {
                         logger.error("Getting proposals for {} failed", completionTerm);
                         continue;
@@ -774,13 +783,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                 } else {
 
-                    final IStrategoTerm inputStratego =
-                        termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
-                            parenthesizeTerm(completionTerm, termFactory));
+                    final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
+                        parenthesizeTerm(completionTerm, termFactory));
 
                     final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
-                    final IStrategoTerm proposalTerm =
-                        strategoCommon.invoke(runtime, inputStratego, "get-proposals-erroneous-programs");
+                    final IStrategoTerm proposalTerm = strategoCommon.invoke(runtime, inputStratego,
+                        "get-proposals-incorrect-programs-" + languageName);
                     if(proposalTerm == null) {
                         logger.error("Getting proposals for {} failed", completionTerm);
                         continue;
@@ -817,9 +825,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 if(change.getConstructor().getName().contains("INSERT_AT_END")) {
 
                     // calls a different method because now, the program has errors that should be fixed
-                    final ICompletion completion =
-                        createCompletionInsertAtEndFixing(name, text, additionalInfo, prefix, suffix, change,
-                            completionKind);
+                    final ICompletion completion = createCompletionInsertAtEndFixing(name, text, additionalInfo, prefix,
+                        suffix, change, completionKind);
 
                     if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
@@ -829,9 +836,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     completions.add(completion);
                 } else if(change.getConstructor().getName().contains("INSERT_BEFORE")) {
 
-                    final ICompletion completion =
-                        createCompletionInsertBeforeFixing(name, text, additionalInfo, prefix, suffix, change,
-                            completionKind);
+                    final ICompletion completion = createCompletionInsertBeforeFixing(name, text, additionalInfo,
+                        prefix, suffix, change, completionKind);
 
                     if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
@@ -843,9 +849,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                 } else if(change.getConstructor().getName().contains("INSERTION_TERM")) {
 
-                    final ICompletion completion =
-                        createCompletionInsertionTermFixing(name, text, additionalInfo, prefix, suffix, change,
-                            completionKind);
+                    final ICompletion completion = createCompletionInsertionTermFixing(name, text, additionalInfo,
+                        prefix, suffix, change, completionKind);
 
                     if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
@@ -855,9 +860,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     completions.add(completion);
                 } else if(change.getConstructor().getName().contains("REPLACE_TERM")) {
 
-                    final ICompletion completion =
-                        createCompletionReplaceTermFixing(name, text, additionalInfo, prefix, suffix, change,
-                            completionKind);
+                    final ICompletion completion = createCompletionReplaceTermFixing(name, text, additionalInfo, prefix,
+                        suffix, change, completionKind);
 
                     if(completion == null) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
@@ -932,8 +936,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // get the last non-layout token before the topmost ambiguity
         int tokenPosition =
             topMostAmbIA.getLeftToken().getIndex() - 1 > 0 ? topMostAmbIA.getLeftToken().getIndex() - 1 : 0;
-        while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(tokenPosition)
-            .getKind() == IToken.TK_ERROR) && tokenPosition > 0)
+        while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+            || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
             tokenPosition--;
 
         insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
@@ -1001,9 +1005,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             int tokenPosition =
                 oldListIA.getLeftToken().getIndex() - 1 > 0 ? oldListIA.getLeftToken().getIndex() - 1 : 0;
             while((checkEmptyOffset(tokenizer.getTokenAt(tokenPosition))
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
-                tokenPosition).getKind() == IToken.TK_ERROR)
-                && tokenPosition > 0)
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
 
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
@@ -1035,26 +1038,29 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
-
-        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList) || !(newNode instanceof IStrategoAppl)) {
+        
+        final StrategoTerm oldNodeTopMostAmb = findTopMostAmbNode(oldNode);
+        
+        
+        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList)
+            || !(newNode instanceof IStrategoAppl)) {
             return null;
         }
 
         final String sort = ImploderAttachment.getElementSort(oldNode);
 
         int insertionPoint, suffixPoint;
-        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
-        final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
+        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNodeTopMostAmb);
+        final ImploderAttachment oldNodeIA = oldNodeTopMostAmb.getAttachment(ImploderAttachment.TYPE);
 
         // if list is empty
         // insert after the first non-layout token before the leftmost token of the completion node
         if(((IStrategoList) oldNode).size() == 1) {
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((checkEmptyOffset(tokenizer.getTokenAt(tokenPosition))
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
-                tokenPosition).getKind() == IToken.TK_ERROR)
-                && tokenPosition > 0)
+            while(tokenPosition > 0 && (checkEmptyOffset(tokenizer.getTokenAt(tokenPosition))
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR))
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
         } else {
@@ -1071,8 +1077,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             int tokenPosition = oldNodeIA.getRightToken().getIndex();
             while(tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition)
                 .getStartOffset()
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                && tokenPosition > 0)
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT && tokenPosition > 0)
                 tokenPosition--;
             suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
 
@@ -1093,11 +1098,22 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return new Completion(name, sort, text, additionalInfo, insertionPoint + 1, suffixPoint, kind, prefix, suffix);
     }
 
+    private boolean isCompletionNode(ISimpleTerm term) {
+        if(term == null)
+            return false;
+
+        if(ImploderAttachment.get(term).isCompletion() || ImploderAttachment.get(term).isNestedCompletion())
+            return true;
+        
+        return false;
+    }
+
     public Collection<? extends ICompletion> completionErroneousProgramsNested(int cursorPosition,
         Collection<IStrategoTerm> nestedCompletionTerms, ISpoofaxParseUnit completionParseResult)
         throws MetaborgException {
         final FileObject location = completionParseResult.source();
         final ILanguageImpl language = completionParseResult.input().langImpl();
+        final String languageName = language.belongsTo().name();
         final Collection<ICompletion> completions = Lists.newLinkedList();
         IStrategoTerm completionAst = completionParseResult.ast();
 
@@ -1110,7 +1126,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                 // calculate direct proposals
                 inputsStrategoNested.addAll(calculateDirectCompletionProposals(nestedCompletionTerm, termFactory,
-                    completionAst, runtime));
+                    completionAst, languageName, runtime));
 
                 // calculate inner nested proposals
                 Collection<IStrategoTerm> innerNestedCompletionTerms =
@@ -1118,12 +1134,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                 for(IStrategoTerm innerNestedCompletionTerm : innerNestedCompletionTerms) {
                     inputsStrategoNested.addAll(calculateNestedCompletionProposals(nestedCompletionTerm,
-                        innerNestedCompletionTerm, termFactory, completionAst, runtime));
+                        innerNestedCompletionTerm, termFactory, completionAst, languageName, runtime));
                 }
 
                 for(IStrategoTerm inputStrategoNested : inputsStrategoNested) {
-                    final IStrategoTerm proposalTermNested =
-                        strategoCommon.invoke(runtime, inputStrategoNested, "get-proposals-erroneous-programs-nested");
+                    final IStrategoTerm proposalTermNested = strategoCommon.invoke(runtime, inputStrategoNested,
+                        "get-proposals-incorrect-programs-nested-" + languageName);
                     if(proposalTermNested == null) {
                         logger.error("Getting proposals for {} failed", inputStrategoNested);
                         continue;
@@ -1142,9 +1158,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     if(change.getConstructor().getName().contains("INSERT_AT_END")) {
 
                         // calls a different method because now, the program has errors that should be fixed
-                        final ICompletion completion =
-                            createCompletionInsertAtEndFixing(name, text, additionalInfo, prefix, suffix, change,
-                                completionKind);
+                        final ICompletion completion = createCompletionInsertAtEndFixing(name, text, additionalInfo,
+                            prefix, suffix, change, completionKind);
 
                         if(completion == null) {
                             logger.error("Unexpected proposal term {}, skipping", proposalTermNested);
@@ -1154,9 +1169,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                         completions.add(completion);
                     } else if(change.getConstructor().getName().contains("INSERT_BEFORE")) {
 
-                        final ICompletion completion =
-                            createCompletionInsertBeforeFixing(name, text, additionalInfo, prefix, suffix, change,
-                                completionKind);
+                        final ICompletion completion = createCompletionInsertBeforeFixing(name, text, additionalInfo,
+                            prefix, suffix, change, completionKind);
 
                         if(completion == null) {
                             logger.error("Unexpected proposal term {}, skipping", proposalTermNested);
@@ -1168,9 +1182,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                     } else if(change.getConstructor().getName().contains("INSERTION_TERM")) {
 
-                        final ICompletion completion =
-                            createCompletionInsertionTermFixing(name, text, additionalInfo, prefix, suffix, change,
-                                completionKind);
+                        final ICompletion completion = createCompletionInsertionTermFixing(name, text, additionalInfo,
+                            prefix, suffix, change, completionKind);
 
                         if(completion == null) {
                             logger.error("Unexpected proposal term {}, skipping", proposalTermNested);
@@ -1180,9 +1193,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                         completions.add(completion);
                     } else if(change.getConstructor().getName().contains("REPLACE_TERM")) {
 
-                        final ICompletion completion =
-                            createCompletionReplaceTermFixing(name, text, additionalInfo, prefix, suffix, change,
-                                completionKind);
+                        final ICompletion completion = createCompletionReplaceTermFixing(name, text, additionalInfo,
+                            prefix, suffix, change, completionKind);
 
                         if(completion == null) {
                             logger.error("Unexpected proposal term {}, skipping", proposalTermNested);
@@ -1200,7 +1212,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
     private Collection<IStrategoTerm> calculateNestedCompletionProposals(IStrategoTerm mainNestedCompletionTerm,
-        IStrategoTerm nestedCompletionTerm, ITermFactory termFactory, IStrategoTerm completionAst,
+        IStrategoTerm nestedCompletionTerm, ITermFactory termFactory, IStrategoTerm completionAst, String languageName,
         HybridInterpreter runtime) throws MetaborgException {
         Collection<IStrategoTerm> inputsStratego = Lists.newLinkedList();
 
@@ -1208,20 +1220,18 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             findNestedCompletionTerm((StrategoTerm) nestedCompletionTerm, true);
 
         for(IStrategoTerm innerNestedCompletionTerm : nestedCompletionTerms) {
-            Collection<IStrategoTerm> inputsStrategoInnerNested =
-                calculateNestedCompletionProposals(nestedCompletionTerm, innerNestedCompletionTerm, termFactory,
-                    completionAst, runtime);
+            Collection<IStrategoTerm> inputsStrategoInnerNested = calculateNestedCompletionProposals(
+                nestedCompletionTerm, innerNestedCompletionTerm, termFactory, completionAst, languageName, runtime);
             for(IStrategoTerm inputStrategoNested : inputsStrategoInnerNested) {
-                final IStrategoTerm proposalTermNested =
-                    strategoCommon.invoke(runtime, inputStrategoNested, "get-proposals-erroneous-programs-nested");
+                final IStrategoTerm proposalTermNested = strategoCommon.invoke(runtime, inputStrategoNested,
+                    "get-proposals-incorrect-programs-nested-" + languageName);
                 if(proposalTermNested == null) {
                     logger.error("Getting proposals for {} failed", inputStrategoNested);
                     continue;
                 }
                 final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) nestedCompletionTerm);
-                final IStrategoTerm replaceTermText =
-                    termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2), topMostAmb,
-                        proposalTermNested.getSubterm(1));
+                final IStrategoTerm replaceTermText = termFactory.makeAppl(
+                    new StrategoConstructor("REPLACE_TERM_TEXT", 2), topMostAmb, proposalTermNested.getSubterm(1));
 
                 final IStrategoTerm inputStrategoInnerNested =
                     termFactory.makeTuple(completionAst, mainNestedCompletionTerm, proposalTermNested.getSubterm(0),
@@ -1233,19 +1243,18 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         }
 
         Collection<IStrategoTerm> inputsStrategoInner =
-            calculateDirectCompletionProposals(nestedCompletionTerm, termFactory, completionAst, runtime);
+            calculateDirectCompletionProposals(nestedCompletionTerm, termFactory, completionAst, languageName, runtime);
 
         for(IStrategoTerm inputStrategoNested : inputsStrategoInner) {
-            final IStrategoTerm proposalTermNested =
-                strategoCommon.invoke(runtime, inputStrategoNested, "get-proposals-erroneous-programs-nested");
+            final IStrategoTerm proposalTermNested = strategoCommon.invoke(runtime, inputStrategoNested,
+                "get-proposals-incorrect-programs-nested-" + languageName);
             if(proposalTermNested == null) {
                 logger.error("Getting proposals for {} failed", inputStrategoNested);
                 continue;
             }
             final StrategoTerm topMostAmb = findTopMostAmbNode((StrategoTerm) nestedCompletionTerm);
-            final IStrategoTerm replaceTermText =
-                termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2), topMostAmb,
-                    proposalTermNested.getSubterm(1));
+            final IStrategoTerm replaceTermText = termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2),
+                topMostAmb, proposalTermNested.getSubterm(1));
 
             final IStrategoTerm inputStrategoInnerNested =
                 termFactory.makeTuple(completionAst, mainNestedCompletionTerm, proposalTermNested.getSubterm(0),
@@ -1259,7 +1268,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
     private Collection<IStrategoTerm> calculateDirectCompletionProposals(IStrategoTerm nestedCompletionTerm,
-        ITermFactory termFactory, IStrategoTerm completionAst, HybridInterpreter runtime) throws MetaborgException {
+        ITermFactory termFactory, IStrategoTerm completionAst, String languageName, HybridInterpreter runtime)
+        throws MetaborgException {
 
         Collection<IStrategoTerm> inputsStratego = Lists.newLinkedList();
         Collection<IStrategoTerm> completionTerms = findCompletionTermInsideNested((StrategoTerm) nestedCompletionTerm);
@@ -1268,24 +1278,21 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final StrategoTerm topMostCompletionTerm = findTopMostCompletionNode((StrategoTerm) completionTerm);
             final StrategoTerm topMostAmb = findTopMostAmbNode(topMostCompletionTerm);
 
-            final IStrategoTerm inputStratego =
-                termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
-                    parenthesizeTerm(topMostCompletionTerm, termFactory));
+            final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
+                parenthesizeTerm(topMostCompletionTerm, termFactory));
 
             final IStrategoTerm proposalTerm =
-                strategoCommon.invoke(runtime, inputStratego, "get-proposals-erroneous-programs");
+                strategoCommon.invoke(runtime, inputStratego, "get-proposals-incorrect-programs-" + languageName);
             if(proposalTerm == null) {
                 logger.error("Getting proposals for {} failed", inputStratego);
                 continue;
             }
 
-            final IStrategoTerm replaceTermText =
-                termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2), topMostAmb,
-                    proposalTerm.getSubterm(1));
+            final IStrategoTerm replaceTermText = termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2),
+                topMostAmb, proposalTerm.getSubterm(1));
 
-            final IStrategoTerm inputStrategoNested =
-                termFactory.makeTuple(completionAst, nestedCompletionTerm, proposalTerm.getSubterm(0), replaceTermText,
-                    parenthesizeTerm(nestedCompletionTerm, termFactory));
+            final IStrategoTerm inputStrategoNested = termFactory.makeTuple(completionAst, nestedCompletionTerm,
+                proposalTerm.getSubterm(0), replaceTermText, parenthesizeTerm(nestedCompletionTerm, termFactory));
 
             inputsStratego.add(inputStrategoNested);
         }
@@ -1309,7 +1316,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
 
 
-        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl) || !(oldNode instanceof IStrategoAppl)) {
+        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl)
+            || !(oldNode instanceof IStrategoAppl)) {
             return null;
         }
 
@@ -1325,9 +1333,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // get the last non-layout token before the new node
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(
-                tokenPosition).getKind() == IToken.TK_ERROR)
-                && tokenPosition > 0)
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
         } else { // if not, do a regular replacement
@@ -1339,8 +1346,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         int tokenPositionEnd = oldNodeIA.getRightToken().getIndex();
 
         while((tokenizer.getTokenAt(tokenPositionEnd).getEndOffset() < tokenizer.getTokenAt(tokenPositionEnd)
-            .getStartOffset() || tokenizer.getTokenAt(tokenPositionEnd).getKind() == IToken.TK_LAYOUT || tokenizer
-            .getTokenAt(tokenPositionEnd).getKind() == IToken.TK_ERROR) && tokenPositionEnd > 0)
+            .getStartOffset() || tokenizer.getTokenAt(tokenPositionEnd).getKind() == IToken.TK_LAYOUT
+            || tokenizer.getTokenAt(tokenPositionEnd).getKind() == IToken.TK_ERROR) && tokenPositionEnd > 0)
             tokenPositionEnd--;
 
         suffixPoint = tokenizer.getTokenAt(tokenPositionEnd).getEndOffset() + 1;
@@ -1467,7 +1474,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 break;
             }
         }
-        
+
         return leftRecursive;
     }
 
@@ -1487,7 +1494,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         return completionTerm;
     }
-    
+
     private Collection<IStrategoTerm> getNestedCompletionTermsFromAST(ISpoofaxParseUnit completionParseResult) {
         if(completionParseResult == null) {
             return Lists.newLinkedList();
@@ -1503,10 +1510,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         return completionTerm;
     }
-    
+
     private Iterable<IStrategoTerm> tracingTermsCompletions(final int position, Object result,
         final ISourceRegion region, final HybridInterpreter runtime, final ITermFactory termFactory,
-        final Map<IStrategoTerm, Boolean> leftRecursiveTerms, final Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
+        final String languageName, final Map<IStrategoTerm, Boolean> leftRecursiveTerms,
+        final Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
         if(result == null || region == null) {
             return Iterables2.empty();
         }
@@ -1514,8 +1522,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
             @Override public boolean visit(IStrategoTerm term) {
-                final ISourceLocation location =
-                    fromTokens(term, runtime, termFactory, position, leftRecursiveTerms, rightRecursiveTerms);
+                final ISourceLocation location = fromTokens(term, runtime, termFactory, position, languageName,
+                    leftRecursiveTerms, rightRecursiveTerms);
                 if(location != null && location.region().contains(region)) {
                     parsed.add(term);
                     return false;
@@ -1528,8 +1536,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         return parsed;
     }
 
+    // TODO: Do these strategies need to be specific for a language
     protected @Nullable ISourceLocation fromTokens(IStrategoTerm fragment, HybridInterpreter runtime,
-        ITermFactory termFactory, int position, Map<IStrategoTerm, Boolean> leftRecursiveTerms,
+        ITermFactory termFactory, int position, String languageName, Map<IStrategoTerm, Boolean> leftRecursiveTerms,
         Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
         final FileObject resource = SourceAttachment.getResource(fragment, resourceService);
         final IToken left = ImploderAttachment.getLeftToken(fragment);
@@ -1662,9 +1671,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             }
         }
 
-        final ISourceRegion region =
-            JSGLRSourceRegionFactory.fromTokensLayout(leftmostValid, rightmostValid, (isOptional || isList
-                || isLeftRecursive || isRightRecursive));
+        final ISourceRegion region = JSGLRSourceRegionFactory.fromTokensLayout(leftmostValid, rightmostValid,
+            (isOptional || isList || isLeftRecursive || isRightRecursive));
 
         return new SourceLocation(region, resource);
     }
