@@ -135,6 +135,15 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withPlaceholderPostfix(String placeholderPostfix);
+    
+    /**
+     * Sets the language to be pretty printed.
+     *
+     * @param prettyPrintLanguage
+     *            The language to be pretty printed.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withPrettyPrintLanguage(String prettyPrintLanguage);
 
     /**
      * Sets the external def.

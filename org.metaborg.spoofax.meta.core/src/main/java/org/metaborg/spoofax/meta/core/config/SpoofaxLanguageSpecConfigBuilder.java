@@ -28,6 +28,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable SdfVersion sdfVersion;
     protected @Nullable Sdf2tableVersion sdf2tableVersion;
     protected @Nullable PlaceholderCharacters placeholderCharacters;
+    protected @Nullable String prettyPrint;
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
     protected @Nullable StrategoFormat strFormat;
@@ -50,7 +51,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         final SpoofaxLanguageSpecConfig config =
             new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, typesmart,
                 langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion, 
-                sdf2tableVersion, placeholderCharacters, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+                sdf2tableVersion, placeholderCharacters, prettyPrint, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -77,6 +78,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         if(!(config instanceof IConfig)) {
             withSdfVersion(config.sdfVersion());
             withSdf2tableVersion(config.sdf2tableVersion());
+            withPrettyPrintLanguage(config.prettyPrintLanguage());
             withPlaceholderPrefix(config.placeholderChars().prefix);
             withPlaceholderPostfix(config.placeholderChars().suffix);
             withSdfExternalDef(config.sdfExternalDef());
@@ -89,6 +91,12 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
         return this;
     }
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withPrettyPrintLanguage(String prettyPrintLanguage) {
+        this.prettyPrint = prettyPrintLanguage;
+        return this;        
+    }
+
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withMetaborgVersion(String metaborgVersion) {
         super.withMetaborgVersion(metaborgVersion);

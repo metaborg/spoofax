@@ -34,6 +34,13 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
      * @return Placeholder fences
      */
     PlaceholderCharacters placeholderChars();
+    
+    /**
+     * Gets the language to be pretty printed.
+     * 
+     * @return Language to be pretty printed
+     */
+    String prettyPrintLanguage();
 
     /**
      * Gets the external def.

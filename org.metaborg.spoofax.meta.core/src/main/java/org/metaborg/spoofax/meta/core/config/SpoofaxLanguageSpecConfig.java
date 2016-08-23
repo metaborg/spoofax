@@ -35,6 +35,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_EXTERNAL_DEF = PROP_SDF + ".externalDef";
     private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
+    private static final String PROP_PRETTY_PRINT = "pretty-print";
+
     private static final String PROP_PLACEHOLDER_PREFIX = "placeholder.prefix";
     private static final String PROP_PLACEHOLDER_SUFFIX = "placeholder.suffix";
 
@@ -63,9 +65,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable String metaborgVersion, @Nullable Collection<String> pardonedLanguages,
         @Nullable Boolean useBuildSystemSpec, @Nullable SdfVersion sdfVersion,
         @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable PlaceholderCharacters placeholderCharacters,
-        @Nullable String externalDef, @Nullable Arguments sdfArgs, @Nullable StrategoFormat format,
-        @Nullable String externalJar, @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
-        @Nullable Collection<IBuildStepConfig> buildSteps) {
+        @Nullable String prettyPrint, @Nullable String externalDef, @Nullable Arguments sdfArgs,
+        @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
+        @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates,
             exports, pardonedLanguages, useBuildSystemSpec);
 
@@ -81,6 +83,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         } else {
             config.setProperty(PROP_PLACEHOLDER_PREFIX, null);
             config.setProperty(PROP_PLACEHOLDER_SUFFIX, null);
+        }
+        if(prettyPrint != null) {
+            config.setProperty(PROP_PRETTY_PRINT, prettyPrint);
         }
         if(externalDef != null) {
             config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
@@ -127,6 +132,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     @Override public Sdf2tableVersion sdf2tableVersion() {
         final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
         return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.c;
+    }
+    
+    @Override public String prettyPrintLanguage() {
+        final String value = this.config.getString(PROP_PRETTY_PRINT);
+        return value != null ? value : name();
     }
 
     @Nullable public String sdfExternalDef() {
@@ -199,8 +209,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         try {
             return phaseStr != null ? LanguageSpecBuildPhase.valueOf(phaseStr) : defaultPhase;
         } catch(IllegalArgumentException e) {
-            logger.warn("Language specification build phase with name {} does not exist, defaulting to {}", e,
-                phaseStr, defaultPhase);
+            logger.warn("Language specification build phase with name {} does not exist, defaulting to {}", e, phaseStr,
+                defaultPhase);
             return defaultPhase;
         }
     }

@@ -60,7 +60,7 @@ public class LanguageSpecNamePrimitive extends AbstractPrimitive {
             return false;
         }
         
-        env.setCurrent(env.getFactory().makeString(languageSpec.config().name()));
+        env.setCurrent(env.getFactory().makeString(languageSpec.config().prettyPrintLanguage()));
         return true;
     }
 }
