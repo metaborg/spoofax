@@ -13,8 +13,8 @@ import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContext;
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphUnit;
+import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphContext;
+import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -53,7 +53,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
 
     @Override
     protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, ScopeGraphContext context,
+            Map<String,ISpoofaxParseUnit> removed, ISpoofaxScopeGraphContext context,
             HybridInterpreter runtime, String strategy) throws AnalysisException {
         for(String input : removed.keySet()) {
             context.removeUnit(input);
@@ -66,7 +66,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             ISpoofaxParseUnit parseUnit = input.getValue();
 
             try {
-                ScopeGraphUnit unit = context.getOrCreateUnit(source);
+                ISpoofaxScopeGraphUnit unit = context.getOrCreateUnit(source);
                 unit.reset();
 
                 IStrategoTerm sourceTerm = termFactory.makeString(source);

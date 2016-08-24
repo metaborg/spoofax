@@ -19,7 +19,7 @@ import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContext;
+import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphContext;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -88,9 +88,9 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     @Override
     public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs,
             IContext genericContext) throws AnalysisException {
-        ScopeGraphContext context;
+        ISpoofaxScopeGraphContext context;
         try {
-            context = (ScopeGraphContext) genericContext;
+            context = (ISpoofaxScopeGraphContext) genericContext;
         } catch(ClassCastException ex) {
             throw new AnalysisException(genericContext,"Scope graph context required for constraint analysis.",ex);
         }
@@ -121,11 +121,11 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, ScopeGraphContext genericContext,
+            Map<String,ISpoofaxParseUnit> removed, ISpoofaxScopeGraphContext context,
             HybridInterpreter runtime, String strategy) throws AnalysisException;
 
     protected IStrategoTerm doAction(String strategy, IStrategoTerm action,
-            ScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
+            ISpoofaxScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
         try {
             IStrategoTerm result = strategoCommon.invoke(runtime, action, strategy);
             if(result == null) {
@@ -160,7 +160,7 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
  
     protected void applySolution(Table<Integer,IStrategoTerm,IStrategoTerm> data,
-            IStrategoTerm solution, String strategy, ScopeGraphContext context,
+            IStrategoTerm solution, String strategy, ISpoofaxScopeGraphContext context,
             HybridInterpreter runtime) throws AnalysisException {
         for(Integer i : data.rowKeySet()) {
             for(IStrategoTerm key : data.columnKeySet()) {
