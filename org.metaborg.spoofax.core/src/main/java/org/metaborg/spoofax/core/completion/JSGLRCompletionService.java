@@ -426,9 +426,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         for(IStrategoTerm optional : optionals) {
 
             ImploderAttachment attachment = optional.getAttachment(ImploderAttachment.TYPE);
-            String placeholderName = attachment.getSort().substring(0, attachment.getSort().length()) + "-Plhdr";
+            String sort = attachment.getSort().substring(0, attachment.getSort().length());
+            String placeholderName = sort + "-Plhdr";
             IStrategoAppl optionalPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
-            final IStrategoTerm strategoInput = termFactory.makeTuple(optional, optionalPlaceholder);
+            final IStrategoTerm strategoInput = termFactory.makeTuple(optional, termFactory.makeString(sort), optionalPlaceholder);
 
             // call Stratego part of the framework to compute change
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
@@ -486,10 +487,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         for(IStrategoList list : lists) {
             ListImploderAttachment attachment = list.getAttachment(null);
-            String placeholderName = attachment.getSort().substring(0, attachment.getSort().length() - 1) + "-Plhdr";
+            String sort = attachment.getSort().substring(0, attachment.getSort().length() - 1);
+            String placeholderName =  sort + "-Plhdr";
             IStrategoAppl listPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
             final IStrategoTerm strategoInput =
-                termFactory.makeTuple(list, listPlaceholder, termFactory.makeInt(position));
+                termFactory.makeTuple(list, termFactory.makeString(sort), listPlaceholder, termFactory.makeInt(position));
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
             final IStrategoTerm proposalsLists =
                 strategoCommon.invoke(runtime, strategoInput, "get-proposals-list-" + languageName);

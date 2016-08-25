@@ -175,11 +175,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     sigOrigin = null;
                 }
 
-                // Get Stratego parenthesizer file, from the SDF def file.
-                final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
-                final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
-                parenthesizeOrigin = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile,
-                    parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
+
 
                 // Get SDF permissive def file, from the SDF def file.
                 final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + "-permissive.def");
@@ -187,17 +183,24 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
 
                 if(input.sdf2tableVersion == Sdf2tableVersion.java) {
-                    // Get JSGLR parse table, from the normalized SDF aterm
+                    // Get JSGLR parse table and parenthesizer, from the normalized SDF aterm
 
                     final File srcNormDir = toFile(paths.syntaxNormDir());
                     final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-new.tbl");
                     File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
                     final List<String> paths = Lists.newLinkedList();
                     paths.add(srcGenSyntaxDir.getAbsolutePath());
-                    final Origin sdf2TableJavaOrigin = Sdf2TableNew
-                        .origin(new Sdf2TableNew.Input(context, sdfNormFile, tableFile, paths));
+                    final Origin sdf2TableJavaOrigin =
+                        Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfNormFile, tableFile, paths, true));
 
                     requireBuild(sdf2TableJavaOrigin);
+                    parenthesizeOrigin = null;
+                } else {
+                    // Get Stratego parenthesizer file, from the SDF def file.
+                    final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
+                    final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
+                    parenthesizeOrigin = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile,
+                        parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
                 }
 
                 // Get JSGLR parse table, from the SDF permissive def file.
@@ -228,8 +231,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
-                sdfCompletionOrigin = Sdf2TableNew
-                    .origin(new Sdf2TableNew.Input(context, sdfCompletionsFile, tableFile, paths));
+                sdfCompletionOrigin =
+                    Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfCompletionsFile, tableFile, paths, false));
 
                 requireBuild(sdfCompletionOrigin);
             } else {
@@ -350,13 +353,23 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 extraArgs.addLine(input.strExternalJarFlags);
             }
 
-            // @formatter:off
-            final Origin origin = Origin.Builder()
-                .add(parenthesizeOrigin)
-                .add(sigOrigin)
-                .add(sdfCompletionOrigin)
-                .add(sdfMetaOrigin)
-                .get();
+            // @formatter:off            
+            final Origin origin;
+            
+            if(input.sdf2tableVersion == Sdf2tableVersion.java) {
+                origin = Origin.Builder()
+                    .add(sigOrigin)
+                    .add(sdfCompletionOrigin)
+                    .add(sdfMetaOrigin)
+                    .get();
+            } else {
+                origin = Origin.Builder()
+                    .add(parenthesizeOrigin)
+                    .add(sigOrigin)
+                    .add(sdfCompletionOrigin)
+                    .add(sdfMetaOrigin)
+                    .get();
+            }
             // @formatter:on
 
             final File cacheDir = toFile(paths.strCacheDir());
