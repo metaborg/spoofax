@@ -6,13 +6,12 @@ import javax.annotation.Nullable;
 
 import org.metaborg.scopegraph.INameResolution;
 import org.metaborg.scopegraph.IScopeGraph;
-import org.metaborg.scopegraph.context.IScopeGraphUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
-public class ScopeGraphUnit implements IScopeGraphUnit, Serializable {
+class ScopeGraphUnit implements ISpoofaxScopeGraphUnit, Serializable {
 
     private static final long serialVersionUID = 2505224489843232373L;
 

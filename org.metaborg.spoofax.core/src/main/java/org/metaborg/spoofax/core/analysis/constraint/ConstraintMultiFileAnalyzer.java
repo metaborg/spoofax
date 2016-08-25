@@ -15,8 +15,8 @@ import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContext;
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphUnit;
+import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphContext;
+import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -62,15 +62,15 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
 
 
     @Override
-    protected ISpoofaxAnalyzeResults analyzeAll( Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, ScopeGraphContext context,
+    protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
+            Map<String,ISpoofaxParseUnit> removed, ISpoofaxScopeGraphContext context,
             HybridInterpreter runtime, String strategy) throws AnalysisException {
 
         String globalSource = context.location().getName().getURI();
         IStrategoTerm globalTerm = termFactory.makeString(globalSource);
         TermIndex.put(globalTerm, globalSource, 0);
 
-        ScopeGraphUnit globalUnit = context.unit(globalSource);
+        ISpoofaxScopeGraphUnit globalUnit = context.unit(globalSource);
         if(globalUnit == null) {
             globalUnit = context.getOrCreateUnit(globalSource);
             globalUnit.reset();
@@ -97,7 +97,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             String source = input.getKey();
             ISpoofaxParseUnit parseUnit = input.getValue();
  
-            ScopeGraphUnit unit = context.getOrCreateUnit(source);
+            ISpoofaxScopeGraphUnit unit = context.getOrCreateUnit(source);
             unit.reset();
 
             IStrategoTerm sourceTerm = termFactory.makeString(source);
@@ -151,7 +151,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults =
             Lists.newArrayList();
-        for(ScopeGraphUnit unit : context.units()) {
+        for(ISpoofaxScopeGraphUnit unit : context.units()) {
             final String source = unit.source();
             final Collection<IMessage> errors = errorsByFile.get(source);
             final Collection<IMessage> warnings = warningsByFile.get(source);
