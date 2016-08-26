@@ -105,21 +105,21 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final FileObject location = parseInput.source();
             final Iterable<String> startSymbols = language.facet(SyntaxFacet.class).startSymbols;
             completions.addAll(completionEmptyProgram(startSymbols, inputText.length(), language, location));
-        }
+        } else {
+            boolean blankLineCompletion = isCompletionBlankLine(position, parseInput.input().text());
 
-        boolean blankLineCompletion = isCompletionBlankLine(position, parseInput.input().text());
+            if(!completionTerms.isEmpty()) {
+                completions.addAll(completionErroneousPrograms(position, completionTerms, completionParseResult));
+            }
 
-        if(!completionTerms.isEmpty()) {
-            completions.addAll(completionErroneousPrograms(position, completionTerms, completionParseResult));
-        }
+            if(!nestedCompletionTerms.isEmpty()) {
+                completions
+                    .addAll(completionErroneousProgramsNested(position, nestedCompletionTerms, completionParseResult));
+            }
 
-        if(!nestedCompletionTerms.isEmpty()) {
-            completions
-                .addAll(completionErroneousProgramsNested(position, nestedCompletionTerms, completionParseResult));
-        }
-
-        if(completionTerms.isEmpty() && nestedCompletionTerms.isEmpty()) {
-            completions.addAll(completionCorrectPrograms(position, blankLineCompletion, parseInput));
+            if(completionTerms.isEmpty() && nestedCompletionTerms.isEmpty()) {
+                completions.addAll(completionCorrectPrograms(position, blankLineCompletion, parseInput));
+            }
         }
 
         return completions;
