@@ -429,7 +429,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             String sort = attachment.getSort().substring(0, attachment.getSort().length());
             String placeholderName = sort + "-Plhdr";
             IStrategoAppl optionalPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
-            final IStrategoTerm strategoInput = termFactory.makeTuple(optional, termFactory.makeString(sort), optionalPlaceholder);
+            final IStrategoTerm strategoInput =
+                termFactory.makeTuple(optional, termFactory.makeString(sort), optionalPlaceholder);
 
             // call Stratego part of the framework to compute change
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
@@ -488,10 +489,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         for(IStrategoList list : lists) {
             ListImploderAttachment attachment = list.getAttachment(null);
             String sort = attachment.getSort().substring(0, attachment.getSort().length() - 1);
-            String placeholderName =  sort + "-Plhdr";
+            String placeholderName = sort + "-Plhdr";
             IStrategoAppl listPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
-            final IStrategoTerm strategoInput =
-                termFactory.makeTuple(list, termFactory.makeString(sort), listPlaceholder, termFactory.makeInt(position));
+            final IStrategoTerm strategoInput = termFactory.makeTuple(list, termFactory.makeString(sort),
+                listPlaceholder, termFactory.makeInt(position));
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
             final IStrategoTerm proposalsLists =
                 strategoCommon.invoke(runtime, strategoInput, "get-proposals-list-" + languageName);
@@ -1040,10 +1041,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
-        
+
         final StrategoTerm oldNodeTopMostAmb = findTopMostAmbNode(oldNode);
-        
-        
+
+
         if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList)
             || !(newNode instanceof IStrategoAppl)) {
             return null;
@@ -1106,7 +1107,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         if(ImploderAttachment.get(term).isCompletion() || ImploderAttachment.get(term).isNestedCompletion())
             return true;
-        
+
         return false;
     }
 
@@ -1780,7 +1781,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     private StrategoTerm findTopMostCompletionNode(StrategoTerm newNode) {
         StrategoTerm parent = (StrategoTerm) ParentAttachment.getParent(newNode);
-        if(parent == null || ImploderAttachment.getSort(parent) == null) {
+        if(parent == null) {
+            return newNode;
+        }
+
+        ImploderAttachment ia = ImploderAttachment.get(parent);
+
+        if(ia.getSort() == null || ia.isNestedCompletion()) {
             return newNode;
         }
 
