@@ -716,8 +716,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // insert after at end offset of the rightmost token of the element before the
             // completion
             StrategoTerm elementBefore = (StrategoTerm) oldNode.getSubterm(oldNode.getAllSubterms().length - 1);
-            insertionPoint = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
-            tokenPosition = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getIndex();
+            int leftIdx = elementBefore.getAttachment(ImploderAttachment.TYPE).getLeftToken().getIndex();
+            int rightIdx = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getIndex();
+            while((tokenizer.getTokenAt(rightIdx).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(rightIdx).getLength() == 0) && rightIdx > leftIdx){
+                rightIdx--;
+            }
+            insertionPoint = tokenizer.getTokenAt(rightIdx).getEndOffset();
+            tokenPosition = rightIdx;
         }
         suffixPoint = insertionPoint + 1;
 
