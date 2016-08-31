@@ -663,10 +663,18 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         // if completion is separated by a newline, preserve indentation of the subsequent node
         // else separation follows from the grammar
+        String separator = "";
+        for (int i = text.length()-1; i >= 0; i--){
+            if(text.charAt(i) == additionalInfo.charAt(additionalInfo.length()-1)){
+                break;
+            }
+            separator = text.charAt(i) + separator;
+        }        
+        
         IToken checkToken = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken();
         int checkTokenIdx = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getIndex();
         suffixPoint = insertionPoint;
-        if(text.contains("\n")) {
+        if(separator.contains("\n")) {
             for(; checkTokenIdx >= 0; checkTokenIdx--) {
                 checkToken = tokenizer.getTokenAt(checkTokenIdx);
                 if(tokenizer.toString(checkToken, checkToken).contains("\n")) {
@@ -1078,21 +1086,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             insertionPoint = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getEndOffset();
         }
 
-        suffixPoint = insertionPoint;
-        if(oldNodeIA.getRightToken().getEndOffset() < oldNodeIA.getRightToken().getStartOffset()) {
-            // keep all the characters after the last non-layout token if completion ends with a
-            // placeholder
-            int tokenPosition = oldNodeIA.getRightToken().getIndex();
-            while(tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition)
-                .getStartOffset()
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT && tokenPosition > 0)
-                tokenPosition--;
-            suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
+        // keep all the characters after the last non-layout token
+        int tokenPosition = oldNodeIA.getRightToken().getIndex();
+        while(tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition).getStartOffset()
+            || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT && tokenPosition > 0)
+            tokenPosition--;
+        suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
 
-        } else {
-            // skip all the (erroneous) characters that were in the text already
-            suffixPoint = oldNodeIA.getRightToken().getEndOffset() + 1;
-        }
 
         CompletionKind kind;
         if(completionKind.equals("recovery")) {
@@ -1560,7 +1560,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         IStrategoTerm input = termFactory.makeString(sort);
         boolean isLeftRecursive = false;
 
-        if(position > right.getEndOffset()) {
+        if(fragment instanceof IStrategoAppl && position > right.getEndOffset()) {
             try {
                 isLeftRecursive = strategoCommon.invoke(runtime, input, "is-left-recursive") != null;
             } catch(MetaborgException e) {
@@ -1569,7 +1569,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         }
         boolean isRightRecursive = false;
 
-        if(position <= left.getStartOffset()) {
+        if(fragment instanceof IStrategoAppl && position <= left.getStartOffset()) {
             try {
                 isRightRecursive = strategoCommon.invoke(runtime, input, "is-right-recursive") != null;
             } catch(MetaborgException e) {
