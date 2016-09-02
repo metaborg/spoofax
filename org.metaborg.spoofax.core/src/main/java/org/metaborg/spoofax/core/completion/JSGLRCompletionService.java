@@ -575,13 +575,23 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // get the last non-layout token before the new node
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
+            while(tokenPosition > 0 && (tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR))
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
 
-            suffixPoint = insertionPoint + 1;
-
+            // if completion does not spam multiple lines preserve everything starting at the first non-layout char 
+            if(!additionalInfo.contains("\n")) {
+                tokenPosition = oldNodeIA.getLeftToken().getIndex() + 1 < tokenizer.getTokenCount()
+                    ? oldNodeIA.getLeftToken().getIndex() + 1 : tokenizer.getTokenCount() - 1;
+                while(tokenPosition < tokenizer.getTokenCount()
+                    && (tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
+                        || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR))
+                    tokenPosition++;
+                suffixPoint = tokenizer.getTokenAt(tokenPosition).getStartOffset();
+            } else { // if completion spams multiple lines keep the lines
+                suffixPoint = insertionPoint + 1;
+            }
             // if completion is triggered in an empty line, consume that line
             IToken checkToken;
             boolean blankLine = false;
