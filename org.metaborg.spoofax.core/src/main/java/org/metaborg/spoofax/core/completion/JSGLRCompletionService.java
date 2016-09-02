@@ -140,9 +140,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             for(String startSymbol : startSymbols) {
                 String placeholderName = startSymbol + "-Plhdr";
                 IStrategoAppl placeholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
+                IStrategoTuple input = termFactory.makeTuple(termFactory.makeString(startSymbol), placeholder);
 
                 final IStrategoTerm proposalsPlaceholder =
-                    strategoCommon.invoke(runtime, placeholder, "get-proposals-empty-program-" + languageName);
+                    strategoCommon.invoke(runtime, input, "get-proposals-empty-program-" + languageName);
 
                 if(proposalsPlaceholder == null) {
                     logger.error("Getting proposals for {} failed", placeholder);
@@ -372,7 +373,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             }
         }
 
-        final IStrategoTerm strategoInput = termFactory.makeTuple(placeholder, placeholderParent, placeholderIdx);
+        final String sort = ImploderAttachment.getSort(placeholder);
+        final IStrategoTerm strategoInput =
+            termFactory.makeTuple(termFactory.makeString(sort), placeholder, placeholderParent, placeholderIdx);
 
         final IStrategoTerm proposalsPlaceholder =
             strategoCommon.invoke(runtime, strategoInput, "get-proposals-placeholder-" + languageName);
@@ -430,7 +433,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             String placeholderName = sort + "-Plhdr";
             IStrategoAppl optionalPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
             final IStrategoTerm strategoInput =
-                termFactory.makeTuple(optional, termFactory.makeString(sort), optionalPlaceholder);
+                termFactory.makeTuple(termFactory.makeString(sort), optional, optionalPlaceholder);
 
             // call Stratego part of the framework to compute change
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
@@ -491,7 +494,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             String sort = attachment.getSort().substring(0, attachment.getSort().length() - 1);
             String placeholderName = sort + "-Plhdr";
             IStrategoAppl listPlaceholder = termFactory.makeAppl(termFactory.makeConstructor(placeholderName, 0));
-            final IStrategoTerm strategoInput = termFactory.makeTuple(list, termFactory.makeString(sort),
+            final IStrategoTerm strategoInput = termFactory.makeTuple(termFactory.makeString(sort), list,
                 listPlaceholder, termFactory.makeInt(position));
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
             final IStrategoTerm proposalsLists =
@@ -664,13 +667,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // if completion is separated by a newline, preserve indentation of the subsequent node
         // else separation follows from the grammar
         String separator = "";
-        for (int i = text.length()-1; i >= 0; i--){
-            if(text.charAt(i) == additionalInfo.charAt(additionalInfo.length()-1)){
+        for(int i = text.length() - 1; i >= 0; i--) {
+            if(text.charAt(i) == additionalInfo.charAt(additionalInfo.length() - 1)) {
                 break;
             }
             separator = text.charAt(i) + separator;
-        }        
-        
+        }
+
         IToken checkToken = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken();
         int checkTokenIdx = oldNode.getAttachment(ImploderAttachment.TYPE).getLeftToken().getIndex();
         suffixPoint = insertionPoint;
@@ -726,7 +729,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             StrategoTerm elementBefore = (StrategoTerm) oldNode.getSubterm(oldNode.getAllSubterms().length - 1);
             int leftIdx = elementBefore.getAttachment(ImploderAttachment.TYPE).getLeftToken().getIndex();
             int rightIdx = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getIndex();
-            while((tokenizer.getTokenAt(rightIdx).getKind() == IToken.TK_LAYOUT || tokenizer.getTokenAt(rightIdx).getLength() == 0) && rightIdx > leftIdx){
+            while((tokenizer.getTokenAt(rightIdx).getKind() == IToken.TK_LAYOUT
+                || tokenizer.getTokenAt(rightIdx).getLength() == 0) && rightIdx > leftIdx) {
                 rightIdx--;
             }
             insertionPoint = tokenizer.getTokenAt(rightIdx).getEndOffset();
@@ -782,8 +786,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     IStrategoAppl placeholder = termFactory
                         .makeAppl(termFactory.makeConstructor(placeholderTerm.getConstructor().getName(), 0));
 
-                    final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
-                        parenthesizeTerm(completionTerm, termFactory), placeholder, placeholderTerm);
+
+                    IStrategoTerm parenthesized = parenthesizeTerm(completionTerm, termFactory);
+                    final IStrategoTerm inputStratego =
+                        termFactory.makeTuple(termFactory.makeString(ImploderAttachment.getElementSort(parenthesized)),
+                            completionAst, completionTerm, topMostAmb, parenthesized, placeholder, placeholderTerm);
 
                     final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
                     final IStrategoTerm proposalTerm = strategoCommon.invoke(runtime, inputStratego,
@@ -799,8 +806,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
                 } else {
 
-                    final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
-                        parenthesizeTerm(completionTerm, termFactory));
+                    IStrategoTerm parenthesized = parenthesizeTerm(completionTerm, termFactory);
+                    final IStrategoTerm inputStratego =
+                        termFactory.makeTuple(termFactory.makeString(ImploderAttachment.getElementSort(parenthesized)),
+                            completionAst, completionTerm, topMostAmb, parenthesized);
 
                     final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
                     final IStrategoTerm proposalTerm = strategoCommon.invoke(runtime, inputStratego,
@@ -1241,9 +1250,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 final IStrategoTerm replaceTermText = termFactory.makeAppl(
                     new StrategoConstructor("REPLACE_TERM_TEXT", 2), topMostAmb, proposalTermNested.getSubterm(1));
 
-                final IStrategoTerm inputStrategoInnerNested =
-                    termFactory.makeTuple(completionAst, mainNestedCompletionTerm, proposalTermNested.getSubterm(0),
-                        replaceTermText, parenthesizeTerm(mainNestedCompletionTerm, termFactory));
+                IStrategoTerm parenthesized = parenthesizeTerm(mainNestedCompletionTerm, termFactory);
+                final IStrategoTerm inputStrategoInnerNested = termFactory.makeTuple(
+                    termFactory.makeString(ImploderAttachment.getElementSort(parenthesized)), completionAst,
+                    mainNestedCompletionTerm, proposalTermNested.getSubterm(0), replaceTermText, parenthesized);
 
                 inputsStratego.add(inputStrategoInnerNested);
             }
@@ -1264,9 +1274,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final IStrategoTerm replaceTermText = termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2),
                 topMostAmb, proposalTermNested.getSubterm(1));
 
-            final IStrategoTerm inputStrategoInnerNested =
-                termFactory.makeTuple(completionAst, mainNestedCompletionTerm, proposalTermNested.getSubterm(0),
-                    replaceTermText, parenthesizeTerm(mainNestedCompletionTerm, termFactory));
+            IStrategoTerm parenthesized = parenthesizeTerm(mainNestedCompletionTerm, termFactory);
+            final IStrategoTerm inputStrategoInnerNested = termFactory.makeTuple(
+                termFactory.makeString(ImploderAttachment.getElementSort(parenthesized)), completionAst,
+                mainNestedCompletionTerm, proposalTermNested.getSubterm(0), replaceTermText, parenthesized);
 
             inputsStratego.add(inputStrategoInnerNested);
         }
@@ -1286,8 +1297,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final StrategoTerm topMostCompletionTerm = findTopMostCompletionNode((StrategoTerm) completionTerm);
             final StrategoTerm topMostAmb = findTopMostAmbNode(topMostCompletionTerm);
 
-            final IStrategoTerm inputStratego = termFactory.makeTuple(completionAst, completionTerm, topMostAmb,
-                parenthesizeTerm(topMostCompletionTerm, termFactory));
+            IStrategoTerm parenthesized = parenthesizeTerm(topMostCompletionTerm, termFactory);
+
+            final IStrategoTerm inputStratego =
+                termFactory.makeTuple(termFactory.makeString(ImploderAttachment.getElementSort(parenthesized)),
+                    completionAst, completionTerm, topMostAmb, parenthesized);
 
             final IStrategoTerm proposalTerm =
                 strategoCommon.invoke(runtime, inputStratego, "get-proposals-incorrect-programs-" + languageName);
@@ -1299,8 +1313,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final IStrategoTerm replaceTermText = termFactory.makeAppl(new StrategoConstructor("REPLACE_TERM_TEXT", 2),
                 topMostAmb, proposalTerm.getSubterm(1));
 
-            final IStrategoTerm inputStrategoNested = termFactory.makeTuple(completionAst, nestedCompletionTerm,
-                proposalTerm.getSubterm(0), replaceTermText, parenthesizeTerm(nestedCompletionTerm, termFactory));
+            IStrategoTerm parenthesizedNested = parenthesizeTerm(nestedCompletionTerm, termFactory);
+            final IStrategoTerm inputStrategoNested = termFactory.makeTuple(
+                termFactory.makeString(ImploderAttachment.getElementSort(parenthesizedNested)), completionAst,
+                nestedCompletionTerm, proposalTerm.getSubterm(0), replaceTermText, parenthesizedNested);
 
             inputsStratego.add(inputStrategoNested);
         }
