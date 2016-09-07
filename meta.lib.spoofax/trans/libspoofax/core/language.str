@@ -1,0 +1,18 @@
+module libspoofax/core/language
+
+rules
+
+  /**
+   * Returns a list of (groupId, id, version, location) tuples for the current language components.
+   */
+  language-components = prim("language_components")
+  
+  /**
+   * Returns a (groupId, id, version) tuple for the current language implementation.
+   */
+  language-implementation = prim("language_implementation")
+  
+  /**
+   * Returns the name (string) of the current language.
+   */
+  language = prim("language")
