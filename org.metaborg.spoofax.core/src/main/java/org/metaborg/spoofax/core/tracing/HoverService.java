@@ -9,6 +9,7 @@ import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.FacetContribution;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
@@ -79,15 +80,16 @@ public class HoverService implements ISpoofaxHoverService {
 
         final FacetContribution<HoverFacet> facetContrib = facet(langImpl);
         final HoverFacet facet = facetContrib.facet;
+        final ILanguageComponent contributor = facetContrib.contributor;
         final String strategy = facet.strategyName;
 
         try {
-            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor, project, true);
+            final ITermFactory termFactory = termFactoryService.get(contributor, project, true);
             final HybridInterpreter interpreter;
             if(context == null) {
-                interpreter = strategoRuntimeService.runtime(facetContrib.contributor, source, true);
+                interpreter = strategoRuntimeService.runtime(contributor, source, true);
             } else {
-                interpreter = strategoRuntimeService.runtime(facetContrib.contributor, context, true);
+                interpreter = strategoRuntimeService.runtime(contributor, context, true);
             }
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple =
