@@ -438,7 +438,7 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id, sdfModule, sdfFile, sdfVersion,
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfModule, sdfFile, sdfVersion,
             sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile,
             sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat,
             strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);

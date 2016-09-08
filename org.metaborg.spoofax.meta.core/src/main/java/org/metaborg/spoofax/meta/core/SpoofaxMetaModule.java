@@ -22,6 +22,7 @@ import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecService;
 import org.metaborg.spoofax.meta.core.stratego.primitives.CheckSdf2TablePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitives.GetSortNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitives.LanguageSpecNamePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitives.LanguageSpecPpNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitives.PlaceholderCharsPrimitive;
 
 import com.google.inject.Singleton;
@@ -41,6 +42,7 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
 
         // Static injections for SpoofaxExtensionModule bindings.
         requestStaticInjection(LanguageSpecNamePrimitive.class);
+        requestStaticInjection(LanguageSpecPpNamePrimitive.class);
         requestStaticInjection(CheckSdf2TablePrimitive.class);
         requestStaticInjection(PlaceholderCharsPrimitive.class);
         requestStaticInjection(GetSortNamePrimitive.class);
