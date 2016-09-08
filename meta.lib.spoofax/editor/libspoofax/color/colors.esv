@@ -1,4 +1,4 @@
-module libspoofax/editor/color/colors
+module libspoofax/color/colors
 
 colorer
 

@@ -1,8 +1,8 @@
-module libspoofax/editor/color/default
+module libspoofax/color/default
 
 imports
 
-  libspoofax/editor/color/colors
+  libspoofax/color/colors
 
 colorer // Default, token-based highlighting
 
