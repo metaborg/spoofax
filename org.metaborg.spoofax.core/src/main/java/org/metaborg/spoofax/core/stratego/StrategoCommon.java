@@ -68,6 +68,24 @@ public class StrategoCommon implements IStrategoCommon {
         return null;
     }
 
+    @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
+        String strategy) throws MetaborgException {
+        for(ILanguageComponent component : impl.components()) {
+            if(component.facet(StrategoRuntimeFacet.class) == null) {
+                continue;
+            }
+
+            // TODO: do we really want to be typesmart? Does that need to be configurable?
+            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
+            final IStrategoTerm result = invoke(runtime, input, strategy);
+            if(result != null) {
+                return result;
+            }
+
+        }
+        return null;
+    }
+
     @Override public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
         throws MetaborgException {
         runtime.setCurrent(input);

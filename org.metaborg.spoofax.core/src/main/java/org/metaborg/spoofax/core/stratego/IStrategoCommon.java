@@ -54,6 +54,27 @@ public interface IStrategoCommon {
         throws MetaborgException;
 
     /**
+     * Invokes a Stratego strategy in components of given language implementation. Returns the first result that
+     * succeeds.
+     *
+     * @param impl
+     *            Language implementation to invoke the strategy in.
+     * @param location
+     *            Location to initialize the Stratego runtime with.
+     * @param input
+     *            Input term
+     * @param strategy
+     *            Name of the strategy to call.
+     * @return Resulting term, or null if the strategy failed.
+     * @throws MetaborgException
+     *             When an error occurs getting a Stratego runtime.
+     * @throws MetaborgException
+     *             When invoking the strategy fails unexpectedly.
+     */
+    IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input, String strategy)
+        throws MetaborgException;
+
+    /**
      * Invokes a Strategy strategy in given runtime.
      * 
      * @param runtime
