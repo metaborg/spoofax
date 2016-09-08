@@ -1,5 +1,9 @@
 module libspoofax/resource/path
 
+imports
+
+  libspoofax/core/language
+
 rules // Builtin paths
 
   /**
@@ -38,6 +42,22 @@ rules // Source and include directories and files
    * Returns a list of source and include directories (strings) for language with given name (string).
    */
   language-source-and-include-directories = Dupl; (language-source-directories, language-include-directories); conc
+  
+  
+  /**
+   * Returns a list of source directories (strings) for the current language.
+   */
+  current-language-source-directories = prim("language_source_directories", <language>)
+  
+  /**
+   * Returns a list of include directories (strings) for the current language.
+   */
+  current-language-include-directories = prim("language_include_directories", <language>)
+  
+  /**
+   * Returns a list of source and include directories (strings) for the current language.
+   */
+  current-language-source-and-include-directories = language; Dupl; (language-source-directories, language-include-directories); conc
 
 
   /**
@@ -54,3 +74,19 @@ rules // Source and include directories and files
    * Returns a list of source and include files (strings) for language with given name (string).
    */
   language-source-and-include-files = Dupl; (language-source-files, language-include-files); conc
+  
+  
+  /**
+   * Returns a list of source files (strings) for the current language.
+   */
+  current-language-source-files = prim("language_source_files", <language>)
+  
+  /**
+   * Returns a list of include files (strings) for the current language.
+   */
+  current-language-include-files = prim("language_include_files", <language>)
+  
+  /**
+   * Returns a list of source and include files (strings) for the current language.
+   */
+  current-language-source-and-include-files = language; Dupl; (language-source-files, language-include-files); conc

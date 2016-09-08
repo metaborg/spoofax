@@ -1,5 +1,9 @@
 module libspoofax/core/parse
 
+imports
+
+  libspoofax/core/language
+
 rules
 
   /**
@@ -22,8 +26,14 @@ rules
   parse-file = prim("parse", 1, (), (), ())
   
   /**
-   * Parses a file (current term with path to file) with the active language implementation of the language with given name.
+   * Parses a file (current term with path to file) with the current language implementation.
    * Fails if parsing fails.
+   */
+  parse-file-with-current-lang = prim("parse", 1, <language>, (), ())
+  
+  /**
+   * Parses a file (current term with path to file) with the active language implementation of the language with given 
+   * name. Fails if parsing fails.
    */
   parse-file-with-lang(|name) = prim("parse", 1, name, (), ())
   
