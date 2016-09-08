@@ -1,0 +1,92 @@
+module libspoofax/resource/path
+
+imports
+
+  libspoofax/core/language
+
+rules // Builtin paths
+
+  /**
+   * Returns the path of the current project, or fails if there is no current project.
+   */
+  project-path = prim("project_path")
+
+rules // Path conversion
+
+  /**
+   * Converts a path (string) into a path on the local filesystem. If the path is already on the local filesystem, it is 
+   * returned unchanged. If the path cannot be converted to the local filesystem (for example, it is a path to a remote 
+   * HTTP server, or a path into a Zip file), the strategy fails.
+   */
+  local-path = prim("local_path")
+  
+  /**
+   * Replicates a resource (given by a string) to the local filesystem, and returns the path (string) to it. If the 
+   * resource is already on the local filesystem, its path is returned unchanged.
+   */
+  local-replicate = prim("local_replicate")
+
+rules // Source and include directories and files
+
+  /**
+   * Returns a list of source directories (strings) for language with given name (string).
+   */
+  language-source-directories = prim("language_source_directories", <id>)
+  
+  /**
+   * Returns a list of include directories (strings) for language with given name (string).
+   */
+  language-include-directories = prim("language_include_directories", <id>)
+  
+  /**
+   * Returns a list of source and include directories (strings) for language with given name (string).
+   */
+  language-source-and-include-directories = Dupl; (language-source-directories, language-include-directories); conc
+  
+  
+  /**
+   * Returns a list of source directories (strings) for the current language.
+   */
+  current-language-source-directories = prim("language_source_directories", <language>)
+  
+  /**
+   * Returns a list of include directories (strings) for the current language.
+   */
+  current-language-include-directories = prim("language_include_directories", <language>)
+  
+  /**
+   * Returns a list of source and include directories (strings) for the current language.
+   */
+  current-language-source-and-include-directories = language; Dupl; (language-source-directories, language-include-directories); conc
+
+
+  /**
+   * Returns a list of source files (strings) for language with given name (string).
+   */
+  language-source-files = prim("language_source_files", <id>)
+  
+  /**
+   * Returns a list of include files (strings) for language with given name (string).
+   */
+  language-include-files = prim("language_include_files", <id>)
+  
+  /**
+   * Returns a list of source and include files (strings) for language with given name (string).
+   */
+  language-source-and-include-files = Dupl; (language-source-files, language-include-files); conc
+  
+  
+  /**
+   * Returns a list of source files (strings) for the current language.
+   */
+  current-language-source-files = prim("language_source_files", <language>)
+  
+  /**
+   * Returns a list of include files (strings) for the current language.
+   */
+  current-language-include-files = prim("language_include_files", <language>)
+  
+  /**
+   * Returns a list of source and include files (strings) for the current language.
+   */
+  current-language-source-and-include-files = language; Dupl; (language-source-files, language-include-files); conc

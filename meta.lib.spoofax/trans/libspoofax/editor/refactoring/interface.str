@@ -1,0 +1,7 @@
+module libspoofax/editor/refactoring/interface
+
+rules
+
+  resugar                 = fail
+  parenthesize            = fail
+  override-reconstruction = fail

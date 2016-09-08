@@ -112,7 +112,7 @@ public class LanguageSpecBuilder {
         logger.debug("Generating sources for {}", input.languageSpec().location());
 
         final ContinuousLanguageSpecGenerator generator =
-            new ContinuousLanguageSpecGenerator(new GeneratorSettings(location, config), access);
+            new ContinuousLanguageSpecGenerator(new GeneratorSettings(location, config), access, config.sdfVersion());
         generator.generateAll();
 
         componentConfigBuilder.reset();

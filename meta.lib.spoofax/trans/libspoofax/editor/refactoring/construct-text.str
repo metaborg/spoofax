@@ -1,0 +1,414 @@
+module libspoofax/editor/refactoring/construct-text
+
+imports 
+	libstratego-gpp
+  libspoofax/term/origin
+	libspoofax/editor/refactoring/layout-adaption
+
+signature constructors
+  Parenthetical : Unknown -> Unknown
+
+rules
+	
+	DEFAULT-INDENT = !"\t" //HACK: this is used in case multiline subterm texts are pretty-printed
+
+rules //Parenthetical
+
+  origin-indent = ?Parenthetical(<origin-indent>)
+
+rules //interface
+
+construct-text-from-source(pp, parenthesize, override-reconstruction, resugar):
+	t@(oldnode, newnode) -> newText
+	where
+		<is-tuple> t;
+		<has-origin-term> oldnode	
+	with
+		parenthesized-node := <try(parenthesize)> newnode;
+		reconstructed-text := <topdown(try(strip-annos)); construct-text-from-old(pp, override-reconstruction, resugar)> (oldnode, parenthesized-node);
+		newText := <origin-set-relation>(parenthesized-node, reconstructed-text)
+
+/*
+ * Constructs the textual change associated with 
+ * the transformation that replaces a (sub)term 'oldnode' with a new (sub)term 'newnode'.
+ * @param custom pp strategy used to construct the text fragment for nodes that miss origin information T -> String
+ * pp strategy is assumed to be homomorphic (except for lists separators that require parent node information)
+ * @parenthesize strategy to resolve parse ambiguities that possible invalidate homomorpism T -> T
+ * @prevents application of homomorphism assumption (or-node, node) -> _ 
+ * @resugars when desugaring is non local or 1:n, thereby preventing incorrect reconstruction 
+ * @type (original-node, new-node) -> (Int,Int, String)
+ */	
+construct-textual-change(pp, parenthesize, override-reconstruction, resugar):
+	(oldnode, newnode) -> (start-offset, end-offset, newText)
+	where
+		r-text := <construct-text-from-source(pp, parenthesize, override-reconstruction, resugar)>(oldnode, newnode);
+		(start-offset, end-offset, newText) := <ast-change-to-text-change(pp, override-reconstruction, resugar)> REPLACEMENT(oldnode, r-text)
+		
+rules
+	
+construct-textual-change(pp, parenthesize, override-reconstruction, resugar):
+	t@(oldnode, newnode) -> (0, 0, "")
+	where
+		<is-tuple> t;
+		<equal> (oldnode, newnode)
+
+construct-textual-change(pp, parenthesize, override-reconstruction, resugar)=
+	map(construct-textual-change(pp, parenthesize, override-reconstruction, resugar))
+
+//treat olnode as a candidate origin term to protect against loss of origin (and to preserve sugar in first diff)
+construct-text-from-old(pp, override-reconstruction, resugar):
+	(oldnode, newnode) -> reconstructed-text
+	where
+		reconstructed-text := <construct-text-from-origin(pp, override-reconstruction, resugar)> (oldnode, newnode) <+ //possible desugared
+		reconstructed-text := <construct-text-from-origin(pp, override-reconstruction, resugar)> (<where(not(is-origin-term)); origin-term> oldnode, newnode) <+
+		reconstructed-text := <construct-text(pp, override-reconstruction, resugar)> newnode
+
+rules // backwards compatibility
+
+construct-textual-change(pp) = construct-textual-change(pp, id, fail, fail)
+
+construct-textual-change(pp|pp-table)=
+	construct-textual-change(pp <+ (ast2abox(|[pp-table]); box2text-string(|100)))
+
+rules //text-reconstruction
+
+construct-text(pp, override-reconstruction, resugar) = 
+	construct-text-from-origin-desugared(pp, override-reconstruction, resugar) <+ 
+	construct-text-from-origin(pp, override-reconstruction, resugar) <+
+	construct-text-by-pp(pp, override-reconstruction, resugar) <+
+	pp
+
+construct-text-from-origin-desugared(pp, override-reconstruction, resugar):
+	node -> <construct-text-from-origin(pp, override-reconstruction, resugar)> (origin-desugared-node, node)
+	where 
+		origin-desugared-node := <origin-term-desugared; topdown(try(strip-annos))> node
+
+construct-text-from-origin(pp, override-reconstruction, resugar):
+	node -> <construct-text-from-origin(pp, override-reconstruction, resugar)> (origin-node, node)
+	where
+		origin-node := <origin-term> node
+ 
+//list must be constructed with comments that preceed the first element or succeed the last element
+//(otherwise insert-at-end gives problems)
+construct-text-from-origin(pp, override-reconstruction, resugar):
+	lst -> <construct-text-with-comments(pp, override-reconstruction, resugar|"")> (origin-lst, lst)
+	where
+		origin-lst := <find-origin-sublist> lst
+
+construct-text-from-origin(pp, override-reconstruction, resugar):
+	t@(origin-node, node) -> <correct-indentation(|origin-node)> text
+	where //guarantees that node can be formatted from the origin node, preventing non-termination
+		<is-tuple> t;
+		<has-origin-term> origin-node;
+		ast-changes := <collect-ast-changes(override-reconstruction, resugar)> (origin-node, node); 
+		<is-terminating-diff(|node)> ast-changes //prevent non termination
+	with
+		text-changes := <map(ast-change-to-text-change(pp, override-reconstruction, resugar))> ast-changes;
+		text := <apply-text-changes>(text-changes, <origin-text> origin-node, <origin-start-offset> origin-node)
+
+construct-text-by-pp(pp, override-reconstruction, resugar):
+	node -> text
+	where 
+		text := < ?Parenthetical(<id>);
+			all(alltd(is-string <+ is-completion-placeholder <+ try(construct-text-with-comments(pp, override-reconstruction, resugar|<DEFAULT-INDENT>))));
+			!Parenthetical(<id>);
+			pp
+		> node
+
+construct-text-by-pp(pp, override-reconstruction, resugar):
+  node -> text
+  where
+    not(?Parenthetical(_)) 
+  where 
+    text := < 
+      all(alltd((is-string <+ is-completion-placeholder <+ try(construct-text-with-comments(pp, override-reconstruction, resugar|<DEFAULT-INDENT>)))));
+      pp
+    > node		
+		
+
+is-completion-placeholder = where(get-constructor; is-substring(!"-Plhdr")); id
+
+construct-text-with-comments(pp, override-reconstruction, resugar|default-indent) = 
+	construct-text-with-comments-desugared(pp, override-reconstruction, resugar|default-indent) <+
+	construct-text-with-comments-origin(pp, override-reconstruction, resugar|default-indent)
+
+construct-text-with-comments-desugared(pp, override-reconstruction, resugar|default-indent):
+	node -> <construct-text-with-comments(pp, override-reconstruction, resugar|default-indent)> (origin-desugared-node, node)
+	where 
+		origin-desugared-node := <origin-term-desugared; topdown(try(strip-annos))> node; 
+		<same-signature> (origin-desugared-node, node)
+
+construct-text-with-comments-origin(pp, override-reconstruction, resugar|default-indent):
+	node -> <construct-text-with-comments(pp, override-reconstruction, resugar|default-indent)> (origin-node, node)
+	where
+		origin-node := <origin-term <+ find-origin-sublist> node
+
+//construct-text-with-comments(pp|default-indent): Parentetical(node) -> ...
+// on this moment the parenthesis will be placed on the layouted text, 
+// which is awful. It should be: {indent + comments before}{(}{node-text}{)}{comments after} 
+
+construct-text-with-comments(pp, override-reconstruction, resugar|default-indent):
+	t@(origin-node, node) -> node-text
+	where 
+		<is-tuple> t;
+		<has-origin-term> origin-node
+	with //termination check is not needed (we need to Replace to keep comments), since it is called on a subterm in construct-text-by-pp
+		ast-changes := <collect-ast-changes(override-reconstruction, resugar)> (origin-node, node);
+		text-changes := <map(ast-change-to-text-change(pp, override-reconstruction, resugar))> ast-changes;
+		full-text := <origin-text-with-layout> origin-node; 
+		full-text-start-offset := <origin-layout-prefix-start-offset> origin-node; 
+		modified-full-text := <apply-text-changes>(text-changes, full-text, full-text-start-offset); 
+		node-text := <replace-indentation(|default-indent, <origin-indent <+ !""> origin-node)> modified-full-text
+
+signature constructors //signatures for AST changes
+	DELETION      : OldList -> AST_CHANGE
+	REPLACEMENT   : OldNode * NewNode -> AST_CHANGE //TODO: REPLACEMENT_IN_LIST, REPLACEMENT + bracket insertion for REPLACEMENT
+	INSERT_BEFORE : OldNode * NewList -> AST_CHANGE
+	INSERT_AT_END : OldNode * NewList -> AST_CHANGE
+
+rules //ast-diff
+
+collect-ast-changes(override-reconstruction, resugar) = 
+	where(is-tuple); 
+	try(remove-superfluous-parentethical);
+	(collect-ast-changes-eq <+
+	collect-ast-changes-not-homomorphic(override-reconstruction) <+
+	collect-ast-changes-resugared(override-reconstruction, resugar) <+
+	collect-ast-changes-rec-node(override-reconstruction, resugar) <+
+	collect-ast-changes-rec-list(override-reconstruction, resugar) <+
+	collect-ast-changes-sugared(override-reconstruction, resugar) <+
+	collect-ast-changes-replace)
+
+//1: helps to keep syntactic sugar
+//2: prevent incorrect reconstruction in case local and global information gets mixed
+collect-ast-changes-resugared(override-reconstruction, resugar):
+	(origin-node, node) -> ast-changes
+	where 
+		<not(is-origin-term)> origin-node; //otherwise resugaring does not make sense
+		origin-resugared := <origin-track-forced(resugar)> origin-node;
+		<not(equal)>(origin-node, origin-resugared);
+		ast-changes := <collect-ast-changes(override-reconstruction, resugar)> (origin-resugared, <try(resugar)> node)
+
+collect-ast-changes-not-homomorphic(override-reconstruction):
+	(origin-node, node) -> [REPLACEMENT(origin-node, <origin-set-relation>(node, custom-node))]
+	where
+		custom-node := <override-reconstruction> (origin-node, node); //typical the node itself or a textual representation
+		<check-change-origin> REPLACEMENT(origin-node, node)
+
+remove-superfluous-parentethical:
+	(origin-node, Parenthetical(node)) -> (origin-node, node)
+	where //apparently, parenthesis already in source
+		<same-signature> (origin-node, node)
+
+collect-ast-changes-eq:
+	(origin-node, node) -> []
+	where
+		<equal> (origin-node, node)
+
+collect-ast-changes-rec-node(override-reconstruction, resugar):
+	(origin-node, node) -> ast-changes
+	where
+		<same-signature <+ ?([_],[_])> (origin-node, node); //TODO: not injection?
+		<is-related-to(|origin-node) <+ (is-related-to-fuzzy(|origin-node))> node;
+		arg-tuples := <zip>(<get-arguments> origin-node, <get-arguments> node); 
+		ast-changes := <map(collect-ast-changes(override-reconstruction, resugar)); flatten-list> arg-tuples 
+ 
+collect-ast-changes-rec-list(override-reconstruction, resugar):
+	(origin-lst, lst) -> ast-changes
+	where
+		<not(violates-homomorphism-list)> (origin-lst, lst)
+	where
+		ast-changes := <
+			list-diff(override-reconstruction, resugar|origin-lst); 
+			filter(not(?INSERT_BEFORE(_, [])));
+			filter(not(?INSERT_AT_END(_, [])))
+		> (origin-lst, lst); 
+		<map(check-change-origin)> ast-changes 
+
+check-change-origin:
+	r@REPLACEMENT(or, _) -> r
+	where
+		<has-origin-term> or
+
+check-change-origin:
+	d@DELETION(or) -> d
+	where
+		<has-origin-term> or
+
+check-change-origin:
+	ins@INSERT_AT_END(or, trm) -> ins
+	where
+		<has-origin-term> or <+ <?[]> trm
+
+check-change-origin:
+	ins@INSERT_BEFORE(or, trm) -> ins
+	where
+		<has-origin-term> or <+ <?[]> trm
+		
+collect-ast-changes-sugared(override-reconstruction, resugar):
+	(origin-node, node) -> ast-changes
+	where
+		<is-origin-term-desugared> node;
+		<not(is-origin-term)> node
+	where
+		ast-changes := <collect-ast-changes-rec-node(override-reconstruction, resugar)> (<origin-term> origin-node, <origin-term> node)
+		  
+collect-ast-changes-replace:
+	(origin-node, node) -> [REPLACEMENT(origin-node, node)]
+	where
+		<check-change-origin> REPLACEMENT(origin-node, node);
+		<not(is-list) <+ ?[] <+ ?[_] <+ has-origin-sublist> node 
+		//list-text with more then one element can only be constructed in a context 
+		// or from origin 
+
+rules //validity
+
+/*
+//desugaring: changes must fall inside region of original text
+//issue: is it correct if we simply filter context sensitive changes?
+in-parent-context(|origin-parent):
+	ast-change -> ast-change
+	where 
+		start-offset-node := <origin-deletion-start-offset> origin-parent; 
+		end-offset-node := <origin-deletion-end-offset> origin-parent; 
+		start-offset-change := <get-arguments; Hd; origin-start-offset> ast-change; 
+		end-offset-change := <get-arguments; Hd; origin-end-offset> ast-change
+	where 
+		<leq> (start-offset-node, start-offset-change); 
+		<leq> (end-offset-change, end-offset-node) 
+*/
+	
+rules //list diff
+
+list-diff(override-reconstruction, resugar|origin-lst) = 
+	(list-diff-fuzzy(override-reconstruction, resugar|origin-lst) <+
+	list-diff-origin-related(override-reconstruction, resugar|origin-lst)) 
+	
+list-diff-fuzzy(override-reconstruction, resugar|origin-lst):
+	([origin-elem|origin-rest], [new-elem|new-rest]) -> ast-changes
+	where
+		<is-deletion(|new-rest)> origin-elem;
+		<is-insertion(|origin-rest)> new-elem;
+		//<is-related-to-fuzzy(|origin-elem)> new-elem //fuzzy to prevent deletion + insertion
+		ast-changes := <flatten-list>[
+			<collect-ast-changes(override-reconstruction, resugar)>(origin-elem, new-elem)|
+			<list-diff(override-reconstruction, resugar|origin-lst)> (origin-rest, new-rest)
+		]
+
+list-diff-origin-related(override-reconstruction, resugar|origin-lst): 
+	(origin-elems, new-elems) -> ast-changes
+	where 
+		deleted-elems := <take-while(is-deletion(|new-elems))> origin-elems;  
+		origin-rest := <drop-while(is-deletion(|new-elems))> origin-elems;
+		<not(?[])> deleted-elems;
+		<check-change-origin> DELETION(deleted-elems);
+		ast-changes := <flatten-list>[DELETION(deleted-elems)|<list-diff(override-reconstruction, resugar|origin-lst)> (origin-rest, new-elems)]
+
+list-diff-origin-related(override-reconstruction, resugar|origin-lst):
+	([origin-elem|origin-rest], new-elems) -> ast-changes
+	where
+		(inserted, elem, rest) := <split-fetch-keep(is-related-to(|origin-elem))> new-elems;
+		<check-change-origin> INSERT_BEFORE(origin-elem, inserted);
+		ast-changes := <flatten-list>[
+			INSERT_BEFORE(origin-elem, inserted), 
+			<collect-ast-changes(override-reconstruction, resugar)>(origin-elem, elem)|
+			<list-diff(override-reconstruction, resugar|origin-lst)> (origin-rest, rest)
+		]
+
+list-diff-origin-related(override-reconstruction, resugar|origin-lst):
+	([], new-elems) -> [INSERT_AT_END(origin-lst, new-elems)]
+	where
+		<check-change-origin> INSERT_AT_END(origin-lst, new-elems)
+		
+list-diff-origin-related(override-reconstruction, resugar|origin-lst):
+	([], new-elems) -> [INSERT_AT_END(<last> origin-lst, new-elems)]
+	where
+		<check-change-origin> INSERT_AT_END(<last> origin-lst, new-elems)
+
+
+rules //helper rules text construction
+
+find-origin-sublist:
+	lst -> sublst
+	where
+		at-suffix(sublst := <origin-sublist-term; ?[_,_|_]>) <+
+		sublst := <init; find-origin-sublist> lst
+
+has-origin-sublist =
+	where(find-origin-sublist)
+
+is-terminating-diff(|newnode):
+	ast-changes -> ast-changes
+	where
+		<not(fetch(?REPLACEMENT(_, newnode)))> ast-changes 
+		//lists are constructed from their elements, so non-termination is not a problem for insertion
+
+rules //helper rules diff
+	
+same-signature:
+	t@(trm1, trm2) -> (trm1, trm2)
+	where(
+		<is-tuple> t;
+		<eq>(<get-constructor> trm1, <get-constructor> trm2);
+		<eq>(<get-arguments; length> trm1, <get-arguments; length> trm2);
+		<not(is-list)> trm1
+	)
+
+same-signature(|t1):
+	t -> t
+	where
+		<same-signature> (t1,t)
+
+violates-homomorphism-list = 	(?([ortrm],[newtrm]); where(not(<is-related-to-fuzzy(|ortrm)> newtrm)))  //insertion constructs list with 2 elements from list with one element 
+
+is-insertion(|origin-elems):
+	new-elem -> new-elem
+	where
+		<?[or-elem|tail]> origin-elems;
+		<not(is-related-to(|or-elem))> new-elem;
+		<is-insertion(|tail)> new-elem
+
+is-insertion(|origin-elems) =
+	<?[]> origin-elems
+
+is-deletion(|new-elems) = 
+	?origin-elem;
+	<not(fetch(is-related-to(|origin-elem)))> new-elems
+
+is-related-to(|origin-node):
+	node -> node
+	where
+		<equal> (origin-node, node) <+
+		<equal> (<origin-term> origin-node, node) <+
+		<equal>(<origin-term> origin-node, <origin-term> node)
+
+is-related-to:
+	(origin-node, node) -> (origin-node, node)
+	where
+		<is-related-to(|origin-node)> node
+
+//related via subterms
+is-related-to-fuzzy(|origin-node):
+	node -> node
+	where 
+		<oncetd(origin-subfragment(|origin-node)) <+ topdown(not(has-origin-term))> node
+
+origin-subfragment(|origin-node):
+	node -> node
+	where
+		start-offset := <origin-start-offset> node;
+		end-offset := <origin-end-offset> node;
+		<leq> (<origin-leftmost-offset> origin-node, start-offset);
+		<leq> (end-offset, <origin-rightmost-offset> origin-node)
+
+origin-leftmost-offset = 
+	origin-start-offset <+
+	get-arguments; 
+	fetch-elem(origin-leftmost-offset)
+	
+
+origin-rightmost-offset = 
+	origin-end-offset <+
+	get-arguments;
+	reverse; 
+	fetch-elem(origin-rightmost-offset)

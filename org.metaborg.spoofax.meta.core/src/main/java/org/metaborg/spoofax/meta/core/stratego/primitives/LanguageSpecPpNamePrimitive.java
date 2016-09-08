@@ -25,7 +25,7 @@ public class LanguageSpecPpNamePrimitive extends AbstractPrimitive {
     private final IProjectService projectService;
 
     @Inject public LanguageSpecPpNamePrimitive(IProjectService projectService) {
-        super("SSL_EXT_language_spec_pp_name", 0, 0);
+        super("pp_language_spec_name", 0, 0);
 
         this.projectService = projectService;
     }

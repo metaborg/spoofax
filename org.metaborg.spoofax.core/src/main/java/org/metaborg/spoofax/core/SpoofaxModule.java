@@ -83,24 +83,34 @@ import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.primitives.ComponentsPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.DigestPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.ForeignCallPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludeFilesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludeLocationsPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LanguageSourceFilesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LanguageSourceLocationsPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LegacyLanguageIncludeLocationsPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LegacyLanguageSourceLocationsPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LocalPathPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LocalReplicatePrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.ParseFilePrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.ProjectPathPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.SpoofaxJSGLRLibrary;
-import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
-import org.metaborg.spoofax.core.stratego.primitives.scopegraph.ScopeGraphLibrary;
+import org.metaborg.spoofax.core.stratego.primitive.CallStrategyPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.DigestPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageComponentsPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageImplementationPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeDirectoriesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeFilesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguagePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceDirectoriesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceFilesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LocalPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LocalReplicatePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ProjectPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
+import org.metaborg.spoofax.core.stratego.primitive.generic.DummyPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyForeignCallPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyLanguageIncludeFilesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyLanguageIncludeLocationsPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyLanguageIncludeLocationsPrimitive2;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyLanguageSourceFilesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyLanguageSourceLocationsPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyLanguageSourceLocationsPrimitive2;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyProjectPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacySpoofaxPrimitiveLibrary;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.parse.LegacyParseFilePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.parse.LegacyParseFilePtPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.legacy.parse.LegacySpoofaxJSGLRLibrary;
+import org.metaborg.spoofax.core.stratego.primitive.scopegraph.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.style.CategorizerService;
@@ -284,36 +294,25 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitiveLibrary(libraryBinder, TaskLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacyIndexLibrary.class);
         bindPrimitiveLibrary(libraryBinder, SpoofaxPrimitiveLibrary.class);
-        bindPrimitiveLibrary(libraryBinder, SpoofaxJSGLRLibrary.class);
         bindPrimitiveLibrary(libraryBinder, ScopeGraphLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, LegacySpoofaxPrimitiveLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, LegacySpoofaxJSGLRLibrary.class);
 
         final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
-            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxPrimitiveLibrary"));
+            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(SpoofaxPrimitiveLibrary.name));
+        bindPrimitive(spoofaxPrimitiveLibrary, DigestPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageComponentsPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageImplementationPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguagePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceLocationsPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LegacyLanguageSourceLocationsPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceFilesPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeLocationsPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LegacyLanguageIncludeLocationsPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeFilesPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, ForeignCallPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, ComponentsPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalPathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalReplicatePrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, DigestPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
-        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));
-        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_refreshresource", 0, 1));
-        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_queue_strategy", 0, 2));
-        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_complete_work_unit", 0, 0));
-        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_pluginpath", 0, 0));
-
-        final Multibinder<AbstractPrimitive> spoofaxJSGLRLibrary =
-            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxJSGLRLibrary"));
-        bindPrimitive(spoofaxJSGLRLibrary, ParseFilePrimitive.class);
-        bindPrimitive(spoofaxJSGLRLibrary, ParseFilePtPrimitive.class);
-        bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
-        bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceDirectoriesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceFilesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeDirectoriesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeFilesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ParsePrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, CallStrategyPrimitive.class);
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("ScopeGraphLibrary"));
@@ -325,6 +324,30 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_metadata.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_metadata.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_references.class);
+
+        final Multibinder<AbstractPrimitive> legacySpoofaxLibrary = Multibinder.newSetBinder(binder(),
+            AbstractPrimitive.class, Names.named(LegacySpoofaxPrimitiveLibrary.name));
+        bindPrimitive(legacySpoofaxLibrary, LegacyProjectPathPrimitive.class);
+        bindPrimitive(legacySpoofaxLibrary, LegacyLanguageSourceLocationsPrimitive.class);
+        bindPrimitive(legacySpoofaxLibrary, LegacyLanguageSourceLocationsPrimitive2.class);
+        bindPrimitive(legacySpoofaxLibrary, LegacyLanguageIncludeLocationsPrimitive.class);
+        bindPrimitive(legacySpoofaxLibrary, LegacyLanguageIncludeLocationsPrimitive2.class);
+        bindPrimitive(legacySpoofaxLibrary, LegacyLanguageSourceFilesPrimitive.class);
+        bindPrimitive(legacySpoofaxLibrary, LegacyLanguageIncludeFilesPrimitive.class);
+        bindPrimitive(legacySpoofaxLibrary, LegacyForeignCallPrimitive.class);
+        bindPrimitive(legacySpoofaxLibrary, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
+        bindPrimitive(legacySpoofaxLibrary, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));
+        bindPrimitive(legacySpoofaxLibrary, new DummyPrimitive("SSL_EXT_refreshresource", 0, 1));
+        bindPrimitive(legacySpoofaxLibrary, new DummyPrimitive("SSL_EXT_queue_strategy", 0, 2));
+        bindPrimitive(legacySpoofaxLibrary, new DummyPrimitive("SSL_EXT_complete_work_unit", 0, 0));
+        bindPrimitive(legacySpoofaxLibrary, new DummyPrimitive("SSL_EXT_pluginpath", 0, 0));
+
+        final Multibinder<AbstractPrimitive> legacySpoofaxJSGLRLibrary = Multibinder.newSetBinder(binder(),
+            AbstractPrimitive.class, Names.named(LegacySpoofaxJSGLRLibrary.injectionName));
+        bindPrimitive(legacySpoofaxJSGLRLibrary, LegacyParseFilePrimitive.class);
+        bindPrimitive(legacySpoofaxJSGLRLibrary, LegacyParseFilePtPrimitive.class);
+        bindPrimitive(legacySpoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
+        bindPrimitive(legacySpoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
     }
 
     private void bindAnalyzers(
