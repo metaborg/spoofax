@@ -3,16 +3,23 @@ module libspoofax/core/language
 rules
 
   /**
-   * Returns a list of (groupId, id, version, location) tuples for the current language components.
+   * Returns the name (string) for the language of the context this strategy is executed in.
+   */
+  language = prim("language")
+
+  /**
+   * Returns a list of (groupId, id, version, location) tuples for the language components of the context this strategy 
+   * is executed in.
    */
   language-components = prim("language_components")
   
   /**
-   * Returns a (groupId, id, version) tuple for the current language implementation.
+   * Returns a (groupId, id, version) tuple for the language implementation of the context this strategy is executed in.
    */
   language-implementation = prim("language_implementation")
   
   /**
-   * Returns the name (string) of the current language.
+   * Returns a (name, groupId, id, version, location) tuple for the language specification of the context this strategy 
+   * is executed in, or fails if not executed in the context of a language specification.
    */
-  language = prim("language")
+  language-specification = prim("language_specification")

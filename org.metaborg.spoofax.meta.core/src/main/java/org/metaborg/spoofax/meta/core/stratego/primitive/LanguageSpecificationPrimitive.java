@@ -18,14 +18,14 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class LanguageSpecPrimitive extends ASpoofaxContextPrimitive {
-    private static final ILogger logger = LoggerUtils.logger(LanguageSpecPrimitive.class);
+public class LanguageSpecificationPrimitive extends ASpoofaxContextPrimitive {
+    private static final ILogger logger = LoggerUtils.logger(LanguageSpecificationPrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
 
-    @Inject public LanguageSpecPrimitive() {
-        super("language_spec", 0, 0);
+    @Inject public LanguageSpecificationPrimitive() {
+        super("language_specification", 0, 0);
     }
 
 
@@ -61,6 +61,7 @@ public class LanguageSpecPrimitive extends ASpoofaxContextPrimitive {
         final IStrategoString groupIdTerm = factory.makeString(id.groupId);
         final IStrategoString idTerm = factory.makeString(id.id);
         final IStrategoString versionTerm = factory.makeString(id.version.toString());
-        return factory.makeTuple(nameTerm, groupIdTerm, idTerm, versionTerm);
+        final IStrategoString locationTerm = factory.makeString(languageSpec.location().getName().getURI());
+        return factory.makeTuple(nameTerm, groupIdTerm, idTerm, versionTerm, locationTerm);
     }
 }
