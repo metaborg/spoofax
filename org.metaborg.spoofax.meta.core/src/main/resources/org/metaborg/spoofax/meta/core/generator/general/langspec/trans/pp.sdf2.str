@@ -3,7 +3,8 @@ module pp
 imports
 
   libstratego-gpp
-  runtime/refactoring/-
+  libspoofax/sdf/pp
+  libspoofax/editor/refactoring/-
   pp/{{name}}-parenthesize
 
 rules
