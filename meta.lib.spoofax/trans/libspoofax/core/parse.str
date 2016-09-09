@@ -7,6 +7,12 @@ imports
 rules
 
   /**
+   * Parses a string (current term) with the current language implementation.
+   * Fails if parsing fails.
+   */
+  parse-string-with-current-lang = prim("parse", 0, <language>, (), ())
+
+  /**
    * Parses a string (current term) with the active language implementation of the language with given name.
    * Fails if parsing fails.
    */
