@@ -25,15 +25,15 @@ rules
   
   // inline completions with only one LHS? 
   inline-completions(|sort) = fail
-   		
+      
   /* inline-completions(|sort):
-	term -> elem
-	where
-		<not(?sort)> term;
-		iset  := <new-iset>;
-		<try(suggest-completions(|iset))> term;
-		elems := <iset-elements> iset; 
-		<?[(desc, elem)]> elems		*/	
+  term -> elem
+  where
+    <not(?sort)> term;
+    iset  := <new-iset>;
+    <try(suggest-completions(|iset))> term;
+    elems := <iset-elements> iset; 
+    <?[(desc, elem)]> elems   */  
    
   find-position: 
     (term, parent) -> index
@@ -99,5 +99,24 @@ rules
         position := <my-position-of-term(is-term | <inc> start-index)> t*
       end
       
-  check-blank-line:
-    t -> t    
+  check-blank-line = id
+    
+  calculate-leading-ws(leading-ws|term):
+    (parent, index)  -> result
+    where
+      (start-offset-term, _)   := <origin-offset> term;
+      (start-offset-parent, _) := <origin-offset> parent;
+      if <eq> (start-offset-term, start-offset-parent) then
+        parent' := <get-parent> parent;
+        // TODO: proper investigate when parent is a list
+        if <is-list> parent' then 
+          parent-list := <get-parent> parent';
+          index' := <find-position> (parent', parent-list);
+          result := <calculate-leading-ws(leading-ws|parent')> (parent-list, index')
+        else
+            index'  := <find-position> (parent, parent');
+            result  := <calculate-leading-ws(leading-ws|parent)> (parent', index')
+        end
+        else
+           result := <leading-ws> (parent, index)      
+      end

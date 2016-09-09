@@ -11,40 +11,40 @@ imports
 
 rules
 
-  get-proposals-empty-program:
-    placeholder -> proposal*
+  get-proposals-empty-program(pp, parenthesize, indent, leading-ws, separator):
+    (sort, placeholder) -> proposal*
     where
       suggestion-is := <new-iset>;
       suggestion*   := <try(suggest-completions(|suggestion-is)); <iset-elements> suggestion-is> placeholder;
-      proposal*     := <map(get-text-from-placeholder-expand)> suggestion*
+      proposal*     := <map(get-text-from-placeholder-expand(pp, parenthesize, indent, leading-ws, separator))> suggestion*
       
-  get-text-from-placeholder-expand:
+  get-text-from-placeholder-expand(pp, parenthesize, indent, leading-ws, separator):
     (name, completion-term) -> (name, text)
     where
-      text := <pp-completion> completion-term
+      text := <pp> completion-term
       
-  get-proposals-placeholder:
-    (placeholder, placeholder-parent, placeholder-idx) -> proposal* 
+  get-proposals-placeholder(pp, parenthesize, indent, leading-ws, separator):
+    (sort, placeholder, placeholder-parent, placeholder-idx) -> proposal* 
     where
       suggestion-is := <new-iset>;
       suggestion*   := <try(suggest-completions(|suggestion-is)); <iset-elements> suggestion-is> placeholder;
-      proposal*     := <map(get-text-from-placeholder-expand(|placeholder, placeholder-parent, placeholder-idx))> suggestion*   
+      proposal*     := <map(get-text-from-placeholder-expand(pp, parenthesize, indent, leading-ws, separator|placeholder, placeholder-parent, placeholder-idx))> suggestion*   
          
-  get-text-from-placeholder-expand(|old-term, parent, idx) :
+  get-text-from-placeholder-expand(pp, parenthesize, indent, leading-ws, separator|old-term, parent, idx) :
     (name, completion-term) -> (name, text, additionalInfo, change)
     where
-      completion-term' := <parenthesize-completion-term <+ !completion-term> (parent, old-term, completion-term, idx);
+      completion-term' := <parenthesize-completion-term(parenthesize) <+ !completion-term> (parent, old-term, completion-term, idx);
       change           := REPLACE_TERM(old-term, completion-term');
-      text             := <build-description-simple-replace> change; 
-      additionalInfo   := <pp-completion> completion-term'           
+      additionalInfo   := <pp> completion-term'  ;
+      text             := <build-description-simple-replace(pp, parenthesize, indent, leading-ws, separator)> change               
   
-  parenthesize-completion-term:
+  parenthesize-completion-term(parenthesize):
     (parent, old-term, completion-term, idx) -> completion-term'
     where
       <not(match-node-origin(|parent))> old-term
     where
       expanded-parent           := <topdown(try(match-node-origin(|old-term); !completion-term))> parent;
-      parenthesized-parent      := <parenthesize-completion> expanded-parent;
+      parenthesized-parent      := <parenthesize> expanded-parent;
       arg-parenthesized-parent* := <get-arguments> parenthesized-parent ; 
       if <at-index(?completion-term)> (idx, arg-parenthesized-parent*) then
         completion-term' := completion-term
@@ -52,49 +52,53 @@ rules
         completion-term' := Parenthetical(completion-term)
       end
       
-  get-proposals-left-recursive:
+  get-proposals-left-recursive(pp, parenthesize, indent, leading-ws, separator):
     (sort, term) -> proposal* 
     where
       suggestion-is := <new-iset>;
       suggestion*   := <try(suggest-completions-left-rec(|suggestion-is)); <iset-elements> suggestion-is> (sort, term);
-      proposal*     := <map(get-text-from-left-recursive-suggestion(|term))> suggestion*    
+      proposal*     := <map(get-text-from-left-recursive-suggestion(pp, parenthesize, indent, leading-ws, separator|term))> suggestion*    
   
-  get-text-from-left-recursive-suggestion(|old-term):
+  get-text-from-left-recursive-suggestion(pp, parenthesize, indent, leading-ws, separator|old-term):
     (name, expansion) -> (name, text, additionalInfo, change, prefix)
     where
-      additionalInfo := <pp-completion> expansion;
+      additionalInfo := <pp> expansion;
       change         := REPLACE_TERM(old-term, expansion);
-      text           := <build-description-simple-replace> change;
-      prefix         := <parenthesize-completion; get-arguments; ?[<id> | tl]; pp-completion> expansion
+      text           := <build-description-simple-replace(pp, parenthesize, indent, leading-ws, separator)> change;
+      prefix         := <parenthesize; get-arguments; ?[<id> | tl]; pp> expansion
   
-  get-proposals-right-recursive:
+  get-proposals-right-recursive(pp, parenthesize, indent, leading-ws, separator):
     (sort, term) -> proposal* 
     where
       suggestion-is := <new-iset>;
       suggestion*   := <try(suggest-completions-right-rec(|suggestion-is)); <iset-elements> suggestion-is> (sort, term);
-      proposal*     := <map(get-text-from-right-recursive-suggestion(|term))> suggestion*
+      proposal*     := <map(get-text-from-right-recursive-suggestion(pp, parenthesize, indent, leading-ws, separator|term))> suggestion*
       
-  get-text-from-right-recursive-suggestion(|old-term):
+  get-text-from-right-recursive-suggestion(pp, parenthesize, indent, leading-ws, separator|old-term):
     (name, expansion) -> (name, text, additionalInfo, change, suffix)
     where
-      additionalInfo := <pp-completion> expansion;
+      additionalInfo := <pp> expansion;
       change         := REPLACE_TERM(old-term, expansion);
-      text           := <build-description-simple-replace> change;
-      suffix         := <parenthesize-completion; get-arguments; last; pp-completion> expansion
+      text           := <build-description-simple-replace(pp, parenthesize, indent, leading-ws, separator)> change;
+      suffix         := <parenthesize; get-arguments; last; pp> expansion
              
-  get-proposals-list:
-    (list, placeholder, cursor-position) -> proposal* 
+  get-proposals-list(pp, parenthesize, indent, leading-ws, separator):
+    (sort, list, placeholder, cursor-position) -> proposal* 
     where
       suggestion-is := <new-iset>;
       suggestion*   := <try(suggest-completions(|suggestion-is)); <iset-elements> suggestion-is> placeholder;
-      proposal*     := <map(get-proposals-from-list(|list, cursor-position))> suggestion*      
-                
-  get-proposals-from-list(|list, cursor-pos):
+      if [] := suggestion* then
+        proposal*     := <map(get-proposals-from-list(pp, parenthesize, indent, leading-ws, separator|list, cursor-position))> [(sort, placeholder)]
+      else
+        proposal*     := <map(get-proposals-from-list(pp, parenthesize, indent, leading-ws, separator|list, cursor-position))> suggestion*      
+      end   
+             
+  get-proposals-from-list(pp, parenthesize, indent, leading-ws, separator|list, cursor-pos):
     (name, new-elem) -> (name, text, additionalInfo, change)
     where
       change         := <calculate-completion-change> (cursor-pos, list, new-elem);
-      text           := <build-description> change;
-      additionalInfo := <pp-completion> new-elem           
+      text           := <build-description(pp, parenthesize, indent, leading-ws, separator)> change;
+      additionalInfo := <pp> new-elem           
     
   calculate-completion-change:
     (cursor-pos, list, new-elem) -> change
@@ -122,74 +126,79 @@ rules
       (start-offset, end-offset) := <origin-offset> h;
       <geq> (pos, end-offset)         
             
-  get-proposals-optional:
-    (term, placeholder) -> proposal*
+  get-proposals-optional(pp, parenthesize, indent, leading-ws, separator):
+    (sort, term, placeholder) -> proposal*
     where
       suggestion-is := <new-iset>;
       suggestion*   := <try(suggest-completions(|suggestion-is)); <iset-elements> suggestion-is> placeholder;
-      proposal*     := <map(get-proposals-from-optional(|term))> suggestion*
+      if [] := suggestion* then
+        proposal*     := <map(get-proposals-from-optional(pp, parenthesize, indent, leading-ws, separator|term))> [(sort, placeholder)]
+      else
+        proposal*     := <map(get-proposals-from-optional(pp, parenthesize, indent, leading-ws, separator|term))> suggestion*    
+      end
        
-  get-proposals-from-optional(|old-term):
+  get-proposals-from-optional(pp, parenthesize, indent, leading-ws, separator|old-term):
     (name, new-elem) -> (name, text, additionalInfo, change)
     where
       change         := REPLACE_TERM(old-term, new-elem);
-      text           := <build-description> change;
-      additionalInfo := <pp-completion> new-elem
+      text           := <build-description(pp, parenthesize, indent, leading-ws, separator)> change;
+      additionalInfo := <pp> new-elem
       
                 
 
 //build description for completion inside lists in correct programs
 rules
 
-  build-description:
+  build-description(pp, parenthesize, indent, leading-ws, separator):
     INSERT_AT_END(old-list, [completion-term]) ->  text
     where
       <?[]> old-list
     with
       parent             := <get-parent> old-list; 
       index              := <find-position> (old-list, parent);
-      leading-ws         := <get-leading-ws> (parent, index); 
-      indent             := <get-indent> (parent, index); 
+      leading-ws         := <calculate-leading-ws(leading-ws|old-list)> (parent, index); 
+      indent             := <indent> (parent, index); 
       parent-indent      := <origin-indent <+ !""> parent; 
-      reconstructed-text := <construct-text-by-pp(pp-completion, override-reconstruction, resugar)> completion-term;
+      reconstructed-text := <construct-text-by-pp(pp, override-reconstruction, resugar)> completion-term;
       if <is-substring(!"\n")> leading-ws then
         text := <concat-strings> [leading-ws, <replace-indentation(|indent, ""); prefix-lines(|parent-indent)> reconstructed-text]
       else
         text := <concat-strings> [leading-ws, <replace-indentation(|indent, "")> reconstructed-text]
       end
   
-  build-description:
+  build-description(pp, parenthesize, indent, leading-ws, separator):
     INSERT_AT_END(old-list, [completion-term]) -> text
     where
       <not(?[])> old-list
     with
       parent        := <get-parent> old-list; 
       index         := <find-position> (old-list, parent);
-      sep           := <get-separator> (parent, index);
-      indent        := <get-indent> (parent, index); 
+      sep           := <separator> (parent, index);
+      indent        := <indent> (parent, index); 
       parent-indent := <origin-indent <+ !""> parent; 
-      reconstructed-text := <construct-text-by-pp(pp-completion, override-reconstruction, resugar)> completion-term;
+      reconstructed-text := <construct-text-by-pp(pp, override-reconstruction, resugar)> completion-term;
       separator     := <concat-strings> [sep, indent];
       if <is-substring(!"\n")> separator then
         text := <concat-strings> [sep, <prefix-lines(|<conc-strings> (indent, parent-indent))> reconstructed-text]
       else
-        text := <concat-strings> [sep, <prefix-lines(|indent)> reconstructed-text]
+        text := <concat-strings> [sep, reconstructed-text]
       end
    
-  build-description:
+  build-description(pp, parenthesize, indent, leading-ws, separator):
     INSERT_BEFORE(old-node, [completion-term]) -> text
     where
       parent                := <get-parent> old-node; // the list in which old node is
       grandparent           := <get-parent> parent; // the node in which the list is (to get separator, indent and leading ws)
       index-old-term        := <get-index-origin(|1)> (old-node, parent);
       index-parent          := <find-position> (parent, grandparent);
-      sep                   := <get-separator> (grandparent, index-parent);
-      indent                := <get-indent> (grandparent, index-parent);
-      leading-ws            := <get-leading-ws> (grandparent, index-parent); 
+      sep                   := <separator> (grandparent, index-parent);
+      indent                := <indent> (grandparent, index-parent);
+      leading-ws            := <calculate-leading-ws(leading-ws|parent)> (grandparent, index-parent); 
+      leading-ws-local      := <leading-ws> (grandparent, index-parent); 
       grandparent-indent    := <origin-indent <+ !""> grandparent;
-      reconstructed-text    := <construct-text-by-pp(pp-completion, override-reconstruction, resugar)> completion-term;
+      reconstructed-text    := <construct-text-by-pp(pp, override-reconstruction, resugar)> completion-term;
       // indent according to the parent in case there is a new line in the leading ws
-      if <is-substring(!"\n")> leading-ws then
+      if <is-substring(!"\n")> leading-ws-local then
         leading-ws-indent := grandparent-indent
       else
         leading-ws-indent := ""
@@ -198,32 +207,32 @@ rules
       if <is-substring(!"\n")> sep then
         separator-indent := <concat-strings> [indent, grandparent-indent]
       else
-        separator-indent := <concat-strings> [indent]
+        separator-indent := ""
       end;       
       if <?1> index-old-term then // inserting at the beginning of the list
         text := <concat-strings> [leading-ws, <replace-indentation(|indent, ""); prefix-lines(|leading-ws-indent)> reconstructed-text, sep]
       else //inserting in the middle of the list
         text := <concat-strings> [sep, <prefix-lines(|separator-indent)> reconstructed-text, sep]
-      end  
+      end 
        
-  build-description:       
+  build-description(pp, parenthesize, indent, leading-ws, separator):       
     REPLACE_TERM(old-term, completion-term) -> text
     where
       parent             := <get-parent> old-term;
       index              := <find-position> (old-term, parent);
-      leading-ws         := <get-leading-ws> (parent, index);
-      indent             := <get-indent> (parent, index); 
-      reconstructed-text := <pp-completion> completion-term;
+      leading-ws         := <calculate-leading-ws(leading-ws|old-term)> (parent, index);
+      indent             := <indent> (parent, index); 
+      reconstructed-text := <pp> completion-term;
       if <is-substring(!"\n")> leading-ws then
         text := <concat-strings> [leading-ws, <replace-indentation(|indent, "")> reconstructed-text]
       else
         text := <concat-strings> [leading-ws, reconstructed-text]
       end        
   
-  build-description-simple-replace:
+  build-description-simple-replace(pp, parenthesize, indent, leading-ws, separator):
     REPLACE_TERM(old-term, completion-term) -> text
     where
       old-indent := <origin-indent <+ ""> old-term; 
-      reconstructed-text := <pp-completion> completion-term;
+      reconstructed-text := <pp> completion-term;
       text := <replace-indentation(|old-indent, "")> reconstructed-text
        
