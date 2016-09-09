@@ -2,7 +2,7 @@ module {{strategoName}}
 
 imports
   
-{{#syntaxEnabled}}{{#syntaxSdf3}}  completion
+{{#syntaxEnabled}}{{#syntaxSdf3}}  completion/completion
 {{/syntaxSdf3}}  pp
   outline
 {{/syntaxEnabled}}{{#analysisEnabled}}  analysis
