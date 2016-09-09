@@ -1,66 +1,66 @@
-package org.metaborg.spoofax.meta.core.stratego.primitive;
+package org.metaborg.spoofax.meta.core.stratego.primitives;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.MetaborgException;
 import org.metaborg.core.config.ConfigException;
-import org.metaborg.core.context.IContext;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
-import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.core.IContext;
+import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class LegacyLanguageSpecNamePrimitive extends ASpoofaxContextPrimitive {
-    private static final ILogger logger = LoggerUtils.logger(LegacyLanguageSpecNamePrimitive.class);
+public class LanguageSpecPpNamePrimitive extends AbstractPrimitive {
+    private static final ILogger logger = LoggerUtils.logger(LanguageSpecPpNamePrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
-
-    @Inject public LegacyLanguageSpecNamePrimitive(IProjectService projectService) {
-        super("SSL_EXT_language_spec_name", 0, 0);
+    @Inject public LanguageSpecPpNamePrimitive(IProjectService projectService) {
+        super("pp_language_spec_name", 0, 0);
 
         this.projectService = projectService;
     }
 
 
-    @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
-        ITermFactory factory, IContext context) throws MetaborgException {
+    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
+        org.metaborg.core.context.IContext context = (org.metaborg.core.context.IContext) env.contextObject();
+
         final FileObject location = context.location();
         final IProject project = projectService.get(location);
         if(project == null) {
-            return null;
+            return false;
         }
 
         if(languageSpecServiceProvider == null) {
             // Indicates that meta-Spoofax is not available (ISpoofaxLanguageSpecService cannot be injected), but this
             // should never happen because this primitive is inside meta-Spoofax. Check for null just in case.
             logger.debug("Language specification service is not available; static injection failed");
-            return null;
+            return false;
         }
         final ISpoofaxLanguageSpecService languageSpecService = languageSpecServiceProvider.get();
         if(!languageSpecService.available(project)) {
-            return null;
+            return false;
         }
         final ISpoofaxLanguageSpec languageSpec;
         try {
             languageSpec = languageSpecService.get(project);
         } catch(ConfigException e) {
-            throw new MetaborgException("Unable to get language specification name for " + location, e);
+            throw new InterpreterException("Unable to get language specification name for " + location, e);
         }
         if(languageSpec == null) {
-            return null;
+            return false;
         }
-
-        return factory.makeString(languageSpec.config().name());
+        
+        env.setCurrent(env.getFactory().makeString(languageSpec.config().prettyPrintLanguage()));
+        return true;
     }
 }

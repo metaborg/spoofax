@@ -2,12 +2,23 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
+import org.metaborg.core.config.ILanguageComponentConfig;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.spoofax.meta.core.config.Sdf2tableVersion;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
@@ -40,6 +51,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         private static final long serialVersionUID = -2379365089609792204L;
 
         public final String languageId;
+        public final @Nullable Collection<LanguageIdentifier> sourceDeps;
 
         public final @Nullable String sdfModule;
         public final @Nullable File sdfFile;
@@ -48,6 +60,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable File sdfExternalDef;
         public final List<File> packSdfIncludePaths;
         public final Arguments packSdfArgs;
+
 
         public final @Nullable String sdfCompletionModule;
         public final @Nullable File sdfCompletionFile;
@@ -66,15 +79,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final Arguments strjArgs;
 
 
-        public Input(SpoofaxContext context, String languageId, @Nullable String sdfModule, @Nullable File sdfFile,
-            SdfVersion sdfVersion, Sdf2tableVersion sdf2tableVersion, @Nullable File sdfExternalDef,
-            List<File> packSdfIncludePaths, Arguments packSdfArgs, @Nullable String sdfCompletionModule,
-            @Nullable File sdfCompletionFile, @Nullable String sdfMetaModule, @Nullable File sdfMetaFile,
-            @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
-            @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
-            @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, Arguments strjArgs) {
+        public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
+            @Nullable String sdfModule, @Nullable File sdfFile, SdfVersion sdfVersion,
+            Sdf2tableVersion sdf2tableVersion, @Nullable File sdfExternalDef, List<File> packSdfIncludePaths,
+            Arguments packSdfArgs, @Nullable String sdfCompletionModule, @Nullable File sdfCompletionFile,
+            @Nullable String sdfMetaModule, @Nullable File sdfMetaFile, @Nullable File strFile,
+            @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
+            StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
+            List<File> strjIncludeDirs, Arguments strjArgs) {
             super(context);
             this.languageId = languageId;
+            this.sourceDeps = sourceDeps;
             this.sdfModule = sdfModule;
             this.sdfFile = sdfFile;
             this.sdfVersion = sdfVersion;
@@ -175,8 +190,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     sigOrigin = null;
                 }
 
-
-
                 // Get SDF permissive def file, from the SDF def file.
                 final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + "-permissive.def");
                 final Origin permissiveDefOrigin = MakePermissive.origin(
@@ -190,6 +203,40 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
                     final List<String> paths = Lists.newLinkedList();
                     paths.add(srcGenSyntaxDir.getAbsolutePath());
+                    // TODO Add paths from source dependencies
+                    for(LanguageIdentifier langId : input.sourceDeps) {
+                        ILanguageImpl lang = context.languageService().getImpl(langId);
+                        for(final ILanguageComponent component : lang.components()) {
+                            ILanguageComponentConfig config = component.config();
+                            Collection<IExportConfig> exports = config.exports();
+                            for(IExportConfig exportConfig : exports) {
+                                exportConfig.accept(new IExportVisitor() {
+                                    @Override public void visit(LangDirExport export) {
+                                        if(export.language.equals("ATerm")) {
+                                            try {
+                                                paths.add(
+                                                    toFileReplicate(component.location().resolveFile(export.directory))
+                                                        .getAbsolutePath());
+                                            } catch(FileSystemException e) {
+                                                System.out.println("Failed to locate path");
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+
+                                    @Override public void visit(LangFileExport export) {
+                                        // Ignore file exports
+                                    }
+
+                                    @Override public void visit(ResourceExport export) {
+                                        // Ignore resource exports
+
+                                    }
+                                });
+                            }
+                        }
+                    }
+
                     final Origin sdf2TableJavaOrigin =
                         Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfNormFile, tableFile, paths, true));
 
@@ -230,6 +277,40 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
+                // TODO add paths from source dependencies
+                for(LanguageIdentifier langId : input.sourceDeps) {
+                    ILanguageImpl lang = context.languageService().getImpl(langId);
+                    for(final ILanguageComponent component : lang.components()) {
+                        ILanguageComponentConfig config = component.config();
+                        Collection<IExportConfig> exports = config.exports();
+                        for(IExportConfig exportConfig : exports) {
+                            exportConfig.accept(new IExportVisitor() {
+                                @Override public void visit(LangDirExport export) {
+                                    if(export.language.equals("ATerm")) {
+                                        try {
+                                            paths
+                                                .add(toFileReplicate(component.location().resolveFile(export.directory))
+                                                    .getAbsolutePath());
+                                        } catch(FileSystemException e) {
+                                            System.out.println("Failed to locate path");
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+
+                                @Override public void visit(LangFileExport export) {
+                                    // Ignore file exports
+                                }
+
+                                @Override public void visit(ResourceExport export) {
+                                    // Ignore resource exports
+
+                                }
+                            });
+                        }
+                    }
+                }
+
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
                 sdfCompletionOrigin =
                     Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfCompletionsFile, tableFile, paths, false));

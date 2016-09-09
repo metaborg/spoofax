@@ -29,6 +29,12 @@ rules
     ; prettyprint-{{name}}
     ; !V([], <id>)
     ; box2text-string(|120)
+    
+  pp-partial-{{name}}-string(|sort) =
+    parenthesize-{{name}}
+    ; prettyprint-{{name}}(|sort)
+    ; !V([], <id>)
+    ; box2text-string(|120)  
       
   pp-debug :
     ast -> result

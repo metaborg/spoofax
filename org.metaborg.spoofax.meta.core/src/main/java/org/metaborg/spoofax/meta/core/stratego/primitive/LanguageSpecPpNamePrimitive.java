@@ -18,16 +18,16 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class LegacyLanguageSpecNamePrimitive extends ASpoofaxContextPrimitive {
-    private static final ILogger logger = LoggerUtils.logger(LegacyLanguageSpecNamePrimitive.class);
+public class LanguageSpecPpNamePrimitive extends ASpoofaxContextPrimitive {
+    private static final ILogger logger = LoggerUtils.logger(LanguageSpecPpNamePrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
 
-    @Inject public LegacyLanguageSpecNamePrimitive(IProjectService projectService) {
-        super("SSL_EXT_language_spec_name", 0, 0);
+    @Inject public LanguageSpecPpNamePrimitive(IProjectService projectService) {
+        super("pp_language_spec_name", 0, 0);
 
         this.projectService = projectService;
     }
@@ -61,6 +61,6 @@ public class LegacyLanguageSpecNamePrimitive extends ASpoofaxContextPrimitive {
             return null;
         }
 
-        return factory.makeString(languageSpec.config().name());
+        return factory.makeString(languageSpec.config().prettyPrintLanguage());
     }
 }

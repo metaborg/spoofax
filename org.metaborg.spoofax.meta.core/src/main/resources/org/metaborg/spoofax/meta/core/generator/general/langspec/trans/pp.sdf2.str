@@ -10,6 +10,7 @@ rules
 
   pp-{{name}}-string = fail
   pp-partial-{{name}}-string = fail
+  pp-partial-{{name}}-string(|sort) = fail
   pp-debug = fail
 
 rules

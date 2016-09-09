@@ -140,9 +140,6 @@ public class LangSpecGenerator extends BaseGenerator {
         if(syntaxEnabled()) {
             writer.write("langspec/trans/outline.str", "trans/outline.str", false);
             writer.writeResolve("langspec/trans/pp.{{syntaxType}}.str", "trans/pp.str", false);
-            if(syntaxSdf3()) {
-                writer.write("langspec/trans/completion.str", "trans/completion.str", false);
-            }
         }
     }
 
