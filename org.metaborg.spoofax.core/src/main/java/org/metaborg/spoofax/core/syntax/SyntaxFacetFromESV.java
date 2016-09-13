@@ -19,12 +19,15 @@ import com.google.common.collect.Lists;
 public class SyntaxFacetFromESV {
     public static @Nullable SyntaxFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
         final String parseTableLocation = parseTableLocation(esv);
-        final String completionTableLocation = "target/metaborg/sdf-completions.tbl";
+        //final String completionTableLocation = "target/metaborg/sdf-completions.tbl";
+        final FileObject parseTable;
         if(parseTableLocation == null) {
-            return null;
+            parseTable = null;
+        } else {
+            parseTable = location.resolveFile(parseTableLocation);
         }
-        final FileObject parseTable = location.resolveFile(parseTableLocation);
-        final FileObject completionParseTable = location.resolveFile(completionTableLocation);
+        //if()
+        final FileObject completionParseTable = null; //location.resolveFile(completionTableLocation);
         final Iterable<String> startSymbols = startSymbols(esv);
         final Iterable<String> singleLineCommentPrefixes = singleLineCommentPrefixes(esv);
         final Iterable<MultiLineCommentCharacters> multiLineCommentCharacters = multiLineCommentCharacters(esv);

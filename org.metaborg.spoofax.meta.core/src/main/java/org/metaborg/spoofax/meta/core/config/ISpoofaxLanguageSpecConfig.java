@@ -29,6 +29,13 @@ public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
     Sdf2tableVersion sdf2tableVersion();
     
     /**
+     * Gets the (relative) path to the sdf main file.
+     *
+     * @return path to the parse table.
+     */
+    String sdfMainFile();
+    
+    /**
      * Gets the Placeholder fences.
      * 
      * @return Placeholder fences

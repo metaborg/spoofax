@@ -93,7 +93,14 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             completionParseResult = syntaxService.parse(modifiedInput);
         }
 
+
+
         Collection<ICompletion> completions = Lists.newLinkedList();
+
+        if(completionParseResult != null && completionParseResult.ast() == null) {
+            return completions;
+        }
+
         Collection<IStrategoTerm> nestedCompletionTerms = getNestedCompletionTermsFromAST(completionParseResult);
         Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
 
@@ -233,11 +240,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             if(placeholder != null) {
                 completions.addAll(placeholderCompletions(placeholder, languageName, component, location));
             } else {
-                if(Iterables.size(leftRecursive) != 0 || Iterables.size(rightRecursive) != 0) {
-                    completions
-                        .addAll(recursiveCompletions(leftRecursive, rightRecursive, languageName, component, location));
-                }
-
                 if(Iterables.size(lists) != 0) {
                     completions.addAll(
                         listsCompletions(position, blankLineCompletion, lists, languageName, component, location));
@@ -247,6 +249,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     completions
                         .addAll(optionalCompletions(optionals, blankLineCompletion, languageName, component, location));
                 }
+                // TODO Improve recursive completions
+//                if(Iterables.size(leftRecursive) != 0 || Iterables.size(rightRecursive) != 0) {
+//                    completions
+//                        .addAll(recursiveCompletions(leftRecursive, rightRecursive, languageName, component, location));
+//                }
             }
         }
         return completions;
@@ -265,13 +272,17 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             IStrategoTerm sort = termFactory.makeString(ImploderAttachment.getSort(term));
 
             final IStrategoTerm strategoInput = termFactory.makeTuple(sort, term);
-
-            final IStrategoTerm proposals =
-                strategoCommon.invoke(runtime, strategoInput, "get-proposals-left-recursive-" + languageName);
-
+            IStrategoTerm proposals = null;
+            try {
+                proposals =
+                    strategoCommon.invoke(runtime, strategoInput, "get-proposals-left-recursive-" + languageName);
+            } catch(Exception e) {
+                logger.error("Getting proposals for {} failed", term);
+                continue;
+            }
             if(proposals == null) {
                 logger.error("Getting proposals for {} failed", term);
-                return completions;
+                continue;
             }
             for(IStrategoTerm proposalTerm : proposals) {
 
@@ -310,12 +321,17 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
             final IStrategoTerm strategoInput = termFactory.makeTuple(sort, term);
 
-            final IStrategoTerm proposals =
-                strategoCommon.invoke(runtime, strategoInput, "get-proposals-right-recursive-" + languageName);
-
+            IStrategoTerm proposals = null;
+            try {
+                proposals =
+                    strategoCommon.invoke(runtime, strategoInput, "get-proposals-right-recursive-" + languageName);
+            } catch(Exception e) {
+                logger.error("Getting proposals for {} failed", term);
+                continue;
+            }
             if(proposals == null) {
                 logger.error("Getting proposals for {} failed", term);
-                return completions;
+                continue;
             }
             for(IStrategoTerm proposalTerm : proposals) {
 
@@ -580,7 +596,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
 
-            // if completion does not spam multiple lines preserve everything starting at the first non-layout char 
+            // if completion does not spam multiple lines preserve everything starting at the first non-layout char
             if(!additionalInfo.contains("\n")) {
                 tokenPosition = oldNodeIA.getLeftToken().getIndex() + 1 < tokenizer.getTokenCount()
                     ? oldNodeIA.getLeftToken().getIndex() + 1 : tokenizer.getTokenCount() - 1;

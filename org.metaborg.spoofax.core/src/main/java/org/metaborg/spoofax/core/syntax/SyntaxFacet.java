@@ -70,10 +70,6 @@ public class SyntaxFacet implements IFacet {
      * @return Errors, or empty if there are no errors.
      */
     public Iterable<String> available() throws FileSystemException {
-        if(!parseTable.exists()) {
-            final String message = logger.format("Parse table {} does not exist", parseTable);
-            return Iterables2.singleton(message);
-        }
         return Iterables2.empty();
     }
 }

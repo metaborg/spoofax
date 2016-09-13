@@ -119,6 +119,15 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion);
     
     /**
+     * Sets the path to the main SDF file.
+     *
+     * @param sdfMainFile
+     *            The path to the main SDF file.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withSdfMainFile(String sdfMainFile);
+    
+    /**
      * Sets the placeholder prefix.
      *
      * @param placeholderPrefix

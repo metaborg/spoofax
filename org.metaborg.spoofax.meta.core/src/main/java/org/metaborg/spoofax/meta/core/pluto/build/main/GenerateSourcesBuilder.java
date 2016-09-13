@@ -203,7 +203,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
                     final List<String> paths = Lists.newLinkedList();
                     paths.add(srcGenSyntaxDir.getAbsolutePath());
-                    // TODO Add paths from source dependencies
+                    
                     for(LanguageIdentifier langId : input.sourceDeps) {
                         ILanguageImpl lang = context.languageService().getImpl(langId);
                         for(final ILanguageComponent component : lang.components()) {
@@ -277,7 +277,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
-                // TODO add paths from source dependencies
+                
                 for(LanguageIdentifier langId : input.sourceDeps) {
                     ILanguageImpl lang = context.languageService().getImpl(langId);
                     for(final ILanguageComponent component : lang.components()) {

@@ -26,6 +26,10 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     private static final String PROP_GENERATES = "generates";
     private static final String PROP_EXPORTS = "exports";
 
+    private static final String PROP_SDF_ENABLED = "language.sdf.enabled";
+    private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
+    private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
+
 
     public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config) {
         super(config);
@@ -34,10 +38,21 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
         @Nullable LanguageIdentifier identifier, @Nullable String name,
         @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
-        @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
+        @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean sdfEnabled, @Nullable String parseTable,
+        @Nullable String completionParseTable, @Nullable Boolean typesmart,
         @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart);
+
+        if(sdfEnabled != null) {
+            config.setProperty(PROP_SDF_ENABLED, sdfEnabled);
+        }
+        if(parseTable != null) {
+            config.setProperty(PROP_SDF_PARSE_TABLE, parseTable);
+        }
+        if(completionParseTable != null) {
+            config.setProperty(PROP_SDF_COMPLETION_PARSE_TABLE, completionParseTable);
+        }
 
         if(name != null) {
             config.setProperty(PROP_NAME, name);
@@ -146,5 +161,19 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         // TODO: validate exports
 
         return messages;
+    }
+
+    @Override public Boolean sdfEnabled() {
+        return this.config.getBoolean(PROP_SDF_ENABLED, true);
+    }
+
+    @Override public String parseTable() {
+        final String value = this.config.getString(PROP_SDF_PARSE_TABLE);
+        return value != null ? value : "target/metaborg/sdf.tbl";
+    }
+
+    @Override public String completionsParseTable() {
+        final String value = this.config.getString(PROP_SDF_COMPLETION_PARSE_TABLE);
+        return value != null ? value : "target/metaborg/sdf-completions.tbl";
     }
 }

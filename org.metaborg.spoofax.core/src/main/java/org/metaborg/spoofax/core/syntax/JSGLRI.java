@@ -98,7 +98,11 @@ public class JSGLRI {
             parser.setTreeBuilder(new Asfix2TreeBuilder(termFactory));
         }
         parser.setUseStructureRecovery(parserConfig.recovery);
-        parser.setCompletionParse(parserConfig.completion, parserConfig.cursorPosition);
+        if (parserConfig.cursorPosition == Integer.MAX_VALUE){
+            parser.setCompletionParse(false, Integer.MAX_VALUE);
+        } else {
+            parser.setCompletionParse(parserConfig.completion, parserConfig.cursorPosition);
+        }
         parser.setTimeout(parserConfig.timeout);
 
         final Disambiguator disambiguator = parser.getDisambiguator();

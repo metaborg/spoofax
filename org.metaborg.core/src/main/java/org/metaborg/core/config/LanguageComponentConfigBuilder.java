@@ -24,6 +24,9 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
     protected @Nullable List<IGenerateConfig> generates;
     protected @Nullable List<IExportConfig> exports;
 
+    protected @Nullable Boolean sdfEnabled;
+    protected @Nullable String parseTable;
+    protected @Nullable String completionsParseTable;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -34,8 +37,9 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        final LanguageComponentConfig config = new LanguageComponentConfig(configuration, metaborgVersion, identifier,
-            name, compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates, exports);
+        final LanguageComponentConfig config =
+            new LanguageComponentConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps,
+                javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart, langContribs, generates, exports);
         return config;
     }
 
@@ -47,6 +51,9 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         langContribs = null;
         generates = null;
         exports = null;
+        parseTable = null;
+        completionsParseTable = null;
+        sdfEnabled = null;
         return this;
     }
 
@@ -58,6 +65,9 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
             withLangContribs(config.langContribs());
             withGenerates(config.generates());
             withExports(config.exports());
+            withSdfTable(config.parseTable());
+            withSdfCompletionsTable(config.completionsParseTable());
+            withSdfEnabled(config.sdfEnabled());
         }
         return this;
     }
@@ -104,8 +114,23 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         return this;
     }
 
+    @Override public ILanguageComponentConfigBuilder withSdfEnabled(Boolean sdfEnabled) {
+        this.sdfEnabled = sdfEnabled;
+        return this;
+    }
+
     @Override public ILanguageComponentConfigBuilder withName(String name) {
         this.name = name;
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withSdfTable(String table) {
+        this.parseTable = table;
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withSdfCompletionsTable(String completionsTable) {
+        this.completionsParseTable = completionsTable;
         return this;
     }
 

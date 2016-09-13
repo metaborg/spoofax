@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -82,21 +83,21 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         }
 
         final IParserConfig config;
-        
+
         JSGLRParserConfiguration parserConfig = input.config();
         if(parserConfig == null) {
             parserConfig = defaultParserConfig;
         }
-        
+
         if(parserConfig.completion) {
-            config = getCompletionParserConfig(langImpl);
+            config = getCompletionParserConfig(langImpl, input);
         } else {
-            config = getParserConfig(langImpl);
+            config = getParserConfig(langImpl, input);
         }
-        
+
         try {
-            logger.trace("Parsing {}", source);          
- 
+            logger.trace("Parsing {}", source);
+
             final JSGLRI parser;
             if(base != null) {
                 parser = new JSGLRI(config, termFactory, base, langImpl, source, text);
@@ -120,26 +121,96 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         return parseUnits;
     }
 
-    public IParserConfig getParserConfig(ILanguageImpl lang) {
+    public IParserConfig getParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input) throws ParseException {
         IParserConfig config = parserConfigs.get(lang);
         if(config == null) {
             final ITermFactory termFactory =
                 termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
-            final IParseTableProvider provider = new FileParseTableProvider(facet.parseTable, termFactory);
+
+            FileObject parseTable = null;
+
+            if(facet.parseTable == null) {
+                try {
+                    boolean multipleTables = false;
+                    for(ILanguageComponent component : lang.components()) {
+                        if(component.config().sdfEnabled()) {
+                            if(component.config().completionsParseTable() != null) {
+                                if(multipleTables) {
+                                    throw new ParseException(input);
+                                }
+
+                                parseTable = component.location().resolveFile(component.config().parseTable());
+                                multipleTables = true;
+                            }
+                        }
+                    }
+                } catch(FileSystemException e) {
+                    throw new ParseException(input, e);
+                }
+            } else {
+                parseTable = facet.parseTable;
+            }
+            
+            try {
+                if(parseTable == null || !parseTable.exists()) {
+                    throw new ParseException(input);
+                }
+            } catch(FileSystemException e) {
+                throw new ParseException(input, e);
+            }
+
+
+            final IParseTableProvider provider = new FileParseTableProvider(parseTable, termFactory);
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
             parserConfigs.put(lang, config);
         }
         return config;
     }
-    
-    public IParserConfig getCompletionParserConfig(ILanguageImpl lang) {
+
+    public IParserConfig getCompletionParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input) throws ParseException {
         IParserConfig config = completionParserConfigs.get(lang);
         if(config == null) {
             final ITermFactory termFactory =
                 termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
-            final IParseTableProvider provider = new FileParseTableProvider(facet.completionParseTable, termFactory);
+
+            FileObject completionParseTable = null;
+
+            if(facet.completionParseTable == null) {
+                try {
+                    boolean multipleTables = false;
+
+                    for(ILanguageComponent component : lang.components()) {
+                        if(component.config().sdfEnabled()) {
+                            if(component.config().completionsParseTable() != null) {
+                                if(multipleTables) {
+                                    throw new ParseException(input);
+                                }
+
+                                completionParseTable =
+                                    component.location().resolveFile(component.config().completionsParseTable());
+                                multipleTables = true;
+                            }
+                        }
+
+                    }
+                } catch(FileSystemException e) {
+                    throw new ParseException(input, e);
+                }
+            } else {
+                completionParseTable = facet.completionParseTable;
+            }
+
+            try {
+                if(completionParseTable == null || !completionParseTable.exists()) {
+                    throw new ParseException(input);
+                }
+            } catch(FileSystemException e) {
+                throw new ParseException(input, e);
+            }
+
+            final IParseTableProvider provider = new FileParseTableProvider(completionParseTable, termFactory);
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
             completionParserConfigs.put(lang, config);
         }
