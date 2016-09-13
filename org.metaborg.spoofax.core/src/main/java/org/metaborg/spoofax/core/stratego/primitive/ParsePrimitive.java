@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageIdentifierService;
@@ -151,7 +152,7 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
                 } else {
                     dialect = null;
                 }
-            } catch(MetaborgException e) {
+            } catch(MetaborgException | MetaborgRuntimeException e) {
                 // Ignore
                 dialect = null;
             }
