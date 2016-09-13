@@ -45,14 +45,14 @@ public class DialectIdentifier implements IDialectIdentifier {
     @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
         final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
-            final String message = "Could not find Stratego language, Stratego dialects cannot be identified for resource: {}";
-            logger.debug(message, resource);
+            final String message = logger.format(
+                "Could not find Stratego language, Stratego dialects cannot be identified for resource: {}", resource);
             throw new MetaborgRuntimeException(message);
         }
 
         // GTODO: use identifier service instead, but that introduces a cyclic dependency. Could use a provider.
         final ILanguageImpl strategoImpl = strategoLanguage.activeImpl();
-        if (strategoImpl == null) {
+        if(strategoImpl == null) {
             return null;
         }
         // HACK: assuming single identification facet
