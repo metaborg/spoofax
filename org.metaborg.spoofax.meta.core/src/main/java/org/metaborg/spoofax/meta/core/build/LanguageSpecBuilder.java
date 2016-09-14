@@ -51,10 +51,11 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-import build.pluto.builder.BuildManagers;
+import build.pluto.builder.BuildManager;
 import build.pluto.builder.BuildRequest;
 import build.pluto.builder.RequiredBuilderFailed;
 import build.pluto.dependency.Origin;
+import build.pluto.dependency.database.XodusDatabase;
 import build.pluto.output.Output;
 
 public class LanguageSpecBuilder {
@@ -130,7 +131,7 @@ public class LanguageSpecBuilder {
 
         initPluto();
         try {
-            final String path = input.languageSpec().location().getName().getPath();
+            final String path = input.languageSpec().config().identifier().toFullFileString();
             plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
@@ -208,7 +209,7 @@ public class LanguageSpecBuilder {
         initPluto();
         try {
             final Origin origin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
-            final String path = input.languageSpec().location().getName().getPath();
+            final String path = input.languageSpec().config().identifier().toFullFileString();
             plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
@@ -235,7 +236,7 @@ public class LanguageSpecBuilder {
             final Origin generateSourcesOrigin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
             final Origin packageOrigin = PackageBuilder.origin(packageBuilderInput(input, generateSourcesOrigin));
             final Origin origin = Origin.Builder().add(generateSourcesOrigin).add(packageOrigin).get();
-            final String path = input.languageSpec().location().getName().getPath();
+            final String path = input.languageSpec().config().identifier().toFullFileString();
             archiveFile = plutoBuild(ArchiveBuilder.request(archiveBuilderInput(input, origin)), path).val();
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
@@ -267,7 +268,8 @@ public class LanguageSpecBuilder {
         cleanAndLog(paths.targetDir());
 
         try {
-            plutoClean(location.getName().getPath());
+            final String path = input.languageSpec().config().identifier().toFullFileString();
+            plutoClean(path);
         } catch(IOException e) {
             throw new MetaborgException("Cleaning Pluto file attributes failed", e);
         }
@@ -292,11 +294,17 @@ public class LanguageSpecBuilder {
     }
 
     private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest, String path) throws Throwable {
-        return BuildManagers.build(buildRequest, new SpoofaxReporting(), path);
+        final SpoofaxReporting reporting = new SpoofaxReporting();
+        try(final BuildManager buildManager = new BuildManager(reporting, XodusDatabase.createFileDatabase(path))) {
+            return buildManager.requireInitially(buildRequest).getBuildResult();
+        }
     }
 
     private void plutoClean(String path) throws IOException {
-        BuildManagers.resetDynamicAnalysis(path);
+        final SpoofaxReporting reporting = new SpoofaxReporting();
+        try(final BuildManager buildManager = new BuildManager(reporting, XodusDatabase.createFileDatabase(path))) {
+            buildManager.resetDynamicAnalysis();
+        }
     }
 
 
@@ -364,13 +372,13 @@ public class LanguageSpecBuilder {
         final @Nullable File sdfCompletionFile;
 
         FileObject sdfCompletionFileCandidate = null;
-        
+
         if(sdf2tableVersion == Sdf2tableVersion.c) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
         } else if(sdf2tableVersion == Sdf2tableVersion.java) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
         }
-        
+
         if(sdfCompletionFileCandidate != null && sdfCompletionFileCandidate.exists()) {
             sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
         } else {
@@ -438,10 +446,10 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfModule, sdfFile, sdfVersion,
-            sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile,
-            sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat,
-            strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfModule,
+            sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
+            sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg,
+            strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
 
     }
 

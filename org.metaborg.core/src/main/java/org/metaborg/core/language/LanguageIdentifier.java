@@ -143,4 +143,8 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
     public String toFileString() {
         return id + "-" + version;
     }
+    
+    public String toFullFileString() {
+        return groupId  + "-" + id + "-" + version;
+    }
 }

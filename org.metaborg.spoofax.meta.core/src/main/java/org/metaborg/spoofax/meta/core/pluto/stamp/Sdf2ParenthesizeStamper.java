@@ -1,12 +1,14 @@
 package org.metaborg.spoofax.meta.core.pluto.stamp;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
+import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -14,9 +16,6 @@ import org.spoofax.terms.TermVisitor;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.util.Pair;
 
-import build.pluto.builder.BuildManagers;
-import build.pluto.builder.BuildRequest;
-import build.pluto.output.Out;
 import build.pluto.stamp.LastModifiedStamper;
 import build.pluto.stamp.Stamp;
 import build.pluto.stamp.Stamper;
@@ -25,31 +24,31 @@ import build.pluto.stamp.ValueStamp;
 public class Sdf2ParenthesizeStamper implements Stamper {
     private static final long serialVersionUID = 3294157251470549994L;
 
-    private final BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf;
+    private final SpoofaxContext context;
 
 
-    public Sdf2ParenthesizeStamper(BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf) {
-        this.parseSdf = parseSdf;
+    public Sdf2ParenthesizeStamper(SpoofaxContext context) {
+        this.context = context;
     }
 
 
-    @Override public Stamp stampOf(File p) {
-        if(!FileCommands.exists(p))
+    @Override public Stamp stampOf(File file) {
+        if(!FileCommands.exists(file)) {
             return new ValueStamp<>(this, null);
+        }
 
-        final Out<IStrategoTerm> term;
+        final IStrategoTerm term;
         try {
-            term = BuildManagers.build(parseSdf);
-        } catch(Throwable e) {
-            return LastModifiedStamper.instance.stampOf(p);
+            term = context.parse(file);
+        } catch(ParseException | IOException e) {
+            return LastModifiedStamper.instance.stampOf(file);
+        }
+        if(term == null) {
+            return LastModifiedStamper.instance.stampOf(file);
         }
 
-        if(term == null || term.val() == null) {
-            return LastModifiedStamper.instance.stampOf(p);
-        }
-
-        final ParenExtractor parenExtractor = new ParenExtractor(parseSdf.input.context.termFactory());
-        parenExtractor.visit(term.val());
+        final ParenExtractor parenExtractor = new ParenExtractor(context.termFactory());
+        parenExtractor.visit(term);
         return new ValueStamp<>(this, Pair.create(parenExtractor.getRelevantProds(), parenExtractor.getPriorities()));
     }
 
@@ -95,8 +94,8 @@ public class Sdf2ParenthesizeStamper implements Stamper {
         }
 
         private IStrategoTerm noProdAttrs(IStrategoTerm term) {
-            return factory
-                .makeAppl(factory.makeConstructor("prod", 3), term.getSubterm(0), term.getSubterm(1), noAttrs);
+            return factory.makeAppl(factory.makeConstructor("prod", 3), term.getSubterm(0), term.getSubterm(1),
+                noAttrs);
         }
 
         @Override public void postVisit(IStrategoTerm term) {
