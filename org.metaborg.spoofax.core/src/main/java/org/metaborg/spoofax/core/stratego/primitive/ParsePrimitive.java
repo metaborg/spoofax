@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageIdentifierService;
@@ -13,6 +14,8 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
+import org.metaborg.core.language.dialect.IDialectIdentifier;
+import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxPrimitive;
@@ -33,18 +36,20 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
     private final IResourceService resourceService;
     private final ILanguageService languageService;
     private final ILanguageIdentifierService languageIdentifierService;
+    private final IDialectIdentifier dialectIdentifier;
     private final ISpoofaxUnitService unitService;
     private final ISourceTextService sourceTextService;
     private final ISpoofaxSyntaxService syntaxService;
 
 
     @Inject public ParsePrimitive(IResourceService resourceService, ILanguageService languageService,
-        ILanguageIdentifierService languageIdentifierService, ISpoofaxUnitService unitService,
-        ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
+        ILanguageIdentifierService languageIdentifierService, IDialectIdentifier dialectIdentifier,
+        ISpoofaxUnitService unitService, ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
         super("parse", 0, 4);
         this.resourceService = resourceService;
         this.languageService = languageService;
         this.languageIdentifierService = languageIdentifierService;
+        this.dialectIdentifier = dialectIdentifier;
         this.unitService = unitService;
         this.sourceTextService = sourceTextService;
         this.syntaxService = syntaxService;
@@ -139,7 +144,19 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
         // Parse the text.
         final ISpoofaxInputUnit input;
         if(file != null) {
-            input = unitService.inputUnit(file, text, langImpl, null);
+            @Nullable ILanguageImpl dialect;
+            try {
+                final IdentifiedDialect identifierDialect = dialectIdentifier.identify(file);
+                if(identifierDialect != null) {
+                    dialect = identifierDialect.dialect;
+                } else {
+                    dialect = null;
+                }
+            } catch(MetaborgException | MetaborgRuntimeException e) {
+                // Ignore
+                dialect = null;
+            }
+            input = unitService.inputUnit(file, text, langImpl, dialect);
         } else {
             input = unitService.inputUnit(text, langImpl, null);
         }

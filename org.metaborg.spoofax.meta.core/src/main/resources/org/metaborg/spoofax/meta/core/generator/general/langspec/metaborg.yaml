@@ -10,6 +10,7 @@ dependencies:
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.lang:${metaborgVersion}
 {{/analysisNabl2}}
   source:
+  - org.metaborg:meta.lib.spoofax:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
 {{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.shared:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.nabl2.runtime:${metaborgVersion}

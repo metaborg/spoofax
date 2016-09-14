@@ -5,15 +5,5 @@ module libspoofax/editor/completion/interface
 rules
     suggest-completions(|iset)           = fail  
     suggest-completions-right-rec(|iset) = fail
-    suggest-completions-left-rec(|iset)  = fail 
-    is-left-recursive                    = fail
-    is-right-recursive                   = fail
-    get-indent                           = fail
-    get-leading-ws                       = fail
-    get-separator                        = fail
-    pp-completion                        = fail
-    parenthesize-completion              = fail
+    suggest-completions-left-rec(|iset)  = fail
     is-SDF-placeholder                   = fail
-       
-
-
