@@ -85,6 +85,7 @@ import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitive.CallStrategyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.DigestPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.IsLanguageActivePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageComponentsPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageImplementationPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeDirectoriesPrimitive;
@@ -313,6 +314,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeFilesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ParsePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, CallStrategyPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, IsLanguageActivePrimitive.class);
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("ScopeGraphLibrary"));

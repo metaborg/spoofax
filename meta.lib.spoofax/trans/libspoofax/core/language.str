@@ -23,3 +23,13 @@ rules
    * is executed in, or fails if not executed in the context of a language specification.
    */
   language-specification = prim("language_specification")
+
+  /**
+   * Check if a language with the given name (string) is active in the context this strategy is executed in.
+   */
+  is-language-active = prim("is_language_active")
+
+  /**
+   * Call a strategy from another language that is active in the context this strategy is executed in.
+   */
+  call-in-language(|lang,strategy) = prim("call_strategy", lang, strategy)

@@ -60,11 +60,7 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
         try {
             final IProject project = projectService.get(currentContext.location());
             IContext context = contextService.get(currentContext.location(), project, activeImpl);
-            final IStrategoTerm output = common.invoke(activeImpl, context, current, strategyName);
-            if(output == null) {
-                return null;
-            }
-            return output;
+            return common.invoke(activeImpl, context, current, strategyName);
         } catch(MetaborgException e) {
             final String message = String.format("Stratego strategy call of '%s' into language %s failed unexpectedly",
                 strategyName, languageName);

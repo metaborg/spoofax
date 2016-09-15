@@ -18,4 +18,14 @@ public interface IEditorRegistry {
      *            The project that contains the resource.
      */
     void open(FileObject resource, IProject project);
+
+    /**
+     * Open editors for the given resources.
+     *
+     * @param resources
+     *            Resources to open editor for.
+     * @param project
+     *            The project that contains the resource.
+     */
+    void open(Iterable<FileObject> resources, IProject project);
 }

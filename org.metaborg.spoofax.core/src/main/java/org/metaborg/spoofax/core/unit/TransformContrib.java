@@ -2,7 +2,6 @@ package org.metaborg.spoofax.core.unit;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.unit.IUnitContrib;
 import org.metaborg.util.iterators.Iterables2;
@@ -12,17 +11,17 @@ public class TransformContrib implements IUnitContrib {
     public final boolean valid;
     public final boolean success;
     public final @Nullable IStrategoTerm ast;
-    public final @Nullable FileObject output;
+    public final Iterable<TransformOutput> outputs;
     public final Iterable<IMessage> messages;
     public final long duration;
 
 
-    public TransformContrib(boolean valid, boolean success, @Nullable IStrategoTerm ast, @Nullable FileObject output,
-        Iterable<IMessage> messages, long duration) {
+    public TransformContrib(boolean valid, boolean success, @Nullable IStrategoTerm ast,
+        Iterable<TransformOutput> outputs, Iterable<IMessage> messages, long duration) {
         this.valid = valid;
         this.success = success;
         this.ast = ast;
-        this.output = output;
+        this.outputs = outputs;
         this.messages = messages;
         this.duration = duration;
     }
