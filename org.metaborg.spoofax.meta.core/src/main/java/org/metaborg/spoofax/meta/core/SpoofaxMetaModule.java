@@ -20,10 +20,10 @@ import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecService;
 import org.metaborg.spoofax.meta.core.stratego.primitive.CheckSdf2TablePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.GetSortNamePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecPpNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LegacyLanguageSpecNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.PlaceholderCharsPrimitive;
-import org.metaborg.spoofax.meta.core.stratego.primitives.GetSortNamePrimitive;
-import org.metaborg.spoofax.meta.core.stratego.primitives.LanguageSpecPpNamePrimitive;
 
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
