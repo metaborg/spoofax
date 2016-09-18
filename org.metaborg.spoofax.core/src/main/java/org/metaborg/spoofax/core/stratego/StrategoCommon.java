@@ -16,7 +16,9 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -104,30 +106,14 @@ public class StrategoCommon implements IStrategoCommon {
         }
     }
 
-    // @Override public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
-    // Strategy[] sp, IStrategoTerm... tp) {
-    // final SDefT def = runtime.lookupUncifiedSVar(strategy);
-    // final Strategy strat = def.getBody();
-    // final CallT callT = (CallT) strat;
-    //
-    // final org.spoofax.interpreter.core.IContext context = runtime.getContext();
-    // context.setCurrent(input);
-    // boolean success = false;
-    // try {
-    // success = callT.evaluateWithArgs(context, sp, tp);
-    // } catch(InterpreterException e) {
-    // throw new RuntimeException("Failed to evaluate strategy " + strategy, e);
-    // }
-    // return success ? context.current() : null;
-    // }
-
     private void handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) throws MetaborgException {
-        String trace = "Stratego trace:\n" + runtime.getCompiledContext().getTraceString();
+        final String trace = runtime.getCompiledContext().getTraceString();
         try {
             throw ex;
         } catch(InterpreterErrorExit e) {
             final String message;
             final IStrategoTerm term = e.getTerm();
+            final String innerTrace = e.getTrace() != null ? traceToString(e.getTrace()) : trace;
             if(term != null) {
                 final String termString;
                 final IStrategoString ppTerm = prettyPrint(term);
@@ -136,11 +122,11 @@ public class StrategoCommon implements IStrategoCommon {
                 } else {
                     termString = term.toString();
                 }
-                message = logger.format("Invoking Stratego strategy {} failed at term\n\t{}", strategy, termString);
+                message = logger.format("Invoking Stratego strategy {} failed at term:\n    {}\nStratego trace:\n{}", strategy, termString, innerTrace);
             } else {
-                message = logger.format("Invoking Stratego strategy {} failed", strategy);
+                message = logger.format("Invoking Stratego strategy {} failed.\nStratego trace:\n{}", strategy, innerTrace);
             }
-            throw new MetaborgException(message + "\n" + trace, e);
+            throw new MetaborgException(message, e);
         } catch(InterpreterExit e) {
             final String message =
                 logger.format("Invoking Stratego strategy {} failed with exit code {}", strategy, e.getValue());
@@ -159,6 +145,15 @@ public class StrategoCommon implements IStrategoCommon {
         }
     }
 
+    private String traceToString(IStrategoList trace) {
+        StringBuilder sb = new StringBuilder();
+        for(IStrategoTerm frame : trace) {
+            sb.append(Tools.asJavaString(frame));
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+    
     @Override public IStrategoString localLocationTerm(File localLocation) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
         final String locationPath = localLocation.getAbsolutePath();

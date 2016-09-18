@@ -69,10 +69,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                 ISpoofaxScopeGraphUnit unit = context.getOrCreateUnit(source);
                 unit.reset();
 
-                // HACK : If we use the same filename here, we get variable clashes
-                //        because unique names don't work across these calls
-                String globalSource = context.location().getName().getURI();
-                IStrategoTerm sourceTerm = termFactory.makeString(globalSource);
+                IStrategoTerm sourceTerm = termFactory.makeString(source);
                 TermIndex.put(sourceTerm, source, 0);
 
                 IStrategoTerm initialResultTerm = doAction(strategy,
@@ -114,7 +111,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                         new AnalyzeContrib(true, errors.isEmpty(), true,
                                 unitResult.ast, messages, -1), context));
             } catch (MetaborgException e) {
-                logger.warn("Skipping {}, because analysis failed\n{}",source,e.getCause());
+                logger.warn("Skipping {}, because analysis failed\n{}",source,e);
             }
         }
         return new SpoofaxAnalyzeResults(results,
