@@ -69,7 +69,10 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                 ISpoofaxScopeGraphUnit unit = context.getOrCreateUnit(source);
                 unit.reset();
 
-                IStrategoTerm sourceTerm = termFactory.makeString(source);
+                // HACK : If we use the same filename here, we get variable clashes
+                //        because unique names don't work across these calls
+                String globalSource = context.location().getName().getURI();
+                IStrategoTerm sourceTerm = termFactory.makeString(globalSource);
                 TermIndex.put(sourceTerm, source, 0);
 
                 IStrategoTerm initialResultTerm = doAction(strategy,

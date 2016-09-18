@@ -5,10 +5,10 @@ import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
@@ -22,7 +22,6 @@ import com.google.inject.Inject;
 public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
     private final IContextService contextService;
     private final ILanguageService languageService;
-    private final IProjectService projectService;
 
     private final IStrategoCommon common;
 
@@ -33,7 +32,6 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
 
         this.contextService = contextService;
         this.languageService = languageService;
-        this.projectService = projectService;
         this.common = common;
     }
 
@@ -45,34 +43,43 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
 
         // GTODO: require language identifier instead of language name
         IProjectConfig config = currentContext.project().config();
-        ILanguageImpl activeImpl = null;
-        if(config != null) {
-            for(LanguageIdentifier id : config.compileDeps()) {
-                ILanguageImpl impl = languageService.getImpl(id);
-                if(impl != null && impl.belongsTo().name().equals(languageName)) {
-                    activeImpl = impl;
-                    break;
+        try {
+            if(config != null) {
+                for(LanguageIdentifier id : config.compileDeps()) {
+                    ILanguageImpl activeImpl = languageService.getImpl(id);
+                    if(activeImpl == null || !activeImpl.belongsTo().name().equals(languageName)) {
+                        continue;
+                    }
+                    IContext context = contextService.get(currentContext.location(), currentContext.project(), activeImpl);
+                    ILanguageComponent component = languageService.getComponent(id);
+                    if(component == null) {
+                        continue;
+                    }
+                    IStrategoTerm result = common.invoke(component, context, current, strategyName);
+                    if(result != null) {
+                        return result;
+                    }
                 }
-            }
-        } else {
-            ILanguage lang = languageService.getLanguage(languageName);
-            if(lang == null) {
-                final String message = String.format("Stratego strategy call of '%s' into language %s failed, language not found.",
+                final String message = String.format("Stratego strategy call of '%s' into language %s failed, no suitable components found.",
                     strategyName, languageName);
                 throw new MetaborgException(message);
-            }
-            activeImpl = lang.activeImpl();
-        }
-        if(activeImpl == null) {
-            final String message = String.format("Stratego strategy call of '%s' into language %s failed, no active implementation found.",
-                strategyName, languageName);
-            throw new MetaborgException(message);
-        }
 
-        try {
-            final IProject project = projectService.get(currentContext.location());
-            IContext context = contextService.get(currentContext.location(), project, activeImpl);
-            return common.invoke(activeImpl, context, current, strategyName);
+            } else {
+                ILanguage lang = languageService.getLanguage(languageName);
+                if(lang == null) {
+                    final String message = String.format("Stratego strategy call of '%s' into language %s failed, language not found.",
+                        strategyName, languageName);
+                    throw new MetaborgException(message);
+                }
+                ILanguageImpl activeImpl = lang.activeImpl();
+                if(activeImpl == null) {
+                    final String message = String.format("Stratego strategy call of '%s' into language %s failed, no active implementation found.",
+                        strategyName, languageName);
+                    throw new MetaborgException(message);
+                }
+                IContext context = contextService.get(currentContext.location(), currentContext.project(), activeImpl);
+                return common.invoke(activeImpl, context, current, strategyName);
+            }
         } catch(MetaborgException e) {
             final String message = String.format("Stratego strategy call of '%s' into language %s failed unexpectedly",
                 strategyName, languageName);
