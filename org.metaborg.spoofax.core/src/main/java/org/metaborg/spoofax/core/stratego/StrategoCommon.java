@@ -107,7 +107,7 @@ public class StrategoCommon implements IStrategoCommon {
     }
 
     private void handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) throws MetaborgException {
-        final String trace = runtime.getCompiledContext().getTraceString();
+        final String trace = traceToString(runtime.getCompiledContext().getTrace());
         try {
             throw ex;
         } catch(InterpreterErrorExit e) {
@@ -122,9 +122,9 @@ public class StrategoCommon implements IStrategoCommon {
                 } else {
                     termString = term.toString();
                 }
-                message = logger.format("Invoking Stratego strategy {} failed at term:\n    {}\nStratego trace:\n{}", strategy, termString, innerTrace);
+                message = logger.format("Invoking Stratego strategy {} failed at term:\n\t{}\n{}", strategy, termString, innerTrace);
             } else {
-                message = logger.format("Invoking Stratego strategy {} failed.\nStratego trace:\n{}", strategy, innerTrace);
+                message = logger.format("Invoking Stratego strategy {} failed.\n{}", strategy, innerTrace);
             }
             throw new MetaborgException(message, e);
         } catch(InterpreterExit e) {
@@ -145,11 +145,22 @@ public class StrategoCommon implements IStrategoCommon {
         }
     }
 
+    private String traceToString(String[] trace) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Stratego trace:");
+        for(String frame : trace) {
+            sb.append("\n\t");
+            sb.append(frame);
+        }
+        return sb.toString();
+    }
+    
     private String traceToString(IStrategoList trace) {
         StringBuilder sb = new StringBuilder();
+        sb.append("Stratego trace:");
         for(IStrategoTerm frame : trace) {
+            sb.append("\n\t");
             sb.append(Tools.asJavaString(frame));
-            sb.append("\n");
         }
         return sb.toString();
     }
