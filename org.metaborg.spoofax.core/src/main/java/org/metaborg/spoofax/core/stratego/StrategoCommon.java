@@ -156,11 +156,13 @@ public class StrategoCommon implements IStrategoCommon {
     }
     
     private String traceToString(IStrategoList trace) {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("Stratego trace:");
-        for(IStrategoTerm frame : trace) {
+        final int depth = trace.getSubtermCount();
+        for(int i = 0; i < depth; i++) {
+            final IStrategoTerm t = trace.getSubterm(depth - i - 1);
             sb.append("\n\t");
-            sb.append(Tools.asJavaString(frame));
+            sb.append(t.getTermType() == IStrategoTerm.STRING ? Tools.asJavaString(t) : t);
         }
         return sb.toString();
     }
