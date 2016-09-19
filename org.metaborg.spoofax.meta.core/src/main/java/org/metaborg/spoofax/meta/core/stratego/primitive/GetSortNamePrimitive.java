@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.stratego.primitives;
+package org.metaborg.spoofax.meta.core.stratego.primitive;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;

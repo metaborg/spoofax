@@ -133,7 +133,7 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             }
             return result;
         } catch (MetaborgException ex) {
-            final String message = analysisCommon.analysisFailedMessage(runtime);
+            final String message = "Analysis failed.\n"+ex.getMessage();
             throw new AnalysisException(context,message,ex);
         }
     }

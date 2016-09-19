@@ -1,4 +1,8 @@
 ---
+id: {{groupId}}:{{id}}.example:{{version}}
+name: {{name}}
 dependencies:
   compile:
   - {{groupId}}:{{id}}:{{version}}
+build:
+  useBuildSystemSpec: true

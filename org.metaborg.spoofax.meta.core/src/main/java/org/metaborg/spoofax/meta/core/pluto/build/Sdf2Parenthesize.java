@@ -11,19 +11,16 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
 import org.metaborg.spoofax.meta.core.pluto.stamp.Sdf2ParenthesizeStamper;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 import org.metaborg.util.cmd.Arguments;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_sdf2parenthesize_0_0;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
-import build.pluto.output.Out;
 
 public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, None> {
     public static class Input extends SpoofaxInput {
@@ -79,9 +76,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
         requireBuild(input.origin);
 
         if(SpoofaxContext.BETTER_STAMPERS) {
-            final BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf =
-                ParseFile.request(new ParseFile.Input(context, input.inputFile, true, input.origin));
-            require(input.inputFile, new Sdf2ParenthesizeStamper(parseSdf));
+            require(input.inputFile, new Sdf2ParenthesizeStamper(input.context));
         } else {
             require(input.inputFile);
         }

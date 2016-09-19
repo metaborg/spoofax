@@ -1,5 +1,9 @@
 ---
+id: {{groupId}}:{{id}}.test:{{version}}
+name: {{name}}
 dependencies:
   compile:
   - {{groupId}}:{{id}}:{{version}}
   - org.metaborg:org.metaborg.meta.lang.spt:${metaborgVersion}
+build:
+  useBuildSystemSpec: true

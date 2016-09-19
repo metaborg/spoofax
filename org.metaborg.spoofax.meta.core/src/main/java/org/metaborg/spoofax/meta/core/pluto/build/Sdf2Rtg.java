@@ -11,18 +11,15 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
 import org.metaborg.spoofax.meta.core.pluto.stamp.Sdf2RtgStamper;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 import org.metaborg.util.cmd.Arguments;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_sdf2rtg_0_0;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
-import build.pluto.output.Out;
 import build.pluto.output.OutputPersisted;
 
 public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>> {
@@ -77,9 +74,7 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, OutputPersisted<File>
         requireBuild(input.origin);
 
         if(SpoofaxContext.BETTER_STAMPERS) {
-            final BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf =
-                ParseFile.request(new ParseFile.Input(context, input.inputFile, true, input.origin));
-            require(input.inputFile, new Sdf2RtgStamper(parseSdf));
+            require(input.inputFile, new Sdf2RtgStamper(input.context));
         } else {
             require(input.inputFile);
         }

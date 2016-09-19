@@ -26,6 +26,12 @@ rules // Path conversion
    */
   local-replicate = prim("local_replicate")
 
+  /**
+   * Make a path absolute with respect to the given absolute root path. If the path was already absolute, it is
+   * unchanged.
+   */
+  absolute-path(|root) = prim("absolute_path",root)
+
 rules // Source and include directories and files
 
   /**

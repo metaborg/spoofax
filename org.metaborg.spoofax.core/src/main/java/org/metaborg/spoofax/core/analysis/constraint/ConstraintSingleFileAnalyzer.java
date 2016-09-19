@@ -111,7 +111,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                         new AnalyzeContrib(true, errors.isEmpty(), true,
                                 unitResult.ast, messages, -1), context));
             } catch (MetaborgException e) {
-                logger.warn("Skipping {}, because analysis failed\n{}",source,e.getCause());
+                logger.warn("Skipping {}, because analysis failed\n{}",source,e);
             }
         }
         return new SpoofaxAnalyzeResults(results,

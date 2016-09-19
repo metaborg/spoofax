@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.unit;
 
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.messages.IMessage;
@@ -36,8 +35,8 @@ public class TransformUnit<I extends IUnit> extends UnitWrapper implements ISpoo
         return contrib.ast;
     }
 
-    @Override public FileObject output() {
-        return contrib.output;
+    @Override public Iterable<TransformOutput> outputs() {
+        return contrib.outputs;
     }
 
     @Override public Iterable<IMessage> messages() {
