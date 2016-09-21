@@ -7,3 +7,5 @@ rules
     suggest-completions-right-rec(|iset) = fail
     suggest-completions-left-rec(|iset)  = fail
     is-SDF-placeholder                   = fail
+    is-left-recursive                    = fail
+    is-right-recursive                   = fail

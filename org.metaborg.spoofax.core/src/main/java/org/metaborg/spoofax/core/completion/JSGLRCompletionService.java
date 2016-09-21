@@ -1606,7 +1606,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             try {
                 isLeftRecursive = strategoCommon.invoke(runtime, input, "is-left-recursive") != null;
             } catch(MetaborgException e) {
-                logger.error("Failed to check recursivity for term {} of sort {}", fragment, sort);
+                logger.error("Failed to check recursivity for term {} of sort {} - syntactic completion not activated for this language, please import the completion stratego library", fragment, sort);
             }
         }
         boolean isRightRecursive = false;
@@ -1615,7 +1615,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             try {
                 isRightRecursive = strategoCommon.invoke(runtime, input, "is-right-recursive") != null;
             } catch(MetaborgException e) {
-                logger.error("Failed to check recursivity for term {} of sort {}", fragment, sort);
+                logger.error("Failed to check recursivity for term {} of sort {} - syntactic completion not activated for this language, please import the completion stratego library", fragment, sort);
             }
         }
 
