@@ -145,6 +145,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.core.unit.UnitService;
+import org.metaborg.unification.U_copy_unifier;
 import org.metaborg.unification.U_is_unifier;
 import org.metaborg.unification.U_new_unifier;
 import org.metaborg.unification.U_substitution;
@@ -332,6 +333,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_metadata.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_metadata.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_references.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, U_copy_unifier.class);
         bindPrimitive(spoofaxScopeGraphLibrary, U_is_unifier.class);
         bindPrimitive(spoofaxScopeGraphLibrary, U_new_unifier.class);
         bindPrimitive(spoofaxScopeGraphLibrary, U_substitution.class);
