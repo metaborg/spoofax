@@ -17,7 +17,6 @@ import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
 import org.spoofax.jsglr.client.SGLRParseResult;
-import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -126,12 +125,6 @@ public class JSGLRI {
                 }
             }
             throw e;
-        } catch(StartSymbolException e) {
-            // we don't want to allow any start symbol if it has been explicitly provided
-            if(parserConfig != null && parserConfig.overridingStartSymbol != null) {
-                throw e;
-            }
-            return parser.parse(text, filename, null);
         }
     }
 
