@@ -85,9 +85,10 @@ public class JSGLRI {
             ast = null;
         }
 
+        final boolean hasAst = ast != null;
         final Iterable<IMessage> messages = errorHandler.messages();
-        return new ParseContrib(ast != null, !MessageUtils.containsSeverity(messages, MessageSeverity.ERROR), ast,
-            messages, duration);
+        final boolean hasErrors = MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
+        return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
     }
 
     public SGLRParseResult actuallyParse(String text, @Nullable String filename,
