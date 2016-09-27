@@ -271,9 +271,15 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         }
         final LanguageCreationRequest request = languageService.create(identifier, location, langContribs, config);
 
-        final SyntaxFacet syntaxFacet = discoveryRequest.syntaxFacet();
-        if(syntaxFacet != null) {
-            request.addFacet(syntaxFacet);
+
+        final SyntaxFacet syntaxFacet;
+        if(config.sdfEnabled()) {
+            syntaxFacet = discoveryRequest.syntaxFacet();
+            if(syntaxFacet != null) {
+                request.addFacet(syntaxFacet);
+            }
+        } else {
+            syntaxFacet = null;
         }
 
         final StrategoRuntimeFacet strategoRuntimeFacet = discoveryRequest.strategoRuntimeFacet();
