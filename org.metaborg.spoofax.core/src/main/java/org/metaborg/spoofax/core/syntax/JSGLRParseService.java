@@ -137,6 +137,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
                         if(component.config().sdfEnabled()) {
                             if(component.config().completionsParseTable() != null) {
                                 if(multipleTables) {
+                                    logger.error("Different components are specifying multiple parse tables.");
                                     throw new ParseException(input);
                                 }
 
@@ -146,6 +147,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
                         }
                     }
                 } catch(FileSystemException e) {
+                    logger.error("Parse table not found or sdf is not enabled for this language.");
                     throw new ParseException(input, e);
                 }
             } else {
@@ -154,9 +156,11 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             
             try {
                 if(parseTable == null || !parseTable.exists()) {
+                    logger.error("Parse table not found or sdf is not enabled for this language.");
                     throw new ParseException(input);
                 }
             } catch(FileSystemException e) {
+                logger.error("Parse table not found or sdf is not enabled for this language.");
                 throw new ParseException(input, e);
             }
 
@@ -185,6 +189,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
                         if(component.config().sdfEnabled()) {
                             if(component.config().completionsParseTable() != null) {
                                 if(multipleTables) {
+                                    logger.error("Different components are specifying multiple completion parse tables.");
                                     throw new ParseException(input);
                                 }
 
@@ -196,6 +201,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
                     }
                 } catch(FileSystemException e) {
+                    logger.error("Completion parse table not found or sdf is not enabled for this language.");
                     throw new ParseException(input, e);
                 }
             } else {
@@ -204,9 +210,11 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
             try {
                 if(completionParseTable == null || !completionParseTable.exists()) {
+                    logger.error("Completion parse table not found or sdf is not enabled for this language.");
                     throw new ParseException(input);
                 }
             } catch(FileSystemException e) {
+                logger.error("Completion parse table not found or sdf is not enabled for this language.");
                 throw new ParseException(input, e);
             }
 
