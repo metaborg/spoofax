@@ -54,6 +54,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable Collection<LanguageIdentifier> sourceDeps;
 
         public final @Nullable String sdfModule;
+        public final @Nullable Boolean sdfEnabled;
         public final @Nullable File sdfFile;
         public final SdfVersion sdfVersion;
         public final Sdf2tableVersion sdf2tableVersion;
@@ -80,7 +81,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
 
         public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
-            @Nullable String sdfModule, @Nullable File sdfFile, SdfVersion sdfVersion,
+            @Nullable Boolean sdfEnabled, @Nullable String sdfModule, @Nullable File sdfFile, SdfVersion sdfVersion,
             Sdf2tableVersion sdf2tableVersion, @Nullable File sdfExternalDef, List<File> packSdfIncludePaths,
             Arguments packSdfArgs, @Nullable String sdfCompletionModule, @Nullable File sdfCompletionFile,
             @Nullable String sdfMetaModule, @Nullable File sdfMetaFile, @Nullable File strFile,
@@ -89,6 +90,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             List<File> strjIncludeDirs, Arguments strjArgs) {
             super(context);
             this.languageId = languageId;
+            this.sdfEnabled = sdfEnabled;
             this.sourceDeps = sourceDeps;
             this.sdfModule = sdfModule;
             this.sdfFile = sdfFile;
@@ -152,7 +154,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // SDF
         final @Nullable Origin parenthesizeOrigin;
         final @Nullable Origin sigOrigin;
-        if(input.sdfModule != null) {
+        if(input.sdfModule != null && input.sdfEnabled) {
             final String sdfModule = input.sdfModule;
             final File sdfFile = input.sdfFile;
 
@@ -268,7 +270,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // SDF completions
         final Origin sdfCompletionOrigin;
-        if(input.sdfCompletionFile != null) {
+        if(input.sdfCompletionFile != null && input.sdfEnabled) {
             final String sdfCompletionsModule = input.sdfCompletionModule;
             final File sdfCompletionsFile = input.sdfCompletionFile;
 

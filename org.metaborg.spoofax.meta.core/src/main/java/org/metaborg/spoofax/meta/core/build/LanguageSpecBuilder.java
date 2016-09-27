@@ -319,8 +319,9 @@ public class LanguageSpecBuilder {
 
 
         // SDF
+        final Boolean sdfEnabled = config.sdfEnabled();
         final String sdfModule = config.sdfName();
-
+        
         final FileObject sdfFileCandidate;
         final SdfVersion sdfVersion = config.sdfVersion();
         final Sdf2tableVersion sdf2tableVersion = config.sdf2tableVersion();
@@ -446,7 +447,7 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfModule,
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled, sdfModule,
             sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
             sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg,
             strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
