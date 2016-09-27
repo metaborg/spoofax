@@ -67,7 +67,6 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
         // WORKAROUND: JSGLR can't handle an empty input string, return empty tuple with null tokenizer.
         if(text == null || text.isEmpty()) {
-
             final IStrategoTerm emptyTuple = termFactory.makeTuple();
             final String filename;
             if(input.detached()) {
@@ -79,7 +78,6 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             final IToken token = tokenizer.currentToken();
             ImploderAttachment.putImploderAttachment(emptyTuple, false, "", token, token, false, false, false, false);
             return unitService.parseUnit(input, new ParseContrib(emptyTuple));
-
         }
 
         final IParserConfig config;
