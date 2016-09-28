@@ -1,3 +1,4 @@
 [submodule "graphics/fonts/kadwa"]
 	path = graphics/fonts/kadwa
 	url = https://github.com/huertatipografica/Kadwa.git
+	update = none
