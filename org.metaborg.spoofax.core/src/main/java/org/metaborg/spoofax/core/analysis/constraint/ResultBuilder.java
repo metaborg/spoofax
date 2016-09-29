@@ -34,7 +34,7 @@ public class ResultBuilder {
         IConstraint constraint = new CTrue();
         for (IStrategoTerm component : analysis) {
             if (Tools.hasConstructor((IStrategoAppl) component, "Constraint", 1)) {
-                constraint = constraintBuilder.build(component);
+                constraint = constraintBuilder.build(component.getSubterm(0));
             }
         }
         return new InitialResult(constraint, analysis);
@@ -48,8 +48,8 @@ public class ResultBuilder {
         final IStrategoTerm analysis = term.getSubterm(1);
         IConstraint constraint = new CTrue();
         for (IStrategoTerm component : analysis) {
-            if (Tools.hasConstructor((IStrategoAppl) component, "Constraint", 1)) {
-                constraint = constraintBuilder.build(component);
+            if (Tools.isTermAppl(component) && Tools.hasConstructor((IStrategoAppl) component, "Constraint", 1)) {
+                constraint = constraintBuilder.build(component.getSubterm(0));
             }
         }
         return new UnitResult(ast, constraint, analysis);

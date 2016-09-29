@@ -35,6 +35,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.time.Timer;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -83,10 +84,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             InitialResult initialResult;
             try {
                 initialResult = resultBuilder.initialResult(initialResultTerm);
+                if (!initialResult.analysis.isList()) {
+                    logger.warn("Initial analysis result is not a list, but " + initialResult.analysis);
+                }
             } catch (MetaborgException e) {
                 throw new AnalysisException(context, "Initial analysis failed.", e);
             }
             globalUnit.setInitial(initialResult.analysis);
+            globalUnit.setConstraint(initialResult.constraint);
         }
 
         for (String input : removed.keySet()) {
@@ -111,11 +116,16 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             UnitResult unitResult;
             try {
                 unitResult = resultBuilder.unitResult(unitResultTerm);
+                if (!unitResult.analysis.isList()) {
+                    logger.warn("Initial analysis result is not a list, but " + unitResult.analysis);
+                }
                 astsByFile.put(source, unitResult.ast);
                 ambiguitiesByFile.putAll(source, analysisCommon.ambiguityMessages(parseUnit.source(), unitResult.ast));
+                unit.setConstraint(unitResult.constraint);
                 unit.setAnalysis(unitResult.analysis);
             } catch (MetaborgException e) {
-                logger.warn("Skipping {}, because analysis failed\n{}", source, e.getCause());
+                final String message = logger.format("Skipping {}, because analysis failed", source);
+                logger.warn(message, e.getCause());
             }
         }
 
@@ -144,14 +154,21 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
         IStrategoTerm finalResultTerm = doAction(strategy, termFactory.makeAppl(analyzeFinal, globalTerm,
                 globalUnit.initial(), termFactory.makeList(unitSolutions)), context, runtime);
         FinalResult finalResult;
+        IStrategoTerm finalAnalysis;
         try {
             finalResult = resultBuilder.finalResult(finalResultTerm, solution);
+            if (!finalResult.analysis.isList()) {
+                finalAnalysis = finalResult.analysis;
+                logger.warn("Final analysis result is not a list, but " + finalAnalysis);
+            } else {
+                finalAnalysis = addSubstitutionComponent((IStrategoList) finalResult.analysis, solution.getUnifier());
+            }
         } catch (MetaborgException e) {
             throw new AnalysisException(context, "Final analysis failed.", e);
         }
         globalUnit.setScopeGraph(finalResult.scopeGraph);
         globalUnit.setNameResolution(finalResult.nameResolution);
-        globalUnit.setAnalysis(finalResult.analysis);
+        globalUnit.setAnalysis(finalAnalysis);
 
         Multimap<String,IMessage> errorsByFile = messages(finalResult.errors, MessageSeverity.ERROR);
         Multimap<String,IMessage> warningsByFile = messages(finalResult.warnings, MessageSeverity.WARNING);

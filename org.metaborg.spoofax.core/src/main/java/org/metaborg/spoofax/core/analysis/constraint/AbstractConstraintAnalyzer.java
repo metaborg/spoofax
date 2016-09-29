@@ -12,6 +12,7 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.source.ISourceLocation;
+import org.metaborg.nabl2.SubstitutingStrategoBuilder;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -25,10 +26,12 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.unification.persistent.PersistentTermUnifier;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
@@ -53,6 +56,7 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     protected final IStrategoConstructor analyzeUnit;
     protected final IStrategoConstructor analyzeFinal;
     protected final IStrategoConstructor applyAnalysis;
+    protected final IStrategoConstructor substitutionNew;
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IStrategoRuntimeService runtimeService,
             final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
@@ -66,6 +70,7 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         analyzeUnit = termFactory.makeConstructor("AnalyzeUnit", 3);
         analyzeFinal = termFactory.makeConstructor("AnalyzeFinal", 3);
         applyAnalysis = termFactory.makeConstructor("ApplyAnalysis", 2);
+        substitutionNew = termFactory.makeConstructor("SubstitutionNew", 1);
     }
 
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext)
@@ -167,6 +172,13 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 }
             }
         }
+    }
+
+    protected IStrategoList addSubstitutionComponent(final IStrategoList analysis, final PersistentTermUnifier unifier) {
+        SubstitutingStrategoBuilder strategoBuilder  = new SubstitutingStrategoBuilder(unifier, termFactory);
+        IStrategoTerm entries = strategoBuilder.substitution();
+        IStrategoTerm substition = termFactory.makeAppl(substitutionNew, entries);
+        return termFactory.makeListCons(substition, analysis);
     }
 
 }

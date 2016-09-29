@@ -12,6 +12,7 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.scopegraph.indices.TermIndex;
 import org.metaborg.solver.ISolution;
 import org.metaborg.solver.Solver;
+import org.metaborg.solver.constraints.CConj;
 import org.metaborg.solver.constraints.IConstraint;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
@@ -28,10 +29,10 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.time.Timer;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -79,27 +80,43 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                         context, runtime);
                 InitialResult initialResult;
                 initialResult = resultBuilder.initialResult(initialResultTerm);
+                if (!initialResult.analysis.isList()) {
+                    logger.warn("Initial analysis result is not a list, but " + initialResult.analysis);
+                }
 
                 IStrategoTerm unitResultTerm = doAction(strategy,
                         termFactory.makeAppl(analyzeUnit, sourceTerm, parseUnit.ast(), initialResult.analysis), context,
                         runtime);
                 UnitResult unitResult = resultBuilder.unitResult(unitResultTerm);
+                if (!unitResult.analysis.isList()) {
+                    logger.warn("Initial analysis result is not a list, but " + unitResult.analysis);
+                }
+
+                final IConstraint constraint = new CConj(initialResult.constraint, unitResult.constraint);
+                unit.setConstraint(constraint);
 
                 IStrategoTerm finalResultTerm = doAction(strategy, termFactory.makeAppl(analyzeFinal, sourceTerm,
                         initialResult.analysis, termFactory.makeList(unitResult.analysis)), context, runtime);
 
-                Iterable<IConstraint> constraints = Iterables2.from(initialResult.constraint, unitResult.constraint);
-                logger.info(">>> Solving <<<");
+                logger.info(">>> Fast solving");
                 Timer t = new Timer(true);
-                Solver solver = new Solver(constraints);
+                Solver solver = new Solver(constraint);
                 ISolution solution = solver.solve();
                 double time = ((double) t.stop()) / TimeUnit.SECONDS.toNanos(1);
-                logger.info(">>> Done solving ({}s) <<<", time);
+                logger.info("<<< Fast solving ({}s) <<<", time);
 
                 FinalResult finalResult = resultBuilder.finalResult(finalResultTerm, solution);
+                IStrategoTerm finalAnalysis;
+                if (!finalResult.analysis.isList()) {
+                    finalAnalysis = finalResult.analysis;
+                    logger.warn("Final analysis result is not a list, but " + finalAnalysis);
+                } else {
+                    finalAnalysis = addSubstitutionComponent((IStrategoList) finalResult.analysis,
+                            solution.getUnifier());
+                }
                 unit.setScopeGraph(finalResult.scopeGraph);
                 unit.setNameResolution(finalResult.nameResolution);
-                unit.setAnalysis(finalResult.analysis);
+                unit.setAnalysis(finalAnalysis);
                 applySolution(unit.processRawData(), finalResult.analysis, strategy, context, runtime);
 
                 final Collection<IMessage> errors = analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR,

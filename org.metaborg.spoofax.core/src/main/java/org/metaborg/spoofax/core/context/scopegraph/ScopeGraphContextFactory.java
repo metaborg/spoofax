@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 public class ScopeGraphContextFactory implements IContextFactory {
+
     public static final String name = "scopegraph";
 
     private final Injector injector;

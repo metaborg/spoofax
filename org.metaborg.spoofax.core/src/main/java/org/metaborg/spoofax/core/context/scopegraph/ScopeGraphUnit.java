@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import org.metaborg.scopegraph.INameResolution;
 import org.metaborg.scopegraph.IScopeGraph;
+import org.metaborg.solver.constraints.IConstraint;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.HashBasedTable;
@@ -23,6 +24,7 @@ class ScopeGraphUnit implements ISpoofaxScopeGraphUnit, Serializable {
     private @Nullable IStrategoTerm initial;
     private @Nullable IScopeGraph scopeGraph;
     private @Nullable INameResolution nameResolution;
+    private @Nullable IConstraint constraint;
     private @Nullable IStrategoTerm analysis;
 
     public ScopeGraphUnit(String source) {
@@ -32,14 +34,12 @@ class ScopeGraphUnit implements ISpoofaxScopeGraphUnit, Serializable {
     }
 
 
-    @Override
-    public String source() {
+    @Override public String source() {
         return source;
     }
 
 
-    @Override
-    public void setMetadata(int nodeId, IStrategoTerm key, IStrategoTerm value) {
+    @Override public void setMetadata(int nodeId, IStrategoTerm key, IStrategoTerm value) {
         rawData.put(nodeId, key, value);
     }
 
@@ -48,9 +48,8 @@ class ScopeGraphUnit implements ISpoofaxScopeGraphUnit, Serializable {
         finalData.putAll(rawData);
         return finalData;
     }
-    
-    @Override
-    public IStrategoTerm metadata(int nodeId, IStrategoTerm key) {
+
+    @Override public IStrategoTerm metadata(int nodeId, IStrategoTerm key) {
         return finalData.get(nodeId, key);
     }
 
@@ -67,14 +66,12 @@ class ScopeGraphUnit implements ISpoofaxScopeGraphUnit, Serializable {
         this.analysis = analysis;
     }
 
-    @Override
-    public IStrategoTerm analysis() {
+    @Override public IStrategoTerm analysis() {
         return analysis;
     }
 
 
-    @Override
-    public IScopeGraph scopeGraph() {
+    @Override public IScopeGraph scopeGraph() {
         return scopeGraph;
     }
 
@@ -82,16 +79,22 @@ class ScopeGraphUnit implements ISpoofaxScopeGraphUnit, Serializable {
         this.scopeGraph = scopeGraph;
     }
 
-    @Override
-    public INameResolution nameResolution() {
+    @Override public INameResolution nameResolution() {
         return nameResolution;
     }
 
     public void setNameResolution(INameResolution nameResolution) {
         this.nameResolution = nameResolution;
     }
- 
-    
+
+    @Override public IConstraint constraint() {
+        return constraint;
+    }
+
+    public void setConstraint(IConstraint constraint) {
+        this.constraint = constraint;
+    }
+
     public void reset() {
         rawData.clear();
         finalData.clear();
@@ -100,5 +103,5 @@ class ScopeGraphUnit implements ISpoofaxScopeGraphUnit, Serializable {
         nameResolution = null;
         analysis = null;
     }
-    
+
 }
