@@ -1,23 +1,16 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
-import org.metaborg.core.MetaborgException;
-import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.metaborg.solver.constraints.IConstraint;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class InitialResult {
 
-    public final IStrategoTerm solution;
-    
-    public InitialResult(IStrategoTerm solution) {
-        this.solution = solution;
+    public final IConstraint constraint;
+    public final IStrategoTerm analysis;
+
+    public InitialResult(IConstraint constraint, IStrategoTerm analysis) {
+        this.analysis = analysis;
+        this.constraint = constraint;
     }
 
-    public static InitialResult fromTerm(IStrategoTerm term) throws MetaborgException {
-        if(!Tools.hasConstructor((IStrategoAppl)term, "InitialResult", 1)) {
-            throw new MetaborgException("Wrong format for initial result.");
-        }
-        return new InitialResult(term.getSubterm(0));
-    }
-    
 }
