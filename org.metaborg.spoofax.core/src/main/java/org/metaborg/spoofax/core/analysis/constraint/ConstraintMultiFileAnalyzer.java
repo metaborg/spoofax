@@ -32,6 +32,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.unification.eager.EagerTermUnifier;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.time.Timer;
@@ -146,7 +147,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
 
         logger.info(">>> Solving <<<");
         Timer t = new Timer(true);
-        Solver solver = new Solver(constraints);
+        Solver solver = new Solver(new EagerTermUnifier(), constraints);
         ISolution solution = solver.solve();
         double time = ((double) t.stop()) / TimeUnit.SECONDS.toNanos(1);
         logger.info(">>> Done solving ({}s) <<<", time);

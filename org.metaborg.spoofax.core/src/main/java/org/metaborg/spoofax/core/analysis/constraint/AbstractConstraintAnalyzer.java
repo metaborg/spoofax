@@ -12,7 +12,7 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.source.ISourceLocation;
-import org.metaborg.nabl2.SubstitutingStrategoBuilder;
+import org.metaborg.nabl2.StrategoBuilder;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -26,7 +26,7 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.unification.persistent.PersistentTermUnifier;
+import org.metaborg.unification.ITermUnifier;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -174,9 +174,9 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
     }
 
-    protected IStrategoList addSubstitutionComponent(final IStrategoList analysis, final PersistentTermUnifier unifier) {
-        SubstitutingStrategoBuilder strategoBuilder  = new SubstitutingStrategoBuilder(unifier, termFactory);
-        IStrategoTerm entries = strategoBuilder.substitution();
+    protected IStrategoList addSubstitutionComponent(final IStrategoList analysis, final ITermUnifier unifier) {
+        StrategoBuilder strategoBuilder = new StrategoBuilder(termFactory);
+        IStrategoTerm entries = strategoBuilder.substitution(unifier);
         IStrategoTerm substition = termFactory.makeAppl(substitutionNew, entries);
         return termFactory.makeListCons(substition, analysis);
     }
