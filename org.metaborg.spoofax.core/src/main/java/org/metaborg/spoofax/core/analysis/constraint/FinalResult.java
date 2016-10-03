@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
-import org.metaborg.scopegraph.INameResolution;
-import org.metaborg.scopegraph.IScopeGraph;
+import org.metaborg.nabl2.solution.INameResolution;
+import org.metaborg.nabl2.solution.IScopeGraph;
 import org.metaborg.solver.ISolution;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 

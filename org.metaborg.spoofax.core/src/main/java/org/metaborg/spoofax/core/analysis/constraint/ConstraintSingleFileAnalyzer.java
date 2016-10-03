@@ -9,7 +9,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
-import org.metaborg.scopegraph.indices.TermIndex;
+import org.metaborg.nabl2.indices.TermIndex;
 import org.metaborg.solver.ISolution;
 import org.metaborg.solver.Solver;
 import org.metaborg.solver.constraints.CConj;

@@ -4,8 +4,8 @@ import java.io.Serializable;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.scopegraph.INameResolution;
-import org.metaborg.scopegraph.IScopeGraph;
+import org.metaborg.nabl2.solution.INameResolution;
+import org.metaborg.nabl2.solution.IScopeGraph;
 import org.metaborg.solver.constraints.IConstraint;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
