@@ -31,7 +31,7 @@ public class ResultBuilder {
             throw new MetaborgException("Wrong format for initial result.");
         }
         final IStrategoTerm analysis = term.getSubterm(0);
-        IConstraint constraint = new CTrue();
+        IConstraint constraint = CTrue.of();
         for (IStrategoTerm component : analysis) {
             if (Tools.hasConstructor((IStrategoAppl) component, "Constraint", 1)) {
                 constraint = constraintBuilder.build(component.getSubterm(0));
@@ -46,7 +46,7 @@ public class ResultBuilder {
         }
         final IStrategoTerm ast = term.getSubterm(0);
         final IStrategoTerm analysis = term.getSubterm(1);
-        IConstraint constraint = new CTrue();
+        IConstraint constraint = CTrue.of();
         for (IStrategoTerm component : analysis) {
             if (Tools.isTermAppl(component) && Tools.hasConstructor((IStrategoAppl) component, "Constraint", 1)) {
                 constraint = constraintBuilder.build(component.getSubterm(0));

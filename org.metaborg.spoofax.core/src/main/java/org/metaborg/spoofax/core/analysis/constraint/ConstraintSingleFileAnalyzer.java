@@ -93,7 +93,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                     logger.warn("Initial analysis result is not a list, but " + unitResult.analysis);
                 }
 
-                final IConstraint constraint = new CConj(initialResult.constraint, unitResult.constraint);
+                final IConstraint constraint = CConj.of(initialResult.constraint, unitResult.constraint);
                 unit.setConstraint(constraint);
 
                 IStrategoTerm finalResultTerm = doAction(strategy, termFactory.makeAppl(analyzeFinal, sourceTerm,
