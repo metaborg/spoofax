@@ -43,6 +43,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.file.IFileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -131,7 +132,7 @@ public class LanguageSpecBuilder {
 
         initPluto();
         try {
-            final String path = input.languageSpec().config().identifier().toFullFileString();
+            final String path = path(input);
             plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
@@ -209,7 +210,7 @@ public class LanguageSpecBuilder {
         initPluto();
         try {
             final Origin origin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
-            final String path = input.languageSpec().config().identifier().toFullFileString();
+            final String path = path(input);
             plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
@@ -236,7 +237,7 @@ public class LanguageSpecBuilder {
             final Origin generateSourcesOrigin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
             final Origin packageOrigin = PackageBuilder.origin(packageBuilderInput(input, generateSourcesOrigin));
             final Origin origin = Origin.Builder().add(generateSourcesOrigin).add(packageOrigin).get();
-            final String path = input.languageSpec().config().identifier().toFullFileString();
+            final String path = path(input);
             archiveFile = plutoBuild(ArchiveBuilder.request(archiveBuilderInput(input, origin)), path).val();
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
@@ -268,7 +269,7 @@ public class LanguageSpecBuilder {
         cleanAndLog(paths.targetDir());
 
         try {
-            final String path = input.languageSpec().config().identifier().toFullFileString();
+            final String path = path(input);
             plutoClean(path);
         } catch(IOException e) {
             throw new MetaborgException("Cleaning Pluto file attributes failed", e);
@@ -291,6 +292,10 @@ public class LanguageSpecBuilder {
 
     private void initPluto() {
         SpoofaxContext.init(injector);
+    }
+
+    private String path(LanguageSpecBuildInput input) {
+        return FileUtils.sanitize(input.languageSpec().location().getName().getFriendlyURI());
     }
 
     private <Out extends Output> Out plutoBuild(BuildRequest<?, Out, ?, ?> buildRequest, String path) throws Throwable {
@@ -321,7 +326,7 @@ public class LanguageSpecBuilder {
         // SDF
         final Boolean sdfEnabled = config.sdfEnabled();
         final String sdfModule = config.sdfName();
-        
+
         final FileObject sdfFileCandidate;
         final SdfVersion sdfVersion = config.sdfVersion();
         final Sdf2tableVersion sdf2tableVersion = config.sdf2tableVersion();
@@ -447,8 +452,8 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled, sdfModule,
-            sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
+            sdfModule, sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
             sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg,
             strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
 
