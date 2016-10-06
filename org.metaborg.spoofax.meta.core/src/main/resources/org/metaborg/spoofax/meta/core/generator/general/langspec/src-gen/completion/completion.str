@@ -2,7 +2,7 @@ module completion
 
 imports
   
-  runtime/completion/-
+  libspoofax/editor/completion/-
   completion/{{name}}-cp
   pp/-
   pp
