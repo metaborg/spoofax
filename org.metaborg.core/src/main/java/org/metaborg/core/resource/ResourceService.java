@@ -100,9 +100,10 @@ public class ResourceService implements IResourceService {
 
     @Override public FileObject resolve(FileObject parent, String path) {
         try {
-            final URI uri = new URI(path);
+            final String pathEncoded = URIEncode.encode(path);
+            final URI uri = new URI(pathEncoded);
             if(uri.isAbsolute()) {
-                return resolve(path);
+                return resolve(uri);
             }
         } catch(URISyntaxException e) {
             // Ignore
