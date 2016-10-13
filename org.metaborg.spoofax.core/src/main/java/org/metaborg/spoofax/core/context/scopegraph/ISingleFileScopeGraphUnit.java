@@ -5,21 +5,14 @@ import org.metaborg.scopegraph.IScopeGraph;
 import org.metaborg.scopegraph.context.IScopeGraphUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.common.collect.Table;
+public interface ISingleFileScopeGraphUnit extends IScopeGraphUnit {
 
-public interface ISpoofaxScopeGraphUnit extends IScopeGraphUnit {
-
-    void setInitial(IStrategoTerm solution);
-    IStrategoTerm initial();
+    void setAnalysis(IStrategoTerm analysis);
 
     void setScopeGraph(IScopeGraph scopeGraph);
 
     void setNameResolution(INameResolution nameResolution);
 
-    void setAnalysis(IStrategoTerm analysis);
-
-    Table<Integer, IStrategoTerm, IStrategoTerm> processRawData();
-
-    void reset();
+    void clear();
 
 }

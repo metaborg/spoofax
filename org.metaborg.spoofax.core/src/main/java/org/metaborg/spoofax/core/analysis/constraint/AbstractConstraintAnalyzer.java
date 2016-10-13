@@ -37,9 +37,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
 
-abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
+abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>> implements ISpoofaxAnalyzer {
+
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     protected final AnalysisCommon analysisCommon;
@@ -53,13 +53,9 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     protected final IStrategoConstructor analyzeFinal;
     protected final IStrategoConstructor applyAnalysis;
 
-    public AbstractConstraintAnalyzer(
-            final AnalysisCommon analysisCommon,
-            final IStrategoRuntimeService runtimeService,
-            final IStrategoCommon strategoCommon,
-            final ITermFactoryService termFactoryService,
-            final ISpoofaxTracingService tracingService
-    ) {
+    public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IStrategoRuntimeService runtimeService,
+            final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
+            final ISpoofaxTracingService tracingService) {
         this.analysisCommon = analysisCommon;
         this.runtimeService = runtimeService;
         this.strategoCommon = strategoCommon;
@@ -71,107 +67,92 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         applyAnalysis = termFactory.makeConstructor("ApplyAnalysis", 2);
     }
 
-    @Override
-    public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext) throws AnalysisException {
-        if(!input.valid()) {
+    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext)
+            throws AnalysisException {
+        if (!input.valid()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(genericContext, message);
         }
         final ISpoofaxAnalyzeResults results = analyzeAll(Iterables2.singleton(input), genericContext);
-        if(results.results().isEmpty()) {
-            throw new AnalysisException(genericContext,"Analysis failed.");
+        if (results.results().isEmpty()) {
+            throw new AnalysisException(genericContext, "Analysis failed.");
         }
-        return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()),
-                results.updates(), results.context());
+        return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(),
+                results.context());
     }
 
-    @Override
-    public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs,
-            IContext genericContext) throws AnalysisException {
-        ISpoofaxScopeGraphContext context;
+    @SuppressWarnings("unchecked")
+    @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext)
+            throws AnalysisException {
+        C context;
         try {
-            context = (ISpoofaxScopeGraphContext) genericContext;
-        } catch(ClassCastException ex) {
-            throw new AnalysisException(genericContext,"Scope graph context required for constraint analysis.",ex);
+            context = (C) genericContext;
+        } catch (ClassCastException ex) {
+            throw new AnalysisException(genericContext, "Scope graph context required for constraint analysis.", ex);
         }
 
         final ILanguageImpl langImpl = context.language();
- 
+
         final FacetContribution<AnalysisFacet> facetContribution = langImpl.facetContribution(AnalysisFacet.class);
-        if(facetContribution == null) {
+        if (facetContribution == null) {
             logger.debug("No analysis required for {}", langImpl);
             return new SpoofaxAnalyzeResults(context);
         }
         final AnalysisFacet facet = facetContribution.facet;
- 
+
         final HybridInterpreter runtime;
         try {
             runtime = runtimeService.runtime(facetContribution.contributor, context, false);
-        } catch(MetaborgException e) {
+        } catch (MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
- 
+
         Map<String,ISpoofaxParseUnit> changed = Maps.newHashMap();
         Map<String,ISpoofaxParseUnit> removed = Maps.newHashMap();
-        for(ISpoofaxParseUnit input : inputs) {
-            String source = input.detached() ? ("detached-"+UUID.randomUUID().toString()) : input.source().getName().getURI();
-            (input.valid() ? changed : removed).put(source,input);
+        for (ISpoofaxParseUnit input : inputs) {
+            String source = input.detached() ? ("detached-" + UUID.randomUUID().toString())
+                    : input.source().getName().getURI();
+            (input.valid() ? changed : removed).put(source, input);
         }
         return analyzeAll(changed, removed, context, runtime, facet.strategyName);
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, ISpoofaxScopeGraphContext context,
-            HybridInterpreter runtime, String strategy) throws AnalysisException;
+            Map<String,ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
+            throws AnalysisException;
 
-    protected IStrategoTerm doAction(String strategy, IStrategoTerm action,
-            ISpoofaxScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
+    protected IStrategoTerm doAction(String strategy, IStrategoTerm action, ISpoofaxScopeGraphContext<?> context,
+            HybridInterpreter runtime) throws AnalysisException {
         try {
             IStrategoTerm result = strategoCommon.invoke(runtime, action, strategy);
-            if(result == null) {
+            if (result == null) {
                 throw new MetaborgException("Analysis strategy failed.");
             }
             return result;
         } catch (MetaborgException ex) {
-            final String message = "Analysis failed.\n"+ex.getMessage();
-            throw new AnalysisException(context,message,ex);
+            final String message = "Analysis failed.\n" + ex.getMessage();
+            throw new AnalysisException(context, message, ex);
         }
     }
- 
+
     protected Multimap<String,IMessage> messages(IStrategoTerm messageList, MessageSeverity severity) {
         Multimap<String,IMessage> messages = HashMultimap.create();
-        for(IStrategoTerm messageTerm : messageList) {
-            if(messageTerm.getSubtermCount() != 2) {
+        for (IStrategoTerm messageTerm : messageList) {
+            if (messageTerm.getSubtermCount() != 2) {
                 logger.error("Analysis message has wrong format, skipping: {}", messageTerm);
                 continue;
             }
             final IStrategoTerm originTerm = messageTerm.getSubterm(0);
             final String message = messageTerm.getSubterm(1).toString();
             final ISourceLocation location = tracingService.location(originTerm);
-            if(location == null) {
+            if (location == null) {
                 logger.error("Analysis message has no origin, skipping: {}", messageTerm);
                 continue;
             }
             messages.put(location.resource().getName().getURI(),
-                    MessageFactory.newAnalysisMessage(location.resource(),
-                            location.region(), message, severity, null));
+                    MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null));
         }
         return messages;
     }
- 
-    protected void applySolution(Table<Integer,IStrategoTerm,IStrategoTerm> data,
-            IStrategoTerm solution, String strategy, ISpoofaxScopeGraphContext context,
-            HybridInterpreter runtime) throws AnalysisException {
-        for(Integer i : data.rowKeySet()) {
-            for(IStrategoTerm key : data.columnKeySet()) {
-                IStrategoTerm value;
-                if((value = data.get(i, key)) != null) {
-                    IStrategoTerm action = termFactory.makeAppl(applyAnalysis, value, solution);
-                    value = doAction(strategy, action, context, runtime);
-                    data.put(i, key, value);
-                }
-            }
-        }
-    }
-    
+
 }

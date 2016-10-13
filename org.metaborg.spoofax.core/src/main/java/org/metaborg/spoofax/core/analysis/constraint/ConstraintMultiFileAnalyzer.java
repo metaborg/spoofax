@@ -15,8 +15,8 @@ import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphContext;
-import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphUnit;
+import org.metaborg.spoofax.core.context.scopegraph.IMultiFileScopeGraphContext;
+import org.metaborg.spoofax.core.context.scopegraph.IMultiFileScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -38,7 +38,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
-public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
+public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
+        implements ISpoofaxAnalyzer {
+
     public static final ILogger logger = LoggerUtils.logger(ConstraintMultiFileAnalyzer.class);
 
     public static final String name = "constraint-multifile";
@@ -46,37 +48,29 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
     private final ISpoofaxUnitService unitService;
     private final IResourceService resourceService;
 
-    @Inject public ConstraintMultiFileAnalyzer(
-            final AnalysisCommon analysisCommon,
-            final ISpoofaxUnitService unitService,
-            final IResourceService resourceService,
-            final IStrategoRuntimeService runtimeService,
-            final IStrategoCommon strategoCommon,
-            final ITermFactoryService termFactoryService,
-            final ISpoofaxTracingService tracingService
-    ) {
+    @Inject public ConstraintMultiFileAnalyzer(final AnalysisCommon analysisCommon,
+            final ISpoofaxUnitService unitService, final IResourceService resourceService,
+            final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
+            final ITermFactoryService termFactoryService, final ISpoofaxTracingService tracingService) {
         super(analysisCommon, runtimeService, strategoCommon, termFactoryService, tracingService);
         this.resourceService = resourceService;
         this.unitService = unitService;
     }
 
 
-    @Override
-    protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, ISpoofaxScopeGraphContext context,
-            HybridInterpreter runtime, String strategy) throws AnalysisException {
+    @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
+            Map<String,ISpoofaxParseUnit> removed, IMultiFileScopeGraphContext context, HybridInterpreter runtime,
+            String strategy) throws AnalysisException {
 
         String globalSource = context.location().getName().getURI();
         IStrategoTerm globalTerm = termFactory.makeString(globalSource);
         TermIndex.put(globalTerm, globalSource, 0);
 
-        ISpoofaxScopeGraphUnit globalUnit = context.unit(globalSource);
-        if(globalUnit == null) {
-            globalUnit = context.getOrCreateUnit(globalSource);
+        final IMultiFileScopeGraphUnit globalUnit = context.unit(globalSource);
+        if (globalUnit.partialAnalysis() == null) {
             globalUnit.reset();
 
-            IStrategoTerm initialResultTerm = doAction(strategy,
-                    termFactory.makeAppl(analyzeInitial, globalTerm),
+            IStrategoTerm initialResultTerm = doAction(strategy, termFactory.makeAppl(analyzeInitial, globalTerm),
                     context, runtime);
             InitialResult initialResult;
             try {
@@ -84,93 +78,84 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             } catch (MetaborgException e) {
                 throw new AnalysisException(context, "Initial analysis failed.", e);
             }
-            globalUnit.setInitial(initialResult.solution);
+            globalUnit.setPartialAnalysis(initialResult.solution);
         }
- 
-        for(String input : removed.keySet()) {
+
+        for (String input : removed.keySet()) {
             context.removeUnit(input);
         }
 
         final Map<String,IStrategoTerm> astsByFile = Maps.newHashMap();
         final Multimap<String,IMessage> ambiguitiesByFile = HashMultimap.create();
-        for(Map.Entry<String,ISpoofaxParseUnit> input : changed.entrySet()) {
+        for (Map.Entry<String,ISpoofaxParseUnit> input : changed.entrySet()) {
             String source = input.getKey();
             ISpoofaxParseUnit parseUnit = input.getValue();
- 
-            ISpoofaxScopeGraphUnit unit = context.getOrCreateUnit(source);
+
+            IMultiFileScopeGraphUnit unit = context.unit(source);
             unit.reset();
 
             IStrategoTerm sourceTerm = termFactory.makeString(source);
             TermIndex.put(sourceTerm, source, 0);
 
             IStrategoTerm unitResultTerm = doAction(strategy,
-                    termFactory.makeAppl(analyzeUnit, sourceTerm, parseUnit.ast(), globalUnit.initial()),
+                    termFactory.makeAppl(analyzeUnit, sourceTerm, parseUnit.ast(), globalUnit.partialAnalysis()),
                     context, runtime);
             UnitResult unitResult;
             try {
                 unitResult = UnitResult.fromTerm(unitResultTerm);
                 astsByFile.put(source, unitResult.ast);
-                ambiguitiesByFile.putAll(source, analysisCommon.ambiguityMessages(
-                        parseUnit.source(), unitResult.ast));
-                unit.setAnalysis(unitResult.solution);
+                ambiguitiesByFile.putAll(source, analysisCommon.ambiguityMessages(parseUnit.source(), unitResult.ast));
+                unit.setPartialAnalysis(unitResult.solution);
             } catch (MetaborgException e) {
-                logger.warn("Skipping {}, because analysis failed\n{}",source,e.getCause());
+                logger.warn("Skipping {}, because analysis failed\n{}", source, e.getCause());
             }
         }
 
         final Collection<IStrategoTerm> unitSolutions = Lists.newArrayList();
-        for(IScopeGraphUnit unit : context.units()) {
-            if(unit == globalUnit) {
+        for (IScopeGraphUnit unit : context.units()) {
+            if (unit == globalUnit) {
                 continue;
             }
             IStrategoTerm unitSolution = unit.analysis();
-            if(unitSolution != null) {
+            if (unitSolution != null) {
                 unitSolutions.add(unitSolution);
             }
         }
 
-        IStrategoTerm finalResultTerm = doAction(strategy,
-                termFactory.makeAppl(analyzeFinal, globalTerm,
-                globalUnit.initial(), termFactory.makeList(unitSolutions)),
-                context, runtime);
+        IStrategoTerm finalResultTerm = doAction(strategy, termFactory.makeAppl(analyzeFinal, globalTerm,
+                globalUnit.partialAnalysis(), termFactory.makeList(unitSolutions)), context, runtime);
         FinalResult finalResult;
         try {
             finalResult = FinalResult.fromTerm(finalResultTerm);
         } catch (MetaborgException e) {
-            throw new AnalysisException(context,"Final analysis failed.",e);
+            throw new AnalysisException(context, "Final analysis failed.", e);
         }
-        globalUnit.setScopeGraph(finalResult.scopeGraph);
-        globalUnit.setNameResolution(finalResult.nameResolution);
-        globalUnit.setAnalysis(finalResult.analysis);
- 
+        context.setScopeGraph(finalResult.scopeGraph);
+        context.setNameResolution(finalResult.nameResolution);
+        context.setAnalysis(finalResult.analysis);
+
         Multimap<String,IMessage> errorsByFile = messages(finalResult.errors, MessageSeverity.ERROR);
         Multimap<String,IMessage> warningsByFile = messages(finalResult.warnings, MessageSeverity.WARNING);
         Multimap<String,IMessage> notesByFile = messages(finalResult.notes, MessageSeverity.NOTE);
 
-        final Collection<ISpoofaxAnalyzeUnit> results =
-            Lists.newArrayList();
-        final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults =
-            Lists.newArrayList();
-        for(ISpoofaxScopeGraphUnit unit : context.units()) {
-            final String source = unit.source();
+        final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
+        final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults = Lists.newArrayList();
+        for (IMultiFileScopeGraphUnit unit : context.units()) {
+            final String source = unit.resource();
             final Collection<IMessage> errors = errorsByFile.get(source);
             final Collection<IMessage> warnings = warningsByFile.get(source);
             final Collection<IMessage> notes = notesByFile.get(source);
             final Collection<IMessage> ambiguities = ambiguitiesByFile.get(source);
-            final Collection<IMessage> messages =
-                Lists.newArrayListWithCapacity(errors.size() + warnings.size() + notes.size() + ambiguities.size());
+            final Collection<IMessage> messages = Lists
+                    .newArrayListWithCapacity(errors.size() + warnings.size() + notes.size() + ambiguities.size());
             messages.addAll(errors);
             messages.addAll(warnings);
             messages.addAll(notes);
             messages.addAll(ambiguities);
-            // set scope graph and name resolution here, or lookups will fail
-            unit.setScopeGraph(finalResult.scopeGraph);
-            unit.setNameResolution(finalResult.nameResolution);
-            applySolution(unit.processRawData(), finalResult.analysis, strategy, context, runtime);
-            if(changed.containsKey(source)) {
-                results.add(unitService.analyzeUnit(
-                        changed.get(source),
-                        new AnalyzeContrib(true, errors.isEmpty(), true, astsByFile.get(source), messages, -1), context));
+            if (changed.containsKey(source)) {
+                results.add(unitService.analyzeUnit(changed.get(source),
+                        new AnalyzeContrib(true, errors.isEmpty(), true, astsByFile.get(source), messages, -1),
+                        context));
             } else {
                 FileObject file = resourceService.resolve(source);
                 updateResults.add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(messages), context));
