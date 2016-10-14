@@ -31,17 +31,17 @@ public class FinalResult {
     }
 
     public static FinalResult fromTerm(IStrategoTerm term) throws MetaborgException {
-        if(!Tools.hasConstructor((IStrategoAppl)term, "FinalResult", 4)) {
+        if(!(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl)term, "FinalResult", 4))) {
             throw new MetaborgException("Wrong format for final result.");
         }
         IStrategoTerm analysis = term.getSubterm(3);
         IScopeGraph scopeGraph = null;
         INameResolution nameResolution = null;
         for(IStrategoTerm component : analysis) {
-            if(Tools.hasConstructor((IStrategoAppl)component, "ScopeGraph", 1)) {
+            if(Tools.isTermAppl(component) && Tools.hasConstructor((IStrategoAppl)component, "ScopeGraph", 1)) {
                 scopeGraph = new ScopeGraph(component.getSubterm(0));
             }
-            if(Tools.hasConstructor((IStrategoAppl)component, "NameResolution", 1)) {
+            if(Tools.isTermAppl(component) && Tools.hasConstructor((IStrategoAppl)component, "NameResolution", 1)) {
                 try {
                     nameResolution = new NameResolution(component.getSubterm(0));
                 } catch (ScopeGraphException e) {
