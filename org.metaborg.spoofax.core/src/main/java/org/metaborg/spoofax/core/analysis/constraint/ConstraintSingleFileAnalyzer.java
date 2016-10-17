@@ -48,7 +48,6 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
         this.unitService = unitService;
     }
 
-
     @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
             Map<String,ISpoofaxParseUnit> removed, ISingleFileScopeGraphContext context, HybridInterpreter runtime,
             String strategy) throws AnalysisException {
@@ -65,10 +64,14 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 ISingleFileScopeGraphUnit unit = context.unit(source);
                 unit.clear();
 
+                String globalSource = context.location().getName().getURI();
+                IStrategoTerm initTerm = termFactory.makeString(globalSource);
+                TermIndex.put(initTerm, source, 0);
+
                 IStrategoTerm sourceTerm = termFactory.makeString(source);
                 TermIndex.put(sourceTerm, source, 0);
 
-                IStrategoTerm initialResultTerm = doAction(strategy, termFactory.makeAppl(analyzeInitial, sourceTerm),
+                IStrategoTerm initialResultTerm = doAction(strategy, termFactory.makeAppl(analyzeInitial, initTerm),
                         context, runtime);
                 InitialResult initialResult;
                 initialResult = InitialResult.fromTerm(initialResultTerm);
