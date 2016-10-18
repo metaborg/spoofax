@@ -1,9 +1,6 @@
 package org.metaborg.core.resource;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -14,7 +11,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.FileReplicator;
@@ -100,9 +96,10 @@ public class ResourceService implements IResourceService {
 
     @Override public FileObject resolve(FileObject parent, String path) {
         try {
-            final URI uri = new URI(path);
+            final String pathEncoded = URIEncode.encode(path);
+            final URI uri = new URI(pathEncoded);
             if(uri.isAbsolute()) {
-                return resolve(path);
+                return resolve(uri);
             }
         } catch(URISyntaxException e) {
             // Ignore
@@ -181,26 +178,5 @@ public class ResourceService implements IResourceService {
             return FileUtils.toFile(resource);
         }
         return null;
-    }
-
-
-    @Deprecated @Override public FileObject userStorage() {
-        try {
-            final FileObject storageDir = root().resolveFile(".cache");
-            storageDir.createFolder();
-            return storageDir;
-        } catch(FileSystemException e) {
-            throw new MetaborgRuntimeException(e);
-        }
-    }
-
-
-    public static void writeFileObject(FileObject fo, ObjectOutput out) throws IOException {
-        out.writeObject(fo.getName().getURI());
-    }
-
-    public static FileObject readFileObject(ObjectInput in) throws ClassNotFoundException, IOException {
-        String uri = (String) in.readObject();
-        return VFS.getManager().resolveFile(uri);
     }
 }

@@ -12,7 +12,6 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.source.ISourceLocation;
-import org.metaborg.nabl2.StrategoBuilder;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -26,12 +25,10 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.unification.ITermUnifier;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
@@ -40,9 +37,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
 
-abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
+abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>> implements ISpoofaxAnalyzer {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
@@ -87,11 +83,12 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 results.context());
     }
 
+    @SuppressWarnings("unchecked")
     @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext)
             throws AnalysisException {
-        ISpoofaxScopeGraphContext context;
+        C context;
         try {
-            context = (ISpoofaxScopeGraphContext) genericContext;
+            context = (C) genericContext;
         } catch (ClassCastException ex) {
             throw new AnalysisException(genericContext, "Scope graph context required for constraint analysis.", ex);
         }
@@ -123,10 +120,10 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, ISpoofaxScopeGraphContext context, HybridInterpreter runtime,
-            String strategy) throws AnalysisException;
+            Map<String,ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
+            throws AnalysisException;
 
-    protected IStrategoTerm doAction(String strategy, IStrategoTerm action, ISpoofaxScopeGraphContext context,
+    protected IStrategoTerm doAction(String strategy, IStrategoTerm action, ISpoofaxScopeGraphContext<?> context,
             HybridInterpreter runtime) throws AnalysisException {
         try {
             IStrategoTerm result = strategoCommon.invoke(runtime, action, strategy);
@@ -158,27 +155,6 @@ abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                     MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null));
         }
         return messages;
-    }
-
-    protected void applySolution(Table<Integer,IStrategoTerm,IStrategoTerm> data, IStrategoTerm solution,
-            String strategy, ISpoofaxScopeGraphContext context, HybridInterpreter runtime) throws AnalysisException {
-        for (Integer i : data.rowKeySet()) {
-            for (IStrategoTerm key : data.columnKeySet()) {
-                IStrategoTerm value;
-                if ((value = data.get(i, key)) != null) {
-                    IStrategoTerm action = termFactory.makeAppl(applyAnalysis, value, solution);
-                    value = doAction(strategy, action, context, runtime);
-                    data.put(i, key, value);
-                }
-            }
-        }
-    }
-
-    protected IStrategoList addSubstitutionComponent(final IStrategoList analysis, final ITermUnifier unifier) {
-        StrategoBuilder strategoBuilder = new StrategoBuilder(termFactory);
-        IStrategoTerm entries = strategoBuilder.substitution(unifier);
-        IStrategoTerm substition = termFactory.makeAppl(substitutionNew, entries);
-        return termFactory.makeListCons(substition, analysis);
     }
 
 }

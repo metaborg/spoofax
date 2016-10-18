@@ -2,11 +2,15 @@ package org.metaborg.spoofax.core.context;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 public class ContextFacetFromESV {
+
+    private static final ILogger logger = LoggerUtils.logger(ContextFacetFromESV.class);
+
     public static boolean hasContext(IStrategoAppl esv) {
         return ESVReader.findTerm(esv, "Context") != null;
     }
@@ -18,17 +22,16 @@ public class ContextFacetFromESV {
         }
         final IStrategoAppl typeTerm = (IStrategoAppl) contextTerm.getSubterm(0); 
 
-        switch(typeTerm.getConstructor().getName()) {
+        final String name = typeTerm.getConstructor().getName();
+        switch(name) {
             case "None":
                 return null;
+            default:
+                logger.warn("Unknown context type {}, defaulting to legacy context.", name);
             case "Legacy":
                 return LegacyContextFactory.name;
             case "TaskEngine":
                 return IndexTaskContextFactory.name;
-            case "ScopeGraph":
-                return ScopeGraphContextFactory.name;
-            default:
-                return null;
         }
     }
 }

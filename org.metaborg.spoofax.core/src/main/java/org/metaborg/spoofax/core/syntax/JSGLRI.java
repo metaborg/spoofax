@@ -16,6 +16,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
+import org.spoofax.jsglr.client.NullTreeBuilder;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
@@ -35,7 +36,6 @@ public class JSGLRI {
 
     private final SGLR parser;
 
-
     public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
         @Nullable FileObject resource, String input) throws IOException {
         this.config = config;
@@ -49,7 +49,6 @@ public class JSGLRI {
         this.parser = new SGLR(new TreeBuilder(factory), config.getParseTableProvider().parseTable());
     }
 
-
     public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException {
         if(parserConfig == null) {
             parserConfig = new JSGLRParserConfiguration();
@@ -57,13 +56,15 @@ public class JSGLRI {
 
         final String fileName = resource != null ? resource.getName().getURI() : null;
 
-        final JSGLRParseErrorHandler errorHandler =
-            new JSGLRParseErrorHandler(this, resource, config.getParseTableProvider().parseTable().hasRecovers());
+        final JSGLRParseErrorHandler errorHandler = new JSGLRParseErrorHandler(this, resource,
+            config.getParseTableProvider().parseTable().hasRecovers());
 
         final Timer timer = new Timer(true);
         SGLRParseResult result;
         try {
+            // should throw a fatal, or return a non-null result
             result = actuallyParse(input, fileName, parserConfig);
+            assert result != null;
         } catch(SGLRException | InterruptedException e) {
             result = null;
             errorHandler.setRecoveryFailed(parserConfig.recovery);
@@ -73,8 +74,14 @@ public class JSGLRI {
 
         final IStrategoTerm ast;
         if(result != null) {
+            // No fatals occurred, so either parsing succeeded or recovery succeeded
             ast = (IStrategoTerm) result.output;
-            if(ast != null) {
+            if(ast == null) {
+                // this should only happen if we passed a NullTreeBuilder and parsing succeeded
+                // so we have nothing to do
+                assert parser.getTreeBuilder() instanceof NullTreeBuilder;
+            } else {
+                // in case recovery was required, collect the recoverable errors
                 errorHandler.setRecoveryFailed(false);
                 errorHandler.gatherNonFatalErrors(ast);
                 if(resource != null) {

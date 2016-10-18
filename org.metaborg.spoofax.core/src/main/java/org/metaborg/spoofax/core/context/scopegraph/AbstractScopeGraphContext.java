@@ -3,8 +3,7 @@ package org.metaborg.spoofax.core.context.scopegraph;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Collection;
-import java.util.Map;
+import java.io.Serializable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -22,28 +21,25 @@ import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
-class ScopeGraphContext implements ISpoofaxScopeGraphContext, IContextInternal {
+abstract class AbstractScopeGraphContext<S extends Serializable> implements IContextInternal {
 
-    private static final ILogger logger = LoggerUtils.logger(ScopeGraphContext.class);
+    private static final ILogger logger = LoggerUtils.logger(AbstractScopeGraphContext.class);
 
     private final ContextIdentifier identifier;
     private final String persistentIdentifier;
     private final Injector injector;
     private final ReadWriteLock lock;
 
-    private Map<String,ISpoofaxScopeGraphUnit> units = null;
+    protected S state = null;
 
-
-    public ScopeGraphContext(Injector injector, ContextIdentifier identifier) {
+    public AbstractScopeGraphContext(Injector injector, ContextIdentifier identifier) {
         this.identifier = identifier;
         this.persistentIdentifier = FileUtils.sanitize(identifier.language.id().toString());
         this.injector = injector;
         this.lock = new ReentrantReadWriteLock(true);
     }
-
 
     @Override public FileObject location() {
         return identifier.location;
@@ -62,10 +58,10 @@ class ScopeGraphContext implements ISpoofaxScopeGraphContext, IContextInternal {
     }
 
     @Override public IClosableLock read() {
-        if (units == null) {
+        if (state == null) {
             try (IClosableLock lock = writeLock()) {
-                if (units == null) {
-                    units = loadOrInitUnits();
+                if (state == null) {
+                    state = loadOrInitState();
                 }
             }
         }
@@ -80,8 +76,8 @@ class ScopeGraphContext implements ISpoofaxScopeGraphContext, IContextInternal {
 
     @Override public IClosableLock write() {
         final IClosableLock lock = writeLock();
-        if (units == null) {
-            units = loadOrInitUnits();
+        if (state == null) {
+            state = loadOrInitState();
         }
         return lock;
     }
@@ -93,20 +89,20 @@ class ScopeGraphContext implements ISpoofaxScopeGraphContext, IContextInternal {
     }
 
     @Override public void persist() throws IOException {
-        if (units == null) {
+        if (state == null) {
             return;
         }
 
         try (IClosableLock lock = readLock()) {
-            persistUnits();
+            persistState();
         }
     }
 
     @Override public void reset() throws IOException {
         try (IClosableLock lock = writeLock()) {
-            if (units != null) {
-                units.clear();
-                units = null;
+            if (state != null) {
+                // state.reset()
+                state = null;
             }
         }
     }
@@ -116,79 +112,73 @@ class ScopeGraphContext implements ISpoofaxScopeGraphContext, IContextInternal {
     }
 
     @Override public void init() {
-        if (units != null) {
+        if (state != null) {
             return;
         }
         try (IClosableLock lock = writeLock()) {
-            units = initUnits();
+            state = initState();
         }
     }
 
     @Override public void load() {
-        if (units != null) {
+        if (state != null) {
             return;
         }
         try (IClosableLock lock = writeLock()) {
-            units = loadOrInitUnits();
+            state = loadOrInitState();
         }
     }
 
     @Override public void unload() {
-        if (units == null) {
+        if (state == null) {
             return;
         }
         try (IClosableLock lock = writeLock()) {
-            units = null;
+            state = null;
         }
     }
 
-
-    private Map<String,ISpoofaxScopeGraphUnit> loadOrInitUnits() {
+    private S loadOrInitState() {
         try {
             final FileObject contextFile = contextFile();
             try {
                 if (contextFile.exists()) {
                     return readContext(contextFile);
                 }
-            } catch (IOException | ClassNotFoundException | ClassCastException e) {
-                String message = logger.format("Load context {} failed.", contextFile);
-                logger.warn(message, e);
+            } catch (IOException | ClassNotFoundException e) {
+                logger.warn("Load context {} failed.", contextFile, e);
                 deleteContextFile(contextFile);
             }
         } catch (IOException e) {
             logger.warn("Failed to locate context.", e);
         }
-        return initUnits();
+        return initState();
     }
 
-    private Map<String,ISpoofaxScopeGraphUnit> initUnits() {
-        return Maps.newHashMap();
-    }
+    protected abstract S initState();
 
     private FileObject contextFile() throws FileSystemException {
         final CommonPaths paths = new CommonPaths(identifier.location);
         return paths.targetDir().resolveFile("analysis").resolveFile(persistentIdentifier).resolveFile("scopegraph");
     }
 
-    @SuppressWarnings("unchecked") private Map<String,ISpoofaxScopeGraphUnit> readContext(FileObject file)
-            throws IOException, ClassNotFoundException {
+    @SuppressWarnings("unchecked") private S readContext(FileObject file) throws IOException, ClassNotFoundException {
         try (ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
-            Map<String,ISpoofaxScopeGraphUnit> fileUnits = (Map<String,ISpoofaxScopeGraphUnit>) ois.readObject();
-            if (fileUnits == null) {
+            S fileState = (S) ois.readObject();
+            if (fileState == null) {
                 throw new IOException("Context file contains null.");
             }
-            return fileUnits;
+            return fileState;
         }
     }
 
-    private void persistUnits() {
+    private void persistState() {
         try {
             final FileObject contextFile = contextFile();
             try {
                 writeContext(contextFile);
             } catch (IOException e) {
-                String message = logger.format("Store context {} failed.", contextFile);
-                logger.warn(message, e);
+                logger.warn("Store context {} failed.", contextFile, e);
             }
         } catch (IOException e) {
             logger.warn("Failed to locate context.", e);
@@ -197,7 +187,7 @@ class ScopeGraphContext implements ISpoofaxScopeGraphContext, IContextInternal {
 
     private void writeContext(FileObject file) throws IOException {
         try (ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
-            oos.writeObject(units);
+            oos.writeObject(state);
         }
     }
 
@@ -205,31 +195,9 @@ class ScopeGraphContext implements ISpoofaxScopeGraphContext, IContextInternal {
         try {
             file.delete();
         } catch (FileSystemException e) {
-            final String message = logger.format("Deleting context {} failed.", file);
-            logger.warn(message, e);
+            logger.warn("Deleting context {} failed.", file, e);
         }
     }
-
-    public ISpoofaxScopeGraphUnit getOrCreateUnit(String source) {
-        ISpoofaxScopeGraphUnit unit;
-        if ((unit = units.get(source)) == null) {
-            units.put(source, (unit = new ScopeGraphUnit(source)));
-        }
-        return unit;
-    }
-
-    @Override public ISpoofaxScopeGraphUnit unit(String source) {
-        return units.get(source);
-    }
-
-    @Override public Collection<ISpoofaxScopeGraphUnit> units() {
-        return units.values();
-    }
-
-    @Override public void removeUnit(String source) {
-        units.remove(source);
-    }
-
 
     @Override public int hashCode() {
         final int prime = 31;
@@ -245,7 +213,7 @@ class ScopeGraphContext implements ISpoofaxScopeGraphContext, IContextInternal {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ScopeGraphContext other = (ScopeGraphContext) obj;
+        @SuppressWarnings("unchecked") AbstractScopeGraphContext<S> other = (AbstractScopeGraphContext<S>) obj;
         if (!identifier.equals(other.identifier))
             return false;
         return true;

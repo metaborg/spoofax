@@ -46,7 +46,8 @@ import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.ScopeGraphContextFactory;
+import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContextFactory;
+import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
@@ -80,20 +81,21 @@ import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
+
     private static final ILogger logger = LoggerUtils.logger(LanguageDiscoveryService.class);
 
     private final ILanguageService languageService;
     private final ILanguageComponentConfigService componentConfigService;
     private final ITermFactoryService termFactoryService;
-    private final Map<String, IContextFactory> contextFactories;
-    private final Map<String, IContextStrategy> contextStrategies;
-    private final Map<String, ISpoofaxAnalyzer> analyzers;
+    private final Map<String,IContextFactory> contextFactories;
+    private final Map<String,IContextStrategy> contextStrategies;
+    private final Map<String,ISpoofaxAnalyzer> analyzers;
 
 
     @Inject public LanguageDiscoveryService(ILanguageService languageService,
-        ILanguageComponentConfigService componentConfigService, ITermFactoryService termFactoryService,
-        Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
-        Map<String, ISpoofaxAnalyzer> analyzers) {
+            ILanguageComponentConfigService componentConfigService, ITermFactoryService termFactoryService,
+            Map<String,IContextFactory> contextFactories, Map<String,IContextStrategy> contextStrategies,
+            Map<String,ISpoofaxAnalyzer> analyzers) {
         this.languageService = languageService;
         this.componentConfigService = componentConfigService;
         this.termFactoryService = termFactoryService;
@@ -108,6 +110,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final FileObject[] configFiles;
         try {
             configFiles = location.findFiles(new FileSelector() {
+
                 @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
                     final String baseName = fileInfo.getFile().getName().getBaseName();
                     return !baseName.equals("bin") && !baseName.equals("target");
@@ -117,37 +120,37 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                     return fileInfo.getFile().getName().getBaseName().equals(MetaborgConstants.FILE_COMPONENT_CONFIG);
                 }
             });
-        } catch(FileSystemException e) {
+        } catch (FileSystemException e) {
             throw new MetaborgException("Searching for language components failed unexpectedly", e);
         }
 
-        if(configFiles == null || configFiles.length == 0) {
+        if (configFiles == null || configFiles.length == 0) {
             return requests;
         }
 
-        final Multimap<FileName, FileName> locToConfigs = ArrayListMultimap.create();
-        final Map<FileName, FileObject> nameToFile = Maps.newHashMap();
-        for(FileObject configFile : configFiles) {
+        final Multimap<FileName,FileName> locToConfigs = ArrayListMultimap.create();
+        final Map<FileName,FileObject> nameToFile = Maps.newHashMap();
+        for (FileObject configFile : configFiles) {
             try {
                 final FileName configName = configFile.getName();
                 final FileObject languageLoc = configFile.getParent().getParent();
                 final FileName languageLocName = languageLoc.getName();
                 locToConfigs.put(languageLocName, configName);
                 nameToFile.put(languageLocName, languageLoc);
-            } catch(FileSystemException e) {
+            } catch (FileSystemException e) {
                 logger.error("Could not resolve parent directory of config file {}, skipping", e, configFile);
                 continue;
             }
         }
 
         final Collection<FileObject> languageLocations = Lists.newArrayList();
-        for(Entry<FileName, Collection<FileName>> configEntry : locToConfigs.asMap().entrySet()) {
+        for (Entry<FileName,Collection<FileName>> configEntry : locToConfigs.asMap().entrySet()) {
             final FileName languageLocName = configEntry.getKey();
             final FileObject languageLoc = nameToFile.get(languageLocName);
             final Collection<FileName> configLocNames = configEntry.getValue();
-            if(configLocNames.size() > 1) {
+            if (configLocNames.size() > 1) {
                 final String message = logger.format("Found multiple config files at location {}: {}", languageLocName,
-                    Joiner.on(", ").join(configLocNames));
+                        Joiner.on(", ").join(configLocNames));
                 requests.add(new LanguageDiscoveryRequest(languageLoc, message));
                 continue;
             } else {
@@ -155,24 +158,24 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             }
         }
 
-        for(FileObject languageLocation : languageLocations) {
+        for (FileObject languageLocation : languageLocations) {
             final Collection<String> errors = Lists.newLinkedList();
             final Collection<Throwable> exceptions = Lists.newLinkedList();
 
             final ConfigRequest<ILanguageComponentConfig> configRequest = componentConfigService.get(languageLocation);
-            if(!configRequest.valid()) {
-                for(IMessage message : configRequest.errors()) {
+            if (!configRequest.valid()) {
+                for (IMessage message : configRequest.errors()) {
                     errors.add(message.message());
                     final Throwable exception = message.exception();
-                    if(exception != null) {
+                    if (exception != null) {
                         exceptions.add(exception);
                     }
                 }
             }
             final ILanguageComponentConfig config = configRequest.config();
-            if(config == null) {
-                final String message =
-                    logger.format("Cannot retrieve language component configuration at {}", languageLocation);
+            if (config == null) {
+                final String message = logger.format("Cannot retrieve language component configuration at {}",
+                        languageLocation);
                 errors.add(message);
                 requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
                 continue;
@@ -181,12 +184,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             final IStrategoAppl esvTerm;
             try {
                 final FileObject esvFile = languageLocation.resolveFile("target/metaborg/editor.esv.af");
-                if(!esvFile.exists()) {
+                if (!esvFile.exists()) {
                     esvTerm = null;
                 } else {
                     esvTerm = esvTerm(languageLocation, esvFile);
                 }
-            } catch(ParseError | IOException | MetaborgException e) {
+            } catch (ParseError | IOException | MetaborgException e) {
                 exceptions.add(e);
                 requests.add(new LanguageDiscoveryRequest(languageLocation, errors, exceptions));
                 continue;
@@ -194,30 +197,30 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
             SyntaxFacet syntaxFacet = null;
             StrategoRuntimeFacet strategoRuntimeFacet = null;
-            if(esvTerm != null) {
+            if (esvTerm != null) {
                 try {
                     syntaxFacet = SyntaxFacetFromESV.create(esvTerm, languageLocation);
-                    if(syntaxFacet != null) {
+                    if (syntaxFacet != null) {
                         Iterables.addAll(errors, syntaxFacet.available());
                     }
-                } catch(FileSystemException e) {
+                } catch (FileSystemException e) {
                     exceptions.add(e);
                 }
 
                 try {
                     strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, languageLocation);
-                    if(strategoRuntimeFacet != null) {
+                    if (strategoRuntimeFacet != null) {
                         Iterables.addAll(errors, strategoRuntimeFacet.available());
                     }
-                } catch(FileSystemException e) {
+                } catch (FileSystemException e) {
                     exceptions.add(e);
                 }
             }
 
             final ILanguageDiscoveryRequest request;
-            if(errors.isEmpty() && exceptions.isEmpty()) {
-                request =
-                    new LanguageDiscoveryRequest(languageLocation, config, esvTerm, syntaxFacet, strategoRuntimeFacet);
+            if (errors.isEmpty() && exceptions.isEmpty()) {
+                request = new LanguageDiscoveryRequest(languageLocation, config, esvTerm, syntaxFacet,
+                        strategoRuntimeFacet);
             } else {
                 request = new LanguageDiscoveryRequest(languageLocation, errors, exceptions);
             }
@@ -232,9 +235,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
     @Override public Collection<ILanguageComponent> discover(Iterable<ILanguageDiscoveryRequest> requests)
-        throws MetaborgException {
+            throws MetaborgException {
         final Collection<ILanguageComponent> components = Lists.newLinkedList();
-        for(ILanguageDiscoveryRequest request : requests) {
+        for (ILanguageDiscoveryRequest request : requests) {
             components.add(discover(request));
         }
         return components;
@@ -242,13 +245,14 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
 
     private IStrategoAppl esvTerm(FileObject location, FileObject esvFile)
-        throws ParseError, IOException, MetaborgException {
-        final TermReader reader =
-            new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
+            throws ParseError, IOException, MetaborgException {
+        final TermReader reader = new TermReader(
+                termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
-        if(term.getTermType() != IStrategoTerm.APPL) {
+        if (term.getTermType() != IStrategoTerm.APPL) {
             final String message = logger.format(
-                "Cannot discover language at {}, ESV file at {} does not contain a valid ESV term", location, esvFile);
+                    "Cannot discover language at {}, ESV file at {} does not contain a valid ESV term", location,
+                    esvFile);
             throw new MetaborgException(message);
         }
         return (IStrategoAppl) term;
@@ -256,7 +260,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     private ILanguageComponent createComponent(LanguageDiscoveryRequest discoveryRequest) throws MetaborgException {
         final FileObject location = discoveryRequest.location();
-        if(!discoveryRequest.available()) {
+        if (!discoveryRequest.available()) {
             throw new MetaborgException(discoveryRequest.toString());
         }
 
@@ -266,16 +270,16 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final LanguageIdentifier identifier = config.identifier();
         final Collection<LanguageContributionIdentifier> langContribs = discoveryRequest.config().langContribs();
-        if(langContribs.isEmpty()) {
+        if (langContribs.isEmpty()) {
             langContribs.add(new LanguageContributionIdentifier(identifier, config.name()));
         }
         final LanguageCreationRequest request = languageService.create(identifier, location, langContribs, config);
 
 
         final SyntaxFacet syntaxFacet;
-        if(config.sdfEnabled()) {
+        if (config.sdfEnabled()) {
             syntaxFacet = discoveryRequest.syntaxFacet();
-            if(syntaxFacet != null) {
+            if (syntaxFacet != null) {
                 request.addFacet(syntaxFacet);
             }
         } else {
@@ -283,27 +287,27 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         }
 
         final StrategoRuntimeFacet strategoRuntimeFacet = discoveryRequest.strategoRuntimeFacet();
-        if(strategoRuntimeFacet != null) {
+        if (strategoRuntimeFacet != null) {
             request.addFacet(strategoRuntimeFacet);
         }
 
         final IStrategoAppl esvTerm = discoveryRequest.esvTerm();
-        if(esvTerm != null) {
+        if (esvTerm != null) {
             final String[] extensions = extensions(esvTerm);
-            if(extensions.length != 0) {
+            if (extensions.length != 0) {
                 final Iterable<String> extensionsIterable = Iterables2.from(extensions);
 
-                final IdentificationFacet identificationFacet =
-                    new IdentificationFacet(new ResourceExtensionsIdentifier(extensionsIterable));
+                final IdentificationFacet identificationFacet = new IdentificationFacet(
+                        new ResourceExtensionsIdentifier(extensionsIterable));
                 request.addFacet(identificationFacet);
 
                 final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensionsIterable);
                 request.addFacet(resourceExtensionsFacet);
             }
 
-            if(ParseFacetFromESV.hasParser(esvTerm)) {
+            if (ParseFacetFromESV.hasParser(esvTerm)) {
                 request.addFacet(ParseFacetFromESV.create(esvTerm));
-            } else if(syntaxFacet != null) {
+            } else if (syntaxFacet != null) {
                 request.addFacet(new ParseFacet("jsglr"));
             }
 
@@ -313,81 +317,88 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             final IContextFactory contextFactory;
             final ISpoofaxAnalyzer analyzer;
             final AnalysisFacet analysisFacet;
-            if(!hasContext && !hasAnalysis) {
-                contextFactory = contextFactory(LegacyContextFactory.name);
-                analyzer = null;
-                analysisFacet = null;
-            } else if(hasContext && !hasAnalysis) {
+
+            if (hasAnalysis) {
+                final String analysisType = AnalysisFacetFromESV.type(esvTerm);
+                assert analysisType != null : "Analyzer type cannot be null because hasAnalysis is true, no null check is needed.";
+                analyzer = analyzers.get(analysisType);
+                analysisFacet = AnalysisFacetFromESV.create(esvTerm);
+                final String contextType = hasContext ? ContextFacetFromESV.type(esvTerm) : null;
+                if (hasContext && contextType == null) {
+                    contextFactory = null;
+                } else {
+                    final String analysisContextType;
+                    switch (analysisType) {
+                    default:
+                    case StrategoAnalyzer.name:
+                        analysisContextType = LegacyContextFactory.name;
+                        break;
+                    case TaskEngineAnalyzer.name:
+                        analysisContextType = IndexTaskContextFactory.name;
+                        break;
+                    case ConstraintSingleFileAnalyzer.name:
+                        analysisContextType = SingleFileScopeGraphContextFactory.name;
+                        break;
+                    case ConstraintMultiFileAnalyzer.name:
+                        analysisContextType = MultiFileScopeGraphContextFactory.name;
+                        break;
+                    }
+                    if(hasContext && !contextType.equals(analysisContextType)) {
+                        logger.warn("Ignoring explicit context type {}, because it is incompatible with analysis {}.",
+                            contextType, analysisType);
+                    }
+                    contextFactory = contextFactory(analysisContextType);
+                }
+            } else if (hasContext) {
                 final String type = ContextFacetFromESV.type(esvTerm);
                 contextFactory = contextFactory(type);
                 analyzer = null;
                 analysisFacet = null;
-            } else if(!hasContext && hasAnalysis) {
-                final String analysisType = AnalysisFacetFromESV.type(esvTerm);
-                assert analysisType != null : "Analyzer type cannot be null because hasAnalysis is true, no null check is needed.";
-                switch(analysisType) {
-                    default:
-                    case StrategoAnalyzer.name:
-                        contextFactory = contextFactory(LegacyContextFactory.name);
-                        break;
-                    case TaskEngineAnalyzer.name:
-                        contextFactory = contextFactory(IndexTaskContextFactory.name);
-                        break;
-                    case ConstraintSingleFileAnalyzer.name:
-                    case ConstraintMultiFileAnalyzer.name:
-                        contextFactory = contextFactory(ScopeGraphContextFactory.name);
-                        break;
-                }
-                analyzer = analyzers.get(analysisType);
-                analysisFacet = AnalysisFacetFromESV.create(esvTerm);
-            } else { // Both context and analysis are specified.
-                final String contextType = ContextFacetFromESV.type(esvTerm);
-                contextFactory = contextFactory(contextType);
-                final String analysisType = AnalysisFacetFromESV.type(esvTerm);
-                assert analysisType != null : "Analyzer type cannot be null because hasAnalysis is true, no null check is needed.";
-                analyzer = analyzers.get(analysisType);
-                analysisFacet = AnalysisFacetFromESV.create(esvTerm);
+            } else {
+                contextFactory = contextFactory(LegacyContextFactory.name);
+                analyzer = null;
+                analysisFacet = null;
             }
 
-            if(contextFactory != null) {
+            if (contextFactory != null) {
                 final IContextStrategy contextStrategy = contextStrategy(ProjectContextStrategy.name);
                 request.addFacet(new ContextFacet(contextFactory, contextStrategy));
             }
-            if(analyzer != null) {
+            if (analyzer != null) {
                 request.addFacet(new AnalyzerFacet<>(analyzer));
             }
-            if(analysisFacet != null) {
+            if (analysisFacet != null) {
                 request.addFacet(analysisFacet);
             }
 
 
             final ActionFacet menusFacet = ActionFacetFromESV.create(esvTerm);
-            if(menusFacet != null) {
+            if (menusFacet != null) {
                 request.addFacet(menusFacet);
             }
 
             final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
-            if(stylerFacet != null) {
+            if (stylerFacet != null) {
                 request.addFacet(stylerFacet);
             }
 
             final ResolverFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
-            if(resolverFacet != null) {
+            if (resolverFacet != null) {
                 request.addFacet(resolverFacet);
             }
 
             final HoverFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
-            if(hoverFacet != null) {
+            if (hoverFacet != null) {
                 request.addFacet(hoverFacet);
             }
 
             final OutlineFacet outlineFacet = OutlineFacetFromESV.create(esvTerm);
-            if(outlineFacet != null) {
+            if (outlineFacet != null) {
                 request.addFacet(outlineFacet);
             }
 
             final ShellFacet shellFacet = ShellFacetFromESV.create(esvTerm);
-            if(shellFacet != null) {
+            if (shellFacet != null) {
                 request.addFacet(shellFacet);
             }
         }
@@ -397,18 +408,18 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     private static String[] extensions(IStrategoAppl document) {
         final String extensionsStr = ESVReader.getProperty(document, "Extensions");
-        if(extensionsStr == null) {
+        if (extensionsStr == null) {
             return new String[0];
         }
         return extensionsStr.split(",");
     }
 
     private @Nullable IContextFactory contextFactory(@Nullable String name) throws MetaborgException {
-        if(name == null) {
+        if (name == null) {
             return null;
         }
         final IContextFactory contextFactory = contextFactories.get(name);
-        if(contextFactory == null) {
+        if (contextFactory == null) {
             final String message = logger.format("Could not get context factory with name {}", name);
             throw new MetaborgException(message);
         }
@@ -417,7 +428,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     private IContextStrategy contextStrategy(String name) throws MetaborgException {
         final IContextStrategy contextStrategy = contextStrategies.get(name);
-        if(contextStrategy == null) {
+        if (contextStrategy == null) {
             final String message = logger.format("Could not get context strategy with name {}", name);
             throw new MetaborgException(message);
         }

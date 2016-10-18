@@ -1,9 +1,7 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -13,15 +11,12 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.nabl2.context.IScopeGraphUnit;
 import org.metaborg.nabl2.indices.TermIndex;
-import org.metaborg.solver.ISolution;
-import org.metaborg.solver.Solver;
-import org.metaborg.solver.constraints.IConstraint;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphContext;
-import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphUnit;
+import org.metaborg.spoofax.core.context.scopegraph.IMultiFileScopeGraphContext;
+import org.metaborg.spoofax.core.context.scopegraph.IMultiFileScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -32,11 +27,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.metaborg.unification.eager.EagerTermUnifier;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.time.Timer;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -46,7 +38,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
-public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
+public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
+        implements ISpoofaxAnalyzer {
 
     public static final ILogger logger = LoggerUtils.logger(ConstraintMultiFileAnalyzer.class);
 
@@ -68,16 +61,15 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
 
 
     @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, ISpoofaxScopeGraphContext context, HybridInterpreter runtime,
+            Map<String,ISpoofaxParseUnit> removed, IMultiFileScopeGraphContext context, HybridInterpreter runtime,
             String strategy) throws AnalysisException {
 
         String globalSource = context.location().getName().getURI();
         IStrategoTerm globalTerm = termFactory.makeString(globalSource);
         TermIndex.put(globalTerm, globalSource, 0);
 
-        ISpoofaxScopeGraphUnit globalUnit = context.unit(globalSource);
-        if (globalUnit == null) {
-            globalUnit = context.getOrCreateUnit(globalSource);
+        final IMultiFileScopeGraphUnit globalUnit = context.unit(globalSource);
+        if (globalUnit.partialAnalysis() == null) {
             globalUnit.reset();
 
             IStrategoTerm initialResultTerm = doAction(strategy, termFactory.makeAppl(analyzeInitial, globalTerm),
@@ -91,8 +83,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             } catch (MetaborgException e) {
                 throw new AnalysisException(context, "Initial analysis failed.", e);
             }
-            globalUnit.setInitial(initialResult.analysis);
-            globalUnit.setConstraint(initialResult.constraint);
+            globalUnit.setPartialAnalysis(initialResult.analysis);
         }
 
         for (String input : removed.keySet()) {
@@ -105,37 +96,31 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             String source = input.getKey();
             ISpoofaxParseUnit parseUnit = input.getValue();
 
-            ISpoofaxScopeGraphUnit unit = context.getOrCreateUnit(source);
+            IMultiFileScopeGraphUnit unit = context.unit(source);
             unit.reset();
 
             IStrategoTerm sourceTerm = termFactory.makeString(source);
             TermIndex.put(sourceTerm, source, 0);
 
             IStrategoTerm unitResultTerm = doAction(strategy,
-                    termFactory.makeAppl(analyzeUnit, sourceTerm, parseUnit.ast(), globalUnit.initial()), context,
-                    runtime);
+                    termFactory.makeAppl(analyzeUnit, sourceTerm, parseUnit.ast(), globalUnit.partialAnalysis()),
+                    context, runtime);
             UnitResult unitResult;
             try {
                 unitResult = resultBuilder.unitResult(unitResultTerm);
                 if (!unitResult.analysis.isList()) {
-                    logger.warn("Initial analysis result is not a list, but " + unitResult.analysis);
+                    logger.warn("Unit analysis result is not a list, but " + unitResult.analysis);
                 }
                 astsByFile.put(source, unitResult.ast);
                 ambiguitiesByFile.putAll(source, analysisCommon.ambiguityMessages(parseUnit.source(), unitResult.ast));
-                unit.setConstraint(unitResult.constraint);
-                unit.setAnalysis(unitResult.analysis);
+                unit.setPartialAnalysis(unitResult.analysis);
             } catch (MetaborgException e) {
-                final String message = logger.format("Skipping {}, because analysis failed", source);
-                logger.warn(message, e.getCause());
+                logger.warn("Skipping {}, because analysis failed\n{}", source, e.getCause());
             }
         }
 
-        final List<IConstraint> constraints = Lists.newLinkedList();
         final Collection<IStrategoTerm> unitSolutions = Lists.newArrayList();
         for (IScopeGraphUnit unit : context.units()) {
-            if (unit.constraint() != null) {
-                constraints.add(unit.constraint());
-            }
             if (unit == globalUnit) {
                 continue;
             }
@@ -145,31 +130,17 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             }
         }
 
-        logger.info(">>> Solving <<<");
-        Timer t = new Timer(true);
-        Solver solver = new Solver(new EagerTermUnifier(), constraints);
-        ISolution solution = solver.solve();
-        double time = ((double) t.stop()) / TimeUnit.SECONDS.toNanos(1);
-        logger.info(">>> Done solving ({}s) <<<", time);
-
         IStrategoTerm finalResultTerm = doAction(strategy, termFactory.makeAppl(analyzeFinal, globalTerm,
-                globalUnit.initial(), termFactory.makeList(unitSolutions)), context, runtime);
+                globalUnit.partialAnalysis(), termFactory.makeList(unitSolutions)), context, runtime);
         FinalResult finalResult;
-        IStrategoTerm finalAnalysis;
         try {
-            finalResult = resultBuilder.finalResult(finalResultTerm, solution);
-            if (!finalResult.analysis.isList()) {
-                finalAnalysis = finalResult.analysis;
-                logger.warn("Final analysis result is not a list, but " + finalAnalysis);
-            } else {
-                finalAnalysis = addSubstitutionComponent((IStrategoList) finalResult.analysis, solution.getUnifier());
-            }
+            finalResult = resultBuilder.finalResult(finalResultTerm);
         } catch (MetaborgException e) {
             throw new AnalysisException(context, "Final analysis failed.", e);
         }
-        globalUnit.setScopeGraph(finalResult.scopeGraph);
-        globalUnit.setNameResolution(finalResult.nameResolution);
-        globalUnit.setAnalysis(finalAnalysis);
+        context.setScopeGraph(finalResult.scopeGraph);
+        context.setNameResolution(finalResult.nameResolution);
+        context.setAnalysis(finalResult.analysis);
 
         Multimap<String,IMessage> errorsByFile = messages(finalResult.errors, MessageSeverity.ERROR);
         Multimap<String,IMessage> warningsByFile = messages(finalResult.warnings, MessageSeverity.WARNING);
@@ -177,8 +148,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
 
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults = Lists.newArrayList();
-        for (ISpoofaxScopeGraphUnit unit : context.units()) {
-            final String source = unit.source();
+        for (IMultiFileScopeGraphUnit unit : context.units()) {
+            final String source = unit.resource();
             final Collection<IMessage> errors = errorsByFile.get(source);
             final Collection<IMessage> warnings = warningsByFile.get(source);
             final Collection<IMessage> notes = notesByFile.get(source);
@@ -189,10 +160,6 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer impl
             messages.addAll(warnings);
             messages.addAll(notes);
             messages.addAll(ambiguities);
-            // set scope graph and name resolution here, or lookups will fail
-            unit.setScopeGraph(finalResult.scopeGraph);
-            unit.setNameResolution(finalResult.nameResolution);
-            applySolution(unit.processRawData(), finalResult.analysis, strategy, context, runtime);
             if (changed.containsKey(source)) {
                 results.add(unitService.analyzeUnit(changed.get(source),
                         new AnalyzeContrib(true, errors.isEmpty(), true, astsByFile.get(source), messages, -1),

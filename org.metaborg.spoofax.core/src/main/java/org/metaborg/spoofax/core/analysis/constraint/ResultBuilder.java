@@ -8,7 +8,6 @@ import org.metaborg.nabl2.solution.IScopeGraph;
 import org.metaborg.nabl2.solution.NameResolution;
 import org.metaborg.nabl2.solution.ScopeGraph;
 import org.metaborg.nabl2.solution.ScopeGraphException;
-import org.metaborg.solver.ISolution;
 import org.metaborg.solver.constraints.CTrue;
 import org.metaborg.solver.constraints.IConstraint;
 import org.spoofax.interpreter.core.Tools;
@@ -27,7 +26,7 @@ public class ResultBuilder {
     }
 
     public InitialResult initialResult(IStrategoTerm term) throws MetaborgException {
-        if (!Tools.hasConstructor((IStrategoAppl) term, "InitialResult", 1)) {
+        if (!(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl) term, "InitialResult", 1))) {
             throw new MetaborgException("Wrong format for initial result.");
         }
         final IStrategoTerm analysis = term.getSubterm(0);
@@ -41,7 +40,7 @@ public class ResultBuilder {
     }
 
     public UnitResult unitResult(IStrategoTerm term) throws MetaborgException {
-        if (!Tools.hasConstructor((IStrategoAppl) term, "UnitResult", 2)) {
+        if (!(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl) term, "UnitResult", 2))) {
             throw new MetaborgException("Wrong format for unit result.");
         }
         final IStrategoTerm ast = term.getSubterm(0);
@@ -55,8 +54,8 @@ public class ResultBuilder {
         return new UnitResult(ast, constraint, analysis);
     }
 
-    public FinalResult finalResult(IStrategoTerm term, ISolution solution) throws MetaborgException {
-        if (!Tools.hasConstructor((IStrategoAppl) term, "FinalResult", 4)) {
+    public FinalResult finalResult(IStrategoTerm term) throws MetaborgException {
+        if (!(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl) term, "FinalResult", 4))) {
             throw new MetaborgException("Wrong format for final result.");
         }
         IStrategoTerm errors = term.getSubterm(0);
@@ -77,7 +76,7 @@ public class ResultBuilder {
                 }
             }
         }
-        return new FinalResult(scopeGraph, nameResolution, solution, errors, warnings, notes, analysis);
+        return new FinalResult(scopeGraph, nameResolution, errors, warnings, notes, analysis);
     }
 
 }

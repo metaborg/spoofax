@@ -8,20 +8,21 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
+import org.metaborg.nabl2.context.IScopeGraphUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 
 import com.google.inject.Injector;
 
-public class TemporaryScopeGraphContext implements ISpoofaxScopeGraphContext, ITemporaryContextInternal {
+public abstract class AbstractTemporaryScopeGraphContext<U extends IScopeGraphUnit>
+        implements ISpoofaxScopeGraphContext<U>, ITemporaryContextInternal {
 
-    private final ScopeGraphContext context;
+    private final ISpoofaxScopeGraphContext<U> context;
 
-    public TemporaryScopeGraphContext(ScopeGraphContext context) {
+    public AbstractTemporaryScopeGraphContext(ISpoofaxScopeGraphContext<U> context) {
         this.context = context;
         init();
     }
-
 
     @Override public ContextIdentifier identifier() {
         return context.identifier();
@@ -76,21 +77,16 @@ public class TemporaryScopeGraphContext implements ISpoofaxScopeGraphContext, IT
     }
 
 
-    @Override public ISpoofaxScopeGraphUnit getOrCreateUnit(String source) {
-        return context.getOrCreateUnit(source);
-    }
-
-    @Override public ISpoofaxScopeGraphUnit unit(String source) {
+    @Override public U unit(String source) {
         return context.unit(source);
     }
 
-    @Override public Collection<ISpoofaxScopeGraphUnit> units() {
+    @Override public Collection<U> units() {
         return context.units();
     }
 
     @Override public void removeUnit(String source) {
         context.removeUnit(source);
     }
-
 
 }

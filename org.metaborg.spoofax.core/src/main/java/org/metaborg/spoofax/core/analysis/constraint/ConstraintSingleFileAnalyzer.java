@@ -3,23 +3,18 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.nabl2.indices.TermIndex;
-import org.metaborg.solver.ISolution;
-import org.metaborg.solver.Solver;
-import org.metaborg.solver.constraints.CConj;
-import org.metaborg.solver.constraints.IConstraint;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphContext;
-import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphUnit;
+import org.metaborg.spoofax.core.context.scopegraph.ISingleFileScopeGraphContext;
+import org.metaborg.spoofax.core.context.scopegraph.ISingleFileScopeGraphUnit;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -29,18 +24,16 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.metaborg.unification.eager.EagerTermUnifier;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.time.Timer;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
+public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISingleFileScopeGraphContext>
+        implements ISpoofaxAnalyzer {
 
     public static final ILogger logger = LoggerUtils.logger(ConstraintSingleFileAnalyzer.class);
     public static final String name = "constraint-singlefile";
@@ -57,9 +50,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
         this.resultBuilder = new ResultBuilder();
     }
 
-
     @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, ISpoofaxScopeGraphContext context, HybridInterpreter runtime,
+            Map<String,ISpoofaxParseUnit> removed, ISingleFileScopeGraphContext context, HybridInterpreter runtime,
             String strategy) throws AnalysisException {
         for (String input : removed.keySet()) {
             context.removeUnit(input);
@@ -71,13 +63,17 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
             ISpoofaxParseUnit parseUnit = input.getValue();
 
             try {
-                ISpoofaxScopeGraphUnit unit = context.getOrCreateUnit(source);
-                unit.reset();
+                ISingleFileScopeGraphUnit unit = context.unit(source);
+                unit.clear();
+
+                String globalSource = context.location().getName().getURI();
+                IStrategoTerm initTerm = termFactory.makeString(globalSource);
+                TermIndex.put(initTerm, source, 0);
 
                 IStrategoTerm sourceTerm = termFactory.makeString(source);
                 TermIndex.put(sourceTerm, source, 0);
 
-                IStrategoTerm initialResultTerm = doAction(strategy, termFactory.makeAppl(analyzeInitial, sourceTerm),
+                IStrategoTerm initialResultTerm = doAction(strategy, termFactory.makeAppl(analyzeInitial, initTerm),
                         context, runtime);
                 InitialResult initialResult;
                 initialResult = resultBuilder.initialResult(initialResultTerm);
@@ -90,35 +86,15 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer imp
                         runtime);
                 UnitResult unitResult = resultBuilder.unitResult(unitResultTerm);
                 if (!unitResult.analysis.isList()) {
-                    logger.warn("Initial analysis result is not a list, but " + unitResult.analysis);
+                    logger.warn("Unit analysis result is not a list, but " + unitResult.analysis);
                 }
-
-                final IConstraint constraint = CConj.of(initialResult.constraint, unitResult.constraint);
-                unit.setConstraint(constraint);
 
                 IStrategoTerm finalResultTerm = doAction(strategy, termFactory.makeAppl(analyzeFinal, sourceTerm,
                         initialResult.analysis, termFactory.makeList(unitResult.analysis)), context, runtime);
-
-                logger.info(">>> Fast solving");
-                Timer t = new Timer(true);
-                Solver solver = new Solver(new EagerTermUnifier(), constraint);
-                ISolution solution = solver.solve();
-                double time = ((double) t.stop()) / TimeUnit.SECONDS.toNanos(1);
-                logger.info("<<< Fast solving ({}s) <<<", time);
-
-                FinalResult finalResult = resultBuilder.finalResult(finalResultTerm, solution);
-                IStrategoTerm finalAnalysis;
-                if (!finalResult.analysis.isList()) {
-                    finalAnalysis = finalResult.analysis;
-                    logger.warn("Final analysis result is not a list, but " + finalAnalysis);
-                } else {
-                    finalAnalysis = addSubstitutionComponent((IStrategoList) finalResult.analysis,
-                            solution.getUnifier());
-                }
+                FinalResult finalResult = resultBuilder.finalResult(finalResultTerm);
                 unit.setScopeGraph(finalResult.scopeGraph);
                 unit.setNameResolution(finalResult.nameResolution);
-                unit.setAnalysis(finalAnalysis);
-                applySolution(unit.processRawData(), finalResult.analysis, strategy, context, runtime);
+                unit.setAnalysis(finalResult.analysis);
 
                 final Collection<IMessage> errors = analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR,
                         finalResult.errors);

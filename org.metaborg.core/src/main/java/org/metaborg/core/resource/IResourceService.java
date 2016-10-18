@@ -145,15 +145,4 @@ public interface IResourceService extends AutoCloseable {
      * @return Local file handle, or null if given resource does not reside on the local file system.
      */
     @Nullable File localPath(FileObject resource);
-
-
-    /**
-     * Returns a file system object that points to a directory where user-specific data can be stored.
-     * 
-     * @throws MetaborgRuntimeException
-     *             when an internal error occurs.
-     * 
-     * @deprecated Wrong abstraction, will be removed in the future.
-     */
-    @Deprecated FileObject userStorage();
 }
