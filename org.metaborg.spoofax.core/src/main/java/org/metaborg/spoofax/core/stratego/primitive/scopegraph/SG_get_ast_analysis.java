@@ -22,7 +22,7 @@ public class SG_get_ast_analysis extends ScopeGraphPrimitive {
             IStrategoTerm[] terms) throws InterpreterException {
         final TermIndex index = TermIndex.get(env.current());
         if (index == null) {
-            logger.warn("get-analysis called with non-AST argument {}", env.current());
+            logger.warn("get-ast-analysis called with non-AST argument {}", env.current());
             return false;
         }
         final IScopeGraphUnit unit = context.unit(index.resource());
