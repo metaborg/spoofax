@@ -27,10 +27,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     protected @Nullable SdfVersion sdfVersion;
     protected @Nullable Sdf2tableVersion sdf2tableVersion;
-    protected boolean sdfEnabled;
     protected @Nullable String sdfMainFile;
-    protected @Nullable String parseTable;
-    protected @Nullable String completionsParseTable;
     protected @Nullable PlaceholderCharacters placeholderCharacters;
     protected @Nullable String prettyPrint;
     protected @Nullable String sdfExternalDef;
@@ -66,11 +63,9 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
         sdfVersion = null;
         sdf2tableVersion = null;
-        this.placeholderCharacters = null;
-        sdfEnabled = true;
         sdfMainFile = null;
-        parseTable = null;
-        completionsParseTable = null;
+        placeholderCharacters = null;
+        prettyPrint = null;
         sdfExternalDef = null;
         sdfArgs = null;
         strFormat = null;
