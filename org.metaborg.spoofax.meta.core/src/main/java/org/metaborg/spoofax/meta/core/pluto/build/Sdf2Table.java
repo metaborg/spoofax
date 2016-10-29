@@ -11,8 +11,8 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle;
+import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
@@ -69,7 +69,8 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
         requireBuild(input.origin);
-        final PrepareNativeBundle.Output commands = requireBuild(PrepareNativeBundle.factory, input).val();
+        final PrepareNativeBundle.Output commands =
+            requireBuild(PrepareNativeBundle.factory, new PrepareNativeBundle.Input(context)).val();
         require(input.inputFile);
 
         // sdf2table fails when directory of output file does not exist; create it first.

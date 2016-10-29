@@ -40,6 +40,27 @@ public interface ILanguageComponentConfig extends IProjectConfig {
     Collection<IGenerateConfig> generates();
     
     /**
+     * Gets whether the project depends on SDF or not.
+     *
+     * @return true if SDF is enabled and false otherwise.
+     */
+    Boolean sdfEnabled();   
+    
+    /**
+     * Gets the (relative) path to the parse table.
+     *
+     * @return path to the parse table.
+     */
+    String parseTable();    
+    
+    /**
+     * Gets the (relative) path to the completions parse table.
+     *
+     * @return path to the completions parse table.
+     */
+    String completionsParseTable();
+    
+    /**
      * Gets the file exports.
      *
      * @return The file exports.

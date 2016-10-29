@@ -232,10 +232,14 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             removedResources, extraMessages, success, cancel);
         final Iterable<P> allParseResults = Iterables.concat(sourceParseUnits, includeParseUnits);
 
-        // Segregate by context
+        // Analyze
         cancel.throwIfCancelled();
-        final Multimap<IContext, P> parseUnitsPerContext = ArrayListMultimap.create();
-        if(input.analyze) {
+        final Multimap<IContext, A> allAnalyzeUnits;
+        final Collection<AU> allAnalyzeUpdates = Lists.newArrayList();
+        boolean analyze = input.analyze && analysisService.available(language);
+        if(analyze) {
+            // Segregate by context
+            final Multimap<IContext, P> parseUnitsPerContext = ArrayListMultimap.create();
             for(P parseResult : sourceParseUnits) {
                 cancel.throwIfCancelled();
                 final FileObject resource = parseResult.source();
@@ -251,13 +255,9 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
                 }
             }
-        }
 
-        // Analyze
-        cancel.throwIfCancelled();
-        final Multimap<IContext, A> allAnalyzeUnits;
-        final Collection<AU> allAnalyzeUpdates = Lists.newArrayList();
-        if(input.analyze) {
+            // Run analysis
+            cancel.throwIfCancelled();
             allAnalyzeUnits = analyze(input, location, parseUnitsPerContext, includeParseUnits, pardoned,
                 allAnalyzeUpdates, removedResources, extraMessages, success, cancel);
         } else {

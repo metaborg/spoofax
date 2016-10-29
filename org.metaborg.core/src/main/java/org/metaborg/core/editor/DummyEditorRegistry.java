@@ -26,4 +26,9 @@ public class DummyEditorRegistry implements IEditorRegistry {
         logger.warn("Using dummy editor registry. "
             + "Bind an actual implementation of IEditorRegistry in your Guice module.");
     }
+
+    @Override public void open(Iterable<FileObject> resources, IProject project) {
+        logger.warn("Using dummy editor registry. "
+            + "Bind an actual implementation of IEditorRegistry in your Guice module.");
+    }
 }

@@ -1,0 +1,16 @@
+---
+id: org.metaborg:meta.lib.spoofax:${metaborgVersion}
+name: libspoofax
+metaborgVersion: 2.1.0-SNAPSHOT
+metaborgBaselineVersion: 2.0.0-baseline-20160405-142357
+dependencies:
+  compile:
+  - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
+  - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgBaselineVersion}
+exports:
+- language: EditorService
+  directory: editor
+- language: Stratego-Sugar
+  directory: trans
+pardonedLanguages:
+- Stratego-Sugar

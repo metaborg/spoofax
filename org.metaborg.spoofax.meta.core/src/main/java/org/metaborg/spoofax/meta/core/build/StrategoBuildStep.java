@@ -4,9 +4,9 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
 import org.metaborg.spoofax.meta.core.config.StrategoBuildStepConfig;
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
+import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
+import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 
 import com.google.inject.Inject;
 

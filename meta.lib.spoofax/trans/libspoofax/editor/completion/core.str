@@ -1,0 +1,133 @@
+module libspoofax/editor/completion/core
+
+imports
+  libspoofax/term/origin
+  libspoofax/editor/completion/interface
+  libspoofax/editor/refactoring/-
+  libstratego-gpp
+
+signature constructors 
+   INSERTION_TERM : NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
+   REPLACE_TERM   : OldTerm * NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
+
+signature constructors
+   CURSOR_ELEMENT : cursor
+
+rules
+
+  get-parent-non-amb = prim("SSL_EXT_get_parent_not_amb", <id>)
+  is-bracket-node    = prim("SSL_EXT_is_bracket_node", <id>)
+
+rules 
+      
+  add-completions(|suggestion) = iset-add(|suggestion)   
+  add-list-completions(|suggestion*) = iset-addlist(|suggestion*)   
+  wrap-term(|new-cons) = ?t; !new-cons#(t)
+  
+  // inline completions with only one LHS? 
+  inline-completions(|sort) = fail
+      
+  /* inline-completions(|sort):
+  term -> elem
+  where
+    <not(?sort)> term;
+    iset  := <new-iset>;
+    <try(suggest-completions(|iset))> term;
+    elems := <iset-elements> iset; 
+    <?[(desc, elem)]> elems   */  
+   
+  find-position: 
+    (term, parent) -> index
+    where
+      args := <get-arguments> parent;
+      index := <get-index-origin(|1)> (term, args)
+       
+  get-index-origin(|idx):
+    (term, [h | hs]) -> index
+    where       
+      (start-offset-term, end-offset-term) := <origin-offset> term;
+      (start-offset, end-offset)           := <origin-offset> h;
+      if <?(start-offset, end-offset)> (start-offset-term, end-offset-term) then
+        index := idx
+      else
+        index := <get-index-origin(|<inc> idx)> (term, hs)
+      end
+       
+  get-index-origin(|idx):
+    (term, []) -> -1
+      
+  get-index-cursor-position(|idx):
+    (position, [h | hs]) -> index
+    where       
+      (start-offset, end-offset)  := <origin-offset> h;
+      if <leq> (position, start-offset) then
+        index := idx
+      else
+        index := <get-index-cursor-position(|<inc> idx)> (position, hs)
+      end
+  
+  match-node-origin(|node):
+    t -> <id>
+    where
+      (start-offset, end-offset)           := <origin-offset> node;
+      (start-offset-term, end-offset-term) := <origin-offset> t;
+      <?(start-offset, end-offset, node)> (start-offset-term, end-offset-term, t)
+          
+      
+  get-index-cursor-position(|idx):
+    (position, []) -> idx   
+                         
+  my-position-of-term(is-term|start-index):
+    [] -> <fail>
+        
+  my-position-of-term(is-term):
+    _#(t*) -> <my-position-of-term(is-term|0)> t*
+    where
+      not(is-term);
+      not(?[])
+
+  my-position-of-term(is-term):
+    t -> []
+    where
+      is-term
+
+  my-position-of-term(is-term|start-index):
+    [t | t*] -> position
+    where
+      if i* := <my-position-of-term(is-term)> t then
+        position := [start-index | i*]
+      else
+        position := <my-position-of-term(is-term | <inc> start-index)> t*
+      end
+      
+  check-blank-line = id
+    
+  calculate-leading-ws(leading-ws|term):
+    (parent, index)  -> <leading-ws> (parent, index)
+    where
+      <not(get-parent)> parent
+      
+      
+   calculate-leading-ws(leading-ws|term):
+    (parent, index)  -> result
+    where
+      parent' := <get-parent> parent
+    where
+      (start-offset-term, _)   := <origin-offset> term;
+      (start-offset-parent, _) := <origin-offset> parent;
+      if <eq> (start-offset-term, start-offset-parent) then
+        // TODO: properly investigate when parent is a list
+        if <is-list> parent' then 
+          parent-list := <get-parent> parent';
+          index' := <find-position> (parent', parent-list);
+          result := <calculate-leading-ws(leading-ws|parent')> (parent-list, index')
+        else
+            index'  := <find-position> (parent, parent');
+            result  := <calculate-leading-ws(leading-ws|parent)> (parent', index')
+        end
+        else
+           result := <leading-ws> (parent, index)      
+      end   
+    
+    
+      

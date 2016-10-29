@@ -1,8 +1,5 @@
 package org.metaborg.core.transform;
 
-import javax.annotation.Nullable;
-
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.messages.IMessage;
@@ -28,10 +25,9 @@ public interface ITransformUnit<I extends IUnit> extends IUnit {
     boolean success();
 
     /**
-     * @return Output file that the result has been written to. Null when no file was written, or if {@link #valid()}
-     *         returns false.
+     * @return Outputs of the transformation. Empty if {@link #valid()} returns false.
      */
-    @Nullable FileObject output();
+    Iterable<? extends ITransformOutput> outputs();
 
     /**
      * @return Messages produced by the transformer.

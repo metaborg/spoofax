@@ -1,5 +1,6 @@
 package org.metaborg.core.context;
 
+import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.vfs2.FileObject;
@@ -85,6 +86,21 @@ public class ContextService implements IContextService, IContextProcessor {
         final IContextInternal prevContext = idToContext.putIfAbsent(identifier, newContext);
         langToContextId.putIfAbsent(identifier.language, identifier);
         if(prevContext == null) {
+            return newContext;
+        } else if (!prevContext.getClass().equals(newContext.getClass())) {
+            /* If the language implementation changed its context settings, we
+             * should really return the new context, and discard the previous.
+             */
+            logger.info("Context for {} changed type, ignoring existing context.", identifier);
+            if(idToContext.replace(identifier, prevContext, newContext)) {
+                try {
+                    prevContext.reset();
+                } catch (IOException e) {
+                    logger.warn("Error occurred while resetting {}",prevContext,e);
+                }
+            } else {
+                logger.warn("Race condition while replacing context {} with {}",prevContext,newContext);
+            }
             return newContext;
         }
         return prevContext;

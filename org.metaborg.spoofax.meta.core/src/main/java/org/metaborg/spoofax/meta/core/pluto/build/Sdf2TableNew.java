@@ -2,7 +2,7 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.List;
 
 import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
@@ -22,14 +22,16 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
 
         public final File inputFile;
         public final File outputFile;
-        public final String path;
+        public final List<String> paths;
+        public final boolean parenthesize;
 
 
-        public Input(SpoofaxContext context, File inputFile, File outputFile, String path) {
+        public Input(SpoofaxContext context, File inputFile, File outputFile, List<String> paths, boolean parenthesize) {
             super(context);
             this.inputFile = inputFile;
             this.outputFile = outputFile;
-            this.path = path;
+            this.paths = paths;
+            this.parenthesize = parenthesize;
         }
     }
 
@@ -68,7 +70,7 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         boolean status = true;
 
         try {
-            ParseTable.fromFile(input.inputFile, input.outputFile, Arrays.asList(input.path));
+            ParseTable.fromFile(input.inputFile, input.outputFile, input.paths, input.parenthesize);
         } catch(Exception e) {
             System.out.println("Failed to generate parse table");
             e.printStackTrace();

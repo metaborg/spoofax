@@ -13,19 +13,24 @@ import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.core.syntax.ParseException;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.meta.core.project.ILanguageSpecService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.util.file.FileUtils;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Injector;
@@ -134,6 +139,22 @@ public class SpoofaxContext implements Serializable {
         agent.setAbsoluteWorkingDir(base);
         agent.setAbsoluteDefinitionDir(base);
         return tracker;
+    }
+
+    public @Nullable IStrategoTerm parse(File file) throws IOException, ParseException {
+        final FileObject resource = resourceService.resolve(file);
+        final ILanguageImpl language = languageIdentifierService.identify(resource);
+        if(language == null) {
+            return null;
+        }
+        final String text = sourceTextService.text(resource);
+        final ISpoofaxInputUnit inputUnit = unitService.inputUnit(resource, text, language, null);
+        final ISpoofaxParseUnit result = syntaxService.parse(inputUnit);
+        if(!result.valid() || !result.success()) {
+            return null;
+        }
+        final IStrategoTerm term = result.ast();
+        return term;
     }
 
     public ILanguageService languageService() {

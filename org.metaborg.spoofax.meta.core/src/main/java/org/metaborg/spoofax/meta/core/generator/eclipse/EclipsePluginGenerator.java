@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.meta.core.generator.eclipse;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
@@ -22,13 +21,12 @@ public class EclipsePluginGenerator extends BaseGenerator {
     }
 
 
-    public static File childBaseDir(File baseDir, String id) {
-        return new File(baseDir, id + ".eclipse");
+    public static String siblingName(String id) {
+        return id + ".eclipse";
     }
 
 
     public void generateAll() throws IOException {
-        generateProject();
         generateClasspath();
         generatePOM();
         generateManifest();
@@ -37,10 +35,6 @@ public class EclipsePluginGenerator extends BaseGenerator {
         generateIgnoreFile();
     }
 
-
-    public void generateProject() throws IOException {
-        writer.write("plugin/.project", ".project", false);
-    }
 
     public void generateClasspath() throws IOException {
         writer.write("plugin/.classpath", ".classpath", false);

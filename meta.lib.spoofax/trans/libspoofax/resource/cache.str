@@ -1,0 +1,75 @@
+module libspoofax/resource/cache
+
+imports
+
+  libspoofax/resource/path
+
+rules
+
+  /**
+   * Processes an import during semantic analysis.
+   * Ensures proper caching of files and prevents
+   * processing duplicate imports more than once.
+   *
+   * @param resolve-path  Resolves the filesystem path of this import
+   * @param parse-file    Parses a file (optionally removing definition bodies
+   *                      so only signatures are stored in the cache)
+   * @param record-declarations
+   *                      Performs semantic analysis on a tree
+   */
+  open-import(resolve-path, parse-file, record-declarations):
+    import -> import
+    where
+      path       := <resolve-path> import;
+      cache-path := <import-cache-path> path;
+      if not(<IsImported> path) then
+        rules(
+          IsImported: path
+        );
+        ( <file-is-newer> (cache-path, path);
+          file := <ReadFromFile> cache-path
+        <+
+          file := <parse-file> path;
+          if <file-exists> path then
+            // Only cache if on filesystem (e.g., ignore libstratego-lib)
+            <try(WriteToBinaryFile)> (cache-path, file)
+          end        
+        );
+        {| CurrentFile:
+          rules(CurrentFile := path);
+          <record-declarations> file
+        |}
+      end
+
+  open-wildcard-import(resolve-path, parse-file, record-declarations, is-source-file):
+    import -> import
+    where
+      path := <resolve-path> import;
+      readdir;
+      list-loop(
+        if is-source-file then
+          <open-import(id, parse-file, record-declarations)>
+            $[[path]/[<id>]]
+        <+
+          try(?one-failed)
+        end
+      );
+      not(!one-failed)
+
+  import-cache-path:
+    full-path -> cache-path
+    with
+      project-path := <project-path>;
+      cache-dir    := <file-exists <+ mkdir> $[[project-path]/target/import-cache];
+      full-path'   := <prim("digest")> full-path;
+      cache-path   := $[[cache-dir]/[full-path'].sig]
+      
+  resolve-in-path(|path):
+    name -> file
+    where
+      file := <!path; getfirst(!$[[<id>]/[name]]; file-exists)> name
+      
+  file-is-newer:
+    (file1, file2) -> <id>
+    where
+      <gt> (<file-exists; modification-time> file1, <file-exists; modification-time> file2) 

@@ -1,17 +1,16 @@
 package org.metaborg.spoofax.meta.core.pluto.stamp;
 
 import java.io.File;
+import java.io.IOException;
 
-import org.metaborg.spoofax.meta.core.pluto.build.misc.ParseFile;
+import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermTransformer;
 import org.sugarj.common.FileCommands;
 
-import build.pluto.builder.BuildManagers;
-import build.pluto.builder.BuildRequest;
-import build.pluto.output.Out;
 import build.pluto.stamp.LastModifiedStamper;
 import build.pluto.stamp.Stamp;
 import build.pluto.stamp.Stamper;
@@ -20,31 +19,32 @@ import build.pluto.stamp.ValueStamp;
 public class Sdf2RtgStamper implements Stamper {
     private static final long serialVersionUID = -8516817559822107040L;
 
-    private BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf;
+    private final SpoofaxContext context;
 
 
-    public Sdf2RtgStamper(BuildRequest<ParseFile.Input, Out<IStrategoTerm>, ?, ?> parseSdf) {
-        this.parseSdf = parseSdf;
+    public Sdf2RtgStamper(SpoofaxContext context) {
+        this.context = context;
     }
 
 
-    @Override public Stamp stampOf(File p) {
-        if(!FileCommands.exists(p))
+    @Override public Stamp stampOf(File file) {
+        if(!FileCommands.exists(file)) {
             return new ValueStamp<>(this, null);
+        }
 
-        final Out<IStrategoTerm> term;
+        final IStrategoTerm term;
         try {
-            term = BuildManagers.build(parseSdf);
-        } catch(Throwable e) {
-            return LastModifiedStamper.instance.stampOf(p);
+            term = context.parse(file);
+        } catch(ParseException | IOException e) {
+            return LastModifiedStamper.instance.stampOf(file);
+        }
+        if(term == null) {
+            return LastModifiedStamper.instance.stampOf(file);
         }
 
-        if(term == null || term.val() == null) {
-            return LastModifiedStamper.instance.stampOf(p);
-        }
 
-        final Deliteralize deliteralize = new Deliteralize(parseSdf.input.context.termFactory(), false);
-        final IStrategoTerm delit = deliteralize.transform(term.val());
+        final Deliteralize deliteralize = new Deliteralize(context.termFactory(), false);
+        final IStrategoTerm delit = deliteralize.transform(term);
         return new ValueStamp<>(this, delit);
     }
 

@@ -1,0 +1,50 @@
+module libspoofax/core/parse
+
+imports
+
+  libspoofax/core/language
+
+rules
+
+  /**
+   * Parses a string (current term) with the current language implementation.
+   * Fails if parsing fails.
+   */
+  parse-string-with-current-lang = prim("parse", 0, <language>, (), ())
+
+  /**
+   * Parses a string (current term) with the active language implementation of the language with given name.
+   * Fails if parsing fails.
+   */
+  parse-string-with-lang(|name) = prim("parse", 0, name, (), ())
+  
+  /**
+   * Parses the current term (string) with a language implementation with given groupId, id, and version.
+   * Fails if parsing fails.
+   */
+  parse-string-with-lang(|group-id, 'id, version) = prim("parse", 0, group-id, 'id, version)
+  
+  
+  /**
+   * Parses a file (current term with path to file) with a language implementation determined by the file name.
+   * Fails if parsing fails.
+   */
+  parse-file = prim("parse", 1, (), (), ())
+  
+  /**
+   * Parses a file (current term with path to file) with the current language implementation.
+   * Fails if parsing fails.
+   */
+  parse-file-with-current-lang = prim("parse", 1, <language>, (), ())
+  
+  /**
+   * Parses a file (current term with path to file) with the active language implementation of the language with given 
+   * name. Fails if parsing fails.
+   */
+  parse-file-with-lang(|name) = prim("parse", 1, name, (), ())
+  
+  /**
+   * Parses a file (current term with path to file) with a language implementation with given groupId, id, and version.
+   * Fails if parsing fails.
+   */
+  parse-file-with-lang(|group-id, 'id, version) = prim("parse", 1, group-id, 'id, version)

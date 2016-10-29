@@ -1,0 +1,18 @@
+module {{strategoName}}
+
+imports
+  
+{{#syntaxEnabled}}{{#syntaxSdf3}}  completion/completion
+{{/syntaxSdf3}}  pp
+  outline
+{{/syntaxEnabled}}{{#analysisEnabled}}  analysis
+{{/analysisEnabled}}
+
+{{#syntaxEnabled}}rules // Debugging
+  
+  debug-show-aterm:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"aterm")> path
+    ; result   := node
+{{/syntaxEnabled}}

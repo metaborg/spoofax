@@ -1,0 +1,89 @@
+module libspoofax/sdf/pp
+
+imports
+	
+  libstratego-gpp
+
+rules
+
+  ia-get-sort = prim("SSL_EXT_get_sort_imploder_attachment", <id>)
+
+signature constructors
+
+  Parenthetical : Unknown -> Unknown
+
+strategies
+
+  // Unwrap Parenthetical/1 if pp fails, in case the user is using
+  // parenthesize, but grammar does not contain {bracket} production.
+  pp-one(pp) = (pp <+ ?Parenthetical(<pp>)); filter(gpp-is-real-vbox)
+
+  pp-one-V(pp) = pp-one(pp); (?[] <+ !V([], <id>))
+  pp-one-Z(pp) = pp-one(pp); (?[] <+ !Z([], <id>))
+
+  pp-option(pp) = (is-string; pp) <+ \None() -> []\ + ?Some(<pp>)
+
+  pp-V-list(pp)    = ?[] <+ !V([], <map(pp-one-V(pp))>)
+  pp-V-list(pp|vs) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp))>)
+  pp-V-list(pp|vs, sep) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp)); at-init(add-sep(|sep), id)>)
+
+  pp-indent(|is) = filter(gpp-is-real-vbox); (?[] <+ !I([SOpt(IS(), is)], H([SOpt(HS(), "0")], <id>)))
+
+  pp-H-list(pp)     = ?[] <+ !H([], <map(pp-one-Z(pp))>)
+  pp-H-list(pp|sep) = ?[] <+ !H([SOpt(HS(), "0")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+  pp-HV-list(pp)     = ?[] <+ !HV([SOpt(HS(), "0")], <map(pp-one-Z(pp))>)
+  pp-HV-list(pp|sep) = ?[] <+ !HV([SOpt(HS(), "0")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+  pp-HZ-list(pp)     = ?[] <+ !HZ([SOpt(HS(), "0")], <map(pp-one-Z(pp))>)
+  pp-HZ-list(pp|sep) = ?[] <+ !HZ([SOpt(HS(), "0")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+  
+// rules for code completion
+signature constructors
+   CURSOR_ELEMENT : cursor
+   
+rules
+  prettyprint-origin-term = fail
+  prettyprint-completion-aux = (?CURSOR_ELEMENT(); ![S("##CURSOR##")]) <+ 
+  ((?""; ![]) <+ ![S(<is-string>)])
+
+rules
+  
+ add-sep(|sep):
+    V(vs, boxes) -> V(vs, result)
+    where
+      if [h] := boxes
+      then
+        (c, [cs, inner-boxes]) := <explode-term> h;
+        box-with-sep := <mkterm> (c, [cs, <conc> (inner-boxes, [S(sep)])]);
+        result := [box-with-sep]
+        else
+        result' := [<last; add-sep(|sep)> boxes];
+        result  := <at-last(!result')> boxes 
+        end
+        
+ add-sep(|sep):
+  H(options, boxes) -> H(options, result)
+  where
+      result := <conc> (boxes, [S(sep)])
+      
+ add-sep(|sep):
+  I(is, H(hs, boxes)) -> I(is, H(hs, result))
+  where
+      result := <conc> (boxes, [S(sep)])
+      
+ add-sep(|sep):
+  HV(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])
+      
+ add-sep(|sep):
+  HZ(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])
+
+ add-sep(|sep):
+  Z(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])      

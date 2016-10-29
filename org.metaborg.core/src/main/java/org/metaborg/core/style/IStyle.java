@@ -33,4 +33,10 @@ public interface IStyle extends Serializable {
      * @return If text should be underscored.
      */
     boolean underscore();
+    
+    /**
+     * @return If text should be strikeout.
+     */
+    boolean strikeout();
+    
 }

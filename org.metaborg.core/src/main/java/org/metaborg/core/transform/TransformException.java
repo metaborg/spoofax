@@ -2,6 +2,9 @@ package org.metaborg.core.transform;
 
 import org.metaborg.core.MetaborgException;
 
+/**
+ * Exception indicating that transformation failed unexpectedly.
+ */
 public class TransformException extends MetaborgException {
     private static final long serialVersionUID = -9086897694888391754L;
 

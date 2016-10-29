@@ -31,7 +31,7 @@ public interface IContextService {
      * @throws ContextException
      *             When an error occurs while retrieving or creating a context.
      * @throws MetaborgRuntimeException
-     *             When {@code language} does not have a {@link ContextFacet}.
+     *             When {@code language} has multiple {@link ContextFacet}.
      */
     IContext get(FileObject resource, IProject project, ILanguageImpl language) throws ContextException;
 
@@ -49,7 +49,7 @@ public interface IContextService {
      * @throws ContextException
      *             When an error occurs while retrieving or creating a context.
      * @throws MetaborgRuntimeException
-     *             When {@code language} does not have a {@link ContextFacet}.
+     *             When {@code language} has multiple {@link ContextFacet}.
      */
     ITemporaryContext getTemporary(FileObject resource, IProject project, ILanguageImpl language)
         throws ContextException;
