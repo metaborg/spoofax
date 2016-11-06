@@ -5,6 +5,9 @@ import org.metaborg.meta.core.config.ILanguageSpecConfigService;
 import org.metaborg.meta.core.config.ILanguageSpecConfigWriter;
 import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
 import org.metaborg.meta.core.config.LanguageSpecConfigService;
+import org.metaborg.meta.core.signature.ISignatureExtractor;
+import org.metaborg.meta.core.signature.ISignatureService;
+import org.metaborg.meta.core.signature.SignatureService;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -19,6 +22,10 @@ public class MetaborgMetaModule extends AbstractModule {
 
         bindLanguageSpec();
         bindLanguageSpecConfig();
+        bindSignature();
+        final Multibinder<ISignatureExtractor> signatureExtractors =
+            Multibinder.newSetBinder(binder(), ISignatureExtractor.class);
+        bindSignatureExtractors(signatureExtractors);
     }
 
     protected void bindLanguageSpec() {
@@ -31,5 +38,17 @@ public class MetaborgMetaModule extends AbstractModule {
 
         bind(LanguageSpecConfigBuilder.class);
         bind(ILanguageSpecConfigBuilder.class).to(LanguageSpecConfigBuilder.class);
+    }
+
+    protected void bindSignature() {
+        bind(ISignatureService.class).to(SignatureService.class).in(Singleton.class);
+    }
+
+    /**
+     * @param signatureExtractors
+     *            Signature extractors multibinder.
+     */
+    protected void bindSignatureExtractors(Multibinder<ISignatureExtractor> signatureExtractors) {
+
     }
 }
