@@ -86,6 +86,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 FinalResult finalResult = FinalResult.fromTerm(finalResultTerm);
                 unit.setScopeGraph(finalResult.scopeGraph);
                 unit.setNameResolution(finalResult.nameResolution);
+                unit.setOccurrenceTypes(finalResult.occurrenceTypes);
+                unit.setAstMetadata(finalResult.astMetadata);
                 unit.setAnalysis(finalResult.analysis);
 
                 final Collection<IMessage> errors = analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR,

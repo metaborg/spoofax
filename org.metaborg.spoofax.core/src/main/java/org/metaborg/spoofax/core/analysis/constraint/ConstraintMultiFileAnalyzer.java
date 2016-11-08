@@ -132,6 +132,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         }
         context.setScopeGraph(finalResult.scopeGraph);
         context.setNameResolution(finalResult.nameResolution);
+        context.setOccurrenceTypes(finalResult.occurrenceTypes);
+        context.setAstMetadata(finalResult.astMetadata);
         context.setAnalysis(finalResult.analysis);
 
         Multimap<String,IMessage> errorsByFile = messages(finalResult.errors, MessageSeverity.ERROR);

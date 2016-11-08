@@ -9,6 +9,8 @@ import javax.annotation.Nullable;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.scopegraph.INameResolution;
 import org.metaborg.scopegraph.IScopeGraph;
+import org.metaborg.scopegraph.impl.ASTMetadata;
+import org.metaborg.scopegraph.impl.OccurrenceTypes;
 import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContext.State;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -56,6 +58,8 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
             private @Nullable IScopeGraph scopeGraph;
             private @Nullable INameResolution nameResolution;
+            private @Nullable ASTMetadata astMetadata;
+            private @Nullable OccurrenceTypes occurrenceTypes;
             private @Nullable IStrategoTerm analysis;
 
             private Unit(String resource) {
@@ -78,6 +82,14 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
                 return nameResolution;
             }
 
+            @Override public ASTMetadata astMetadata() {
+                return astMetadata;
+            }
+
+            @Override public OccurrenceTypes occurrenceTypes() {
+                return occurrenceTypes;
+            }
+
             @Override public IStrategoTerm analysis() {
                 return analysis;
             }
@@ -92,6 +104,14 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
             @Override public void setNameResolution(INameResolution nameResolution) {
                 this.nameResolution = nameResolution;
+            }
+
+            @Override public void setAstMetadata(ASTMetadata astMetadata) {
+                this.astMetadata = astMetadata;
+            }
+
+            @Override public void setOccurrenceTypes(OccurrenceTypes occurrenceTypes) {
+                this.occurrenceTypes = occurrenceTypes;
             }
 
             @Override public void clear() {

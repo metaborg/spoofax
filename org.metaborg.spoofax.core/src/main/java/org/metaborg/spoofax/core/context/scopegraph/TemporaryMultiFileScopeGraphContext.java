@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import org.metaborg.scopegraph.INameResolution;
 import org.metaborg.scopegraph.IScopeGraph;
+import org.metaborg.scopegraph.impl.ASTMetadata;
+import org.metaborg.scopegraph.impl.OccurrenceTypes;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class TemporaryMultiFileScopeGraphContext extends AbstractTemporaryScopeGraphContext<IMultiFileScopeGraphUnit>
@@ -22,6 +24,14 @@ public class TemporaryMultiFileScopeGraphContext extends AbstractTemporaryScopeG
         context.setNameResolution(nameResolution);
     }
 
+    @Override public void setAstMetadata(ASTMetadata astMetadata) {
+        context.setAstMetadata(astMetadata);
+    }
+    
+    @Override public void setOccurrenceTypes(OccurrenceTypes occurrenceTypes) {
+        context.setOccurrenceTypes(occurrenceTypes);
+    }
+    
     @Override public void setAnalysis(IStrategoTerm analysis) {
         context.setAnalysis(analysis);
     }
