@@ -1,7 +1,9 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
-import org.metaborg.nabl2.solution.INameResolution;
-import org.metaborg.nabl2.solution.IScopeGraph;
+import org.metaborg.scopegraph.INameResolution;
+import org.metaborg.scopegraph.IScopeGraph;
+import org.metaborg.scopegraph.impl.ASTMetadata;
+import org.metaborg.scopegraph.impl.OccurrenceTypes;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface IMultiFileScopeGraphContext extends ISpoofaxScopeGraphContext<IMultiFileScopeGraphUnit> {
@@ -10,6 +12,10 @@ public interface IMultiFileScopeGraphContext extends ISpoofaxScopeGraphContext<I
 
     void setNameResolution(INameResolution nameResolution);
 
+    void setAstMetadata(ASTMetadata astMetadata);
+
+    void setOccurrenceTypes(OccurrenceTypes occurrenceTypes);
+    
     void setAnalysis(IStrategoTerm analysis);
 
     void clear();
