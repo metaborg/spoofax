@@ -30,11 +30,12 @@ public class SpoofaxReporting implements IReporting {
 
     }
 
-    @Override public <O extends Output> void startedBuilder(BuildRequest<?, O, ?, ?> req, Builder<?, ?> b,
+    @Override public <O extends Output> void startedBuilder(BuildRequest<?, O, ?, ?> req, Builder<?, ?> builder,
         BuildUnit<O> oldUnit, Set<BuildReason> reasons) {
-        String desc =  b.description();
-        if (desc != null)
+        final String desc = builder.description();
+        if(desc != null) {
             log.info("> {}", desc);
+        }
     }
 
     @Override public <O extends Output> void finishedBuilder(BuildRequest<?, O, ?, ?> req, BuildUnit<O> unit) {

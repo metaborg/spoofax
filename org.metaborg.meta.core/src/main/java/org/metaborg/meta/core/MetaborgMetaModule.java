@@ -6,6 +6,7 @@ import org.metaborg.meta.core.config.ILanguageSpecConfigWriter;
 import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
 import org.metaborg.meta.core.config.LanguageSpecConfigService;
 import org.metaborg.meta.core.signature.ISignatureExtractor;
+import org.metaborg.meta.core.signature.ISignatureSerializer;
 import org.metaborg.meta.core.signature.ISignatureService;
 import org.metaborg.meta.core.signature.SignatureService;
 
@@ -41,7 +42,9 @@ public class MetaborgMetaModule extends AbstractModule {
     }
 
     protected void bindSignature() {
-        bind(ISignatureService.class).to(SignatureService.class).in(Singleton.class);
+        bind(SignatureService.class).in(Singleton.class);
+        bind(ISignatureService.class).to(SignatureService.class);
+        bind(ISignatureSerializer.class).to(SignatureService.class);
     }
 
     /**

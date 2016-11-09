@@ -31,6 +31,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnitService;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.meta.core.build.LangSpecCommonPaths;
+import org.metaborg.util.file.IFileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.FileSelectorUtils;
@@ -67,11 +68,15 @@ public class StrategoSignatureExtractor implements ISignatureExtractor {
     }
 
 
-    @Override public Collection<Signature> extract(ILanguageSpec languageSpec) throws IOException, ParseException {
+    @Override public Collection<Signature> extract(ILanguageSpec languageSpec, @Nullable IFileAccess access)
+        throws IOException, ParseException {
         final FileObject root = languageSpec.location();
         final ILanguageSpecConfig config = languageSpec.config();
         final LangSpecCommonPaths paths = new LangSpecCommonPaths(root);
         final FileObject mainFile = paths.strMainFile(config.name());
+        if(access != null) {
+            access.read(mainFile);
+        }
         final IdentifiedResource identifiedMainFile =
             languageIdentifierService.identifyToResource(mainFile, languageSpec);
         if(identifiedMainFile == null) {
@@ -83,11 +88,11 @@ public class StrategoSignatureExtractor implements ISignatureExtractor {
         final Iterable<FileObject> includePaths =
             languagePathService.sourceAndIncludePaths(languageSpec, strategoLangName);
 
-        return extractStartingFrom(identifiedMainFile, includePaths);
+        return extractStartingFrom(identifiedMainFile, includePaths, access);
     }
 
-    private Collection<Signature> extractStartingFrom(IdentifiedResource mainFile, Iterable<FileObject> includePaths)
-        throws IOException, ParseException {
+    private Collection<Signature> extractStartingFrom(IdentifiedResource mainFile, Iterable<FileObject> includePaths,
+        @Nullable IFileAccess access) throws IOException, ParseException {
         final Set<String> seenImports = Sets.newHashSet();
         final Set<FileObject> seenFiles = Sets.newHashSet();
         final LinkedList<String> importsTodo = Lists.newLinkedList();
@@ -112,6 +117,9 @@ public class StrategoSignatureExtractor implements ISignatureExtractor {
             }
             for(FileObject file : files) {
                 if(seenFiles.add(file)) {
+                    if(access != null) {
+                        access.read(file);
+                    }
                     final IdentifiedResource identified = languageIdentifierService.identifyToResource(file);
                     if(identified == null) {
                         logger.error(
@@ -150,7 +158,10 @@ public class StrategoSignatureExtractor implements ISignatureExtractor {
         if(imprt.endsWith("/-")) {
             final String path = imprt.substring(0, imprt.length() - 2);
             for(FileObject includeDir : strjIncludeDirs) {
-                final FileObject searchDir = includeDir.getChild(path);
+                if(!includeDir.exists()) {
+                    continue;
+                }
+                final FileObject searchDir = includeDir.resolveFile(path);
                 final FileObject[] files = searchDir.findFiles(FileSelectorUtils.extension("str"));
                 if(files != null) {
                     return Lists.newArrayList(files);
@@ -158,7 +169,10 @@ public class StrategoSignatureExtractor implements ISignatureExtractor {
             }
         } else {
             for(FileObject includeDir : strjIncludeDirs) {
-                final FileObject strategoFile = includeDir.getChild(imprt + ".str");
+                if(!includeDir.exists()) {
+                    continue;
+                }
+                final FileObject strategoFile = includeDir.resolveFile(imprt + ".str");
                 if(strategoFile.exists()) {
                     return Lists.newArrayList(strategoFile);
                 }

@@ -260,9 +260,7 @@ public class LanguageSpecBuilder {
     public void clean(LanguageSpecBuildInput input) throws MetaborgException {
         final FileObject location = input.languageSpec().location();
 
-
         logger.debug("Cleaning {}", location);
-
 
         final CommonPaths paths = new LangSpecCommonPaths(location);
         cleanAndLog(paths.srcGenDir());

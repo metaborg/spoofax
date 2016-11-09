@@ -34,6 +34,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableNew;
+import org.metaborg.spoofax.meta.core.pluto.build.SignatureBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
@@ -205,7 +206,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
                     final List<String> paths = Lists.newLinkedList();
                     paths.add(srcGenSyntaxDir.getAbsolutePath());
-                    
+
                     for(LanguageIdentifier langId : input.sourceDeps) {
                         ILanguageImpl lang = context.languageService().getImpl(langId);
                         for(final ILanguageComponent component : lang.components()) {
@@ -279,7 +280,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
-                
+
                 for(LanguageIdentifier langId : input.sourceDeps) {
                     ILanguageImpl lang = context.languageService().getImpl(langId);
                     for(final ILanguageComponent component : lang.components()) {
@@ -319,7 +320,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 requireBuild(sdfCompletionOrigin);
             } else {
-
                 // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
                 // specification.
                 final @Nullable File packSdfCompletionsFile;
@@ -362,6 +362,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             sdfCompletionOrigin = null;
         }
 
+        // Origin builder for any builders that generate Stratego files.
+        final Origin strGenOrigin = Origin.Builder().add(sigOrigin).add(parenthesizeOrigin).get();
 
         // SDF meta-module for creating a Stratego concrete syntax extension parse table
         final File sdfMetaFile = input.sdfMetaFile;
@@ -396,6 +398,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         } else {
             sdfMetaOrigin = null;
         }
+
+        // Signature extraction
+        final Origin sigExtractOrigin = SignatureBuilder.origin(new SignatureBuilder.Input(context, strGenOrigin));
+        // HACK: require signature extraction for debugging purposes.
+        requireBuild(sigExtractOrigin);
 
         // Stratego
         final File strFile = input.strFile;
@@ -437,30 +444,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
 
             // @formatter:off            
-            final Origin origin;
-            
-            if(input.sdf2tableVersion == Sdf2tableVersion.java) {
-                origin = Origin.Builder()
-                    .add(sigOrigin)
-                    .add(sdfCompletionOrigin)
-                    .add(sdfMetaOrigin)
-                    .get();
-            } else {
-                origin = Origin.Builder()
-                    .add(parenthesizeOrigin)
-                    .add(sigOrigin)
-                    .add(sdfCompletionOrigin)
-                    .add(sdfMetaOrigin)
-                    .get();
-            }
+            final Origin origin = Origin.Builder()
+                .add(strGenOrigin)
+                .add(sdfCompletionOrigin)
+                .add(sdfMetaOrigin)
+                .get();            
             // @formatter:on
 
             final File cacheDir = toFile(paths.strCacheDir());
 
-            final Strj.Input strjInput =
-
-                new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage, true, true,
-                    input.strjIncludeDirs, Lists.<String>newArrayList(), cacheDir, extraArgs, origin);
+            final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
+                true, true, input.strjIncludeDirs, Lists.<String>newArrayList(), cacheDir, extraArgs, origin);
 
             final Origin strjOrigin = Strj.origin(strjInput);
             requireBuild(strjOrigin);

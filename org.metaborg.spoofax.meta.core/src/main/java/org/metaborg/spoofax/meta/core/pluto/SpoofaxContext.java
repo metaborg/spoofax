@@ -22,6 +22,8 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.meta.core.project.ILanguageSpecService;
+import org.metaborg.meta.core.signature.ISignatureSerializer;
+import org.metaborg.meta.core.signature.ISignatureService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -55,6 +57,8 @@ public class SpoofaxContext implements Serializable {
     private static ISpoofaxUnitService unitService;
     private static ISpoofaxSyntaxService syntaxService;
     private static ITermFactoryService termFactoryService;
+    private static ISignatureService signatureService;
+    private static ISignatureSerializer signatureSerializer;
 
     public final File baseDir;
     public final URI baseURI;
@@ -81,6 +85,8 @@ public class SpoofaxContext implements Serializable {
         unitService = newInjector.getInstance(ISpoofaxUnitService.class);
         syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);
         termFactoryService = newInjector.getInstance(ITermFactoryService.class);
+        signatureService = newInjector.getInstance(ISignatureService.class);
+        signatureSerializer = newInjector.getInstance(ISignatureSerializer.class);
     }
 
 
@@ -187,6 +193,14 @@ public class SpoofaxContext implements Serializable {
 
     public ITermFactory termFactory() {
         return termFactoryService.getGeneric();
+    }
+
+    public ISignatureService signatureService() {
+        return signatureService;
+    }
+
+    public ISignatureSerializer signatureSerializer() {
+        return signatureSerializer;
     }
 
 
