@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.generator;
+package org.metaborg.meta.core.mustache;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

@@ -401,7 +401,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // Signature extraction
         final Origin sigExtractOrigin = SignatureBuilder.origin(new SignatureBuilder.Input(context, strGenOrigin));
-        // HACK: require signature extraction for debugging purposes.
         requireBuild(sigExtractOrigin);
 
         // Stratego

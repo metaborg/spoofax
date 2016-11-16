@@ -22,8 +22,9 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.meta.core.project.ILanguageSpecService;
-import org.metaborg.meta.core.signature.ISignatureSerializer;
-import org.metaborg.meta.core.signature.ISignatureService;
+import org.metaborg.meta.core.signature.ISigSerializer;
+import org.metaborg.meta.core.signature.ISigService;
+import org.metaborg.meta.core.signature.generate.ISigGenService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -57,8 +58,9 @@ public class SpoofaxContext implements Serializable {
     private static ISpoofaxUnitService unitService;
     private static ISpoofaxSyntaxService syntaxService;
     private static ITermFactoryService termFactoryService;
-    private static ISignatureService signatureService;
-    private static ISignatureSerializer signatureSerializer;
+    private static ISigService sigService;
+    private static ISigSerializer sigSerializer;
+    private static ISigGenService sigGenService;
 
     public final File baseDir;
     public final URI baseURI;
@@ -85,8 +87,9 @@ public class SpoofaxContext implements Serializable {
         unitService = newInjector.getInstance(ISpoofaxUnitService.class);
         syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);
         termFactoryService = newInjector.getInstance(ITermFactoryService.class);
-        signatureService = newInjector.getInstance(ISignatureService.class);
-        signatureSerializer = newInjector.getInstance(ISignatureSerializer.class);
+        sigService = newInjector.getInstance(ISigService.class);
+        sigSerializer = newInjector.getInstance(ISigSerializer.class);
+        sigGenService = newInjector.getInstance(ISigGenService.class);
     }
 
 
@@ -195,12 +198,16 @@ public class SpoofaxContext implements Serializable {
         return termFactoryService.getGeneric();
     }
 
-    public ISignatureService signatureService() {
-        return signatureService;
+    public ISigService sigService() {
+        return sigService;
     }
 
-    public ISignatureSerializer signatureSerializer() {
-        return signatureSerializer;
+    public ISigSerializer sigSerializer() {
+        return sigSerializer;
+    }
+
+    public ISigGenService sigGenService() {
+        return sigGenService;
     }
 
 

@@ -4,8 +4,9 @@ import java.io.File;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.meta.core.project.ILanguageSpec;
-import org.metaborg.meta.core.signature.Signature;
+import org.metaborg.meta.core.signature.ISig;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -60,9 +61,10 @@ public class SignatureBuilder extends SpoofaxBuilder<SignatureBuilder.Input, Non
         requireBuild(input.origin);
 
         final ILanguageSpec languageSpec = context.languageSpec;
-        final Iterable<Signature> sigs = context.signatureService().extract(languageSpec, this);
-        context.signatureSerializer().write(languageSpec.location(), sigs, this);
-        
+        final FileObject root = languageSpec.location();
+        final Iterable<ISig> sigs = context.sigService().extract(languageSpec, this);
+        context.sigSerializer().write(root, sigs, this);
+
         return None.val;
     }
 }

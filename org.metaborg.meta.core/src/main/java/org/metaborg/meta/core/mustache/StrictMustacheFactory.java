@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.meta.core.generator;
+package org.metaborg.meta.core.mustache;
 
 import java.io.Writer;
 import java.util.List;

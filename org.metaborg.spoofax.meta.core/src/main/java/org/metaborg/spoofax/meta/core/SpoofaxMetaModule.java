@@ -6,7 +6,7 @@ import org.metaborg.meta.core.config.ILanguageSpecConfigService;
 import org.metaborg.meta.core.config.ILanguageSpecConfigWriter;
 import org.metaborg.meta.core.config.LanguageSpecConfigService;
 import org.metaborg.meta.core.project.ILanguageSpecService;
-import org.metaborg.meta.core.signature.ISignatureExtractor;
+import org.metaborg.meta.core.signature.ISigExtractor;
 import org.metaborg.spoofax.meta.core.ant.AntRunnerService;
 import org.metaborg.spoofax.meta.core.ant.IAntRunnerService;
 import org.metaborg.spoofax.meta.core.build.AntBuildStep;
@@ -20,7 +20,7 @@ import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigBuilder;
 import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecService;
-import org.metaborg.spoofax.meta.core.signature.StrategoSignatureExtractor;
+import org.metaborg.spoofax.meta.core.signature.StrategoSigExtractor;
 import org.metaborg.spoofax.meta.core.stratego.primitive.CheckSdf2TablePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.GetSortNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecPpNamePrimitive;
@@ -53,9 +53,9 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
     /**
      * Extends {@link MetaborgMetaModule#bindSignatureExtractors()} for adding Spoofax signature extractors.
      */
-    @Override protected void bindSignatureExtractors(Multibinder<ISignatureExtractor> signatureExtractors) {
-        super.bindSignatureExtractors(signatureExtractors);
-        signatureExtractors.addBinding().to(StrategoSignatureExtractor.class).in(Singleton.class);
+    @Override protected void bindSigExtractors(Multibinder<ISigExtractor> signatureExtractors) {
+        super.bindSigExtractors(signatureExtractors);
+        signatureExtractors.addBinding().to(StrategoSigExtractor.class).in(Singleton.class);
     }
 
     /**

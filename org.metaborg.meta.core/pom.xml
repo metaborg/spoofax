@@ -19,12 +19,17 @@
       <artifactId>org.metaborg.core</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
-    
-     <dependency>
-       <groupId>com.google.code.findbugs</groupId>
-       <artifactId>jsr305</artifactId>
-       <scope>provided</scope>
-     </dependency>
+
+    <dependency>
+      <groupId>com.github.spullara.mustache.java</groupId>
+      <artifactId>compiler</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <developers>

@@ -27,22 +27,22 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class SignatureService implements ISignatureService, ISignatureSerializer {
-    private static final ILogger logger = LoggerUtils.logger(SignatureService.class);
+public class SigService implements ISigService, ISigSerializer {
+    private static final ILogger logger = LoggerUtils.logger(SigService.class);
 
-    private final Set<ISignatureExtractor> extractors;
+    private final Set<ISigExtractor> extractors;
 
 
-    @Inject public SignatureService(Set<ISignatureExtractor> extractors) {
+    @Inject public SigService(Set<ISigExtractor> extractors) {
         this.extractors = extractors;
     }
 
 
-    @Override public Iterable<Signature> extract(ILanguageSpec languageSpec, @Nullable IFileAccess access) {
-        final Collection<Signature> allSignatures = Lists.newArrayList();
-        for(ISignatureExtractor extractor : extractors) {
+    @Override public Iterable<ISig> extract(ILanguageSpec languageSpec, @Nullable IFileAccess access) {
+        final Collection<ISig> allSignatures = Lists.newArrayList();
+        for(ISigExtractor extractor : extractors) {
             try {
-                final Collection<Signature> signatures = extractor.extract(languageSpec, access);
+                final Collection<ISig> signatures = extractor.extract(languageSpec, access);
                 allSignatures.addAll(signatures);
             } catch(IOException | ParseException e) {
                 logger.error("Extracting {} signatures for language specification {} failed; skipping", e, extractor,
@@ -53,7 +53,7 @@ public class SignatureService implements ISignatureService, ISignatureSerializer
     }
 
 
-    @Override public Iterable<Signature> get(ILanguageSpec languageSpec) {
+    @Override public Iterable<ISig> get(ILanguageSpec languageSpec) {
         try {
             final FileObject location = languageSpec.location();
             final FileObject serializeFile = signaturesFile(location);
@@ -66,16 +66,16 @@ public class SignatureService implements ISignatureService, ISignatureSerializer
         }
     }
 
-    @Override public Iterable<Signature> get(ILanguageImpl langImpl) {
-        final Collection<Signature> allSignatures = Lists.newArrayList();
+    @Override public Iterable<ISig> get(ILanguageImpl langImpl) {
+        final Collection<ISig> allSignatures = Lists.newArrayList();
         for(ILanguageComponent langComponent : langImpl.components()) {
-            final Iterable<Signature> signatures = get(langComponent);
+            final Iterable<ISig> signatures = get(langComponent);
             Iterables.addAll(allSignatures, signatures);
         }
         return allSignatures;
     }
 
-    @Override public Iterable<Signature> get(ILanguageComponent langComponent) {
+    @Override public Iterable<ISig> get(ILanguageComponent langComponent) {
         try {
             final FileObject location = langComponent.location();
             final FileObject serializeFile = signaturesFile(location);
@@ -89,7 +89,7 @@ public class SignatureService implements ISignatureService, ISignatureSerializer
     }
 
 
-    @SuppressWarnings("unchecked") public Iterable<Signature> read(FileObject location, @Nullable IFileAccess access)
+    @SuppressWarnings("unchecked") public Iterable<ISig> read(FileObject location, @Nullable IFileAccess access)
         throws IOException {
         try {
             final FileObject serializeFile = signaturesFile(location);
@@ -98,14 +98,14 @@ public class SignatureService implements ISignatureService, ISignatureSerializer
             }
             final InputStream inputStream = serializeFile.getContent().getInputStream();
             try(final ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
-                return (Iterable<Signature>) objectInputStream.readObject();
+                return (Iterable<ISig>) objectInputStream.readObject();
             }
         } catch(ClassCastException | ClassNotFoundException e) {
             throw new MetaborgRuntimeException("Deserializing signatures to file failed unexpectedly", e);
         }
     }
 
-    @Override public void write(FileObject location, Iterable<Signature> signatures, @Nullable IFileAccess access)
+    @Override public void write(FileObject location, Iterable<ISig> signatures, @Nullable IFileAccess access)
         throws IOException {
         final FileObject serializeFile = signaturesFile(location);
         final OutputStream outputStream = serializeFile.getContent().getOutputStream();
