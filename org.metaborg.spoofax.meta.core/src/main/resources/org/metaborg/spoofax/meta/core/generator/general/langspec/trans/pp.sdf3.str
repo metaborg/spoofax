@@ -21,19 +21,19 @@ rules
   
   pp-{{name}}-string =
     parenthesize-{{name}}
-    ; prettyprint-{{name}}-start-symbols
+    ; prettyprint-{{ppName}}-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
   pp-partial-{{name}}-string =
     parenthesize-{{name}}
-    ; prettyprint-{{name}}
+    ; prettyprint-{{ppName}}
     ; !V([], <id>)
     ; box2text-string(|120)
     
   pp-partial-{{name}}-string(|sort) =
     parenthesize-{{name}}
-    ; prettyprint-{{name}}(|sort)
+    ; prettyprint-{{ppName}}(|sort)
     ; !V([], <id>)
     ; box2text-string(|120)  
       
