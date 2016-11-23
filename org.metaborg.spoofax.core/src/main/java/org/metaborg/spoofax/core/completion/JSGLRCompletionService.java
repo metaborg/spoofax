@@ -93,9 +93,19 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             completionParseResult = syntaxService.parse(modifiedInput);
         }
 
-
-
         Collection<ICompletion> completions = Lists.newLinkedList();
+
+        // Completion in case of empty input
+        String inputText = parseInput.input().text();
+        if(inputText.trim().isEmpty()) {
+            final ILanguageImpl language = parseInput.input().langImpl();
+            final FileObject location = parseInput.source();
+            final Iterable<String> startSymbols = language.facet(SyntaxFacet.class).startSymbols;
+            completions.addAll(completionEmptyProgram(startSymbols, inputText.length(), language, location));
+            
+            return completions;
+        }
+
 
         if(completionParseResult != null && completionParseResult.ast() == null) {
             return completions;
@@ -104,30 +114,21 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<IStrategoTerm> nestedCompletionTerms = getNestedCompletionTermsFromAST(completionParseResult);
         Collection<IStrategoTerm> completionTerms = getCompletionTermsFromAST(completionParseResult);
 
-        String inputText = parseInput.input().text();
+        boolean blankLineCompletion = isCompletionBlankLine(position, parseInput.input().text());
 
-        // Completion in case of empty input
-        if(inputText.trim().isEmpty()) {
-            final ILanguageImpl language = parseInput.input().langImpl();
-            final FileObject location = parseInput.source();
-            final Iterable<String> startSymbols = language.facet(SyntaxFacet.class).startSymbols;
-            completions.addAll(completionEmptyProgram(startSymbols, inputText.length(), language, location));
-        } else {
-            boolean blankLineCompletion = isCompletionBlankLine(position, parseInput.input().text());
-
-            if(!completionTerms.isEmpty()) {
-                completions.addAll(completionErroneousPrograms(position, completionTerms, completionParseResult));
-            }
-
-            if(!nestedCompletionTerms.isEmpty()) {
-                completions
-                    .addAll(completionErroneousProgramsNested(position, nestedCompletionTerms, completionParseResult));
-            }
-
-            if(completionTerms.isEmpty() && nestedCompletionTerms.isEmpty()) {
-                completions.addAll(completionCorrectPrograms(position, blankLineCompletion, parseInput));
-            }
+        if(!completionTerms.isEmpty()) {
+            completions.addAll(completionErroneousPrograms(position, completionTerms, completionParseResult));
         }
+
+        if(!nestedCompletionTerms.isEmpty()) {
+            completions
+                .addAll(completionErroneousProgramsNested(position, nestedCompletionTerms, completionParseResult));
+        }
+
+        if(completionTerms.isEmpty() && nestedCompletionTerms.isEmpty()) {
+            completions.addAll(completionCorrectPrograms(position, blankLineCompletion, parseInput));
+        }
+
 
         return completions;
 
@@ -250,10 +251,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                         .addAll(optionalCompletions(optionals, blankLineCompletion, languageName, component, location));
                 }
                 // TODO Improve recursive completions
-//                if(Iterables.size(leftRecursive) != 0 || Iterables.size(rightRecursive) != 0) {
-//                    completions
-//                        .addAll(recursiveCompletions(leftRecursive, rightRecursive, languageName, component, location));
-//                }
+                // if(Iterables.size(leftRecursive) != 0 || Iterables.size(rightRecursive) != 0) {
+                // completions
+                // .addAll(recursiveCompletions(leftRecursive, rightRecursive, languageName, component, location));
+                // }
             }
         }
         return completions;
@@ -1606,7 +1607,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             try {
                 isLeftRecursive = strategoCommon.invoke(runtime, input, "is-left-recursive") != null;
             } catch(MetaborgException e) {
-                logger.error("Failed to check recursivity for term {} of sort {} - syntactic completion not activated for this language, please import the completion stratego library", fragment, sort);
+                logger.error(
+                    "Failed to check recursivity for term {} of sort {} - syntactic completion not activated for this language, please import the completion stratego library",
+                    fragment, sort);
             }
         }
         boolean isRightRecursive = false;
@@ -1615,7 +1618,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             try {
                 isRightRecursive = strategoCommon.invoke(runtime, input, "is-right-recursive") != null;
             } catch(MetaborgException e) {
-                logger.error("Failed to check recursivity for term {} of sort {} - syntactic completion not activated for this language, please import the completion stratego library", fragment, sort);
+                logger.error(
+                    "Failed to check recursivity for term {} of sort {} - syntactic completion not activated for this language, please import the completion stratego library",
+                    fragment, sort);
             }
         }
 

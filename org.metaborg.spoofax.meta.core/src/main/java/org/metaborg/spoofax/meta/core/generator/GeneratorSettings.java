@@ -105,6 +105,10 @@ public class GeneratorSettings {
         return config.name();
     }
 
+    public String ppName() {
+        return config.prettyPrintLanguage();
+    }
+
     public FileObject location() {
         return location;
     }
