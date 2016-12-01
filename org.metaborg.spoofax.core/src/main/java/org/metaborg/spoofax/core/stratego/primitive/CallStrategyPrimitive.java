@@ -1,37 +1,41 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
+import java.util.List;
+
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.config.IProjectConfig;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
-import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.ILanguageService;
-import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
-    private final IContextService contextService;
-    private final ILanguageService languageService;
+    private static final ILogger logger = LoggerUtils.logger(CallStrategyPrimitive.class);
 
+    private final IDependencyService dependencyService;
+    private final IContextService contextService;
     private final IStrategoCommon common;
 
 
-    @Inject public CallStrategyPrimitive(IContextService contextService, ILanguageService languageService,
-        IProjectService projectService, IStrategoCommon common) {
+    @Inject public CallStrategyPrimitive(IDependencyService dependencyService, IContextService contextService,
+        IStrategoCommon common) {
         super("call_strategy", 0, 2);
 
+        this.dependencyService = dependencyService;
         this.contextService = contextService;
-        this.languageService = languageService;
         this.common = common;
     }
 
@@ -41,49 +45,28 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
         final String languageName = Tools.asJavaString(tvars[0]);
         final String strategyName = Tools.asJavaString(tvars[1]);
 
-        // GTODO: require language identifier instead of language name
-        IProjectConfig config = currentContext.project().config();
-        try {
-            if(config != null) {
-                for(LanguageIdentifier id : config.compileDeps()) {
-                    ILanguageImpl activeImpl = languageService.getImpl(id);
-                    if(activeImpl == null || !activeImpl.belongsTo().name().equals(languageName)) {
-                        continue;
-                    }
-                    IContext context = contextService.get(currentContext.location(), currentContext.project(), activeImpl);
-                    ILanguageComponent component = languageService.getComponent(id);
-                    if(component == null) {
-                        continue;
-                    }
-                    IStrategoTerm result = common.invoke(component, context, current, strategyName);
-                    if(result != null) {
-                        return result;
-                    }
-                }
-                final String message = String.format("Stratego strategy call of '%s' into language %s failed, no suitable components found.",
-                    strategyName, languageName);
-                throw new MetaborgException(message);
-
-            } else {
-                ILanguage lang = languageService.getLanguage(languageName);
-                if(lang == null) {
-                    final String message = String.format("Stratego strategy call of '%s' into language %s failed, language not found.",
-                        strategyName, languageName);
-                    throw new MetaborgException(message);
-                }
-                ILanguageImpl activeImpl = lang.activeImpl();
-                if(activeImpl == null) {
-                    final String message = String.format("Stratego strategy call of '%s' into language %s failed, no active implementation found.",
-                        strategyName, languageName);
-                    throw new MetaborgException(message);
-                }
-                IContext context = contextService.get(currentContext.location(), currentContext.project(), activeImpl);
-                return common.invoke(activeImpl, context, current, strategyName);
+        final Iterable<ILanguageComponent> compileDeps = dependencyService.compileDeps(currentContext.project());
+        final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(compileDeps);
+        final List<ILanguageImpl> selectedImpls = Lists.newArrayList();
+        for(ILanguageImpl impl : impls) {
+            if(impl.belongsTo().name().equals(languageName)) {
+                selectedImpls.add(impl);
             }
-        } catch(MetaborgException e) {
-            final String message = String.format("Stratego strategy call of '%s' into language %s failed unexpectedly",
-                strategyName, languageName);
-            throw new MetaborgException(message, e);
         }
+        if(selectedImpls.isEmpty()) {
+            final String message = logger.format(
+                "Stratego strategy call of '{}' into language '{}' failed, no language implementation found",
+                strategyName, languageName);
+            throw new MetaborgException(message);
+        } else if(selectedImpls.size() > 1) {
+            final String message = logger.format(
+                "Stratego strategy call of '{}' into language '{}' failed, multiple language implementations found: {}",
+                strategyName, languageName, Joiner.on(", ").join(selectedImpls));
+            throw new MetaborgException(message);
+        }
+        final ILanguageImpl impl = selectedImpls.get(0);
+
+        final IContext context = contextService.get(currentContext.location(), currentContext.project(), impl);
+        return common.invoke(impl, context, current, strategyName);
     }
 }

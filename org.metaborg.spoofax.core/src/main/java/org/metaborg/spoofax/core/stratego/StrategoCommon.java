@@ -80,7 +80,6 @@ public class StrategoCommon implements IStrategoCommon {
                 continue;
             }
 
-            // TODO: do we really want to be typesmart? Does that need to be configurable?
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
             final IStrategoTerm result = invoke(runtime, input, strategy);
             if(result != null) {
