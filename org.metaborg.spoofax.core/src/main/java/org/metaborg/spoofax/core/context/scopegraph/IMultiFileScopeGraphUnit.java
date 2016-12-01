@@ -1,12 +1,16 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
-import org.metaborg.nabl2.context.IScopeGraphUnit;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import java.util.Optional;
+
+import org.metaborg.meta.nabl2.spoofax.IScopeGraphUnit;
+import org.metaborg.meta.nabl2.spoofax.UnitResult;
 
 public interface IMultiFileScopeGraphUnit extends IScopeGraphUnit {
 
-    void setPartialAnalysis(IStrategoTerm partialAnalysis);
+    void setUnitResult(UnitResult result);
 
-    void reset();
+    Optional<UnitResult> unitResult();
+
+    void clear();
 
 }

@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,6 +14,9 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.source.ISourceLocation;
+import org.metaborg.meta.nabl2.solver.Message;
+import org.metaborg.meta.nabl2.terms.ITermFactory;
+import org.metaborg.meta.nabl2.terms.generic.GenericTermFactory;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -28,13 +33,12 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
@@ -47,12 +51,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected final IStrategoCommon strategoCommon;
     protected final ISpoofaxTracingService tracingService;
 
+    protected final org.spoofax.interpreter.terms.ITermFactory strategoTermFactory;
     protected final ITermFactory termFactory;
-    protected final IStrategoConstructor analyzeInitial;
-    protected final IStrategoConstructor analyzeUnit;
-    protected final IStrategoConstructor analyzeFinal;
-    protected final IStrategoConstructor applyAnalysis;
-    protected final IStrategoConstructor substitutionNew;
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IStrategoRuntimeService runtimeService,
             final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
@@ -61,12 +61,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         this.runtimeService = runtimeService;
         this.strategoCommon = strategoCommon;
         this.tracingService = tracingService;
-        termFactory = termFactoryService.getGeneric();
-        analyzeInitial = termFactory.makeConstructor("AnalyzeInitial", 1);
-        analyzeUnit = termFactory.makeConstructor("AnalyzeUnit", 3);
-        analyzeFinal = termFactory.makeConstructor("AnalyzeFinal", 3);
-        applyAnalysis = termFactory.makeConstructor("ApplyAnalysis", 2);
-        substitutionNew = termFactory.makeConstructor("SubstitutionNew", 1);
+        strategoTermFactory = termFactoryService.getGeneric();
+        termFactory = new GenericTermFactory();
     }
 
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext)
@@ -83,9 +79,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                 results.context());
     }
 
-    @SuppressWarnings("unchecked")
-    @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext)
-            throws AnalysisException {
+    @SuppressWarnings("unchecked") @Override public ISpoofaxAnalyzeResults analyzeAll(
+            Iterable<ISpoofaxParseUnit> inputs, IContext genericContext) throws AnalysisException {
         C context;
         try {
             context = (C) genericContext;
@@ -137,24 +132,30 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         }
     }
 
-    protected Multimap<String,IMessage> messages(IStrategoTerm messageList, MessageSeverity severity) {
+    protected Multimap<String,IMessage> messagesByFile(Iterable<Message> messageList, MessageSeverity severity) {
         Multimap<String,IMessage> messages = HashMultimap.create();
-        for (IStrategoTerm messageTerm : messageList) {
-            if (messageTerm.getSubtermCount() != 2) {
-                logger.error("Analysis message has wrong format, skipping: {}", messageTerm);
-                continue;
-            }
-            final IStrategoTerm originTerm = messageTerm.getSubterm(0);
-            final String message = messageTerm.getSubterm(1).toString();
-            final ISourceLocation location = tracingService.location(originTerm);
-            if (location == null) {
-                logger.error("Analysis message has no origin, skipping: {}", messageTerm);
-                continue;
-            }
-            messages.put(location.resource().getName().getURI(),
-                    MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null));
+        for (Message messageTerm : messageList) {
+            IMessage message = message(messageTerm, severity);
+            messages.put(message.source().getName().getURI(), message);
         }
         return messages;
     }
 
+    protected Collection<IMessage> messages(Iterable<Message> messageList, MessageSeverity severity) {
+        List<IMessage> messages = Lists.newArrayList();
+        for (Message messageTerm : messageList) {
+            IMessage message = message(messageTerm, severity);
+            messages.add(message);
+        }
+        return messages;
+    }
+
+    protected IMessage message(Message message, MessageSeverity severity) {
+            final ISourceLocation location = tracingService.location(message.getProgramPoint());
+            assert location != null;
+            return MessageFactory.newAnalysisMessage(location.resource(),
+                    location.region(), message.getMessage(), severity, null);
+    }
+    
+    
 }

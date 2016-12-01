@@ -1,10 +1,10 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
-import org.metaborg.scopegraph.INameResolution;
-import org.metaborg.scopegraph.IScopeGraph;
-import org.metaborg.scopegraph.impl.ASTMetadata;
-import org.metaborg.scopegraph.impl.OccurrenceTypes;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import java.util.Optional;
+
+import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.spoofax.FinalResult;
+import org.metaborg.meta.nabl2.spoofax.InitialResult;
 
 public class TemporaryMultiFileScopeGraphContext extends AbstractTemporaryScopeGraphContext<IMultiFileScopeGraphUnit>
         implements IMultiFileScopeGraphContext {
@@ -16,28 +16,34 @@ public class TemporaryMultiFileScopeGraphContext extends AbstractTemporaryScopeG
         this.context = context;
     }
 
-    @Override public void setScopeGraph(IScopeGraph scopeGraph) {
-        context.setScopeGraph(scopeGraph);
-    }
-
-    @Override public void setNameResolution(INameResolution nameResolution) {
-        context.setNameResolution(nameResolution);
-    }
-
-    @Override public void setAstMetadata(ASTMetadata astMetadata) {
-        context.setAstMetadata(astMetadata);
-    }
-    
-    @Override public void setOccurrenceTypes(OccurrenceTypes occurrenceTypes) {
-        context.setOccurrenceTypes(occurrenceTypes);
-    }
-    
-    @Override public void setAnalysis(IStrategoTerm analysis) {
-        context.setAnalysis(analysis);
-    }
-
-    @Override public void clear() {
+    @Override
+    public void clear() {
         context.clear();
+    }
+
+    @Override
+    public void setInitialResult(InitialResult result) {
+        context.setInitialResult(result);
+    }
+
+    @Override
+    public Optional<InitialResult> initialResult() {
+        return context.initialResult();
+    }
+
+    @Override
+    public void setSolution(ISolution solution) {
+        context.setSolution(solution);
+    }
+
+    @Override
+    public void setFinalResult(FinalResult result) {
+        context.setFinalResult(result);
+    }
+
+    @Override
+    public Optional<FinalResult> finalResult() {
+        return context.finalResult();
     }
 
 }

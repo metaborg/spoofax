@@ -34,6 +34,10 @@ import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformer;
 import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ast_index;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_index_ast;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_index_sublist;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_set_ast_index;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.action.ActionService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
@@ -91,6 +95,7 @@ import org.metaborg.spoofax.core.stratego.primitive.LocalPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LocalReplicatePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ProjectPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.generic.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyForeignCallPrimitive;
@@ -105,15 +110,6 @@ import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacySpoofaxPrimitiv
 import org.metaborg.spoofax.core.stratego.primitive.legacy.parse.LegacyParseFilePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.parse.LegacyParseFilePtPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.parse.LegacySpoofaxJSGLRLibrary;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.SG_get_ast_analysis;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.SG_get_ast_index;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.SG_get_ast_references;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.SG_get_resource_analysis;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.SG_get_resource_partial_analysis;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.SG_index_ast;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.SG_index_sublist;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.SG_set_ast_index;
-import org.metaborg.spoofax.core.stratego.primitive.scopegraph.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.style.CategorizerService;
@@ -327,14 +323,10 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary = Multibinder.newSetBinder(binder(),
                 AbstractPrimitive.class, Names.named("ScopeGraphLibrary"));
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_analysis.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_resource_analysis.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_resource_partial_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_index_ast.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_index_sublist.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_references.class);
 
         final Multibinder<AbstractPrimitive> legacySpoofaxLibrary = Multibinder.newSetBinder(binder(),
                 AbstractPrimitive.class, Names.named(LegacySpoofaxPrimitiveLibrary.name));

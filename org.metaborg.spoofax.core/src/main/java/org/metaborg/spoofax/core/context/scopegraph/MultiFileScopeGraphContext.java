@@ -3,16 +3,14 @@ package org.metaborg.spoofax.core.context.scopegraph;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
-
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 import org.metaborg.core.context.ContextIdentifier;
-import org.metaborg.scopegraph.INameResolution;
-import org.metaborg.scopegraph.IScopeGraph;
-import org.metaborg.scopegraph.impl.ASTMetadata;
-import org.metaborg.scopegraph.impl.OccurrenceTypes;
+import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.spoofax.FinalResult;
+import org.metaborg.meta.nabl2.spoofax.InitialResult;
+import org.metaborg.meta.nabl2.spoofax.UnitResult;
 import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContext.State;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
@@ -24,47 +22,57 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         super(injector, identifier);
     }
 
-    @Override protected State initState() {
+    @Override
+    protected State initState() {
         return new State();
     }
 
-    @Override public IMultiFileScopeGraphUnit unit(String resource) {
+    @Override
+    public IMultiFileScopeGraphUnit unit(String resource) {
         IMultiFileScopeGraphUnit unit;
-        if ((unit = state.units.get(resource)) == null) {
+        if((unit = state.units.get(resource)) == null) {
             state.units.put(resource, (unit = state.new Unit(resource)));
         }
         return unit;
     }
 
-    @Override public void removeUnit(String resource) {
+    @Override
+    public void removeUnit(String resource) {
         state.units.remove(resource);
     }
 
-    @Override public Collection<IMultiFileScopeGraphUnit> units() {
+    @Override
+    public Collection<IMultiFileScopeGraphUnit> units() {
         return state.units.values();
     }
 
-    @Override public void setScopeGraph(IScopeGraph scopeGraph) {
-        state.scopeGraph = scopeGraph;
+    @Override
+    public void setInitialResult(InitialResult result) {
+        state.initialResult = Optional.of(result);
     }
 
-    @Override public void setNameResolution(INameResolution nameResolution) {
-        state.nameResolution = nameResolution;
+    @Override
+    public Optional<InitialResult> initialResult() {
+        return state.initialResult;
     }
 
-    @Override public void setAstMetadata(ASTMetadata astMetadata) {
-        state.astMetadata = astMetadata;
-    }
-    
-    @Override public void setOccurrenceTypes(OccurrenceTypes occurrenceTypes) {
-        state.occurrenceTypes = occurrenceTypes;
-    }
-    
-    @Override public void setAnalysis(IStrategoTerm analysis) {
-        state.analysis = analysis;
+    @Override
+    public void setSolution(ISolution solution) {
+        state.solution = Optional.of(solution);
     }
 
-    @Override public void clear() {
+    @Override
+    public void setFinalResult(FinalResult result) {
+        state.finalResult = Optional.of(result);
+    }
+
+    @Override
+    public Optional<FinalResult> finalResult() {
+        return state.finalResult;
+    }
+
+    @Override
+    public void clear() {
         state.clear();
     }
 
@@ -72,18 +80,20 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
 
         private static final long serialVersionUID = -8133657561476824164L;
 
-        final Map<String,IMultiFileScopeGraphUnit> units = Maps.newHashMap();
+        final Map<String, IMultiFileScopeGraphUnit> units = Maps.newHashMap();
 
-        @Nullable IStrategoTerm analysis;
-        @Nullable INameResolution nameResolution;
-        @Nullable IScopeGraph scopeGraph;
-        @Nullable ASTMetadata astMetadata;
-        @Nullable OccurrenceTypes occurrenceTypes;
+        Optional<InitialResult> initialResult;
+        Optional<ISolution> solution;
+        Optional<FinalResult> finalResult;
+
+        public State() {
+            clear();
+        }
 
         public void clear() {
-            analysis = null;
-            nameResolution = null;
-            scopeGraph = null;
+            this.initialResult = Optional.empty();
+            this.solution = Optional.empty();
+            this.finalResult = Optional.empty();
         }
 
         class Unit implements IMultiFileScopeGraphUnit {
@@ -92,46 +102,36 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
 
             private final String resource;
 
-            private @Nullable IStrategoTerm partialAnalysis;
+            private Optional<UnitResult> unitResult;
 
             private Unit(String resource) {
                 this.resource = resource;
+                clear();
             }
 
-            @Override public String resource() {
+            @Override
+            public String resource() {
                 return resource;
             }
 
-            @Override public IStrategoTerm partialAnalysis() {
-                return partialAnalysis;
+            @Override
+            public void setUnitResult(UnitResult result) {
+                unitResult = Optional.of(result);
             }
 
-            @Override public IScopeGraph scopeGraph() {
-                return scopeGraph;
+            @Override
+            public Optional<UnitResult> unitResult() {
+                return unitResult;
             }
 
-            @Override public INameResolution nameResolution() {
-                return nameResolution;
+            @Override
+            public Optional<ISolution> solution() {
+                return solution;
             }
 
-            @Override public ASTMetadata astMetadata() {
-                return astMetadata;
-            }
-            
-            @Override public OccurrenceTypes occurrenceTypes() {
-                return occurrenceTypes;
-            }
-            
-            @Override public IStrategoTerm analysis() {
-                return analysis;
-            }
-
-            @Override public void setPartialAnalysis(IStrategoTerm partialAnalysis) {
-                this.partialAnalysis = partialAnalysis;
-            }
-
-            @Override public void reset() {
-                this.partialAnalysis = null;
+            @Override
+            public void clear() {
+                this.unitResult = Optional.empty();
             }
 
         }

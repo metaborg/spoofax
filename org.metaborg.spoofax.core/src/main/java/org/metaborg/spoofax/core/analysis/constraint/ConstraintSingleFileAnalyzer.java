@@ -7,8 +7,20 @@ import java.util.Map;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
-import org.metaborg.nabl2.indices.TermIndex;
+import org.metaborg.meta.nabl2.ScopeGraphException;
+import org.metaborg.meta.nabl2.constraints.IConstraint;
+import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.Solver;
+import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
+import org.metaborg.meta.nabl2.spoofax.Actions;
+import org.metaborg.meta.nabl2.spoofax.FinalResult;
+import org.metaborg.meta.nabl2.spoofax.InitialResult;
+import org.metaborg.meta.nabl2.spoofax.Results;
+import org.metaborg.meta.nabl2.spoofax.UnitResult;
+import org.metaborg.meta.nabl2.stratego.StrategoCommon;
+import org.metaborg.meta.nabl2.stratego.StrategoConstraints;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -24,11 +36,13 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
@@ -39,7 +53,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
     public static final String name = "constraint-singlefile";
 
     private final ISpoofaxUnitService unitService;
-    private final ResultBuilder resultBuilder;
+    private final Results resultBuilder;
+    private final Actions actionBuilder;
 
     @Inject public ConstraintSingleFileAnalyzer(final AnalysisCommon analysisCommon,
             final ISpoofaxUnitService unitService, final IStrategoRuntimeService runtimeService,
@@ -47,7 +62,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
             final ISpoofaxTracingService tracingService) {
         super(analysisCommon, runtimeService, strategoCommon, termFactoryService, tracingService);
         this.unitService = unitService;
-        this.resultBuilder = new ResultBuilder();
+        this.resultBuilder = new Results(new StrategoConstraints(new StrategoCommon(termFactory, strategoTermFactory)));
+        this.actionBuilder = new Actions(strategoTermFactory);
     }
 
     @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
@@ -57,6 +73,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
             context.removeUnit(input);
         }
 
+        final String globalSource = context.location().getName().getURI();
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         for (Map.Entry<String,ISpoofaxParseUnit> input : changed.entrySet()) {
             String source = input.getKey();
@@ -66,46 +83,34 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 ISingleFileScopeGraphUnit unit = context.unit(source);
                 unit.clear();
 
-                String globalSource = context.location().getName().getURI();
-                IStrategoTerm initTerm = termFactory.makeString(globalSource);
-                TermIndex.put(initTerm, source, 0);
-
-                IStrategoTerm sourceTerm = termFactory.makeString(source);
-                TermIndex.put(sourceTerm, source, 0);
-
-                IStrategoTerm initialResultTerm = doAction(strategy, termFactory.makeAppl(analyzeInitial, initTerm),
-                        context, runtime);
-                InitialResult initialResult;
-                initialResult = resultBuilder.initialResult(initialResultTerm);
-                if (!initialResult.analysis.isList()) {
-                    logger.warn("Initial analysis result is not a list, but " + initialResult.analysis);
-                }
-
-                IStrategoTerm unitResultTerm = doAction(strategy,
-                        termFactory.makeAppl(analyzeUnit, sourceTerm, parseUnit.ast(), initialResult.analysis), context,
+                // initial
+                IStrategoTerm initialResultTerm = doAction(strategy, actionBuilder.initialOf(globalSource), context,
                         runtime);
-                UnitResult unitResult = resultBuilder.unitResult(unitResultTerm);
-                if (!unitResult.analysis.isList()) {
-                    logger.warn("Unit analysis result is not a list, but " + unitResult.analysis);
-                }
+                InitialResult initialResult = resultBuilder.initialOf(initialResultTerm);
 
-                IStrategoTerm finalResultTerm = doAction(strategy, termFactory.makeAppl(analyzeFinal, sourceTerm,
-                        initialResult.analysis, termFactory.makeList(unitResult.analysis)), context, runtime);
-                FinalResult finalResult = resultBuilder.finalResult(finalResultTerm);
-                unit.setScopeGraph(finalResult.scopeGraph);
-                unit.setNameResolution(finalResult.nameResolution);
-                unit.setOccurrenceTypes(finalResult.occurrenceTypes);
-                unit.setAstMetadata(finalResult.astMetadata);
-                unit.setAnalysis(finalResult.analysis);
+                // unit
+                IStrategoTerm unitResultTerm = doAction(strategy, actionBuilder.unitOf(source, parseUnit.ast(),
+                        initialResult.getParams(), initialResult.getType()), context, runtime);
+                UnitResult unitResult = resultBuilder.unitOf(unitResultTerm);
+                unit.setUnitResult(unitResult);
 
-                final Collection<IMessage> errors = analysisCommon.messages(parseUnit.source(), MessageSeverity.ERROR,
-                        finalResult.errors);
-                final Collection<IMessage> warnings = analysisCommon.messages(parseUnit.source(),
-                        MessageSeverity.WARNING, finalResult.warnings);
-                final Collection<IMessage> notes = analysisCommon.messages(parseUnit.source(), MessageSeverity.NOTE,
-                        finalResult.notes);
+                // solve
+                Iterable<IConstraint> constraints = Iterables.concat(initialResult.getConstraints(),
+                        unitResult.getConstraints());
+                ISolution solution = Solver.solve(constraints, termFactory);
+                unit.setSolution(solution);
+
+                // final
+                IStrategoTerm finalResultTerm = doAction(strategy, actionBuilder.finalOf(source), context, runtime);
+                FinalResult finalResult = resultBuilder.finalOf(finalResultTerm);
+                unit.setFinalResult(finalResult);
+
+                // errors
+                final Collection<IMessage> errors = messages(solution.getErrors(), MessageSeverity.ERROR);
+                final Collection<IMessage> warnings = messages(solution.getWarnings(), MessageSeverity.WARNING);
+                final Collection<IMessage> notes = messages(solution.getNotes(), MessageSeverity.NOTE);
                 final Collection<IMessage> ambiguities = analysisCommon.ambiguityMessages(parseUnit.source(),
-                        unitResult.ast);
+                        unitResult.getAST());
                 final Collection<IMessage> messages = Lists
                         .newArrayListWithCapacity(errors.size() + warnings.size() + notes.size() + ambiguities.size());
                 messages.addAll(errors);
@@ -113,10 +118,15 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 messages.addAll(notes);
                 messages.addAll(ambiguities);
 
+                // result
                 results.add(unitService.analyzeUnit(parseUnit,
-                        new AnalyzeContrib(true, errors.isEmpty(), true, unitResult.ast, messages, -1), context));
-            } catch (MetaborgException e) {
-                logger.warn("Skipping {}, because analysis failed\n{}", source, e);
+                        new AnalyzeContrib(true, errors.isEmpty(), true, unitResult.getAST(), messages, -1), context));
+            } catch (MetaborgException | ScopeGraphException | UnsatisfiableException e) {
+                logger.warn("File analysis failed.", e);
+                Iterable<IMessage> messages = Iterables2.singleton(
+                        MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
+                results.add(unitService.analyzeUnit(parseUnit,
+                        new AnalyzeContrib(true, false, false, null, messages, -1), context));
             }
         }
         return new SpoofaxAnalyzeResults(results, Collections.<ISpoofaxAnalyzeUnitUpdate> emptyList(), context);

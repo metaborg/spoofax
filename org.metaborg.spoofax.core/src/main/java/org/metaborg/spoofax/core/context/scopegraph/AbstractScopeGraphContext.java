@@ -74,6 +74,10 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         return lock;
     }
 
+    public IClosableLock guard() {
+        return read();
+    }
+    
     @Override public IClosableLock write() {
         final IClosableLock lock = writeLock();
         if (state == null) {
