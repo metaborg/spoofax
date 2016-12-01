@@ -150,7 +150,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
                     return readContext(contextFile);
                 }
             } catch (IOException | ClassNotFoundException e) {
-                logger.warn("Load context {} failed.", contextFile, e);
+                logger.warn("Load context {} failed.", e, contextFile);
                 deleteContextFile(contextFile);
             }
         } catch (IOException e) {
@@ -182,7 +182,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
             try {
                 writeContext(contextFile);
             } catch (IOException e) {
-                logger.warn("Store context {} failed.", contextFile, e);
+                logger.warn("Store context {} failed.", e, contextFile);
             }
         } catch (IOException e) {
             logger.warn("Failed to locate context.", e);

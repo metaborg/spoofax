@@ -11,7 +11,7 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.meta.nabl2.ScopeGraphException;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
 import org.metaborg.meta.nabl2.spoofax.Actions;
@@ -97,7 +97,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 // solve
                 Iterable<IConstraint> constraints = Iterables.concat(initialResult.getConstraints(),
                         unitResult.getConstraints());
-                ISolution solution = Solver.solve(constraints, termFactory);
+                Solution solution = Solver.solve(constraints, termFactory);
                 unit.setSolution(solution);
 
                 // final
@@ -106,9 +106,12 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 unit.setFinalResult(finalResult);
 
                 // errors
-                final Collection<IMessage> errors = messages(solution.getErrors(), MessageSeverity.ERROR);
-                final Collection<IMessage> warnings = messages(solution.getWarnings(), MessageSeverity.WARNING);
-                final Collection<IMessage> notes = messages(solution.getNotes(), MessageSeverity.NOTE);
+                final Collection<IMessage> errors = messages(parseUnit.source(), solution.getErrors(),
+                        MessageSeverity.ERROR);
+                final Collection<IMessage> warnings = messages(parseUnit.source(), solution.getWarnings(),
+                        MessageSeverity.WARNING);
+                final Collection<IMessage> notes = messages(parseUnit.source(), solution.getNotes(),
+                        MessageSeverity.NOTE);
                 final Collection<IMessage> ambiguities = analysisCommon.ambiguityMessages(parseUnit.source(),
                         unitResult.getAST());
                 final Collection<IMessage> messages = Lists

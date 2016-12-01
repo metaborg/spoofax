@@ -3,8 +3,10 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
@@ -14,7 +16,6 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.source.ISourceLocation;
-import org.metaborg.meta.nabl2.solver.Message;
 import org.metaborg.meta.nabl2.terms.ITermFactory;
 import org.metaborg.meta.nabl2.terms.generic.GenericTermFactory;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
@@ -132,30 +133,39 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         }
     }
 
-    protected Multimap<String,IMessage> messagesByFile(Iterable<Message> messageList, MessageSeverity severity) {
+    protected Multimap<String,IMessage> messagesByFile(Multimap<IStrategoTerm,String> messageMap,
+            MessageSeverity severity) {
         Multimap<String,IMessage> messages = HashMultimap.create();
-        for (Message messageTerm : messageList) {
-            IMessage message = message(messageTerm, severity);
-            messages.put(message.source().getName().getURI(), message);
+        for (Map.Entry<IStrategoTerm,String> entry : messageMap.entries()) {
+            if (entry.getKey() != null) {
+                IMessage message = message(entry.getKey(), entry.getValue(), severity);
+                messages.put(message.source().getName().getURI(), message);
+            } else {
+                logger.warn("Ignoring message: " + entry.getValue());
+            }
         }
         return messages;
     }
 
-    protected Collection<IMessage> messages(Iterable<Message> messageList, MessageSeverity severity) {
+    protected Collection<IMessage> messages(FileObject resource, Multimap<IStrategoTerm,String> messageMap,
+            MessageSeverity severity) {
         List<IMessage> messages = Lists.newArrayList();
-        for (Message messageTerm : messageList) {
-            IMessage message = message(messageTerm, severity);
+        for (Map.Entry<IStrategoTerm,String> entry : messageMap.entries()) {
+            IMessage message = Optional.ofNullable(entry.getKey())
+                    // @formatter:off
+                    .map(term -> message(term, entry.getValue(), severity))
+                    .filter(msg -> msg.source().equals(resource))
+                    .orElseGet(() -> MessageFactory.newAnalysisMessageAtTop(resource, entry.getValue(), severity, null));
+                    // @formatter:on
             messages.add(message);
         }
         return messages;
     }
 
-    protected IMessage message(Message message, MessageSeverity severity) {
-            final ISourceLocation location = tracingService.location(message.getProgramPoint());
-            assert location != null;
-            return MessageFactory.newAnalysisMessage(location.resource(),
-                    location.region(), message.getMessage(), severity, null);
+    protected IMessage message(IStrategoTerm originatingTerm, String message, MessageSeverity severity) {
+        final ISourceLocation location = tracingService.location(originatingTerm);
+        assert location != null;
+        return MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null);
     }
-    
-    
+
 }

@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.metaborg.core.context.ContextIdentifier;
-import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.spoofax.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.UnitResult;
@@ -22,57 +22,47 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         super(injector, identifier);
     }
 
-    @Override
-    protected State initState() {
+    @Override protected State initState() {
         return new State();
     }
 
-    @Override
-    public IMultiFileScopeGraphUnit unit(String resource) {
+    @Override public IMultiFileScopeGraphUnit unit(String resource) {
         IMultiFileScopeGraphUnit unit;
-        if((unit = state.units.get(resource)) == null) {
+        if ((unit = state.units.get(resource)) == null) {
             state.units.put(resource, (unit = state.new Unit(resource)));
         }
         return unit;
     }
 
-    @Override
-    public void removeUnit(String resource) {
+    @Override public void removeUnit(String resource) {
         state.units.remove(resource);
     }
 
-    @Override
-    public Collection<IMultiFileScopeGraphUnit> units() {
+    @Override public Collection<IMultiFileScopeGraphUnit> units() {
         return state.units.values();
     }
 
-    @Override
-    public void setInitialResult(InitialResult result) {
-        state.initialResult = Optional.of(result);
+    @Override public void setInitialResult(InitialResult result) {
+        state.initialResult = result;
     }
 
-    @Override
-    public Optional<InitialResult> initialResult() {
-        return state.initialResult;
+    @Override public Optional<InitialResult> initialResult() {
+        return Optional.ofNullable(state.initialResult);
     }
 
-    @Override
-    public void setSolution(ISolution solution) {
-        state.solution = Optional.of(solution);
+    @Override public void setSolution(Solution solution) {
+        state.solution = solution;
     }
 
-    @Override
-    public void setFinalResult(FinalResult result) {
-        state.finalResult = Optional.of(result);
+    @Override public void setFinalResult(FinalResult result) {
+        state.finalResult = result;
     }
 
-    @Override
-    public Optional<FinalResult> finalResult() {
-        return state.finalResult;
+    @Override public Optional<FinalResult> finalResult() {
+        return Optional.ofNullable(state.finalResult);
     }
 
-    @Override
-    public void clear() {
+    @Override public void clear() {
         state.clear();
     }
 
@@ -80,20 +70,20 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
 
         private static final long serialVersionUID = -8133657561476824164L;
 
-        final Map<String, IMultiFileScopeGraphUnit> units = Maps.newHashMap();
+        final Map<String,IMultiFileScopeGraphUnit> units = Maps.newHashMap();
 
-        Optional<InitialResult> initialResult;
-        Optional<ISolution> solution;
-        Optional<FinalResult> finalResult;
+        InitialResult initialResult;
+        Solution solution;
+        FinalResult finalResult;
 
         public State() {
             clear();
         }
 
         public void clear() {
-            this.initialResult = Optional.empty();
-            this.solution = Optional.empty();
-            this.finalResult = Optional.empty();
+            this.initialResult = null;
+            this.solution = null;
+            this.finalResult = null;
         }
 
         class Unit implements IMultiFileScopeGraphUnit {
@@ -102,36 +92,31 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
 
             private final String resource;
 
-            private Optional<UnitResult> unitResult;
+            private UnitResult unitResult;
 
             private Unit(String resource) {
                 this.resource = resource;
                 clear();
             }
 
-            @Override
-            public String resource() {
+            @Override public String resource() {
                 return resource;
             }
 
-            @Override
-            public void setUnitResult(UnitResult result) {
-                unitResult = Optional.of(result);
+            @Override public void setUnitResult(UnitResult result) {
+                unitResult = result;
             }
 
-            @Override
-            public Optional<UnitResult> unitResult() {
-                return unitResult;
+            @Override public Optional<UnitResult> unitResult() {
+                return Optional.ofNullable(unitResult);
             }
 
-            @Override
-            public Optional<ISolution> solution() {
-                return solution;
+            @Override public Optional<Solution> solution() {
+                return Optional.ofNullable(solution);
             }
 
-            @Override
-            public void clear() {
-                this.unitResult = Optional.empty();
+            @Override public void clear() {
+                this.unitResult = null;
             }
 
         }

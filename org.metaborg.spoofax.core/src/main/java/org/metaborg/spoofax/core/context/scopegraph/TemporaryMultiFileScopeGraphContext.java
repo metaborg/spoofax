@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.util.Optional;
 
-import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.spoofax.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.InitialResult;
 
@@ -32,7 +32,7 @@ public class TemporaryMultiFileScopeGraphContext extends AbstractTemporaryScopeG
     }
 
     @Override
-    public void setSolution(ISolution solution) {
+    public void setSolution(Solution solution) {
         context.setSolution(solution);
     }
 

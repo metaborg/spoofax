@@ -13,7 +13,7 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.ScopeGraphException;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
 import org.metaborg.meta.nabl2.spoofax.Actions;
@@ -127,7 +127,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         }
 
         // solve
-        ISolution solution;
+        Solution solution;
         try {
             solution = Solver.solve(Iterables.concat(constraints), termFactory);
         } catch (UnsatisfiableException e) {

@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.metaborg.core.context.ContextIdentifier;
-import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.spoofax.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.UnitResult;
@@ -58,10 +58,10 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
             private final String resource;
 
-            private Optional<InitialResult> initialResult;
-            private Optional<UnitResult> unitResult;
-            private Optional<ISolution> solution;
-            private Optional<FinalResult> finalResult;
+            private InitialResult initialResult;
+            private UnitResult unitResult;
+            private Solution solution;
+            private FinalResult finalResult;
 
             private Unit(String resource) {
                 this.resource = resource;
@@ -75,50 +75,50 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
             @Override
             public Optional<InitialResult> initialResult() {
-                return initialResult;
+                return Optional.ofNullable(initialResult);
             }
 
             @Override
             public void setInitialResult(InitialResult result) {
-                initialResult = Optional.of(result);
+                initialResult = result;
             }
 
             @Override
             public Optional<UnitResult> unitResult() {
-                return unitResult;
+                return Optional.ofNullable(unitResult);
             }
 
             @Override
             public void setUnitResult(UnitResult result) {
-                unitResult = Optional.of(result);
+                unitResult = result;
             }
 
             @Override
-            public Optional<ISolution> solution() {
-                return solution;
+            public Optional<Solution> solution() {
+                return Optional.ofNullable(solution);
             }
 
             @Override
-            public void setSolution(ISolution solution) {
-                this.solution = Optional.of(solution);
+            public void setSolution(Solution solution) {
+                this.solution = solution;
             }
 
             @Override
             public Optional<FinalResult> finalResult() {
-                return finalResult;
+                return Optional.ofNullable(finalResult);
             }
 
             @Override
             public void setFinalResult(FinalResult result) {
-                finalResult = Optional.of(result);
+                finalResult = result;
             }
 
             @Override
             public void clear() {
-                this.initialResult = Optional.empty();
-                this.unitResult = Optional.empty();
-                this.solution = Optional.empty();
-                this.finalResult = Optional.empty();
+                this.initialResult = null;
+                this.unitResult = null;
+                this.solution = null;
+                this.finalResult = null;
             }
 
         }
