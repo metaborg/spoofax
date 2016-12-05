@@ -143,7 +143,8 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     private S loadOrInitState() {
-        try {
+        logger.warn("PERSISTENCE OF SCOPEGRAPH CONTEXTS TEMPORARILY DISABLED");
+      /*try {
             final FileObject contextFile = contextFile();
             try {
                 if (contextFile.exists()) {
@@ -155,7 +156,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
             }
         } catch (IOException e) {
             logger.warn("Failed to locate context.", e);
-        }
+        }*/
         return initState();
     }
 
