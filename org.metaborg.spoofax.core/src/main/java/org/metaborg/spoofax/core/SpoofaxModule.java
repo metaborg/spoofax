@@ -35,6 +35,7 @@ import org.metaborg.core.transform.ITransformer;
 import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ast_index;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ast_references;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_index_ast;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_index_sublist;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_set_ast_index;
@@ -327,6 +328,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_index_sublist.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_references.class);
 
         final Multibinder<AbstractPrimitive> legacySpoofaxLibrary = Multibinder.newSetBinder(binder(),
                 AbstractPrimitive.class, Names.named(LegacySpoofaxPrimitiveLibrary.name));

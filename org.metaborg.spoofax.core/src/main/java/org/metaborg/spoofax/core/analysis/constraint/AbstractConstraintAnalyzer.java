@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.vfs2.FileObject;
@@ -16,8 +15,9 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.source.ISourceLocation;
-import org.metaborg.meta.nabl2.terms.ITermFactory;
-import org.metaborg.meta.nabl2.terms.generic.GenericTermFactory;
+import org.metaborg.meta.nabl2.collections.Unit;
+import org.metaborg.meta.nabl2.stratego.StrategoTerms;
+import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -35,6 +35,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.HashMultimap;
@@ -52,8 +53,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected final IStrategoCommon strategoCommon;
     protected final ISpoofaxTracingService tracingService;
 
-    protected final org.spoofax.interpreter.terms.ITermFactory strategoTermFactory;
     protected final ITermFactory termFactory;
+    protected final StrategoTerms strategoTerms;
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IStrategoRuntimeService runtimeService,
             final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
@@ -62,8 +63,18 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         this.runtimeService = runtimeService;
         this.strategoCommon = strategoCommon;
         this.tracingService = tracingService;
-        strategoTermFactory = termFactoryService.getGeneric();
-        termFactory = new GenericTermFactory();
+        this.termFactory = termFactoryService.getGeneric();
+        this.strategoTerms = new StrategoTerms(termFactory,
+            // @formatter:off
+            (term, attacher) -> {
+                ISourceLocation location = tracingService.location(term);
+                if (location != null) {
+                    attacher.put(ISourceLocation.class, location);
+                }
+                return Unit.unit;
+            }
+            // @formatter:on
+        );
     }
 
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext)
@@ -76,8 +87,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         if (results.results().isEmpty()) {
             throw new AnalysisException(genericContext, "Analysis failed.");
         }
-        return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(),
-                results.context());
+        return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(), results
+                .context());
     }
 
     @SuppressWarnings("unchecked") @Override public ISpoofaxAnalyzeResults analyzeAll(
@@ -133,10 +144,9 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         }
     }
 
-    protected Multimap<String,IMessage> messagesByFile(Multimap<IStrategoTerm,String> messageMap,
-            MessageSeverity severity) {
+    protected Multimap<String,IMessage> messagesByFile(Multimap<ITerm,String> messageMap, MessageSeverity severity) {
         Multimap<String,IMessage> messages = HashMultimap.create();
-        for (Map.Entry<IStrategoTerm,String> entry : messageMap.entries()) {
+        for (Map.Entry<ITerm,String> entry : messageMap.entries()) {
             if (entry.getKey() != null) {
                 IMessage message = message(entry.getKey(), entry.getValue(), severity);
                 messages.put(message.source().getName().getURI(), message);
@@ -147,23 +157,18 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return messages;
     }
 
-    protected Collection<IMessage> messages(FileObject resource, Multimap<IStrategoTerm,String> messageMap,
+    protected Collection<IMessage> messages(FileObject resource, Multimap<ITerm,String> messageMap,
             MessageSeverity severity) {
         List<IMessage> messages = Lists.newArrayList();
-        for (Map.Entry<IStrategoTerm,String> entry : messageMap.entries()) {
-            IMessage message = Optional.ofNullable(entry.getKey())
-                    // @formatter:off
-                    .map(term -> message(term, entry.getValue(), severity))
-                    .filter(msg -> msg.source().equals(resource))
-                    .orElseGet(() -> MessageFactory.newAnalysisMessageAtTop(resource, entry.getValue(), severity, null));
-                    // @formatter:on
+        for (Map.Entry<ITerm,String> entry : messageMap.entries()) {
+            IMessage message = message(entry.getKey(), entry.getValue(), severity);
             messages.add(message);
         }
         return messages;
     }
 
-    protected IMessage message(IStrategoTerm originatingTerm, String message, MessageSeverity severity) {
-        final ISourceLocation location = tracingService.location(originatingTerm);
+    protected IMessage message(ITerm originatingTerm, String message, MessageSeverity severity) {
+        ISourceLocation location = originatingTerm.getAttachments().getInstance(ISourceLocation.class);
         assert location != null;
         return MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null);
     }
