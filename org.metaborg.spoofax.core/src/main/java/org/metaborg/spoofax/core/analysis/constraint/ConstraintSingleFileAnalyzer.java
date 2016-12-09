@@ -94,7 +94,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 // solve
                 Iterable<IConstraint> constraints = Iterables.concat(initialResult.getConstraints(), unitResult
                         .getConstraints());
-                Solution solution = Solver.solve(constraints);
+                Solution solution = Solver.solve(initialResult.getResolutionParams(), constraints);
                 unit.setSolution(solution);
                 IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
 

@@ -65,45 +65,47 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         this.tracingService = tracingService;
         this.termFactory = termFactoryService.getGeneric();
         this.strategoTerms = new StrategoTerms(termFactory,
-            // @formatter:off
-            (term, attacher) -> {
-                ISourceLocation location = tracingService.location(term);
-                if (location != null) {
-                    attacher.put(ISourceLocation.class, location);
+                // @formatter:off
+                (term, attacher) -> {
+                    ISourceLocation location = tracingService.location(term);
+                    if(location != null) {
+                        attacher.put(ISourceLocation.class, location);
+                    }
+                    return Unit.unit;
                 }
-                return Unit.unit;
-            }
-            // @formatter:on
+        // @formatter:on
         );
     }
 
-    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext)
-            throws AnalysisException {
-        if (!input.valid()) {
+    @Override
+    public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext) throws AnalysisException {
+        if(!input.valid()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(genericContext, message);
         }
         final ISpoofaxAnalyzeResults results = analyzeAll(Iterables2.singleton(input), genericContext);
-        if (results.results().isEmpty()) {
+        if(results.results().isEmpty()) {
             throw new AnalysisException(genericContext, "Analysis failed.");
         }
-        return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(), results
-                .context());
+        return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(),
+                results.context());
     }
 
-    @SuppressWarnings("unchecked") @Override public ISpoofaxAnalyzeResults analyzeAll(
-            Iterable<ISpoofaxParseUnit> inputs, IContext genericContext) throws AnalysisException {
+    @SuppressWarnings("unchecked")
+    @Override
+    public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext)
+            throws AnalysisException {
         C context;
         try {
             context = (C) genericContext;
-        } catch (ClassCastException ex) {
+        } catch(ClassCastException ex) {
             throw new AnalysisException(genericContext, "Scope graph context required for constraint analysis.", ex);
         }
 
         final ILanguageImpl langImpl = context.language();
 
         final FacetContribution<AnalysisFacet> facetContribution = langImpl.facetContribution(AnalysisFacet.class);
-        if (facetContribution == null) {
+        if(facetContribution == null) {
             logger.debug("No analysis required for {}", langImpl);
             return new SpoofaxAnalyzeResults(context);
         }
@@ -112,13 +114,13 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         final HybridInterpreter runtime;
         try {
             runtime = runtimeService.runtime(facetContribution.contributor, context, false);
-        } catch (MetaborgException e) {
+        } catch(MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
-        Map<String,ISpoofaxParseUnit> changed = Maps.newHashMap();
-        Map<String,ISpoofaxParseUnit> removed = Maps.newHashMap();
-        for (ISpoofaxParseUnit input : inputs) {
+        Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
+        Map<String, ISpoofaxParseUnit> removed = Maps.newHashMap();
+        for(ISpoofaxParseUnit input : inputs) {
             String source = input.detached() ? ("detached-" + UUID.randomUUID().toString())
                     : input.source().getName().getURI();
             (input.valid() ? changed : removed).put(source, input);
@@ -126,30 +128,32 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return analyzeAll(changed, removed, context, runtime, facet.strategyName);
     }
 
-    protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
-            Map<String,ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
+    protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed,
+            Map<String, ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
             throws AnalysisException;
 
     protected IStrategoTerm doAction(String strategy, IStrategoTerm action, ISpoofaxScopeGraphContext<?> context,
             HybridInterpreter runtime) throws AnalysisException {
         try {
             IStrategoTerm result = strategoCommon.invoke(runtime, action, strategy);
-            if (result == null) {
+            if(result == null) {
                 throw new MetaborgException("Analysis strategy failed.");
             }
             return result;
-        } catch (MetaborgException ex) {
+        } catch(MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
         }
     }
 
-    protected Multimap<String,IMessage> messagesByFile(Multimap<ITerm,String> messageMap, MessageSeverity severity) {
-        Multimap<String,IMessage> messages = HashMultimap.create();
-        for (Map.Entry<ITerm,String> entry : messageMap.entries()) {
-            if (entry.getKey() != null) {
+    protected Multimap<String, IMessage> messagesByFile(Multimap<ITerm, String> messageMap, MessageSeverity severity) {
+        Multimap<String, IMessage> messages = HashMultimap.create();
+        for(Map.Entry<ITerm, String> entry : messageMap.entries()) {
+            if(entry.getKey() != null) {
                 IMessage message = message(entry.getKey(), entry.getValue(), severity);
-                messages.put(message.source().getName().getURI(), message);
+                if(message != null) {
+                    messages.put(message.source().getName().getURI(), message);
+                }
             } else {
                 logger.warn("Ignoring message: " + entry.getValue());
             }
@@ -157,20 +161,26 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return messages;
     }
 
-    protected Collection<IMessage> messages(FileObject resource, Multimap<ITerm,String> messageMap,
+    protected Collection<IMessage> messages(FileObject resource, Multimap<ITerm, String> messageMap,
             MessageSeverity severity) {
         List<IMessage> messages = Lists.newArrayList();
-        for (Map.Entry<ITerm,String> entry : messageMap.entries()) {
+        for(Map.Entry<ITerm, String> entry : messageMap.entries()) {
             IMessage message = message(entry.getKey(), entry.getValue(), severity);
-            messages.add(message);
+            if(message != null) {
+                messages.add(message);
+            }
         }
         return messages;
     }
 
     protected IMessage message(ITerm originatingTerm, String message, MessageSeverity severity) {
         ISourceLocation location = originatingTerm.getAttachments().getInstance(ISourceLocation.class);
-        assert location != null;
-        return MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null);
+        if(location != null) {
+            return MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null);
+        } else {
+            logger.warn("Ignoring location-less {}: {}", severity, message);
+            return null;
+        }
     }
 
 }
