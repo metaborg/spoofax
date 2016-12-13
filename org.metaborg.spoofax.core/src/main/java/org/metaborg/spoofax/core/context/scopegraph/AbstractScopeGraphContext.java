@@ -143,7 +143,8 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     private S loadOrInitState() {
-        try {
+        logger.warn("PERSISTENCE OF SCOPEGRAPH CONTEXTS TEMPORARILY DISABLED");
+      try {
             final FileObject contextFile = contextFile();
             try {
                 if (contextFile.exists()) {
@@ -167,13 +168,14 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     @SuppressWarnings("unchecked") private S readContext(FileObject file) throws IOException, ClassNotFoundException {
-        try (ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
-            S fileState = (S) ois.readObject();
-            if (fileState == null) {
-                throw new IOException("Context file contains null.");
-            }
-            return fileState;
-        }
+        throw new IOException("Context file contains null.");
+      //try (ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
+      //    S fileState = (S) ois.readObject();
+      //    if (fileState == null) {
+      //        throw new IOException("Context file contains null.");
+      //    }
+      //    return fileState;
+      //}
     }
 
     private void persistState() {
@@ -190,9 +192,9 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     private void writeContext(FileObject file) throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
-            oos.writeObject(state);
-        }
+      //try (ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
+      //    oos.writeObject(state);
+      //}
     }
 
     private void deleteContextFile(FileObject file) {
