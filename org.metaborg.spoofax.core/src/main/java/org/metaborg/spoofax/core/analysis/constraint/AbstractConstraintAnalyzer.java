@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
@@ -171,8 +170,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected IMessage message(ITerm originatingTerm, String message, MessageSeverity severity) {
         ISourceLocation location = originatingTerm.getAttachments().getInstance(ISourceLocation.class);
         if (location != null) {
-            String safeMessage = StringEscapeUtils.escapeXml10(message);
-            return MessageFactory.newAnalysisMessage(location.resource(), location.region(), safeMessage, severity, null);
+            return MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null);
         } else {
             logger.warn("Ignoring location-less {}: {}", severity, message);
             return null;
