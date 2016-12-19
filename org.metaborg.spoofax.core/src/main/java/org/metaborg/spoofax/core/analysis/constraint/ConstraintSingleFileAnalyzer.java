@@ -2,7 +2,9 @@ package org.metaborg.spoofax.core.analysis.constraint;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
@@ -10,14 +12,19 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
+import org.metaborg.meta.nabl2.solver.ImmutableSolution;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
 import org.metaborg.meta.nabl2.spoofax.Actions;
 import org.metaborg.meta.nabl2.spoofax.FinalResult;
+import org.metaborg.meta.nabl2.spoofax.ImmutableFinalResult;
+import org.metaborg.meta.nabl2.spoofax.ImmutableInitialResult;
+import org.metaborg.meta.nabl2.spoofax.ImmutableUnitResult;
 import org.metaborg.meta.nabl2.spoofax.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.ResultTerms;
 import org.metaborg.meta.nabl2.spoofax.UnitResult;
+import org.metaborg.meta.nabl2.util.Optionals;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -79,30 +86,48 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 unit.clear();
 
                 // initial
-                IStrategoTerm initialResultTerm = doAction(strategy, actionBuilder.initialOf(globalSource), context,
-                        runtime);
+                IStrategoTerm initialResultTerm = doAction(strategy, actionBuilder.analyzeInitial(globalSource),
+                        context, runtime);
                 InitialResult initialResult = ResultTerms.initialOf().match(strategoTerms.fromStratego(
                         initialResultTerm)).orElseThrow(() -> new MetaborgException("Invalid initial results."));
+                Optional<IStrategoTerm> customInitial = doCustomAction(strategy, actionBuilder.customInitial(
+                        globalSource), context, runtime);
+                initialResult = ImmutableInitialResult.copyOf(initialResult).setCustomResult(customInitial);
 
                 // unit
-                IStrategoTerm unitResultTerm = doAction(strategy, actionBuilder.unitOf(source, parseUnit.ast(),
+                IStrategoTerm unitResultTerm = doAction(strategy, actionBuilder.analyzeUnit(source, parseUnit.ast(),
                         initialResult.getArgs()), context, runtime);
                 UnitResult unitResult = ResultTerms.unitOf().match(strategoTerms.fromStratego(unitResultTerm))
                         .orElseThrow(() -> new MetaborgException("Invalid unit results."));
+                Optional<IStrategoTerm> customUnit = initialResult.getCustomResult().flatMap(initial -> {
+                    return doCustomAction(strategy, actionBuilder.customUnit(globalSource, parseUnit.ast(), initial),
+                            context, runtime);
+                });
+                unitResult = ImmutableUnitResult.copyOf(unitResult).setCustomResult(customUnit);
                 unit.setUnitResult(unitResult);
 
                 // solve
                 Iterable<IConstraint> constraints = Iterables.concat(initialResult.getConstraints(), unitResult
                         .getConstraints());
                 Solution solution = Solver.solve(initialResult.getConfig(), constraints);
-                unit.setSolution(solution);
-                IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
 
                 // final
-                IStrategoTerm finalResultTerm = doAction(strategy, actionBuilder.finalOf(source), context, runtime);
+                IStrategoTerm finalResultTerm = doAction(strategy, actionBuilder.analyzeFinal(source), context,
+                        runtime);
                 FinalResult finalResult = ResultTerms.finalOf().match(strategoTerms.fromStratego(finalResultTerm))
                         .orElseThrow(() -> new MetaborgException("Invalid final results."));
+                Optional<IStrategoTerm> customFinal = Optionals.lift(initialResult.getCustomResult(), customUnit, (i,
+                        u) -> {
+                    List<IStrategoTerm> us = Lists.newArrayList();
+                    us.add(u);
+                    return doCustomAction(strategy, actionBuilder.customFinal(globalSource, i, us), context, runtime);
+                }).flatMap(o -> o);
+                finalResult = ImmutableFinalResult.of().setCustomResult(customFinal);
                 unit.setFinalResult(finalResult);
+
+                solution = ImmutableSolution.copyOf(solution).setCustom(customFinal);
+                unit.setSolution(solution);
+                IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
 
                 // errors
                 final Collection<IMessage> errors = messages(parseUnit.source(), solution.getErrors(),

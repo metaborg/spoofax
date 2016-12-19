@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.vfs2.FileObject;
@@ -142,6 +143,15 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         } catch (MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
+        }
+    }
+
+    protected Optional<IStrategoTerm> doCustomAction(String strategy, IStrategoTerm action,
+            ISpoofaxScopeGraphContext<?> context, HybridInterpreter runtime) {
+        try {
+            return Optional.of(doAction(strategy, action, context, runtime));
+        } catch (Exception ex) {
+            return Optional.empty();
         }
     }
 
