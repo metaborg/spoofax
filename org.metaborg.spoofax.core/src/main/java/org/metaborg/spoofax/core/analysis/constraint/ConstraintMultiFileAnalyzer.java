@@ -125,8 +125,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         }
         Solution solution;
         try {
-            solution = Solver.solve(initialResult.getResolutionParams(), initialResult.getRelations(), Iterables.concat(
-                    constraints));
+            solution = Solver.solve(initialResult.getConfig(), Iterables.concat(constraints));
         } catch (UnsatisfiableException e) {
             throw new AnalysisException(context, e);
         }
