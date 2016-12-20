@@ -90,7 +90,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             initialResult = context.initialResult().get();
         } else {
             IStrategoTerm initialResultTerm = doAction(strategy, actionBuilder.analyzeInitial(globalSource), context,
-                    runtime);
+                    runtime).orElseThrow(() -> new AnalysisException(context, "No initial result."));
             initialResult = ResultTerms.initialOf().match(strategoTerms.fromStratego(initialResultTerm)).orElseThrow(
                     () -> new AnalysisException(context, "Invalid initial results."));
             Optional<IStrategoTerm> customInitial = doCustomAction(strategy, actionBuilder.customInitial(globalSource),
@@ -112,7 +112,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
             try {
                 IStrategoTerm unitResultTerm = doAction(strategy, actionBuilder.analyzeUnit(source, parseUnit.ast(),
-                        initialResult.getArgs()), context, runtime);
+                        initialResult.getArgs()), context, runtime).orElseThrow(() -> new AnalysisException(context,
+                                "No unit result."));
                 UnitResult unitResult = ResultTerms.unitOf().match(strategoTerms.fromStratego(unitResultTerm))
                         .orElseThrow(() -> new MetaborgException("Invalid unit results."));
                 Optional<IStrategoTerm> customUnit = initialResult.getCustomResult().flatMap(initial -> {
@@ -149,12 +150,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         }
 
         // final
-        IStrategoTerm finalResultTerm = doAction(strategy, actionBuilder.analyzeFinal(globalSource), context, runtime);
+        IStrategoTerm finalResultTerm = doAction(strategy, actionBuilder.analyzeFinal(globalSource), context, runtime)
+                .orElseThrow(() -> new AnalysisException(context, "No final result."));
         FinalResult finalResult = ResultTerms.finalOf().match(strategoTerms.fromStratego(finalResultTerm)).orElseThrow(
                 () -> new AnalysisException(context, "Invalid final results."));
         Optional<IStrategoTerm> customFinal = Optionals.lift(initialResult.getCustomResult(), Optionals.sequence(
                 customUnits, us -> Lists.newArrayList(us)), (i, us) -> {
-                    return doCustomAction(strategy, actionBuilder.customFinal(globalSource, i, us), context, runtime);
+                    return (Optional<IStrategoTerm>) doCustomAction(strategy, actionBuilder.customFinal(globalSource, i,
+                            us), context, runtime);
                 }).flatMap(o -> o);
         finalResult = ImmutableFinalResult.of().setCustomResult(customFinal);
         context.setFinalResult(finalResult);

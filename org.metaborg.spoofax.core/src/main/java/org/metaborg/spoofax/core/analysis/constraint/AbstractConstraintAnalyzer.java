@@ -132,14 +132,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             Map<String,ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
             throws AnalysisException;
 
-    protected IStrategoTerm doAction(String strategy, IStrategoTerm action, ISpoofaxScopeGraphContext<?> context,
-            HybridInterpreter runtime) throws AnalysisException {
+    protected Optional<IStrategoTerm> doAction(String strategy, IStrategoTerm action,
+            ISpoofaxScopeGraphContext<?> context, HybridInterpreter runtime) throws AnalysisException {
         try {
-            IStrategoTerm result = strategoCommon.invoke(runtime, action, strategy);
-            if (result == null) {
-                throw new MetaborgException("Analysis strategy failed.");
-            }
-            return result;
+            return Optional.ofNullable(strategoCommon.invoke(runtime, action, strategy));
         } catch (MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
@@ -149,8 +145,9 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected Optional<IStrategoTerm> doCustomAction(String strategy, IStrategoTerm action,
             ISpoofaxScopeGraphContext<?> context, HybridInterpreter runtime) {
         try {
-            return Optional.of(doAction(strategy, action, context, runtime));
+            return doAction(strategy, action, context, runtime);
         } catch (Exception ex) {
+            logger.warn("Custom analysis step failed.", ex);
             return Optional.empty();
         }
     }
