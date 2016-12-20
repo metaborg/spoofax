@@ -36,7 +36,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
@@ -132,18 +131,19 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             Map<String,ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
             throws AnalysisException;
 
-    protected Optional<IStrategoTerm> doAction(String strategy, IStrategoTerm action,
-            ISpoofaxScopeGraphContext<?> context, HybridInterpreter runtime) throws AnalysisException {
+    protected Optional<ITerm> doAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
+            HybridInterpreter runtime) throws AnalysisException {
         try {
-            return Optional.ofNullable(strategoCommon.invoke(runtime, action, strategy));
+            return Optional.ofNullable(strategoTerms.fromStratego(strategoCommon.invoke(runtime, strategoTerms
+                    .toStratego(action), strategy)));
         } catch (MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
         }
     }
 
-    protected Optional<IStrategoTerm> doCustomAction(String strategy, IStrategoTerm action,
-            ISpoofaxScopeGraphContext<?> context, HybridInterpreter runtime) {
+    protected Optional<ITerm> doCustomAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
+            HybridInterpreter runtime) {
         try {
             return doAction(strategy, action, context, runtime);
         } catch (Exception ex) {
@@ -184,4 +184,11 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         }
     }
 
+    protected List<Message> merge(List<Message> m1, List<Message> m2) {
+        List<Message> m = Lists.newArrayList();
+        m.addAll(m1);
+        m.addAll(m2);
+        return  m;
+    }
+    
 }

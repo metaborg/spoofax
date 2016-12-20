@@ -18,13 +18,14 @@ import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
 import org.metaborg.meta.nabl2.spoofax.Actions;
+import org.metaborg.meta.nabl2.spoofax.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.ImmutableFinalResult;
 import org.metaborg.meta.nabl2.spoofax.ImmutableInitialResult;
 import org.metaborg.meta.nabl2.spoofax.ImmutableUnitResult;
 import org.metaborg.meta.nabl2.spoofax.InitialResult;
-import org.metaborg.meta.nabl2.spoofax.ResultTerms;
 import org.metaborg.meta.nabl2.spoofax.UnitResult;
+import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.util.Optionals;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
@@ -63,7 +64,6 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
     private final ISpoofaxUnitService unitService;
     private final IResourceService resourceService;
-    private final Actions actionBuilder;
 
     @Inject public ConstraintMultiFileAnalyzer(final AnalysisCommon analysisCommon,
             final ISpoofaxUnitService unitService, final IResourceService resourceService,
@@ -72,7 +72,6 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         super(analysisCommon, runtimeService, strategoCommon, termFactoryService, tracingService);
         this.resourceService = resourceService;
         this.unitService = unitService;
-        this.actionBuilder = new Actions(termFactory, strategoTerms);
     }
 
     @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String,ISpoofaxParseUnit> changed,
@@ -89,12 +88,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         if (context.initialResult().isPresent()) {
             initialResult = context.initialResult().get();
         } else {
-            IStrategoTerm initialResultTerm = doAction(strategy, actionBuilder.analyzeInitial(globalSource), context,
-                    runtime).orElseThrow(() -> new AnalysisException(context, "No initial result."));
-            initialResult = ResultTerms.initialOf().match(strategoTerms.fromStratego(initialResultTerm)).orElseThrow(
-                    () -> new AnalysisException(context, "Invalid initial results."));
-            Optional<IStrategoTerm> customInitial = doCustomAction(strategy, actionBuilder.customInitial(globalSource),
-                    context, runtime);
+            ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
+                    .orElseThrow(() -> new AnalysisException(context, "No initial result."));
+            initialResult = InitialResult.matcher().match(initialResultTerm).orElseThrow(() -> new AnalysisException(
+                    context, "Invalid initial results."));
+            Optional<ITerm> customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context,
+                    runtime);
             initialResult = ImmutableInitialResult.copyOf(initialResult).setCustomResult(customInitial);
             context.setInitialResult(initialResult);
         }
@@ -106,19 +105,18 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         for (Map.Entry<String,ISpoofaxParseUnit> input : changed.entrySet()) {
             String source = input.getKey();
             ISpoofaxParseUnit parseUnit = input.getValue();
+            ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
 
             IMultiFileScopeGraphUnit unit = context.unit(source);
             unit.clear();
 
             try {
-                IStrategoTerm unitResultTerm = doAction(strategy, actionBuilder.analyzeUnit(source, parseUnit.ast(),
-                        initialResult.getArgs()), context, runtime).orElseThrow(() -> new AnalysisException(context,
-                                "No unit result."));
-                UnitResult unitResult = ResultTerms.unitOf().match(strategoTerms.fromStratego(unitResultTerm))
-                        .orElseThrow(() -> new MetaborgException("Invalid unit results."));
-                Optional<IStrategoTerm> customUnit = initialResult.getCustomResult().flatMap(initial -> {
-                    return doCustomAction(strategy, actionBuilder.customUnit(globalSource, parseUnit.ast(), initial),
-                            context, runtime);
+                ITerm unitResultTerm = doAction(strategy, Actions.analyzeUnit(source, ast, initialResult.getArgs()),
+                        context, runtime).orElseThrow(() -> new AnalysisException(context, "No unit result."));
+                UnitResult unitResult = UnitResult.matcher().match(unitResultTerm).orElseThrow(
+                        () -> new MetaborgException("Invalid unit results."));
+                Optional<ITerm> customUnit = initialResult.getCustomResult().flatMap(initial -> {
+                    return doCustomAction(strategy, Actions.customUnit(globalSource, ast, initial), context, runtime);
                 });
                 unitResult = ImmutableUnitResult.copyOf(unitResult).setCustomResult(customUnit);
                 IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
@@ -134,7 +132,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
         // solve
         final List<Iterable<IConstraint>> constraints = Lists.newArrayList();
-        final List<Optional<IStrategoTerm>> customUnits = Lists.newArrayList();
+        final List<Optional<ITerm>> customUnits = Lists.newArrayList();
         context.initialResult().ifPresent(i -> constraints.add(i.getConstraints()));
         for (IMultiFileScopeGraphUnit unit : context.units()) {
             unit.unitResult().ifPresent(u -> {
@@ -150,25 +148,29 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         }
 
         // final
-        IStrategoTerm finalResultTerm = doAction(strategy, actionBuilder.analyzeFinal(globalSource), context, runtime)
-                .orElseThrow(() -> new AnalysisException(context, "No final result."));
-        FinalResult finalResult = ResultTerms.finalOf().match(strategoTerms.fromStratego(finalResultTerm)).orElseThrow(
-                () -> new AnalysisException(context, "Invalid final results."));
-        Optional<IStrategoTerm> customFinal = Optionals.lift(initialResult.getCustomResult(), Optionals.sequence(
-                customUnits, us -> Lists.newArrayList(us)), (i, us) -> {
-                    return (Optional<IStrategoTerm>) doCustomAction(strategy, actionBuilder.customFinal(globalSource, i,
-                            us), context, runtime);
+        ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(globalSource), context, runtime).orElseThrow(
+                () -> new AnalysisException(context, "No final result."));
+        FinalResult finalResult = FinalResult.matcher().match(finalResultTerm).orElseThrow(() -> new AnalysisException(
+                context, "Invalid final results."));
+        Optional<ITerm> customFinal = Optionals.lift(initialResult.getCustomResult(), Optionals.sequence(customUnits,
+                us -> Lists.newArrayList(us)), (i, us) -> {
+                    return (Optional<ITerm>) doCustomAction(strategy, Actions.customFinal(globalSource, i, us), context,
+                            runtime);
                 }).flatMap(o -> o);
         finalResult = ImmutableFinalResult.of().setCustomResult(customFinal);
         context.setFinalResult(finalResult);
 
-        solution = ImmutableSolution.copyOf(solution).setCustom(customFinal);
+        Optional<CustomSolution> customSolution = customFinal.flatMap(CustomSolution.matcher()::match);
+        solution = ImmutableSolution.copyOf(solution).setCustom(customSolution);
         context.setSolution(solution);
 
         // errors
-        Multimap<String,IMessage> errorsByFile = messagesByFile(solution.getErrors(), MessageSeverity.ERROR);
-        Multimap<String,IMessage> warningsByFile = messagesByFile(solution.getWarnings(), MessageSeverity.WARNING);
-        Multimap<String,IMessage> notesByFile = messagesByFile(solution.getNotes(), MessageSeverity.NOTE);
+        Multimap<String,IMessage> errorsByFile = messagesByFile(merge(solution.getErrors(), customSolution.map(cs -> cs
+                .getErrors()).orElse(Lists.newArrayList())), MessageSeverity.ERROR);
+        Multimap<String,IMessage> warningsByFile = messagesByFile(merge(solution.getWarnings(), customSolution.map(
+                cs -> cs.getWarnings()).orElse(Lists.newArrayList())), MessageSeverity.WARNING);
+        Multimap<String,IMessage> notesByFile = messagesByFile(merge(solution.getNotes(), customSolution.map(cs -> cs
+                .getNotes()).orElse(Lists.newArrayList())), MessageSeverity.NOTE);
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults = Lists.newArrayList();
         for (IMultiFileScopeGraphUnit unit : context.units()) {
