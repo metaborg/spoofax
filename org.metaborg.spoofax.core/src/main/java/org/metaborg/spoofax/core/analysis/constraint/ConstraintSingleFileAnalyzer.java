@@ -12,7 +12,6 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.solver.ImmutableSolution;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
@@ -104,11 +103,13 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 });
                 unitResult = ImmutableUnitResult.copyOf(unitResult).setCustomResult(customUnit);
                 unit.setUnitResult(unitResult);
+                IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
 
                 // solve
                 Iterable<IConstraint> constraints = Iterables.concat(initialResult.getConstraints(), unitResult
                         .getConstraints());
                 Solution solution = Solver.solve(initialResult.getConfig(), constraints);
+                unit.setSolution(solution);
 
                 // final
                 ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(source), context, runtime).orElseThrow(
@@ -118,15 +119,13 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 Optional<ITerm> customFinal = Optionals.lift(initialResult.getCustomResult(), customUnit, (i, u) -> {
                     List<ITerm> us = Lists.newArrayList();
                     us.add(u);
-                    return doCustomAction(strategy, Actions.customFinal(globalSource, i, us), context, runtime);
+                    return doCustomAction(strategy, Actions.customFinal(source, i, us), context, runtime);
                 }).flatMap(o -> o);
                 finalResult = ImmutableFinalResult.of().setCustomResult(customFinal);
                 unit.setFinalResult(finalResult);
 
                 Optional<CustomSolution> customSolution = customFinal.flatMap(CustomSolution.matcher()::match);
-                solution = ImmutableSolution.copyOf(solution).setCustom(customSolution);
-                unit.setSolution(solution);
-                IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
+                customSolution.ifPresent(cs -> unit.setCustomSolution(cs));
 
                 // errors
                 final Collection<IMessage> errors = messages(parseUnit.source(), merge(solution.getErrors(),

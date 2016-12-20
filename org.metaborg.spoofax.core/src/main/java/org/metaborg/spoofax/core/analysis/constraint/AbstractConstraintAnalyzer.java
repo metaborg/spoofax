@@ -134,8 +134,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected Optional<ITerm> doAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
             HybridInterpreter runtime) throws AnalysisException {
         try {
-            return Optional.ofNullable(strategoTerms.fromStratego(strategoCommon.invoke(runtime, strategoTerms
-                    .toStratego(action), strategy)));
+            return Optional.ofNullable(strategoCommon.invoke(runtime, strategoTerms.toStratego(action), strategy)).map(
+                    strategoTerms::fromStratego);
         } catch (MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
@@ -188,7 +188,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         List<Message> m = Lists.newArrayList();
         m.addAll(m1);
         m.addAll(m2);
-        return  m;
+        return m;
     }
-    
+
 }

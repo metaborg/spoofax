@@ -13,7 +13,6 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.solver.ImmutableSolution;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
@@ -146,6 +145,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         } catch (UnsatisfiableException e) {
             throw new AnalysisException(context, e);
         }
+        context.setSolution(solution);
 
         // final
         ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(globalSource), context, runtime).orElseThrow(
@@ -161,8 +161,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         context.setFinalResult(finalResult);
 
         Optional<CustomSolution> customSolution = customFinal.flatMap(CustomSolution.matcher()::match);
-        solution = ImmutableSolution.copyOf(solution).setCustom(customSolution);
-        context.setSolution(solution);
+        customSolution.ifPresent(cs -> context.setCustomSolution(cs));
 
         // errors
         Multimap<String,IMessage> errorsByFile = messagesByFile(merge(solution.getErrors(), customSolution.map(cs -> cs

@@ -34,12 +34,25 @@ import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformer;
 import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_all_decls;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_all_refs;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_all_scopes;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ast_index;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ast_property;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ast_resolution;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_custom_analysis;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_decl_assocs;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_decl_property;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_decl_scope;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_reachable_decls;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ref_resolution;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ref_scope;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_assocs;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_decls;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_direct_edges;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_named_edges;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_refs;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_visible_decls;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_index_ast;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_index_sublist;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_set_ast_index;
@@ -243,10 +256,10 @@ public class SpoofaxModule extends MetaborgModule {
 
         binder.addBinding(IndexTaskContextFactory.name).to(IndexTaskContextFactory.class).in(Singleton.class);
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
-        binder.addBinding(MultiFileScopeGraphContextFactory.name).to(MultiFileScopeGraphContextFactory.class)
-                .in(Singleton.class);
-        binder.addBinding(SingleFileScopeGraphContextFactory.name).to(SingleFileScopeGraphContextFactory.class)
-                .in(Singleton.class);
+        binder.addBinding(MultiFileScopeGraphContextFactory.name).to(MultiFileScopeGraphContextFactory.class).in(
+                Singleton.class);
+        binder.addBinding(SingleFileScopeGraphContextFactory.name).to(SingleFileScopeGraphContextFactory.class).in(
+                Singleton.class);
     }
 
     protected void bindSyntax() {
@@ -328,12 +341,25 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary = Multibinder.newSetBinder(binder(),
                 AbstractPrimitive.class, Names.named("ScopeGraphLibrary"));
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_decls.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_refs.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_scopes.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_property.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_resolution.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_custom_analysis.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_decl_assocs.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_decl_property.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_decl_scope.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_reachable_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ref_resolution.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ref_scope.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_assocs.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_decls.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_direct_edges.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_named_edges.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_refs.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_visible_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_index_ast.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_index_sublist.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
@@ -412,8 +438,8 @@ public class SpoofaxModule extends MetaborgModule {
         bind(SpoofaxParseResultProcessor.class).in(Singleton.class);
 
         bind(ISpoofaxParseResultRequester.class).to(SpoofaxParseResultProcessor.class);
-        bind(new TypeLiteral<IParseResultRequester<ISpoofaxInputUnit,ISpoofaxParseUnit>>() {})
-                .to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultRequester<ISpoofaxInputUnit,ISpoofaxParseUnit>>() {}).to(
+                SpoofaxParseResultProcessor.class);
         bind(new TypeLiteral<IParseResultRequester<?,?>>() {}).to(SpoofaxParseResultProcessor.class);
         bind(IParseResultRequester.class).to(SpoofaxParseResultProcessor.class);
 
@@ -423,8 +449,8 @@ public class SpoofaxModule extends MetaborgModule {
         bind(IParseResultUpdater.class).to(SpoofaxParseResultProcessor.class);
 
         bind(ISpoofaxParseResultProcessor.class).to(SpoofaxParseResultProcessor.class);
-        bind(new TypeLiteral<IParseResultProcessor<ISpoofaxInputUnit,ISpoofaxParseUnit>>() {})
-                .to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultProcessor<ISpoofaxInputUnit,ISpoofaxParseUnit>>() {}).to(
+                SpoofaxParseResultProcessor.class);
         bind(new TypeLiteral<IParseResultProcessor<?,?>>() {}).to(SpoofaxParseResultProcessor.class);
         bind(IParseResultProcessor.class).to(SpoofaxParseResultProcessor.class);
 
@@ -432,14 +458,14 @@ public class SpoofaxModule extends MetaborgModule {
         bind(SpoofaxAnalysisResultProcessor.class).in(Singleton.class);
 
         bind(ISpoofaxAnalysisResultRequester.class).to(SpoofaxAnalysisResultProcessor.class);
-        bind(new TypeLiteral<IAnalysisResultRequester<ISpoofaxInputUnit,ISpoofaxAnalyzeUnit>>() {})
-                .to(SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultRequester<ISpoofaxInputUnit,ISpoofaxAnalyzeUnit>>() {}).to(
+                SpoofaxAnalysisResultProcessor.class);
         bind(new TypeLiteral<IAnalysisResultRequester<?,?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
         bind(IAnalysisResultRequester.class).to(SpoofaxAnalysisResultProcessor.class);
 
         bind(ISpoofaxAnalysisResultUpdater.class).to(SpoofaxAnalysisResultProcessor.class);
-        bind(new TypeLiteral<IAnalysisResultUpdater<ISpoofaxParseUnit,ISpoofaxAnalyzeUnit>>() {})
-                .to(SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultUpdater<ISpoofaxParseUnit,ISpoofaxAnalyzeUnit>>() {}).to(
+                SpoofaxAnalysisResultProcessor.class);
         bind(new TypeLiteral<IAnalysisResultUpdater<?,?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
         bind(IAnalysisResultUpdater.class).to(SpoofaxAnalysisResultProcessor.class);
 
@@ -493,8 +519,8 @@ public class SpoofaxModule extends MetaborgModule {
     protected void bindCategorizer() {
         bind(CategorizerService.class).in(Singleton.class);
         bind(ISpoofaxCategorizerService.class).to(CategorizerService.class);
-        bind(new TypeLiteral<ICategorizerService<ISpoofaxParseUnit,ISpoofaxAnalyzeUnit,IStrategoTerm>>() {})
-                .to(CategorizerService.class);
+        bind(new TypeLiteral<ICategorizerService<ISpoofaxParseUnit,ISpoofaxAnalyzeUnit,IStrategoTerm>>() {}).to(
+                CategorizerService.class);
         bind(new TypeLiteral<ICategorizerService<?,?,?>>() {}).to(CategorizerService.class);
         bind(ICategorizerService.class).to(CategorizerService.class);
     }
