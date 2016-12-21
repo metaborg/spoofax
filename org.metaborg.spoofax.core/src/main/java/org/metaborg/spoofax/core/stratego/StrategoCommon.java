@@ -64,9 +64,13 @@ public class StrategoCommon implements IStrategoCommon {
             }
 
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
-            final IStrategoTerm result = invoke(runtime, input, strategy);
-            if(result != null) {
-                return result;
+            try {
+                final IStrategoTerm result = invoke(runtime, input, strategy);
+                if(result != null) {
+                    return result;
+                }
+            } catch (MetaborgException ex) {
+                logger.warn("Invocation of '{}' failed in component {}", ex, strategy, component);
             }
 
         }
@@ -81,9 +85,13 @@ public class StrategoCommon implements IStrategoCommon {
             }
 
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
-            final IStrategoTerm result = invoke(runtime, input, strategy);
-            if(result != null) {
-                return result;
+            try {
+                final IStrategoTerm result = invoke(runtime, input, strategy);
+                if(result != null) {
+                    return result;
+                }
+            } catch (MetaborgException ex) {
+                logger.warn("Invocation of '{}' failed in component {}", ex, strategy, component);
             }
 
         }
