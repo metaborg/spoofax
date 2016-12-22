@@ -1,0 +1,270 @@
+module libspoofax/editor/refactoring/layout-adaption
+
+imports
+  libspoofax/term/origin
+	libspoofax/editor/refactoring/construct-text
+  libspoofax/editor/refactoring/construct-initial-list-structure
+
+rules
+  
+  TABSIZE = !4  
+  
+rules //rules that translate AST-changes to Textual changes
+
+ast-change-to-text-change(pp, override-reconstruction, resugar):
+	DELETION(origin-lst) -> tc-deletion
+	with 
+		tc-deletion := <create-textchange-delete> origin-lst
+
+ast-change-to-text-change(pp, override-reconstruction, resugar):
+	REPLACEMENT(origin-node, new-node) ->  tc-replacement 
+	with 
+		tc-replacement := <create-textchange-replace(pp, override-reconstruction, resugar)> (origin-node, new-node) 
+
+ast-change-to-text-change(pp, override-reconstruction, resugar):
+	INSERT_BEFORE(origin-elem, new-elems) -> tc-insert-before
+	with
+		tc-insert-before := <create-textchange-insert-before(pp, override-reconstruction, resugar)> (origin-elem, new-elems)
+
+ast-change-to-text-change(pp, override-reconstruction, resugar):
+	INSERT_AT_END(origin-elem, new-elems) -> tc-insert-at-end
+	with
+		tc-insert-at-end := <create-textchange-insert-at-end(pp, override-reconstruction, resugar)> (origin-elem, new-elems)
+	
+create-textchange-delete:
+	origin-elems -> (start-offset, end-offset, "")
+	where
+		start-offset := <origin-deletion-start-offset> origin-elems; 
+		end-offset   := <origin-deletion-end-offset> origin-elems
+		
+create-textchange-replace(pp, override-reconstruction, resugar):
+	(origin-node, new-node) -> (start-offset, end-offset, indented-text)
+	where  
+		start-offset := <origin-start-offset> origin-node;
+		end-offset   := <origin-end-offset> origin-node;
+		text  := <construct-text(pp, override-reconstruction, resugar)> new-node;
+		indented-text := <adapt-indentation(|origin-node)> text
+
+create-textchange-insert-before(pp, override-reconstruction, resugar):
+	(origin-node, new-elems) -> (offset, offset, insert-text)
+	where 
+		offset := <origin-insert-before-offset> origin-node;
+		new-elems-text := <map(construct-text-list-element(pp, override-reconstruction, resugar|origin-node))> new-elems;
+		insert-text := <concat-strings> new-elems-text
+
+create-textchange-insert-at-end(pp, override-reconstruction, resugar):
+	(origin-node, new-elems) -> (offset, offset, insert-text)
+	where 
+		offset := <origin-insert-at-end-offset> origin-node;
+		new-elems-text := <at-init(
+			construct-text-list-element(pp, override-reconstruction, resugar|origin-node), 
+			construct-text-list-element-last(pp, override-reconstruction, resugar|origin-node))
+		> new-elems;
+    if [] := origin-node
+    then insert-text := <conc-strings> (<whitespace-at-start(pp|<Hd> new-elems)> origin-node, <concat-strings> new-elems-text)
+    else insert-text := <add-separation-before(pp|new-elems)> (origin-node, <concat-strings> new-elems-text)
+    end
+
+rules //helper rules layout
+
+construct-text-list-element(pp, override-reconstruction, resugar|origin-node):
+	elem -> elem-text
+	where
+		text := <construct-text(pp, override-reconstruction, resugar)> elem; 
+		layout-before := <layout-prefix; correct-indentation(|elem)> elem;
+		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node)> (layout-before, text); 
+		comments-after := <comments-after; correct-indentation(|elem); adapt-indentation(|origin-node)> elem;
+		separation := <origin-separation + origin-separation(pp|elem)> origin-node;
+		layout-after := <create-separation-after> (separation, comments-after);
+		elem-text := <conc-strings> (indented-prefix-text, layout-after)
+
+construct-text-list-element-last(pp, override-reconstruction, resugar|origin-node):
+	elem -> elem-text
+	where
+		text := <construct-text(pp, override-reconstruction, resugar)> elem;
+		layout-before := <layout-prefix; correct-indentation(|elem)> elem;
+		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node)> (layout-before, text);
+		comments-after := <comments-after; correct-indentation(|elem); adapt-indentation(|origin-node)> elem;
+		elem-text := <concat-strings; trim-trailing-whitespace> [indented-prefix-text, " ", comments-after]
+
+rules //helper rules indentation
+
+/*
+ * replaces indent of the new constructed text (retrieved from new-node)
+ * with indent appropriate for insertion position (retrieved from origin-node) 
+ */
+adapt-indentation(|origin-node):
+	text -> indented-text
+	where
+		indent-string-new := <origin-indent> origin-node; 
+		indented-text := <replace-indentation(|indent-string-new, "")> text
+
+correct-indentation(|origin-node):
+	txt -> indent-corrected-text
+	where
+		indent-string := <origin-indent <+ !""> origin-node;
+		indent-corrected-text := <replace-indentation(|"", indent-string)> txt
+
+		
+replace-indentation(|new-indent, old-indent):
+	text -> indented-text
+	where
+		indent-value-old := <indent-value> old-indent;
+		indented-text := <
+			remove-indentation(|indent-value-old); 
+			prefix-lines(|new-indent);
+			ltrim-chars(?' ' <+ ?'\t' <+ ?'\n') //first line is not indented
+		> text
+
+/**
+ * Returns the value of the indentation of the startline 
+ * @type ATerm -> Int
+ */
+indent-value:
+	indent-string -> indent-value
+	where
+		indent-value := <explode-string;
+		take-while(?' '<+?'\t');
+		foldr(!0, add, (?' ';!1) <+ (?'\t'; TABSIZE))> indent-string
+	
+remove-indentation(|n):
+	txt -> dedented-txt
+	where
+		dedented-txt := <all-lines(string-as-chars(dedent-line-chars(|n)))> txt
+		
+dedent-line-chars(|n):
+	chars -> dedented-chars
+	where
+		(
+			<lt> (n,0); 
+			indent := <copy-char; explode-string> (<abs>n, ' '); 
+			dedented-chars := <conc>(indent,chars)
+		)<+
+		(
+			<gt> (n,0);
+			<?[' '|tail]> chars;
+			dedented-chars := <dedent-line-chars(|<dec> n)> tail
+		)<+
+		(
+			<gt> (n,0);
+			<?['\t'|tail]> chars; 
+			dedented-chars := <dedent-line-chars(|<subt> (n, <TABSIZE>))> tail				
+		)<+
+		dedented-chars := chars
+
+
+rules // helper rules separation	
+
+add-separation-before(pp|new-elems) =
+	add-separation-before-1(pp|new-elems) <+ //correct line comment
+	add-separation-before-2(pp|new-elems)
+	
+add-separation-before-1(pp|new-elems): //corrects for newline in case the text is inserted after a line comment
+	(origin-node, text-inserted-after) -> txt-with-separation
+	where
+		<origin-text-with-layout; string-ends-with(|"\n")> origin-node;
+		(start-separation, end-separation) := <split-before>(<origin-separation + origin-separation(pp|<Hd> new-elems)> origin-node, "\n");
+		<string-as-chars(map(is-whitespace))> start-separation;
+		txt-with-separation := <concat-strings> [<string-as-chars(Tl)> end-separation, text-inserted-after, "\n"]
+
+add-separation-before-2(pp|new-elems):
+	(origin-node, text-inserted-after) -> txt-with-separation
+	where
+		txt-with-separation := <conc-strings> (<origin-separation + origin-separation(pp|<Hd> new-elems)> origin-node, text-inserted-after)
+
+//("/n  ,  ", "//bla /n") -> " //bla /n  ,  "
+//(",/n  ", "//bla /n") -> " , //bla /n  "
+//("/n  ", "//bla /n") -> " //bla /n  "
+create-separation-after:
+	(separation, comments-after) -> txt-between
+	where 
+		<string-ends-with(|"\n")> comments-after;
+		(start-separation, end-separation) := <split-before>(separation, "\n");
+		txt-between := <concat-strings> [start-separation, " ", comments-after, <string-as-chars(Tl)> end-separation]
+		
+
+//("/n  ,  ", "/*bla*/") -> " /*bla*/ /n  ,  "
+//(",/n  ", "/*bla*/") -> " , /*bla*/ /n  "
+//("/n  ", "/*bla*/") -> " /*bla*/ /n  "
+create-separation-after:
+	(separation, comments-after) -> txt-between
+	where
+		<not(string-ends-with(|"\n"))> comments-after;
+		(start-separation, end-separation) := <split-before>(separation, "\n");
+		comments-after-separated := <?"" <+ <conc-strings>(" ", <id>)> comments-after;
+		txt-between := <concat-strings> [start-separation, comments-after-separated, end-separation]
+
+//("  ", "/*bla*/") -> " /*bla*/  "
+//(",  ", "/*bla*/") -> " /*bla*/,  "
+//("  ", "//bla /n") -> " //bla /n  "
+//(",  ", "//bla /n") -> " //bla /n,  "
+create-separation-after:
+	(separation, comments-after) -> txt-between
+	where 
+		<not(is-substring(!"\n"))> separation;
+		comments-after-separated := <?"" <+ <conc-strings>(" ", <id>)> comments-after;
+		txt-between := <conc-strings> (comments-after-separated, separation)
+
+rules //Applying the textual modifications
+
+/*
+ * Applies textchanges (src-offset, text) to a textfragment with a given src-offset  
+ * @type (List(((Int,Int), String)), String, Int) -> String
+ */
+apply-text-changes:
+	(text-changes, text, start-offset) -> changed-text
+	where 
+		ordered-text-changes := <make-set; filter(is-modification); qsort(has-smaller-offset)> text-changes;
+		<assert-valid-textual-changes> ordered-text-changes;
+		changed-text := <foldr(!(start-offset, text), apply-textual-change); Snd> ordered-text-changes
+
+apply-textual-change:
+	(change, text-info) -> (char-pos, result-text)
+	where 
+		<?(char-pos, text-fragment)> text-info; 
+		<?(change-start, change-end, change-text)> change; 
+		pos-start := <subt>(change-start, char-pos);
+		pos-end := <subt>(change-end, char-pos); <string-length> text-fragment;
+		result-text:=<replace-in-text>
+			(text-fragment, change-text, pos-start, pos-end) 
+
+replace-in-text:
+	(old-text, text-change, pos-start, pos-end) -> result-text
+	where 
+		old-chars := <explode-string> old-text; 
+		(prefix, _) := <split-at(|pos-start)> old-chars; 
+		(_, suffix) := <split-at(|pos-end)> old-chars; 
+		result-text := <conc-strings> (<implode-string> prefix, text-change, <implode-string> suffix) 
+		
+has-smaller-offset = 
+		?((start-x, end-x, x), (start-y, end-y, y));
+		where(
+			<lt> (start-x, start-y) <+ 
+			<eq> (start-x, start-y); <lt> (end-x, end-y)
+		)
+
+is-modification =
+	not(?(t, t,""))
+
+rules //assert wellformedness of textual change list (unwellformed lists lead to unexpected text modifications)
+
+assert-valid-textual-changes =
+	assert-no-overlap;
+	assert-valid-offset
+	
+assert-no-overlap:
+	txt-changes@[(start-offset, end-offset, _), (start-offset', _, _)|_] -> txt-changes
+	with
+		<leq> (start-offset, start-offset');
+		<leq> (end-offset, start-offset');
+		<at-tail(assert-no-overlap)> txt-changes
+		
+assert-no-overlap =
+	?[(_, _, _)] <+ ?[]
+
+assert-valid-offset =
+	map(assert-valid-offset)
+
+assert-valid-offset =
+	?(s,e,_);
+	with(<leq>(s,e))

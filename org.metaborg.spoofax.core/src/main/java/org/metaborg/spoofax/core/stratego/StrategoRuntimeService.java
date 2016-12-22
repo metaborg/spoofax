@@ -94,6 +94,10 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
     @Override public void invalidateCache(ILanguageImpl impl) {
+        logger.debug("Removing cached stratego runtime for {}", impl);
+        for(ILanguageComponent component : impl.components()) {
+            prototypes.remove(component);
+        }
     }
 
 

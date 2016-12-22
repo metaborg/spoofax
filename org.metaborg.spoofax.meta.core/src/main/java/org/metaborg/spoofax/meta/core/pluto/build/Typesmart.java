@@ -67,7 +67,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
     }
 
 
-    public static SpoofaxBuilderFactory<Input, None, Typesmart> factory =
+    public static final SpoofaxBuilderFactory<Input, None, Typesmart> factory =
         SpoofaxBuilderFactoryFactory.of(Typesmart.class, Input.class);
 
 
@@ -311,10 +311,10 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
         } else if(kind.equals("SortNoArgs")) {
             return new TSort(sortName);
         } else if(kind.equals("Sort") && sortName.equals("List")) {
-            SortType t = extractSortType((IStrategoAppl) sort.getSubterm(1).getSubterm(0));
+            SortType t = extractSortType(sort.getSubterm(1).getSubterm(0));
             return t == null ? null : new TList(t);
         } else if(kind.equals("Sort") && sortName.equals("Option")) {
-            SortType t = extractSortType((IStrategoAppl) sort.getSubterm(1).getSubterm(0));
+            SortType t = extractSortType(sort.getSubterm(1).getSubterm(0));
             return t == null ? null : new TOption(t);
         } else if(kind.equals("SortVar")) {
             return null;

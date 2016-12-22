@@ -16,6 +16,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
+import org.spoofax.jsglr.client.NullTreeBuilder;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
@@ -35,7 +36,6 @@ public class JSGLRI {
 
     private final SGLR parser;
 
-
     public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
         @Nullable FileObject resource, String input) throws IOException {
         this.config = config;
@@ -49,23 +49,22 @@ public class JSGLRI {
         this.parser = new SGLR(new TreeBuilder(factory), config.getParseTableProvider().parseTable());
     }
 
-
     public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException {
         if(parserConfig == null) {
             parserConfig = new JSGLRParserConfiguration();
         }
 
-        // NOTE: FileObject.getName().getPath() will not include the drive letter on Windows.
-        // To fix this, use FileObject.getURL().getPath() instead.
-        final String fileName = resource != null ? resource.getURL().getPath() : null;
+        final String fileName = resource != null ? resource.getName().getURI() : null;
 
-        final JSGLRParseErrorHandler errorHandler =
-            new JSGLRParseErrorHandler(this, resource, config.getParseTableProvider().parseTable().hasRecovers());
+        final JSGLRParseErrorHandler errorHandler = new JSGLRParseErrorHandler(this, resource,
+            config.getParseTableProvider().parseTable().hasRecovers());
 
         final Timer timer = new Timer(true);
         SGLRParseResult result;
         try {
+            // should throw a fatal, or return a non-null result
             result = actuallyParse(input, fileName, parserConfig);
+            assert result != null;
         } catch(SGLRException | InterruptedException e) {
             result = null;
             errorHandler.setRecoveryFailed(parserConfig.recovery);
@@ -75,8 +74,14 @@ public class JSGLRI {
 
         final IStrategoTerm ast;
         if(result != null) {
+            // No fatals occurred, so either parsing succeeded or recovery succeeded
             ast = (IStrategoTerm) result.output;
-            if(ast != null) {
+            if(ast == null) {
+                // this should only happen if we passed a NullTreeBuilder and parsing succeeded
+                // so we have nothing to do
+                assert parser.getTreeBuilder() instanceof NullTreeBuilder;
+            } else {
+                // in case recovery was required, collect the recoverable errors
                 errorHandler.setRecoveryFailed(false);
                 errorHandler.gatherNonFatalErrors(ast);
                 if(resource != null) {
@@ -87,9 +92,10 @@ public class JSGLRI {
             ast = null;
         }
 
+        final boolean hasAst = ast != null;
         final Iterable<IMessage> messages = errorHandler.messages();
-        return new ParseContrib(ast != null, !MessageUtils.containsSeverity(messages, MessageSeverity.ERROR), ast,
-            messages, duration);
+        final boolean hasErrors = MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
+        return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
     }
 
     public SGLRParseResult actuallyParse(String text, @Nullable String filename,
@@ -100,7 +106,11 @@ public class JSGLRI {
             parser.setTreeBuilder(new Asfix2TreeBuilder(termFactory));
         }
         parser.setUseStructureRecovery(parserConfig.recovery);
-        parser.setCompletionParse(parserConfig.completion, parserConfig.cursorPosition);
+        if(parserConfig.cursorPosition == Integer.MAX_VALUE) {
+            parser.setCompletionParse(false, Integer.MAX_VALUE);
+        } else {
+            parser.setCompletionParse(parserConfig.completion, parserConfig.cursorPosition);
+        }
         parser.setTimeout(parserConfig.timeout);
 
         final Disambiguator disambiguator = parser.getDisambiguator();
@@ -125,11 +135,14 @@ public class JSGLRI {
             }
             throw e;
         } catch(StartSymbolException e) {
-            // we don't want to allow any start symbol if it has been explicitly provided
-            if(parserConfig != null && parserConfig.overridingStartSymbol != null) {
+            if(dialect != null) {
+                // Parse with all symbols as start symbol when start symbol cannot be found and a dialect is set,
+                // indicating that we're parsing Stratego with concrete syntax extensions. We need to parse with all
+                // symbols as start symbol, because the start symbol is unknown.
+                return parser.parse(text, filename, null);
+            } else {
                 throw e;
             }
-            return parser.parse(text, filename, null);
         }
     }
 

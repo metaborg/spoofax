@@ -1,0 +1,279 @@
+module libspoofax/editor/completion/incorrect-programs
+
+imports
+  libspoofax/editor/completion/core
+  libspoofax/editor/completion/interface
+  libspoofax/editor/refactoring/layout-adaption
+  libspoofax/editor/refactoring/construct-text
+  libspoofax/editor/refactoring/construct-initial-list-structure
+  libspoofax/term/origin
+  libspoofax/term/annotation
+
+signature constructors 
+   INSERTION_TERM    : NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
+   REPLACE_TERM_TEXT : OldTerm * String -> AST_CHANGE
+
+rules
+
+  /*
+     Either adds a recovered element to a list by creating a change INSERT_AT_END or INSERT_BEFORE
+     or replace a term by the topmost ambiguity (REPLACE_TERM)
+     or insert a term if it is a single recovery (INSERTION_TERM)  
+  */
+   
+  get-proposals-incorrect-programs(pp, parenthesize, indent, leading-ws, separator):
+    (sort, new-ast, completion-term, topmost-amb, parenthesized) -> (name, text, additionalInfo, change, completion-term, kind) 
+    where
+      change         := <calculate-completion-change-incorrect <+ create-insertion-or-replace(|topmost-amb)> completion-term;
+      text           := <build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized)> change;
+      name           := <get-constructor> completion-term ;
+      additionalInfo := <pp> parenthesized;
+      kind           := "recovery"
+   
+  create-insertion-or-replace(|topmost-amb):
+    completion-term -> INSERTION_TERM(<try(wrap-optional)> completion-term)
+    where
+       <?topmost-amb> completion-term 
+ 
+  create-insertion-or-replace(|topmost-amb):
+    completion-term -> REPLACE_TERM(topmost-amb, <try(wrap-optional)> completion-term)
+    where
+       <not(?topmost-amb)> completion-term 
+              
+  wrap-optional = get-parent-non-amb; ?Some(_)
+   
+  calculate-completion-change-incorrect:
+    completion-term -> change
+    where
+      parent := <get-parent-non-amb; is-list> completion-term; //is inside a list
+      index  := <get-index-origin(|1)> (completion-term, parent);
+      length := <length> parent;
+      if <geq> (index, length) then
+        change := INSERT_AT_END(parent, completion-term)
+      else
+        change := INSERT_BEFORE(<index(|<inc> index)> parent, completion-term)
+      end
+      
+  get-proposals-incorrect-programs-nested(pp, parenthesize, indent, leading-ws, separator):
+    (sort, new-ast, completion-term, nestedCompletionName, replacement, parenthesized) -> (name, text, additionalInfo, change, completion-term)
+    where
+      name                       := <concat-strings> [<get-constructor> completion-term, "-", nestedCompletionName];
+      (completion-term', change) := <create-change-nested-completion(|parenthesized)> (completion-term, replacement);
+      text                       := <build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|completion-term')> change;
+      additionalInfo             := <pp> completion-term'
+
+  create-change-nested-completion(|parenthesized):
+    (term, replace-change) -> (completion-term-replaced, change)
+    where      
+      args* := <get-arguments; ?[subterm, replacement]> replace-change;
+      completion-term-replaced := <topdown(try(match-node-origin(|subterm); <trim-whitespace> replacement))> parenthesized;
+      change := <calculate-completion-change-incorrect <+ create-insertion-or-replace(|parenthesized)> completion-term-replaced
+      
+    
+  get-proposals-incorrect-programs-single-placeholder(pp, parenthesize, indent, leading-ws, separator):
+    (sort, new-ast, completion-term, topmost-amb, parenthesized, placeholder, placeholder-term) -> proposal'* 
+    where
+      suggestion-is     := <new-iset>;
+      suggestion*       := <try(suggest-completions(|suggestion-is)); <iset-elements> suggestion-is> placeholder;
+      if [] := suggestion* then
+        suggestion'* := [(<get-constructor> placeholder, placeholder)]
+      else 
+        suggestion'* := suggestion*
+      end;
+      input*            := <map(replace-expansion-completion-term(|sort, new-ast, completion-term, topmost-amb, parenthesized, placeholder-term))> suggestion'*;
+      proposal*         := <map(get-proposals-incorrect-programs(pp, parenthesize, indent, leading-ws, separator))> input*;
+      proposal'*        := <zip(rename-proposal)> (proposal*, suggestion'*)
+      
+  replace-expansion-completion-term(|sort, new-ast, completion-term, topmost-amb, parenthesized, placeholder-term):
+     (name, expansion) -> (sort, new-ast, completion-term, topmost-amb, parenthesized')
+     where
+        parenthesized' := <topdown(try(origin-track-forced(preserve-annotations-attachments(expand-completion-term(|placeholder-term, expansion)))))> parenthesized
+  
+  rename-proposal:
+    ((name, text, additionalInfo, change, completion-term, kind), suggestion) -> (name', text, additionalInfo, change, completion-term, kind')
+    where
+      <?(name', _)> suggestion;
+      kind' := "expansionEditing"
+      
+  expand-completion-term(|placeholder-term, expansion):
+    placeholder-term -> expansion
+        
+/*
+  Build description for completion inside lists in incorrect programs  
+  The information about the separator, indentation or leading whitespace is derived from the grammar
+  To get this information for a determined node t, it is necessary to access the parent node(s) of t
+*/
+
+rules
+  
+  // empty list       
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    INSERT_AT_END(old-list, completion-term) -> text
+    where
+      <?[_]> old-list
+    where // regular ambiguity
+      parent             := <get-parent-non-amb; not(is-list)> old-list;
+      index              := <find-position> (old-list, parent)
+    with  
+      leading-ws         := <leading-ws> (parent, index);
+      indent             := <indent> (parent, index);
+      parent-indent      := <origin-indent <+ !""> parent;
+      reconstructed-text := <pp> parenthesized;
+      if <is-substring(!"\n")> leading-ws then
+        text := <concat-strings> [leading-ws, <replace-indentation(|indent, ""); prefix-lines(|parent-indent)> reconstructed-text]
+      else
+        text := <concat-strings> [leading-ws, <replace-indentation(|indent, "")> reconstructed-text]
+      end
+      
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    INSERT_AT_END(old-list, completion-term) -> text
+    where
+      <?[_]> old-list
+    where // different lists inside an ambiguity node [amb([list_1, list_2])] -> the external list is of the same type of list_1 and list_2
+      parent             := <get-parent-non-amb; is-list> old-list;
+      list-parent        := <get-parent-non-amb> parent;
+      index              := <find-position> (parent, list-parent)
+    with  
+      leading-ws         := <leading-ws> (list-parent, index);
+      indent             := <indent> (list-parent, index);
+      parent-indent      := <origin-indent <+ !""> list-parent;
+      reconstructed-text := <pp> parenthesized;
+      if <is-substring(!"\n")> leading-ws then
+        text := <concat-strings> [leading-ws, <replace-indentation(|indent, ""); prefix-lines(|parent-indent)> reconstructed-text]
+      else
+        text := <concat-strings> [leading-ws, <replace-indentation(|indent, "")> reconstructed-text]
+      end    
+  
+  // non-empty list 
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    INSERT_AT_END(old-list, completion-term) -> text
+    where
+      <not(?[_])> old-list
+    where
+      parent             := <get-parent-non-amb; not(is-list)> old-list;
+      index              := <find-position> (old-list, parent)
+    with  
+      sep                := <separator> (parent, index);
+      indent             := <indent> (parent, index);
+      parent-indent      := <origin-indent <+ !""> parent;
+      reconstructed-text := <pp> parenthesized;
+      separator          := <concat-strings> [sep, indent];
+      if <is-substring(!"\n")> separator then
+        text := <concat-strings> [sep, <prefix-lines(|<conc-strings> (indent, parent-indent))> reconstructed-text]
+      else
+        text := <concat-strings> [sep, <prefix-lines(|indent)> reconstructed-text]
+      end
+      
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    INSERT_AT_END(old-list, completion-term) -> text
+    where
+      <not(?[_])> old-list
+    where // different lists inside an ambiguity node [amb([list_1, list_2])] -> the external list is of the same type of list_1 and list_2
+      parent             := <get-parent-non-amb; is-list> old-list;
+      list-parent        := <get-parent-non-amb> parent;
+      index              := <find-position> (parent, list-parent)
+    with  
+      sep                := <separator> (list-parent, index);
+      indent             := <indent> (list-parent, index);
+      parent-indent      := <origin-indent <+ !""> list-parent;
+      reconstructed-text := <pp> parenthesized;
+      separator          := <concat-strings> [sep, indent];
+      if <is-substring(!"\n")> separator then
+        text := <concat-strings> [sep, <prefix-lines(|<conc-strings> (indent, parent-indent))> reconstructed-text]
+      else
+        text := <concat-strings> [sep, <prefix-lines(|indent)> reconstructed-text]
+      end    
+
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    INSERT_BEFORE(old-node, completion-term) -> text
+    where
+      parent                := <get-parent-non-amb> old-node; // the list in which old node is
+      grandparent           := <get-parent-non-amb; not(is-list)> parent; // the node in which the list is (to get separator, indent and leading ws)
+      index-parent          := <find-position> (parent, grandparent)
+    with  
+      index-completion-term := <get-index-origin(|1)> (completion-term, parent);
+      sep                   := <separator> (grandparent, index-parent);
+      indent                := <indent> (grandparent, index-parent);  
+      leading-ws            := <leading-ws> (grandparent, index-parent); 
+      grandparent-indent    := <origin-indent <+ !""> grandparent;
+      reconstructed-text    := <pp> parenthesized;
+      // indent according to the parent in case there is a new line in the leading ws
+      if <is-substring(!"\n")> leading-ws then
+        leading-ws-indent := grandparent-indent
+      else
+        leading-ws-indent := ""
+      end;
+        //indent according to the parent in case the separator has a new line
+      if <is-substring(!"\n")> sep then
+        separator-indent := <concat-strings> [indent, grandparent-indent]
+      else
+        separator-indent := <concat-strings> [indent]
+      end;       
+      if <?1> index-completion-term then // inserting at the beginning of the list
+        text := <concat-strings> [leading-ws, <replace-indentation(|indent, ""); prefix-lines(|leading-ws-indent)> reconstructed-text, sep, separator-indent]
+      else //inserting in the middle of the list
+        text := <concat-strings> [sep, <prefix-lines(|separator-indent)> reconstructed-text, sep, separator-indent]
+      end 
+  
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    INSERT_BEFORE(old-node, completion-term) -> text
+    where // different lists inside an ambiguity node [amb([list_1, list_2])] -> the external list is of the same type of list_1 and list_2
+      parent                := <get-parent-non-amb> old-node; 
+      grandparent           := <get-parent-non-amb; is-list> parent; 
+      grandparent-list      := <get-parent-non-amb> grandparent; // the node in which the list is (to get separator, indent and leading ws)
+      index-parent          := <find-position> (grandparent, grandparent-list)
+    with
+      index-completion-term := <get-index-origin(|1)> (completion-term, parent);
+      sep                   := <separator> (grandparent-list, index-parent);
+      indent                := <indent> (grandparent-list, index-parent);  
+      leading-ws            := <leading-ws> (grandparent-list, index-parent); 
+      grandparent-indent    := <origin-indent <+ !""> grandparent-list;
+      reconstructed-text    := <pp> parenthesized;
+      // indent according to the parent in case there is a new line in the leading ws
+      if <is-substring(!"\n")> leading-ws then
+        leading-ws-indent := grandparent-indent
+      else
+        leading-ws-indent := ""
+      end;
+        //indent according to the parent in case the separator has a new line
+      if <is-substring(!"\n")> sep then
+        separator-indent := <concat-strings> [indent, grandparent-indent]
+      else
+        separator-indent := <concat-strings> [indent]
+      end;       
+      if <?1> index-completion-term then // inserting at the beginning of the list
+        text := <concat-strings> [leading-ws, <replace-indentation(|indent, ""); prefix-lines(|leading-ws-indent)> reconstructed-text, sep, separator-indent]
+      else //inserting in the middle of the list
+        text := <concat-strings> [sep, <prefix-lines(|separator-indent)> reconstructed-text, sep, separator-indent]
+      end
+          
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    INSERTION_TERM(completion-term) -> text
+    where
+      <get-parent> completion-term;      
+      parent                := <get-parent-non-amb> completion-term;
+      index                 := <find-position> (completion-term, parent);
+      leading-ws            := <leading-ws> (parent, index);
+      indent                := <indent> (parent, index);
+      parent-indent         := <origin-indent <+ !""> parent;
+      reconstructed-text    := <(?Some(<id>) <+ id); pp> parenthesized;
+      if <is-substring(!"\n")> leading-ws then
+        text := <concat-strings> [leading-ws, <replace-indentation(|indent, ""); prefix-lines(|parent-indent)> reconstructed-text]
+      else
+        text := <concat-strings> [leading-ws, <replace-indentation(|<conc-strings> (indent, parent-indent), "")> reconstructed-text]
+      end    
+  
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    INSERTION_TERM(completion-term) -> reconstructed-text
+    where //the term is in the root
+      <not(get-parent)> completion-term;      
+      reconstructed-text := <pp> parenthesized
+      
+  build-description-incorrect-programs(pp, parenthesize, indent, leading-ws, separator|parenthesized):
+    REPLACE_TERM(term, completion-term) -> <replace-indentation(|old-indent, "")> text
+    where
+      text       := <pp> parenthesized;
+      old-indent := <origin-indent <+ !""> term
+      
+      
+              

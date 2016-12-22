@@ -7,7 +7,7 @@ import org.metaborg.core.unit.IUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
- * Spoofax-specific extension of an {@link ITransformUnit} that adds an {@link IStrategoTerm} AST.
+ * Spoofax-specific extension of an {@link ITransformUnit} that adds an {@link String} AST.
  * 
  * @param <I>
  *            Type of input unit.
@@ -18,4 +18,7 @@ public interface ISpoofaxTransformUnit<I extends IUnit> extends ITransformUnit<I
      *         may still represent an error recovered AST.
      */
     @Nullable IStrategoTerm ast();
+    
+    Iterable<? extends ISpoofaxTransformOutput> outputs();
+
 }

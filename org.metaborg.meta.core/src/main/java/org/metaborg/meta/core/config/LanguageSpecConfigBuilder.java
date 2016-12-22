@@ -34,9 +34,9 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        final LanguageSpecConfig config =
-            new LanguageSpecConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps, javaDeps,
-                typesmart, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+        final LanguageSpecConfig config = new LanguageSpecConfig(configuration, metaborgVersion, identifier, name,
+            compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart, langContribs,
+            generates, exports, pardonedLanguages, useBuildSystemSpec);
         return config;
     }
 

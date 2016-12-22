@@ -6,14 +6,15 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor;
-import org.metaborg.spoofax.meta.core.pluto.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
+import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
+import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 import org.metaborg.util.cmd.Arguments;
 import org.sugarj.common.FileCommands;
 
@@ -149,8 +150,15 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
             provide(input.depPath);
         }
         provide(strdep);
-        if(FileCommands.exists(strdep)) {
-            registerUsedPaths(strdep);
+        if(result.success) {
+            if(FileCommands.exists(strdep)) {
+                registerUsedPaths(strdep);
+            }
+        } else {
+            // If Stratego compilation fails, the resulting .dep file is incomplete, so require all Stratego files.
+            for(File sourceFile : FileUtils.listFiles(context.baseDir, new String[] { "str" }, true)) {
+                require(sourceFile);
+            }
         }
 
         setState(State.finished(result.success));

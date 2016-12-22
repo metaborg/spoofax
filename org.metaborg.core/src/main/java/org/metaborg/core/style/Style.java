@@ -15,15 +15,17 @@ public class Style implements IStyle {
     private final boolean bold;
     private final boolean italic;
     private final boolean underscore;
+    private final boolean strikeout;
 
 
     public Style(@Nullable Color color, @Nullable Color backgroundColor, boolean bold, boolean italic,
-        boolean underscore) {
+        boolean underscore, boolean strikeout) {
         this.color = color;
         this.backgroundColor = backgroundColor;
         this.bold = bold;
         this.italic = italic;
         this.underscore = underscore;
+        this.strikeout = strikeout;
     }
 
 
@@ -47,6 +49,11 @@ public class Style implements IStyle {
         return underscore;
     }
 
+    @Override public boolean strikeout() {
+        return strikeout;
+    }
+
+
     @Override public int hashCode() {
         // @formatter:off
         return new HashCodeBuilder(17, 37)
@@ -55,6 +62,7 @@ public class Style implements IStyle {
             .append(this.bold)
             .append(this.italic)
             .append(this.underscore)
+            .append(this.strikeout)
             .toHashCode();
         // @formatter:on
     }
@@ -73,12 +81,13 @@ public class Style implements IStyle {
             .append(this.bold, other.bold)
             .append(this.italic, other.italic)
             .append(this.underscore, other.underscore)
+            .append(this.strikeout, other.strikeout)
             .isEquals();
         // @formatter:on
     }
 
     @Override public String toString() {
-        return String.format("Style [color=%s, backgroundColor=%s, bold=%s, italic=%s, underscore=%s]", color,
-            backgroundColor, bold, italic, underscore);
+        return String.format("Style [color=%s, backgroundColor=%s, bold=%s, italic=%s, underscore=%s, strikeout=%s]", color,
+            backgroundColor, bold, italic, underscore, strikeout);
     }
 }

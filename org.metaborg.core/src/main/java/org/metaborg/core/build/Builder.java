@@ -227,10 +227,14 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             removedResources, extraMessages, success, cancel);
         final Iterable<P> allParseResults = Iterables.concat(sourceParseUnits, includeParseUnits);
 
-        // Segregate by context
+        // Analyze
         cancel.throwIfCancelled();
-        final Multimap<IContext, P> parseUnitsPerContext = ArrayListMultimap.create();
-        if(input.analyze) {
+        final Multimap<IContext, A> allAnalyzeUnits;
+        final Collection<AU> allAnalyzeUpdates = Lists.newArrayList();
+        boolean analyze = input.analyze && analysisService.available(language);
+        if(analyze) {
+            // Segregate by context
+            final Multimap<IContext, P> parseUnitsPerContext = ArrayListMultimap.create();
             for(P parseResult : sourceParseUnits) {
                 cancel.throwIfCancelled();
                 final FileObject resource = parseResult.source();
@@ -246,13 +250,9 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
                 }
             }
-        }
 
-        // Analyze
-        cancel.throwIfCancelled();
-        final Multimap<IContext, A> allAnalyzeUnits;
-        final Collection<AU> allAnalyzeUpdates = Lists.newArrayList();
-        if(input.analyze) {
+            // Run analysis
+            cancel.throwIfCancelled();
             allAnalyzeUnits = analyze(input, location, parseUnitsPerContext, includeParseUnits, pardoned,
                 allAnalyzeUpdates, removedResources, extraMessages, success, cancel);
         } else {
@@ -416,13 +416,13 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                         continue;
                     }
 
-                    try {
-                        for(ITransformGoal goal : input.transformGoals) {
-                            cancel.throwIfCancelled();
-                            if(!transformService.available(context, goal)) {
-                                logger.trace("No {} transformation required for {}", goal, context.language());
-                                continue;
-                            }
+                    for(ITransformGoal goal : input.transformGoals) {
+                        cancel.throwIfCancelled();
+                        if(!transformService.available(context, goal)) {
+                            logger.trace("No {} transformation required for {}", goal, context.language());
+                            continue;
+                        }
+                        try {
                             final Collection<TA> results = transformService.transform(analysisResult, context, goal);
                             for(TA result : results) {
                                 final boolean noErrors =
@@ -431,14 +431,14 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                                 @SuppressWarnings("unchecked") final T genericResult = (T) result;
                                 allTransformUnits.add(genericResult);
                             }
+                        } catch(TransformException e) {
+                            final String message = String.format("Transformation failed unexpectedly for %s", name);
+                            logger.error(message, e);
+                            final boolean noErrors = printMessage(resource, message, e, input, pardoned);
+                            success.and(noErrors);
+                            extraMessages.add(
+                                MessageFactory.newBuilderErrorAtTop(location, "Transformation failed unexpectedly", e));
                         }
-                    } catch(TransformException e) {
-                        final String message = String.format("Transformation failed unexpectedly for %s", name);
-                        logger.error(message, e);
-                        final boolean noErrors = printMessage(resource, message, e, input, pardoned);
-                        success.and(noErrors);
-                        extraMessages.add(
-                            MessageFactory.newBuilderErrorAtTop(location, "Transformation failed unexpectedly", e));
                     }
                 }
                 // GTODO: also compile any affected sources

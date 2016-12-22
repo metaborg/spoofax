@@ -1,0 +1,62 @@
+module libspoofax/editor/refactoring/construct-initial-list-structure
+
+imports
+  libspoofax/term/origin
+
+rules
+  
+  origin-separation(pp|some-elem) = construct-initial-list-structure(pp|some-elem); ?(_, <id>)
+  
+  whitespace-at-start(pp|some-elem) = construct-initial-list-structure(pp|some-elem); ?(<id>, _)  
+
+  /**
+   * Given either
+   *   - a list with zero or one element(s)
+   *   - an element of a list with one element
+   * finds both the whitespace that the pretty-printer puts in front of
+   * the first element, as well as the separation that the pretty-printer
+   * puts in between elements.
+   *
+   * Constructing this information relies on pretty-printing of dummy nodes.
+   * @some-elem can be any element that may occur in the list that we want
+   * to find the separation of.
+   */  
+  construct-initial-list-structure(pp|some-elem):
+  elemOrList -> (whitespace-at-start'', sep'')
+    where
+      list := <?[] + ?[e]; !e; get-parent + get-parent> elemOrList;
+      <leq> (<length> list, 1)
+    with
+      elem-text := <pp> some-elem;
+      parent := <get-parent> list;
+      dummy1 := <oncetd(origin-equal(|list); ![some-elem, some-elem]); pp> parent;
+      dummy2 := <oncetd(origin-equal(|list); ![some-elem]); pp> parent
+    with
+      zipped := <zipPad(id, !0)> (<explode-string> dummy1, <explode-string> dummy2);
+      index := <get-index0(not(eq))> zipped;
+      (before, after) := <explode-string; split-at(|index); ?(b, a); !(<implode-string> b, <implode-string> a)> dummy1;
+      whitespace-at-start := <
+          !(<id>, elem-text); split-before-last-occurrence; ?(<id>, _);
+          string-as-chars(reverse; take-while(is-whitespace + test('\n')); reverse)
+        > before;
+      sep := <conc-strings> (
+        <split-after-last-occurrence; ?(_, <id>)> (before, elem-text),
+        <split-before; ?(<id>, _)> (after, elem-text)
+      )
+    with
+      dummy-indent := <get-parent; origin-indent> list;
+      whitespace-at-start' := <prefix-lines(|dummy-indent)> whitespace-at-start;
+      sep' := <prefix-lines(|dummy-indent)>  sep;
+      whitespace-at-start'' := <split-after; ?(_, <id>)> (whitespace-at-start', dummy-indent);
+      sep'' := <split-after; ?(_, <id>)> (sep', dummy-indent)
+  
+  split-after-last-occurrence = 
+    ?(l, sub); split-after; ?(before, after);
+    try(!after; is-substring(!sub); !(after, sub); split-after-last-occurrence)
+  split-before-last-occurrence =
+    ?(_, sub); split-after-last-occurrence; ?(before, _);
+    !(before, sub); split-before
+  
+rules  
+  
+  get-parent = prim("SSL_EXT_get_parent", <id>)

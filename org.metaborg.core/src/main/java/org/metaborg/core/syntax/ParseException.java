@@ -2,6 +2,9 @@ package org.metaborg.core.syntax;
 
 import org.metaborg.core.MetaborgException;
 
+/**
+ * Exception indicating that parsing failed unexpectedly.
+ */
 public class ParseException extends MetaborgException {
     private static final long serialVersionUID = 794040128416462015L;
 

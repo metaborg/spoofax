@@ -2,12 +2,23 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
+import org.metaborg.core.config.ILanguageComponentConfig;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.spoofax.meta.core.config.Sdf2tableVersion;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
@@ -17,12 +28,12 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.MakePermissive;
-import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableNew;
 import org.metaborg.spoofax.meta.core.pluto.build.PackSdf;
 import org.metaborg.spoofax.meta.core.pluto.build.Rtg2Sig;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
+import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableNew;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
@@ -40,14 +51,20 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         private static final long serialVersionUID = -2379365089609792204L;
 
         public final String languageId;
+        public final @Nullable Collection<LanguageIdentifier> sourceDeps;
 
         public final @Nullable String sdfModule;
+        public final @Nullable Boolean sdfEnabled;
         public final @Nullable File sdfFile;
         public final SdfVersion sdfVersion;
         public final Sdf2tableVersion sdf2tableVersion;
         public final @Nullable File sdfExternalDef;
         public final List<File> packSdfIncludePaths;
         public final Arguments packSdfArgs;
+
+
+        public final @Nullable String sdfCompletionModule;
+        public final @Nullable File sdfCompletionFile;
 
         public final @Nullable String sdfMetaModule;
         public final @Nullable File sdfMetaFile;
@@ -63,15 +80,18 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final Arguments strjArgs;
 
 
-        public Input(SpoofaxContext context, String languageId, @Nullable String sdfModule, @Nullable File sdfFile,
-            SdfVersion sdfVersion, Sdf2tableVersion sdf2tableVersion, @Nullable File sdfExternalDef,
-            List<File> packSdfIncludePaths, Arguments packSdfArgs, @Nullable String sdfMetaModule,
-            @Nullable File sdfMetaFile, @Nullable File strFile, @Nullable String strJavaPackage,
-            @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile, StrategoFormat strFormat,
-            @Nullable File strExternalJar, @Nullable String strExternalJarFlags, List<File> strjIncludeDirs,
-            Arguments strjArgs) {
+        public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
+            @Nullable Boolean sdfEnabled, @Nullable String sdfModule, @Nullable File sdfFile, SdfVersion sdfVersion,
+            Sdf2tableVersion sdf2tableVersion, @Nullable File sdfExternalDef, List<File> packSdfIncludePaths,
+            Arguments packSdfArgs, @Nullable String sdfCompletionModule, @Nullable File sdfCompletionFile,
+            @Nullable String sdfMetaModule, @Nullable File sdfMetaFile, @Nullable File strFile,
+            @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
+            StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
+            List<File> strjIncludeDirs, Arguments strjArgs) {
             super(context);
             this.languageId = languageId;
+            this.sdfEnabled = sdfEnabled;
+            this.sourceDeps = sourceDeps;
             this.sdfModule = sdfModule;
             this.sdfFile = sdfFile;
             this.sdfVersion = sdfVersion;
@@ -79,6 +99,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.sdfExternalDef = sdfExternalDef;
             this.packSdfIncludePaths = packSdfIncludePaths;
             this.packSdfArgs = packSdfArgs;
+            this.sdfCompletionModule = sdfCompletionModule;
+            this.sdfCompletionFile = sdfCompletionFile;
             this.sdfMetaModule = sdfMetaModule;
             this.sdfMetaFile = sdfMetaFile;
             this.strFile = strFile;
@@ -93,8 +115,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
     }
 
-    public static SpoofaxBuilderFactory<Input, None, GenerateSourcesBuilder> factory = SpoofaxBuilderFactoryFactory.of(
-        GenerateSourcesBuilder.class, Input.class);
+    public static SpoofaxBuilderFactory<Input, None, GenerateSourcesBuilder> factory =
+        SpoofaxBuilderFactoryFactory.of(GenerateSourcesBuilder.class, Input.class);
 
 
     public GenerateSourcesBuilder(Input input) {
@@ -124,6 +146,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     @Override public None build(GenerateSourcesBuilder.Input input) throws IOException {
         final File srcGenSigDir = toFile(paths.syntaxSrcGenSignatureDir());
         final File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
+        final File srcGenSyntaxCompletionDir = toFile(paths.syntaxCompletionSrcGenDir());
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
 
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
@@ -131,7 +154,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // SDF
         final @Nullable Origin parenthesizeOrigin;
         final @Nullable Origin sigOrigin;
-        if(input.sdfModule != null) {
+        if(input.sdfModule != null && input.sdfEnabled) {
             final String sdfModule = input.sdfModule;
             final File sdfFile = input.sdfFile;
 
@@ -149,9 +172,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
 
                 packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + ".def");
-                packSdfOrigin =
-                    PackSdf.origin(new PackSdf.Input(context, sdfModule, sdfFile, packSdfFile,
-                        input.packSdfIncludePaths, input.packSdfArgs, null));
+                packSdfOrigin = PackSdf.origin(new PackSdf.Input(context, sdfModule, sdfFile, packSdfFile,
+                    input.packSdfIncludePaths, input.packSdfArgs, null));
             } else {
                 packSdfFile = null;
                 packSdfOrigin = null;
@@ -170,37 +192,70 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     sigOrigin = null;
                 }
 
-                // Get Stratego parenthesizer file, from the SDF def file.
-                final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
-                final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
-                parenthesizeOrigin =
-                    Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile, parenthesizeFile,
-                        sdfModule, parenthesizeModule, packSdfOrigin));
-
                 // Get SDF permissive def file, from the SDF def file.
                 final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + "-permissive.def");
-                final Origin permissiveDefOrigin =
-                    MakePermissive.origin(new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule,
-                        packSdfOrigin));
+                final Origin permissiveDefOrigin = MakePermissive.origin(
+                    new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
 
                 if(input.sdf2tableVersion == Sdf2tableVersion.java) {
-                    // Get JSGLR parse table, from the normalized SDF aterm
+                    // Get JSGLR parse table and parenthesizer, from the normalized SDF aterm
 
                     final File srcNormDir = toFile(paths.syntaxNormDir());
                     final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-new.tbl");
                     File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
+                    final List<String> paths = Lists.newLinkedList();
+                    paths.add(srcGenSyntaxDir.getAbsolutePath());
+                    
+                    for(LanguageIdentifier langId : input.sourceDeps) {
+                        ILanguageImpl lang = context.languageService().getImpl(langId);
+                        for(final ILanguageComponent component : lang.components()) {
+                            ILanguageComponentConfig config = component.config();
+                            Collection<IExportConfig> exports = config.exports();
+                            for(IExportConfig exportConfig : exports) {
+                                exportConfig.accept(new IExportVisitor() {
+                                    @Override public void visit(LangDirExport export) {
+                                        if(export.language.equals("ATerm")) {
+                                            try {
+                                                paths.add(
+                                                    toFileReplicate(component.location().resolveFile(export.directory))
+                                                        .getAbsolutePath());
+                                            } catch(FileSystemException e) {
+                                                System.out.println("Failed to locate path");
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+
+                                    @Override public void visit(LangFileExport export) {
+                                        // Ignore file exports
+                                    }
+
+                                    @Override public void visit(ResourceExport export) {
+                                        // Ignore resource exports
+
+                                    }
+                                });
+                            }
+                        }
+                    }
+
                     final Origin sdf2TableJavaOrigin =
-                        Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfNormFile, tableFile, srcNormDir
-                            .getAbsolutePath()));
+                        Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfNormFile, tableFile, paths, true));
 
                     requireBuild(sdf2TableJavaOrigin);
+                    parenthesizeOrigin = null;
+                } else {
+                    // Get Stratego parenthesizer file, from the SDF def file.
+                    final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
+                    final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
+                    parenthesizeOrigin = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile,
+                        parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
                 }
-                
+
                 // Get JSGLR parse table, from the SDF permissive def file.
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf.tbl");
-                final Origin sdf2TableOrigin =
-                    Sdf2Table.origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfModule,
-                        permissiveDefOrigin));
+                final Origin sdf2TableOrigin = Sdf2Table
+                    .origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfModule, permissiveDefOrigin));
 
                 requireBuild(sdf2TableOrigin);
 
@@ -213,7 +268,99 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             sigOrigin = null;
         }
 
-        // SDF2Table
+        // SDF completions
+        final Origin sdfCompletionOrigin;
+        if(input.sdfCompletionFile != null && input.sdfEnabled) {
+            final String sdfCompletionsModule = input.sdfCompletionModule;
+            final File sdfCompletionsFile = input.sdfCompletionFile;
+
+            if(input.sdf2tableVersion == Sdf2tableVersion.java) {
+                // Get JSGLR parse table, from the normalized SDF aterm
+
+                final List<String> paths = Lists.newLinkedList();
+                paths.add(srcGenSyntaxDir.getAbsolutePath());
+                
+                for(LanguageIdentifier langId : input.sourceDeps) {
+                    ILanguageImpl lang = context.languageService().getImpl(langId);
+                    for(final ILanguageComponent component : lang.components()) {
+                        ILanguageComponentConfig config = component.config();
+                        Collection<IExportConfig> exports = config.exports();
+                        for(IExportConfig exportConfig : exports) {
+                            exportConfig.accept(new IExportVisitor() {
+                                @Override public void visit(LangDirExport export) {
+                                    if(export.language.equals("ATerm")) {
+                                        try {
+                                            paths
+                                                .add(toFileReplicate(component.location().resolveFile(export.directory))
+                                                    .getAbsolutePath());
+                                        } catch(FileSystemException e) {
+                                            System.out.println("Failed to locate path");
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+
+                                @Override public void visit(LangFileExport export) {
+                                    // Ignore file exports
+                                }
+
+                                @Override public void visit(ResourceExport export) {
+                                    // Ignore resource exports
+
+                                }
+                            });
+                        }
+                    }
+                }
+
+                final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
+                sdfCompletionOrigin =
+                    Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfCompletionsFile, tableFile, paths, false));
+
+                requireBuild(sdfCompletionOrigin);
+            } else {
+
+                // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
+                // specification.
+                final @Nullable File packSdfCompletionsFile;
+                final @Nullable Origin packSdfCompletionsOrigin;
+                if(sdfCompletionsFile != null) {
+                    require(sdfCompletionsFile, FileExistsStamper.instance);
+                    if(!sdfCompletionsFile.exists()) {
+                        throw new IOException("Main SDF completions file at " + sdfCompletionsFile + " does not exist");
+                    }
+
+                    packSdfCompletionsFile =
+                        FileUtils.getFile(srcGenSyntaxCompletionDir, sdfCompletionsModule + ".def");
+                    packSdfCompletionsOrigin =
+                        PackSdf.origin(new PackSdf.Input(context, sdfCompletionsModule, sdfCompletionsFile,
+                            packSdfCompletionsFile, input.packSdfIncludePaths, input.packSdfArgs, null));
+                } else {
+                    packSdfCompletionsFile = null;
+                    packSdfCompletionsOrigin = null;
+                }
+
+                if(packSdfCompletionsFile != null) {
+                    // Get SDF permissive def file, from the SDF def file.
+                    final File permissiveCompletionsDefFile =
+                        FileUtils.getFile(srcGenSyntaxCompletionDir, sdfCompletionsModule + "-permissive.def");
+                    final Origin permissiveCompletionsDefOrigin =
+                        MakePermissive.origin(new MakePermissive.Input(context, packSdfCompletionsFile,
+                            permissiveCompletionsDefFile, sdfCompletionsModule, packSdfCompletionsOrigin));
+
+                    // Get JSGLR parse table, from the SDF permissive def file.
+                    final File completionsTableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
+                    sdfCompletionOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, permissiveCompletionsDefFile,
+                        completionsTableFile, "completion/" + sdfCompletionsModule, permissiveCompletionsDefOrigin));
+
+                    requireBuild(sdfCompletionOrigin);
+                } else {
+                    sdfCompletionOrigin = null;
+                }
+            }
+        } else {
+            sdfCompletionOrigin = null;
+        }
 
 
         // SDF meta-module for creating a Stratego concrete syntax extension parse table
@@ -233,20 +380,18 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             provide(strategoMixFile);
 
             final File packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + ".def");
-            final Origin packSdfOrigin =
-                PackSdf.origin(new PackSdf.Input(context, sdfMetaModule, sdfMetaFile, packSdfFile,
-                    input.packSdfIncludePaths, packSdfMetaArgs, null));
+
+            final Origin packSdfOrigin = PackSdf.origin(new PackSdf.Input(context, sdfMetaModule, sdfMetaFile,
+                packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, null));
 
             final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + "-permissive.def");
-            final Origin permissiveDefOrigin =
-                MakePermissive.origin(new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfMetaModule,
-                    packSdfOrigin));
+            final Origin permissiveDefOrigin = MakePermissive.origin(
+                new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfMetaModule, packSdfOrigin));
 
             final File transDir = toFile(paths.transDir());
             final File tableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
-            sdfMetaOrigin =
-                Sdf2Table.origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfMetaModule,
-                    permissiveDefOrigin));
+            sdfMetaOrigin = Sdf2Table
+                .origin(new Sdf2Table.Input(context, permissiveDefFile, tableFile, sdfMetaModule, permissiveDefOrigin));
             requireBuild(sdfMetaOrigin);
         } else {
             sdfMetaOrigin = null;
@@ -264,8 +409,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             if(buildStrJavaStrat) {
                 require(input.strJavaStratFile, FileExistsStamper.instance);
                 if(!input.strJavaStratFile.exists()) {
-                    throw new IOException("Main Stratego Java strategies file at " + input.strJavaStratFile
-                        + " does not exist");
+                    throw new IOException(
+                        "Main Stratego Java strategies file at " + input.strJavaStratFile + " does not exist");
                 }
             }
 
@@ -291,19 +436,32 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 extraArgs.addLine(input.strExternalJarFlags);
             }
 
-            // @formatter:off
-            final Origin origin = Origin.Builder()
-                .add(parenthesizeOrigin)
-                .add(sigOrigin)
-                .add(sdfMetaOrigin)
-                .get();
+            // @formatter:off            
+            final Origin origin;
+            
+            if(input.sdf2tableVersion == Sdf2tableVersion.java) {
+                origin = Origin.Builder()
+                    .add(sigOrigin)
+                    .add(sdfCompletionOrigin)
+                    .add(sdfMetaOrigin)
+                    .get();
+            } else {
+                origin = Origin.Builder()
+                    .add(parenthesizeOrigin)
+                    .add(sigOrigin)
+                    .add(sdfCompletionOrigin)
+                    .add(sdfMetaOrigin)
+                    .get();
+            }
             // @formatter:on
 
             final File cacheDir = toFile(paths.strCacheDir());
 
             final Strj.Input strjInput =
+
                 new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage, true, true,
                     input.strjIncludeDirs, Lists.<String>newArrayList(), cacheDir, extraArgs, origin);
+
             final Origin strjOrigin = Strj.origin(strjInput);
             requireBuild(strjOrigin);
 

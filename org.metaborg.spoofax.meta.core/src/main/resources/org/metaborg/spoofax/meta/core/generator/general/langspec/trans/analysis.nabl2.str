@@ -1,0 +1,26 @@
+module analysis
+
+imports
+  
+  nabl2shared
+  nabl2runtime
+  
+  static-semantics
+
+  pp
+
+rules // Analysis
+
+  editor-analyze = nabl2-analyze(id)
+
+rules // Debugging
+  
+  // Prints the abstract syntax ATerm of a selection.
+  debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
+    with filename := <guarantee-extension(|"aterm")> path
+       ; result   := selected
+
+  // Prints the analyzed annotated abstract syntax ATerm of a selection.
+  debug-show-analyzed: (selected, _, _, path, project-path) -> (filename, result)
+    with filename := <guarantee-extension(|"analyzed.aterm")> path
+       ; result   := selected

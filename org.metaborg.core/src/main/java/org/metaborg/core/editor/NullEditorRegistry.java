@@ -14,4 +14,7 @@ public class NullEditorRegistry implements IEditorRegistry {
 
     @Override public void open(FileObject resource, IProject project) {
     }
+
+    @Override public void open(Iterable<FileObject> resources, IProject project) {
+    }
 }

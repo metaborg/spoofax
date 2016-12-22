@@ -24,8 +24,12 @@ import com.google.inject.Inject;
  */
 public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     implements ISpoofaxLanguageSpecConfigBuilder {
+
     protected @Nullable SdfVersion sdfVersion;
     protected @Nullable Sdf2tableVersion sdf2tableVersion;
+    protected @Nullable String sdfMainFile;
+    protected @Nullable PlaceholderCharacters placeholderCharacters;
+    protected @Nullable String prettyPrint;
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
     protected @Nullable StrategoFormat strFormat;
@@ -44,17 +48,24 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        final SpoofaxLanguageSpecConfig config =
-            new SpoofaxLanguageSpecConfig(configuration, identifier, name, compileDeps, sourceDeps, javaDeps, typesmart,
-                langContribs, generates, exports, metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion, 
-                sdf2tableVersion, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+
+        final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, identifier, name,
+            compileDeps, sourceDeps, javaDeps, typesmart, langContribs, generates, exports, metaborgVersion,
+            pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled, sdfMainFile, parseTable,
+            completionsParseTable, sdf2tableVersion, placeholderCharacters, prettyPrint, sdfExternalDef, sdfArgs,
+            strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
+
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder reset() {
         super.reset();
+
         sdfVersion = null;
         sdf2tableVersion = null;
+        sdfMainFile = null;
+        placeholderCharacters = null;
+        prettyPrint = null;
         sdfExternalDef = null;
         sdfArgs = null;
         strFormat = null;
@@ -67,9 +78,14 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder copyFrom(ISpoofaxLanguageSpecConfig config) {
         super.copyFrom(config);
+
         if(!(config instanceof IConfig)) {
             withSdfVersion(config.sdfVersion());
             withSdf2tableVersion(config.sdf2tableVersion());
+            withPrettyPrintLanguage(config.prettyPrintLanguage());
+            withSdfMainFile(config.sdfMainFile());
+            withPlaceholderPrefix(config.placeholderChars().prefix);
+            withPlaceholderPostfix(config.placeholderChars().suffix);
             withSdfExternalDef(config.sdfExternalDef());
             withSdfArgs(config.sdfArgs());
             withStrFormat(config.strFormat());
@@ -78,6 +94,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             withStrArgs(config.strArgs());
             withBuildSteps(config.buildSteps());
         }
+        return this;
+    }
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withPrettyPrintLanguage(String prettyPrintLanguage) {
+        this.prettyPrint = prettyPrintLanguage;
         return this;
     }
 
@@ -177,12 +198,17 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion sdfVersion) {
         this.sdfVersion = sdfVersion;
-        return null;
+        return this;
     }
-    
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withSdfMainFile(String sdfMainFile) {
+        this.sdfMainFile = sdfMainFile;
+        return this;
+    }
+
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion) {
         this.sdf2tableVersion = sdf2tableVersion;
-        return null;
+        return this;
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfExternalDef(String def) {
@@ -239,4 +265,17 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         Iterables.addAll(this.buildSteps, buildSteps);
         return this;
     }
+
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withPlaceholderPrefix(String placeholderPrefix) {
+        this.placeholderCharacters.prefix = placeholderPrefix;
+        return this;
+    }
+
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withPlaceholderPostfix(String placeholderPostfix) {
+        this.placeholderCharacters.suffix = placeholderPostfix;
+        return this;
+    }
+
 }

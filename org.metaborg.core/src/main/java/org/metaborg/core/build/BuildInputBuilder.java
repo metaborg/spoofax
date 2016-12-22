@@ -380,20 +380,20 @@ public class BuildInputBuilder {
             state = new BuildState();
         }
 
-        final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDeps(this.project);
-        final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);
         if(addDependencyLanguages) {
+            final Iterable<ILanguageComponent> compileComponents = dependencyService.compileDeps(this.project);
+            final Iterable<ILanguageImpl> compileImpls = LanguageUtils.toImpls(compileComponents);
             addLanguages(compileImpls);
         }
 
         if(addDefaultIncludePaths) {
-            for(ILanguageImpl language : compileImpls) {
+            for(ILanguageImpl language : languages) {
                 addIncludePaths(language, languagePathService.includePaths(this.project, language.belongsTo().name()));
             }
         }
 
         if(addSourcesFromDefaultSourceLocations) {
-            for(ILanguageImpl language : compileImpls) {
+            for(ILanguageImpl language : languages) {
                 final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(this.project, language);
                 addIdentifiedSources(sources);
             }

@@ -91,6 +91,33 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs);
+    
+    /**
+     * Sets the whether SDF is enabled in the project
+     *
+     * @param sdfEnabled
+     *            If SDF is enabled or not.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withSdfEnabled(Boolean sdfEnabled);
+
+    /**
+     * Sets the parse table (relative) path.
+     *
+     * @param parseTable
+     *            The parse table (relative) path.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withSdfTable(String parseTable);
+
+    /**
+     * Sets the completion parse table (relative) path.
+     *
+     * @param completionsParseTable
+     *            The completion parse table (relative) path.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withSdfCompletionsTable(String completionsParseTable);
 
     /**
      * Adds language contributions.

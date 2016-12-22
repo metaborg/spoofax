@@ -1,5 +1,7 @@
 package org.metaborg.core.completion;
 
-public interface ICompletionItem {
+import java.io.Serializable;
+
+public interface ICompletionItem extends Serializable{
 
 }
