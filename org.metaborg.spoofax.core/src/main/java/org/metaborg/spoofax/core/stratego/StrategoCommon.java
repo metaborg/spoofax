@@ -1,11 +1,13 @@
 package org.metaborg.spoofax.core.stratego;
 
 import java.io.File;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.AggregateMetaborgException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
@@ -28,6 +30,7 @@ import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
 import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
 import org.strategoxt.stratego_gpp.box2text_string_0_1;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 /**
@@ -58,6 +61,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input,
         String strategy) throws MetaborgException {
+        List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
             if(component.facet(StrategoRuntimeFacet.class) == null) {
                 continue;
@@ -70,15 +74,17 @@ public class StrategoCommon implements IStrategoCommon {
                     return result;
                 }
             } catch (MetaborgException ex) {
-                logger.warn("Invocation of '{}' failed in component {}", ex, strategy, component);
+                exceptions.add(ex);
             }
 
         }
+        AggregateMetaborgException.throwIfAny(exceptions);
         return null;
     }
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
         String strategy) throws MetaborgException {
+        List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
             if(component.facet(StrategoRuntimeFacet.class) == null) {
                 continue;
@@ -91,10 +97,11 @@ public class StrategoCommon implements IStrategoCommon {
                     return result;
                 }
             } catch (MetaborgException ex) {
-                logger.warn("Invocation of '{}' failed in component {}", ex, strategy, component);
+                exceptions.add(ex);
             }
 
         }
+        AggregateMetaborgException.throwIfAny(exceptions);
         return null;
     }
 
