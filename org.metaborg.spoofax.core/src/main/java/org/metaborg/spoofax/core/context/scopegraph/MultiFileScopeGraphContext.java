@@ -7,10 +7,10 @@ import java.util.Optional;
 
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.meta.nabl2.solver.Solution;
-import org.metaborg.meta.nabl2.spoofax.CustomSolution;
-import org.metaborg.meta.nabl2.spoofax.FinalResult;
-import org.metaborg.meta.nabl2.spoofax.InitialResult;
-import org.metaborg.meta.nabl2.spoofax.UnitResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
+import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContext.State;
 
 import com.google.common.collect.Maps;
