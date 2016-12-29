@@ -152,8 +152,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 () -> new AnalysisException(context, "No final result."));
         FinalResult finalResult = FinalResult.matcher().match(finalResultTerm).orElseThrow(() -> new AnalysisException(
                 context, "Invalid final results."));
-        Optional<ITerm> customFinal = Optionals.lift(initialResult.getCustomResult(), Optionals.sequence(customUnits,
-                us -> Lists.newArrayList(us)), (i, us) -> {
+        Optional<ITerm> customFinal = Optionals.lift(initialResult.getCustomResult(), Optionals.sequence(customUnits)
+                .map(us -> Lists.newArrayList(us)), (i, us) -> {
                     return (Optional<ITerm>) doCustomAction(strategy, Actions.customFinal(globalSource, i, us), context,
                             runtime);
                 }).flatMap(o -> o);
