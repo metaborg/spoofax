@@ -1,24 +1,32 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
-import org.metaborg.scopegraph.INameResolution;
-import org.metaborg.scopegraph.IScopeGraph;
-import org.metaborg.scopegraph.context.IScopeGraphUnit;
-import org.metaborg.scopegraph.impl.ASTMetadata;
-import org.metaborg.scopegraph.impl.OccurrenceTypes;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import java.util.Optional;
+
+import org.metaborg.meta.nabl2.solver.Solution;
+import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
+import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
+import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 
 public interface ISingleFileScopeGraphUnit extends IScopeGraphUnit {
 
-    void setAnalysis(IStrategoTerm analysis);
+    Optional<InitialResult> initialResult();
 
-    void setScopeGraph(IScopeGraph scopeGraph);
+    void setInitialResult(InitialResult result);
 
-    void setNameResolution(INameResolution nameResolution);
+    Optional<UnitResult> unitResult();
 
-    void setAstMetadata(ASTMetadata astMetadata);
+    void setUnitResult(UnitResult result);
 
-    void setOccurrenceTypes(OccurrenceTypes occurrenceTypes);
-    
+    void setSolution(Solution solution);
+
+    void setCustomSolution(CustomSolution solution);
+
+    Optional<FinalResult> finalResult();
+
+    void setFinalResult(FinalResult result);
+
     void clear();
 
 }

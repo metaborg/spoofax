@@ -8,7 +8,7 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
-import org.metaborg.scopegraph.context.IScopeGraphUnit;
+import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 
@@ -60,6 +60,10 @@ public abstract class AbstractTemporaryScopeGraphContext<U extends IScopeGraphUn
         return new NullClosableLock();
     }
 
+    @Override public IClosableLock guard() {
+        return read();
+    }
+
     @Override public IClosableLock write() {
         return new NullClosableLock();
     }
@@ -75,7 +79,6 @@ public abstract class AbstractTemporaryScopeGraphContext<U extends IScopeGraphUn
     @Override public void close() {
         unload();
     }
-
 
     @Override public U unit(String source) {
         return context.unit(source);

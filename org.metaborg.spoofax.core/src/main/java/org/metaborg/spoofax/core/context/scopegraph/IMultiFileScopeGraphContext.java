@@ -1,22 +1,25 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
-import org.metaborg.scopegraph.INameResolution;
-import org.metaborg.scopegraph.IScopeGraph;
-import org.metaborg.scopegraph.impl.ASTMetadata;
-import org.metaborg.scopegraph.impl.OccurrenceTypes;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import java.util.Optional;
+
+import org.metaborg.meta.nabl2.solver.Solution;
+import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
+import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 
 public interface IMultiFileScopeGraphContext extends ISpoofaxScopeGraphContext<IMultiFileScopeGraphUnit> {
 
-    void setScopeGraph(IScopeGraph scopeGraph);
+    void setInitialResult(InitialResult result);
 
-    void setNameResolution(INameResolution nameResolution);
+    Optional<InitialResult> initialResult();
 
-    void setAstMetadata(ASTMetadata astMetadata);
+    void setSolution(Solution solution);
 
-    void setOccurrenceTypes(OccurrenceTypes occurrenceTypes);
-    
-    void setAnalysis(IStrategoTerm analysis);
+    void setCustomSolution(CustomSolution solution);
+
+    void setFinalResult(FinalResult result);
+
+    Optional<FinalResult> finalResult();
 
     void clear();
 
