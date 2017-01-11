@@ -16,8 +16,8 @@ import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContext.S
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
-public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State> implements
-        IMultiFileScopeGraphContext {
+public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
+        implements IMultiFileScopeGraphContext {
 
     public MultiFileScopeGraphContext(Injector injector, ContextIdentifier identifier) {
         super(injector, identifier);
@@ -29,7 +29,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
 
     @Override public IMultiFileScopeGraphUnit unit(String resource) {
         IMultiFileScopeGraphUnit unit;
-        if ((unit = state.units.get(resource)) == null) {
+        if((unit = state.units.get(resource)) == null) {
             state.units.put(resource, (unit = state.new Unit(resource)));
         }
         return unit;

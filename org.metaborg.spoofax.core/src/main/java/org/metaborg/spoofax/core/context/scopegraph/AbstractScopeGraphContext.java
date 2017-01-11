@@ -58,9 +58,9 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     @Override public IClosableLock read() {
-        if (state == null) {
-            try (IClosableLock lock = writeLock()) {
-                if (state == null) {
+        if(state == null) {
+            try(IClosableLock lock = writeLock()) {
+                if(state == null) {
                     state = loadOrInitState();
                 }
             }
@@ -80,7 +80,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
 
     @Override public IClosableLock write() {
         final IClosableLock lock = writeLock();
-        if (state == null) {
+        if(state == null) {
             state = loadOrInitState();
         }
         return lock;
@@ -93,18 +93,18 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     @Override public void persist() throws IOException {
-        if (state == null) {
+        if(state == null) {
             return;
         }
 
-        try (IClosableLock lock = readLock()) {
+        try(IClosableLock lock = readLock()) {
             persistState();
         }
     }
 
     @Override public void reset() throws IOException {
-        try (IClosableLock lock = writeLock()) {
-            if (state != null) {
+        try(IClosableLock lock = writeLock()) {
+            if(state != null) {
                 // state.reset()
                 state = null;
             }
@@ -116,28 +116,28 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     @Override public void init() {
-        if (state != null) {
+        if(state != null) {
             return;
         }
-        try (IClosableLock lock = writeLock()) {
+        try(IClosableLock lock = writeLock()) {
             state = initState();
         }
     }
 
     @Override public void load() {
-        if (state != null) {
+        if(state != null) {
             return;
         }
-        try (IClosableLock lock = writeLock()) {
+        try(IClosableLock lock = writeLock()) {
             state = loadOrInitState();
         }
     }
 
     @Override public void unload() {
-        if (state == null) {
+        if(state == null) {
             return;
         }
-        try (IClosableLock lock = writeLock()) {
+        try(IClosableLock lock = writeLock()) {
             state = null;
         }
     }
@@ -146,14 +146,14 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         try {
             final FileObject contextFile = contextFile();
             try {
-                if (contextFile.exists()) {
+                if(contextFile.exists()) {
                     return readContext(contextFile);
                 }
-            } catch (IOException | ClassNotFoundException e) {
+            } catch(IOException | ClassNotFoundException e) {
                 logger.warn("Load context {} failed.", e, contextFile);
                 deleteContextFile(contextFile);
             }
-        } catch (IOException e) {
+        } catch(IOException e) {
             logger.warn("Failed to locate context.", e);
         }
         return initState();
@@ -166,15 +166,16 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         return paths.targetDir().resolveFile("analysis").resolveFile(persistentIdentifier).resolveFile("scopegraph");
     }
 
-    @SuppressWarnings("unchecked") private S readContext(FileObject file) throws IOException, ClassNotFoundException, ClassCastException {
-        try (ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
+    @SuppressWarnings("unchecked") private S readContext(FileObject file)
+            throws IOException, ClassNotFoundException, ClassCastException {
+        try(ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
             S fileState;
             try {
                 fileState = (S) ois.readObject();
             } catch(Exception ex) {
                 throw new IOException("Context file could not be read.", ex);
             }
-            if (fileState == null) {
+            if(fileState == null) {
                 throw new IOException("Context file contains null.");
             }
             return fileState;
@@ -186,18 +187,18 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
             final FileObject contextFile = contextFile();
             try {
                 writeContext(contextFile);
-            } catch (IOException e) {
+            } catch(IOException e) {
                 logger.warn("Store context {} failed.", e, contextFile);
             }
-        } catch (IOException e) {
+        } catch(IOException e) {
             logger.warn("Failed to locate context.", e);
         }
     }
 
     private void writeContext(FileObject file) throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
+        try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
             oos.writeObject(state);
-        } catch (Exception ex) {
+        } catch(Exception ex) {
             throw new IOException("Context file could not be written.", ex);
         }
     }
@@ -205,7 +206,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     private void deleteContextFile(FileObject file) {
         try {
             file.delete();
-        } catch (FileSystemException e) {
+        } catch(FileSystemException e) {
             logger.warn("Deleting context {} failed.", file, e);
         }
     }
@@ -218,14 +219,14 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     @Override public boolean equals(Object obj) {
-        if (this == obj)
+        if(this == obj)
             return true;
-        if (obj == null)
+        if(obj == null)
             return false;
-        if (getClass() != obj.getClass())
+        if(getClass() != obj.getClass())
             return false;
         @SuppressWarnings("unchecked") AbstractScopeGraphContext<S> other = (AbstractScopeGraphContext<S>) obj;
-        if (!identifier.equals(other.identifier))
+        if(!identifier.equals(other.identifier))
             return false;
         return true;
     }

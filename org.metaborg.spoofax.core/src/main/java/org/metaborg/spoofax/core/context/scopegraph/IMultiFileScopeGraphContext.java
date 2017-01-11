@@ -12,7 +12,7 @@ public interface IMultiFileScopeGraphContext extends ISpoofaxScopeGraphContext<I
     void setInitialResult(InitialResult result);
 
     Optional<InitialResult> initialResult();
-    
+
     void setSolution(Solution solution);
 
     void setCustomSolution(CustomSolution solution);
@@ -20,7 +20,7 @@ public interface IMultiFileScopeGraphContext extends ISpoofaxScopeGraphContext<I
     void setFinalResult(FinalResult result);
 
     Optional<FinalResult> finalResult();
-    
+
     void clear();
 
 }

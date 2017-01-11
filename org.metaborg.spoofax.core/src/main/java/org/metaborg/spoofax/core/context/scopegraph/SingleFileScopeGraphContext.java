@@ -16,8 +16,8 @@ import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContext.
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
-public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State> implements
-        ISingleFileScopeGraphContext {
+public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State>
+        implements ISingleFileScopeGraphContext {
 
     public SingleFileScopeGraphContext(Injector injector, ContextIdentifier identifier) {
         super(injector, identifier);
@@ -29,7 +29,7 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
     @Override public ISingleFileScopeGraphUnit unit(String resource) {
         ISingleFileScopeGraphUnit unit;
-        if ((unit = state.units.get(resource)) == null) {
+        if((unit = state.units.get(resource)) == null) {
             state.units.put(resource, (unit = state.new Unit(resource)));
         }
         return unit;

@@ -12,11 +12,11 @@ import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 public interface ISingleFileScopeGraphUnit extends IScopeGraphUnit {
 
     Optional<InitialResult> initialResult();
-    
+
     void setInitialResult(InitialResult result);
 
     Optional<UnitResult> unitResult();
-    
+
     void setUnitResult(UnitResult result);
 
     void setSolution(Solution solution);
@@ -24,7 +24,7 @@ public interface ISingleFileScopeGraphUnit extends IScopeGraphUnit {
     void setCustomSolution(CustomSolution solution);
 
     Optional<FinalResult> finalResult();
-    
+
     void setFinalResult(FinalResult result);
 
     void clear();
