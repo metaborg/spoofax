@@ -166,9 +166,14 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         return paths.targetDir().resolveFile("analysis").resolveFile(persistentIdentifier).resolveFile("scopegraph");
     }
 
-    @SuppressWarnings("unchecked") private S readContext(FileObject file) throws IOException, ClassNotFoundException {
+    @SuppressWarnings("unchecked") private S readContext(FileObject file) throws IOException, ClassNotFoundException, ClassCastException {
         try (ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
-            S fileState = (S) ois.readObject();
+            S fileState;
+            try {
+                fileState = (S) ois.readObject();
+            } catch(Exception ex) {
+                throw new IOException("Context file could not be read.", ex);
+            }
             if (fileState == null) {
                 throw new IOException("Context file contains null.");
             }
@@ -192,6 +197,8 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     private void writeContext(FileObject file) throws IOException {
         try (ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
             oos.writeObject(state);
+        } catch (Exception ex) {
+            throw new IOException("Context file could not be written.", ex);
         }
     }
 

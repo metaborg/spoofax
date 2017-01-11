@@ -3,9 +3,9 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
@@ -36,7 +36,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
@@ -132,17 +131,24 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             Map<String,ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
             throws AnalysisException;
 
-    protected IStrategoTerm doAction(String strategy, IStrategoTerm action, ISpoofaxScopeGraphContext<?> context,
+    protected Optional<ITerm> doAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
             HybridInterpreter runtime) throws AnalysisException {
         try {
-            IStrategoTerm result = strategoCommon.invoke(runtime, action, strategy);
-            if (result == null) {
-                throw new MetaborgException("Analysis strategy failed.");
-            }
-            return result;
+            return Optional.ofNullable(strategoCommon.invoke(runtime, strategoTerms.toStratego(action), strategy)).map(
+                    strategoTerms::fromStratego);
         } catch (MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
+        }
+    }
+
+    protected Optional<ITerm> doCustomAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
+            HybridInterpreter runtime) {
+        try {
+            return doAction(strategy, action, context, runtime);
+        } catch (Exception ex) {
+            logger.warn("Custom analysis step failed.", ex);
+            return Optional.empty();
         }
     }
 
@@ -171,12 +177,18 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected IMessage message(ITerm originatingTerm, String message, MessageSeverity severity) {
         ISourceLocation location = originatingTerm.getAttachments().getInstance(ISourceLocation.class);
         if (location != null) {
-            String safeMessage = StringEscapeUtils.escapeXml10(message);
-            return MessageFactory.newAnalysisMessage(location.resource(), location.region(), safeMessage, severity, null);
+            return MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null);
         } else {
             logger.warn("Ignoring location-less {}: {}", severity, message);
             return null;
         }
+    }
+
+    protected List<Message> merge(List<Message> m1, List<Message> m2) {
+        List<Message> m = Lists.newArrayList();
+        m.addAll(m1);
+        m.addAll(m2);
+        return m;
     }
 
 }

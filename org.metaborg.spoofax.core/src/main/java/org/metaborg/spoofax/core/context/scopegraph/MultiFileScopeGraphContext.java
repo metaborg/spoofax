@@ -7,16 +7,17 @@ import java.util.Optional;
 
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.meta.nabl2.solver.Solution;
-import org.metaborg.meta.nabl2.spoofax.FinalResult;
-import org.metaborg.meta.nabl2.spoofax.InitialResult;
-import org.metaborg.meta.nabl2.spoofax.UnitResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
+import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
+import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContext.State;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
-public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
-        implements IMultiFileScopeGraphContext {
+public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State> implements
+        IMultiFileScopeGraphContext {
 
     public MultiFileScopeGraphContext(Injector injector, ContextIdentifier identifier) {
         super(injector, identifier);
@@ -54,6 +55,10 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         state.solution = solution;
     }
 
+    @Override public void setCustomSolution(CustomSolution solution) {
+        state.customSolution = solution;
+    }
+
     @Override public void setFinalResult(FinalResult result) {
         state.finalResult = result;
     }
@@ -74,6 +79,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
 
         InitialResult initialResult;
         Solution solution;
+        CustomSolution customSolution;
         FinalResult finalResult;
 
         public State() {
@@ -83,6 +89,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         public void clear() {
             this.initialResult = null;
             this.solution = null;
+            this.customSolution = null;
             this.finalResult = null;
         }
 
@@ -113,6 +120,10 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
 
             @Override public Optional<Solution> solution() {
                 return Optional.ofNullable(solution);
+            }
+
+            @Override public Optional<CustomSolution> customSolution() {
+                return Optional.ofNullable(customSolution);
             }
 
             @Override public void clear() {

@@ -8,7 +8,7 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
-import org.metaborg.meta.nabl2.spoofax.IScopeGraphUnit;
+import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 
