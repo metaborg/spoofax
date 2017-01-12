@@ -62,14 +62,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
     public static final String name = "constraint-multifile";
 
     private final ISpoofaxUnitService unitService;
-    private final IResourceService resourceService;
 
     @Inject public ConstraintMultiFileAnalyzer(final AnalysisCommon analysisCommon,
             final ISpoofaxUnitService unitService, final IResourceService resourceService,
             final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
             final ITermFactoryService termFactoryService, final ISpoofaxTracingService tracingService) {
-        super(analysisCommon, runtimeService, strategoCommon, termFactoryService, tracingService);
-        this.resourceService = resourceService;
+        super(analysisCommon, resourceService, runtimeService, strategoCommon, termFactoryService, tracingService);
         this.unitService = unitService;
     }
 

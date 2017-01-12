@@ -11,6 +11,7 @@ import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
@@ -59,10 +60,10 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
     private final ISpoofaxUnitService unitService;
 
     @Inject public ConstraintSingleFileAnalyzer(final AnalysisCommon analysisCommon,
-            final ISpoofaxUnitService unitService, final IStrategoRuntimeService runtimeService,
-            final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
-            final ISpoofaxTracingService tracingService) {
-        super(analysisCommon, runtimeService, strategoCommon, termFactoryService, tracingService);
+            final ISpoofaxUnitService unitService, final IResourceService resourceService,
+            final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
+            final ITermFactoryService termFactoryService, final ISpoofaxTracingService tracingService) {
+        super(analysisCommon, resourceService, runtimeService, strategoCommon, termFactoryService, tracingService);
         this.unitService = unitService;
     }
 

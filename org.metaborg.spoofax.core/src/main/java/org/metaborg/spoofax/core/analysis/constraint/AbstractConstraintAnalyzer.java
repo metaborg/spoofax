@@ -15,6 +15,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.meta.nabl2.solver.Message;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
@@ -50,6 +51,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     protected final AnalysisCommon analysisCommon;
+    protected final IResourceService resourceService;
     protected final IStrategoRuntimeService runtimeService;
     protected final IStrategoCommon strategoCommon;
     protected final ISpoofaxTracingService tracingService;
@@ -57,10 +59,11 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected final ITermFactory termFactory;
     protected final StrategoTerms strategoTerms;
 
-    public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IStrategoRuntimeService runtimeService,
+    public AbstractConstraintAnalyzer( final AnalysisCommon analysisCommon, final IResourceService resourceService, final IStrategoRuntimeService runtimeService,
             final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
             final ISpoofaxTracingService tracingService) {
         this.analysisCommon = analysisCommon;
+        this.resourceService = resourceService;
         this.runtimeService = runtimeService;
         this.strategoCommon = strategoCommon;
         this.tracingService = tracingService;
@@ -70,11 +73,12 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             (term, attacher) -> {
                 ISourceLocation location = tracingService.location(term);
                 if(location != null) {
-                    attacher.put(ISourceLocation.class, location);
+                    String uri = location.resource().getName().getURI();
+                    attacher.put(SerializableSourceLocation.class, new SerializableSourceLocation(uri, location.region()));
                 }
                 return Unit.unit;
             }
-        // @formatter:on
+            // @formatter:on
         );
     }
 
@@ -175,9 +179,11 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     protected IMessage message(ITerm originatingTerm, String message, MessageSeverity severity) {
-        ISourceLocation location = originatingTerm.getAttachments().getInstance(ISourceLocation.class);
+        SerializableSourceLocation location =
+                originatingTerm.getAttachments().getInstance(SerializableSourceLocation.class);
         if(location != null) {
-            return MessageFactory.newAnalysisMessage(location.resource(), location.region(), message, severity, null);
+            FileObject resource = resourceService.resolve(location.getResource());
+            return MessageFactory.newAnalysisMessage(resource, location.getSourceRegion(), message, severity, null);
         } else {
             logger.warn("Ignoring location-less {}: {}", severity, message);
             return null;
