@@ -93,7 +93,7 @@ public class HoverService implements ISpoofaxHoverService {
             }
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple =
-                common.outputs(termFactory, interpreter, source, source, result.ast(), inRegion, strategy);
+                common.outputs(termFactory, interpreter, context.location(), source, result.ast(), inRegion, strategy);
             return hover(tuple);
         } catch(MetaborgException e) {
             throw new MetaborgException("Getting hover tooltip information failed unexpectedly", e);
@@ -121,7 +121,7 @@ public class HoverService implements ISpoofaxHoverService {
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple;
             try(IClosableLock lock = context.read()) {
-                tuple = common.outputs(termFactory, interpreter, source, source, result.ast(), inRegion, strategy);
+                tuple = common.outputs(termFactory, interpreter, context.location(), source, result.ast(), inRegion, strategy);
             }
             return hover(tuple);
         } catch(MetaborgException e) {
