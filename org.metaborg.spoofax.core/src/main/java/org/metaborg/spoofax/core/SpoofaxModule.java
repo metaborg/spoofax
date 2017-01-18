@@ -47,6 +47,7 @@ import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_decl_scope;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_reachable_decls;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ref_resolution;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_ref_scope;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_assocs;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_decls;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_direct_edges;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_scope_named_edges;
@@ -353,6 +354,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_reachable_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ref_resolution.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ref_scope.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_assocs.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_direct_edges.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_named_edges.class);
