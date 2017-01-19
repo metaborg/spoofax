@@ -108,16 +108,17 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             unit.clear();
 
             try {
-                ITerm unitResultTerm =
+                final ITerm unitResultTerm =
                         doAction(strategy, Actions.analyzeUnit(source, ast, initialResult.getArgs()), context, runtime)
                                 .orElseThrow(() -> new AnalysisException(context, "No unit result."));
                 UnitResult unitResult = UnitResult.matcher().match(unitResultTerm)
                         .orElseThrow(() -> new MetaborgException("Invalid unit results."));
+                final ITerm desugaredAST = unitResult.getAST();
                 Optional<ITerm> customUnit = initialResult.getCustomResult().flatMap(initial -> {
-                    return doCustomAction(strategy, Actions.customUnit(globalSource, ast, initial), context, runtime);
+                    return doCustomAction(strategy, Actions.customUnit(globalSource, desugaredAST, initial), context, runtime);
                 });
                 unitResult = ImmutableUnitResult.copyOf(unitResult).setCustomResult(customUnit);
-                IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
+                final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
                 astsByFile.put(source, analyzedAST);
                 ambiguitiesByFile.putAll(source, analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST));
                 unit.setUnitResult(unitResult);
