@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.metaborg.core.context.ContextIdentifier;
+import org.metaborg.meta.nabl2.solver.Fresh;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
@@ -54,6 +55,7 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
             private static final long serialVersionUID = -2828933828253182233L;
 
             private final String resource;
+            private final Fresh fresh;
 
             private InitialResult initialResult;
             private UnitResult unitResult;
@@ -63,6 +65,7 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
             private Unit(String resource) {
                 this.resource = resource;
+                this.fresh = new Fresh();
                 clear();
             }
 
@@ -110,12 +113,17 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
                 finalResult = result;
             }
 
+            @Override public Fresh fresh() {
+                return fresh;
+            }
+
             @Override public void clear() {
                 this.initialResult = null;
                 this.unitResult = null;
                 this.solution = null;
                 this.customSolution = null;
                 this.finalResult = null;
+                this.fresh.reset();
             }
 
         }

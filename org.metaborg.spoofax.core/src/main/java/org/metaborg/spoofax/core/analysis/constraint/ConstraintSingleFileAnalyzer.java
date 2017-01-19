@@ -74,7 +74,6 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
             context.removeUnit(input);
         }
 
-        final String globalSource = context.location().getName().getURI();
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         for(Map.Entry<String,ISpoofaxParseUnit> input : changed.entrySet()) {
             String source = input.getKey();
@@ -86,12 +85,12 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 unit.clear();
 
                 // initial
-                ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
+                ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(source), context, runtime)
                         .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                 InitialResult initialResult = InitialResult.matcher().match(initialResultTerm)
                         .orElseThrow(() -> new MetaborgException("Invalid initial results."));
                 Optional<ITerm> customInitial =
-                        doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
+                        doCustomAction(strategy, Actions.customInitial(source), context, runtime);
                 initialResult = ImmutableInitialResult.copyOf(initialResult).setCustomResult(customInitial);
 
                 // unit
@@ -102,7 +101,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         .orElseThrow(() -> new MetaborgException("Invalid unit results."));
                 final ITerm desugaredAST = unitResult.getAST();
                 Optional<ITerm> customUnit = initialResult.getCustomResult().flatMap(initial -> {
-                    return doCustomAction(strategy, Actions.customUnit(globalSource, desugaredAST, initial), context, runtime);
+                    return doCustomAction(strategy, Actions.customUnit(source, desugaredAST, initial), context, runtime);
                 });
                 unitResult = ImmutableUnitResult.copyOf(unitResult).setCustomResult(customUnit);
                 unit.setUnitResult(unitResult);

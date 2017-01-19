@@ -115,7 +115,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         .orElseThrow(() -> new MetaborgException("Invalid unit results."));
                 final ITerm desugaredAST = unitResult.getAST();
                 Optional<ITerm> customUnit = initialResult.getCustomResult().flatMap(initial -> {
-                    return doCustomAction(strategy, Actions.customUnit(globalSource, desugaredAST, initial), context, runtime);
+                    return doCustomAction(strategy, Actions.customUnit(source, desugaredAST, initial), context, runtime);
                 });
                 unitResult = ImmutableUnitResult.copyOf(unitResult).setCustomResult(customUnit);
                 final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
