@@ -14,7 +14,9 @@ colorer
   white     = 255 255 255
   black     = 0 0 0
   gray      = 128 128 128
-  grey      = gray
+// Disable color references for ESV baseline support, re-enable after bootstrapping.
+//  grey      = gray
+  grey      = 128 128 128
   orange    = 255 165 0
   pink      = 255 105 180
   brown     = 139 69 19
