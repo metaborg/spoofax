@@ -26,7 +26,8 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         public final boolean parenthesize;
 
 
-        public Input(SpoofaxContext context, File inputFile, File outputFile, List<String> paths, boolean parenthesize) {
+        public Input(SpoofaxContext context, File inputFile, File outputFile, List<String> paths,
+            boolean parenthesize) {
             super(context);
             this.inputFile = inputFile;
             this.outputFile = outputFile;
@@ -70,7 +71,12 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         boolean status = true;
 
         try {
-            ParseTable.fromFile(input.inputFile, input.outputFile, input.paths, input.parenthesize);
+//            ParseTable.fromFile(input.inputFile, input.outputFile, input.paths, input.parenthesize);
+
+            org.metaborg.newsdf2table.parsetable.ParseTable pt = new org.metaborg.newsdf2table.parsetable.ParseTable(
+                input.inputFile, input.outputFile, input.paths, input.parenthesize);
+            pt.createTable();
+
         } catch(Exception e) {
             System.out.println("Failed to generate parse table");
             e.printStackTrace();
