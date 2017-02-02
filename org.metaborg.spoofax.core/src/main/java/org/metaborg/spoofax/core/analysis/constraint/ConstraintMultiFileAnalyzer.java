@@ -25,7 +25,9 @@ import org.metaborg.meta.nabl2.spoofax.analysis.ImmutableUnitResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
+import org.metaborg.meta.nabl2.terms.generic.GenericTerms;
 import org.metaborg.meta.nabl2.util.Optionals;
+import org.metaborg.meta.nabl2.util.functions.Function2;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -82,15 +84,16 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
         // initial
         InitialResult initialResult;
+        Optional<ITerm> customInitial;
         if(context.initialResult().isPresent()) {
             initialResult = context.initialResult().get();
+            customInitial = context.initialResult().flatMap(r -> r.getCustomResult());
         } else {
             ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
                     .orElseThrow(() -> new AnalysisException(context, "No initial result."));
             initialResult = InitialResult.matcher().match(initialResultTerm)
                     .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
-            Optional<ITerm> customInitial =
-                    doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
+            customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
             initialResult = ImmutableInitialResult.copyOf(initialResult).setCustomResult(customInitial);
             context.setInitialResult(initialResult);
         }
@@ -114,9 +117,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 UnitResult unitResult = UnitResult.matcher().match(unitResultTerm)
                         .orElseThrow(() -> new MetaborgException("Invalid unit results."));
                 final ITerm desugaredAST = unitResult.getAST();
-                Optional<ITerm> customUnit = initialResult.getCustomResult().flatMap(initial -> {
-                    return doCustomAction(strategy, Actions.customUnit(source, desugaredAST, initial), context, runtime);
-                });
+                Optional<ITerm> customUnit = doCustomAction(strategy, Actions.customUnit(source, desugaredAST, customInitial.orElse(GenericTerms.EMPTY_TUPLE)), context, runtime);
                 unitResult = ImmutableUnitResult.copyOf(unitResult).setCustomResult(customUnit);
                 final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
                 astsByFile.put(source, analyzedAST);
@@ -141,7 +142,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         }
         Solution solution;
         try {
-            solution = Solver.solve(initialResult.getConfig(), Iterables.concat(constraints));
+            Function2<String,String,String> fresh = (resource, base) -> context.unit(resource).fresh().fresh(base);
+            solution = Solver.solve(initialResult.getConfig(), fresh, Iterables.concat(constraints));
         } catch(UnsatisfiableException e) {
             throw new AnalysisException(context, e);
         }
@@ -152,11 +154,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 .orElseThrow(() -> new AnalysisException(context, "No final result."));
         FinalResult finalResult = FinalResult.matcher().match(finalResultTerm)
                 .orElseThrow(() -> new AnalysisException(context, "Invalid final results."));
-        Optional<ITerm> customFinal = Optionals.lift(initialResult.getCustomResult(),
-                Optionals.sequence(customUnits).map(us -> Lists.newArrayList(us)), (i, us) -> {
-                    return (Optional<ITerm>) doCustomAction(strategy, Actions.customFinal(globalSource, i, us), context,
-                            runtime);
-                }).flatMap(o -> o);
+        Optional<ITerm> customFinal = doCustomAction(strategy, Actions.customFinal(globalSource,
+                customInitial.orElse(GenericTerms.EMPTY_TUPLE), GenericTerms.newList(Optionals.filter(customUnits))), context, runtime);
         finalResult = ImmutableFinalResult.of().setCustomResult(customFinal);
         context.setFinalResult(finalResult);
 
