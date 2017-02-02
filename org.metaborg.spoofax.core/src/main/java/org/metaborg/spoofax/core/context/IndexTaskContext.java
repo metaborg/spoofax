@@ -7,7 +7,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.CommonPaths;
@@ -165,8 +164,10 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
                 taskEngine = null;
             }
 
-            final FileObject cacheDir = identifier.location.resolveFile(".cache");
-            cacheDir.delete(new AllFileSelector());
+            final FileObject indexFile = indexFile();
+            indexFile.delete();
+            final FileObject taskEngineFile = taskEngineFile();
+            taskEngineFile.delete();
         }
     }
 
