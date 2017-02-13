@@ -13,6 +13,7 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
+import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
@@ -174,15 +175,15 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         final long finalizeTime = finalizeTimer.stop();
 
         // errors
-        Multimap<String, IMessage> errorsByFile = messagesByFile(
-            merge(solution.getErrors(), customSolution.map(cs -> cs.getErrors()).orElse(Lists.newArrayList())),
-            MessageSeverity.ERROR);
-        Multimap<String, IMessage> warningsByFile = messagesByFile(
-            merge(solution.getWarnings(), customSolution.map(cs -> cs.getWarnings()).orElse(Lists.newArrayList())),
-            MessageSeverity.WARNING);
-        Multimap<String, IMessage> notesByFile = messagesByFile(
-            merge(solution.getNotes(), customSolution.map(cs -> cs.getNotes()).orElse(Lists.newArrayList())),
-            MessageSeverity.NOTE);
+        Multimap<String, IMessage> errorsByFile = messagesByFile(merge(
+            messages(solution, MessageKind.ERROR, MessageSeverity.ERROR),
+            customSolution.map(cs -> messages(cs.getErrors(), MessageSeverity.ERROR)).orElse(Lists.newArrayList())));
+        Multimap<String, IMessage> warningsByFile = messagesByFile(merge(
+            messages(solution, MessageKind.WARNING, MessageSeverity.WARNING),
+            customSolution.map(cs -> messages(cs.getErrors(), MessageSeverity.WARNING)).orElse(Lists.newArrayList())));
+        Multimap<String, IMessage> notesByFile =
+            messagesByFile(merge(messages(solution, MessageKind.NOTE, MessageSeverity.NOTE),
+                customSolution.map(cs -> messages(cs.getErrors(), MessageSeverity.NOTE)).orElse(Lists.newArrayList())));
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults = Lists.newArrayList();
         for(IMultiFileScopeGraphUnit unit : context.units()) {
