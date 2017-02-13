@@ -105,9 +105,10 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     @Override public void reset() throws IOException {
         try(IClosableLock lock = writeLock()) {
             if(state != null) {
-                // state.reset()
                 state = null;
             }
+            final FileObject contextFile = contextFile();
+            contextFile.delete();
         }
     }
 
@@ -167,7 +168,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     @SuppressWarnings("unchecked") private S readContext(FileObject file)
-            throws IOException, ClassNotFoundException, ClassCastException {
+        throws IOException, ClassNotFoundException, ClassCastException {
         try(ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
             S fileState;
             try {

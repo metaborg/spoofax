@@ -23,7 +23,16 @@ public class LanguageUtils {
         }
         return impls;
     }
+    
+    public static Set<ILanguageComponent> toComponents(Iterable<? extends ILanguageImpl> impls) {
+        final Set<ILanguageComponent> components = Sets.newHashSet();
+        for(ILanguageImpl impl : impls) {
+            Iterables.addAll(components, impl.components());
+        }
+        return components;
+    }
 
+    
     public static @Nullable ILanguageImpl active(Iterable<? extends ILanguageImpl> impls) {
         ILanguageImpl active = null;
         for(ILanguageImpl impl : impls) {
