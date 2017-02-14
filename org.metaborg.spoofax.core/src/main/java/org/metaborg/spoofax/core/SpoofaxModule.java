@@ -34,6 +34,7 @@ import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformer;
 import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_erase_ast_indices;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_fresh;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_all_decls;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_all_refs;
@@ -343,6 +344,7 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("ScopeGraphLibrary"));
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_erase_ast_indices.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_fresh.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_refs.class);
