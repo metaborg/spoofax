@@ -5,6 +5,8 @@ import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.processing.ICancellationToken;
 import org.metaborg.core.processing.IProgressReporter;
+import org.metaborg.core.processing.NullCancellationToken;
+import org.metaborg.core.processing.NullProgressReporter;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
 
@@ -26,6 +28,10 @@ public interface IBuilder<P extends IParseUnit, A extends IAnalyzeUnit, AU exten
      * 
      * @param input
      *            Build input.
+     * @param progressReporter
+     *            Progress reporter used for reporting build progress.
+     * @param cancellationToken
+     *            Cancellation token for canceling the build.
      * @return Result of building.
      * @throws InterruptedException
      *             When build is cancelled.
@@ -36,6 +42,36 @@ public interface IBuilder<P extends IParseUnit, A extends IAnalyzeUnit, AU exten
         ICancellationToken cancellationToken) throws InterruptedException;
 
     /**
+     * Parses, analyses, and compiles changed resources.
+     * 
+     * @param input
+     *            Build input.
+     * @return Result of building.
+     * @throws InterruptedException
+     *             When build is cancelled.
+     * @throws MetaborgRuntimeException
+     *             When {@code input.throwOnErrors} is set to true and errors occur.
+     */
+    default IBuildOutput<P, A, AU, T> build(BuildInput input) throws InterruptedException {
+        return build(input, new NullProgressReporter(), new NullCancellationToken());
+    }
+
+    /**
+     * Cleans derived resources and contexts from given location.
+     * 
+     * @param input
+     *            Clean input.
+     * @param progressReporter
+     *            Progress reporter used for reporting clean progress.
+     * @param cancellationToken
+     *            Cancellation token for canceling the clean.
+     * @throws InterruptedException
+     *             When clean is cancelled.
+     */
+    void clean(CleanInput input, IProgressReporter progressReporter, ICancellationToken cancellationToken)
+        throws InterruptedException;
+
+    /**
      * Cleans derived resources and contexts from given location.
      * 
      * @param input
@@ -43,6 +79,7 @@ public interface IBuilder<P extends IParseUnit, A extends IAnalyzeUnit, AU exten
      * @throws InterruptedException
      *             When clean is cancelled.
      */
-    void clean(CleanInput input, IProgressReporter progressReporter, ICancellationToken cancellationToken)
-        throws InterruptedException;
+    default void clean(CleanInput input) throws InterruptedException {
+        clean(input, new NullProgressReporter(), new NullCancellationToken());
+    }
 }
