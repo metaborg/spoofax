@@ -25,8 +25,9 @@ import org.metaborg.meta.nabl2.spoofax.analysis.ImmutableUnitResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
+import org.metaborg.meta.nabl2.terms.ITermVar;
 import org.metaborg.meta.nabl2.terms.generic.GenericTerms;
-import org.metaborg.meta.nabl2.util.functions.Function2;
+import org.metaborg.meta.nabl2.util.functions.Function1;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -112,8 +113,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 // solve
                 Iterable<IConstraint> constraints =
                     Iterables.concat(initialResult.getConstraints(), unitResult.getConstraints());
-                Function2<String, String, String> fresh =
-                    (resource, base) -> context.unit(resource).fresh().fresh(base);
+                Function1<String, ITermVar> fresh =
+                        base -> GenericTerms.newVar(source,context.unit(source).fresh().fresh(base));
                 Solution solution = Solver.solve(initialResult.getConfig(), fresh, constraints);
                 unit.setSolution(solution);
 

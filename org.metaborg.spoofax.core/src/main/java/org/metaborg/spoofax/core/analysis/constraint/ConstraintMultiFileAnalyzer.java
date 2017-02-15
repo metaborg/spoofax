@@ -26,9 +26,10 @@ import org.metaborg.meta.nabl2.spoofax.analysis.ImmutableUnitResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
+import org.metaborg.meta.nabl2.terms.ITermVar;
 import org.metaborg.meta.nabl2.terms.generic.GenericTerms;
 import org.metaborg.meta.nabl2.util.Optionals;
-import org.metaborg.meta.nabl2.util.functions.Function2;
+import org.metaborg.meta.nabl2.util.functions.Function1;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -150,7 +151,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         }
         Solution solution;
         try {
-            Function2<String, String, String> fresh = (resource, base) -> context.unit(resource).fresh().fresh(base);
+            Function1<String, ITermVar> fresh =
+                    base -> GenericTerms.newVar(globalSource,context.unit(globalSource).fresh().fresh(base));
             solution = Solver.solve(initialResult.getConfig(), fresh, Iterables.concat(constraints));
         } catch(UnsatisfiableException e) {
             throw new AnalysisException(context, e);
