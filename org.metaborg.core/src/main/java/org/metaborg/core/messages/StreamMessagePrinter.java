@@ -111,14 +111,14 @@ public class StreamMessagePrinter implements IMessagePrinter {
         }
     }
 
-    @Override public void print(FileObject source, String message, @Nullable Throwable e, boolean pardoned) {
+    @Override public void print(@Nullable FileObject source, String message, @Nullable Throwable e, boolean pardoned) {
         final StringBuilder sb = new StringBuilder();
         sb.append("EXCEPTION");
         if(pardoned) {
             sb.append(" (pardoned)");
         }
         sb.append(" in ");
-        sb.append(source.getName().getPath());
+        sb.append(source != null ? source.getName().getPath() : "detached source");
         sb.append('\n');
 
         print(sb, message, e, MessageSeverity.ERROR, pardoned);
