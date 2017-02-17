@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
+import java.util.Collection;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.language.IFacet;
@@ -8,6 +10,8 @@ import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+
+import com.google.common.collect.Lists;
 
 /**
  * Represents the syntax (or parsing) facet of a language.
@@ -32,8 +36,8 @@ public class SyntaxFacet implements IFacet {
      *            Set of start symbols.
      */
     public SyntaxFacet(FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols) {
-        this(parseTable, completionParseTable, startSymbols, Iterables2.<String>empty(), Iterables2.<MultiLineCommentCharacters>empty(),
-            Iterables2.<FenceCharacters>empty());
+        this(parseTable, completionParseTable, startSymbols, Iterables2.<String>empty(),
+            Iterables2.<MultiLineCommentCharacters>empty(), Iterables2.<FenceCharacters>empty());
     }
 
     /**
@@ -70,6 +74,11 @@ public class SyntaxFacet implements IFacet {
      * @return Errors, or empty if there are no errors.
      */
     public Iterable<String> available() throws FileSystemException {
-        return Iterables2.empty();
+        final Collection<String> errors = Lists.newLinkedList();
+        if(parseTable != null && !parseTable.exists()) {
+            final String message = logger.format("SDF parse table file {} does not exist", parseTable);
+            errors.add(message);
+        }
+        return errors;
     }
 }

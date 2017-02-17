@@ -7,7 +7,7 @@ import org.metaborg.core.config.ILanguageComponentConfig;
 
 import com.google.common.collect.Lists;
 
-public class LanguageCreationRequest {
+public class ComponentCreationConfig {
     protected final Collection<IFacet> facets = Lists.newLinkedList();
 
     public final LanguageIdentifier identifier;
@@ -16,7 +16,7 @@ public class LanguageCreationRequest {
     public final ILanguageComponentConfig config;
 
 
-    public LanguageCreationRequest(LanguageIdentifier identifier, FileObject location,
+    public ComponentCreationConfig(LanguageIdentifier identifier, FileObject location,
         Iterable<LanguageContributionIdentifier> implIds, ILanguageComponentConfig config) {
         this.identifier = identifier;
         this.location = location;
