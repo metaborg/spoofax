@@ -23,6 +23,14 @@ public interface ILanguageDiscoveryRequest {
      * @return <code>true</code> when a request is available; otherwise, <code>false</code>.
      */
     boolean valid();
+    
+    /**
+     * @see #valid()
+     * @deprecated Use {@link #valid()}
+     */
+    @Deprecated default boolean available() {
+        return valid();
+    }
 
     /**
      * Gets the location of the request.
