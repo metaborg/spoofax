@@ -14,7 +14,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
-import org.metaborg.core.language.LanguageCreationRequest;
+import org.metaborg.core.language.ComponentCreationConfig;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.dialect.IDialectService;
@@ -209,21 +209,21 @@ public class DialectService implements IDialectService {
         final LanguageIdentifier id = new LanguageIdentifier(baseId.groupId, dialectId, baseId.version);
         // HACK: use config of first component.
         final ILanguageComponentConfig config = Iterables.get(base.components(), 0).config();
-        final LanguageCreationRequest request = languageService.create(id, location,
+        final ComponentCreationConfig creationConfig = languageService.create(id, location,
             Iterables2.singleton(new LanguageContributionIdentifier(id, name)), config);
 
         for(IFacet facet : base.facets()) {
             if(facet instanceof IdentificationFacet && replaceIdentification) {
-                request.addFacet(new IdentificationFacet(new MetaFileIdentifier((IdentificationFacet) facet)));
+                creationConfig.addFacet(new IdentificationFacet(new MetaFileIdentifier((IdentificationFacet) facet)));
             } else if(facet instanceof SyntaxFacet || facet instanceof ResourceExtensionFacet) {
                 // Ignore
             } else {
-                request.addFacet(facet);
+                creationConfig.addFacet(facet);
             }
         }
-        request.addFacet(syntaxFacet);
+        creationConfig.addFacet(syntaxFacet);
 
-        final ILanguageComponent dialectComponent = languageService.add(request);
+        final ILanguageComponent dialectComponent = languageService.add(creationConfig);
         final ILanguageImpl dialect = Iterables.get(dialectComponent.contributesTo(), 0);
 
         return dialect;

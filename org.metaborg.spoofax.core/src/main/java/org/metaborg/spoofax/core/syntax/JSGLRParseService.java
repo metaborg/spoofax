@@ -19,10 +19,6 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.jsglr.client.imploder.NullTokenizer;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -64,22 +60,6 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         final String text = input.text();
 
         final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
-
-        // WORKAROUND: JSGLR can't handle an empty input string, return empty tuple with null tokenizer.
-        if(text == null || text.isEmpty()) {
-            final IStrategoTerm emptyTuple = termFactory.makeTuple();
-            final String filename;
-            if(input.detached()) {
-                filename = "";
-            } else {
-                filename = input.source().getName().getURI();
-            }
-            final ITokenizer tokenizer = new NullTokenizer("", filename);
-            final IToken token = tokenizer.currentToken();
-            ImploderAttachment.putImploderAttachment(emptyTuple, false, "", token, token, false, false, false, false);
-            return unitService.parseUnit(input, new ParseContrib(emptyTuple));
-        }
-
         final IParserConfig config;
 
         JSGLRParserConfiguration parserConfig = input.config();
@@ -151,7 +131,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             } else {
                 parseTable = facet.parseTable;
             }
-            
+
             try {
                 if(parseTable == null || !parseTable.exists()) {
                     logger.error("Parse table not found or sdf is not enabled for this language.");
@@ -187,7 +167,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
                         if(component.config().sdfEnabled()) {
                             if(component.config().completionsParseTable() != null) {
                                 if(multipleTables) {
-                                    logger.error("Different components are specifying multiple completion parse tables.");
+                                    logger
+                                        .error("Different components are specifying multiple completion parse tables.");
                                     throw new ParseException(input);
                                 }
 

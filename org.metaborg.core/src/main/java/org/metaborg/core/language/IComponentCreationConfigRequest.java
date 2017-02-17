@@ -8,22 +8,19 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageComponentConfig;
 
 /**
- * Request for language discovery.
- * 
- * @deprecated Use {@link IComponentCreationConfigRequest} with {@link ILanguageComponentFactory}.
+ * Request for creating a {@link ComponentCreationConfig}.
  */
-@Deprecated
-public interface ILanguageDiscoveryRequest {
+public interface IComponentCreationConfigRequest extends ILanguageDiscoveryRequest {
     /**
-     * Gets whether the language component is available.
+     * Gets whether a language component can be constructed from this request.
      *
-     * A language component is available when all required files exist, such as the parse table and JAR files, and all
-     * configuration files are valid.
+     * A request is valid when all required files exist, such as the parse table and JAR files, and all configuration
+     * files are valid.
      * 
-     * @return <code>true</code> when a request is available; otherwise, <code>false</code>.
+     * @return <code>true</code> when a request is valid, <code>false</code> otherwise.
      */
     boolean valid();
-    
+
     /**
      * @see #valid()
      * @deprecated Use {@link #valid()}
@@ -33,16 +30,12 @@ public interface ILanguageDiscoveryRequest {
     }
 
     /**
-     * Gets the location of the request.
-     *
-     * @return The location of the request.
+     * @return Location of the request.
      */
     FileObject location();
 
     /**
-     * Gets the configuration of the language.
-     *
-     * @return The configuration; or <code>null</code> when not available.
+     * @return Language component configuration; or <code>null</code> when not available.
      */
     @Nullable ILanguageComponentConfig config();
 
@@ -51,7 +44,7 @@ public interface ILanguageDiscoveryRequest {
      *
      * The resulting collection is empty when {@link #valid()} is <code>true</code>.
      *
-     * @return The produced error messages.
+     * @return Produced error messages.
      */
     Collection<String> errors();
 
@@ -60,7 +53,7 @@ public interface ILanguageDiscoveryRequest {
      *
      * The resulting collection is empty when {@link #valid()} is <code>true</code>.
      *
-     * @return The thrown exceptions.
+     * @return Thrown exceptions.
      */
     Collection<Throwable> exceptions();
 }

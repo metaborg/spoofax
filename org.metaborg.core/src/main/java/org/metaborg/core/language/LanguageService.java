@@ -9,27 +9,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.config.ILanguageComponentConfig;
-import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.LoggerUtils;
-
-import rx.Observable;
-import rx.subjects.PublishSubject;
-import rx.subjects.Subject;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
+
+import rx.Observable;
+import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 public class LanguageService implements ILanguageService {
     private static final ILogger logger = LoggerUtils.logger(LanguageService.class);
@@ -102,25 +101,20 @@ public class LanguageService implements ILanguageService {
     }
 
 
-    @Override public LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageContributionIdentifier> contribs, ILanguageComponentConfig config) {
-        return new LanguageCreationRequest(identifier, location, contribs, config);
-    }
-
-
-    @Override public ILanguageComponent add(LanguageCreationRequest request) {
-        validateLocation(request.location);
+    @Override public ILanguageComponent add(ComponentCreationConfig config) {
+        validateLocation(config.location);
 
         final Collection<ILanguageImplInternal> impls = Lists.newLinkedList();
-        for(LanguageContributionIdentifier identifier : request.implIds) {
+        for(LanguageContributionIdentifier identifier : config.implIds) {
             ILanguageInternal language = getOrCreateLanguage(identifier.name);
             ILanguageImplInternal impl = getOrCreateLanguageImpl(identifier.id, language);
             impls.add(impl);
         }
 
-        final ILanguageComponentInternal existingComponent = identifierToComponent.get(request.identifier);
-        final ILanguageComponentInternal newComponent = new LanguageComponent(request.identifier, request.location,
-            sequenceIdGenerator.getAndIncrement(), impls, request.config, request.facets);
+        final ILanguageComponentInternal existingComponent = identifierToComponent.get(config.identifier);
+        final ILanguageComponentInternal newComponent =
+            new LanguageComponent(config.identifier, config.location,
+                sequenceIdGenerator.getAndIncrement(), impls, config.config, config.facets);
         if(existingComponent == null) {
             addComponent(newComponent);
             final Collection<ILanguageImplInternal> changedImpls = Lists.newLinkedList();

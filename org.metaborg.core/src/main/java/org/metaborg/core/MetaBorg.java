@@ -1,5 +1,7 @@
 package org.metaborg.core;
 
+import java.io.File;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageComponentFactory;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageIdentifierService;
@@ -48,6 +51,7 @@ public class MetaBorg implements AutoCloseable {
     public final IResourceService resourceService;
 
     public final ILanguageService languageService;
+    public final ILanguageComponentFactory languageComponentFactory;
     public final ILanguageDiscoveryService languageDiscoveryService;
     public final ILanguageIdentifierService languageIdentifierService;
     public final ILanguagePathService languagePathService;
@@ -87,6 +91,7 @@ public class MetaBorg implements AutoCloseable {
 
         this.resourceService = injector.getInstance(IResourceService.class);
         this.languageService = injector.getInstance(ILanguageService.class);
+        this.languageComponentFactory = injector.getInstance(ILanguageComponentFactory.class);
         this.languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
         this.languageIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
         this.languagePathService = injector.getInstance(ILanguagePathService.class);
@@ -159,13 +164,44 @@ public class MetaBorg implements AutoCloseable {
 
 
     /**
+     * @see IResourceService#resolve(String)
+     */
+    public FileObject resolve(String uri) {
+        return resourceService.resolve(uri);
+    }
+
+    /**
+     * @see IResourceService#resolve(File)
+     */
+    public FileObject resolve(File file) {
+        return resourceService.resolve(file);
+    }
+
+    /**
+     * @see IResourceService#resolve(URI)
+     */
+    public FileObject resolve(URI uri) {
+        return resourceService.resolve(uri);
+    }
+
+
+    /**
+     * @see ILanguageDiscoveryService#scanLanguagesInDirectory(FileObject)
+     */
+    public Set<ILanguageImpl> scanLanguagesInDirectory(FileObject directory) throws MetaborgException {
+        return languageDiscoveryService.scanLanguagesInDirectory(directory);
+    }
+    
+    /**
      * @see ILanguageDiscoveryService#request(FileObject)
      * @see ILanguageDiscoveryService#discover(ILanguageDiscoveryRequest)
+     * @deprecated Use {@link #scanLanguagesInDirectory(FileObject)}
      */
-    public Iterable<ILanguageComponent> discoverLanguages(FileObject location) throws MetaborgException {
+    @Deprecated public Iterable<ILanguageComponent> discoverLanguages(FileObject location) throws MetaborgException {
         return languageDiscoveryService.discover(languageDiscoveryService.request(location));
     }
 
+    
     /**
      * @see ILanguageIdentifierService#identify(FileObject, ILanguageImpl)
      */

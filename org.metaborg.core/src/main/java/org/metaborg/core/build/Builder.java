@@ -402,8 +402,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 for(A analysisResult : analysisResults) {
                     cancel.throwIfCancelled();
 
-                    final FileObject resource = analysisResult.source();
-                    final FileName name = resource.getName();
+                    final FileObject source = analysisResult.source();
+                    final FileName name = source.getName();
 
                     if(removedResources.contains(name) || includeFiles.contains(name)) {
                         // Don't compile removed resources, which the analysis results contain for legacy reasons.
@@ -412,7 +412,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     }
 
                     if(!analysisResult.valid()) {
-                        logger.warn("Input result for {} is invalid, cannot transform it", resource);
+                        logger.warn("Input result for {} is invalid, cannot transform it",
+                            source != null ? source.getName().getPath() : "detached source");
                         continue;
                     }
 
@@ -434,7 +435,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                         } catch(TransformException e) {
                             final String message = String.format("Transformation failed unexpectedly for %s", name);
                             logger.error(message, e);
-                            final boolean noErrors = printMessage(resource, message, e, input, pardoned);
+                            final boolean noErrors = printMessage(source, message, e, input, pardoned);
                             success.and(noErrors);
                             extraMessages.add(
                                 MessageFactory.newBuilderErrorAtTop(location, "Transformation failed unexpectedly", e));
@@ -462,7 +463,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         return !failed;
     }
 
-    private boolean printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
+    private boolean printMessage(@Nullable FileObject resource, String message, @Nullable Throwable e, BuildInput input,
         boolean pardoned) {
         final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
