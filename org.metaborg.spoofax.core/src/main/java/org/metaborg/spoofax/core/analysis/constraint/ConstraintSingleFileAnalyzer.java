@@ -161,6 +161,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     .singleton(MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
                 results.add(unitService.analyzeUnit(parseUnit,
                     new AnalyzeContrib(true, false, false, null, messages, -1), context));
+            } catch(InterruptedException e) {
+                logger.info("Analysis was interrupted.");
             }
         }
         return new SpoofaxAnalyzeResults(results, Collections.<ISpoofaxAnalyzeUnitUpdate>emptyList(), context);

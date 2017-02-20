@@ -62,7 +62,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected final ITermFactory termFactory;
     protected final StrategoTerms strategoTerms;
 
-    public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
+     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
         final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
         final ITermFactoryService termFactoryService, final ISpoofaxTracingService tracingService) {
         this.analysisCommon = analysisCommon;
