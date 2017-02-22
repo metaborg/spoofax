@@ -299,6 +299,9 @@ public class ResourceAgent extends IOAgent {
     @Override public String[] readdir(String fn) {
         try {
             final FileObject resource = resourceService.resolve(workingDir, fn);
+            if(!resource.exists() || resource.getType() == FileType.FILE) {
+                return new String[0];
+            }
             final FileName name = resource.getName();
             final FileObject[] children = resource.getChildren();
             final String[] strings = new String[children.length];
@@ -308,7 +311,7 @@ public class ResourceAgent extends IOAgent {
             }
             return strings;
         } catch(FileSystemException e) {
-            throw new RuntimeException("Could check if file " + fn + " is readable", e);
+            throw new RuntimeException("Could not list contents of directory " + fn, e);
         }
     }
 
@@ -402,7 +405,7 @@ public class ResourceAgent extends IOAgent {
             final FileObject resource = resourceService.resolve(workingDir, fn);
             return resource.exists();
         } catch(FileSystemException e) {
-            throw new RuntimeException("Could check if file " + fn + " exists", e);
+            throw new RuntimeException("Could not check if file " + fn + " exists", e);
         }
     }
 
@@ -411,7 +414,7 @@ public class ResourceAgent extends IOAgent {
             final FileObject resource = resourceService.resolve(workingDir, fn);
             return resource.isReadable();
         } catch(FileSystemException e) {
-            throw new RuntimeException("Could check if file " + fn + " is readable", e);
+            throw new RuntimeException("Could not check if file " + fn + " is readable", e);
         }
     }
 
@@ -420,7 +423,7 @@ public class ResourceAgent extends IOAgent {
             final FileObject resource = resourceService.resolve(workingDir, fn);
             return resource.isWriteable();
         } catch(FileSystemException e) {
-            throw new RuntimeException("Could check if file " + fn + " is writeable", e);
+            throw new RuntimeException("Could not check if file " + fn + " is writeable", e);
         }
     }
 
@@ -430,7 +433,7 @@ public class ResourceAgent extends IOAgent {
             final FileType type = resource.getType();
             return type == FileType.FOLDER || type == FileType.FILE_OR_FOLDER;
         } catch(FileSystemException e) {
-            throw new RuntimeException("Could check if file " + fn + " is a directory", e);
+            throw new RuntimeException("Could not check if file " + fn + " is a directory", e);
         }
     }
 }
