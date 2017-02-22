@@ -16,8 +16,10 @@ import java.io.Writer;
 import java.util.Map;
 
 import org.apache.commons.vfs2.AllFileSelector;
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.log.Level;
 import org.metaborg.util.log.LoggerUtils;
@@ -294,6 +296,22 @@ public class ResourceAgent extends IOAgent {
         return result.toString();
     }
 
+    @Override public String[] readdir(String fn) {
+        try {
+            final FileObject resource = resourceService.resolve(workingDir, fn);
+            final FileName name = resource.getName();
+            final FileObject[] children = resource.getChildren();
+            final String[] strings = new String[children.length];
+            for(int i = 0; i < children.length; ++i) {
+                final FileName absName = children[i].getName();
+                strings[i] = name.getRelativeName(absName);
+            }
+            return strings;
+        } catch(FileSystemException e) {
+            throw new RuntimeException("Could check if file " + fn + " is readable", e);
+        }
+    }
+
 
     @Override public void printError(String error) {
         try {
@@ -403,6 +421,16 @@ public class ResourceAgent extends IOAgent {
             return resource.isWriteable();
         } catch(FileSystemException e) {
             throw new RuntimeException("Could check if file " + fn + " is writeable", e);
+        }
+    }
+
+    @Override public boolean isDirectory(String fn) {
+        try {
+            final FileObject resource = resourceService.resolve(workingDir, fn);
+            final FileType type = resource.getType();
+            return type == FileType.FOLDER || type == FileType.FILE_OR_FOLDER;
+        } catch(FileSystemException e) {
+            throw new RuntimeException("Could check if file " + fn + " is a directory", e);
         }
     }
 }
