@@ -114,8 +114,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 Iterable<IConstraint> constraints =
                     Iterables.concat(initialResult.getConstraints(), unitResult.getConstraints());
                 Function1<String, ITermVar> fresh =
-                        base -> GenericTerms.newVar(source,context.unit(source).fresh().fresh(base));
-                Solution solution = Solver.solve(initialResult.getConfig(), fresh, constraints);
+                    base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
+                Solution solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints);
                 unit.setSolution(solution);
 
                 // final

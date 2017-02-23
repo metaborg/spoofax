@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.metaborg.core.context.ContextIdentifier;
+import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.solver.Fresh;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
@@ -18,7 +19,7 @@ import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
 public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
-        implements IMultiFileScopeGraphContext {
+    implements IMultiFileScopeGraphContext {
 
     public MultiFileScopeGraphContext(Injector injector, ContextIdentifier identifier) {
         super(injector, identifier);
@@ -76,7 +77,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
 
         private static final long serialVersionUID = -8133657561476824164L;
 
-        final Map<String,IMultiFileScopeGraphUnit> units = Maps.newHashMap();
+        final Map<String, IMultiFileScopeGraphUnit> units = Maps.newHashMap();
 
         InitialResult initialResult;
         Solution solution;
@@ -102,6 +103,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
             private final Fresh fresh;
 
             private UnitResult unitResult;
+            private Iterable<IConstraint> normalizedConstraints;
 
             private Unit(String resource) {
                 this.resource = resource;
@@ -114,11 +116,19 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
             }
 
             @Override public void setUnitResult(UnitResult result) {
-                unitResult = result;
+                this.unitResult = result;
             }
 
             @Override public Optional<UnitResult> unitResult() {
                 return Optional.ofNullable(unitResult);
+            }
+
+            @Override public void setNormalizedConstraints(Iterable<IConstraint> constraints) {
+                this.normalizedConstraints = constraints;
+            }
+
+            @Override public Optional<Iterable<IConstraint>> normalizedConstraints() {
+                return Optional.ofNullable(normalizedConstraints);
             }
 
             @Override public Optional<Solution> solution() {

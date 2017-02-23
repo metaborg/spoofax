@@ -13,7 +13,12 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
+import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
+import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
+import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
+import org.metaborg.meta.nabl2.solver.ImmutableIncrementalSolverConfig;
+import org.metaborg.meta.nabl2.solver.IncrementalSolverConfig;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
@@ -48,6 +53,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.time.AggregateTimer;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
@@ -62,9 +68,10 @@ import com.google.inject.Inject;
 public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
     implements ISpoofaxAnalyzer {
 
-    public static final ILogger logger = LoggerUtils.logger(ConstraintMultiFileAnalyzer.class);
-
     public static final String name = "constraint-multifile";
+
+    private static final ILogger logger = LoggerUtils.logger(ConstraintMultiFileAnalyzer.class);
+    private static final boolean INCREMENTAL = false;
 
     private final ISpoofaxUnitService unitService;
 
@@ -80,6 +87,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         Map<String, ISpoofaxParseUnit> removed, IMultiFileScopeGraphContext context, HybridInterpreter runtime,
         String strategy) throws AnalysisException {
         final Timer totalTimer = new Timer(true);
+        final AggregateTimer collectionTimer = new AggregateTimer();
+        final AggregateTimer solverTimer = new AggregateTimer();
+        final AggregateTimer finalizeTimer = new AggregateTimer();
         String globalSource = context.location().getName().getURI();
 
         for(String input : removed.keySet()) {
@@ -88,17 +98,16 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults = Lists.newArrayList();
-        long collectionTime = -1, solverTime = -1, finalizeTime = -1, totalTime = -1;
         try {
 
             // initial
-            final Timer collectionTimer = new Timer(true);
             InitialResult initialResult;
             Optional<ITerm> customInitial;
             if(context.initialResult().isPresent()) {
                 initialResult = context.initialResult().get();
                 customInitial = context.initialResult().flatMap(r -> r.getCustomResult());
             } else {
+                collectionTimer.start();
                 ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
                     .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                 initialResult = InitialResult.matcher().match(initialResultTerm)
@@ -106,7 +115,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
                 initialResult = ImmutableInitialResult.copyOf(initialResult).setCustomResult(customInitial);
                 context.setInitialResult(initialResult);
+                collectionTimer.stop();
             }
+
+            final List<ITermVar> globalVars = Lists.newArrayList();
+            for(ITerm param : initialResult.getArgs().getParams()) {
+                globalVars.addAll(param.getVars());
+            }
+            initialResult.getArgs().getType().ifPresent(type -> globalVars.addAll(type.getVars()));
 
             // units
             final Map<String, IStrategoTerm> astsByFile = Maps.newHashMap();
@@ -121,6 +137,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 unit.clear();
 
                 try {
+                    collectionTimer.start();
                     final ITerm unitResultTerm =
                         doAction(strategy, Actions.analyzeUnit(source, ast, initialResult.getArgs()), context, runtime)
                             .orElseThrow(() -> new AnalysisException(context, "No unit result."));
@@ -135,38 +152,59 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     astsByFile.put(source, analyzedAST);
                     ambiguitiesByFile.putAll(source, analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST));
                     unit.setUnitResult(unitResult);
+                    collectionTimer.stop();
+
+                    final Iterable<IConstraint> unitConstraints;
+                    if(INCREMENTAL) {
+                        try {
+                            solverTimer.start();
+                            Function1<String, ITermVar> fresh =
+                                base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
+                            IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR,
+                                MessageContent.of("Link error"), Actions.sourceTerm(source));
+                            IncrementalSolverConfig incrementalConfig =
+                                ImmutableIncrementalSolverConfig.of(globalVars, messageInfo);
+                            unitConstraints = Solver.solveIncremental(initialResult.getConfig(), incrementalConfig,
+                                fresh, unitResult.getConstraints());
+                            solverTimer.stop();
+                        } catch(UnsatisfiableException e) {
+                            throw new AnalysisException(context, e);
+                        }
+                    } else {
+                        unitConstraints = unitResult.getConstraints();
+                    }
+                    unit.setNormalizedConstraints(unitConstraints);
+
+
                 } catch(MetaborgException e) {
                     logger.warn("File analysis failed.", e);
                     failuresByFile.put(source,
                         MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
                 }
             }
-            collectionTime = collectionTimer.stop();
 
             // solve
-            final Timer solverTimer = new Timer(true);
             final List<Iterable<IConstraint>> constraints = Lists.newArrayList();
             final List<Optional<ITerm>> customUnits = Lists.newArrayList();
             context.initialResult().ifPresent(i -> constraints.add(i.getConstraints()));
             for(IMultiFileScopeGraphUnit unit : context.units()) {
-                unit.unitResult().ifPresent(u -> {
-                    constraints.add(u.getConstraints());
-                    customUnits.add(u.getCustomResult());
-                });
+                unit.normalizedConstraints().ifPresent(constraints::add);
+                unit.unitResult().map(UnitResult::getCustomResult).ifPresent(customUnits::add);
             }
             Solution solution;
             try {
+                solverTimer.start();
                 Function1<String, ITermVar> fresh =
                     base -> GenericTerms.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
-                solution = Solver.solve(initialResult.getConfig(), fresh, Iterables.concat(constraints));
+                solution = Solver.solveFinal(initialResult.getConfig(), fresh, Iterables.concat(constraints));
+                solverTimer.stop();
             } catch(UnsatisfiableException e) {
                 throw new AnalysisException(context, e);
             }
             context.setSolution(solution);
-            solverTime = solverTimer.stop();
 
             // final
-            final Timer finalizeTimer = new Timer(true);
+            finalizeTimer.start();
             ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(globalSource), context, runtime)
                 .orElseThrow(() -> new AnalysisException(context, "No final result."));
             FinalResult finalResult = FinalResult.matcher().match(finalResultTerm)
@@ -179,7 +217,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
             Optional<CustomSolution> customSolution = customFinal.flatMap(CustomSolution.matcher()::match);
             customSolution.ifPresent(cs -> context.setCustomSolution(cs));
-            finalizeTime = finalizeTimer.stop();
+            finalizeTimer.stop();
 
             // errors
             Multimap<String, IMessage> errorsByFile =
@@ -216,11 +254,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         } catch(InterruptedException e) {
             logger.info("Analysis was interrupted.");
         } finally {
-            totalTime = totalTimer.stop();
+            totalTimer.stop();
         }
 
-        final ConstraintDebugData debugData = new ConstraintDebugData(totalTime, collectionTime, solverTime, finalizeTime);
-        logger.info("{}",debugData);
+        final ConstraintDebugData debugData = new ConstraintDebugData(totalTimer.stop(), collectionTimer.total(),
+            solverTimer.total(), finalizeTimer.total());
+        logger.info("{}", debugData);
         return new SpoofaxAnalyzeResults(results, updateResults, context, debugData);
     }
 
