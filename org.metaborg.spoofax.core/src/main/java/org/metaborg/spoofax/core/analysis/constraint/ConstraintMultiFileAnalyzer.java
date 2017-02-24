@@ -17,8 +17,6 @@ import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
-import org.metaborg.meta.nabl2.solver.ImmutableIncrementalSolverConfig;
-import org.metaborg.meta.nabl2.solver.IncrementalSolverConfig;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
@@ -71,7 +69,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
     public static final String name = "constraint-multifile";
 
     private static final ILogger logger = LoggerUtils.logger(ConstraintMultiFileAnalyzer.class);
-    private static final boolean INCREMENTAL = false;
+    private static final boolean INCREMENTAL = true;
 
     private final ISpoofaxUnitService unitService;
 
@@ -118,11 +116,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 collectionTimer.stop();
             }
 
-            final List<ITermVar> globalVars = Lists.newArrayList();
-            for(ITerm param : initialResult.getArgs().getParams()) {
-                globalVars.addAll(param.getVars());
-            }
-            initialResult.getArgs().getType().ifPresent(type -> globalVars.addAll(type.getVars()));
+            final List<ITerm> globalTerms = Lists.newArrayList();
+            Iterables.addAll(globalTerms, initialResult.getArgs().getParams());
+            initialResult.getArgs().getType().ifPresent(type -> globalTerms.add(type));
 
             // units
             final Map<String, IStrategoTerm> astsByFile = Maps.newHashMap();
@@ -160,12 +156,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             solverTimer.start();
                             Function1<String, ITermVar> fresh =
                                 base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
-                            IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR,
-                                MessageContent.of("Link error"), Actions.sourceTerm(source));
-                            IncrementalSolverConfig incrementalConfig =
-                                ImmutableIncrementalSolverConfig.of(globalVars, messageInfo);
-                            unitConstraints = Solver.solveIncremental(initialResult.getConfig(), incrementalConfig,
-                                fresh, unitResult.getConstraints());
+                            IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
+                                Actions.sourceTerm(source));
+                            unitConstraints = Solver.solveIncremental(initialResult.getConfig(), globalTerms, fresh,
+                                unitResult.getConstraints(), messageInfo);
                             solverTimer.stop();
                         } catch(UnsatisfiableException e) {
                             throw new AnalysisException(context, e);
@@ -196,7 +190,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 solverTimer.start();
                 Function1<String, ITermVar> fresh =
                     base -> GenericTerms.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
-                solution = Solver.solveFinal(initialResult.getConfig(), fresh, Iterables.concat(constraints));
+                IMessageInfo messageInfo =
+                    ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(), Actions.sourceTerm(globalSource));
+                solution =
+                    Solver.solveFinal(initialResult.getConfig(), fresh, Iterables.concat(constraints), messageInfo);
                 solverTimer.stop();
             } catch(UnsatisfiableException e) {
                 throw new AnalysisException(context, e);

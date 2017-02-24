@@ -12,6 +12,9 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
+import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
+import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
+import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
@@ -115,7 +118,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     Iterables.concat(initialResult.getConstraints(), unitResult.getConstraints());
                 Function1<String, ITermVar> fresh =
                     base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
-                Solution solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints);
+                IMessageInfo messageInfo =
+                    ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(), Actions.sourceTerm(source));
+                Solution solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints, messageInfo);
                 unit.setSolution(solution);
 
                 // final
