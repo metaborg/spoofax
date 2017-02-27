@@ -19,7 +19,7 @@ import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
-import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
+import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
@@ -69,7 +69,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
     public static final String name = "constraint-multifile";
 
     private static final ILogger logger = LoggerUtils.logger(ConstraintMultiFileAnalyzer.class);
-    private static final boolean INCREMENTAL = false;
+    private static final boolean INCREMENTAL = true;
 
     private final ISpoofaxUnitService unitService;
 
@@ -161,7 +161,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             unitConstraints = Solver.solveIncremental(initialResult.getConfig(), globalTerms, fresh,
                                 unitResult.getConstraints(), messageInfo);
                             solverTimer.stop();
-                        } catch(UnsatisfiableException e) {
+                        } catch(SolverException e) {
                             throw new AnalysisException(context, e);
                         }
                     } else {
@@ -195,7 +195,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 solution =
                     Solver.solveFinal(initialResult.getConfig(), fresh, Iterables.concat(constraints), messageInfo);
                 solverTimer.stop();
-            } catch(UnsatisfiableException e) {
+            } catch(SolverException e) {
                 throw new AnalysisException(context, e);
             }
             context.setSolution(solution);

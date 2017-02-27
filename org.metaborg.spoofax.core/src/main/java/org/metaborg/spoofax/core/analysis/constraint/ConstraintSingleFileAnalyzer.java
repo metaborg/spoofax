@@ -18,7 +18,7 @@ import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
-import org.metaborg.meta.nabl2.solver.UnsatisfiableException;
+import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
@@ -160,7 +160,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 // result
                 results.add(unitService.analyzeUnit(parseUnit,
                     new AnalyzeContrib(true, errors.isEmpty(), true, analyzedAST, messages, -1), context));
-            } catch(MetaborgException | UnsatisfiableException e) {
+            } catch(MetaborgException | SolverException e) {
                 logger.warn("File analysis failed.", e);
                 Iterable<IMessage> messages = Iterables2
                     .singleton(MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
