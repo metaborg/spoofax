@@ -69,7 +69,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
     public static final String name = "constraint-multifile";
 
     private static final ILogger logger = LoggerUtils.logger(ConstraintMultiFileAnalyzer.class);
-    private static final boolean INCREMENTAL = true;
+    private static final boolean INCREMENTAL = false;
 
     private final ISpoofaxUnitService unitService;
 
