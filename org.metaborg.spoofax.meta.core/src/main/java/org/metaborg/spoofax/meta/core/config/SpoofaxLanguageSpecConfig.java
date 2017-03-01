@@ -65,7 +65,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
         @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Collection<LanguageIdentifier> compileDeps,
         @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps,
-        @Nullable Boolean typesmart, @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Boolean typesmart, @Nullable Boolean incrementalConstraintSolver,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable String metaborgVersion, @Nullable Collection<String> pardonedLanguages,
         @Nullable Boolean useBuildSystemSpec, @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled,
@@ -75,7 +76,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
         @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable,
-            completionsParseTable, typesmart, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+            completionsParseTable, typesmart, incrementalConstraintSolver, langContribs, generates, exports,
+            pardonedLanguages, useBuildSystemSpec);
 
         if(sdfVersion != null) {
             config.setProperty(PROP_SDF_VERSION, sdfVersion);

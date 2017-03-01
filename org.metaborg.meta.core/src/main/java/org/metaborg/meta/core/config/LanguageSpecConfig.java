@@ -34,11 +34,12 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Collection<LanguageIdentifier> compileDeps,
         @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps,
         @Nullable Boolean sdfEnabled, @Nullable String parseTable, @Nullable String completionsParseTable,
-        @Nullable Boolean typesmart, @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Boolean typesmart, @Nullable Boolean incrementalConstraintSolver,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
         super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable,
-            completionsParseTable, typesmart, langContribs, generates, exports);
+            completionsParseTable, typesmart, incrementalConstraintSolver, langContribs, generates, exports);
 
         if(pardonedLanguages != null) {
             config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);

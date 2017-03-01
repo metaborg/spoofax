@@ -37,9 +37,9 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        final LanguageComponentConfig config =
-            new LanguageComponentConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps,
-                javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart, langContribs, generates, exports);
+        final LanguageComponentConfig config = new LanguageComponentConfig(configuration, metaborgVersion, identifier,
+            name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart,
+            incrementalConstraintSolver, langContribs, generates, exports);
         return config;
     }
 
@@ -105,6 +105,16 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
     @Override public ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps) {
         super.addJavaDeps(deps);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withTypesmart(boolean typesmart) {
+        super.withTypesmart(typesmart);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withIncrementalConstraintSolver(boolean incremental) {
+        super.withIncrementalConstraintSolver(incremental);
         return this;
     }
 
