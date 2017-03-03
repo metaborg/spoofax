@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
+import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
@@ -163,7 +164,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
                     {
                         final Iterable<IConstraint> unitConstraints;
-                        if(context.project().config().incrementalConstraintSolver()) {
+                        final IProjectConfig config = context.project().config();
+                        if(config != null && config.incrementalConstraintSolver()) {
                             try {
                                 solverTimer.start();
                                 Function1<String, ITermVar> fresh =
