@@ -16,6 +16,8 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.core.processing.ICancel;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
@@ -74,13 +76,14 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         this.strategoTerms = new StrategoTerms(termFactory);
     }
 
-    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext)
-        throws AnalysisException {
+    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext, IProgress progress,
+        ICancel cancel) throws AnalysisException {
         if(!input.valid()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(genericContext, message);
         }
-        final ISpoofaxAnalyzeResults results = analyzeAll(Iterables2.singleton(input), genericContext);
+        final ISpoofaxAnalyzeResults results =
+            analyzeAll(Iterables2.singleton(input), genericContext, progress, cancel);
         if(results.results().isEmpty()) {
             throw new AnalysisException(genericContext, "Analysis failed.");
         }
@@ -89,7 +92,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     @SuppressWarnings("unchecked") @Override public ISpoofaxAnalyzeResults
-        analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext) throws AnalysisException {
+        analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext, IProgress progress, ICancel cancel)
+            throws AnalysisException {
         C context;
         try {
             context = (C) genericContext;

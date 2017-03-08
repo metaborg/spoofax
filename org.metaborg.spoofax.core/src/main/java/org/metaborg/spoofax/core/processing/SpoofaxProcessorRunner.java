@@ -4,8 +4,8 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.language.ILanguageService;
-import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.core.processing.IProgressReporter;
+import org.metaborg.core.processing.ICancel;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.processing.ITask;
 import org.metaborg.core.processing.ProcessorRunner;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
@@ -28,7 +28,7 @@ public class SpoofaxProcessorRunner
 
 
     @SuppressWarnings("unchecked") public ITask<ISpoofaxBuildOutput> build(BuildInput input,
-        @Nullable IProgressReporter progressReporter, @Nullable ICancellationToken cancellationToken) {
-        return (ITask<ISpoofaxBuildOutput>) super.build(input, progressReporter, cancellationToken);
+        @Nullable IProgress progress, @Nullable ICancel cancel) {
+        return (ITask<ISpoofaxBuildOutput>) super.build(input, progress, cancel);
     }
 }

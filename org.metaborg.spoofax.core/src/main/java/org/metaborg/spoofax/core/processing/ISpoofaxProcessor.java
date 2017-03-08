@@ -3,9 +3,9 @@ package org.metaborg.spoofax.core.processing;
 import javax.annotation.Nullable;
 
 import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.processing.ICancellationToken;
+import org.metaborg.core.processing.ICancel;
 import org.metaborg.core.processing.IProcessor;
-import org.metaborg.core.processing.IProgressReporter;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.processing.ITask;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
@@ -21,6 +21,6 @@ public interface ISpoofaxProcessor
     /**
      * {@inheritDoc}
      */
-    ITask<ISpoofaxBuildOutput> build(BuildInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<ISpoofaxBuildOutput> build(BuildInput input, @Nullable IProgress progress,
+        @Nullable ICancel cancel);
 }

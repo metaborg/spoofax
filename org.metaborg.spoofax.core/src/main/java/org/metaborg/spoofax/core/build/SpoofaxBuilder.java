@@ -6,8 +6,8 @@ import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
-import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.core.processing.IProgressReporter;
+import org.metaborg.core.processing.ICancel;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
@@ -43,9 +43,9 @@ public class SpoofaxBuilder extends
     }
 
 
-    @Override public ISpoofaxBuildOutput build(BuildInput input, IProgressReporter progressReporter,
-        ICancellationToken cancellationToken) throws InterruptedException {
-        return (ISpoofaxBuildOutput) super.build(input, progressReporter, cancellationToken);
+    @Override public ISpoofaxBuildOutput build(BuildInput input, IProgress progress,
+        ICancel cancel) throws InterruptedException {
+        return (ISpoofaxBuildOutput) super.build(input, progress, cancel);
     }
 
     @Override public ISpoofaxBuildOutput build(BuildInput input) throws InterruptedException {

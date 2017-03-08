@@ -3,6 +3,8 @@ package org.metaborg.spoofax.core.analysis;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.IAnalyzer;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.processing.ICancel;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -14,11 +16,12 @@ public interface ISpoofaxAnalyzer extends IAnalyzer<ISpoofaxParseUnit, ISpoofaxA
     /**
      * {@inheritDoc}
      */
-    @Override ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context) throws AnalysisException;
+    @Override ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context, IProgress progress,
+        ICancel cancel) throws AnalysisException;
 
     /**
      * {@inheritDoc}
      */
-    @Override ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context)
-        throws AnalysisException;
+    @Override ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context,
+        IProgress progress, ICancel cancel) throws AnalysisException;
 }

@@ -44,14 +44,13 @@ public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, AU ex
     }
 
 
-    @Override public ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input,
-        @Nullable IProgressReporter progressReporter, @Nullable ICancellationToken cancellationToken) {
-        return processor.build(input, progressReporter, cancellationToken);
+    @Override public ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgress progress,
+        @Nullable ICancel cancel) {
+        return processor.build(input, progress, cancel);
     }
 
-    @Override public ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken) {
-        return processor.clean(input, progressReporter, cancellationToken);
+    @Override public ITask<?> clean(CleanInput input, @Nullable IProgress progress, @Nullable ICancel cancel) {
+        return processor.clean(input, progress, cancel);
     }
 
 

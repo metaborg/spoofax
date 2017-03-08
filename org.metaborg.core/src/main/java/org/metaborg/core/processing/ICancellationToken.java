@@ -2,21 +2,9 @@ package org.metaborg.core.processing;
 
 /**
  * Interface for figuring out if something has been cancelled.
+ * 
+ * @deprecated Use {@link ICancel} instead.
  */
-public interface ICancellationToken {
-    /**
-     * @return If cancellation has been requested.
-     */
-    boolean cancelled();
-
-    /**
-     * @throws InterruptedException
-     *             When cancellation has been requested.
-     */
-    void throwIfCancelled() throws InterruptedException;
-
-    /**
-     * Request cancellation.
-     */
-    void cancel();
+@Deprecated
+public interface ICancellationToken extends ICancel {
 }

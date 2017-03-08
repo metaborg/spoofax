@@ -32,8 +32,8 @@ import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
-import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.core.processing.IProgressReporter;
+import org.metaborg.core.processing.ICancel;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.resource.IResourceService;
@@ -123,8 +123,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     }
 
 
-    @Override public IBuildOutput<P, A, AU, T> build(BuildInput input, IProgressReporter progressReporter,
-        ICancellationToken cancel) throws InterruptedException {
+    @Override public IBuildOutput<P, A, AU, T> build(BuildInput input, IProgress progress, ICancel cancel)
+        throws InterruptedException {
         cancel.throwIfCancelled();
 
         final Iterable<ILanguageImpl> languages = input.buildOrder.languages();
@@ -185,7 +185,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             final Iterable<IdentifiedResource> includeFiles = languagePathService.toFiles(includePaths, language);
             final LanguageBuildDiff diff = languageState.diff(changes.get(language), includeFiles);
             final boolean pardoned = input.pardonedLanguages.contains(language);
-            updateLanguageResources(input, language, diff, buildOutput, pardoned, cancel);
+            updateLanguageResources(input, language, diff, buildOutput, pardoned, progress, cancel);
             newState.add(language, diff.newState);
         }
 
@@ -199,7 +199,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
 
     private void updateLanguageResources(BuildInput input, ILanguageImpl language, LanguageBuildDiff diff,
-        IBuildOutputInternal<P, A, AU, T> output, boolean pardoned, ICancellationToken cancel)
+        IBuildOutputInternal<P, A, AU, T> output, boolean pardoned, IProgress progress, ICancel cancel)
         throws InterruptedException {
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
@@ -220,11 +220,11 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         // Parse
         cancel.throwIfCancelled();
         final Collection<P> sourceParseUnits = parse(input, language, sourceChanges, pardoned, changedSources,
-            removedResources, extraMessages, success, cancel);
+            removedResources, extraMessages, success, progress, cancel);
         // GTODO: when a new context is created, all include files need to be parsed and analyzed in that context, this
         // approach does not do that!
         final Collection<P> includeParseUnits = parse(input, language, includeChanges, pardoned, changedSources,
-            removedResources, extraMessages, success, cancel);
+            removedResources, extraMessages, success, progress, cancel);
         final Iterable<P> allParseResults = Iterables.concat(sourceParseUnits, includeParseUnits);
 
         // Analyze
@@ -254,7 +254,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             // Run analysis
             cancel.throwIfCancelled();
             allAnalyzeUnits = analyze(input, location, parseUnitsPerContext, includeParseUnits, pardoned,
-                allAnalyzeUpdates, removedResources, extraMessages, success, cancel);
+                allAnalyzeUpdates, removedResources, extraMessages, success, progress, cancel);
         } else {
             allAnalyzeUnits = ArrayListMultimap.create();
         }
@@ -264,7 +264,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         final Collection<T> allTransformUnits;
         if(input.transform) {
             allTransformUnits = transform(input, location, allAnalyzeUnits, includes, pardoned, removedResources,
-                extraMessages, success, cancel);
+                extraMessages, success, progress, cancel);
         } else {
             allTransformUnits = Lists.newLinkedList();
         }
@@ -277,7 +277,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
     private Collection<P> parse(BuildInput input, ILanguageImpl langImpl, Iterable<IdentifiedResourceChange> changes,
         boolean pardoned, Collection<FileObject> changedResources, Set<FileName> removedResources,
-        Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel) throws InterruptedException {
+        Collection<IMessage> extraMessages, RefBool success, IProgress progress, ICancel cancel)
+        throws InterruptedException {
         final int size = Iterables.size(changes);
         final Collection<P> allParseUnits = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
@@ -308,7 +309,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     final String sourceText = sourceTextService.text(resource);
                     parseResultUpdater.invalidate(resource);
                     final I inputUnit = unitService.inputUnit(resource, sourceText, langImpl, dialect);
-                    final P parseResult = syntaxService.parse(inputUnit);
+                    final P parseResult = syntaxService.parse(inputUnit, progress, cancel);
                     final boolean noErrors = printMessages(parseResult.messages(), "Parsing", input, pardoned);
                     success.and(noErrors);
                     allParseUnits.add(parseResult);
@@ -338,7 +339,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
     private Multimap<IContext, A> analyze(BuildInput input, FileObject location, Multimap<IContext, P> sourceParseUnits,
         Iterable<P> includeParseUnits, boolean pardoned, Collection<AU> analyzeUpdates, Set<FileName> removedResources,
-        Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel) throws InterruptedException {
+        Collection<IMessage> extraMessages, RefBool success, IProgress progress, ICancel cancel)
+        throws InterruptedException {
         final int size = sourceParseUnits.size() + Iterables.size(includeParseUnits);
         final Multimap<IContext, A> allAnalyzeUnits = ArrayListMultimap.create();
         if(size == 0) {
@@ -355,7 +357,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             try {
                 try(IClosableLock lock = context.write()) {
                     analysisResultUpdater.invalidate(parseResults);
-                    final IAnalyzeResults<A, AU> results = analysisService.analyzeAll(parseResults, context);
+                    final IAnalyzeResults<A, AU> results =
+                        analysisService.analyzeAll(parseResults, context, progress, cancel);
                     for(A result : results.results()) {
                         cancel.throwIfCancelled();
                         final boolean noErrors = printMessages(result.messages(), "Analysis", input, pardoned);
@@ -385,7 +388,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
     private Collection<T> transform(BuildInput input, FileObject location, Multimap<IContext, A> allAnalysisUnits,
         Set<FileName> includeFiles, boolean pardoned, Set<FileName> removedResources,
-        Collection<IMessage> extraMessages, RefBool success, ICancellationToken cancel) throws InterruptedException {
+        Collection<IMessage> extraMessages, RefBool success, IProgress progress, ICancel cancel)
+        throws InterruptedException {
         int size = allAnalysisUnits.size();
         final Collection<T> allTransformUnits = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
@@ -489,8 +493,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     }
 
 
-    @Override public void clean(CleanInput input, IProgressReporter progressReporter,
-        ICancellationToken cancellationToken) throws InterruptedException {
+    @Override public void clean(CleanInput input, IProgress progress, ICancel cancel) throws InterruptedException {
         final FileObject location = input.project.location();
         logger.debug("Cleaning {}", location);
 
@@ -506,6 +509,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             final Set<IContext> contexts =
                 ContextUtils.getAll(Iterables2.from(resources), input.project, languageIdentifier, contextService);
             for(IContext context : contexts) {
+                cancel.throwIfCancelled();
                 try {
                     context.reset();
                 } catch(IOException e) {

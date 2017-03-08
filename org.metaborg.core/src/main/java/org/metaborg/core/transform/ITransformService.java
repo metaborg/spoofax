@@ -57,7 +57,9 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When the transformation fails unexpectedly.
      */
-    Collection<TP> transform(P input, IContext context, ITransformGoal goal) throws TransformException;
+    default Collection<TP> transform(P input, IContext context, ITransformGoal goal) throws TransformException {
+        return transform(input, context, goal, new TransformConfig());
+    }
 
     /**
      * Transforms parse input in a context with given goal.
@@ -92,7 +94,9 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When transformation action requires analysis.
      */
-    TP transform(P input, IContext context, TransformActionContrib action) throws TransformException;
+    default TP transform(P input, IContext context, TransformActionContrib action) throws TransformException {
+        return transform(input, context, action, new TransformConfig());
+    }
 
     /**
      * Transforms parse input in a context with given action.
@@ -127,7 +131,9 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When the transformation fails unexpectedly.
      */
-    Collection<TA> transform(A input, IContext context, ITransformGoal goal) throws TransformException;
+    default Collection<TA> transform(A input, IContext context, ITransformGoal goal) throws TransformException {
+        return transform(input, context, goal, new TransformConfig());
+    }
 
     /**
      * Transforms analyzed input in a context with given goal.
@@ -160,7 +166,9 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When the transformation fails unexpectedly.
      */
-    TA transform(A input, IContext context, TransformActionContrib action) throws TransformException;
+    default TA transform(A input, IContext context, TransformActionContrib action) throws TransformException {
+        return transform(input, context, action, new TransformConfig());
+    }
 
     /**
      * Transforms analyzed input in a context with given action.
@@ -193,8 +201,10 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When the transformation fails unexpectedly.
      */
-    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal)
-        throws TransformException;
+    default Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal)
+        throws TransformException {
+        return transformAllParsed(inputs, context, goal, new TransformConfig());
+    }
 
     /**
      * Transforms parse inputs in a context with given goal.
@@ -229,8 +239,10 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When transformation action requires analysis.
      */
-    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContrib action)
-        throws TransformException;
+    default Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContrib action)
+        throws TransformException {
+        return transformAllParsed(inputs, context, action, new TransformConfig());
+    }
 
     /**
      * Transforms parse input in a context with given action.
@@ -265,8 +277,10 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When the transformation fails unexpectedly.
      */
-    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, ITransformGoal goal)
-        throws TransformException;
+    default Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, ITransformGoal goal)
+        throws TransformException {
+        return transformAllAnalyzed(inputs, context, goal, new TransformConfig());
+    }
 
     /**
      * Transforms analyzed inputs in a context with given goal.
@@ -299,8 +313,10 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      * @throws TransformException
      *             When the transformation fails unexpectedly.
      */
-    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib action)
-        throws TransformException;
+    default Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib action)
+        throws TransformException {
+        return transformAllAnalyzed(inputs, context, action, new TransformConfig());
+    }
 
     /**
      * Transforms analyzed inputs in a context with given action.

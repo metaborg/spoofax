@@ -9,6 +9,8 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.processing.ICancel;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
@@ -46,7 +48,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
     }
 
 
-    @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input) throws ParseException {
+    @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel)
+        throws ParseException {
         final FileObject source = input.source();
         final ILanguageImpl langImpl;
         final ILanguageImpl base;
@@ -91,10 +94,11 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         }
     }
 
-    @Override public Collection<ISpoofaxParseUnit> parseAll(Iterable<ISpoofaxInputUnit> inputs) throws ParseException {
+    @Override public Collection<ISpoofaxParseUnit> parseAll(Iterable<ISpoofaxInputUnit> inputs, IProgress progress,
+        ICancel cancel) throws ParseException {
         final Collection<ISpoofaxParseUnit> parseUnits = Lists.newArrayList();
         for(ISpoofaxInputUnit input : inputs) {
-            parseUnits.add(parse(input));
+            parseUnits.add(parse(input, progress, cancel));
         }
         return parseUnits;
     }

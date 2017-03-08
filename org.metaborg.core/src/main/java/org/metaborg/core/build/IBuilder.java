@@ -3,15 +3,15 @@ package org.metaborg.core.build;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
-import org.metaborg.core.processing.ICancellationToken;
-import org.metaborg.core.processing.IProgressReporter;
+import org.metaborg.core.processing.ICancel;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.processing.NullCancellationToken;
 import org.metaborg.core.processing.NullProgressReporter;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
 
 /**
- * Incrementally parses, analyses, and compiles source files.
+ * Incrementally parses, analyzes, and compiles source files.
  * 
  * @param <P>
  *            Type of parse units.
@@ -28,9 +28,9 @@ public interface IBuilder<P extends IParseUnit, A extends IAnalyzeUnit, AU exten
      * 
      * @param input
      *            Build input.
-     * @param progressReporter
+     * @param progress
      *            Progress reporter used for reporting build progress.
-     * @param cancellationToken
+     * @param cancel
      *            Cancellation token for canceling the build.
      * @return Result of building.
      * @throws InterruptedException
@@ -38,11 +38,10 @@ public interface IBuilder<P extends IParseUnit, A extends IAnalyzeUnit, AU exten
      * @throws MetaborgRuntimeException
      *             When {@code input.throwOnErrors} is set to true and errors occur.
      */
-    IBuildOutput<P, A, AU, T> build(BuildInput input, IProgressReporter progressReporter,
-        ICancellationToken cancellationToken) throws InterruptedException;
+    IBuildOutput<P, A, AU, T> build(BuildInput input, IProgress progress, ICancel cancel) throws InterruptedException;
 
     /**
-     * Parses, analyses, and compiles changed resources.
+     * Parses, analyzes, and compiles changed resources.
      * 
      * @param input
      *            Build input.
@@ -61,15 +60,14 @@ public interface IBuilder<P extends IParseUnit, A extends IAnalyzeUnit, AU exten
      * 
      * @param input
      *            Clean input.
-     * @param progressReporter
+     * @param progress
      *            Progress reporter used for reporting clean progress.
-     * @param cancellationToken
+     * @param cancellation
      *            Cancellation token for canceling the clean.
      * @throws InterruptedException
      *             When clean is cancelled.
      */
-    void clean(CleanInput input, IProgressReporter progressReporter, ICancellationToken cancellationToken)
-        throws InterruptedException;
+    void clean(CleanInput input, IProgress progress, ICancel cancellation) throws InterruptedException;
 
     /**
      * Cleans derived resources and contexts from given location.

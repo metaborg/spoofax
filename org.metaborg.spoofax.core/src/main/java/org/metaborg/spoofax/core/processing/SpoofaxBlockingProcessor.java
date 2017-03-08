@@ -5,9 +5,9 @@ import javax.annotation.Nullable;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.processing.BlockingProcessor;
-import org.metaborg.core.processing.ICancellationToken;
+import org.metaborg.core.processing.ICancel;
 import org.metaborg.core.processing.ILanguageChangeProcessor;
-import org.metaborg.core.processing.IProgressReporter;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.processing.ITask;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
@@ -31,7 +31,7 @@ public class SpoofaxBlockingProcessor extends
 
 
     @SuppressWarnings("unchecked") @Override public ITask<ISpoofaxBuildOutput> build(BuildInput input,
-        @Nullable IProgressReporter progressReporter, @Nullable ICancellationToken cancellationToken) {
-        return (ITask<ISpoofaxBuildOutput>) super.build(input, progressReporter, cancellationToken);
+        @Nullable IProgress progress, @Nullable ICancel cancel) {
+        return (ITask<ISpoofaxBuildOutput>) super.build(input, progress, cancel);
     }
 }

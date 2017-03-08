@@ -1,6 +1,8 @@
 package org.metaborg.core.analysis;
 
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.processing.ICancel;
+import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.syntax.IParseUnit;
 
 /**
@@ -22,11 +24,16 @@ public interface IAnalyzer<P extends IParseUnit, A extends IAnalyzeUnit, AU exte
      *            Parse unit to analyze.
      * @param context
      *            Context to perform analysis in.
+     * @param progress
+     *            Progress reporter.
+     * @param cancel
+     *            Cancellation token.
      * @return Analysis result which contains an analyze unit and optionally updates to analyze units.
      * @throws AnalysisException
      *             When analysis fails unexpectedly.
      */
-    IAnalyzeResult<A, AU> analyze(P input, IContext context) throws AnalysisException;
+    IAnalyzeResult<A, AU> analyze(P input, IContext context, IProgress progress, ICancel cancel)
+        throws AnalysisException;
 
     /**
      * Analyzes given parse inputs, in given context, into an analysis result which contains analyze units and
@@ -36,9 +43,14 @@ public interface IAnalyzer<P extends IParseUnit, A extends IAnalyzeUnit, AU exte
      *            Parse units to analyze.
      * @param context
      *            Context to perform analysis in.
+     * @param progress
+     *            Progress reporter.
+     * @param cancel
+     *            Cancellation token.
      * @return Analysis result which contains analyze units and optionally updates to analyze units.
      * @throws AnalysisException
      *             When analysis fails unexpectedly.
      */
-    IAnalyzeResults<A, AU> analyzeAll(Iterable<P> inputs, IContext context) throws AnalysisException;
+    IAnalyzeResults<A, AU> analyzeAll(Iterable<P> inputs, IContext context, IProgress progress, ICancel cancel)
+        throws AnalysisException;
 }
