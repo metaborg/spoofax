@@ -15,6 +15,8 @@ import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 import com.google.inject.Inject;
 

@@ -16,8 +16,6 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
-import org.metaborg.core.processing.ICancel;
-import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
@@ -42,6 +40,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
@@ -124,11 +124,11 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                 input.detached() ? ("detached-" + UUID.randomUUID().toString()) : input.source().getName().getURI();
             (input.valid() ? changed : removed).put(source, input);
         }
-        return analyzeAll(changed, removed, context, runtime, facet.strategyName);
+        return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed,
-        Map<String, ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
+        Map<String, ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
         throws AnalysisException;
 
     protected Optional<ITerm> doAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,

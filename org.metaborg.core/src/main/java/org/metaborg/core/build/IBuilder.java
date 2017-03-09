@@ -3,12 +3,12 @@ package org.metaborg.core.build;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
-import org.metaborg.core.processing.ICancel;
-import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.processing.NullCancellationToken;
 import org.metaborg.core.processing.NullProgressReporter;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Incrementally parses, analyzes, and compiles source files.

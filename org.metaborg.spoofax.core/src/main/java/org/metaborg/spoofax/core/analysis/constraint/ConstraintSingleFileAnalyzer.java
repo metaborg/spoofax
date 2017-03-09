@@ -45,6 +45,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -70,10 +72,13 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
 
     @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed,
         Map<String, ISpoofaxParseUnit> removed, ISingleFileScopeGraphContext context, HybridInterpreter runtime,
-        String strategy) throws AnalysisException {
+        String strategy, IProgress progress, ICancel cancel) throws AnalysisException {
         for(String input : removed.keySet()) {
             context.removeUnit(input);
         }
+        
+        final int n = changed.size();
+        progress.setWorkRemaining(n + 1);
 
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
@@ -129,7 +134,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
                     IMessageInfo messageInfo =
                         ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(), Actions.sourceTerm(source));
-                    solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints, messageInfo);
+                    solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints, messageInfo, progress.subProgress(1), cancel);
                     unit.setSolution(solution);
                 }
 

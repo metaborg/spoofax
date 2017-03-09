@@ -6,8 +6,6 @@ import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
-import org.metaborg.core.processing.ICancel;
-import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
@@ -21,6 +19,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;

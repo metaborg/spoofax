@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.processing.ICancel;
-import org.metaborg.core.processing.IProgress;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;

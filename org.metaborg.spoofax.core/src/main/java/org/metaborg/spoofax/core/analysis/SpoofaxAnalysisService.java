@@ -3,11 +3,11 @@ package org.metaborg.spoofax.core.analysis;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.AnalysisService;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.processing.ICancel;
-import org.metaborg.core.processing.IProgress;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Typedef class for {@link AnalysisService} with Spoofax interfaces.

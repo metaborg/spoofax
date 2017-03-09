@@ -13,6 +13,8 @@ import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Interface for creating processing tasks. Used internally, clients should use a {@link IProcessorRunner}.

@@ -11,6 +11,8 @@ import org.metaborg.core.build.IBuildOutput;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Interface for language processing. Handles building and cleaning on-demand, and language change events automatically.

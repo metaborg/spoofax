@@ -3,10 +3,10 @@ package org.metaborg.core.syntax;
 import java.util.Collection;
 
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.processing.ICancel;
-import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.processing.NullCancellationToken;
 import org.metaborg.core.processing.NullProgressReporter;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Interface for context-free syntactical services, including parsing and information about lexical characters.

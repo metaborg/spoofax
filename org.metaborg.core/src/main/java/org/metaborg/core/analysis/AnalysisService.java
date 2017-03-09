@@ -2,11 +2,11 @@ package org.metaborg.core.analysis;
 
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.processing.ICancel;
-import org.metaborg.core.processing.IProgress;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 public class AnalysisService<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate>
     implements IAnalysisService<P, A, AU> {

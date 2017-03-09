@@ -2,8 +2,8 @@ package org.metaborg.core.syntax;
 
 import java.util.Collection;
 
-import org.metaborg.core.processing.ICancel;
-import org.metaborg.core.processing.IProgress;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Interface for a context-free parser implementation.

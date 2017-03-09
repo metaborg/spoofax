@@ -1,5 +1,7 @@
 package org.metaborg.core.processing;
 
+import org.metaborg.util.task.IProgress;
+
 /**
  * Interface for progress reporting.
  * 

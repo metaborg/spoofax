@@ -1,5 +1,7 @@
 package org.metaborg.core.processing;
 
+import org.metaborg.util.task.ICancel;
+
 /**
  * Interface for figuring out if something has been cancelled.
  * 

@@ -1,5 +1,7 @@
 package org.metaborg.core.processing;
 
+import org.metaborg.util.task.ICancel;
+
 /**
  * Cancellation token implementation that never cancels.
  */
