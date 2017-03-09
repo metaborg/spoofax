@@ -28,7 +28,7 @@ public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> 
     }
 
 
-    @Override public P parse(I input, IProgress progress, ICancel cancel) throws ParseException {
+    @Override public P parse(I input, IProgress progress, ICancel cancel) throws ParseException, InterruptedException {
         final ILanguageImpl langImpl = input.langImpl();
         final IParser<I, P> parser = parser(langImpl);
         if(parser == null) {
@@ -38,7 +38,8 @@ public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> 
         return parser.parse(input, progress, cancel);
     }
 
-    @Override public Collection<P> parseAll(Iterable<I> inputs, IProgress progress, ICancel cancel) throws ParseException {
+    @Override public Collection<P> parseAll(Iterable<I> inputs, IProgress progress, ICancel cancel)
+        throws ParseException, InterruptedException {
         final Collection<P> results = Lists.newArrayList();
         for(I input : inputs) {
             results.add(parse(input, progress, cancel));

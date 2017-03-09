@@ -1,12 +1,13 @@
 package org.metaborg.spoofax.core.analysis;
 
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.processing.ICancel;
 import org.metaborg.core.processing.IProgress;
-import org.metaborg.core.processing.NullCancellationToken;
-import org.metaborg.core.processing.NullProgressReporter;
+import org.metaborg.core.processing.NullCancel;
+import org.metaborg.core.processing.NullProgress;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -20,27 +21,37 @@ public interface ISpoofaxAnalysisService
      * {@inheritDoc}
      */
     @Override ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context, IProgress progress,
-        ICancel cancel) throws AnalysisException;
+        ICancel cancel) throws AnalysisException, InterruptedException;
 
     /**
      * {@inheritDoc}
      */
     @Override default ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context)
         throws AnalysisException {
-        return analyze(input, context, new NullProgressReporter(), new NullCancellationToken());
+        try {
+            return analyze(input, context, new NullProgress(), new NullCancel());
+        } catch(InterruptedException e) {
+            // This cannot happen, since we pass a null cancellation token, but we need to handle the exception.
+            throw new MetaborgRuntimeException("Interrupted", e);
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     @Override ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context,
-        IProgress progress, ICancel cancel) throws AnalysisException;
+        IProgress progress, ICancel cancel) throws AnalysisException, InterruptedException;
 
     /**
      * {@inheritDoc}
      */
     @Override default ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context)
         throws AnalysisException {
-        return analyzeAll(inputs, context, new NullProgressReporter(), new NullCancellationToken());
+        try {
+            return analyzeAll(inputs, context, new NullProgress(), new NullCancel());
+        } catch(InterruptedException e) {
+            // This cannot happen, since we pass a null cancellation token, but we need to handle the exception.
+            throw new MetaborgRuntimeException("Interrupted", e);
+        }
     }
 }
