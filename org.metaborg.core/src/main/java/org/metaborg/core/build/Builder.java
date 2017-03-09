@@ -171,8 +171,17 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         final IBuildOutputInternal<P, A, AU, T> buildOutput = buildOutputProvider.get();
         buildOutput.setState(newState);
         final Iterable<ILanguageImpl> buildOrder = input.buildOrder.buildOrder();
-        final int size = Iterables.size(buildOrder);
+
+        // Don't count languages without changes to remaining work.
+        int size = 0;
+        for(ILanguageImpl language : buildOrder) {
+            final Collection<IdentifiedResourceChange> sourceChanges = changes.get(language);
+            if(sourceChanges.size() > 0) {
+                ++size;
+            }
+        }
         progress.setWorkRemaining(size);
+
         for(ILanguageImpl language : buildOrder) {
             cancel.throwIfCancelled();
 
@@ -181,7 +190,6 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             if(sourceChanges.size() == 0) {
                 // When there are no source changes for this language, keep the old state and don't build.
                 newState.add(language, languageState);
-                progress.work(1);
                 continue;
             }
 
@@ -209,7 +217,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         final boolean analyze = input.analyze && analysisService.available(language);
         final boolean transform = input.transform;
-        progress.setWorkRemaining(10 + (analyze ? 40 : 0) + (transform ? 40 : 0));
+        progress.setWorkRemaining(10 + (analyze ? 45 : 0) + (transform ? 45 : 0));
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
@@ -262,7 +270,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             // Run analysis
             cancel.throwIfCancelled();
             allAnalyzeUnits = analyze(input, language, location, parseUnitsPerContext, includeParseUnits, pardoned,
-                allAnalyzeUpdates, removedResources, extraMessages, success, progress.subProgress(40), cancel);
+                allAnalyzeUpdates, removedResources, extraMessages, success, progress.subProgress(45), cancel);
         } else {
             allAnalyzeUnits = ArrayListMultimap.create();
         }
@@ -272,7 +280,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         final Collection<T> allTransformUnits;
         if(transform) {
             allTransformUnits = transform(input, language, location, allAnalyzeUnits, includes, pardoned,
-                removedResources, extraMessages, success, progress.subProgress(40), cancel);
+                removedResources, extraMessages, success, progress.subProgress(45), cancel);
         } else {
             allTransformUnits = Lists.newLinkedList();
         }
