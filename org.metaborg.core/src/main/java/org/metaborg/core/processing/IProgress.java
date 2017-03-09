@@ -13,6 +13,14 @@ public interface IProgress {
     void work(int ticks);
 
     /**
+     * Sets the description of the current task.
+     * 
+     * @param description
+     *            Description of the current task.
+     */
+    void setDescription(String description);
+
+    /**
      * Set the work remaining to {@code ticks}.
      * 
      * @param ticks
@@ -21,7 +29,8 @@ public interface IProgress {
     void setWorkRemaining(int ticks);
 
     /**
-     * Create a sub progress reporter, with {@code ticks} worth of work being done from this progress reporter.
+     * Create a sub-progress reporter, with {@code ticks} worth of work being done from the parent reporter. The
+     * returned sub-progress reporter must first call {@link #setWorkRemaining(int)} before calls to {@link #work(int)}.
      * 
      * @param ticks
      *            Amount of work being done in this progress reporter.

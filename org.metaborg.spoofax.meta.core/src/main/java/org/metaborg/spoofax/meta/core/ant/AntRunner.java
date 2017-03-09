@@ -13,7 +13,7 @@ import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
-import org.metaborg.core.processing.ICancellationToken;
+import org.metaborg.core.processing.ICancel;
 import org.metaborg.core.resource.IResourceService;
 
 public class AntRunner implements IAntRunner {
@@ -49,7 +49,8 @@ public class AntRunner implements IAntRunner {
     }
 
 
-    @Override public void execute(String target, @Nullable ICancellationToken cancellationToken) {
+    @Override public void execute(String target, @Nullable ICancel cancel) {
+        // TODO: use cancel
         antProject.executeTarget(target);
     }
 }
