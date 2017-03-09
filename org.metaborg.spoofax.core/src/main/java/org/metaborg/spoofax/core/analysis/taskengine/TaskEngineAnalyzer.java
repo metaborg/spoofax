@@ -82,7 +82,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
 
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context, IProgress progress,
-        ICancel cancel) throws AnalysisException {
+        ICancel cancel) throws AnalysisException, InterruptedException {
         if(!input.valid()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(context, message);
@@ -94,7 +94,9 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
 
     @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context,
-        IProgress progress, ICancel cancel) throws AnalysisException {
+        IProgress progress, ICancel cancel) throws AnalysisException, InterruptedException {
+        cancel.throwIfCancelled();
+
         final ILanguageImpl langImpl = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
@@ -105,6 +107,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         }
         final AnalysisFacet facet = facetContribution.facet;
 
+        cancel.throwIfCancelled();
         final HybridInterpreter runtime;
         try {
             runtime = runtimeService.runtime(facetContribution.contributor, context, false);
@@ -112,6 +115,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
+        cancel.throwIfCancelled();
         return analyzeAll(inputs, context, runtime, facet.strategyName, termFactory);
     }
 

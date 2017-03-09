@@ -17,11 +17,11 @@ public interface ISpoofaxAnalyzer extends IAnalyzer<ISpoofaxParseUnit, ISpoofaxA
      * {@inheritDoc}
      */
     @Override ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context, IProgress progress,
-        ICancel cancel) throws AnalysisException;
+        ICancel cancel) throws AnalysisException, InterruptedException;
 
     /**
      * {@inheritDoc}
      */
     @Override ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context,
-        IProgress progress, ICancel cancel) throws AnalysisException;
+        IProgress progress, ICancel cancel) throws AnalysisException, InterruptedException;
 }

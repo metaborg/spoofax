@@ -16,12 +16,12 @@ public class SpoofaxAnalysisService
     extends AnalysisService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>
     implements ISpoofaxAnalysisService {
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context, IProgress progress,
-        ICancel cancel) throws AnalysisException {
+        ICancel cancel) throws AnalysisException, InterruptedException {
         return (ISpoofaxAnalyzeResult) super.analyze(input, context, progress, cancel);
     }
 
     @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context,
-        IProgress progress, ICancel cancel) throws AnalysisException {
+        IProgress progress, ICancel cancel) throws AnalysisException, InterruptedException {
         return (ISpoofaxAnalyzeResults) super.analyzeAll(inputs, context, progress, cancel);
     }
 }

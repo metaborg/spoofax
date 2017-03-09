@@ -9,6 +9,9 @@ public class NullProgress implements IProgress {
     @Override public void work(int ticks) {
     }
 
+    @Override public void setDescription(String description) {
+    }
+
     @Override public void setWorkRemaining(int ticks) {
     }
 
