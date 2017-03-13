@@ -28,6 +28,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     protected @Nullable Set<LanguageIdentifier> sourceDeps;
     protected @Nullable Set<LanguageIdentifier> javaDeps;
     protected @Nullable Boolean typesmart;
+    protected @Nullable Boolean incrementalConstraintSolver;
 
 
     @Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -38,7 +39,8 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart);
+        return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart,
+            incrementalConstraintSolver);
     }
 
     @Override public IProjectConfigBuilder reset() {
@@ -49,6 +51,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         sourceDeps = null;
         javaDeps = null;
         typesmart = null;
+        incrementalConstraintSolver = null;
         return this;
     }
 
@@ -69,6 +72,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
             withSourceDeps(config.sourceDeps());
             withJavaDeps(config.javaDeps());
             withTypesmart(config.typesmart());
+            withIncrementalConstraintSolver(config.incrementalConstraintSolver());
         }
 
         return this;
@@ -136,6 +140,11 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
 
     @Override public IProjectConfigBuilder withTypesmart(boolean typesmart) {
         this.typesmart = typesmart;
+        return this;
+    }
+
+    @Override public IProjectConfigBuilder withIncrementalConstraintSolver(boolean incremental) {
+        this.incrementalConstraintSolver = incremental;
         return this;
     }
 }

@@ -34,6 +34,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -79,19 +81,22 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     }
 
 
-    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context) throws AnalysisException {
+    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context, IProgress progress,
+        ICancel cancel) throws AnalysisException, InterruptedException {
         if(!input.valid()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(context, message);
         }
 
-        final ISpoofaxAnalyzeResults results = analyzeAll(Iterables2.singleton(input), context);
+        final ISpoofaxAnalyzeResults results = analyzeAll(Iterables2.singleton(input), context, progress, cancel);
         return new SpoofaxAnalyzeResult(results.results().iterator().next(), results.updates(), context);
     }
 
 
-    @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context)
-        throws AnalysisException {
+    @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context,
+        IProgress progress, ICancel cancel) throws AnalysisException, InterruptedException {
+        cancel.throwIfCancelled();
+
         final ILanguageImpl langImpl = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
@@ -102,6 +107,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         }
         final AnalysisFacet facet = facetContribution.facet;
 
+        cancel.throwIfCancelled();
         final HybridInterpreter runtime;
         try {
             runtime = runtimeService.runtime(facetContribution.contributor, context, false);
@@ -109,6 +115,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
+        cancel.throwIfCancelled();
         return analyzeAll(inputs, context, runtime, facet.strategyName, termFactory);
     }
 
@@ -223,8 +230,8 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         messages.addAll(notes);
         messages.addAll(ambiguities);
 
-        return unitService.analyzeUnit(input,
-            new AnalyzeContrib(true, errors.isEmpty(), true, ast, messages, duration), context);
+        return unitService.analyzeUnit(input, new AnalyzeContrib(true, errors.isEmpty(), true, ast, messages, duration),
+            context);
     }
 
     private ISpoofaxAnalyzeUnitUpdate updateResult(IStrategoTerm result, IContext context) {

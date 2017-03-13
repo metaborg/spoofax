@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import java.time.Duration;
+
 public class ConstraintDebugData {
     public final long totalTime;
     public final long collectionTime;
@@ -13,4 +15,14 @@ public class ConstraintDebugData {
         this.solverTime = solverTime;
         this.finalizeTime = finalizeTime;
     }
+    
+    @Override public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Analysis time   : "); sb.append(Duration.ofNanos(totalTime).toMillis() / 1000.0); sb.append("s\n");
+        sb.append(" * collection   : "); sb.append(Duration.ofNanos(collectionTime).toMillis() / 1000.0); sb.append("s\n");
+        sb.append(" * solving      : "); sb.append(Duration.ofNanos(solverTime).toMillis() / 1000.0); sb.append("s\n");
+        sb.append(" * finalization : "); sb.append(Duration.ofNanos(finalizeTime).toMillis() / 1000.0); sb.append("s\n");
+        return sb.toString();
+    }
+    
 }

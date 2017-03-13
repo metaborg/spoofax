@@ -103,4 +103,13 @@ public interface IProjectConfigBuilder {
      * @return This builder.
      */
     IProjectConfigBuilder withTypesmart(boolean typesmart);
+
+    /**
+     * Sets whether incrementalization is enabled for the constraint solver.
+     * 
+     * @param incremental
+     *            True to enable, false to disable.
+     * @return This builder.
+     */
+    IProjectConfigBuilder withIncrementalConstraintSolver(boolean incremental);
 }

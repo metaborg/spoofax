@@ -128,6 +128,9 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
             Pattern.quote("[ strj | info ]") + ".*"
           , Pattern.quote("[ strj | error ] Compilation failed") + ".*"
           , Pattern.quote("[ strj | warning ] Nullary constructor") + ".*"
+          , Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*"
+          , Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*"
+          , Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]")
         );
         
         final ExecutionResult result = new StrategoExecutor()

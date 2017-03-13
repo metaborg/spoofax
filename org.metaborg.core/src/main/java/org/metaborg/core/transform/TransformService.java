@@ -37,11 +37,6 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     }
 
 
-    @Override public Collection<TP> transform(P input, IContext context, ITransformGoal goal)
-        throws TransformException {
-        return transform(input, context, goal, new TransformConfig());
-    }
-
     @Override public Collection<TP> transform(P input, IContext context, ITransformGoal goal, ITransformConfig config)
         throws TransformException {
         if(!input.valid()) {
@@ -58,10 +53,6 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         return results;
     }
 
-    @Override public TP transform(P input, IContext context, TransformActionContrib action) throws TransformException {
-        return transform(input, context, action, new TransformConfig());
-    }
-
     @Override public TP transform(P input, IContext context, TransformActionContrib action, ITransformConfig config)
         throws TransformException {
         if(!input.valid()) {
@@ -71,11 +62,6 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
 
         final TP result = transformer.transform(input, context, action, config);
         return result;
-    }
-
-    @Override public Collection<TA> transform(A input, IContext context, ITransformGoal goal)
-        throws TransformException {
-        return transform(input, context, goal, new TransformConfig());
     }
 
     @Override public Collection<TA> transform(A input, IContext context, ITransformGoal goal, ITransformConfig config)
@@ -93,10 +79,6 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         return results;
     }
 
-    @Override public TA transform(A input, IContext context, TransformActionContrib action) throws TransformException {
-        return transform(input, context, action, new TransformConfig());
-    }
-
     @Override public TA transform(A input, IContext context, TransformActionContrib action, ITransformConfig config)
         throws TransformException {
         if(!input.valid()) {
@@ -108,10 +90,6 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     }
 
 
-    @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal)
-        throws TransformException {
-        return transformAllParsed(inputs, context, goal, new TransformConfig());
-    }
 
     @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal,
         ITransformConfig config) throws TransformException {
@@ -126,20 +104,10 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     }
 
     @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context,
-        TransformActionContrib action) throws TransformException {
-        return transformAllParsed(inputs, context, action, new TransformConfig());
-    }
-
-    @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context,
         TransformActionContrib action, ITransformConfig config) throws TransformException {
         checkAnalyzed(action);
         final Collection<TP> result = transformer.transformAllParsed(inputs, context, action, config);
         return result;
-    }
-
-    @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, ITransformGoal goal)
-        throws TransformException {
-        return transformAllAnalyzed(inputs, context, goal, new TransformConfig());
     }
 
     @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, ITransformGoal goal,
@@ -154,18 +122,13 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     }
 
     @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context,
-        TransformActionContrib action) throws TransformException {
-        return transformAllAnalyzed(inputs, context, action, new TransformConfig());
-    }
-
-    @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context,
         TransformActionContrib action, ITransformConfig config) throws TransformException {
         final Collection<TA> result = transformer.transformAllAnalyzed(inputs, context, action, config);
         return result;
     }
 
 
-    private void checkAnalyzed(TransformActionContrib action) throws TransformException {
+    private static void checkAnalyzed(TransformActionContrib action) throws TransformException {
         if(!action.action.flags().parsed) {
             final String message =
                 logger.format("Transformation {} requires an analyzed result, but a parsed result is given", action);

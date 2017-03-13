@@ -26,6 +26,7 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     private static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
     private static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
     private static final String PROP_DEBUG_TYPESMART = "debug.typesmart";
+    private static final String PROP_CONSTRAINT_INCREMENTAL = "constraint.incremental";
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
 
@@ -41,7 +42,8 @@ public class ProjectConfig implements IProjectConfig, IConfig {
 
     protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
         @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
-        @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart) {
+        @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
+        @Nullable Boolean incrementalConstraintSolver) {
         this(config);
 
         if(metaborgVersion != null) {
@@ -58,6 +60,9 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         }
         if(typesmart != null) {
             config.setProperty(PROP_DEBUG_TYPESMART, typesmart);
+        }
+        if(incrementalConstraintSolver != null) {
+            config.setProperty(PROP_CONSTRAINT_INCREMENTAL, incrementalConstraintSolver);
         }
     }
 
@@ -90,6 +95,11 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         return config.getBoolean(PROP_DEBUG_TYPESMART, false);
     }
 
+    @Override public boolean incrementalConstraintSolver() {
+        return config.getBoolean(PROP_CONSTRAINT_INCREMENTAL, false);
+    }
+
+
     public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = Lists.newArrayList();
         validateDeps(config, PROP_COMPILE_DEPENDENCIES, "compile", mb, messages);
@@ -98,7 +108,7 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         return messages;
     }
 
-    private void validateDeps(ImmutableConfiguration config, String key, String name, MessageBuilder mb,
+    private static void validateDeps(ImmutableConfiguration config, String key, String name, MessageBuilder mb,
         Collection<IMessage> messages) {
         final List<String> depStrs = config.getList(String.class, key, Lists.<String>newArrayList());
         for(String depStr : depStrs) {

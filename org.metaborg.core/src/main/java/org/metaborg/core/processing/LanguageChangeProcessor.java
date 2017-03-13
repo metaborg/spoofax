@@ -35,8 +35,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     }
 
 
-    @Override public void processComponentChange(LanguageComponentChange change, IProgressReporter progressReporter) {
-        // GTODO: do something with progress reporter.
+    @Override public void processComponentChange(LanguageComponentChange change) {
         switch(change.kind) {
             case Add:
                 addedComponent(change.newComponent);
@@ -87,8 +86,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     }
 
 
-    @Override public void processImplChange(LanguageImplChange change, @Nullable IProgressReporter progressReporter) {
-        // GTODO: do something with progress reporter.
+    @Override public void processImplChange(LanguageImplChange change) {
         switch(change.kind) {
             case Add:
                 addedImpl(change.impl);

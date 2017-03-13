@@ -1,9 +1,11 @@
 package org.metaborg.core.processing;
 
+import org.metaborg.util.task.ICancel;
+
 /**
  * Simple cancellation token implementation.
  */
-public class CancellationToken implements ICancellationToken {
+public class CancellationToken implements ICancel {
     private volatile boolean cancelled = false;
 
 

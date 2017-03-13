@@ -64,6 +64,16 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      */
     @Override ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder withTypesmart(boolean typesmart);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder withIncrementalConstraintSolver(boolean incremental);
+    
 
     /**
      * Sets the language identifier.

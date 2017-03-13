@@ -17,13 +17,13 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.core.source.ISourceLocation;
+import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.EditorMessage;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
+import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.util.Unit;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -40,6 +40,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
@@ -71,27 +73,17 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         this.strategoCommon = strategoCommon;
         this.tracingService = tracingService;
         this.termFactory = termFactoryService.getGeneric();
-        this.strategoTerms = new StrategoTerms(termFactory,
-            // @formatter:off
-            (term, attacher) -> {
-                ISourceLocation location = tracingService.location(term);
-                if(location != null) {
-                    String uri = location.resource().getName().getURI();
-                    attacher.put(SerializableSourceLocation.class, new SerializableSourceLocation(uri, location.region()));
-                }
-                return Unit.unit;
-            }
-            // @formatter:on
-        );
+        this.strategoTerms = new StrategoTerms(termFactory);
     }
 
-    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext)
-        throws AnalysisException {
+    @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext, IProgress progress,
+        ICancel cancel) throws AnalysisException {
         if(!input.valid()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(genericContext, message);
         }
-        final ISpoofaxAnalyzeResults results = analyzeAll(Iterables2.singleton(input), genericContext);
+        final ISpoofaxAnalyzeResults results =
+            analyzeAll(Iterables2.singleton(input), genericContext, progress, cancel);
         if(results.results().isEmpty()) {
             throw new AnalysisException(genericContext, "Analysis failed.");
         }
@@ -100,7 +92,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     @SuppressWarnings("unchecked") @Override public ISpoofaxAnalyzeResults
-        analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext) throws AnalysisException {
+        analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext, IProgress progress, ICancel cancel)
+            throws AnalysisException {
         C context;
         try {
             context = (C) genericContext;
@@ -131,11 +124,11 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                 input.detached() ? ("detached-" + UUID.randomUUID().toString()) : input.source().getName().getURI();
             (input.valid() ? changed : removed).put(source, input);
         }
-        return analyzeAll(changed, removed, context, runtime, facet.strategyName);
+        return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed,
-        Map<String, ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy)
+        Map<String, ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
         throws AnalysisException;
 
     protected Optional<ITerm> doAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
@@ -187,11 +180,13 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     protected IMessage message(ITerm originatingTerm, String message, MessageSeverity severity) {
-        SerializableSourceLocation location =
-            originatingTerm.getAttachments().getInstance(SerializableSourceLocation.class);
-        if(location != null) {
-            FileObject resource = resourceService.resolve(location.getResource());
-            return MessageFactory.newAnalysisMessage(resource, location.getSourceRegion(), message, severity, null);
+        Optional<TermOrigin> maybeOrigin = TermOrigin.get(originatingTerm);
+        if(maybeOrigin.isPresent()) {
+            TermOrigin origin = maybeOrigin.get();
+            SourceRegion region = new SourceRegion(origin.getStartOffset(), origin.getStartLine(),
+                origin.getStartColumn(), origin.getEndOffset(), origin.getEndLine(), origin.getEndColumn());
+            FileObject resource = resourceService.resolve(origin.getResource());
+            return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
         } else {
             logger.warn("Ignoring location-less {}: {}", severity, message);
             return null;

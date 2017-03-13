@@ -15,6 +15,8 @@ import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 import com.google.inject.Inject;
 
@@ -40,11 +42,11 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU 
 
 
     @Override public ITask<? extends IBuildOutput<P, A, AU, T>> build(final BuildInput input,
-        final @Nullable IProgressReporter progressReporter, final @Nullable ICancellationToken cancellationToken) {
+        final @Nullable IProgress progressReporter, final @Nullable ICancel cancellationToken) {
         return new BlockingTask<>(new Func0<IBuildOutput<P, A, AU, T>>() {
             @Override public IBuildOutput<P, A, AU, T> call() {
-                final IProgressReporter pr = progressReporter != null ? progressReporter : new NullProgressReporter();
-                final ICancellationToken ct = cancellationToken != null ? cancellationToken : new CancellationToken();
+                final IProgress pr = progressReporter != null ? progressReporter : new NullProgress();
+                final ICancel ct = cancellationToken != null ? cancellationToken : new NullCancel();
                 try {
                     return builder.build(input, pr, ct);
                 } catch(InterruptedException e) {
@@ -54,12 +56,12 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU 
         });
     }
 
-    @Override public ITask<?> clean(final CleanInput input, final @Nullable IProgressReporter progressReporter,
-        final @Nullable ICancellationToken cancellationToken) {
+    @Override public ITask<?> clean(final CleanInput input, final @Nullable IProgress progressReporter,
+        final @Nullable ICancel cancellationToken) {
         return new BlockingTask<>(new Func0<Object>() {
             @Override public Object call() {
-                final IProgressReporter pr = progressReporter != null ? progressReporter : new NullProgressReporter();
-                final ICancellationToken ct = cancellationToken != null ? cancellationToken : new CancellationToken();
+                final IProgress pr = progressReporter != null ? progressReporter : new NullProgress();
+                final ICancel ct = cancellationToken != null ? cancellationToken : new NullCancel();
                 try {
                     builder.clean(input, pr, ct);
                 } catch(InterruptedException e) {
@@ -83,7 +85,7 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU 
     @Override public ITask<?> languageChange(final LanguageComponentChange change) {
         return new BlockingTask<>(new Func0<Object>() {
             @Override public Object call() {
-                languageChangeProcessor.processComponentChange(change, new NullProgressReporter());
+                languageChangeProcessor.processComponentChange(change);
                 return null;
             }
         });
@@ -92,7 +94,7 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU 
     @Override public ITask<?> languageChange(final LanguageImplChange change) {
         return new BlockingTask<>(new Func0<Object>() {
             @Override public Object call() {
-                languageChangeProcessor.processImplChange(change, new NullProgressReporter());
+                languageChangeProcessor.processImplChange(change);
                 return null;
             }
         });
