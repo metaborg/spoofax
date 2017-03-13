@@ -89,11 +89,6 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
             ISingleFileScopeGraphUnit unit = context.unit(source);
             unit.clear();
 
-            if(!parseUnit.success()) {
-                results.add(unitService.emptyAnalyzeUnit(parseUnit, context));
-                continue;
-            }
-
             try {
                 // initial
                 InitialResult initialResult;

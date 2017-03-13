@@ -87,7 +87,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         final AggregateTimer collectionTimer = new AggregateTimer();
         final AggregateTimer solverTimer = new AggregateTimer();
         final AggregateTimer finalizeTimer = new AggregateTimer();
-        String globalSource = context.location().getName().getURI();
+        final String globalSource = context.location().getName().getURI();
 
         for(String input : removed.keySet()) {
             context.removeUnit(input);
@@ -133,17 +133,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             final Multimap<String, IMessage> ambiguitiesByFile = HashMultimap.create();
             final Multimap<String, IMessage> failuresByFile = HashMultimap.create();
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
-                String source = input.getKey();
-                ISpoofaxParseUnit parseUnit = input.getValue();
-                ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
+                final String source = input.getKey();
+                final ISpoofaxParseUnit parseUnit = input.getValue();
+                final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
 
-                IMultiFileScopeGraphUnit unit = context.unit(source);
+                final IMultiFileScopeGraphUnit unit = context.unit(source);
                 unit.clear();
-
-                if(!parseUnit.success()) {
-                    results.add(unitService.emptyAnalyzeUnit(parseUnit, context));
-                    continue;
-                }
 
                 try {
                     UnitResult unitResult;
