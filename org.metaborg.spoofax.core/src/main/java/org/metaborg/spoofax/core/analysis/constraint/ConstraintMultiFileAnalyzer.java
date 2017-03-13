@@ -47,6 +47,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
@@ -96,7 +97,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         final int n = changed.size();
         final int w = context.units().size() / 2;
         progress.setWorkRemaining(n + w + 1);
- 
+
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults = Lists.newArrayList();
         try {
@@ -131,7 +132,6 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             // units
             final Map<String, IStrategoTerm> astsByFile = Maps.newHashMap();
             final Multimap<String, IMessage> ambiguitiesByFile = HashMultimap.create();
-            final Multimap<String, IMessage> failuresByFile = HashMultimap.create();
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
                 final String source = input.getKey();
                 final ISpoofaxParseUnit parseUnit = input.getValue();
@@ -186,9 +186,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     }
 
                 } catch(MetaborgException e) {
-                    logger.warn("File analysis failed.", e);
-                    failuresByFile.put(source,
+                    Iterable<IMessage> messages = Iterables2.singleton(
                         MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
+                    results.add(unitService.analyzeUnit(parseUnit,
+                        new AnalyzeContrib(true, false, true, parseUnit.ast(), messages, -1), context));
                 }
             }
 
