@@ -57,6 +57,14 @@
       <artifactId>sdf2table.core</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
+    
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>sdf2table-new</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    
+    
 
     <dependency>
       <groupId>build.pluto</groupId>

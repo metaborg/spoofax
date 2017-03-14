@@ -28,7 +28,6 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         public final String module;
         public final @Nullable Origin origin;
 
-
         public Input(SpoofaxContext context, File inputFile, File outputFile, String module, @Nullable Origin origin) {
             super(context);
             this.inputFile = inputFile;
@@ -38,10 +37,8 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         }
     }
 
-
     public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, Sdf2Table> factory =
         SpoofaxBuilderFactoryFactory.of(Sdf2Table.class, Input.class);
-
 
     public Sdf2Table(Input input) {
         super(input);

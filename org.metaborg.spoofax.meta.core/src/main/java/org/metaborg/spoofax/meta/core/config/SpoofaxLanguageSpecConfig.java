@@ -42,8 +42,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     private static final String PROP_PRETTY_PRINT = "pretty-print";
 
-    private static final String PROP_PLACEHOLDER_PREFIX = "placeholder.prefix";
-    private static final String PROP_PLACEHOLDER_SUFFIX = "placeholder.suffix";
+    private static final String PROP_PLACEHOLDER_PREFIX = PROP_SDF + ".placeholder.prefix";
+    private static final String PROP_PLACEHOLDER_SUFFIX = PROP_SDF + ".placeholder.suffix";
 
 
     private static final String PROP_STR = "language.stratego";
