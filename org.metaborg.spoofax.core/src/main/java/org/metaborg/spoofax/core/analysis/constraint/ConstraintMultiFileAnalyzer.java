@@ -47,7 +47,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
@@ -131,6 +130,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
             // units
             final Map<String, IStrategoTerm> astsByFile = Maps.newHashMap();
+            final Map<String, IMessage> failures = Maps.newHashMap();
             final Multimap<String, IMessage> ambiguitiesByFile = HashMultimap.create();
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
                 final String source = input.getKey();
@@ -186,10 +186,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     }
 
                 } catch(MetaborgException e) {
-                    Iterable<IMessage> messages = Iterables2.singleton(
+                    failures.put(source,
                         MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
-                    results.add(unitService.analyzeUnit(parseUnit,
-                        new AnalyzeContrib(true, false, true, parseUnit.ast(), messages, -1), context));
                 }
             }
 
@@ -264,11 +262,15 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     messages.addAll(notes);
                     messages.addAll(ambiguities);
                     if(changed.containsKey(source)) {
+                        final boolean valid;
+                        if(!(valid = !failures.containsKey(source))) {
+                            messages.add(failures.get(source));
+                        }
+                        final boolean success = valid && errors.isEmpty();
                         results.add(unitService.analyzeUnit(changed.get(source),
-                            new AnalyzeContrib(true, errors.isEmpty(), true, astsByFile.get(source), messages, -1),
-                            context));
+                            new AnalyzeContrib(valid, success, true, astsByFile.get(source), messages, -1), context));
                     } else {
-                        FileObject file = resourceService.resolve(source);
+                        final FileObject file = resourceService.resolve(source);
                         updateResults
                             .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(messages), context));
                     }

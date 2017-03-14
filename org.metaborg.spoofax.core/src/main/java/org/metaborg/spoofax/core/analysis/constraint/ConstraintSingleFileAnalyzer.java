@@ -76,17 +76,17 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
         for(String input : removed.keySet()) {
             context.removeUnit(input);
         }
-        
+
         final int n = changed.size();
         progress.setWorkRemaining(n + 1);
 
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
-            String source = input.getKey();
-            ISpoofaxParseUnit parseUnit = input.getValue();
-            ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
+            final String source = input.getKey();
+            final ISpoofaxParseUnit parseUnit = input.getValue();
+            final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
 
-            ISingleFileScopeGraphUnit unit = context.unit(source);
+            final ISingleFileScopeGraphUnit unit = context.unit(source);
             unit.clear();
 
             try {
@@ -129,7 +129,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
                     IMessageInfo messageInfo =
                         ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(), Actions.sourceTerm(source));
-                    solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints, messageInfo, progress.subProgress(1), cancel);
+                    solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints, messageInfo,
+                        progress.subProgress(1), cancel);
                     unit.setSolution(solution);
                 }
 
@@ -185,7 +186,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 Iterable<IMessage> messages = Iterables2
                     .singleton(MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
                 results.add(unitService.analyzeUnit(parseUnit,
-                    new AnalyzeContrib(true, false, false, null, messages, -1), context));
+                    new AnalyzeContrib(false, false, true, parseUnit.ast(), messages, -1), context));
             } catch(InterruptedException e) {
                 logger.info("Analysis was interrupted.");
             }
