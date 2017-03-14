@@ -19,8 +19,13 @@ pardonedLanguages:
 - EditorService
 - Stratego-Sugar
 - SDF
+placeholder:
+  prefix: "[["
+  suffix: "]]"
 language:
-{{#syntaxSdf2}}  sdf:
+  sdf:
+    sdf2table: c
+{{#syntaxSdf2}}  
     version: sdf2
 {{/syntaxSdf2}}
   stratego:
