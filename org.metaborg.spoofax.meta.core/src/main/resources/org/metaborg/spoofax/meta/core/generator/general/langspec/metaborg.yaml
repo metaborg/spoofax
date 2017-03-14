@@ -21,6 +21,7 @@ pardonedLanguages:
 - SDF
 language:
   sdf:
+    pretty-print: {{name}}
     sdf2table: c
     placeholder:
       prefix: "[["

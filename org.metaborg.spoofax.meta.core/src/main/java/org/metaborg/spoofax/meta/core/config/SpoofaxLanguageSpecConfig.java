@@ -40,7 +40,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_EXTERNAL_DEF = PROP_SDF + ".externalDef";
     private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
-    private static final String PROP_PRETTY_PRINT = "pretty-print";
+    private static final String PROP_PRETTY_PRINT = PROP_SDF + ".pretty-print";
 
     private static final String PROP_PLACEHOLDER_PREFIX = PROP_SDF + ".placeholder.prefix";
     private static final String PROP_PLACEHOLDER_SUFFIX = PROP_SDF + ".placeholder.suffix";
