@@ -274,7 +274,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         String prefix = this.config.getString(PROP_PLACEHOLDER_PREFIX);
         String suffix = this.config.getString(PROP_PLACEHOLDER_SUFFIX);
         if(prefix == null && suffix == null) {
-            placeholderChars = new PlaceholderCharacters("[[", "]]");
+            placeholderChars = new PlaceholderCharacters("$", null);
         } else {
             try {
                 placeholderChars = new PlaceholderCharacters(prefix, suffix);
@@ -282,7 +282,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
                 logger.warn(
                     "Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead",
                     suffix);
-                placeholderChars = new PlaceholderCharacters("[[", "]]");
+                placeholderChars = new PlaceholderCharacters("$", null);
             }
         }
         return placeholderChars;

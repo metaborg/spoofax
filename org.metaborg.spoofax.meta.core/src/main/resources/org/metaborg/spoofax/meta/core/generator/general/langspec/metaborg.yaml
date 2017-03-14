@@ -22,10 +22,10 @@ pardonedLanguages:
 language:
   sdf:
     pretty-print: {{name}}
+    # If set to java, set the table in editor/Syntax.esv to target/metaborg/sdf-new.tbl
     sdf2table: c
     placeholder:
-      prefix: "[["
-      suffix: "]]"
+      prefix: "$"
 {{#syntaxSdf2}}  
     version: sdf2
 {{/syntaxSdf2}}
