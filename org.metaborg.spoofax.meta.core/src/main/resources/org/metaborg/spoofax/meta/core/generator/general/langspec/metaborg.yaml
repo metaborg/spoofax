@@ -19,12 +19,12 @@ pardonedLanguages:
 - EditorService
 - Stratego-Sugar
 - SDF
-placeholder:
-  prefix: "[["
-  suffix: "]]"
 language:
   sdf:
     sdf2table: c
+    placeholder:
+      prefix: "[["
+      suffix: "]]"
 {{#syntaxSdf2}}  
     version: sdf2
 {{/syntaxSdf2}}
