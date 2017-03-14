@@ -11,4 +11,8 @@
   <root level="debug">
     <appender-ref ref="stdout" />
   </root>
+
+  <logger
+    name="org.apache.commons.vfs2"
+    level="warn" />
 </configuration>
