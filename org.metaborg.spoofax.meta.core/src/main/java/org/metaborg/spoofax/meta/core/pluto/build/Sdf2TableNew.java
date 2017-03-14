@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.metaborg.sdf2table.parsetable.ParseTable;
+import org.metaborg.newsdf2table.parsetable.ParseTableGenerator;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -36,15 +36,12 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         }
     }
 
-
     public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, Sdf2TableNew> factory =
         SpoofaxBuilderFactoryFactory.of(Sdf2TableNew.class, Input.class);
-
 
     public Sdf2TableNew(Input input) {
         super(input);
     }
-
 
     public static
         BuildRequest<Input, OutputPersisted<File>, Sdf2TableNew, SpoofaxBuilderFactory<Input, OutputPersisted<File>, Sdf2TableNew>>
@@ -71,12 +68,11 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         boolean status = true;
 
         try {
-//            ParseTable.fromFile(input.inputFile, input.outputFile, input.paths, input.parenthesize);
-
-            org.metaborg.newsdf2table.parsetable.ParseTable pt = new org.metaborg.newsdf2table.parsetable.ParseTable(
-                input.inputFile, input.outputFile, input.paths, input.parenthesize);
-            pt.createTable();
-
+            ParseTableGenerator pt_gen = new ParseTableGenerator(input.inputFile, input.outputFile, input.paths, input.parenthesize);
+            pt_gen.createTable();
+            for(File required : pt_gen.requiredFiles()) {
+                require(required);
+            }           
         } catch(Exception e) {
             System.out.println("Failed to generate parse table");
             e.printStackTrace();
