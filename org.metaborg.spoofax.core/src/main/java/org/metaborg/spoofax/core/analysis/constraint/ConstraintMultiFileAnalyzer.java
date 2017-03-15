@@ -110,14 +110,18 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     customInitial = context.initialResult().flatMap(r -> r.getCustomResult());
                 } else {
                     collectionTimer.start();
-                    ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
-                        .orElseThrow(() -> new AnalysisException(context, "No initial result."));
-                    initialResult = InitialResult.matcher().match(initialResultTerm)
-                        .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
-                    customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
-                    initialResult = initialResult.setCustomResult(customInitial);
-                    context.setInitialResult(initialResult);
-                    collectionTimer.stop();
+                    try {
+                        ITerm initialResultTerm =
+                            doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
+                                .orElseThrow(() -> new AnalysisException(context, "No initial result."));
+                        initialResult = InitialResult.matcher().match(initialResultTerm)
+                            .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
+                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
+                        initialResult = initialResult.setCustomResult(customInitial);
+                        context.setInitialResult(initialResult);
+                    } finally {
+                        collectionTimer.stop();
+                    }
                 }
             }
 
@@ -145,22 +149,24 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     final Optional<ITerm> customUnit;
                     {
                         collectionTimer.start();
-                        final ITerm unitResultTerm =
-                            doAction(strategy, Actions.analyzeUnit(source, ast, initialResult.getArgs()), context,
-                                runtime).orElseThrow(() -> new AnalysisException(context, "No unit result."));
-                        unitResult = UnitResult.matcher().match(unitResultTerm)
-                            .orElseThrow(() -> new MetaborgException("Invalid unit results."));
-                        final ITerm desugaredAST = unitResult.getAST();
-                        customUnit = doCustomAction(strategy,
-                            Actions.customUnit(source, desugaredAST, customInitial.orElse(GenericTerms.EMPTY_TUPLE)),
-                            context, runtime);
-                        unitResult = unitResult.setCustomResult(customUnit);
-                        final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
-                        astsByFile.put(source, analyzedAST);
-                        ambiguitiesByFile.putAll(source,
-                            analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST));
-                        unit.setUnitResult(unitResult);
-                        collectionTimer.stop();
+                        try {
+                            final ITerm unitResultTerm =
+                                doAction(strategy, Actions.analyzeUnit(source, ast, initialResult.getArgs()), context,
+                                    runtime).orElseThrow(() -> new AnalysisException(context, "No unit result."));
+                            unitResult = UnitResult.matcher().match(unitResultTerm)
+                                .orElseThrow(() -> new MetaborgException("Invalid unit results."));
+                            final ITerm desugaredAST = unitResult.getAST();
+                            customUnit = doCustomAction(strategy, Actions.customUnit(source, desugaredAST,
+                                customInitial.orElse(GenericTerms.EMPTY_TUPLE)), context, runtime);
+                            unitResult = unitResult.setCustomResult(customUnit);
+                            final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
+                            astsByFile.put(source, analyzedAST);
+                            ambiguitiesByFile.putAll(source,
+                                analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST));
+                            unit.setUnitResult(unitResult);
+                        } finally {
+                            collectionTimer.stop();
+                        }
                     }
 
                     {
@@ -175,9 +181,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                     MessageContent.of(), Actions.sourceTerm(source));
                                 unitConstraints = Solver.solveIncremental(initialResult.getConfig(), globalTerms, fresh,
                                     unitResult.getConstraints(), messageInfo, progress.subProgress(1), cancel);
-                                solverTimer.stop();
                             } catch(SolverException e) {
                                 throw new AnalysisException(context, e);
+                            } finally {
+                                solverTimer.stop();
                             }
                         } else {
                             unitConstraints = unitResult.getConstraints();
@@ -209,9 +216,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         Actions.sourceTerm(globalSource));
                     solution = Solver.solveFinal(initialResult.getConfig(), fresh, Iterables.concat(constraints),
                         messageInfo, progress.subProgress(w), cancel);
-                    solverTimer.stop();
                 } catch(SolverException e) {
                     throw new AnalysisException(context, e);
+                } finally {
+                    solverTimer.stop();
                 }
                 context.setSolution(solution);
             }
@@ -222,20 +230,23 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             final Optional<CustomSolution> customSolution;
             {
                 finalizeTimer.start();
-                ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(globalSource), context, runtime)
-                    .orElseThrow(() -> new AnalysisException(context, "No final result."));
-                finalResult = FinalResult.matcher().match(finalResultTerm)
-                    .orElseThrow(() -> new AnalysisException(context, "Invalid final results."));
-                customFinal = doCustomAction(strategy,
-                    Actions.customFinal(globalSource, customInitial.orElse(GenericTerms.EMPTY_TUPLE),
-                        GenericTerms.newList(Optionals.filter(customUnits))),
-                    context, runtime);
-                finalResult = finalResult.setCustomResult(customFinal);
-                context.setFinalResult(finalResult);
+                try {
+                    ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(globalSource), context, runtime)
+                        .orElseThrow(() -> new AnalysisException(context, "No final result."));
+                    finalResult = FinalResult.matcher().match(finalResultTerm)
+                        .orElseThrow(() -> new AnalysisException(context, "Invalid final results."));
+                    customFinal = doCustomAction(strategy,
+                        Actions.customFinal(globalSource, customInitial.orElse(GenericTerms.EMPTY_TUPLE),
+                            GenericTerms.newList(Optionals.filter(customUnits))),
+                        context, runtime);
+                    finalResult = finalResult.setCustomResult(customFinal);
+                    context.setFinalResult(finalResult);
 
-                customSolution = customFinal.flatMap(CustomSolution.matcher()::match);
-                customSolution.ifPresent(cs -> context.setCustomSolution(cs));
-                finalizeTimer.stop();
+                    customSolution = customFinal.flatMap(CustomSolution.matcher()::match);
+                    customSolution.ifPresent(cs -> context.setCustomSolution(cs));
+                } finally {
+                    finalizeTimer.stop();
+                }
             }
 
             // errors
