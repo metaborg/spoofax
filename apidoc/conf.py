@@ -7,7 +7,7 @@ import subprocess
 
 # -- General configuration ------------------------------------------------
 
-extensions = ['sphinx.ext.intersphinx']
+extensions = ['sphinx.ext.intersphinx', 'javasphinx']
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
@@ -57,7 +57,10 @@ def make_apidoc(app):
       cmd_path = os.path.abspath(os.path.join(sys.prefix, 'bin', 'javasphinx-apidoc'))
     cmd = [cmd_path, '-v', '-f', '-o', output_path, src]
     cmd.extend(excludes)
-    subprocess.check_call(cmd)
+    try:
+      subprocess.check_call(cmd)
+    except subprocess.CalledProcessError as e:
+      print('Failed to generate API docs: {}'.format(e))
 
 # -- Setup ------------------------------------------------------------------------
 
