@@ -7,11 +7,11 @@ import subprocess
 
 # -- General configuration ------------------------------------------------
 
-extensions = ['sphinx.ext.intersphinx', 'javasphinx']
+extensions = ['javasphinx']
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
-project = 'Spoofax API documentation'
+project = 'Spoofax API'
 copyright = '2017, MetaBorg'
 author = 'MetaBorg'
 version = '2.2.0-SNAPSHOT'
@@ -53,7 +53,8 @@ def make_apidoc(app):
     cur_dir = os.path.abspath(os.path.dirname(__file__))
     output_path = os.path.join(cur_dir, 'apidoc', dest)
     cmd_path = 'javasphinx-apidoc'
-    if hasattr(sys, 'real_prefix'):  # Check to see if we are in a virtualenv, if we are, assemble the path manually
+    # Check to see if we are in a virtualenv, if we are, assemble the path manually
+    if hasattr(sys, 'real_prefix'):
       cmd_path = os.path.abspath(os.path.join(sys.prefix, 'bin', 'javasphinx-apidoc'))
     cmd = [cmd_path, '-v', '-f', '-o', output_path, src]
     cmd.extend(excludes)
