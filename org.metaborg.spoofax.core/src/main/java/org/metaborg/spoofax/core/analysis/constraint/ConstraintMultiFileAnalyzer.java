@@ -117,7 +117,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                             .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
                         customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
-                        initialResult = initialResult.setCustomResult(customInitial);
+                        initialResult = initialResult.withCustomResult(customInitial);
                         context.setInitialResult(initialResult);
                     } finally {
                         collectionTimer.stop();
@@ -158,7 +158,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             final ITerm desugaredAST = unitResult.getAST();
                             customUnit = doCustomAction(strategy, Actions.customUnit(source, desugaredAST,
                                 customInitial.orElse(GenericTerms.EMPTY_TUPLE)), context, runtime);
-                            unitResult = unitResult.setCustomResult(customUnit);
+                            unitResult = unitResult.withCustomResult(customUnit);
                             final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
                             astsByFile.put(source, analyzedAST);
                             ambiguitiesByFile.putAll(source,
@@ -240,7 +240,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         Actions.customFinal(globalSource, customInitial.orElse(GenericTerms.EMPTY_TUPLE),
                             GenericTerms.newList(Optionals.filter(customUnits))),
                         context, runtime);
-                    finalResult = finalResult.setCustomResult(customFinal);
+                    finalResult = finalResult.withCustomResult(customFinal);
                     context.setFinalResult(finalResult);
 
                     customSolution = customFinal.flatMap(CustomSolution.matcher()::match);

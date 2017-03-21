@@ -99,7 +99,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     initialResult = InitialResult.matcher().match(initialResultTerm)
                         .orElseThrow(() -> new MetaborgException("Invalid initial results."));
                     customInitial = doCustomAction(strategy, Actions.customInitial(source), context, runtime);
-                    initialResult = initialResult.setCustomResult(customInitial);
+                    initialResult = initialResult.withCustomResult(customInitial);
                 }
 
                 // unit
@@ -116,7 +116,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     customUnit = doCustomAction(strategy,
                         Actions.customUnit(source, desugaredAST, customInitial.orElse(GenericTerms.EMPTY_TUPLE)),
                         context, runtime);
-                    unitResult = unitResult.setCustomResult(customUnit);
+                    unitResult = unitResult.withCustomResult(customUnit);
                     unit.setUnitResult(unitResult);
                 }
 
@@ -146,7 +146,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         Actions.customFinal(source, customInitial.orElse(GenericTerms.EMPTY_TUPLE),
                             customUnit.map(cu -> GenericTerms.newList(cu)).orElse(GenericTerms.EMPTY_LIST)),
                         context, runtime);
-                    finalResult = finalResult.setCustomResult(customFinal);
+                    finalResult = finalResult.withCustomResult(customFinal);
                     unit.setFinalResult(finalResult);
                 }
                 final IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
