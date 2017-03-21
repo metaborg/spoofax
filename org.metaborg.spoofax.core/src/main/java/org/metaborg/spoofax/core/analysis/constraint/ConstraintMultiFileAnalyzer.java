@@ -193,6 +193,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     }
 
                 } catch(MetaborgException e) {
+                    logger.warn("File analysis failed.", e);
                     failures.put(source,
                         MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
                 }
