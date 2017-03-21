@@ -5,7 +5,7 @@ import sys
 import os
 import subprocess
 
-# -- General configuration ------------------------------------------------
+# -- General configuration
 
 extensions = ['javasphinx']
 templates_path = ['_templates']
@@ -20,7 +20,7 @@ language = None
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 pygments_style = 'sphinx'
 
-# -- Options for HTML output ----------------------------------------------
+# -- Options for HTML output
 
 # Only import and set the ReadTheDocs theme if we're building docs locally.
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
@@ -31,7 +31,7 @@ if not on_rtd:
 
 html_static_path = ['_static']
 
-# -- javasphinx ----------------------------------------------------------------------
+# -- Options for javasphinx extension
 
 javadoc_url_map = {
   'java': ('http://docs.oracle.com/javase/8/docs/api/', 'javadoc'),
@@ -63,7 +63,7 @@ def make_apidoc(app):
     except subprocess.CalledProcessError as e:
       print('Failed to generate API docs: {}'.format(e))
 
-# -- Setup ------------------------------------------------------------------------
+# -- Additional Sphinx configuration
 
 def setup(app):
   app.connect('builder-inited', make_apidoc)
