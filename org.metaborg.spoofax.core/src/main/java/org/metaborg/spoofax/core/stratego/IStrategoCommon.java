@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.stratego;
 
 import java.io.File;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
@@ -29,7 +31,7 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input, String strategy)
+    @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input, String strategy)
         throws MetaborgException;
 
     /**
@@ -50,7 +52,7 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input, String strategy)
+    @Nullable IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input, String strategy)
         throws MetaborgException;
 
     /**
@@ -71,7 +73,7 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input, String strategy)
+    @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input, String strategy)
         throws MetaborgException;
 
     /**
@@ -87,7 +89,8 @@ public interface IStrategoCommon {
      * @throws MetaborgException
      *             When invoking the strategy fails unexpectedly.
      */
-    IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy) throws MetaborgException;
+    @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
+        throws MetaborgException;
 
     /**
      * Converts a location into a Stratego string.
