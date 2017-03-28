@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.util.Optional;
 
-import org.metaborg.meta.nabl2.constraints.IConstraint;
+import org.metaborg.meta.nabl2.solver.PartialSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 
@@ -12,10 +12,10 @@ public interface IMultiFileScopeGraphUnit extends IScopeGraphUnit {
 
     Optional<UnitResult> unitResult();
 
-    void setNormalizedConstraints(Iterable<IConstraint> result);
+    void setPartialSolution(PartialSolution solution);
 
-    Optional<Iterable<IConstraint>> normalizedConstraints();
-    
+    Optional<PartialSolution> partialSolution();
+
     void clear();
 
 }

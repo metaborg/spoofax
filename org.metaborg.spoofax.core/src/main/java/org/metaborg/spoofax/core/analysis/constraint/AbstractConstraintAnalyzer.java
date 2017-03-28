@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -18,12 +18,12 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
-import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
-import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.spoofax.analysis.EditorMessage;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
+import org.metaborg.meta.nabl2.unification.IUnifier;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -42,6 +42,8 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import org.spoofax.interpreter.core.Tools;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
@@ -50,6 +52,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>> implements ISpoofaxAnalyzer {
 
@@ -65,8 +68,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected final StrategoTerms strategoTerms;
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
-        final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
-        final ITermFactoryService termFactoryService, final ISpoofaxTracingService tracingService) {
+            final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
+            final ITermFactoryService termFactoryService, final ISpoofaxTracingService tracingService) {
         this.analysisCommon = analysisCommon;
         this.resourceService = resourceService;
         this.runtimeService = runtimeService;
@@ -77,23 +80,23 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext, IProgress progress,
-        ICancel cancel) throws AnalysisException {
+            ICancel cancel) throws AnalysisException {
         if(!input.valid()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(genericContext, message);
         }
         final ISpoofaxAnalyzeResults results =
-            analyzeAll(Iterables2.singleton(input), genericContext, progress, cancel);
+                analyzeAll(Iterables2.singleton(input), genericContext, progress, cancel);
         if(results.results().isEmpty()) {
             throw new AnalysisException(genericContext, "Analysis failed.");
         }
         return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(),
-            results.context());
+                results.context());
     }
 
     @SuppressWarnings("unchecked") @Override public ISpoofaxAnalyzeResults
-        analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext, IProgress progress, ICancel cancel)
-            throws AnalysisException {
+            analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext, IProgress progress, ICancel cancel)
+                    throws AnalysisException {
         C context;
         try {
             context = (C) genericContext;
@@ -118,24 +121,36 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         }
 
         Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
-        Map<String, ISpoofaxParseUnit> removed = Maps.newHashMap();
+        Set<String> removed = Sets.newHashSet();
         for(ISpoofaxParseUnit input : inputs) {
-            String source =
-                input.detached() ? ("detached-" + UUID.randomUUID().toString()) : input.source().getName().getURI();
-            (input.valid() ? changed : removed).put(source, input);
+            final String source;
+            if(input.detached()) {
+                source = "detached-" + UUID.randomUUID().toString();
+            } else {
+                source = input.source().getName().getURI();
+            }
+            if(!input.valid() || isEmptyAST(input.ast())) {
+                removed.add(source);
+            } else {
+                changed.put(source, input);
+            }
         }
         return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
     }
 
-    protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed,
-        Map<String, ISpoofaxParseUnit> removed, C context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
-        throws AnalysisException;
+    private boolean isEmptyAST(IStrategoTerm ast) {
+        return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
+    }
+
+    protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
+            C context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
+            throws AnalysisException;
 
     protected Optional<ITerm> doAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
-        HybridInterpreter runtime) throws AnalysisException {
+            HybridInterpreter runtime) throws AnalysisException {
         try {
             return Optional.ofNullable(strategoCommon.invoke(runtime, strategoTerms.toStratego(action), strategy))
-                .map(strategoTerms::fromStratego);
+                    .map(strategoTerms::fromStratego);
         } catch(MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
@@ -143,7 +158,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     protected Optional<ITerm> doCustomAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
-        HybridInterpreter runtime) {
+            HybridInterpreter runtime) {
         try {
             return doAction(strategy, action, context, runtime);
         } catch(Exception ex) {
@@ -168,28 +183,36 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return fmessages;
     }
 
-    protected Collection<IMessage> messages(Collection<EditorMessage> messages, MessageSeverity severity) {
-        return messages.stream().map(m -> message(m.getOrigin(), m.getMessage(), severity)).filter(m -> m != null)
-            .collect(Collectors.toList());
+    protected Set<IMessage> messages(Collection<IMessageInfo> constraintMessages,
+            Collection<IMessageInfo> unsolvedMessages, Optional<Collection<EditorMessage>> customMessages,
+            IUnifier unifier, MessageSeverity severity) {
+        Set<IMessage> messages = Sets.newHashSet();
+        constraintMessages.stream().map(m -> message(m, unifier, severity)).forEach(m -> m.ifPresent(messages::add));
+        unsolvedMessages.stream().map(m -> message(m, unifier, severity)).forEach(m -> m.ifPresent(messages::add));
+        customMessages.ifPresent(
+                cms -> cms.stream().map(m -> message(m, unifier, severity)).forEach(m -> m.ifPresent(messages::add)));
+        return messages;
     }
 
-    protected Collection<IMessage> messages(ISolution solution, MessageKind kind, MessageSeverity severity) {
-        return solution.getMessages().stream().filter(m -> m.getKind().equals(kind)).map(
-            m -> message(m.getOriginTerm(), m.getContent().apply(solution.getUnifier()::find).toString(null), severity))
-            .filter(m -> m != null).collect(Collectors.toList());
+    private Optional<IMessage> message(EditorMessage message, IUnifier unifier, MessageSeverity severity) {
+        return message(message.getOrigin(), message.getMessage(), severity);
     }
 
-    protected IMessage message(ITerm originatingTerm, String message, MessageSeverity severity) {
+    private Optional<IMessage> message(IMessageInfo message, IUnifier unifier, MessageSeverity severity) {
+        return message(message.getOriginTerm(), message.getContent().apply(unifier::find).toString(null), severity);
+    }
+
+    private Optional<IMessage> message(ITerm originatingTerm, String message, MessageSeverity severity) {
         Optional<TermOrigin> maybeOrigin = TermOrigin.get(originatingTerm);
         if(maybeOrigin.isPresent()) {
             TermOrigin origin = maybeOrigin.get();
             SourceRegion region = new SourceRegion(origin.getStartOffset(), origin.getStartLine(),
-                origin.getStartColumn(), origin.getEndOffset(), origin.getEndLine(), origin.getEndColumn());
+                    origin.getStartColumn(), origin.getEndOffset(), origin.getEndLine(), origin.getEndColumn());
             FileObject resource = resourceService.resolve(origin.getResource());
-            return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
+            return Optional.of(MessageFactory.newAnalysisMessage(resource, region, message, severity, null));
         } else {
             logger.warn("Ignoring location-less {}: {}", severity, message);
-            return null;
+            return Optional.empty();
         }
     }
 
