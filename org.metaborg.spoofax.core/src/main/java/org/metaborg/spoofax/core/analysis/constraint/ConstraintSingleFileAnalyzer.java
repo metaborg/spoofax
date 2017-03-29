@@ -10,7 +10,6 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
-import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
@@ -20,6 +19,7 @@ import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.SolverException;
+import org.metaborg.meta.nabl2.solver.messages.Messages;
 import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
@@ -51,6 +51,7 @@ import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -82,7 +83,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
         final int n = changed.size();
         progress.setWorkRemaining(n + 1);
 
-        logger.debug("Analyzing {} files.", n);
+        logger.debug("Analyzing {} files in {}.", n, context.location());
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         try {
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
@@ -167,38 +168,26 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     customSolution.ifPresent(cs -> unit.setCustomSolution(cs));
 
                     // errors
-                    final Collection<IMessage> messages;
                     final boolean success;
                     {
                         logger.debug("Processing file messages.");
-                        final Collection<IMessage> ambiguities =
-                                analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST);
-                        final Set<IMessage> errors = messages(solution.getMessages().getErrors(),
-                                Solver.unsolvedErrors(solution.getUnsolvedConstraints()),
-                                customSolution.map(CustomSolution::getErrors), solution.getUnifier(),
-                                MessageSeverity.ERROR);
-                        final Set<IMessage> warnings = messages(solution.getMessages().getWarnings(),
-                                Collections.emptySet(), customSolution.map(CustomSolution::getWarnings),
-                                solution.getUnifier(), MessageSeverity.WARNING);
-                        final Set<IMessage> notes = messages(solution.getMessages().getNotes(), Collections.emptySet(),
-                                customSolution.map(CustomSolution::getNotes), solution.getUnifier(),
-                                MessageSeverity.NOTE);
+                        Messages messages = new Messages();
+                        messages.addAll(Solver.unsolvedErrors(solution.getUnsolvedConstraints()));
+                        messages.addAll(solution.getMessages());
+                        customSolution.map(CustomSolution::getMessages).ifPresent(messages::addAll);
 
-                        success = errors.isEmpty();
+                        success = messages.getErrors().isEmpty();
 
-                        messages = Lists.newArrayListWithCapacity(
-                                errors.size() + warnings.size() + notes.size() + ambiguities.size());
-                        messages.addAll(errors);
-                        messages.addAll(warnings);
-                        messages.addAll(notes);
-                        messages.addAll(ambiguities);
+                        Iterable<IMessage> fileMessages = Iterables.concat(
+                                analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST),
+                                messages(messages.getAll(), solution.getUnifier(), context, context.location()));
 
                         // result
                         results.add(unitService.analyzeUnit(parseUnit,
-                                new AnalyzeContrib(true, success, true, analyzedAST, messages, -1), context));
+                                new AnalyzeContrib(true, success, true, analyzedAST, fileMessages, -1), context));
 
-                        logger.info("Analyzed {}: {} errors, {} warnings, {} notes.", source, errors.size(),
-                                warnings.size(), notes.size());
+                        logger.info("Analyzed {}: {} errors, {} warnings, {} notes.", source,
+                                messages.getErrors().size(), messages.getWarnings().size(), messages.getNotes().size());
                     }
                 } catch(MetaborgException | SolverException e) {
                     logger.warn("Analysis of " + source + " failed.", e);

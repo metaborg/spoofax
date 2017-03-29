@@ -1,11 +1,10 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -19,11 +18,12 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
-import org.metaborg.meta.nabl2.spoofax.analysis.EditorMessage;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.unification.IUnifier;
+import org.metaborg.meta.nabl2.util.collections.HashRelation3;
+import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -40,6 +40,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.core.Tools;
@@ -47,11 +48,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>> implements ISpoofaxAnalyzer {
@@ -127,7 +125,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             if(input.detached()) {
                 source = "detached-" + UUID.randomUUID().toString();
             } else {
-                source = input.source().getName().getURI();
+                source = resource(input.source(), context);
             }
             if(!input.valid() || isEmptyAST(input.ast())) {
                 removed.add(source);
@@ -136,6 +134,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             }
         }
         return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
+    }
+
+    protected String resource(FileObject resource, C context) {
+        return ResourceUtils.relativeName(resource.getName(), context.location().getName(), false);
     }
 
     private boolean isEmptyAST(IStrategoTerm ast) {
@@ -168,51 +170,50 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
 
-    protected Collection<IMessage> merge(Collection<IMessage> m1, Collection<IMessage> m2) {
-        List<IMessage> m = Lists.newArrayList();
-        m.addAll(m1);
-        m.addAll(m2);
-        return m;
-    }
-
-    protected Multimap<String, IMessage> messagesByFile(Collection<IMessage> messages) {
-        Multimap<String, IMessage> fmessages = HashMultimap.create();
+    protected IRelation3.Mutable<FileObject, MessageSeverity, IMessage> messagesByFile(Iterable<IMessage> messages) {
+        IRelation3.Mutable<FileObject, MessageSeverity, IMessage> fmessages = HashRelation3.create();
         for(IMessage message : messages) {
-            fmessages.put(message.source().getName().getURI(), message);
+            fmessages.put(message.source(), message.severity(), message);
         }
         return fmessages;
     }
 
-    protected Set<IMessage> messages(Collection<IMessageInfo> constraintMessages,
-            Collection<IMessageInfo> unsolvedMessages, Optional<Collection<EditorMessage>> customMessages,
-            IUnifier unifier, MessageSeverity severity) {
-        Set<IMessage> messages = Sets.newHashSet();
-        constraintMessages.stream().map(m -> message(m, unifier, severity)).forEach(m -> m.ifPresent(messages::add));
-        unsolvedMessages.stream().map(m -> message(m, unifier, severity)).forEach(m -> m.ifPresent(messages::add));
-        customMessages.ifPresent(
-                cms -> cms.stream().map(m -> message(m, unifier, severity)).forEach(m -> m.ifPresent(messages::add)));
-        return messages;
+    protected Set<IMessage> messages(Iterable<IMessageInfo> messages, IUnifier unifier,
+            ISpoofaxScopeGraphContext<?> context, FileObject defaultLocation) {
+        return Iterables2.stream(messages).map(m -> message(m, unifier, context, defaultLocation))
+                .collect(Collectors.toSet());
     }
 
-    private Optional<IMessage> message(EditorMessage message, IUnifier unifier, MessageSeverity severity) {
-        return message(message.getOrigin(), message.getMessage(), severity);
+    private IMessage message(IMessageInfo message, IUnifier unifier, ISpoofaxScopeGraphContext<?> context,
+            FileObject defaultLocation) {
+        final MessageSeverity severity;
+        switch(message.getKind()) {
+            default:
+            case ERROR:
+                severity = MessageSeverity.ERROR;
+                break;
+            case WARNING:
+                severity = MessageSeverity.WARNING;
+                break;
+            case NOTE:
+                severity = MessageSeverity.NOTE;
+                break;
+        }
+        return message(message.getOriginTerm(), message.getContent().apply(unifier::find).toString(null), severity,
+                context, defaultLocation);
     }
 
-    private Optional<IMessage> message(IMessageInfo message, IUnifier unifier, MessageSeverity severity) {
-        return message(message.getOriginTerm(), message.getContent().apply(unifier::find).toString(null), severity);
-    }
-
-    private Optional<IMessage> message(ITerm originatingTerm, String message, MessageSeverity severity) {
+    private IMessage message(ITerm originatingTerm, String message, MessageSeverity severity,
+            ISpoofaxScopeGraphContext<?> context, FileObject defaultLocation) {
         Optional<TermOrigin> maybeOrigin = TermOrigin.get(originatingTerm);
         if(maybeOrigin.isPresent()) {
             TermOrigin origin = maybeOrigin.get();
             SourceRegion region = new SourceRegion(origin.getStartOffset(), origin.getStartLine(),
                     origin.getStartColumn(), origin.getEndOffset(), origin.getEndLine(), origin.getEndColumn());
-            FileObject resource = resourceService.resolve(origin.getResource());
-            return Optional.of(MessageFactory.newAnalysisMessage(resource, region, message, severity, null));
+            FileObject resource = resourceService.resolve(context.location(), origin.getResource());
+            return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
         } else {
-            logger.warn("Ignoring location-less {}: {}", severity, message);
-            return Optional.empty();
+            return MessageFactory.newAnalysisMessageAtTop(defaultLocation, message, severity, null);
         }
     }
 

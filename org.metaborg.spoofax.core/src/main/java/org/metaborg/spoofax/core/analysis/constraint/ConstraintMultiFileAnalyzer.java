@@ -20,10 +20,13 @@ import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
+import org.metaborg.meta.nabl2.solver.ImmutablePartialSolution;
 import org.metaborg.meta.nabl2.solver.PartialSolution;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.SolverException;
+import org.metaborg.meta.nabl2.solver.messages.EmptyMessages;
+import org.metaborg.meta.nabl2.solver.messages.Messages;
 import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
@@ -32,7 +35,9 @@ import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.ITermVar;
 import org.metaborg.meta.nabl2.terms.generic.GenericTerms;
+import org.metaborg.meta.nabl2.unification.EmptyUnifier;
 import org.metaborg.meta.nabl2.util.Optionals;
+import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.meta.nabl2.util.functions.Function1;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
@@ -52,6 +57,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.stream.Collectors2;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.metaborg.util.time.AggregateTimer;
@@ -90,7 +96,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         final AggregateTimer collectionTimer = new AggregateTimer();
         final AggregateTimer solverTimer = new AggregateTimer();
         final AggregateTimer finalizeTimer = new AggregateTimer();
-        final String globalSource = context.location().getName().getURI();
+        final String globalSource = "";
 
         for(String input : removed) {
             context.removeUnit(input);
@@ -100,7 +106,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         final int w = context.units().size() / 2;
         progress.setWorkRemaining(n + w + 1);
 
-        logger.debug("Analyzing {} files.", n);
+        final boolean incremental =
+                Optional.of(context.project().config()).map(IProjectConfig::incrementalConstraintSolver).orElse(false);
+
+        logger.debug("Analyzing {} files in {}.", n, context.location());
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults = Lists.newArrayList();
         try {
@@ -179,8 +188,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     }
 
                     {
-                        final IProjectConfig config = context.project().config();
-                        if(config != null && config.incrementalConstraintSolver()) {
+                        final PartialSolution unitSolution;
+                        if(incremental) {
                             logger.debug("Reducing {} file constraints.", unitResult.getConstraints().size());
                             try {
                                 solverTimer.start();
@@ -188,24 +197,26 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                         base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
                                 IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR,
                                         MessageContent.of(), Actions.sourceTerm(source));
-                                PartialSolution unitSolution = Solver.solveIncremental(initialResult.getConfig(),
-                                        globalTerms, fresh, unitResult.getConstraints(), messageInfo,
-                                        progress.subProgress(1), cancel);
+                                unitSolution = Solver.solveIncremental(initialResult.getConfig(), globalTerms, fresh,
+                                        unitResult.getConstraints(), messageInfo, progress.subProgress(1), cancel);
                                 logger.debug("Reduced file constraints to {}.",
                                         unitSolution.getUnsolvedConstraints().size());
-                                logger.info("Partially analyzed {}: {} errors, {} warnings, {} notes.", source,
-                                        unitSolution.getMessages().getErrors().size(),
-                                        unitSolution.getMessages().getWarnings().size(),
-                                        unitSolution.getMessages().getNotes().size());
-                                unit.setPartialSolution(unitSolution);
                             } catch(SolverException e) {
                                 throw new AnalysisException(context, e);
                             } finally {
                                 solverTimer.stop();
                             }
                         } else {
+                            unitSolution = ImmutablePartialSolution.of(unitResult.getConstraints(), new EmptyUnifier(),
+                                    new EmptyMessages());
                             logger.debug("Solving file constraints is disabled.");
                         }
+                        unit.setPartialSolution(unitSolution);
+                        logger.info("Partially analyzed {}: {} errors, {} warnings, {} notes, {} unsolved constraints.",
+                                source, unitSolution.getMessages().getErrors().size(),
+                                unitSolution.getMessages().getWarnings().size(),
+                                unitSolution.getMessages().getNotes().size(),
+                                unitSolution.getUnsolvedConstraints().size());
                     }
 
                 } catch(MetaborgException e) {
@@ -276,45 +287,34 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             // errors
             {
                 logger.debug("Processing project messages.");
-                Multimap<String, IMessage> errorsByFile = messagesByFile(messages(solution.getMessages().getErrors(),
-                        Solver.unsolvedErrors(solution.getUnsolvedConstraints()),
-                        customSolution.map(CustomSolution::getErrors), solution.getUnifier(), MessageSeverity.ERROR));
-                Multimap<String, IMessage> warningsByFile = messagesByFile(messages(solution.getMessages().getWarnings(),
-                        Collections.emptySet(),
-                        customSolution.map(CustomSolution::getWarnings), solution.getUnifier(), MessageSeverity.WARNING));
-                Multimap<String, IMessage> notesByFile = messagesByFile(messages(solution.getMessages().getNotes(),
-                        Collections.emptySet(),
-                        customSolution.map(CustomSolution::getNotes), solution.getUnifier(), MessageSeverity.NOTE));
-
-                for(IMultiFileScopeGraphUnit unit : context.units()) {
-                    final String source = unit.resource();
-                    final Collection<IMessage> errors = errorsByFile.get(source);
-                    final Collection<IMessage> warnings = warningsByFile.get(source);
-                    final Collection<IMessage> notes = notesByFile.get(source);
-                    final Collection<IMessage> ambiguities = ambiguitiesByFile.get(source);
-                    final Collection<IMessage> messages = Lists.newArrayListWithCapacity(
-                            errors.size() + warnings.size() + notes.size() + ambiguities.size());
-                    messages.addAll(errors);
-                    messages.addAll(warnings);
-                    messages.addAll(notes);
-                    messages.addAll(ambiguities);
-                    if(changed.containsKey(source)) {
-                        final boolean valid;
-                        if(!(valid = !failures.containsKey(source))) {
-                            messages.add(failures.get(source));
-                        }
-                        final boolean success = valid && errors.isEmpty();
-                        results.add(unitService.analyzeUnit(changed.get(source),
-                                new AnalyzeContrib(valid, success, true, astsByFile.get(source), messages, -1),
-                                context));
-                    } else {
-                        final FileObject file = resourceService.resolve(source);
-                        updateResults
-                                .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(messages), context));
-                    }
+                Messages messages = new Messages();
+                messages.addAll(Solver.unsolvedErrors(solution.getUnsolvedConstraints()));
+                messages.addAll(solution.getMessages());
+                customSolution.map(CustomSolution::getMessages).ifPresent(messages::addAll);
+                IRelation3.Mutable<FileObject, MessageSeverity, IMessage> messagesByFile =
+                        messagesByFile(Iterables.concat(failures.values(),
+                                messages(messages.getAll(), solution.getUnifier(), context, context.location())));
+                for(String source : changed.keySet()) {
+                    final ISpoofaxParseUnit parseUnit = changed.get(source);
+                    final FileObject file = parseUnit.source();
+                    final Set<IMessage> fileMessages =
+                            messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
+                    fileMessages.addAll(analysisCommon.ambiguityMessages(file, astsByFile.get(source)));
+                    final boolean valid = !failures.containsKey(source);
+                    final boolean success = valid && messagesByFile.get(file, MessageSeverity.ERROR).isEmpty();
+                    results.add(unitService.analyzeUnit(changed.get(source),
+                            new AnalyzeContrib(valid, success, true, astsByFile.get(source), fileMessages, -1),
+                            context));
+                    messagesByFile.remove(file);
                 }
-                logger.info("Analyzed {} files: {} errors, {} warnings, {} notes.", n, errorsByFile.size(),
-                        warningsByFile.size(), notesByFile.size());
+                for(FileObject file : messagesByFile.keySet()) {
+                    final Set<IMessage> fileMessages =
+                            messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
+                    updateResults
+                            .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                }
+                logger.info("Analyzed {} files: {} errors, {} warnings, {} notes.", n, messages.getErrors().size(),
+                        messages.getWarnings().size(), messages.getNotes().size());
             }
 
         } catch(InterruptedException e) {

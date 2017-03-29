@@ -6,7 +6,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.AggregateMetaborgException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
@@ -15,6 +14,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -208,12 +208,7 @@ public class StrategoCommon implements IStrategoCommon {
         final String locationURI = location.getName().getURI();
         final IStrategoString locationTerm = termFactory.makeString(locationURI);
 
-        String resourceURI;
-        try {
-            resourceURI = location.getName().getRelativeName(resource.getName());
-        } catch(FileSystemException e) {
-            resourceURI = resource.getName().getURI();
-        }
+        String resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
         final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
 
         return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);
