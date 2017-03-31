@@ -72,7 +72,12 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * {@inheritDoc}
      */
-    @Override ISpoofaxLanguageSpecConfigBuilder withIncrementalConstraintSolver(boolean incremental);
+    @Override ISpoofaxLanguageSpecConfigBuilder withNaBL2Debug(boolean incremental);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ISpoofaxLanguageSpecConfigBuilder withNaBL2Incremental(boolean incremental);
 
 
     /**

@@ -32,7 +32,12 @@ public interface IProjectConfig {
     boolean typesmart();
 
     /**
+     * @return Whether debug output is enabled for the constraint solver.
+     */
+    boolean nabl2Debug();
+
+    /**
      * @return Whether incrementalization is enabled for the constraint solver.
      */
-    boolean incrementalConstraintSolver();
+    boolean nabl2Incremental();
 }

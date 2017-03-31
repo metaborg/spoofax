@@ -39,7 +39,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         }
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, metaborgVersion, identifier,
             name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart,
-            incrementalConstraintSolver, langContribs, generates, exports);
+            nabl2Debug, nabl2Incremental, langContribs, generates, exports);
         return config;
     }
 
@@ -113,8 +113,13 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder withIncrementalConstraintSolver(boolean incremental) {
-        super.withIncrementalConstraintSolver(incremental);
+    @Override public ILanguageComponentConfigBuilder withNaBL2Debug(boolean debug) {
+        super.withNaBL2Debug(debug);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withNaBL2Incremental(boolean incremental) {
+        super.withNaBL2Incremental(incremental);
         return this;
     }
 

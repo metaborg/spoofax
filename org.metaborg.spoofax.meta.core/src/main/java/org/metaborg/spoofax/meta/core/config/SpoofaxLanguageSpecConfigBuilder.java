@@ -50,7 +50,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
 
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, identifier, name,
-            compileDeps, sourceDeps, javaDeps, typesmart, incrementalConstraintSolver, langContribs, generates, exports,
+            compileDeps, sourceDeps, javaDeps, typesmart, nabl2Debug, nabl2Incremental, langContribs, generates, exports,
             metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled, sdfMainFile, parseTable,
             completionsParseTable, sdf2tableVersion, placeholderCharacters, prettyPrint, sdfExternalDef, sdfArgs,
             strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
@@ -138,8 +138,13 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withIncrementalConstraintSolver(boolean incremental) {
-        super.withIncrementalConstraintSolver(incremental);
+    @Override public ISpoofaxLanguageSpecConfigBuilder withNaBL2Debug(boolean debug) {
+        super.withNaBL2Debug(debug);
+        return this;
+    }
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withNaBL2Incremental(boolean incremental) {
+        super.withNaBL2Incremental(incremental);
         return this;
     }
 

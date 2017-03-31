@@ -72,7 +72,12 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
     /**
      * {@inheritDoc}
      */
-    @Override ILanguageComponentConfigBuilder withIncrementalConstraintSolver(boolean incremental);
+    @Override ILanguageComponentConfigBuilder withNaBL2Debug(boolean debug);
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageComponentConfigBuilder withNaBL2Incremental(boolean incremental);
     
 
     /**

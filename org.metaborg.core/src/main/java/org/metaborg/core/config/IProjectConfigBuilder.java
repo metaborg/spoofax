@@ -105,11 +105,20 @@ public interface IProjectConfigBuilder {
     IProjectConfigBuilder withTypesmart(boolean typesmart);
 
     /**
+     * Sets whether debug output is enabled for the constraint solver.
+     * 
+     * @param incremental
+     *            True to enable, false to disable.
+     * @return This builder.
+     */
+    IProjectConfigBuilder withNaBL2Debug(boolean debug);
+
+    /**
      * Sets whether incrementalization is enabled for the constraint solver.
      * 
      * @param incremental
      *            True to enable, false to disable.
      * @return This builder.
      */
-    IProjectConfigBuilder withIncrementalConstraintSolver(boolean incremental);
+    IProjectConfigBuilder withNaBL2Incremental(boolean incremental);
 }

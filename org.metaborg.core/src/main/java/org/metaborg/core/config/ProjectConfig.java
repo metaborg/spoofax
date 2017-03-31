@@ -25,8 +25,16 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     private static final String PROP_COMPILE_DEPENDENCIES = "dependencies.compile";
     private static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
     private static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
-    private static final String PROP_DEBUG_TYPESMART = "debug.typesmart";
-    private static final String PROP_CONSTRAINT_INCREMENTAL = "constraint.incremental";
+
+    private static final String PROP_RUNTIME = "runtime";
+
+    private static final String PROP_STR = PROP_RUNTIME + ".str";
+    private static final String PROP_STR_TYPESMART = PROP_STR + ".typesmart";
+    private static final String PROP_STR_TYPESMART_OLD = "debug.typesmart";
+
+    private static final String PROP_NABL2 = PROP_RUNTIME + ".nabl2";
+    private static final String PROP_NABL2_DEBUG = PROP_NABL2 + ".debug";
+    private static final String PROP_NABL2_INCREMENTAL = PROP_NABL2 + ".incremental";
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
 
@@ -43,7 +51,7 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
         @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
         @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
-        @Nullable Boolean incrementalConstraintSolver) {
+        @Nullable Boolean nabl2Debug, @Nullable Boolean nabl2Incremental) {
         this(config);
 
         if(metaborgVersion != null) {
@@ -59,10 +67,13 @@ public class ProjectConfig implements IProjectConfig, IConfig {
             config.setProperty(PROP_JAVA_DEPENDENCIES, javaDeps);
         }
         if(typesmart != null) {
-            config.setProperty(PROP_DEBUG_TYPESMART, typesmart);
+            config.setProperty(PROP_STR_TYPESMART, typesmart);
         }
-        if(incrementalConstraintSolver != null) {
-            config.setProperty(PROP_CONSTRAINT_INCREMENTAL, incrementalConstraintSolver);
+        if(nabl2Debug != null) {
+            config.setProperty(PROP_NABL2_DEBUG, nabl2Debug);
+        }
+        if(nabl2Incremental != null) {
+            config.setProperty(PROP_NABL2_INCREMENTAL, nabl2Incremental);
         }
     }
 
@@ -92,11 +103,15 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     }
 
     @Override public boolean typesmart() {
-        return config.getBoolean(PROP_DEBUG_TYPESMART, false);
+        return config.getBoolean(PROP_STR_TYPESMART, config.getBoolean(PROP_STR_TYPESMART_OLD, false));
     }
 
-    @Override public boolean incrementalConstraintSolver() {
-        return config.getBoolean(PROP_CONSTRAINT_INCREMENTAL, false);
+    @Override public boolean nabl2Debug() {
+        return config.getBoolean(PROP_NABL2_DEBUG, false);
+    }
+
+    @Override public boolean nabl2Incremental() {
+        return config.getBoolean(PROP_NABL2_INCREMENTAL, false);
     }
 
 

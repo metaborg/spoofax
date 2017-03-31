@@ -107,7 +107,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         progress.setWorkRemaining(n + w + 1);
 
         final boolean incremental = Optional.ofNullable(context.project().config())
-                .map(IProjectConfig::incrementalConstraintSolver).orElse(false);
+                .map(IProjectConfig::nabl2Incremental).orElse(false);
 
         logger.debug("Analyzing {} files in {}.", n, context.location());
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();

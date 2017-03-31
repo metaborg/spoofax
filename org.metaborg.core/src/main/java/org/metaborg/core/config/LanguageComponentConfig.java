@@ -39,10 +39,10 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         @Nullable LanguageIdentifier identifier, @Nullable String name,
         @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
         @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean sdfEnabled, @Nullable String parseTable,
-        @Nullable String completionParseTable, @Nullable Boolean typesmart, @Nullable Boolean incrementalConstraintSolver,
-        @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable String completionParseTable, @Nullable Boolean typesmart, @Nullable Boolean nabl2Debug,
+        @Nullable Boolean nabl2Incremental, @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
-        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart, incrementalConstraintSolver);
+        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart, nabl2Debug, nabl2Incremental);
 
         if(sdfEnabled != null) {
             config.setProperty(PROP_SDF_ENABLED, sdfEnabled);

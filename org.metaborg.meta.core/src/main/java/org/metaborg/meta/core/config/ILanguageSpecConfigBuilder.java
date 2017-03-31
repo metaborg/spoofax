@@ -75,7 +75,12 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
     /**
      * {@inheritDoc}
      */
-    @Override ILanguageSpecConfigBuilder withIncrementalConstraintSolver(boolean incremental);
+    @Override ILanguageSpecConfigBuilder withNaBL2Debug(boolean debug);
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageSpecConfigBuilder withNaBL2Incremental(boolean incremental);
     
     
     /**
