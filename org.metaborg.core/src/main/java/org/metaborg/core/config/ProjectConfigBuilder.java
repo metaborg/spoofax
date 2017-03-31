@@ -28,7 +28,8 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     protected @Nullable Set<LanguageIdentifier> sourceDeps;
     protected @Nullable Set<LanguageIdentifier> javaDeps;
     protected @Nullable Boolean typesmart;
-    protected @Nullable Boolean incrementalConstraintSolver;
+    protected @Nullable Boolean nabl2Debug;
+    protected @Nullable Boolean nabl2Incremental;
 
 
     @Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -40,7 +41,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
             configuration = configReaderWriter.create(null, rootFolder);
         }
         return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart,
-            incrementalConstraintSolver);
+            nabl2Debug, nabl2Incremental);
     }
 
     @Override public IProjectConfigBuilder reset() {
@@ -51,7 +52,8 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         sourceDeps = null;
         javaDeps = null;
         typesmart = null;
-        incrementalConstraintSolver = null;
+        nabl2Debug = null;
+        nabl2Incremental = null;
         return this;
     }
 
@@ -72,7 +74,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
             withSourceDeps(config.sourceDeps());
             withJavaDeps(config.javaDeps());
             withTypesmart(config.typesmart());
-            withIncrementalConstraintSolver(config.incrementalConstraintSolver());
+            withNaBL2Incremental(config.nabl2Incremental());
         }
 
         return this;
@@ -143,8 +145,13 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         return this;
     }
 
-    @Override public IProjectConfigBuilder withIncrementalConstraintSolver(boolean incremental) {
-        this.incrementalConstraintSolver = incremental;
+    @Override public IProjectConfigBuilder withNaBL2Debug(boolean debug) {
+        this.nabl2Debug = debug;
+        return this;
+    }
+
+    @Override public IProjectConfigBuilder withNaBL2Incremental(boolean incremental) {
+        this.nabl2Incremental = incremental;
         return this;
     }
 }
