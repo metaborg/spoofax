@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.CommonPaths;
+import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
@@ -53,6 +54,11 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         return identifier.language;
     }
 
+    public boolean debug() {
+        IProjectConfig config = identifier.project.config();
+        return config != null ? config.nabl2Debug() : false;
+    }
+    
     @Override public Injector injector() {
         return injector;
     }

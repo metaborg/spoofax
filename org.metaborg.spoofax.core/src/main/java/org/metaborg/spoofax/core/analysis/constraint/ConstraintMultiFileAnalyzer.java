@@ -56,6 +56,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.Level;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.stream.Collectors2;
 import org.metaborg.util.task.ICancel;
@@ -92,10 +93,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
     @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
             IMultiFileScopeGraphContext context, HybridInterpreter runtime, String strategy, IProgress progress,
             ICancel cancel) throws AnalysisException {
+        final Level debugLevel = debugLevel(context);
         final Timer totalTimer = new Timer(true);
         final AggregateTimer collectionTimer = new AggregateTimer();
         final AggregateTimer solverTimer = new AggregateTimer();
         final AggregateTimer finalizeTimer = new AggregateTimer();
+
         final String globalSource = "";
 
         for(String input : removed) {
@@ -106,10 +109,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         final int w = context.units().size() / 2;
         progress.setWorkRemaining(n + w + 1);
 
-        final boolean incremental = Optional.ofNullable(context.project().config())
-                .map(IProjectConfig::nabl2Incremental).orElse(false);
+        final boolean incremental =
+                Optional.ofNullable(context.project().config()).map(IProjectConfig::nabl2Incremental).orElse(false);
 
-        logger.debug("Analyzing {} files in {}.", n, context.location());
+        logger.log(debugLevel, "Analyzing {} files in {}.", n, context.location());
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults = Lists.newArrayList();
         try {
@@ -118,7 +121,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             InitialResult initialResult;
             final Optional<ITerm> customInitial;
             {
-                logger.debug("Collecting initial constraints.");
+                logger.log(debugLevel, "Collecting initial constraints.");
                 if(context.initialResult().isPresent()) {
                     initialResult = context.initialResult().get();
                     customInitial = context.initialResult().flatMap(r -> r.getCustomResult());
@@ -137,7 +140,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         collectionTimer.stop();
                     }
                 }
-                logger.debug("Initial constraints collected.");
+                logger.log(debugLevel, "Initial constraints collected.");
             }
 
             // global parameters, that form the interface for incremental solver
@@ -156,7 +159,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 final ISpoofaxParseUnit parseUnit = input.getValue();
                 final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
 
-                logger.debug("Analyzing {}.", source);
+                logger.log(debugLevel, "Analyzing {}.", source);
                 final IMultiFileScopeGraphUnit unit = context.unit(source);
                 unit.clear();
 
@@ -164,7 +167,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     UnitResult unitResult;
                     final Optional<ITerm> customUnit;
                     {
-                        logger.debug("Collecting constraints.");
+                        logger.log(debugLevel, "Collecting constraints.");
                         try {
                             collectionTimer.start();
                             final ITerm unitResultTerm = doAction(strategy,
@@ -184,13 +187,13 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         } finally {
                             collectionTimer.stop();
                         }
-                        logger.debug("Collected {} constraints.", unitResult.getConstraints().size());
+                        logger.log(debugLevel, "Collected {} constraints.", unitResult.getConstraints().size());
                     }
 
                     {
                         final PartialSolution unitSolution;
                         if(incremental) {
-                            logger.debug("Reducing {} file constraints.", unitResult.getConstraints().size());
+                            logger.log(debugLevel, "Reducing {} file constraints.", unitResult.getConstraints().size());
                             try {
                                 solverTimer.start();
                                 Function1<String, ITermVar> fresh =
@@ -199,24 +202,24 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                         MessageContent.of(), Actions.sourceTerm(source));
                                 unitSolution = Solver.solveIncremental(initialResult.getConfig(), globalTerms, fresh,
                                         unitResult.getConstraints(), messageInfo, progress.subProgress(1), cancel);
-                                logger.debug("Reduced file constraints to {}.",
-                                        unitSolution.getUnsolvedConstraints().size());
+                                logger.log(debugLevel, "Reduced file constraints to {}.",
+                                        unitSolution.getResidualConstraints().size());
                             } catch(SolverException e) {
                                 throw new AnalysisException(context, e);
                             } finally {
                                 solverTimer.stop();
                             }
                         } else {
-                            unitSolution = ImmutablePartialSolution.of(unitResult.getConstraints(), new EmptyUnifier(),
-                                    new EmptyMessages());
-                            logger.debug("Solving file constraints is disabled.");
+                            unitSolution = ImmutablePartialSolution.of(initialResult.getConfig(), globalTerms,
+                                    unitResult.getConstraints(), new EmptyUnifier(), new EmptyMessages());
+                            logger.log(debugLevel, "Solving file constraints is disabled.");
                         }
                         unit.setPartialSolution(unitSolution);
                         logger.info("Partially analyzed {}: {} errors, {} warnings, {} notes, {} unsolved constraints.",
                                 source, unitSolution.getMessages().getErrors().size(),
                                 unitSolution.getMessages().getWarnings().size(),
                                 unitSolution.getMessages().getNotes().size(),
-                                unitSolution.getUnsolvedConstraints().size());
+                                unitSolution.getResidualConstraints().size());
                     }
 
                 } catch(MetaborgException e) {
@@ -225,7 +228,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
                 }
 
-                logger.debug("Analyzed {}.", source);
+                logger.log(debugLevel, "Analyzed {}.", source);
             }
 
             // solve
@@ -239,7 +242,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     unit.partialSolution().ifPresent(partialSolutions::add);
                     unit.unitResult().map(UnitResult::getCustomResult).ifPresent(customUnits::add);
                 }
-                logger.debug("Solving {} project constraints + {} partial solutions.", constraints.size());
+                logger.log(debugLevel, "Solving {} project constraints + {} partial solutions.", constraints.size());
                 try {
                     solverTimer.start();
                     Function1<String, ITermVar> fresh =
@@ -254,7 +257,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     solverTimer.stop();
                 }
                 context.setSolution(solution);
-                logger.debug("Project constraints solved.");
+                logger.log(debugLevel, "Project constraints solved.");
             }
 
             // final
@@ -262,7 +265,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             final Optional<ITerm> customFinal;
             final Optional<CustomSolution> customSolution;
             {
-                logger.debug("Finalizing project analysis.");
+                logger.log(debugLevel, "Finalizing project analysis.");
                 finalizeTimer.start();
                 try {
                     ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(globalSource), context, runtime)
@@ -281,12 +284,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } finally {
                     finalizeTimer.stop();
                 }
-                logger.debug("Project analysis finalized.");
+                logger.log(debugLevel, "Project analysis finalized.");
             }
 
             // errors
             {
-                logger.debug("Processing project messages.");
+                logger.log(debugLevel, "Processing project messages.");
                 Messages messages = new Messages();
                 messages.addAll(Solver.unsolvedErrors(solution.getUnsolvedConstraints()));
                 messages.addAll(solution.getMessages());
@@ -318,7 +321,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             }
 
         } catch(InterruptedException e) {
-            logger.debug("Analysis was interrupted.");
+            logger.log(debugLevel, "Analysis was interrupted.");
         } finally {
             totalTimer.stop();
         }

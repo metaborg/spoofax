@@ -52,6 +52,10 @@ public abstract class AbstractTemporaryScopeGraphContext<U extends IScopeGraphUn
         return context.language();
     }
 
+    public boolean debug() {
+        return context.debug();
+    }
+    
     @Override public Injector injector() {
         return context.injector();
     }
