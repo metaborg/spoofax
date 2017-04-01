@@ -43,6 +43,7 @@ import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.Level;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.task.ICancel;
@@ -238,6 +239,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             }
             return text;
         };
+    }
+
+    protected Level debugLevel(C context) {
+        return context.debug() ? Level.Info : Level.Debug;
     }
 
 }
