@@ -239,7 +239,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     unit.partialSolution().ifPresent(partialSolutions::add);
                     unit.unitResult().map(UnitResult::getCustomResult).ifPresent(customUnits::add);
                 }
-                logger.debug("Solving {} project constraints + {} partial solutions.", constraints.size());
+                logger.debug("Solving {} project constraints + {} partial solutions.", constraints.size(), partialSolutions.size());
                 try {
                     solverTimer.start();
                     Function1<String, ITermVar> fresh =
