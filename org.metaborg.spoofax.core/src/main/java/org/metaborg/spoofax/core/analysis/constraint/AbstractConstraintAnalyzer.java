@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.vfs2.FileObject;
@@ -18,6 +19,7 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
+import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
@@ -55,6 +57,8 @@ import com.google.common.collect.Sets;
 abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>> implements ISpoofaxAnalyzer {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
+
+    private static final String PP_STRATEGY = "pp-NaBL2-objlangterm";
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
@@ -199,8 +203,9 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                 severity = MessageSeverity.NOTE;
                 break;
         }
-        return message(message.getOriginTerm(), message.getContent().apply(unifier::find).toString(null), severity,
-                context, defaultLocation);
+        return message(message.getOriginTerm(),
+                message.getContent().apply(unifier::find).toString(prettyprint(context)), severity, context,
+                defaultLocation);
     }
 
     private IMessage message(ITerm originatingTerm, String message, MessageSeverity severity,
@@ -215,6 +220,22 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         } else {
             return MessageFactory.newAnalysisMessageAtTop(defaultLocation, message, severity, null);
         }
+    }
+
+    protected Function<ITerm, String> prettyprint(ISpoofaxScopeGraphContext<?> context) {
+        return term -> {
+            final ITerm simpleTerm = TermSimplifier.focus(null, term);
+            final IStrategoTerm sterm = strategoTerms.toStratego(term);
+            String text;
+            try {
+                text = Optional.ofNullable(strategoCommon.invoke(context.language(), context, sterm, PP_STRATEGY))
+                        .map(Tools::asJavaString).orElseGet(() -> simpleTerm.toString());
+            } catch(MetaborgException ex) {
+                logger.warn("Pretty-printing failed on {}, using simple term representation.", ex, simpleTerm);
+                text = term.toString();
+            }
+            return text;
+        };
     }
 
 }
