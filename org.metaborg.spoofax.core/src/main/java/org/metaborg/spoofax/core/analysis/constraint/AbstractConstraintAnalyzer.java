@@ -160,12 +160,12 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     protected Optional<ITerm> doCustomAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
-            HybridInterpreter runtime) {
+            HybridInterpreter runtime) throws AnalysisException {
         try {
             return doAction(strategy, action, context, runtime);
         } catch(Exception ex) {
-            logger.warn("Custom analysis step failed.", ex);
-            return Optional.empty();
+            final String message = "Custom analysis failed.\n" + ex.getMessage();
+            throw new AnalysisException(context, message, ex);
         }
     }
 
