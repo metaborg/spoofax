@@ -19,6 +19,12 @@ pardonedLanguages:
 - EditorService
 - Stratego-Sugar
 - SDF
+debug:
+  typesmart: false
+{{#analysisNabl2}}runtime:
+  nabl2:
+    debug: false
+{{/analysisNabl2}}
 language:
   sdf:
     pretty-print: {{name}}
