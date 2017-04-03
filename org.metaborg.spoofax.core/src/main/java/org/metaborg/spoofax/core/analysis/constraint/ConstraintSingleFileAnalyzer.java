@@ -143,7 +143,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                                 Actions.sourceTerm(source));
                         solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints,
-                                Collections.emptySet(), messageInfo, progress.subProgress(1), cancel);
+                                Collections.emptySet(), messageInfo, progress.subProgress(1), cancel, debugLevel);
                         unit.setSolution(solution);
                         logger.log(debugLevel, "Solved file constraints.");
                     }

@@ -201,7 +201,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                 IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR,
                                         MessageContent.of(), Actions.sourceTerm(source));
                                 unitSolution = Solver.solveIncremental(initialResult.getConfig(), globalTerms, fresh,
-                                        unitResult.getConstraints(), messageInfo, progress.subProgress(1), cancel);
+                                        unitResult.getConstraints(), messageInfo, progress.subProgress(1), cancel,
+                                        debugLevel);
                                 logger.log(debugLevel, "Reduced file constraints to {}.",
                                         unitSolution.getResidualConstraints().size());
                             } catch(SolverException e) {
@@ -242,7 +243,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     unit.partialSolution().ifPresent(partialSolutions::add);
                     unit.unitResult().map(UnitResult::getCustomResult).ifPresent(customUnits::add);
                 }
-                logger.log(debugLevel, "Solving {} project constraints + {} partial solutions.", constraints.size(), partialSolutions.size());
+                logger.log(debugLevel, "Solving {} project constraints + {} partial solutions.", constraints.size(),
+                        partialSolutions.size());
                 try {
                     solverTimer.start();
                     Function1<String, ITermVar> fresh =
@@ -250,7 +252,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                             Actions.sourceTerm(globalSource));
                     solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints, partialSolutions,
-                            messageInfo, progress.subProgress(w), cancel);
+                            messageInfo, progress.subProgress(w), cancel, debugLevel);
                 } catch(SolverException e) {
                     throw new AnalysisException(context, e);
                 } finally {
