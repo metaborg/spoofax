@@ -29,6 +29,7 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
     }
 
     @Override public ISingleFileScopeGraphUnit unit(String resource) {
+        resource = normalizeResource(resource);
         ISingleFileScopeGraphUnit unit;
         if((unit = state.units.get(resource)) == null) {
             state.units.put(resource, (unit = state.new Unit(resource)));
@@ -41,6 +42,7 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
     }
 
     @Override public void removeUnit(String resource) {
+        resource = normalizeResource(resource);
         state.units.remove(resource);
     }
 

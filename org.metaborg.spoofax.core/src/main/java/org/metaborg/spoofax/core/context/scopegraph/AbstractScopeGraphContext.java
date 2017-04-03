@@ -20,6 +20,7 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.inject.Injector;
 
@@ -168,7 +169,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     @SuppressWarnings("unchecked") private S readContext(FileObject file)
-        throws IOException, ClassNotFoundException, ClassCastException {
+            throws IOException, ClassNotFoundException, ClassCastException {
         try(ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
             S fileState;
             try {
@@ -234,6 +235,15 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
 
     @Override public String toString() {
         return String.format("scope graph context for %s, %s", identifier.location, identifier.language);
+    }
+
+    protected String normalizeResource(String resource) {
+        try {
+            resource = ResourceUtils.relativeName(location().resolveFile(resource).getName(), location().getName(), false);
+        } catch(FileSystemException e) {
+            logger.warn("Failed to resolve {} in context {}. Lookup of unit results might fail.", resource, location());
+        }
+        return resource;
     }
 
 }
