@@ -11,8 +11,8 @@ dependencies:
 {{/analysisNabl2}}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
-  - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
-{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.shared:${metaborgVersion}
+{{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
+{{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.shared:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.nabl2.runtime:${metaborgVersion}
 {{/analysisNabl2}}
 pardonedLanguages:
