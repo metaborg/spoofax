@@ -38,11 +38,13 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.resource.IdentifiedResourceChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
+import org.metaborg.core.resource.ResourceUtils;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.IInputUnit;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
+import org.metaborg.core.transform.ITransformOutput;
 import org.metaborg.core.transform.ITransformService;
 import org.metaborg.core.transform.ITransformUnit;
 import org.metaborg.core.transform.TransformException;
@@ -127,35 +129,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         throws InterruptedException {
         cancel.throwIfCancelled();
 
-        final Iterable<ILanguageImpl> languages = input.buildOrder.languages();
-
         final Multimap<ILanguageImpl, IdentifiedResourceChange> changes = ArrayListMultimap.create();
-
-        final FileSelector selector = input.selector;
-        final FileObject location = input.project.location();
-        for(ResourceChange change : input.sourceChanges) {
-            cancel.throwIfCancelled();
-
-            final FileObject resource = change.resource;
-
-            if(selector != null) {
-                try {
-                    if(!FileSelectorUtils.include(selector, resource, location)) {
-                        continue;
-                    }
-                } catch(FileSystemException e) {
-                    logger.error("Error determining if {} should be ignored from the build, including it", e, resource);
-                }
-            }
-
-            final IdentifiedResource identifiedResource = languageIdentifier.identifyToResource(resource, languages);
-            if(identifiedResource != null) {
-                final IdentifiedResourceChange identifiedChange =
-                    new IdentifiedResourceChange(change, identifiedResource);
-                changes.put(identifiedChange.language, identifiedChange);
-            }
-        }
-
+        identifyResources(input.sourceChanges, input, changes, cancel);
         if(changes.size() == 0) {
             // When there are no source changes, keep the old state and skip building.
             final IBuildOutputInternal<P, A, AU, T> buildOutput = buildOutputProvider.get();
@@ -163,25 +138,15 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             return buildOutput;
         }
 
-        logger.info("Building " + input.project.location());
-
         cancel.throwIfCancelled();
+        logger.info("Building " + input.project.location());
 
         final BuildState newState = new BuildState();
         final IBuildOutputInternal<P, A, AU, T> buildOutput = buildOutputProvider.get();
         buildOutput.setState(newState);
+
         final Iterable<ILanguageImpl> buildOrder = input.buildOrder.buildOrder();
-
-        // Don't count languages without changes to remaining work.
-        int size = 0;
-        for(ILanguageImpl language : buildOrder) {
-            final Collection<IdentifiedResourceChange> sourceChanges = changes.get(language);
-            if(sourceChanges.size() > 0) {
-                ++size;
-            }
-        }
-        progress.setWorkRemaining(size);
-
+        progress.setWorkRemaining(Iterables.size(buildOrder));
         for(ILanguageImpl language : buildOrder) {
             cancel.throwIfCancelled();
 
@@ -197,7 +162,14 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             final Iterable<IdentifiedResource> includeFiles = languagePathService.toFiles(includePaths, language);
             final LanguageBuildDiff diff = languageState.diff(changes.get(language), includeFiles);
             final boolean pardoned = input.pardonedLanguages.contains(language);
-            updateLanguageResources(input, language, diff, buildOutput, pardoned, progress.subProgress(1), cancel);
+
+            final Collection<FileObject> newResources =
+                updateLanguageResources(input, language, diff, buildOutput, pardoned, progress.subProgress(1), cancel);
+
+            final Iterable<ResourceChange> newResourceChanges =
+                ResourceUtils.toChanges(newResources, ResourceChangeKind.Create);
+            identifyResources(newResourceChanges, input, changes, cancel);
+
             newState.add(language, diff.newState);
         }
 
@@ -210,9 +182,39 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     }
 
 
-    private void updateLanguageResources(BuildInput input, ILanguageImpl language, LanguageBuildDiff diff,
-        IBuildOutputInternal<P, A, AU, T> output, boolean pardoned, IProgress progress, ICancel cancel)
+    private void identifyResources(Iterable<ResourceChange> changes, BuildInput input,
+        Multimap<ILanguageImpl, IdentifiedResourceChange> identifiedChanges, ICancel cancel)
         throws InterruptedException {
+        final Iterable<ILanguageImpl> languages = input.buildOrder.languages();
+        final FileSelector selector = input.selector;
+        final FileObject location = input.project.location();
+
+        for(ResourceChange change : changes) {
+            cancel.throwIfCancelled();
+            final FileObject resource = change.resource;
+            if(selector != null) {
+                try {
+                    if(!FileSelectorUtils.include(selector, resource, location)) {
+                        continue;
+                    }
+                } catch(FileSystemException e) {
+                    logger.error("Error determining if {} should be ignored from the build, including it", e, resource);
+                }
+            }
+
+            final IdentifiedResource identifiedResource = languageIdentifier.identifyToResource(resource, languages);
+            if(identifiedResource != null) {
+                final IdentifiedResourceChange identifiedChange =
+                    new IdentifiedResourceChange(change, identifiedResource);
+                identifiedChanges.put(identifiedChange.language, identifiedChange);
+            }
+        }
+    }
+
+
+    private Collection<FileObject> updateLanguageResources(BuildInput input, ILanguageImpl language,
+        LanguageBuildDiff diff, IBuildOutputInternal<P, A, AU, T> output, boolean pardoned, IProgress progress,
+        ICancel cancel) throws InterruptedException {
         cancel.throwIfCancelled();
 
         final boolean analyze = input.analyze && analysisService.available(language);
@@ -289,6 +291,17 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         output.add(success.get(), removedResources, includes, changedSources, allParseResults, allAnalyzeUnits.values(),
             allAnalyzeUpdates, allTransformUnits, extraMessages);
+
+        final Collection<FileObject> newResources = Lists.newArrayList();
+        for(T transformUnit : allTransformUnits) {
+            for(ITransformOutput transformOutput : transformUnit.outputs()) {
+                final FileObject outputFile = transformOutput.output();
+                if(outputFile != null) {
+                    newResources.add(outputFile);
+                }
+            }
+        }
+        return newResources;
     }
 
     private Collection<P> parse(BuildInput input, ILanguageImpl langImpl, Iterable<IdentifiedResourceChange> changes,
