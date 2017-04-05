@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.metaborg.core.context.ContextIdentifier;
+import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.solver.Fresh;
 import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
@@ -15,6 +17,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContext.State;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.Injector;
 
 public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State>
@@ -50,7 +53,7 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
         private static final long serialVersionUID = -8878117069378041686L;
 
-        final Map<String,ISingleFileScopeGraphUnit> units = Maps.newHashMap();
+        final Map<String, ISingleFileScopeGraphUnit> units = Maps.newHashMap();
 
         class Unit implements ISingleFileScopeGraphUnit {
 
@@ -89,6 +92,13 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
             @Override public void setUnitResult(UnitResult result) {
                 unitResult = result;
+            }
+
+            @Override public Set<IConstraint> constraints() {
+                final Set<IConstraint> constraints = Sets.newHashSet();
+                initialResult().ifPresent(ir -> constraints.addAll(ir.getConstraints()));
+                unitResult().ifPresent(ur -> constraints.addAll(ur.getConstraints()));
+                return constraints;
             }
 
             @Override public Optional<Solution> solution() {
