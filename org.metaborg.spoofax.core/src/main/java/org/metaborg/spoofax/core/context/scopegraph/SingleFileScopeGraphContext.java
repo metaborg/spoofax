@@ -129,6 +129,10 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
                 return fresh;
             }
 
+            @Override public boolean isPrimary() {
+                return true;
+            }
+
             @Override public void clear() {
                 this.initialResult = null;
                 this.unitResult = null;

@@ -16,7 +16,6 @@ import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
-import org.metaborg.meta.nabl2.util.Optionals;
 import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContext.State;
 
 import com.google.common.collect.Maps;
@@ -156,15 +155,19 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
             }
 
             @Override public Optional<Solution> solution() {
-                return Optionals.when(isProject).flatMap(u -> Optional.ofNullable(solution));
+                return Optional.ofNullable(solution);
             }
 
             @Override public Optional<CustomSolution> customSolution() {
-                return Optionals.when(isProject).flatMap(u -> Optional.ofNullable(customSolution));
+                return Optional.ofNullable(customSolution);
             }
 
             @Override public Fresh fresh() {
                 return fresh;
+            }
+
+            @Override public boolean isPrimary() {
+                return isProject;
             }
 
             @Override public void clear() {
