@@ -46,9 +46,9 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     }
 
     protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
-        @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
-        @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
-        @Nullable NaBL2Config nabl2Config) {
+            @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
+            @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
+            @Nullable NaBL2Config nabl2Config) {
         this(config);
 
         if(metaborgVersion != null) {
@@ -83,17 +83,17 @@ public class ProjectConfig implements IProjectConfig, IConfig {
 
     @Override public Collection<LanguageIdentifier> compileDeps() {
         return config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES,
-            Collections.<LanguageIdentifier>emptyList());
+                Collections.<LanguageIdentifier>emptyList());
     }
 
     @Override public Collection<LanguageIdentifier> sourceDeps() {
         return config.getList(LanguageIdentifier.class, PROP_SOURCE_DEPENDENCIES,
-            Collections.<LanguageIdentifier>emptyList());
+                Collections.<LanguageIdentifier>emptyList());
     }
 
     @Override public Collection<LanguageIdentifier> javaDeps() {
         return config.getList(LanguageIdentifier.class, PROP_JAVA_DEPENDENCIES,
-            Collections.<LanguageIdentifier>emptyList());
+                Collections.<LanguageIdentifier>emptyList());
     }
 
     @Override public boolean typesmart() {
@@ -101,7 +101,8 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     }
 
     @Override public NaBL2Config nabl2Config() {
-        return NaBL2ConfigReaderWriter.read(config.configurationAt(PROP_NABL2));
+        return config.containsKey(PROP_NABL2) ? NaBL2ConfigReaderWriter.read(config.configurationAt(PROP_NABL2))
+                : NaBL2Config.DEFAULT;
     }
 
 
@@ -110,11 +111,14 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         validateDeps(config, PROP_COMPILE_DEPENDENCIES, "compile", mb, messages);
         validateDeps(config, PROP_SOURCE_DEPENDENCIES, "source", mb, messages);
         validateDeps(config, PROP_JAVA_DEPENDENCIES, "java", mb, messages);
+        if(config.containsKey(PROP_NABL2)) {
+            messages.addAll(NaBL2ConfigReaderWriter.validate(config.immutableSubset(PROP_NABL2), mb));
+        }
         return messages;
     }
 
     private static void validateDeps(ImmutableConfiguration config, String key, String name, MessageBuilder mb,
-        Collection<IMessage> messages) {
+            Collection<IMessage> messages) {
         final List<String> depStrs = config.getList(String.class, key, Lists.<String>newArrayList());
         for(String depStr : depStrs) {
             try {
@@ -123,6 +127,5 @@ public class ProjectConfig implements IProjectConfig, IConfig {
                 messages.add(mb.withMessage("Invalid " + name + " dependency. " + e.getMessage()).build());
             }
         }
-        messages.addAll(NaBL2ConfigReaderWriter.validate(config.immutableSubset(PROP_NABL2), mb));
     }
 }
