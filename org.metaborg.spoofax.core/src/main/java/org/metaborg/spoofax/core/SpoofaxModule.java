@@ -69,6 +69,7 @@ import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_symbolic_goals;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_get_visible_decls;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_index_ast;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_is_debug_collection_enabled;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_is_debug_custom_enabled;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_is_debug_resolution_enabled;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_set_ast_index;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
@@ -394,6 +395,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_visible_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_index_ast.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_collection_enabled.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_custom_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_resolution_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
 
