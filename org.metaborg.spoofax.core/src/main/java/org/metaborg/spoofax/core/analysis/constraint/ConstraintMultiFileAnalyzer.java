@@ -328,11 +328,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     final FileObject file = parseUnit.source();
                     final Set<IMessage> fileMessages =
                             messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
-                    fileMessages.addAll(analysisCommon.ambiguityMessages(file, astsByFile.get(source)));
+                    fileMessages.addAll(ambiguitiesByFile.get(source));
                     final boolean valid = !failures.containsKey(source);
                     final boolean success = valid && messagesByFile.get(file, MessageSeverity.ERROR).isEmpty();
+                    final IStrategoTerm analyzedAST = astsByFile.get(source);
                     results.add(unitService.analyzeUnit(changed.get(source),
-                            new AnalyzeContrib(valid, success, true, astsByFile.get(source), fileMessages, -1),
+                            new AnalyzeContrib(valid, success, analyzedAST != null, analyzedAST, fileMessages, -1),
                             context));
                     messagesByFile.remove(file);
                 }
