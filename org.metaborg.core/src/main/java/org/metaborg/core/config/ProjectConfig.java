@@ -13,6 +13,7 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Lists;
 
@@ -29,10 +30,8 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     private static final String PROP_STR_TYPESMART = "debug.typesmart";
 
     private static final String PROP_RUNTIME = "runtime";
-
     private static final String PROP_NABL2 = PROP_RUNTIME + ".nabl2";
-    private static final String PROP_NABL2_DEBUG = PROP_NABL2 + ".debug";
-    private static final String PROP_NABL2_INCREMENTAL = PROP_NABL2 + ".incremental";
+
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
 
@@ -49,7 +48,7 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
         @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
         @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
-        @Nullable Boolean nabl2Debug, @Nullable Boolean nabl2Incremental) {
+        @Nullable NaBL2Config nabl2Config) {
         this(config);
 
         if(metaborgVersion != null) {
@@ -67,11 +66,8 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         if(typesmart != null) {
             config.setProperty(PROP_STR_TYPESMART, typesmart);
         }
-        if(nabl2Debug != null) {
-            config.setProperty(PROP_NABL2_DEBUG, nabl2Debug);
-        }
-        if(nabl2Incremental != null) {
-            config.setProperty(PROP_NABL2_INCREMENTAL, nabl2Incremental);
+        if(nabl2Config != null) {
+            NaBL2ConfigReaderWriter.write(nabl2Config, config.configurationAt(PROP_NABL2, true));
         }
     }
 
@@ -104,12 +100,8 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         return config.getBoolean(PROP_STR_TYPESMART, false);
     }
 
-    @Override public boolean nabl2Debug() {
-        return config.getBoolean(PROP_NABL2_DEBUG, false);
-    }
-
-    @Override public boolean nabl2Incremental() {
-        return config.getBoolean(PROP_NABL2_INCREMENTAL, false);
+    @Override public NaBL2Config nabl2Config() {
+        return NaBL2ConfigReaderWriter.read(config.configurationAt(PROP_NABL2));
     }
 
 
@@ -131,5 +123,6 @@ public class ProjectConfig implements IProjectConfig, IConfig {
                 messages.add(mb.withMessage("Invalid " + name + " dependency. " + e.getMessage()).build());
             }
         }
+        messages.addAll(NaBL2ConfigReaderWriter.validate(config.immutableSubset(PROP_NABL2), mb));
     }
 }

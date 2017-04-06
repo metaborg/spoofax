@@ -18,6 +18,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
+import org.metaborg.util.config.NaBL2Config;
 import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -55,9 +56,9 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         return identifier.language;
     }
 
-    public boolean debug() {
+    public NaBL2Config config() {
         IProjectConfig config = identifier.project.config();
-        return config != null ? config.nabl2Debug() : false;
+        return config != null ? config.nabl2Config() : NaBL2Config.DEFAULT;
     }
     
     @Override public Injector injector() {

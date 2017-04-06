@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -39,7 +40,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         }
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, metaborgVersion, identifier,
             name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart,
-            nabl2Debug, nabl2Incremental, langContribs, generates, exports);
+            nabl2Config, langContribs, generates, exports);
         return config;
     }
 
@@ -113,13 +114,8 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         return this;
     }
 
-    @Override public ILanguageComponentConfigBuilder withNaBL2Debug(boolean debug) {
-        super.withNaBL2Debug(debug);
-        return this;
-    }
-
-    @Override public ILanguageComponentConfigBuilder withNaBL2Incremental(boolean incremental) {
-        super.withNaBL2Incremental(incremental);
+    @Override public ILanguageComponentConfigBuilder withNaBL2Config(NaBL2Config config) {
+        super.withNaBL2Config(config);
         return this;
     }
 

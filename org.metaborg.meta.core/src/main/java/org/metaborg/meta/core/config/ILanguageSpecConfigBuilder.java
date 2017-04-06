@@ -8,6 +8,7 @@ import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 /**
  * Builder for {@link ILanguageSpecConfig} objects.
@@ -75,14 +76,9 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
     /**
      * {@inheritDoc}
      */
-    @Override ILanguageSpecConfigBuilder withNaBL2Debug(boolean debug);
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override ILanguageSpecConfigBuilder withNaBL2Incremental(boolean incremental);
-    
-    
+    @Override ILanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config);
+
+
     /**
      * {@inheritDoc}
      */

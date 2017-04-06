@@ -43,9 +43,9 @@ import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.util.config.NaBL2DebugConfig;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.Level;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
@@ -77,7 +77,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
     @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
             ISingleFileScopeGraphContext context, HybridInterpreter runtime, String strategy, IProgress progress,
             ICancel cancel) throws AnalysisException {
-        final Level debugLevel = debugLevel(context);
+        final NaBL2DebugConfig debugConfig = context.config().debug();
 
         for(String input : removed) {
             context.removeUnit(input);
@@ -86,7 +86,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
         final int n = changed.size();
         progress.setWorkRemaining(n + 1);
 
-        logger.log(debugLevel, "Analyzing {} files in {}.", n, context.location());
+        if(debugConfig.analysis() || debugConfig.files()) {
+            logger.info("Analyzing {} files in {}.", n, context.location());
+        }
         final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayList();
         try {
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
@@ -94,7 +96,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 final ISpoofaxParseUnit parseUnit = input.getValue();
                 final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
 
-                logger.log(debugLevel, "Analyzing {}.", source);
+                if(debugConfig.files()) {
+                    logger.info("Analyzing {}.", source);
+                }
                 final ISingleFileScopeGraphUnit unit = context.unit(source);
                 unit.clear();
 
@@ -103,22 +107,28 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     InitialResult initialResult;
                     final Optional<ITerm> customInitial;
                     {
-                        logger.log(debugLevel, "Collecting initial constraints.");
+                        if(debugConfig.collection()) {
+                            logger.info("Collecting initial constraints of {}.", source);
+                        }
                         ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(source), context, runtime)
                                 .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new MetaborgException("Invalid initial results."));
                         customInitial = doCustomAction(strategy, Actions.customInitial(source), context, runtime);
                         initialResult = initialResult.withCustomResult(customInitial);
-                        logger.log(debugLevel, "Collected {} initial constraints.",
-                                initialResult.getConstraints().size());
+                        if(debugConfig.collection()) {
+                            logger.info("Collected {} initial constraints of {}.",
+                                    initialResult.getConstraints().size(), source);
+                        }
                     }
 
                     // unit
                     UnitResult unitResult;
                     final Optional<ITerm> customUnit;
                     {
-                        logger.log(debugLevel, "Collecting file constraints.");
+                        if(debugConfig.collection()) {
+                            logger.info("Collecting constraints of {}.", source);
+                        }
                         final ITerm unitResultTerm =
                                 doAction(strategy, Actions.analyzeUnit(source, ast, initialResult.getArgs()), context,
                                         runtime).orElseThrow(() -> new AnalysisException(context, "No unit result."));
@@ -131,13 +141,17 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                                 runtime);
                         unitResult = unitResult.withCustomResult(customUnit);
                         unit.setUnitResult(unitResult);
-                        logger.log(debugLevel, "Collected {} file constraints.", unitResult.getConstraints().size());
+                        if(debugConfig.collection()) {
+                            logger.info("Collected {} file constraints.", unitResult.getConstraints().size());
+                        }
                     }
 
                     // solve
                     final Solution solution;
                     {
-                        logger.log(debugLevel, "Solving {} file constraints.");
+                        if(debugConfig.resolution()) {
+                            logger.info("Solving {} constraints of {}.", source);
+                        }
                         Set<IConstraint> constraints =
                                 Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
                         Function1<String, ITermVar> fresh =
@@ -145,16 +159,20 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                                 Actions.sourceTerm(source));
                         solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints,
-                                Collections.emptySet(), messageInfo, progress.subProgress(1), cancel, debugLevel);
+                                Collections.emptySet(), messageInfo, progress.subProgress(1), cancel, debugConfig);
                         unit.setSolution(solution);
-                        logger.log(debugLevel, "Solved file constraints.");
+                        if(debugConfig.resolution()) {
+                            logger.info("Solved constraints of {}.", source);
+                        }
                     }
 
                     // final
                     FinalResult finalResult;
                     final Optional<ITerm> customFinal;
                     {
-                        logger.log(debugLevel, "Finalizing file analysis.");
+                        if(debugConfig.files()) {
+                            logger.info("Finalizing analysis of {}.", source);
+                        }
                         ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(source), context, runtime)
                                 .orElseThrow(() -> new AnalysisException(context, "No final result."));
                         finalResult = FinalResult.matcher().match(finalResultTerm)
@@ -166,7 +184,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                                         context, runtime);
                         finalResult = finalResult.withCustomResult(customFinal);
                         unit.setFinalResult(finalResult);
-                        logger.log(debugLevel, "Finalized file analysis.");
+                        if(debugConfig.files()) {
+                            logger.info("Finalized analysis of {}.", source);
+                        }
                     }
                     final IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
 
@@ -176,7 +196,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     // errors
                     final boolean success;
                     {
-                        logger.log(debugLevel, "Processing file messages.");
+                        if(debugConfig.files()) {
+                            logger.info("Processing messages of {}.", source);
+                        }
                         Messages messages = new Messages();
                         messages.addAll(Solver.unsolvedErrors(solution.getUnsolvedConstraints()));
                         messages.addAll(solution.getMessages());
@@ -192,8 +214,11 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         results.add(unitService.analyzeUnit(parseUnit,
                                 new AnalyzeContrib(true, success, true, analyzedAST, fileMessages, -1), context));
 
-                        logger.info("Analyzed {}: {} errors, {} warnings, {} notes.", source,
-                                messages.getErrors().size(), messages.getWarnings().size(), messages.getNotes().size());
+                        if(debugConfig.analysis() || debugConfig.files()) {
+                            logger.info("Analyzed {}: {} errors, {} warnings, {} notes.", source,
+                                    messages.getErrors().size(), messages.getWarnings().size(),
+                                    messages.getNotes().size());
+                        }
                     }
                 } catch(MetaborgException | SolverException e) {
                     logger.warn("Analysis of " + source + " failed.", e);
@@ -204,10 +229,12 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 }
             }
         } catch(InterruptedException e) {
-            logger.log(debugLevel, "Analysis was interrupted.");
+            logger.debug("Analysis was interrupted.");
         }
 
-        logger.log(debugLevel, "Analyzed {} files.", n);
+        if(debugConfig.analysis()) {
+            logger.info("Analyzed {} files.", n);
+        }
         return new SpoofaxAnalyzeResults(results, Collections.emptyList(), context);
     }
 

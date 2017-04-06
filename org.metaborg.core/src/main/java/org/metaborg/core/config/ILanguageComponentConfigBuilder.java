@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 /**
  * Builder for {@link ILanguageComponentConfig} objects.
@@ -72,13 +73,8 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
     /**
      * {@inheritDoc}
      */
-    @Override ILanguageComponentConfigBuilder withNaBL2Debug(boolean debug);
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override ILanguageComponentConfigBuilder withNaBL2Incremental(boolean incremental);
-    
+    @Override ILanguageComponentConfigBuilder withNaBL2Config(NaBL2Config config);
+
 
     /**
      * Sets the language identifier.
