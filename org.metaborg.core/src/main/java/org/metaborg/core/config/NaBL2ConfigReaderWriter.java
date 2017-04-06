@@ -15,6 +15,7 @@ import org.metaborg.util.config.NaBL2DebugConfig;
 import org.metaborg.util.config.NaBL2DebugConfig.Flag;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public final class NaBL2ConfigReaderWriter {
 
@@ -23,8 +24,7 @@ public final class NaBL2ConfigReaderWriter {
 
     public static NaBL2Config read(HierarchicalConfiguration<ImmutableNode> config) {
         final boolean incremental = config.getBoolean(PROP_INCREMENTAL, false);
-        final List<String> flags = readFlags(config.getString(PROP_DEBUG, ""));
-        final NaBL2DebugConfig debug = NaBL2DebugConfig.of(NaBL2DebugConfig.Flag.valuesOf(flags));
+        final NaBL2DebugConfig debug = NaBL2DebugConfig.of(readFlags(config.getString(PROP_DEBUG, "")));
         return new NaBL2Config(incremental, debug);
     }
 
@@ -37,20 +37,30 @@ public final class NaBL2ConfigReaderWriter {
         }
     }
 
-    private static List<String> readFlags(String flags) {
-        return Arrays.asList(flags.trim().split("\\s+")).stream().filter(s -> !s.isEmpty())
+    private static Collection<String> splitString(String string) {
+        return Arrays.asList(string.trim().split("\\s+")).stream().filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
+    }
+
+    private static Collection<Flag> readFlags(String flagNames) {
+        List<Flag> flags = Lists.newArrayList();
+        for(String name : splitString(flagNames)) {
+            try {
+                flags.add(Flag.valueOf(name.toUpperCase()));
+            } catch(IllegalArgumentException ex) {
+            }
+        }
+        return Sets.newEnumSet(flags, Flag.class);
     }
 
     public static Collection<IMessage> validate(ImmutableConfiguration config, MessageBuilder mb) {
         final String allFlags = String.join(" ", Arrays.asList(Flag.values()).stream().map(Flag::name)
                 .map(String::toLowerCase).collect(Collectors.toList()));
         List<IMessage> messages = Lists.newArrayList();
-        for(String flag : readFlags(config.getString(PROP_DEBUG, ""))) {
+        for(String flag : splitString(config.getString(PROP_DEBUG, ""))) {
             try {
                 Flag.valueOf(flag.toUpperCase());
             } catch(IllegalArgumentException ex) {
-
                 messages.add(mb.withMessage("Invalid NaBL2 debug flag: " + flag + ", must be one of: " + allFlags + ".")
                         .build());
             }

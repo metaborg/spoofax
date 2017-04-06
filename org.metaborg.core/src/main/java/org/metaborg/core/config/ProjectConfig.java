@@ -3,11 +3,13 @@ package org.metaborg.core.config;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -67,7 +69,8 @@ public class ProjectConfig implements IProjectConfig, IConfig {
             config.setProperty(PROP_STR_TYPESMART, typesmart);
         }
         if(nabl2Config != null) {
-            NaBL2ConfigReaderWriter.write(nabl2Config, config.configurationAt(PROP_NABL2, true));
+            Optional.ofNullable(configurationAt(PROP_NABL2, true))
+                    .ifPresent(c -> NaBL2ConfigReaderWriter.write(nabl2Config, c));
         }
     }
 
@@ -101,8 +104,8 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     }
 
     @Override public NaBL2Config nabl2Config() {
-        return config.containsKey(PROP_NABL2) ? NaBL2ConfigReaderWriter.read(config.configurationAt(PROP_NABL2))
-                : NaBL2Config.DEFAULT;
+        return Optional.ofNullable(configurationAt(PROP_NABL2, false)).map(NaBL2ConfigReaderWriter::read)
+                .orElse(NaBL2Config.DEFAULT);
     }
 
 
@@ -111,9 +114,9 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         validateDeps(config, PROP_COMPILE_DEPENDENCIES, "compile", mb, messages);
         validateDeps(config, PROP_SOURCE_DEPENDENCIES, "source", mb, messages);
         validateDeps(config, PROP_JAVA_DEPENDENCIES, "java", mb, messages);
-        if(config.containsKey(PROP_NABL2)) {
-            messages.addAll(NaBL2ConfigReaderWriter.validate(config.immutableSubset(PROP_NABL2), mb));
-        }
+        Optional.ofNullable(configurationAt(PROP_NABL2, false)).ifPresent(c -> {
+            messages.addAll(NaBL2ConfigReaderWriter.validate(c, mb));
+        });
         return messages;
     }
 
@@ -128,4 +131,13 @@ public class ProjectConfig implements IProjectConfig, IConfig {
             }
         }
     }
+
+    private @Nullable HierarchicalConfiguration<ImmutableNode> configurationAt(String key, boolean supportUpdates) {
+        try {
+            return config.configurationAt(key, supportUpdates);
+        } catch(ConfigurationRuntimeException ex) {
+            return null;
+        }
+    }
+
 }

@@ -142,18 +142,18 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         unitResult = unitResult.withCustomResult(customUnit);
                         unit.setUnitResult(unitResult);
                         if(debugConfig.collection()) {
-                            logger.info("Collected {} file constraints.", unitResult.getConstraints().size());
+                            logger.info("Collected {} constraints of {}.", unitResult.getConstraints().size(), source);
                         }
                     }
 
                     // solve
                     final Solution solution;
                     {
-                        if(debugConfig.resolution()) {
-                            logger.info("Solving {} constraints of {}.", source);
-                        }
                         Set<IConstraint> constraints =
                                 Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
+                        if(debugConfig.resolution()) {
+                            logger.info("Solving {} constraints of {}.", constraints.size(), source);
+                        }
                         Function1<String, ITermVar> fresh =
                                 base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
                         IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
