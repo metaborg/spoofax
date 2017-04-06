@@ -27,7 +27,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.ITermVar;
-import org.metaborg.meta.nabl2.terms.generic.GenericTerms;
+import org.metaborg.meta.nabl2.terms.generic.TB;
 import org.metaborg.meta.nabl2.util.functions.Function1;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
@@ -110,7 +110,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                                 .orElseThrow(() -> new MetaborgException("Invalid initial results."));
                         customInitial = doCustomAction(strategy, Actions.customInitial(source), context, runtime);
                         initialResult = initialResult.withCustomResult(customInitial);
-                        logger.log(debugLevel, "Collected {} initial constraints.", initialResult.getConstraints().size());
+                        logger.log(debugLevel, "Collected {} initial constraints.",
+                                initialResult.getConstraints().size());
                     }
 
                     // unit
@@ -125,8 +126,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                                 .orElseThrow(() -> new MetaborgException("Invalid unit results."));
                         final ITerm desugaredAST = unitResult.getAST();
 
-                        customUnit = doCustomAction(strategy, Actions.customUnit(source, desugaredAST,
-                                customInitial.orElse(GenericTerms.EMPTY_TUPLE)), context, runtime);
+                        customUnit = doCustomAction(strategy,
+                                Actions.customUnit(source, desugaredAST, customInitial.orElse(TB.EMPTY_TUPLE)), context,
+                                runtime);
                         unitResult = unitResult.withCustomResult(customUnit);
                         unit.setUnitResult(unitResult);
                         logger.log(debugLevel, "Collected {} file constraints.", unitResult.getConstraints().size());
@@ -139,11 +141,11 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         Set<IConstraint> constraints =
                                 Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
                         Function1<String, ITermVar> fresh =
-                                base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
+                                base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
                         IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                                 Actions.sourceTerm(source));
                         solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints,
-                                Collections.emptySet(), messageInfo, progress.subProgress(1), cancel);
+                                Collections.emptySet(), messageInfo, progress.subProgress(1), cancel, debugLevel);
                         unit.setSolution(solution);
                         logger.log(debugLevel, "Solved file constraints.");
                     }
@@ -157,10 +159,11 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                                 .orElseThrow(() -> new AnalysisException(context, "No final result."));
                         finalResult = FinalResult.matcher().match(finalResultTerm)
                                 .orElseThrow(() -> new MetaborgException("Invalid final results."));
-                        customFinal = doCustomAction(strategy,
-                                Actions.customFinal(source, customInitial.orElse(GenericTerms.EMPTY_TUPLE),
-                                        customUnit.map(cu -> GenericTerms.newList(cu)).orElse(GenericTerms.EMPTY_LIST)),
-                                context, runtime);
+                        customFinal =
+                                doCustomAction(strategy,
+                                        Actions.customFinal(source, customInitial.orElse(TB.EMPTY_TUPLE),
+                                                customUnit.map(cu -> TB.newList(cu)).orElse(TB.EMPTY_LIST)),
+                                        context, runtime);
                         finalResult = finalResult.withCustomResult(customFinal);
                         unit.setFinalResult(finalResult);
                         logger.log(debugLevel, "Finalized file analysis.");

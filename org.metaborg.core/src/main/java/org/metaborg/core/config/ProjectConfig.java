@@ -26,11 +26,9 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     private static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
     private static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
 
-    private static final String PROP_RUNTIME = "runtime";
+    private static final String PROP_STR_TYPESMART = "debug.typesmart";
 
-    private static final String PROP_STR = PROP_RUNTIME + ".str";
-    private static final String PROP_STR_TYPESMART = PROP_STR + ".typesmart";
-    private static final String PROP_STR_TYPESMART_OLD = "debug.typesmart";
+    private static final String PROP_RUNTIME = "runtime";
 
     private static final String PROP_NABL2 = PROP_RUNTIME + ".nabl2";
     private static final String PROP_NABL2_DEBUG = PROP_NABL2 + ".debug";
@@ -103,7 +101,7 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     }
 
     @Override public boolean typesmart() {
-        return config.getBoolean(PROP_STR_TYPESMART, config.getBoolean(PROP_STR_TYPESMART_OLD, false));
+        return config.getBoolean(PROP_STR_TYPESMART, false);
     }
 
     @Override public boolean nabl2Debug() {

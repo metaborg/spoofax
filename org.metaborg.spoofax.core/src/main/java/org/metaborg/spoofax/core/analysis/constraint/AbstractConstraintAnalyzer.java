@@ -4,7 +4,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -18,6 +21,7 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
+import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
@@ -56,6 +60,8 @@ import com.google.common.collect.Sets;
 abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>> implements ISpoofaxAnalyzer {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
+
+    private static final String PP_STRATEGY = "pp-NaBL2-objlangterm";
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
@@ -149,8 +155,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             C context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
             throws AnalysisException;
 
-    protected Optional<ITerm> doAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
-            HybridInterpreter runtime) throws AnalysisException {
+    protected Optional<ITerm> doAction(String strategy, ITerm action, C context, HybridInterpreter runtime)
+            throws AnalysisException {
         try {
             return Optional.ofNullable(strategoCommon.invoke(runtime, strategoTerms.toStratego(action), strategy))
                     .map(strategoTerms::fromStratego);
@@ -160,13 +166,13 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         }
     }
 
-    protected Optional<ITerm> doCustomAction(String strategy, ITerm action, ISpoofaxScopeGraphContext<?> context,
-            HybridInterpreter runtime) {
+    protected Optional<ITerm> doCustomAction(String strategy, ITerm action, C context, HybridInterpreter runtime)
+            throws AnalysisException {
         try {
             return doAction(strategy, action, context, runtime);
         } catch(Exception ex) {
-            logger.warn("Custom analysis step failed.", ex);
-            return Optional.empty();
+            final String message = "Custom analysis failed.\n" + ex.getMessage();
+            throw new AnalysisException(context, message, ex);
         }
     }
 
@@ -179,14 +185,13 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return fmessages;
     }
 
-    protected Set<IMessage> messages(Iterable<IMessageInfo> messages, IUnifier unifier,
-            ISpoofaxScopeGraphContext<?> context, FileObject defaultLocation) {
+    protected Set<IMessage> messages(Iterable<IMessageInfo> messages, IUnifier unifier, C context,
+            FileObject defaultLocation) {
         return Iterables2.stream(messages).map(m -> message(m, unifier, context, defaultLocation))
                 .collect(Collectors.toSet());
     }
 
-    private IMessage message(IMessageInfo message, IUnifier unifier, ISpoofaxScopeGraphContext<?> context,
-            FileObject defaultLocation) {
+    private IMessage message(IMessageInfo message, IUnifier unifier, C context, FileObject defaultLocation) {
         final MessageSeverity severity;
         switch(message.getKind()) {
             default:
@@ -200,20 +205,22 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                 severity = MessageSeverity.NOTE;
                 break;
         }
-        return message(message.getOriginTerm(), message.getContent().apply(unifier::find).toString(null), severity,
-                context, defaultLocation);
+        return message(message.getOriginTerm(), message, severity, unifier, context, defaultLocation);
     }
 
-    private IMessage message(ITerm originatingTerm, String message, MessageSeverity severity,
-            ISpoofaxScopeGraphContext<?> context, FileObject defaultLocation) {
+    private IMessage message(ITerm originatingTerm, IMessageInfo messageInfo, MessageSeverity severity,
+            IUnifier unifier, C context, FileObject defaultLocation) {
         Optional<TermOrigin> maybeOrigin = TermOrigin.get(originatingTerm);
         if(maybeOrigin.isPresent()) {
             TermOrigin origin = maybeOrigin.get();
             SourceRegion region = new SourceRegion(origin.getStartOffset(), origin.getStartLine(),
                     origin.getStartColumn(), origin.getEndOffset(), origin.getEndLine(), origin.getEndColumn());
             FileObject resource = resourceService.resolve(context.location(), origin.getResource());
+            String message = messageInfo.getContent().apply(unifier::find)
+                    .toString(prettyprint(context, resource(resource, context)));
             return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
         } else {
+            String message = messageInfo.getContent().apply(unifier::find).toString(prettyprint(context, null));
             return MessageFactory.newAnalysisMessageAtTop(defaultLocation, message, severity, null);
         }
     }
@@ -221,6 +228,22 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected Level debugLevel(C context) {
         return context.debug() ? Level.Info : Level.Debug;
+    }
+
+    protected Function<ITerm, String> prettyprint(C context, @Nullable String resource) {
+        return term -> {
+            final ITerm simpleTerm = TermSimplifier.focus(resource, term);
+            final IStrategoTerm sterm = strategoTerms.toStratego(simpleTerm);
+            String text;
+            try {
+                text = Optional.ofNullable(strategoCommon.invoke(context.language(), context, sterm, PP_STRATEGY))
+                        .map(Tools::asJavaString).orElseGet(() -> simpleTerm.toString());
+            } catch(MetaborgException ex) {
+                logger.warn("Pretty-printing failed on {}, using simple term representation.", ex, simpleTerm);
+                text = simpleTerm.toString();
+            }
+            return text;
+        };
     }
 
 }

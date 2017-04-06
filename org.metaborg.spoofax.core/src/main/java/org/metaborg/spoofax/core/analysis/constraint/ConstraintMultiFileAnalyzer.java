@@ -34,7 +34,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.ITermVar;
-import org.metaborg.meta.nabl2.terms.generic.GenericTerms;
+import org.metaborg.meta.nabl2.terms.generic.TB;
 import org.metaborg.meta.nabl2.unification.EmptyUnifier;
 import org.metaborg.meta.nabl2.util.Optionals;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
@@ -177,7 +177,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                     .orElseThrow(() -> new MetaborgException("Invalid unit results."));
                             final ITerm desugaredAST = unitResult.getAST();
                             customUnit = doCustomAction(strategy, Actions.customUnit(source, desugaredAST,
-                                    customInitial.orElse(GenericTerms.EMPTY_TUPLE)), context, runtime);
+                                    customInitial.orElse(TB.EMPTY_TUPLE)), context, runtime);
                             unitResult = unitResult.withCustomResult(customUnit);
                             final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
                             astsByFile.put(source, analyzedAST);
@@ -197,11 +197,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             try {
                                 solverTimer.start();
                                 Function1<String, ITermVar> fresh =
-                                        base -> GenericTerms.newVar(source, context.unit(source).fresh().fresh(base));
+                                        base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
                                 IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR,
                                         MessageContent.of(), Actions.sourceTerm(source));
                                 unitSolution = Solver.solveIncremental(initialResult.getConfig(), globalTerms, fresh,
-                                        unitResult.getConstraints(), messageInfo, progress.subProgress(1), cancel);
+                                        unitResult.getConstraints(), messageInfo, progress.subProgress(1), cancel,
+                                        debugLevel);
                                 logger.log(debugLevel, "Reduced file constraints to {}.",
                                         unitSolution.getResidualConstraints().size());
                             } catch(SolverException e) {
@@ -242,15 +243,16 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     unit.partialSolution().ifPresent(partialSolutions::add);
                     unit.unitResult().map(UnitResult::getCustomResult).ifPresent(customUnits::add);
                 }
-                logger.log(debugLevel, "Solving {} project constraints + {} partial solutions.", constraints.size());
+                logger.log(debugLevel, "Solving {} project constraints + {} partial solutions.", constraints.size(),
+                        partialSolutions.size());
                 try {
                     solverTimer.start();
                     Function1<String, ITermVar> fresh =
-                            base -> GenericTerms.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
+                            base -> TB.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
                     IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                             Actions.sourceTerm(globalSource));
                     solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints, partialSolutions,
-                            messageInfo, progress.subProgress(w), cancel);
+                            messageInfo, progress.subProgress(w), cancel, debugLevel);
                 } catch(SolverException e) {
                     throw new AnalysisException(context, e);
                 } finally {
@@ -273,8 +275,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     finalResult = FinalResult.matcher().match(finalResultTerm)
                             .orElseThrow(() -> new AnalysisException(context, "Invalid final results."));
                     customFinal = doCustomAction(strategy,
-                            Actions.customFinal(globalSource, customInitial.orElse(GenericTerms.EMPTY_TUPLE),
-                                    GenericTerms.newList(Optionals.filter(customUnits))),
+                            Actions.customFinal(globalSource, customInitial.orElse(TB.EMPTY_TUPLE),
+                                    TB.newList(Optionals.filter(customUnits))),
                             context, runtime);
                     finalResult = finalResult.withCustomResult(customFinal);
                     context.setFinalResult(finalResult);
