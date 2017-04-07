@@ -224,11 +224,6 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         }
     }
 
-
-    protected Level debugLevel(C context) {
-        return context.debug() ? Level.Info : Level.Debug;
-    }
-
     protected Function<ITerm, String> prettyprint(C context, @Nullable String resource) {
         return term -> {
             final ITerm simpleTerm = TermSimplifier.focus(resource, term);
