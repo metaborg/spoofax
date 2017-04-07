@@ -16,6 +16,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
+import org.metaborg.util.config.NaBL2Config;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface that is backed by an {@link ImmutableConfiguration}
@@ -34,12 +35,12 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Collection<LanguageIdentifier> compileDeps,
         @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps,
         @Nullable Boolean sdfEnabled, @Nullable String parseTable, @Nullable String completionsParseTable,
-        @Nullable Boolean typesmart, @Nullable Boolean nabl2Debug, @Nullable Boolean nabl2Incremental,
+        @Nullable Boolean typesmart, @Nullable NaBL2Config nabl2Config,
         @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
         super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable,
-            completionsParseTable, typesmart, nabl2Debug, nabl2Incremental, langContribs, generates, exports);
+            completionsParseTable, typesmart, nabl2Config, langContribs, generates, exports);
 
         if(pardonedLanguages != null) {
             config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);

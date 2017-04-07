@@ -14,6 +14,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -50,7 +51,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
 
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, identifier, name,
-            compileDeps, sourceDeps, javaDeps, typesmart, nabl2Debug, nabl2Incremental, langContribs, generates, exports,
+            compileDeps, sourceDeps, javaDeps, typesmart, nabl2Config, langContribs, generates, exports,
             metaborgVersion, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled, sdfMainFile, parseTable,
             completionsParseTable, sdf2tableVersion, placeholderCharacters, prettyPrint, sdfExternalDef, sdfArgs,
             strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
@@ -138,13 +139,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withNaBL2Debug(boolean debug) {
-        super.withNaBL2Debug(debug);
-        return this;
-    }
-
-    @Override public ISpoofaxLanguageSpecConfigBuilder withNaBL2Incremental(boolean incremental) {
-        super.withNaBL2Incremental(incremental);
+    @Override public ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config) {
+        super.withNaBL2Config(config);
         return this;
     }
 

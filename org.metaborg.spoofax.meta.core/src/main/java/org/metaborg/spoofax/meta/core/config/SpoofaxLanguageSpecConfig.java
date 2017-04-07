@@ -17,6 +17,7 @@ import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.meta.core.config.LanguageSpecConfig;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.config.NaBL2Config;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -65,7 +66,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
         @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Collection<LanguageIdentifier> compileDeps,
         @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps,
-        @Nullable Boolean typesmart, @Nullable Boolean nabl2Debug, @Nullable Boolean nabl2Incremental,
+        @Nullable Boolean typesmart, @Nullable NaBL2Config nabl2Config,
         @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable String metaborgVersion, @Nullable Collection<String> pardonedLanguages,
@@ -76,7 +77,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
         @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable,
-            completionsParseTable, typesmart, nabl2Debug, nabl2Incremental, langContribs, generates, exports,
+            completionsParseTable, typesmart, nabl2Config, langContribs, generates, exports,
             pardonedLanguages, useBuildSystemSpec);
 
         if(sdfVersion != null) {

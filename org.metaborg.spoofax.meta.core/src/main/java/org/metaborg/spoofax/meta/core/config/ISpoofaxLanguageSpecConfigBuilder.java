@@ -9,6 +9,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.config.NaBL2Config;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
@@ -72,12 +73,7 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * {@inheritDoc}
      */
-    @Override ISpoofaxLanguageSpecConfigBuilder withNaBL2Debug(boolean incremental);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override ISpoofaxLanguageSpecConfigBuilder withNaBL2Incremental(boolean incremental);
+    @Override ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config);
 
 
     /**

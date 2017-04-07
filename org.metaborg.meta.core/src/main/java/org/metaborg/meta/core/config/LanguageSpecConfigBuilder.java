@@ -12,6 +12,7 @@ import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.LanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -36,7 +37,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         }
         final LanguageSpecConfig config = new LanguageSpecConfig(configuration, metaborgVersion, identifier, name,
             compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart,
-            nabl2Debug, nabl2Incremental, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+            nabl2Config, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         return config;
     }
 
@@ -97,17 +98,12 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withNaBL2Debug(boolean debug) {
-        super.withNaBL2Debug(debug);
+    @Override public ILanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config) {
+        super.withNaBL2Config(config);
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withNaBL2Incremental(boolean incremental) {
-        super.withNaBL2Incremental(incremental);
-        return this;
-    }
-    
-    
+
     @Override public ILanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier) {
         super.withIdentifier(identifier);
         return this;

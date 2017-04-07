@@ -3,6 +3,7 @@ package org.metaborg.core.config;
 import java.util.Collection;
 
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 public interface IProjectConfig {
     /**
@@ -32,12 +33,7 @@ public interface IProjectConfig {
     boolean typesmart();
 
     /**
-     * @return Whether debug output is enabled for the constraint solver.
+     * @return NaBL2 configuration.
      */
-    boolean nabl2Debug();
-
-    /**
-     * @return Whether incrementalization is enabled for the constraint solver.
-     */
-    boolean nabl2Incremental();
+    NaBL2Config nabl2Config();
 }

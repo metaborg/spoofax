@@ -3,16 +3,19 @@ package org.metaborg.core.config;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Lists;
 
@@ -29,10 +32,8 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     private static final String PROP_STR_TYPESMART = "debug.typesmart";
 
     private static final String PROP_RUNTIME = "runtime";
-
     private static final String PROP_NABL2 = PROP_RUNTIME + ".nabl2";
-    private static final String PROP_NABL2_DEBUG = PROP_NABL2 + ".debug";
-    private static final String PROP_NABL2_INCREMENTAL = PROP_NABL2 + ".incremental";
+
 
     protected final HierarchicalConfiguration<ImmutableNode> config;
 
@@ -47,9 +48,9 @@ public class ProjectConfig implements IProjectConfig, IConfig {
     }
 
     protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
-        @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
-        @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
-        @Nullable Boolean nabl2Debug, @Nullable Boolean nabl2Incremental) {
+            @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
+            @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean typesmart,
+            @Nullable NaBL2Config nabl2Config) {
         this(config);
 
         if(metaborgVersion != null) {
@@ -67,11 +68,9 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         if(typesmart != null) {
             config.setProperty(PROP_STR_TYPESMART, typesmart);
         }
-        if(nabl2Debug != null) {
-            config.setProperty(PROP_NABL2_DEBUG, nabl2Debug);
-        }
-        if(nabl2Incremental != null) {
-            config.setProperty(PROP_NABL2_INCREMENTAL, nabl2Incremental);
+        if(nabl2Config != null) {
+            Optional.ofNullable(configurationAt(PROP_NABL2, true))
+                    .ifPresent(c -> NaBL2ConfigReaderWriter.write(nabl2Config, c));
         }
     }
 
@@ -87,29 +86,26 @@ public class ProjectConfig implements IProjectConfig, IConfig {
 
     @Override public Collection<LanguageIdentifier> compileDeps() {
         return config.getList(LanguageIdentifier.class, PROP_COMPILE_DEPENDENCIES,
-            Collections.<LanguageIdentifier>emptyList());
+                Collections.<LanguageIdentifier>emptyList());
     }
 
     @Override public Collection<LanguageIdentifier> sourceDeps() {
         return config.getList(LanguageIdentifier.class, PROP_SOURCE_DEPENDENCIES,
-            Collections.<LanguageIdentifier>emptyList());
+                Collections.<LanguageIdentifier>emptyList());
     }
 
     @Override public Collection<LanguageIdentifier> javaDeps() {
         return config.getList(LanguageIdentifier.class, PROP_JAVA_DEPENDENCIES,
-            Collections.<LanguageIdentifier>emptyList());
+                Collections.<LanguageIdentifier>emptyList());
     }
 
     @Override public boolean typesmart() {
         return config.getBoolean(PROP_STR_TYPESMART, false);
     }
 
-    @Override public boolean nabl2Debug() {
-        return config.getBoolean(PROP_NABL2_DEBUG, false);
-    }
-
-    @Override public boolean nabl2Incremental() {
-        return config.getBoolean(PROP_NABL2_INCREMENTAL, false);
+    @Override public NaBL2Config nabl2Config() {
+        return Optional.ofNullable(configurationAt(PROP_NABL2, false)).map(NaBL2ConfigReaderWriter::read)
+                .orElse(NaBL2Config.DEFAULT);
     }
 
 
@@ -118,11 +114,14 @@ public class ProjectConfig implements IProjectConfig, IConfig {
         validateDeps(config, PROP_COMPILE_DEPENDENCIES, "compile", mb, messages);
         validateDeps(config, PROP_SOURCE_DEPENDENCIES, "source", mb, messages);
         validateDeps(config, PROP_JAVA_DEPENDENCIES, "java", mb, messages);
+        Optional.ofNullable(configurationAt(PROP_NABL2, false)).ifPresent(c -> {
+            messages.addAll(NaBL2ConfigReaderWriter.validate(c, mb));
+        });
         return messages;
     }
 
     private static void validateDeps(ImmutableConfiguration config, String key, String name, MessageBuilder mb,
-        Collection<IMessage> messages) {
+            Collection<IMessage> messages) {
         final List<String> depStrs = config.getList(String.class, key, Lists.<String>newArrayList());
         for(String depStr : depStrs) {
             try {
@@ -132,4 +131,13 @@ public class ProjectConfig implements IProjectConfig, IConfig {
             }
         }
     }
+
+    private @Nullable HierarchicalConfiguration<ImmutableNode> configurationAt(String key, boolean supportUpdates) {
+        try {
+            return config.configurationAt(key, supportUpdates);
+        } catch(ConfigurationRuntimeException ex) {
+            return null;
+        }
+    }
+
 }
