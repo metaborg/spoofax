@@ -12,6 +12,7 @@ import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.meta.core.build.LangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
+import org.metaborg.spoofax.meta.core.generator.general.AnalysisType;
 
 /**
  * Provides the values that can be used in a generator template, e.g. a Mustache template.
@@ -20,9 +21,13 @@ public class GeneratorSettings {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
     private final CommonPaths paths;
-
+    public final AnalysisType analysisType;
 
     public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
+        this(location, config, AnalysisType.None);
+    }
+
+    public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config, AnalysisType analysisType) throws ProjectException {
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());
         }
@@ -51,6 +56,7 @@ public class GeneratorSettings {
         this.location = location;
         this.config = config;
         this.paths = new LangSpecCommonPaths(location);
+        this.analysisType = analysisType;
     }
 
 

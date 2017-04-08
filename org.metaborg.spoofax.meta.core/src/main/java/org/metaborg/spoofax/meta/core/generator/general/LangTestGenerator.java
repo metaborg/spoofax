@@ -28,6 +28,7 @@ public class LangTestGenerator extends BaseGenerator {
         generateConfig();
         generatePOM();
         generateTest();
+        generateIgnoreFile();
     }
 
 
@@ -41,5 +42,9 @@ public class LangTestGenerator extends BaseGenerator {
 
     public void generateTest() throws IOException {
         writer.write("test/test.spt", "test.spt", false);
+    }
+
+    public void generateIgnoreFile() throws IOException {
+        writer.write("test/vcsignore", ".gitignore", false);
     }
 }
