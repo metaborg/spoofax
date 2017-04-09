@@ -73,19 +73,19 @@ public class LangSpecGenerator extends BaseGenerator {
     }
 
     public String analysisType() {
-        return config.analysisType.id;
+        return config.generatorSettings.analysisType.id;
     }
 
     public boolean analysisEnabled() {
-        return syntaxEnabled() && config.analysisType != AnalysisType.None;
+        return syntaxEnabled() && config.generatorSettings.analysisType != AnalysisType.None;
     }
 
     public boolean analysisNablTs() {
-        return syntaxEnabled() && config.analysisType == AnalysisType.NaBL_TS;
+        return syntaxEnabled() && config.generatorSettings.analysisType == AnalysisType.NaBL_TS;
     }
 
     public boolean analysisNabl2() {
-        return syntaxEnabled() && config.analysisType == AnalysisType.NaBL2;
+        return syntaxEnabled() && config.generatorSettings.analysisType == AnalysisType.NaBL2;
     }
 
     public boolean syntaxOrAnalysisEnabled() {

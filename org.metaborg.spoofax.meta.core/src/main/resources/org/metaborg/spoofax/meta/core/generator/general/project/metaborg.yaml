@@ -4,5 +4,11 @@ name: {{name}}
 dependencies:
   compile:
   - {{groupId}}:{{id}}:{{version}}
+debug:
+  typesmart: false
+{{#analysisNabl2}}runtime:
+  nabl2:
+    debug: analysis files
+{{/analysisNabl2}}
 build:
   useBuildSystemSpec: true

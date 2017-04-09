@@ -1,0 +1,12 @@
+/target
+
+/.classpath
+/.project
+/.settings
+
+{{#analysisNabl2}}*.constraints
+*.scope-graph
+*.name-resolution
+*.unifier
+*.symbolic
+{{/analysisNabl2}}
