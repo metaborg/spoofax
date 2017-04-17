@@ -11,7 +11,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
  * Interface for retrieving term factories for languages and generic use.
  */
 public interface ITermFactoryService {
-
     /**
      * Return the term factory to be used when constructing new terms for given language implementation.
      * 

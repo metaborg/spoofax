@@ -15,8 +15,8 @@ import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.ISourceTextService;
 
 /**
- * Prints note, warning, and error messages similar to large compilers such as GCC or Clang. That is, the message
- * comes with filename, line, column, and severity. Also the affected code is underlined with carets (^).
+ * Prints note, warning, and error messages similar to large compilers such as GCC or Clang. That is, the message comes
+ * with filename, line, column, and severity. Also the affected code is underlined with carets (^).
  */
 public class WithLocationStreamMessagePrinter implements IMessagePrinter {
 
@@ -38,48 +38,44 @@ public class WithLocationStreamMessagePrinter implements IMessagePrinter {
         this.outputStream = new PrintStream(outputStream);
     }
 
-    @Override
-    public void print(IMessage message, boolean pardoned) {
+    @Override public void print(IMessage message, boolean pardoned) {
         print(message.message(), pardoned, message.source(), message.severity(), message.region());
     }
 
-    @Override
-    public void print(FileObject resource, String message, Throwable e, boolean pardoned) {
+    @Override public void print(@Nullable FileObject resource, String message, Throwable e, boolean pardoned) {
         print(message, pardoned, resource, null, null);
     }
 
-    @Override
-    public void print(IProject project, String message, Throwable e, boolean pardoned) {
+    @Override public void print(IProject project, String message, Throwable e, boolean pardoned) {
         print(message, pardoned, null, null, null);
     }
 
-    @Override
-    public void printSummary() {
+    @Override public void printSummary() {
     }
 
-    private void print(String message, boolean pardoned, @Nullable FileObject sourceFile, @Nullable MessageSeverity
-        severity, @Nullable ISourceRegion sourceRegion) {
-        if (pardoned) {
+    private void print(String message, boolean pardoned, @Nullable FileObject sourceFile,
+        @Nullable MessageSeverity severity, @Nullable ISourceRegion sourceRegion) {
+        if(pardoned) {
             return;
         }
 
         final StringBuilder sb = new StringBuilder();
         // if available, print filename, line number, and column
-        if (sourceFile != null) {
+        if(sourceFile != null) {
             try {
                 // source file name relative to project location (so that we don't output long absolute paths)
                 final IProject project = projectService.get(sourceFile);
                 String relativeSourceFilename = sourceFile.getName().getBaseName();
-                if (project != null // projectService.get() is @Nullable
+                if(project != null // projectService.get() is @Nullable
                     && project.location().getName() != sourceFile.getName() // don't "relativize" if project == source
-                    ) {
+                ) {
                     relativeSourceFilename = project.location().getName().getRelativeName(sourceFile.getName());
                 }
 
                 sb.append(relativeSourceFilename);
                 sb.append(':');
 
-                if (sourceRegion != null && sourceRegion.startRow() != -1 && sourceRegion.startColumn() != -1) {
+                if(sourceRegion != null && sourceRegion.startRow() != -1 && sourceRegion.startColumn() != -1) {
                     sb.append(sourceRegion.startRow() + 1); // startRow() is in [0, #lines)
                     sb.append(':');
                     sb.append(sourceRegion.startColumn() + 1);
@@ -87,12 +83,12 @@ public class WithLocationStreamMessagePrinter implements IMessagePrinter {
                 }
 
                 sb.append(' ');
-            } catch (FileSystemException ignored) {
+            } catch(FileSystemException ignored) {
             }
         }
 
         // print severity and message
-        if (severity != null) {
+        if(severity != null) {
             sb.append(severity.name().toLowerCase());
             sb.append(": ");
         }
@@ -100,14 +96,14 @@ public class WithLocationStreamMessagePrinter implements IMessagePrinter {
         sb.append('\n');
 
         // if available, pretty-print source code
-        if (sourceFile != null && sourceRegion != null) {
+        if(sourceFile != null && sourceRegion != null) {
             try {
-                final String affectedSource = AffectedSourceHelper
-                    .affectedSourceText(sourceRegion, sourceTextService.text(sourceFile), " ");
-                if (affectedSource != null) { // affectedSourceText() is @Nullable
+                final String affectedSource =
+                    AffectedSourceHelper.affectedSourceText(sourceRegion, sourceTextService.text(sourceFile), " ");
+                if(affectedSource != null) { // affectedSourceText() is @Nullable
                     sb.append(affectedSource);
                 }
-            } catch (IOException ignored) {
+            } catch(IOException ignored) {
             }
         }
 

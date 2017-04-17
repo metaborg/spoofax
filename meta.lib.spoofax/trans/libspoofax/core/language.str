@@ -32,4 +32,4 @@ rules
   /**
    * Call a strategy from another language that is active in the context this strategy is executed in.
    */
-  call-in-language(|lang,strategy) = prim("call_strategy", lang, strategy)
+  call-in-language(|lang, strategy) = prim("call_strategy", lang, strategy)

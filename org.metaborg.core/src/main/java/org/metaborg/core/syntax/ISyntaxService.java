@@ -2,7 +2,12 @@ package org.metaborg.core.syntax;
 
 import java.util.Collection;
 
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.processing.NullCancel;
+import org.metaborg.core.processing.NullProgress;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Interface for context-free syntactical services, including parsing and information about lexical characters.
@@ -28,11 +33,53 @@ public interface ISyntaxService<I extends IInputUnit, P extends IParseUnit> {
      * 
      * @param input
      *            Input unit to parse.
+     * @param progress
+     *            Progress reporter.
+     * @param cancel
+     *            Cancellation token.
+     * @return Parse unit.
+     * @throws ParseException
+     *             When parsing fails unexpectedly.
+     * @throws InterruptedException
+     *             When parsing is cancelled.
+     */
+    P parse(I input, IProgress progress, ICancel cancel) throws ParseException, InterruptedException;
+
+    /**
+     * Parses given input unit into a parse unit.
+     * 
+     * @param input
+     *            Input unit to parse.
      * @return Parse unit.
      * @throws ParseException
      *             When parsing fails unexpectedly.
      */
-    P parse(I input) throws ParseException;
+    default P parse(I input) throws ParseException {
+        try {
+            return parse(input, new NullProgress(), new NullCancel());
+        } catch(InterruptedException e) {
+            // This cannot happen, since we pass a null cancellation token, but we need to handle the exception.
+            throw new MetaborgRuntimeException("Interrupted", e);
+        }
+    }
+
+    /**
+     * Parses all given input units into a parse units.
+     * 
+     * @param inputs
+     *            Input units to parse.
+     * @param progress
+     *            Progress reporter.
+     * @param cancel
+     *            Cancellation token.
+     * @return Parse units.
+     * @throws ParseException
+     *             When parsing fails unexpectedly.
+     * @throws InterruptedException
+     *             When parsing is cancelled.
+     */
+    Collection<P> parseAll(Iterable<I> inputs, IProgress progress, ICancel cancel)
+        throws ParseException, InterruptedException;
 
     /**
      * Parses all given input units into a parse units.
@@ -43,7 +90,14 @@ public interface ISyntaxService<I extends IInputUnit, P extends IParseUnit> {
      * @throws ParseException
      *             When parsing fails unexpectedly.
      */
-    Collection<P> parseAll(Iterable<I> inputs) throws ParseException;
+    default Collection<P> parseAll(Iterable<I> inputs) throws ParseException {
+        try {
+            return parseAll(inputs, new NullProgress(), new NullCancel());
+        } catch(InterruptedException e) {
+            // This cannot happen, since we pass a null cancellation token, but we need to handle the exception.
+            throw new MetaborgRuntimeException("Interrupted", e);
+        }
+    }
 
 
     /**

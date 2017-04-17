@@ -11,6 +11,8 @@ import org.metaborg.core.build.IBuildOutput;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Interface for language processing. Handles building and cleaning on-demand, and language change events automatically.
@@ -30,29 +32,28 @@ public interface IProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, 
      * 
      * @param input
      *            Build input to use.
-     * @param progressReporter
+     * @param progress
      *            Progress reporter, or null to use a processor-specific implementation for progress reporting.
-     * @param cancellationToken
+     * @param cancel
      *            Cancellation token, or null to a use a processor-specific implementation for cancellation.
      * @return Task that builds with given input, and has the build output as result. Schedule the task and wait for it
      *         to complete to get the build output.
      */
-    ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgress progress,
+        @Nullable ICancel cancel);
 
     /**
      * Creates a task that cleans with given clean input.
      * 
      * @param input
      *            Clean input to use.
-     * @param progressReporter
+     * @param progress
      *            Progress reporter, or null to use a processor-specific implementation for progress reporting.
-     * @param cancellationToken
+     * @param cancel
      *            Cancellation token, or null to a use a processor-specific implementation for cancellation.
      * @return Task that cleans with given input.
      */
-    ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<?> clean(CleanInput input, @Nullable IProgress progress, @Nullable ICancel cancel);
 
 
     /**

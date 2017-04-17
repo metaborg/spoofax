@@ -13,6 +13,8 @@ import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 /**
  * Interface for creating processing tasks. Used internally, clients should use a {@link IProcessorRunner}.
@@ -28,16 +30,15 @@ import org.metaborg.core.transform.ITransformUnit;
  */
 public interface IProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>> {
     /**
-     * @see IProcessorRunner#build(BuildInput, IProgressReporter, ICancellationToken)
+     * @see IProcessorRunner#build(BuildInput, IProgress, ICancel)
      */
-    ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<? extends IBuildOutput<P, A, AU, T>> build(BuildInput input, @Nullable IProgress progressReporter,
+        @Nullable ICancel cancellationToken);
 
     /**
-     * @see IProcessorRunner#clean(CleanInput, IProgressReporter, ICancellationToken)
+     * @see IProcessorRunner#clean(CleanInput, IProgress, ICancel)
      */
-    ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
-        @Nullable ICancellationToken cancellationToken);
+    ITask<?> clean(CleanInput input, @Nullable IProgress progressReporter, @Nullable ICancel cancellationToken);
 
 
     /**

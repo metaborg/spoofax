@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -37,9 +38,9 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        final LanguageComponentConfig config =
-            new LanguageComponentConfig(configuration, metaborgVersion, identifier, name, compileDeps, sourceDeps,
-                javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart, langContribs, generates, exports);
+        final LanguageComponentConfig config = new LanguageComponentConfig(configuration, metaborgVersion, identifier,
+            name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart,
+            nabl2Config, langContribs, generates, exports);
         return config;
     }
 
@@ -105,6 +106,16 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
     @Override public ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps) {
         super.addJavaDeps(deps);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withTypesmart(boolean typesmart) {
+        super.withTypesmart(typesmart);
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withNaBL2Config(NaBL2Config config) {
+        super.withNaBL2Config(config);
         return this;
     }
 

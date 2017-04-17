@@ -129,3 +129,15 @@ rules
   ppdebugnax = ppdebugna(|"x ")
   ppdebugnay = ppdebugna(|"y ")
   ppdebugnaz = ppdebugna(|"z ")
+
+rules
+
+  cputime = prim("SSL_cputime")
+
+  cputime-to-seconds:
+    cputime -> <div> (cputime, 1000000000)
+
+  measure-time(s, match) =
+    where(before := <cputime>);
+    s;
+    where(after := <cputime>; !(after, before); subt; match)

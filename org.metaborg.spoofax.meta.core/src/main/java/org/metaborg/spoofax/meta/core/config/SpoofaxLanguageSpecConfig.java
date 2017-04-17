@@ -17,6 +17,7 @@ import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.meta.core.config.LanguageSpecConfig;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.config.NaBL2Config;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -40,10 +41,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_EXTERNAL_DEF = PROP_SDF + ".externalDef";
     private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
-    private static final String PROP_PRETTY_PRINT = "pretty-print";
+    private static final String PROP_PRETTY_PRINT = PROP_SDF + ".pretty-print";
 
-    private static final String PROP_PLACEHOLDER_PREFIX = "placeholder.prefix";
-    private static final String PROP_PLACEHOLDER_SUFFIX = "placeholder.suffix";
+    private static final String PROP_PLACEHOLDER_PREFIX = PROP_SDF + ".placeholder.prefix";
+    private static final String PROP_PLACEHOLDER_SUFFIX = PROP_SDF + ".placeholder.suffix";
 
 
     private static final String PROP_STR = "language.stratego";
@@ -65,7 +66,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
         @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Collection<LanguageIdentifier> compileDeps,
         @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps,
-        @Nullable Boolean typesmart, @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Boolean typesmart, @Nullable NaBL2Config nabl2Config,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable String metaborgVersion, @Nullable Collection<String> pardonedLanguages,
         @Nullable Boolean useBuildSystemSpec, @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled,
@@ -75,7 +77,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
         @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable,
-            completionsParseTable, typesmart, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+            completionsParseTable, typesmart, nabl2Config, langContribs, generates, exports,
+            pardonedLanguages, useBuildSystemSpec);
 
         if(sdfVersion != null) {
             config.setProperty(PROP_SDF_VERSION, sdfVersion);
@@ -272,7 +275,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         String prefix = this.config.getString(PROP_PLACEHOLDER_PREFIX);
         String suffix = this.config.getString(PROP_PLACEHOLDER_SUFFIX);
         if(prefix == null && suffix == null) {
-            placeholderChars = new PlaceholderCharacters("[[", "]]");
+            placeholderChars = new PlaceholderCharacters("$", null);
         } else {
             try {
                 placeholderChars = new PlaceholderCharacters(prefix, suffix);
@@ -280,7 +283,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
                 logger.warn(
                     "Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead",
                     suffix);
-                placeholderChars = new PlaceholderCharacters("[[", "]]");
+                placeholderChars = new PlaceholderCharacters("$", null);
             }
         }
         return placeholderChars;

@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.build;
 
+import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.Builder;
 import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -18,6 +19,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -37,5 +40,15 @@ public class SpoofaxBuilder extends
         super(resourceService, languageIdentifier, languagePathService, unitService, sourceTextService, syntaxService,
             contextService, analysisService, transformService, parseResultUpdater, analysisResultUpdater,
             buildOutputProvider);
+    }
+
+
+    @Override public ISpoofaxBuildOutput build(BuildInput input, IProgress progress,
+        ICancel cancel) throws InterruptedException {
+        return (ISpoofaxBuildOutput) super.build(input, progress, cancel);
+    }
+
+    @Override public ISpoofaxBuildOutput build(BuildInput input) throws InterruptedException {
+        return (ISpoofaxBuildOutput) super.build(input);
     }
 }

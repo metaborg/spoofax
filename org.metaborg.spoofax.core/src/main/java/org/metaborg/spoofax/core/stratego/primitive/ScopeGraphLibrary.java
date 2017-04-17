@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.stratego.primitive.scopegraph;
+package org.metaborg.spoofax.core.stratego.primitive;
 
 import java.util.Set;
 

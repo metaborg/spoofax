@@ -8,15 +8,14 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageComponentConfig;
-import org.metaborg.core.language.ILanguageDiscoveryRequest;
+import org.metaborg.core.language.IComponentCreationConfigRequest;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Iterables;
 
-public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
-
+public class ComponentFactoryRequest implements IComponentCreationConfigRequest {
     private final boolean available;
     private final FileObject location;
     private final Collection<String> errors;
@@ -28,7 +27,7 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
 
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a successful language request.
+     * Initializes a new instance for a successful request.
      *
      * @param location
      *            The location of the language component.
@@ -41,7 +40,7 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
      * @param strategoRuntimeFacet
      *            The Stratego runtime facet.
      */
-    public LanguageDiscoveryRequest(FileObject location, @Nullable ILanguageComponentConfig config,
+    public ComponentFactoryRequest(FileObject location, @Nullable ILanguageComponentConfig config,
         @Nullable IStrategoAppl esvTerm, @Nullable SyntaxFacet syntaxFacet,
         @Nullable StrategoRuntimeFacet strategoRuntimeFacet) {
         this.available = true;
@@ -55,7 +54,7 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
     }
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a failed language request.
+     * Initializes a new instance for a failed request.
      *
      * @param location
      *            The location of the language component.
@@ -64,7 +63,7 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
      * @param exceptions
      *            The exceptions that were raised during the request.
      */
-    public LanguageDiscoveryRequest(FileObject location, Collection<String> errors, Collection<Throwable> exceptions) {
+    public ComponentFactoryRequest(FileObject location, Collection<String> errors, Collection<Throwable> exceptions) {
         this.available = false;
         this.location = location;
         this.errors = errors != null ? errors : Collections.<String>emptyList();
@@ -76,45 +75,46 @@ public class LanguageDiscoveryRequest implements ILanguageDiscoveryRequest {
     }
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a failed language request.
+     * Initializes a new instance for a failed request.
      *
      * @param location
      *            The location of the language component.
      * @param errors
      *            The error messages that were raised during the request.
      */
-    public LanguageDiscoveryRequest(FileObject location, Collection<String> errors) {
+    public ComponentFactoryRequest(FileObject location, Collection<String> errors) {
         this(location, errors, null);
     }
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a failed language request.
+     * Initializes a new instance for a failed request.
      *
      * @param location
      *            The location of the language component.
      * @param error
      *            The error message that was raised during the request.
      */
-    public LanguageDiscoveryRequest(FileObject location, String error) {
+    public ComponentFactoryRequest(FileObject location, String error) {
         this(location, Collections.singletonList(error), null);
     }
 
     /**
-     * Initializes a new instance of the {@link LanguageDiscoveryRequest} class for a failed language request.
+     * Initializes a new instance for a failed request.
      *
      * @param location
      *            The location of the language component.
      * @param exception
      *            The exception that was raised during the request.
      */
-    public LanguageDiscoveryRequest(FileObject location, Throwable exception) {
+    public ComponentFactoryRequest(FileObject location, Throwable exception) {
         this(location, null, Collections.singletonList(exception));
     }
+
 
     /**
      * {@inheritDoc}
      */
-    @Override public boolean available() {
+    @Override public boolean valid() {
         return this.available;
     }
 

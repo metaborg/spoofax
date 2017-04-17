@@ -5,6 +5,8 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 public class AnalysisService<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate>
     implements IAnalysisService<P, A, AU> {
@@ -15,7 +17,8 @@ public class AnalysisService<P extends IParseUnit, A extends IAnalyzeUnit, AU ex
         return langImpl.hasFacet(AnalyzerFacet.class);
     }
 
-    @Override public IAnalyzeResult<A, AU> analyze(P input, IContext context) throws AnalysisException {
+    @Override public IAnalyzeResult<A, AU> analyze(P input, IContext context, IProgress progress, ICancel cancel)
+        throws AnalysisException, InterruptedException {
         final ILanguageImpl langImpl = context.language();
         final AnalyzerFacet<P, A, AU> facet = facet(langImpl);
         if(facet == null) {
@@ -24,10 +27,11 @@ public class AnalysisService<P extends IParseUnit, A extends IAnalyzeUnit, AU ex
         }
         final IAnalyzer<P, A, AU> analyzer = facet.analyzer;
 
-        return analyzer.analyze(input, context);
+        return analyzer.analyze(input, context, progress, cancel);
     }
 
-    @Override public IAnalyzeResults<A, AU> analyzeAll(Iterable<P> inputs, IContext context) throws AnalysisException {
+    @Override public IAnalyzeResults<A, AU> analyzeAll(Iterable<P> inputs, IContext context, IProgress progress,
+        ICancel cancel) throws AnalysisException, InterruptedException {
         final ILanguageImpl langImpl = context.language();
         final AnalyzerFacet<P, A, AU> facet = facet(langImpl);
         if(facet == null) {
@@ -36,7 +40,7 @@ public class AnalysisService<P extends IParseUnit, A extends IAnalyzeUnit, AU ex
         }
         final IAnalyzer<P, A, AU> analyzer = facet.analyzer;
 
-        return analyzer.analyzeAll(inputs, context);
+        return analyzer.analyzeAll(inputs, context, progress, cancel);
     }
 
 

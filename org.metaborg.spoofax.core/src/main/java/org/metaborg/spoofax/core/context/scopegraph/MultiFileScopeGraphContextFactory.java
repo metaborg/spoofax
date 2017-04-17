@@ -22,8 +22,7 @@ public class MultiFileScopeGraphContextFactory implements IContextFactory {
         return new MultiFileScopeGraphContext(injector, identifier);
     }
 
-    @Override public TemporaryMultiFileScopeGraphContext createTemporary(
-            ContextIdentifier identifier) {
+    @Override public TemporaryMultiFileScopeGraphContext createTemporary(ContextIdentifier identifier) {
         return new TemporaryMultiFileScopeGraphContext(create(identifier));
     }
 

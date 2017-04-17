@@ -8,6 +8,7 @@ import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 /**
  * Builder for {@link ILanguageSpecConfig} objects.
@@ -40,16 +41,6 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
     /**
      * {@inheritDoc}
      */
-    @Override ILanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override ILanguageSpecConfigBuilder withName(String name);
-
-    /**
-     * {@inheritDoc}
-     */
     @Override ILanguageSpecConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
@@ -77,6 +68,27 @@ public interface ILanguageSpecConfigBuilder extends ILanguageComponentConfigBuil
      */
     @Override ILanguageSpecConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageSpecConfigBuilder withTypesmart(boolean typesmart);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config);
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override ILanguageSpecConfigBuilder withName(String name);
+    
     /**
      * {@inheritDoc}
      */

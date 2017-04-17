@@ -91,7 +91,7 @@ public interface ILanguageService {
     /**
      * Creates a request object with given identifier and location, contributing to given language implementation
      * identifiers. Returns a request object where facets can be added before passing it to
-     * {@link #add(LanguageCreationRequest)}.
+     * {@link #add(ComponentCreationConfig)}.
      * 
      * @param identifier
      *            Identifier of the component to create.
@@ -102,15 +102,18 @@ public interface ILanguageService {
      * @param config
      *            Configuration of the component to create.
      * 
-     * @return Creation request object, when passed to {@link #add(LanguageCreationRequest)} actually adds the language.
+     * @return Creation request object, when passed to {@link #add(ComponentCreationConfig)} actually adds the language.
+     * @deprecated Use {@code new ComponentConfiguration(identifier, location, contribs, config)}
      */
-    LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
-        Iterable<LanguageContributionIdentifier> contribs, ILanguageComponentConfig config);
+    @Deprecated default ComponentCreationConfig create(LanguageIdentifier identifier, FileObject location,
+        Iterable<LanguageContributionIdentifier> contribs, ILanguageComponentConfig config) {
+        return new ComponentCreationConfig(identifier, location, contribs, config);
+    }
 
     /**
-     * Adds language component created from given request object, and return the created component.
+     * Adds language component created from given configuration object, and return the created component.
      * 
-     * @param request
+     * @param config
      *            Request object to process.
      * @return Created component.
      * @throws IllegalStateException
@@ -119,7 +122,7 @@ public interface ILanguageService {
      * @throws IllegalStateException
      *             When a component with a different id has already been created at given component's location.
      */
-    ILanguageComponent add(LanguageCreationRequest request);
+    ILanguageComponent add(ComponentCreationConfig config);
 
     /**
      * Removes given language component.

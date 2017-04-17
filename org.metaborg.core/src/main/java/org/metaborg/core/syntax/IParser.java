@@ -2,6 +2,9 @@ package org.metaborg.core.syntax;
 
 import java.util.Collection;
 
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
+
 /**
  * Interface for a context-free parser implementation.
  * 
@@ -19,8 +22,10 @@ public interface IParser<I extends IInputUnit, P extends IParseUnit> {
      * @return Parse unit.
      * @throws ParseException
      *             When parsing fails unexpectedly.
+     * @throws InterruptedException
+     *             When parsing is cancelled.
      */
-    P parse(I input) throws ParseException;
+    P parse(I input, IProgress progress, ICancel cancel) throws ParseException, InterruptedException;
 
     /**
      * Parses all given input units into a parse units.
@@ -30,6 +35,9 @@ public interface IParser<I extends IInputUnit, P extends IParseUnit> {
      * @return Parse units.
      * @throws ParseException
      *             When parsing fails unexpectedly.
+     * @throws InterruptedException
+     *             When parsing is cancelled.
      */
-    Collection<P> parseAll(Iterable<I> inputs) throws ParseException;
+    Collection<P> parseAll(Iterable<I> inputs, IProgress progress, ICancel cancel)
+        throws ParseException, InterruptedException;
 }

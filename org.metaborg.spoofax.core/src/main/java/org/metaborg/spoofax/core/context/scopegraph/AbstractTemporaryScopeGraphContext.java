@@ -8,9 +8,10 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
-import org.metaborg.scopegraph.context.IScopeGraphUnit;
+import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.inject.Injector;
 
@@ -52,12 +53,20 @@ public abstract class AbstractTemporaryScopeGraphContext<U extends IScopeGraphUn
         return context.language();
     }
 
+    @Override public NaBL2Config config() {
+        return context.config();
+    }
+    
     @Override public Injector injector() {
         return context.injector();
     }
 
     @Override public IClosableLock read() {
         return new NullClosableLock();
+    }
+
+    @Override public IClosableLock guard() {
+        return read();
     }
 
     @Override public IClosableLock write() {
@@ -75,7 +84,6 @@ public abstract class AbstractTemporaryScopeGraphContext<U extends IScopeGraphUn
     @Override public void close() {
         unload();
     }
-
 
     @Override public U unit(String source) {
         return context.unit(source);

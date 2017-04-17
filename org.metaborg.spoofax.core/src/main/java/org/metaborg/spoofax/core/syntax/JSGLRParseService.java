@@ -17,12 +17,10 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.jsglr.client.imploder.NullTokenizer;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -50,7 +48,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
     }
 
 
-    @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input) throws ParseException {
+    @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel)
+        throws ParseException {
         final FileObject source = input.source();
         final ILanguageImpl langImpl;
         final ILanguageImpl base;
@@ -64,22 +63,6 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         final String text = input.text();
 
         final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
-
-        // WORKAROUND: JSGLR can't handle an empty input string, return empty tuple with null tokenizer.
-        if(text == null || text.isEmpty()) {
-            final IStrategoTerm emptyTuple = termFactory.makeTuple();
-            final String filename;
-            if(input.detached()) {
-                filename = "";
-            } else {
-                filename = input.source().getName().getURI();
-            }
-            final ITokenizer tokenizer = new NullTokenizer("", filename);
-            final IToken token = tokenizer.currentToken();
-            ImploderAttachment.putImploderAttachment(emptyTuple, false, "", token, token, false, false, false, false);
-            return unitService.parseUnit(input, new ParseContrib(emptyTuple));
-        }
-
         final IParserConfig config;
 
         JSGLRParserConfiguration parserConfig = input.config();
@@ -111,10 +94,11 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         }
     }
 
-    @Override public Collection<ISpoofaxParseUnit> parseAll(Iterable<ISpoofaxInputUnit> inputs) throws ParseException {
+    @Override public Collection<ISpoofaxParseUnit> parseAll(Iterable<ISpoofaxInputUnit> inputs, IProgress progress,
+        ICancel cancel) throws ParseException {
         final Collection<ISpoofaxParseUnit> parseUnits = Lists.newArrayList();
         for(ISpoofaxInputUnit input : inputs) {
-            parseUnits.add(parse(input));
+            parseUnits.add(parse(input, progress, cancel));
         }
         return parseUnits;
     }
@@ -151,7 +135,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             } else {
                 parseTable = facet.parseTable;
             }
-            
+
             try {
                 if(parseTable == null || !parseTable.exists()) {
                     logger.error("Parse table not found or sdf is not enabled for this language.");
@@ -187,7 +171,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
                         if(component.config().sdfEnabled()) {
                             if(component.config().completionsParseTable() != null) {
                                 if(multipleTables) {
-                                    logger.error("Different components are specifying multiple completion parse tables.");
+                                    logger
+                                        .error("Different components are specifying multiple completion parse tables.");
                                     throw new ParseException(input);
                                 }
 

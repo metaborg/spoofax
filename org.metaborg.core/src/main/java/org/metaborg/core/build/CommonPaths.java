@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.NameUtil;
 
@@ -94,7 +95,7 @@ public class CommonPaths {
      * @return Metaborg component configuration file.
      */
     public FileObject mbComponentConfigFile() {
-        return resolve(srcGenDir(), "metaborg.component.yaml");
+        return resolve(srcGenDir(), MetaborgConstants.FILE_COMPONENT_CONFIG);
     }
 
 

@@ -47,7 +47,7 @@ public class BuildInput {
 
 
     /**
-     * File selector to determine which resources should be processed, or null to processed everything.
+     * File selector to determine which resources should be processed, or null to process everything.
      */
     public final @Nullable FileSelector selector;
 

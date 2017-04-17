@@ -24,7 +24,7 @@ public interface IMessagePrinter {
      * Prints given message and exception, located at a resource. Used if the source location is not available.
      * 
      * @param resource
-     *            Resource the message occurred in.
+     *            Resource the message occurred in, or null if the message was detached.
      * @param message
      *            Message to print.
      * @param e
@@ -33,7 +33,7 @@ public interface IMessagePrinter {
      *            If the (error or warning) message is pardoned, i.e. the message is acceptable even if it indicates a
      *            problem.
      */
-    void print(FileObject resource, String message, @Nullable Throwable e, boolean pardoned);
+    void print(@Nullable FileObject resource, String message, @Nullable Throwable e, boolean pardoned);
 
     /**
      * Prints given message and exception, located at a project. Used if the source location or resource is not

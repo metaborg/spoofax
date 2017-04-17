@@ -10,6 +10,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -28,6 +29,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
     protected @Nullable Set<LanguageIdentifier> sourceDeps;
     protected @Nullable Set<LanguageIdentifier> javaDeps;
     protected @Nullable Boolean typesmart;
+    protected @Nullable NaBL2Config nabl2Config;
 
 
     @Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -38,7 +40,8 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart);
+        return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart,
+            nabl2Config);
     }
 
     @Override public IProjectConfigBuilder reset() {
@@ -49,6 +52,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         sourceDeps = null;
         javaDeps = null;
         typesmart = null;
+        nabl2Config = null;
         return this;
     }
 
@@ -69,6 +73,7 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
             withSourceDeps(config.sourceDeps());
             withJavaDeps(config.javaDeps());
             withTypesmart(config.typesmart());
+            withNaBL2Config(config.nabl2Config());
         }
 
         return this;
@@ -138,4 +143,10 @@ public class ProjectConfigBuilder implements IProjectConfigBuilder {
         this.typesmart = typesmart;
         return this;
     }
+
+    @Override public IProjectConfigBuilder withNaBL2Config(NaBL2Config config) {
+        this.nabl2Config = config;
+        return this;
+    }
+
 }

@@ -198,14 +198,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
 
                 if(input.sdf2tableVersion == Sdf2tableVersion.java) {
-                    // Get JSGLR parse table and parenthesizer, from the normalized SDF aterm
+                    // Get JSGLR parse table, from the normalized SDF aterm
 
                     final File srcNormDir = toFile(paths.syntaxNormDir());
                     final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-new.tbl");
                     File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
                     final List<String> paths = Lists.newLinkedList();
                     paths.add(srcGenSyntaxDir.getAbsolutePath());
-                    
+
                     for(LanguageIdentifier langId : input.sourceDeps) {
                         ILanguageImpl lang = context.languageService().getImpl(langId);
                         for(final ILanguageComponent component : lang.components()) {
@@ -243,14 +243,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                         Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfNormFile, tableFile, paths, true));
 
                     requireBuild(sdf2TableJavaOrigin);
-                    parenthesizeOrigin = null;
-                } else {
-                    // Get Stratego parenthesizer file, from the SDF def file.
-                    final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
-                    final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
-                    parenthesizeOrigin = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile,
-                        parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
                 }
+
+                // Get Stratego parenthesizer file, from the SDF def file.
+                final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
+                final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
+                parenthesizeOrigin = Sdf2Parenthesize.origin(new Sdf2Parenthesize.Input(context, packSdfFile,
+                    parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
+
 
                 // Get JSGLR parse table, from the SDF permissive def file.
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf.tbl");
@@ -279,7 +279,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
-                
+
                 for(LanguageIdentifier langId : input.sourceDeps) {
                     ILanguageImpl lang = context.languageService().getImpl(langId);
                     for(final ILanguageComponent component : lang.components()) {
@@ -441,6 +441,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             
             if(input.sdf2tableVersion == Sdf2tableVersion.java) {
                 origin = Origin.Builder()
+                    .add(parenthesizeOrigin)
                     .add(sigOrigin)
                     .add(sdfCompletionOrigin)
                     .add(sdfMetaOrigin)

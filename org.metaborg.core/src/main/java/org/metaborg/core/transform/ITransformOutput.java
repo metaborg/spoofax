@@ -8,7 +8,6 @@ import org.apache.commons.vfs2.FileObject;
  * Class representing output of a transformation.
  */
 public interface ITransformOutput {
-
     /**
      * Name of the output result, usually a string representation of the output file.
      */

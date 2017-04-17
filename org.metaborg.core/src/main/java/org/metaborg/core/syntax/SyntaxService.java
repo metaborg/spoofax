@@ -6,6 +6,8 @@ import java.util.Map;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.task.ICancel;
+import org.metaborg.util.task.IProgress;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -26,20 +28,21 @@ public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> 
     }
 
 
-    @Override public P parse(I input) throws ParseException {
+    @Override public P parse(I input, IProgress progress, ICancel cancel) throws ParseException, InterruptedException {
         final ILanguageImpl langImpl = input.langImpl();
         final IParser<I, P> parser = parser(langImpl);
         if(parser == null) {
             final String message = logger.format("Cannot get a parser for {}", langImpl);
             throw new ParseException(input, message);
         }
-        return parser.parse(input);
+        return parser.parse(input, progress, cancel);
     }
 
-    @Override public Collection<P> parseAll(Iterable<I> inputs) throws ParseException {
+    @Override public Collection<P> parseAll(Iterable<I> inputs, IProgress progress, ICancel cancel)
+        throws ParseException, InterruptedException {
         final Collection<P> results = Lists.newArrayList();
         for(I input : inputs) {
-            results.add(parse(input));
+            results.add(parse(input, progress, cancel));
         }
         return results;
     }

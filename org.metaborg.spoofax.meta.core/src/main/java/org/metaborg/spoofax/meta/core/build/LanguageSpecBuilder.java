@@ -183,7 +183,7 @@ public class LanguageSpecBuilder {
                 final BuildInput buildInput =
                     new BuildInputBuilder(input.languageSpec())
                     .addSource(mainDsFile)
-                    .addTransformGoal(new EndNamedGoal("All to Java"))
+                    .addTransformGoal(new EndNamedGoal("Generate interpreter"))
                     .withMessagePrinter(new StreamMessagePrinter(sourceTextService, false, true, logger))
                     .build(dependencyService, languagePathService);
                 // @formatter:on

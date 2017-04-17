@@ -9,7 +9,10 @@ import org.metaborg.core.config.ILanguageComponentConfig;
 
 /**
  * Request for language discovery.
+ * 
+ * @deprecated Use {@link IComponentCreationConfigRequest} with {@link ILanguageComponentFactory}.
  */
+@Deprecated
 public interface ILanguageDiscoveryRequest {
     /**
      * Gets whether the language component is available.
@@ -19,7 +22,15 @@ public interface ILanguageDiscoveryRequest {
      * 
      * @return <code>true</code> when a request is available; otherwise, <code>false</code>.
      */
-    boolean available();
+    boolean valid();
+    
+    /**
+     * @see #valid()
+     * @deprecated Use {@link #valid()}
+     */
+    @Deprecated default boolean available() {
+        return valid();
+    }
 
     /**
      * Gets the location of the request.
@@ -38,7 +49,7 @@ public interface ILanguageDiscoveryRequest {
     /**
      * Gets the errors produced during the creation of this request.
      *
-     * The resulting collection is empty when {@link #available()} is <code>true</code>.
+     * The resulting collection is empty when {@link #valid()} is <code>true</code>.
      *
      * @return The produced error messages.
      */
@@ -47,7 +58,7 @@ public interface ILanguageDiscoveryRequest {
     /**
      * Gets the exceptions thrown during the creation of this request.
      *
-     * The resulting collection is empty when {@link #available()} is <code>true</code>.
+     * The resulting collection is empty when {@link #valid()} is <code>true</code>.
      *
      * @return The thrown exceptions.
      */

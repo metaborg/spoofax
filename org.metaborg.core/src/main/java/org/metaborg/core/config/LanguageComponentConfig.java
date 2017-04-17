@@ -12,6 +12,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Lists;
 
@@ -39,10 +40,10 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
         @Nullable LanguageIdentifier identifier, @Nullable String name,
         @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
         @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean sdfEnabled, @Nullable String parseTable,
-        @Nullable String completionParseTable, @Nullable Boolean typesmart,
+        @Nullable String completionParseTable, @Nullable Boolean typesmart, @Nullable NaBL2Config nabl2Config,
         @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
-        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart);
+        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart, nabl2Config);
 
         if(sdfEnabled != null) {
             config.setProperty(PROP_SDF_ENABLED, sdfEnabled);

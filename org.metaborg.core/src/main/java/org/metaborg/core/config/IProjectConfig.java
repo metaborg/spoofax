@@ -3,41 +3,37 @@ package org.metaborg.core.config;
 import java.util.Collection;
 
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.config.NaBL2Config;
 
 public interface IProjectConfig {
     /**
-     * Gets the version of MetaBorg tooling to use.
-     * 
-     * @return The version of MetaBorg tooling to use.
+     * @return Version of MetaBorg tooling to use.
      */
     String metaborgVersion();
-    
+
     /**
-     * Gets the compile dependencies.
-     *
-     * @return The compile dependency identifiers.
+     * @return Compile dependency identifiers.
      */
     Collection<LanguageIdentifier> compileDeps();
 
     /**
-     * Gets the source dependencies.
-     *
-     * @return The source dependency identifiers.
+     * @return Source dependency identifiers.
      */
     Collection<LanguageIdentifier> sourceDeps();
-    
+
     /**
-     * Gets the Java dependencies.
-     *
-     * @return The Java dependency identifiers.
+     * @return Java dependency identifiers.
      */
     Collection<LanguageIdentifier> javaDeps();
 
-    
+
     /**
-     * Gets the typesmart property;
-     * 
-     * @return the typesmart property.
+     * @return Whether typesmart dynamic analysis is enabled.
      */
     boolean typesmart();
+
+    /**
+     * @return NaBL2 configuration.
+     */
+    NaBL2Config nabl2Config();
 }

@@ -109,6 +109,14 @@ public class BuildInputBuilder {
     }
 
     /**
+     * Sets the languages to given language implementations.
+     */
+    public BuildInputBuilder withLanguages(Iterable<ILanguageImpl> languages) {
+        this.languages = Sets.newHashSet(languages);
+        return this;
+    }
+
+    /**
      * Adds given language implementations.
      */
     public BuildInputBuilder addLanguages(Iterable<? extends ILanguageImpl> languages) {
@@ -162,6 +170,14 @@ public class BuildInputBuilder {
      */
     public BuildInputBuilder withSourceChanges(Collection<ResourceChange> sourceChanges) {
         this.sourceChanges = sourceChanges;
+        return this;
+    }
+
+    /**
+     * Sets the source changes to given resource changes.
+     */
+    public BuildInputBuilder withSourceChanges(Iterable<ResourceChange> sourceChanges) {
+        this.sourceChanges = Lists.newArrayList(sourceChanges);
         return this;
     }
 

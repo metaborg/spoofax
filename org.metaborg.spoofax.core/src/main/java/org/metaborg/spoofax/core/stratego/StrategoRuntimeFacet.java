@@ -1,10 +1,14 @@
 package org.metaborg.spoofax.core.stratego;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.jar.JarFile;
+import java.util.zip.ZipFile;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.language.IFacet;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -29,11 +33,11 @@ public class StrategoRuntimeFacet implements IFacet {
     /**
      * Checks if all CTree and JAR files exist, returns errors if not.
      * 
-     * @throws FileSystemException
-     *             When an error occurs while checking if files exist.
      * @return Errors, or empty if there are no errors.
+     * @throws IOException
+     *             When a file operation fails.
      */
-    public Iterable<String> available() throws FileSystemException {
+    public Iterable<String> available(IResourceService resourceService) throws IOException {
         final Collection<String> errors = Lists.newLinkedList();
         for(FileObject file : ctreeFiles) {
             if(!file.exists()) {
@@ -45,6 +49,14 @@ public class StrategoRuntimeFacet implements IFacet {
             if(!file.exists()) {
                 final String message = logger.format("Stratego JAR file {} does not exist", file);
                 errors.add(message);
+            } else {
+                final File localFile = resourceService.localFile(file);
+                try(final JarFile jarFile = new JarFile(localFile, false, ZipFile.OPEN_READ)) {
+                    if(!jarFile.entries().hasMoreElements()) {
+                        final String message = logger.format("Stratego JAR file {} is empty", file);
+                        errors.add(message);
+                    }
+                }
             }
         }
         return errors;
