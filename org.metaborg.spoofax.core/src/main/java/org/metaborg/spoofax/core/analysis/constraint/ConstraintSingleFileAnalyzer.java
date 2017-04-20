@@ -177,11 +177,10 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                                 .orElseThrow(() -> new AnalysisException(context, "No final result."));
                         finalResult = FinalResult.matcher().match(finalResultTerm)
                                 .orElseThrow(() -> new MetaborgException("Invalid final results."));
-                        customFinal =
-                                doCustomAction(strategy,
-                                        Actions.customFinal(source, customInitial.orElse(TB.EMPTY_TUPLE),
-                                                customUnit.map(cu -> TB.newList(cu)).orElse(TB.EMPTY_LIST)),
-                                        context, runtime);
+                        customFinal = doCustomAction(strategy,
+                                Actions.customFinal(source, customInitial.orElse(TB.EMPTY_TUPLE), customUnit
+                                        .map(cu -> Collections.singletonList(cu)).orElse(Collections.emptyList())),
+                                context, runtime);
                         finalResult = finalResult.withCustomResult(customFinal);
                         unit.setFinalResult(finalResult);
                         if(debugConfig.files()) {

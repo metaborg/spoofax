@@ -296,8 +296,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     finalResult = FinalResult.matcher().match(finalResultTerm)
                             .orElseThrow(() -> new AnalysisException(context, "Invalid final results."));
                     customFinal = doCustomAction(strategy, Actions.customFinal(globalSource,
-                            customInitial.orElse(TB.EMPTY_TUPLE), TB.newList(Optionals.filter(customUnits))), context,
-                            runtime);
+                            customInitial.orElse(TB.EMPTY_TUPLE), Optionals.filter(customUnits)), context, runtime);
                     finalResult = finalResult.withCustomResult(customFinal);
                     context.setFinalResult(finalResult);
 

@@ -22,6 +22,7 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
+import org.metaborg.meta.nabl2.stratego.ConstraintTerms;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
@@ -154,10 +155,14 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             C context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
             throws AnalysisException;
 
+    // this function does not handle specialization and explication, which is left to the analysis input and output
+    // matchers and builders
     protected Optional<ITerm> doAction(String strategy, ITerm action, C context, HybridInterpreter runtime)
             throws AnalysisException {
         try {
-            return Optional.ofNullable(strategoCommon.invoke(runtime, strategoTerms.toStratego(action), strategy))
+            return Optional
+                    .ofNullable(strategoCommon.invoke(runtime,
+                            strategoTerms.toStratego(ConstraintTerms.explicate(action)), strategy))
                     .map(strategoTerms::fromStratego);
         } catch(MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
@@ -168,7 +173,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     protected Optional<ITerm> doCustomAction(String strategy, ITerm action, C context, HybridInterpreter runtime)
             throws AnalysisException {
         try {
-            return doAction(strategy, action, context, runtime);
+            return Optional
+                    .ofNullable(strategoCommon.invoke(runtime,
+                            strategoTerms.toStratego(ConstraintTerms.explicate(action)), strategy))
+                    .map(strategoTerms::fromStratego);
         } catch(Exception ex) {
             final String message = "Custom analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
@@ -226,7 +234,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected Function<ITerm, String> prettyprint(C context, @Nullable String resource) {
         return term -> {
-            final ITerm simpleTerm = TermSimplifier.focus(resource, term);
+            final ITerm simpleTerm = ConstraintTerms.explicate(TermSimplifier.focus(resource, term));
             final IStrategoTerm sterm = strategoTerms.toStratego(simpleTerm);
             String text;
             try {
