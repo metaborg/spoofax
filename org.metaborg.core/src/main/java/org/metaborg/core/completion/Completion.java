@@ -119,5 +119,46 @@ public class Completion implements ICompletion, Serializable {
         return name;
     }
 
+    @Override public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((additionalInfo == null) ? 0 : additionalInfo.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((sort == null) ? 0 : sort.hashCode());
+        result = prime * result + ((text == null) ? 0 : text.hashCode());
+        return result;
+    }
+
+    @Override public boolean equals(Object obj) {
+        if(this == obj)
+            return true;
+        if(obj == null)
+            return false;
+        if(getClass() != obj.getClass())
+            return false;
+        Completion other = (Completion) obj;
+        if(additionalInfo == null) {
+            if(other.additionalInfo != null)
+                return false;
+        } else if(!additionalInfo.equals(other.additionalInfo))
+            return false;
+        if(name == null) {
+            if(other.name != null)
+                return false;
+        } else if(!name.equals(other.name))
+            return false;
+        if(sort == null) {
+            if(other.sort != null)
+                return false;
+        } else if(!sort.equals(other.sort))
+            return false;
+        if(text == null) {
+            if(other.text != null)
+                return false;
+        } else if(!text.equals(other.text))
+            return false;
+        return true;
+    }
+
 
 }

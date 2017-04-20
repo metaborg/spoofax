@@ -24,6 +24,8 @@ public interface ICompletion extends Serializable {
     boolean isNested();
     boolean fromOptionalPlaceholder();
     void setOptionalPlaceholder(boolean optional); 
+    int hashCode();
+    boolean equals(Object obj);
     
     CompletionKind kind();    
 }
