@@ -56,6 +56,7 @@ import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class JSGLRCompletionService implements ISpoofaxCompletionService {
@@ -214,7 +215,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     public Collection<ICompletion> completionCorrectPrograms(int position, boolean blankLineCompletion,
         ISpoofaxParseUnit parseResult) throws MetaborgException {
 
-        Collection<ICompletion> completions = Lists.newLinkedList();
+        Collection<ICompletion> completions = Sets.newHashSet();
         final FileObject location = parseResult.source();
         final ILanguageImpl language = parseResult.input().langImpl();
         final String languageName = language.belongsTo().name();
