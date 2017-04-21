@@ -246,7 +246,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
 
     protected String normalizeResource(String resource) {
         try {
-            resource = ResourceUtils.relativeName(location().resolveFile(resource).getName(), location().getName(), false);
+            resource = ResourceUtils.relativeName(location().resolveFile(resource).getName(), location().getName(), true);
         } catch(FileSystemException e) {
             logger.warn("Failed to resolve {} in context {}. Lookup of unit results might fail.", resource, location());
         }

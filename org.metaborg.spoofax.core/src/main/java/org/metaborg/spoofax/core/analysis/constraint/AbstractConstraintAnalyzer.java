@@ -144,7 +144,11 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     protected String resource(FileObject resource, C context) {
-        return ResourceUtils.relativeName(resource.getName(), context.location().getName(), false);
+        return ResourceUtils.relativeName(resource.getName(), context.location().getName(), true);
+    }
+
+    protected FileObject resource(String resource, C context) {
+        return resourceService.resolve(context.location(), resource);
     }
 
     private boolean isEmptyAST(IStrategoTerm ast) {

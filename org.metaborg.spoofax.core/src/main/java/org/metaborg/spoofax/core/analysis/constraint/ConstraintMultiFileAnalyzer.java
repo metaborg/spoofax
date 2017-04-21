@@ -322,18 +322,23 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 IRelation3.Mutable<FileObject, MessageSeverity, IMessage> messagesByFile =
                         messagesByFile(Iterables.concat(failures.values(),
                                 messages(messages.getAll(), solution.getUnifier(), context, context.location())));
-                for(String source : changed.keySet()) {
-                    final ISpoofaxParseUnit parseUnit = changed.get(source);
-                    final FileObject file = parseUnit.source();
+                for(IMultiFileScopeGraphUnit unit : context.units()) {
+                    final String source = unit.resource();
+                    final FileObject file = resource(source, context);
                     final Set<IMessage> fileMessages =
                             messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
-                    fileMessages.addAll(ambiguitiesByFile.get(source));
-                    final boolean valid = !failures.containsKey(source);
-                    final boolean success = valid && messagesByFile.get(file, MessageSeverity.ERROR).isEmpty();
-                    final IStrategoTerm analyzedAST = astsByFile.get(source);
-                    results.add(unitService.analyzeUnit(changed.get(source),
-                            new AnalyzeContrib(valid, success, analyzedAST != null, analyzedAST, fileMessages, -1),
-                            context));
+                    if(changed.containsKey(source)) {
+                        fileMessages.addAll(ambiguitiesByFile.get(source));
+                        final boolean valid = !failures.containsKey(source);
+                        final boolean success = valid && messagesByFile.get(file, MessageSeverity.ERROR).isEmpty();
+                        final IStrategoTerm analyzedAST = astsByFile.get(source);
+                        results.add(unitService.analyzeUnit(changed.get(source),
+                                new AnalyzeContrib(valid, success, analyzedAST != null, analyzedAST, fileMessages, -1),
+                                context));
+                    } else {
+                        updateResults
+                                .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                    }
                     messagesByFile.remove(file);
                 }
                 for(FileObject file : messagesByFile.keySet()) {
