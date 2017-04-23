@@ -3,8 +3,7 @@ module analysis
 imports
   
   nabl2/api
-  nabl2/shared/main
-  nabl2/runtime/main
+  nabl2/runtime
 
   static-semantics
 
