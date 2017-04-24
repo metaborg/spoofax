@@ -21,7 +21,7 @@ public class GeneratorSettings {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
     private final CommonPaths paths;
-    public final AnalysisType analysisType;
+    private final AnalysisType analysisType;
 
     public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
         this(location, config, AnalysisType.None);
@@ -119,13 +119,15 @@ public class GeneratorSettings {
         return location;
     }
 
-
     public StrategoFormat format() {
         final StrategoFormat format = this.config.strFormat();
         return format != null ? format : StrategoFormat.ctree;
     }
 
-
+    public AnalysisType analysisType() {
+        return analysisType;
+    }
+ 
     public String strategoName() {
         return config.strategoName();
     }
