@@ -202,7 +202,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                     final File srcNormDir = toFile(paths.syntaxNormDir());
                     final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-new.tbl");
-                    final File contextualGrammarFile = FileUtils.getFile(targetMetaborgDir, "sdf-ctxgrammar.aterm");
+                    final File contextualGrammarFile = FileUtils.getFile(targetMetaborgDir, "ctxgrammar.aterm");
+                    final File normGrammarFile = FileUtils.getFile(targetMetaborgDir, "normgrammar.bin");
                     File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
                     final List<String> paths = Lists.newLinkedList();
                     paths.add(srcGenSyntaxDir.getAbsolutePath());
@@ -240,8 +241,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                         }
                     }
 
-                    final Origin sdf2TableJavaOrigin =
-                        Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfNormFile, tableFile, contextualGrammarFile, paths, true));
+                    final Origin sdf2TableJavaOrigin = Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfNormFile,
+                        tableFile, normGrammarFile, contextualGrammarFile, paths, true));
 
                     requireBuild(sdf2TableJavaOrigin);
                 }
@@ -315,8 +316,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
 
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
-                sdfCompletionOrigin =
-                    Sdf2TableNew.origin(new Sdf2TableNew.Input(context, sdfCompletionsFile, tableFile, null, paths, false));
+                sdfCompletionOrigin = Sdf2TableNew
+                    .origin(new Sdf2TableNew.Input(context, sdfCompletionsFile, tableFile, null, null, paths, false));
 
                 requireBuild(sdfCompletionOrigin);
             } else {
