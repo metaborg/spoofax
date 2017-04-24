@@ -17,6 +17,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContext.State;
+import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -25,8 +26,8 @@ import com.google.inject.Injector;
 public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         implements IMultiFileScopeGraphContext {
 
-    public MultiFileScopeGraphContext(Injector injector, ContextIdentifier identifier) {
-        super(injector, identifier);
+    public MultiFileScopeGraphContext(Injector injector, ContextIdentifier identifier, NaBL2Config config) {
+        super(injector, identifier, config);
     }
 
     @Override protected State initState() {

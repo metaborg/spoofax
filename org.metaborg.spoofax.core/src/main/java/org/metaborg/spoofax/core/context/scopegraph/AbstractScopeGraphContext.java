@@ -11,7 +11,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.CommonPaths;
-import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
@@ -31,14 +30,16 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     private static final ILogger logger = LoggerUtils.logger(AbstractScopeGraphContext.class);
 
     private final ContextIdentifier identifier;
+    private final NaBL2Config config;
     private final String persistentIdentifier;
     private final Injector injector;
     private final ReadWriteLock lock;
 
     protected S state = null;
 
-    public AbstractScopeGraphContext(Injector injector, ContextIdentifier identifier) {
+    public AbstractScopeGraphContext(Injector injector, ContextIdentifier identifier, NaBL2Config config) {
         this.identifier = identifier;
+        this.config = config;
         this.persistentIdentifier = FileUtils.sanitize(identifier.language.id().toString());
         this.injector = injector;
         this.lock = new ReentrantReadWriteLock(true);
@@ -57,8 +58,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     public NaBL2Config config() {
-        IProjectConfig config = identifier.project.config();
-        return config != null ? config.nabl2Config() : NaBL2Config.DEFAULT;
+        return config != null ? config : NaBL2Config.DEFAULT;
     }
     
     @Override public Injector injector() {

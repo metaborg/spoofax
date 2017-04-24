@@ -12,7 +12,6 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Lists;
 
@@ -20,7 +19,7 @@ import com.google.common.collect.Lists;
  * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
  * {@link ImmutableConfiguration} object.
  */
-public class LanguageComponentConfig extends ProjectConfig implements ILanguageComponentConfig, IConfig {
+public class LanguageComponentConfig extends AConfig implements ILanguageComponentConfig, IConfig {
     private static final String PROP_IDENTIFIER = "id";
     private static final String PROP_NAME = "name";
     private static final String PROP_LANGUAGE_CONTRIBUTIONS = "contributions";
@@ -31,19 +30,21 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
 
+    private final ProjectConfig projectConfig;
 
     public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config) {
         super(config);
+        this.projectConfig = new ProjectConfig(config);
     }
 
-    protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
-        @Nullable LanguageIdentifier identifier, @Nullable String name,
-        @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
-        @Nullable Collection<LanguageIdentifier> javaDeps, @Nullable Boolean sdfEnabled, @Nullable String parseTable,
-        @Nullable String completionParseTable, @Nullable Boolean typesmart, @Nullable NaBL2Config nabl2Config,
-        @Nullable Collection<LanguageContributionIdentifier> langContribs,
-        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
-        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart, nabl2Config);
+    protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
+            @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
+            @Nullable String parseTable, @Nullable String completionParseTable,
+            @Nullable Collection<LanguageContributionIdentifier> langContribs,
+            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
+        super(config);
+
+        this.projectConfig = projectConfig;
 
         if(sdfEnabled != null) {
             config.setProperty(PROP_SDF_ENABLED, sdfEnabled);
@@ -73,6 +74,28 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     }
 
 
+    @Override public HierarchicalConfiguration<ImmutableNode> getConfig() {
+        return projectConfig.getConfig();
+    }
+
+
+    @Override public String metaborgVersion() {
+        return projectConfig.metaborgVersion();
+    }
+
+    @Override public Collection<LanguageIdentifier> compileDeps() {
+       return projectConfig.compileDeps();
+    }
+
+    @Override public Collection<LanguageIdentifier> sourceDeps() {
+        return projectConfig.sourceDeps();
+    }
+
+    @Override public Collection<LanguageIdentifier> javaDeps() {
+        return projectConfig.javaDeps();
+    }
+ 
+
     @Override public LanguageIdentifier identifier() {
         return config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
     }
@@ -83,9 +106,9 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
 
     @Override public Collection<LanguageContributionIdentifier> langContribs() {
         final List<HierarchicalConfiguration<ImmutableNode>> langContribConfigs =
-            config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
+                config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
         final List<LanguageContributionIdentifier> langContribs =
-            Lists.newArrayListWithCapacity(langContribConfigs.size());
+                Lists.newArrayListWithCapacity(langContribConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> langContribConfig : langContribConfigs) {
             // HACK: for some reason get(LanguageIdentifier.class, "id") does not work here, it cannot convert to a
             // language identifier, do manually instead.
@@ -133,8 +156,8 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
     }
 
 
-    @Override public Collection<IMessage> validate(MessageBuilder mb) {
-        final Collection<IMessage> messages = super.validate(mb);
+    public Collection<IMessage> validate(MessageBuilder mb) {
+        final Collection<IMessage> messages = projectConfig.validate(mb);
         final String idStr = config.getString(PROP_IDENTIFIER);
         if(idStr == null) {
             messages.add(mb.withMessage("Field 'id' must be set").build());
@@ -151,8 +174,8 @@ public class LanguageComponentConfig extends ProjectConfig implements ILanguageC
             messages.add(mb.withMessage("Field 'name' must be set").build());
         } else {
             if(!LanguageIdentifier.validId(name)) {
-                messages.add(
-                    mb.withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
+                messages.add(mb
+                        .withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
                         .build());
             }
         }

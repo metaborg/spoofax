@@ -4,7 +4,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.util.config.NaBL2Config;
 
 /**
  * Builder for {@link ILanguageComponentConfig} objects.
@@ -95,23 +94,5 @@ public interface IProjectConfigBuilder {
      * @return This builder.
      */
     IProjectConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
-
-    /**
-     * Sets the typesmart property.
-     *
-     * @param typesmart
-     *            The typesmart property.
-     * @return This builder.
-     */
-    IProjectConfigBuilder withTypesmart(boolean typesmart);
-
-    /**
-     * Sets whether debug output is enabled for the constraint solver.
-     * 
-     * @param incremental
-     *            True to enable, false to disable.
-     * @return This builder.
-     */
-    IProjectConfigBuilder withNaBL2Config(NaBL2Config config);
 
 }

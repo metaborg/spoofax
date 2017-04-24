@@ -5,21 +5,24 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.util.config.NaBL2Config;
 
 /**
  * Builder for {@link ILanguageComponentConfig} objects.
  */
-public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
+public interface ILanguageComponentConfigBuilder {
     /**
-     * {@inheritDoc}
+     * Builds the configuration.
+     * 
+     * @return The built configuration.
      */
-    @Override ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
+    ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
 
     /**
-     * {@inheritDoc}
+     * Resets the values of this builder.
+     *
+     * @return This builder.
      */
-    @Override ILanguageComponentConfigBuilder reset();
+    ILanguageComponentConfigBuilder reset();
 
     /**
      * Copies the values from the specified configuration.
@@ -31,49 +34,39 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
 
 
     /**
-     * {@inheritDoc}
+     * {@see IProjectConfigBuilder#withMetaborgVersion(String)}
      */
-    @Override ILanguageComponentConfigBuilder withMetaborgVersion(String metaborgVersion);
+    ILanguageComponentConfigBuilder withMetaborgVersion(String metaborgVersion);
 
     /**
-     * {@inheritDoc}
+     * {@see IProjectConfigBuilder#withCompileDeps(Iterable)}
      */
-    @Override ILanguageComponentConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
+    ILanguageComponentConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * {@inheritDoc}
+     * {@see IProjectConfigBuilder#addCompileDeps(Iterable)}
      */
-    @Override ILanguageComponentConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps);
+    ILanguageComponentConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * {@inheritDoc}
+     * {@see IProjectConfigBuilder#withSourceDeps(Iterable)}
      */
-    @Override ILanguageComponentConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps);
+    ILanguageComponentConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * {@inheritDoc}
+     * {@see IProjectConfigBuilder#addSourceDeps(Iterable)}
      */
-    @Override ILanguageComponentConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps);
+    ILanguageComponentConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * {@inheritDoc}
+     * {@see IProjectConfigBuilder#addSourceDeps(Iterable)}
      */
-    @Override ILanguageComponentConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps);
+    ILanguageComponentConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps);
 
     /**
-     * {@inheritDoc}
+     * {@see IProjectConfigBuilder#addSourceDeps(Iterable)}
      */
-    @Override ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override ILanguageComponentConfigBuilder withTypesmart(boolean typesmart);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override ILanguageComponentConfigBuilder withNaBL2Config(NaBL2Config config);
+    ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps);
 
 
     /**
@@ -102,7 +95,7 @@ public interface ILanguageComponentConfigBuilder extends IProjectConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs);
-    
+
     /**
      * Sets the whether SDF is enabled in the project
      *
