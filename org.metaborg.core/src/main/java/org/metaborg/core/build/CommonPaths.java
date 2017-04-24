@@ -2,15 +2,21 @@ package org.metaborg.core.build;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.project.NameUtil;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Lists;
 
 public class CommonPaths {
+    private static final ILogger logger = LoggerUtils.logger(CommonPaths.class);
+
     protected final FileObject root;
 
 
@@ -115,36 +121,22 @@ public class CommonPaths {
     /* ESV */
 
     /**
-     * @return ESV directory. Contains all ESV files.
-     */
-    public FileObject esvDir() {
-        return resolve(root, "editor");
-    }
-
-    /**
      * @return Main ESV file.
      */
-    public FileObject esvMainFile() {
-        return resolve(esvDir(), "Main.esv");
+    public @Nullable FileObject findEsvMainFile(Iterable<FileObject> sources) {
+        return find(sources, "Main.esv");
     }
 
 
     /* SDF2 and SDF3 */
 
     /**
-     * @return Syntax directory. Contains the SDF2 or SDF3 definition.
-     */
-    public FileObject syntaxDir() {
-        return resolve(root, "syntax");
-    }
-
-    /**
      * @param languageName
      *            Name of the language.
      * @return Main SDF2 file.
      */
-    public FileObject syntaxMainFile(String languageName) {
-        return resolve(syntaxDir(), languageName + ".sdf");
+    public @Nullable FileObject findSyntaxMainFile(Iterable<FileObject> sources, String languageName) {
+        return find(sources, languageName + ".sdf");
     }
 
     /**
@@ -236,8 +228,8 @@ public class CommonPaths {
      *            Name of the language.
      * @return Main Stratego file.
      */
-    public FileObject strMainFile(String languageName) {
-        return resolve(transDir(), NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
+    public @Nullable FileObject findStrMainFile(Iterable<FileObject> sources, String languageName) {
+        return find(sources, NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
     }
 
     /**
@@ -305,8 +297,8 @@ public class CommonPaths {
      *            Name of the language.
      * @return Main DynSem file.
      */
-    public FileObject dsMainFile(String languageName) {
-        return resolve(transDir(), languageName + ".ds");
+    public @Nullable FileObject findDsMainFile(Iterable<FileObject> sources, String languageName) {
+        return find(sources, languageName + ".ds");
     }
 
     /**
@@ -335,6 +327,25 @@ public class CommonPaths {
     }
 
 
+    protected @Nullable FileObject find(Iterable<FileObject> dirs, String path) {
+        FileObject file = null;
+        for(FileObject dir : dirs) {
+            try {
+                FileObject candidate = dir.resolveFile(path);
+                if(candidate.exists()) {
+                    if(file != null) {
+                        throw new MetaborgRuntimeException("Found multiple candidates for " + path);
+                    } else {
+                        file = candidate;
+                    }
+                }
+            } catch(FileSystemException e) {
+                logger.warn("Error when trying to resolve {} in {}", e, path, dir);
+            }
+        }
+        return file;
+    }
+
     protected FileObject resolve(FileObject dir, String path) {
         try {
             return dir.resolveFile(path);
@@ -342,7 +353,6 @@ public class CommonPaths {
             throw new MetaborgRuntimeException(e);
         }
     }
-
     protected FileObject resolve(FileObject dir, String... paths) {
         FileObject file = dir;
         for(String path : paths) {
