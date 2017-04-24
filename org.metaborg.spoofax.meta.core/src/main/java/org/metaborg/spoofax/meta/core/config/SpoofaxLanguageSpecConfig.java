@@ -8,8 +8,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
+import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
@@ -61,9 +61,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     private final SpoofaxProjectConfig projectConfig;
 
-    public SpoofaxLanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config) {
-        super(config);
-        this.projectConfig = new SpoofaxProjectConfig(config);
+    public SpoofaxLanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, SpoofaxProjectConfig projectConfig) {
+        super(config, projectConfig);
+        this.projectConfig = projectConfig;
     }
 
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
@@ -79,7 +79,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, parseTable, completionsParseTable, langContribs, generates,
                 exports, pardonedLanguages, useBuildSystemSpec);
-
         this.projectConfig = projectConfig;
 
         if(sdfVersion != null) {

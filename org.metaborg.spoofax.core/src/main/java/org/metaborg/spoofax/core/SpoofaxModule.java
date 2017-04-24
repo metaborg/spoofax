@@ -6,7 +6,6 @@ import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzer;
 import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.IBuilder;
-import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.config.IProjectConfigBuilder;
 import org.metaborg.core.config.IProjectConfigService;
@@ -89,7 +88,6 @@ import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuildOutput;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
-import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigBuilder;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigService;
@@ -281,14 +279,6 @@ public class SpoofaxModule extends MetaborgModule {
         bind(SpoofaxProjectConfigBuilder.class);
         bind(IProjectConfigBuilder.class).to(SpoofaxProjectConfigBuilder.class);
         bind(ISpoofaxProjectConfigBuilder.class).to(SpoofaxProjectConfigBuilder.class);
-    }
-
-    @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-        // Bind builtin path provider before other providers such that builtin
-        // paths have preference over others.
-        binder.addBinding().to(BuiltinLanguagePathProvider.class);
-
-        super.bindLanguagePathProviders(binder);
     }
 
     @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {

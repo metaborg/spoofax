@@ -7,6 +7,7 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.AConfigurationReaderWriter;
 import org.metaborg.core.config.IConfig;
+import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.config.NaBL2Config;
@@ -25,13 +26,13 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        return new SpoofaxProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart,
-                nabl2Config);
+        return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
+                typesmart, nabl2Config);
     }
 
     public SpoofaxProjectConfig build(HierarchicalConfiguration<ImmutableNode> configuration) {
-        return new SpoofaxProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps, typesmart,
-                nabl2Config);
+        return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
+                typesmart, nabl2Config);
     }
 
     @Override public ISpoofaxProjectConfigBuilder reset() {
@@ -57,6 +58,16 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
 
     @Override public ISpoofaxProjectConfigBuilder withMetaborgVersion(String metaborgVersion) {
         super.withMetaborgVersion(metaborgVersion);
+        return this;
+    }
+
+    @Override public ISpoofaxProjectConfigBuilder withSources(Iterable<IExportConfig> sources) {
+        super.withSources(sources);
+        return this;
+    }
+
+    @Override public ISpoofaxProjectConfigBuilder addSources(Iterable<IExportConfig> sources) {
+        super.addSources(sources);
         return this;
     }
 

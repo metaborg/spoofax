@@ -22,9 +22,13 @@ import com.google.common.collect.Lists;
  */
 public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
     private static final String PROP_METABORG_VERSION = "metaborgVersion";
-    private static final String PROP_COMPILE_DEPENDENCIES = "dependencies.compile";
-    private static final String PROP_SOURCE_DEPENDENCIES = "dependencies.source";
-    private static final String PROP_JAVA_DEPENDENCIES = "dependencies.java";
+
+    private static final String PROP_SOURCES = "sources";
+
+    private static final String PROP_DEPENDENCIES = "dependencies";
+    private static final String PROP_COMPILE_DEPENDENCIES = PROP_DEPENDENCIES + ".compile";
+    private static final String PROP_SOURCE_DEPENDENCIES = PROP_DEPENDENCIES + ".source";
+    private static final String PROP_JAVA_DEPENDENCIES = PROP_DEPENDENCIES + ".java";
 
 
     public ProjectConfig(HierarchicalConfiguration<ImmutableNode> config) {
@@ -37,13 +41,15 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
     }
 
     protected ProjectConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
-            @Nullable Collection<LanguageIdentifier> compileDeps, @Nullable Collection<LanguageIdentifier> sourceDeps,
-            @Nullable Collection<LanguageIdentifier> javaDeps
-            ) {
+            @Nullable Collection<IExportConfig> sources, @Nullable Collection<LanguageIdentifier> compileDeps,
+            @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps) {
         this(config);
 
         if(metaborgVersion != null) {
             config.setProperty(PROP_METABORG_VERSION, metaborgVersion);
+        }
+        if(sources != null) {
+            config.setProperty(PROP_SOURCES, sources);
         }
         if(compileDeps != null) {
             config.setProperty(PROP_COMPILE_DEPENDENCIES, compileDeps);
@@ -59,6 +65,23 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
 
     @Override public String metaborgVersion() {
         return config.getString(PROP_METABORG_VERSION, MetaborgConstants.METABORG_VERSION);
+    }
+
+    @Override public Collection<ISourceConfig> sources() {
+        final List<HierarchicalConfiguration<ImmutableNode>> sourceConfigs = config.configurationsAt(PROP_SOURCES, false);
+        final List<ISourceConfig> sources = Lists.newArrayListWithCapacity(sourceConfigs.size());
+        for(HierarchicalConfiguration<ImmutableNode> sourceConfig : sourceConfigs) {
+            final String language = sourceConfig.getString("language");
+            final String directory = sourceConfig.getString("directory");
+            if(directory != null) {
+                if(language != null) {
+                    sources.add(new LangSource(language, directory));
+                } else {
+                    sources.add(new GenericSource(directory));
+                }
+            }
+        }
+        return sources;
     }
 
     @Override public Collection<LanguageIdentifier> compileDeps() {

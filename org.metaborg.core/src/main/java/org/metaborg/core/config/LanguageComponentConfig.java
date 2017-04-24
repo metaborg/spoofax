@@ -32,9 +32,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     private final ProjectConfig projectConfig;
 
-    public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config) {
+    public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig) {
         super(config);
-        this.projectConfig = new ProjectConfig(config);
+        this.projectConfig = projectConfig;
     }
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
@@ -43,7 +43,6 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             @Nullable Collection<LanguageContributionIdentifier> langContribs,
             @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config);
-
         this.projectConfig = projectConfig;
 
         if(sdfEnabled != null) {
@@ -83,8 +82,12 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         return projectConfig.metaborgVersion();
     }
 
+    @Override public Collection<ISourceConfig> sources() {
+        return projectConfig.sources();
+    }
+
     @Override public Collection<LanguageIdentifier> compileDeps() {
-       return projectConfig.compileDeps();
+        return projectConfig.compileDeps();
     }
 
     @Override public Collection<LanguageIdentifier> sourceDeps() {
@@ -94,7 +97,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     @Override public Collection<LanguageIdentifier> javaDeps() {
         return projectConfig.javaDeps();
     }
- 
+
 
     @Override public LanguageIdentifier identifier() {
         return config.get(LanguageIdentifier.class, PROP_IDENTIFIER);
@@ -132,7 +135,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     }
 
     @Override public Collection<IExportConfig> exports() {
-        final List<HierarchicalConfiguration<ImmutableNode>> exportConfigs = config.configurationsAt(PROP_EXPORTS);
+        final List<HierarchicalConfiguration<ImmutableNode>> exportConfigs =
+                config.configurationsAt(PROP_EXPORTS, false);
         final List<IExportConfig> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> exportConfig : exportConfigs) {
             final String languageName = exportConfig.getString("language");
