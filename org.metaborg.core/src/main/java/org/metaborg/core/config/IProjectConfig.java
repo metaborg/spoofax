@@ -3,7 +3,6 @@ package org.metaborg.core.config;
 import java.util.Collection;
 
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.util.config.NaBL2Config;
 
 public interface IProjectConfig {
     /**
@@ -26,14 +25,4 @@ public interface IProjectConfig {
      */
     Collection<LanguageIdentifier> javaDeps();
 
-
-    /**
-     * @return Whether typesmart dynamic analysis is enabled.
-     */
-    boolean typesmart();
-
-    /**
-     * @return NaBL2 configuration.
-     */
-    NaBL2Config nabl2Config();
 }

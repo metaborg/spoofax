@@ -452,10 +452,10 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
-            sdfModule, sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
-            sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg,
-            strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(),
+            sdfEnabled, sdfModule, sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
+            packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg,
+            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
 
     }
 

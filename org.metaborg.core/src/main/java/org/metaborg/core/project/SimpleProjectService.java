@@ -56,7 +56,7 @@ public class SimpleProjectService implements ISimpleProjectService {
             }
         }
 
-        final ConfigRequest<IProjectConfig> configRequest = projectConfigService.get(location);
+        final ConfigRequest<? extends IProjectConfig> configRequest = projectConfigService.get(location);
         if(!configRequest.valid()) {
             logger.error("Errors occurred when retrieving project configuration from project directory {}", location);
             configRequest.reportErrors(new StreamMessagePrinter(sourceTextService, false, false, logger));
