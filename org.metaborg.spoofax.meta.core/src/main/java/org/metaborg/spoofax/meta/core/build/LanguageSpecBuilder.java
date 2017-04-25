@@ -15,7 +15,6 @@ import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
-import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.IExportConfig;
@@ -27,6 +26,7 @@ import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
@@ -92,7 +92,7 @@ public class LanguageSpecBuilder {
 
 
     public void initialize(LanguageSpecBuildInput input) throws MetaborgException {
-        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final SpoofaxCommonPaths paths = new SpoofaxLangSpecCommonPaths(input.languageSpec().location(), input.languageSpec().config());
         try {
             paths.srcGenDir().createFolder();
             paths.targetMetaborgDir().createFolder();
@@ -146,7 +146,7 @@ public class LanguageSpecBuilder {
             throw new MetaborgException(e);
         }
 
-        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final SpoofaxCommonPaths paths = new SpoofaxLangSpecCommonPaths(input.languageSpec().location(), input.languageSpec().config());
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
         final Iterable<FileObject> esvRoots = languagePathService.sourcePaths(input.project(),
@@ -268,7 +268,7 @@ public class LanguageSpecBuilder {
         logger.debug("Cleaning {}", location);
 
 
-        final CommonPaths paths = new LangSpecCommonPaths(location);
+        final SpoofaxCommonPaths paths = new SpoofaxLangSpecCommonPaths(location, input.languageSpec().config());
         cleanAndLog(paths.srcGenDir());
         cleanAndLog(paths.targetDir());
 
@@ -322,7 +322,7 @@ public class LanguageSpecBuilder {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
+        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc, config);
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 
@@ -474,7 +474,7 @@ public class LanguageSpecBuilder {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
+        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc, config);
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 
@@ -503,7 +503,7 @@ public class LanguageSpecBuilder {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
+        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc, config);
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 

@@ -18,22 +18,20 @@ public class SourcePathProvider implements ILanguagePathProvider {
 
     @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) {
         final Collection<FileObject> sources = Lists.newArrayList();
-        if(project.config() != null) {
-            for(ISourceConfig source : project.config().sources()) {
-                source.accept(new ISourceVisitor() {
+        for(ISourceConfig source : project.config().sources()) {
+            source.accept(new ISourceVisitor() {
 
-                    @Override public void visit(GenericSource genericSource) {
-                        sources.add(resolve(project.location(), genericSource.directory));
+                @Override public void visit(GenericSource genericSource) {
+                    sources.add(resolve(project.location(), genericSource.directory));
+                }
+
+                @Override public void visit(LangSource langSource) {
+                    if(langSource.language.equals(languageName)) {
+                        sources.add(resolve(project.location(), langSource.directory));
                     }
+                }
 
-                    @Override public void visit(LangSource langSource) {
-                        if(langSource.language.equals(languageName)) {
-                            sources.add(resolve(project.location(), langSource.directory));
-                        }
-                    }
-
-                });
-            }
+            });
         }
         return sources;
     }

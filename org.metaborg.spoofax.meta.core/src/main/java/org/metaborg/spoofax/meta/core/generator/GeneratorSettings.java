@@ -4,12 +4,12 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgConstants;
-import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.meta.core.build.LangSpecCommonPaths;
+import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
+import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.general.AnalysisType;
@@ -20,7 +20,7 @@ import org.metaborg.spoofax.meta.core.generator.general.AnalysisType;
 public class GeneratorSettings {
     private final FileObject location;
     private final ISpoofaxLanguageSpecConfig config;
-    private final CommonPaths paths;
+    private final SpoofaxCommonPaths paths;
     private final AnalysisType analysisType;
 
     public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
@@ -55,7 +55,7 @@ public class GeneratorSettings {
 
         this.location = location;
         this.config = config;
-        this.paths = new LangSpecCommonPaths(location);
+        this.paths = new SpoofaxLangSpecCommonPaths(location, config);
         this.analysisType = analysisType;
     }
 

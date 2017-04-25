@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.config;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
@@ -11,6 +13,7 @@ import org.metaborg.core.config.AConfigService;
 import org.metaborg.core.config.AConfigurationReaderWriter;
 import org.metaborg.core.config.ConfigRequest;
 import org.metaborg.core.config.IConfig;
+import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.IProject;
@@ -30,10 +33,12 @@ public class SpoofaxProjectConfigService extends AConfigService<IProject, ISpoof
     }
 
 
-    @Override public ISpoofaxProjectConfig get(IProject project) {
-        if(project.config() == null) {
-            return null;
-        }
+    @Override public IProjectConfig defaultConfig(FileObject rootFolder) {
+        configBuilder.reset();
+        return configBuilder.build(rootFolder);
+    }
+
+    @Override public @Nullable ISpoofaxProjectConfig get(IProject project) {
         if(project.config() instanceof ISpoofaxProjectConfig) {
             return (ISpoofaxProjectConfig) project.config();
         }
