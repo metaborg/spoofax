@@ -14,6 +14,7 @@ import org.metaborg.core.config.LangDirExport;
 import org.metaborg.core.config.LangFileExport;
 import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.LanguageName;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -29,7 +30,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     }
 
 
-    @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) throws MetaborgException {
+    @Override public Iterable<FileObject> sourcePaths(final IProject project, final LanguageName languageName) throws MetaborgException {
         final Iterable<ILanguageComponent> dependencies = dependencyService.compileDeps(project);
         final Collection<FileObject> sources = Lists.newArrayList();
         for(ILanguageComponent dependency : dependencies) {
@@ -43,7 +44,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         return sources;
     }
 
-    @Override public Iterable<FileObject> includePaths(IProject project, final String languageName)
+    @Override public Iterable<FileObject> includePaths(final IProject project, final LanguageName languageName)
         throws MetaborgException {
         final Iterable<ILanguageComponent> dependencies = dependencyService.sourceDeps(project);
         final Collection<FileObject> includes = Lists.newArrayList();

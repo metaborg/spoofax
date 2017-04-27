@@ -70,4 +70,5 @@ public class SpoofaxProjectConfigService extends AConfigService<IProject, ISpoof
         }
         return ((IConfig) config).getConfig();
     }
+
 }

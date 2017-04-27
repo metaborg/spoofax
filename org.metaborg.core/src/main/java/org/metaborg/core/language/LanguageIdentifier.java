@@ -1,6 +1,7 @@
 package org.metaborg.core.language;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,31 +18,41 @@ import com.google.common.collect.ComparisonChain;
 public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Serializable {
     private static final long serialVersionUID = 8892997161544718124L;
 
-    private static final Pattern idPattern = Pattern.compile("[A-Za-z0-9._\\-]+");
-    public static final String errorDescription = "may only consist of alphanumeral and _ - . characters";
+    private static final Pattern partialPattern = Pattern.compile(LanguageName.partialPattern + "(?::(.+))?");
+    private static final Pattern fullPattern = Pattern.compile(LanguageName.fullPattern + "(?::(.+))");
 
-    private static final Pattern partialPattern =
-        Pattern.compile("(?:(" + idPattern + "):)?(" + idPattern + ")(?::(.+))?");
-    private static final Pattern fullPattern = Pattern.compile("(?:(" + idPattern + "):)(" + idPattern + ")(?::(.+))");
 
-    public final String groupId;
-    public final String id;
-    public final LanguageVersion version;
+    private final LanguageName name;
+    private final LanguageVersion version;
 
 
     public LanguageIdentifier(String groupId, String id, LanguageVersion version) {
-        this.groupId = groupId;
-        this.id = id;
+        this(new LanguageName(groupId, id), version);
+    }
+
+    public LanguageIdentifier(LanguageName name, LanguageVersion version) {
+        this.name = name;
         this.version = version;
     }
 
-    public LanguageIdentifier(LanguageIdentifier identifier, LanguageVersion version) {
-        this(identifier.groupId, identifier.id, version);
+    public boolean valid() {
+        return name.valid();
     }
 
+    public LanguageName name() {
+        return name;
+    }
+    
+    public String groupId() {
+        return name.groupId();
+    }
 
-    public boolean valid() {
-        return validId(groupId) && validId(id);
+    public String id() {
+        return name.id();
+    }
+
+    public LanguageVersion version() {
+        return version;
     }
 
 
@@ -69,7 +80,7 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
         final Matcher matcher = pattern.matcher(identifier);
         if(!matcher.matches()) {
             throw new IllegalArgumentException("Invalid language identifier " + identifier
-                + ", expected groupId:id:version where characters " + errorDescription);
+                    + ", expected groupId:id:version where characters " + LanguageNameUtils.errorDescription);
         }
 
         String groupId = matcher.group(1);
@@ -84,28 +95,15 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
             version = LanguageVersion.parse(versionString);
         } catch(IllegalArgumentException e) {
             throw new IllegalArgumentException(
-                "Invalid version in language identifier " + identifier + ", " + LanguageVersion.errorDescription);
+                    "Invalid version in language identifier " + identifier + ", " + LanguageVersion.errorDescription);
         }
 
         return new LanguageIdentifier(groupId, id, version);
     }
 
-    public static boolean validId(String id) {
-        final Matcher matcher = idPattern.matcher(id);
-        if(!matcher.matches()) {
-            return false;
-        }
-        return true;
-    }
-
 
     @Override public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + groupId.hashCode();
-        result = prime * result + id.hashCode();
-        result = prime * result + version.hashCode();
-        return result;
+        return Objects.hash(name, version);
     }
 
     @Override public boolean equals(Object obj) {
@@ -116,9 +114,7 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
         if(getClass() != obj.getClass())
             return false;
         final LanguageIdentifier other = (LanguageIdentifier) obj;
-        if(!groupId.equals(other.groupId))
-            return false;
-        if(!id.equals(other.id))
+        if(!name.equals(other.name))
             return false;
         if(!version.equals(other.version))
             return false;
@@ -128,8 +124,7 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
     @Override public int compareTo(LanguageIdentifier other) {
         // @formatter:off
         return ComparisonChain.start()
-            .compare(this.groupId, other.groupId)
-            .compare(this.id, other.id)
+            .compare(this.name, other.name)
             .compare(this.version, other.version)
             .result()
             ;
@@ -137,14 +132,15 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
     }
 
     @Override public String toString() {
-        return groupId + ":" + id + ":" + version;
+        return name + ":" + version;
     }
-    
+
     public String toFileString() {
-        return id + "-" + version;
+        return name.toFileString() + "-" + version;
     }
-    
+
     public String toFullFileString() {
-        return groupId  + "-" + id + "-" + version;
+        return name.toFullFileString() + "-" + version;
     }
+
 }

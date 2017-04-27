@@ -283,9 +283,9 @@ public class LanguageServiceTest extends MetaborgTest {
         final LanguageIdentifier implIdentifier1 = new LanguageIdentifier(groupId, implId1, version);
         final LanguageIdentifier implIdentifier2 = new LanguageIdentifier(groupId, implId2, version);
         final LanguageContributionIdentifier requestIdentifier1 =
-            new LanguageContributionIdentifier(implIdentifier1, name);
+                new LanguageContributionIdentifier(implIdentifier1, name);
         final LanguageContributionIdentifier requestIdentifier2 =
-            new LanguageContributionIdentifier(implIdentifier2, name);
+                new LanguageContributionIdentifier(implIdentifier2, name);
 
         final ILanguageComponent component1 = language(identifier1, location1, requestIdentifier1);
         final ILanguageComponent component2 = language(identifier2, location2, requestIdentifier1);
@@ -368,6 +368,30 @@ public class LanguageServiceTest extends MetaborgTest {
     }
 
     /**
+     * Add contributions iwth conflicting language names, assert that this throws an error.
+     */
+    @Test(expected = IllegalStateException.class) public void conflictingContributionNames() throws Exception {
+        final String id = "org.metaborg.lang.entity";
+        final String id1 = "org.metaborg.lang.entity.component1";
+        final String id2 = "org.metaborg.lang.entity.component2";
+
+        final LanguageVersion version = version(0, 0, 1);
+
+        final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
+        final LanguageIdentifier identifier1 = new LanguageIdentifier(groupId, id1, version);
+        final LanguageIdentifier identifier2 = new LanguageIdentifier(groupId, id2, version);
+
+        final FileObject location1 = createDir("ram:///Entity1");
+        final FileObject location2 = createDir("ram:///Entity2");
+
+        final String name1 = "Entity1";
+        final String name2 = "Entity2";
+
+        language(identifier1, location1, new LanguageContributionIdentifier(identifier, name1));
+        language(identifier2, location2, new LanguageContributionIdentifier(identifier, name2));
+    }
+
+    /**
      * Add multiple components with facets to a single implementation, assert correctness of returned facets.
      */
     @Test public void implementationFacets() throws Exception {
@@ -382,7 +406,7 @@ public class LanguageServiceTest extends MetaborgTest {
         final String name = "Entity";
         final LanguageIdentifier implIdentifier = new LanguageIdentifier(groupId, implId, version);
         final LanguageContributionIdentifier requestIdentifier =
-            new LanguageContributionIdentifier(implIdentifier, name);
+                new LanguageContributionIdentifier(implIdentifier, name);
 
         final DescriptionFacet facet1 = new DescriptionFacet("Component1", null);
         final ResourceExtensionFacet facet2 = new ResourceExtensionFacet(Iterables2.singleton("com"));
@@ -473,11 +497,11 @@ public class LanguageServiceTest extends MetaborgTest {
         final LanguageIdentifier implIdentifier2 = new LanguageIdentifier(groupId, implId2, version);
         final LanguageIdentifier implIdentifier3 = new LanguageIdentifier(groupId, implId3, version);
         final LanguageContributionIdentifier requestIdentifier1 =
-            new LanguageContributionIdentifier(implIdentifier1, name);
+                new LanguageContributionIdentifier(implIdentifier1, name);
         final LanguageContributionIdentifier requestIdentifier2 =
-            new LanguageContributionIdentifier(implIdentifier2, name);
+                new LanguageContributionIdentifier(implIdentifier2, name);
         final LanguageContributionIdentifier requestIdentifier3 =
-            new LanguageContributionIdentifier(implIdentifier3, name);
+                new LanguageContributionIdentifier(implIdentifier3, name);
 
         final ITestableObserver<LanguageComponentChange> compObs = new TestableObserver<LanguageComponentChange>();
         languageService.componentChanges().subscribe(compObs);
@@ -499,14 +523,15 @@ public class LanguageServiceTest extends MetaborgTest {
         // Add component3 to impl1, impl2, impl3, expect component add, [impl1 reload, impl2 add, impl3 add] (order
         // unknown)
         final ILanguageComponent component3 =
-            language(identifier3, location3, requestIdentifier1, requestIdentifier2, requestIdentifier3);
+                language(identifier3, location3, requestIdentifier1, requestIdentifier2, requestIdentifier3);
         final ILanguageImpl impl2 = languageService.getImpl(implIdentifier2);
         final ILanguageImpl impl3 = languageService.getImpl(implIdentifier3);
         assertOnNext(new LanguageComponentChange(LanguageComponentChange.Kind.Add, null, component3), compObs);
         {
             final Iterable<LanguageImplChange> changes =
-                Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl1), new LanguageImplChange(
-                    LanguageImplChange.Kind.Add, impl2), new LanguageImplChange(LanguageImplChange.Kind.Add, impl3));
+                    Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl1),
+                            new LanguageImplChange(LanguageImplChange.Kind.Add, impl2),
+                            new LanguageImplChange(LanguageImplChange.Kind.Add, impl3));
             assertOnNext(changes, implObs);
             assertOnNext(changes, implObs);
             assertOnNext(changes, implObs);
@@ -521,11 +546,11 @@ public class LanguageServiceTest extends MetaborgTest {
         // unknown)
         final ILanguageComponent component2Reload = language(identifier2, location2, requestIdentifier2);
         assertOnNext(new LanguageComponentChange(LanguageComponentChange.Kind.Reload, component2, component2Reload),
-            compObs);
+                compObs);
         {
             final Iterable<LanguageImplChange> changes =
-                Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl1), new LanguageImplChange(
-                    LanguageImplChange.Kind.Reload, impl2));
+                    Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Reload, impl1),
+                            new LanguageImplChange(LanguageImplChange.Kind.Reload, impl2));
             assertOnNext(changes, implObs);
             assertOnNext(changes, implObs);
         }
@@ -535,9 +560,9 @@ public class LanguageServiceTest extends MetaborgTest {
         assertOnNext(new LanguageComponentChange(LanguageComponentChange.Kind.Remove, component3, null), compObs);
         {
             final Iterable<LanguageImplChange> changes =
-                Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Remove, impl3), new LanguageImplChange(
-                    LanguageImplChange.Kind.Reload, impl2), new LanguageImplChange(LanguageImplChange.Kind.Remove,
-                    impl1));
+                    Iterables2.from(new LanguageImplChange(LanguageImplChange.Kind.Remove, impl3),
+                            new LanguageImplChange(LanguageImplChange.Kind.Reload, impl2),
+                            new LanguageImplChange(LanguageImplChange.Kind.Remove, impl1));
             assertOnNext(changes, implObs);
             assertOnNext(changes, implObs);
             assertOnNext(changes, implObs);
@@ -559,16 +584,15 @@ public class LanguageServiceTest extends MetaborgTest {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDir("ram:///");
 
-        final ILanguageComponent component =
-            language(groupId, "org.metaborg.lang.entity", version, location, "Entity", new DescriptionFacet(
-                "Entity language", null), new DescriptionFacet("Entity language", null));
+        final ILanguageComponent component = language(groupId, "org.metaborg.lang.entity", version, location, "Entity",
+                new DescriptionFacet("Entity language", null), new DescriptionFacet("Entity language", null));
         component.facet(DescriptionFacet.class);
     }
 
     /**
-     * Try to add component with non-existant location. Assert that exception is thrown.
+     * Try to add component with non-existent location. Assert that exception is thrown.
      */
-    @Test(expected = IllegalStateException.class) public void nonExistantLocation() throws Exception {
+    @Test(expected = IllegalStateException.class) public void nonExistentLocation() throws Exception {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = resourceService.resolve("ram:///doesnotexist");
 
@@ -578,7 +602,7 @@ public class LanguageServiceTest extends MetaborgTest {
     /**
      * Try to remove component that was not added to the language service. Assert that exception is thrown.
      */
-    @Test(expected = IllegalStateException.class) public void nonExistantLanguage() throws Exception {
+    @Test(expected = IllegalStateException.class) public void nonExistentLanguage() throws Exception {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDir("ram:///");
 
@@ -586,4 +610,5 @@ public class LanguageServiceTest extends MetaborgTest {
         languageService.remove(component);
         languageService.remove(component);
     }
+
 }

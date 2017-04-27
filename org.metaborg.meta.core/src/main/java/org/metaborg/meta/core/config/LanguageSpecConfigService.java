@@ -45,7 +45,7 @@ public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILa
         final LanguageSpecConfig languageSpecConfig = new LanguageSpecConfig(config, projectConfig);
         final MessageBuilder mb = MessageBuilder.create().asError().asInternal().withSource(configFile);
         final Collection<IMessage> messages = languageSpecConfig.validate(mb);
-        return new ConfigRequest<ILanguageSpecConfig>(languageSpecConfig, messages);
+        return new ConfigRequest<>(languageSpecConfig, messages);
     }
 
     @Override protected HierarchicalConfiguration<ImmutableNode> fromConfig(ILanguageSpecConfig config) {

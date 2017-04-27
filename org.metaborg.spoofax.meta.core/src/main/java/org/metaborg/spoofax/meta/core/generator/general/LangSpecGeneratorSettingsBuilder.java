@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageNameUtils;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
@@ -88,9 +89,9 @@ public class LangSpecGeneratorSettingsBuilder {
     }
 
     public LangSpecGeneratorSettingsBuilder withConfig(ISpoofaxLanguageSpecConfig config) {
-        withGroupId(config.identifier().groupId);
-        withId(config.identifier().id);
-        withVersion(config.identifier().version);
+        withGroupId(config.identifier().groupId());
+        withId(config.identifier().id());
+        withVersion(config.identifier().version());
         withName(config.name());
         withMetaborgVersion(config.metaborgVersion());
         return this;
@@ -130,7 +131,7 @@ public class LangSpecGeneratorSettingsBuilder {
             if(groupId.isEmpty()) {
                 groupId = defaultGroupId;
             }
-            if(!LanguageIdentifier.validId(groupId)) {
+            if(!LanguageNameUtils.validId(groupId)) {
                 System.err.println("Please enter a valid id");
                 groupId = null;
             }
@@ -138,7 +139,7 @@ public class LangSpecGeneratorSettingsBuilder {
 
         while(name == null || name.isEmpty()) {
             name = prompter.readString("Name").trim();
-            if(!LanguageIdentifier.validId(name)) {
+            if(!LanguageNameUtils.validId(name)) {
                 System.err.println("Please enter a valid name");
                 name = null;
             }
@@ -151,7 +152,7 @@ public class LangSpecGeneratorSettingsBuilder {
                 id = defaultId;
             }
             id = id.trim();
-            if(!LanguageIdentifier.validId(id)) {
+            if(!LanguageNameUtils.validId(id)) {
                 System.err.println("Please enter a valid id");
                 id = null;
             }

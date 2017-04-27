@@ -39,7 +39,6 @@ public class LanguageUtils {
             if(active == null || isGreater(impl, active)) {
                 active = impl;
             }
-
         }
         return active;
     }
@@ -71,7 +70,7 @@ public class LanguageUtils {
 
 
     private static boolean isGreater(ILanguageImpl impl, ILanguageImpl other) {
-        int compareVersion = impl.id().version.compareTo(other.id().version);
+        int compareVersion = impl.id().version().compareTo(other.id().version());
         if(compareVersion > 0 || (compareVersion == 0 && impl.sequenceId() > other.sequenceId())) {
             return true;
         }

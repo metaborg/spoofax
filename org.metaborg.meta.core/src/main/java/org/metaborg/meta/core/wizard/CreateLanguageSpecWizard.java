@@ -3,7 +3,7 @@ package org.metaborg.meta.core.wizard;
 import java.util.Collection;
 import java.util.List;
 
-import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageNameUtils;
 
 import com.google.common.base.Splitter;
 
@@ -55,7 +55,7 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
         }
     }
 
-    public ValidationResult validate() {
+    @Override public ValidationResult validate() {
         final ValidationResult superResult = super.validate();
 
         boolean complete = superResult.complete;
@@ -65,8 +65,8 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
         if(inputProjectNameModified()) {
             if(projectName.isEmpty()) {
                 errors.add("Project name must be specified");
-            } else if(!LanguageIdentifier.validId(projectName)) {
-                errors.add("Project name is invalid; " + LanguageIdentifier.errorDescription);
+            } else if(!LanguageNameUtils.validId(projectName)) {
+                errors.add("Project name is invalid; " + LanguageNameUtils.errorDescription);
             }
         } else if(projectName.isEmpty()) {
             complete = false;

@@ -2,26 +2,21 @@ package org.metaborg.core.config;
 
 import java.io.Serializable;
 
-import org.metaborg.core.language.LanguageName;
-
 /**
- * Language-specific source.
+ * Source for all languages.
+ * 
+ * This is for internal use only, it should not be created from a project configuration.
+ * 
  */
-public class LangSource implements ISourceConfig, Serializable {
+public class AllLangSource implements ISourceConfig, Serializable {
     private static final long serialVersionUID = 4230206217435589272L;
-
-    /**
-     * Language for which sources are in this directory.
-     */
-    public final LanguageName language;
 
     /**
      * Source directory, relative to the project root.
      */
     public final String directory;
 
-    public LangSource(LanguageName language, String directory) {
-        this.language = language;
+    public AllLangSource(String directory) {
         this.directory = directory;
     }
 
@@ -31,7 +26,7 @@ public class LangSource implements ISourceConfig, Serializable {
 
 
     @Override public String toString() {
-        return "source " + directory + " for " + language;
+        return "source " + directory + " for all languages";
     }
 
 }

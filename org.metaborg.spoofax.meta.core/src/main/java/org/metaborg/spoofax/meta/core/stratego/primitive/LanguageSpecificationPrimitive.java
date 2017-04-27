@@ -58,9 +58,9 @@ public class LanguageSpecificationPrimitive extends ASpoofaxContextPrimitive {
 
         final IStrategoString nameTerm = factory.makeString(languageSpec.config().name());
         final LanguageIdentifier id = languageSpec.config().identifier();
-        final IStrategoString groupIdTerm = factory.makeString(id.groupId);
-        final IStrategoString idTerm = factory.makeString(id.id);
-        final IStrategoString versionTerm = factory.makeString(id.version.toString());
+        final IStrategoString groupIdTerm = factory.makeString(id.groupId());
+        final IStrategoString idTerm = factory.makeString(id.id());
+        final IStrategoString versionTerm = factory.makeString(id.version().toString());
         final IStrategoString locationTerm = factory.makeString(languageSpec.location().getName().getURI());
         return factory.makeTuple(nameTerm, groupIdTerm, idTerm, versionTerm, locationTerm);
     }

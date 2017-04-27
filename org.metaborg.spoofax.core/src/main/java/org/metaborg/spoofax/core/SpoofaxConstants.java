@@ -1,43 +1,39 @@
 package org.metaborg.spoofax.core;
 
+import static org.metaborg.core.MetaborgConstants.METABORG_GROUP_ID;
+
 import java.util.Set;
 
-import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageName;
 
 import com.google.common.collect.ImmutableSet;
 
 public class SpoofaxConstants {
-    public static final String LANG_ATERM_ID = "org.metaborg.meta.lang.aterm";
-    public static final String LANG_ATERM_NAME = "ATerm";
+    public static final LanguageName LANG_ATERM_ID =
+            new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.aterm");
 
-    public static final String LANG_SDF_ID = "org.metaborg.meta.lang.sdf";
-    public static final String LANG_SDF_NAME = "SDF";
+    public static final LanguageName LANG_SDF_ID = new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.sdf");
 
-    public static final String LANG_STRATEGO_ID = "org.metaborg.meta.lang.stratego";
-    public static final String LANG_STRATEGO_NAME = "Stratego-Sugar";
+    public static final LanguageName LANG_STRATEGO_ID =
+            new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.stratego");
 
-    public static final String LANG_ESV_ID = "org.metaborg.meta.lang.esv";
-    public static final String LANG_ESV_NAME = "EditorService";
+    public static final LanguageName LANG_ESV_ID = new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.esv");
 
-    public static final String LANG_SDF3_ID = "org.metaborg.meta.lang.template";
-    public static final String LANG_SDF3_NAME = "TemplateLang";
+    public static final LanguageName LANG_SDF3_ID =
+            new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.template");
 
-    public static final String LANG_NABL_ID = "org.metaborg.meta.lang.nabl";
-    public static final String LANG_NABL_NAME = "NameBindingLanguage";
+    public static final LanguageName LANG_NABL_ID = new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.nabl");
 
-    public static final String LANG_TS_ID = "org.metaborg.meta.lang.ts";
-    public static final String LANG_TS_NAME = "TypeSystemLanguage";
+    public static final LanguageName LANG_TS_ID = new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.ts");
 
-    public static final String LANG_DYNSEM_ID = "org.metaborg.meta.lang.dynsem";
-    public static final String LANG_DYNSEM_NAME = "ds";
+    public static final LanguageName LANG_DYNSEM_ID =
+            new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.dynsem");
 
-    public static final String LIB_ANALYSIS_ID = "org.metaborg.meta.lib.analysis";
-    public static final String LIB_ANALYSIS_NAME = "runtime-libraries";
+    public static final LanguageName LANG_SPT_ID = new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lang.spt");
 
-    public static final String LIB_ANALYSIS2_ID = "org.metaborg.meta.lib.analysis2";
-    public static final String LIB_ANALYSIS2_NAME = "libanalysis2";
+    public static final LanguageName LIB_ANALYSIS_ID =
+            new LanguageName(METABORG_GROUP_ID, "org.metaborg.meta.lib.analysis");
 
 
     public static final String DIR_CACHE = ".cache";
@@ -59,23 +55,16 @@ public class SpoofaxConstants {
 
 
     public static boolean isMetaLanguage(ILanguageImpl language) {
-        return isMetaLanguage(language.id());
+        return isMetaLanguage(language.id().name());
     }
 
-    public static boolean isMetaLanguage(LanguageIdentifier identifier) {
-        return isMetaLanguage(identifier.groupId, identifier.id);
+    public static boolean isMetaLanguage(LanguageName name) {
+        return META_LANG_IDS.contains(name);
     }
 
-    public static boolean isMetaLanguage(String groupId, String id) {
-        return groupId.equals(MetaborgConstants.METABORG_GROUP_ID) && META_LANG_IDS.contains(id);
-    }
-
-    public static boolean isMetaLanguage(String name) {
-        return META_LANG_NAMES.contains(name);
-    }
 
     // @formatter:off
-    public static final Set<String> META_LANG_IDS = ImmutableSet.<String>builder()
+    public static final Set<LanguageName> META_LANG_IDS = ImmutableSet.<LanguageName>builder()
         .add(LANG_ATERM_ID)
         .add(LANG_SDF_ID)
         .add(LANG_STRATEGO_ID)
@@ -85,22 +74,6 @@ public class SpoofaxConstants {
         .add(LANG_TS_ID)
         .add(LANG_DYNSEM_ID)
         .add(LIB_ANALYSIS_ID)
-        .add(LIB_ANALYSIS2_ID)
-        .build();
-    // @formatter:on
-
-    // @formatter:off
-    public static final Set<String> META_LANG_NAMES = ImmutableSet.<String>builder()
-        .add(LANG_ATERM_NAME)
-        .add(LANG_SDF_NAME)
-        .add(LANG_STRATEGO_NAME)
-        .add(LANG_ESV_NAME)
-        .add(LANG_SDF3_NAME)
-        .add(LANG_NABL_NAME)
-        .add(LANG_TS_NAME)
-        .add(LANG_DYNSEM_NAME)
-        .add(LIB_ANALYSIS_NAME)
-        .add(LIB_ANALYSIS2_NAME)
         .build();
     // @formatter:on
 

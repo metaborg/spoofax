@@ -404,7 +404,7 @@ public class BuildInputBuilder {
 
         if(addDefaultIncludePaths) {
             for(ILanguageImpl language : languages) {
-                addIncludePaths(language, languagePathService.includePaths(this.project, language.belongsTo().name()));
+                addIncludePaths(language, languagePathService.includePaths(this.project, language.id().name()));
             }
         }
 

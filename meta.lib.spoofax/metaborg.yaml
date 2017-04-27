@@ -8,9 +8,12 @@ dependencies:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
   - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgBaselineVersion}
 exports:
-- language: EditorService
+- language: org.metaborg:org.metaborg.meta.lang.esv
   directory: editor
-- language: Stratego-Sugar
+- language: org.metaborg:org.metaborg.meta.lang.stratego
   directory: trans
 pardonedLanguages:
-- Stratego-Sugar
+- org.metaborg:org.metaborg.meta.lang.stratego
+language:
+  sdf:
+    enabled: false
