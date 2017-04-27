@@ -9,22 +9,13 @@ public class LanguageContributionIdentifier implements Serializable {
     /**
      * Identifier of the language implementation to contribute to.
      */
-    private final LanguageIdentifier id;
-    private final String name;
+    public final LanguageIdentifier id;
+    public final String name;
 
 
     public LanguageContributionIdentifier(LanguageIdentifier id, String name) {
         this.id = id;
         this.name = name;
-    }
-
-
-    public LanguageIdentifier id() {
-        return id;
-    }
-
-    public String name() {
-        return name;
     }
 
 

@@ -3,7 +3,6 @@ package org.metaborg.meta.core.wizard;
 import java.util.List;
 
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageNameUtils;
 import org.metaborg.core.language.LanguageVersion;
 
 import com.google.common.collect.Lists;
@@ -85,8 +84,8 @@ public abstract class UpgradeLanguageSpecWizard {
         if(inputNameModified()) {
             if(name.isEmpty()) {
                 errors.add("Language name must be specified");
-            } else if(!LanguageNameUtils.validId(name)) {
-                errors.add("Language name is invalid; " + LanguageNameUtils.errorDescription);
+            } else if(!LanguageIdentifier.validId(name)) {
+                errors.add("Language name is invalid; " + LanguageIdentifier.errorDescription);
             }
         } else if(name.isEmpty()) {
             complete = false;
@@ -96,8 +95,8 @@ public abstract class UpgradeLanguageSpecWizard {
         if(inputIdModified()) {
             if(id.isEmpty()) {
                 errors.add("Identifier must be specified");
-            } else if(!LanguageNameUtils.validId(id)) {
-                errors.add("Identifier is invalid; " + LanguageNameUtils.errorDescription);
+            } else if(!LanguageIdentifier.validId(id)) {
+                errors.add("Identifier is invalid; " + LanguageIdentifier.errorDescription);
             }
         } else if(id.isEmpty()) {
             complete = false;
@@ -107,8 +106,8 @@ public abstract class UpgradeLanguageSpecWizard {
         if(inputGroupIdModified()) {
             if(groupId.isEmpty()) {
                 errors.add("Group identifier must be specified");
-            } else if(!LanguageNameUtils.validId(groupId)) {
-                errors.add("Group identifier is invalid; " + LanguageNameUtils.errorDescription);
+            } else if(!LanguageIdentifier.validId(groupId)) {
+                errors.add("Group identifier is invalid; " + LanguageIdentifier.errorDescription);
             }
         } else if(groupId.isEmpty()) {
             complete = false;

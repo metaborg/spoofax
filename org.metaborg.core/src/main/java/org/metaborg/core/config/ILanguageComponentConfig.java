@@ -2,8 +2,6 @@ package org.metaborg.core.config;
 
 import java.util.Collection;
 
-import javax.annotation.Nullable;
-
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 
@@ -23,9 +21,9 @@ public interface ILanguageComponentConfig extends IProjectConfig {
     /**
      * Gets the name of the language the component belongs to.
      *
-     * @return Name of the language the component belongs to, or null if no name is defined.
+     * @return Name of the language the component belongs to.
      */
-    @Nullable String name();
+    String name();
 
     /**
      * Gets the language contributions.

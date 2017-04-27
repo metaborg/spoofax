@@ -8,13 +8,13 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.config.ILanguageComponentConfig;
-import org.metaborg.core.language.ComponentCreationConfig;
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
+import org.metaborg.core.language.ComponentCreationConfig;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.dialect.IDialectService;
@@ -202,11 +202,11 @@ public class DialectService implements IDialectService {
         final LanguageIdentifier baseId = base.id();
         final String dialectId;
         if(appendDialectName) {
-            dialectId = baseId.id() + "-Dialect-" + name;
+            dialectId = baseId.id + "-Dialect-" + name;
         } else {
-            dialectId = baseId.id();
+            dialectId = baseId.id;
         }
-        final LanguageIdentifier id = new LanguageIdentifier(baseId.groupId(), dialectId, baseId.version());
+        final LanguageIdentifier id = new LanguageIdentifier(baseId.groupId, dialectId, baseId.version);
         // HACK: use config of first component.
         final ILanguageComponentConfig config = Iterables.get(base.components(), 0).config();
         final ComponentCreationConfig creationConfig = languageService.create(id, location,

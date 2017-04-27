@@ -6,7 +6,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageNameUtils;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
@@ -32,7 +31,7 @@ public class GeneratorSettings {
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());
         }
-        if(!LanguageNameUtils.validId(config.name())) {
+        if(!LanguageIdentifier.validId(config.name())) {
             throw new ProjectException("Invalid name: " + name());
         }
         for(LanguageIdentifier compileIdentifier : config.compileDeps()) {
@@ -46,8 +45,11 @@ public class GeneratorSettings {
             }
         }
         for(LanguageContributionIdentifier contributionIdentifier : config.langContribs()) {
-            if(!contributionIdentifier.id().valid()) {
-                throw new ProjectException("Invalid language contribution identifier: " + contributionIdentifier.id());
+            if(!contributionIdentifier.id.valid()) {
+                throw new ProjectException("Invalid language contribution identifier: " + contributionIdentifier.id);
+            }
+            if(!LanguageIdentifier.validId(contributionIdentifier.name)) {
+                throw new ProjectException("Invalid language contribution name: " + config.name());
             }
         }
 
@@ -78,7 +80,7 @@ public class GeneratorSettings {
 
 
     public String groupId() {
-        return config.identifier().groupId();
+        return config.identifier().groupId;
     }
 
     public boolean generateGroupId() {
@@ -86,11 +88,11 @@ public class GeneratorSettings {
     }
 
     public String id() {
-        return config.identifier().id();
+        return config.identifier().id;
     }
 
     public String version() {
-        return config.identifier().version().toString();
+        return config.identifier().version.toString();
     }
 
     public boolean generateVersion() {
@@ -139,6 +141,6 @@ public class GeneratorSettings {
     }
 
     public String strategiesPackagePath() {
-        return paths.strJavaStratPkgPath(config.identifier().id());
+        return paths.strJavaStratPkgPath(config.identifier().id);
     }
 }

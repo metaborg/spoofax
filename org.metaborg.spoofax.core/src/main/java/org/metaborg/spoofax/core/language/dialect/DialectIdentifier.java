@@ -6,6 +6,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
@@ -14,6 +16,8 @@ import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -23,6 +27,8 @@ import org.spoofax.terms.io.binary.TermReader;
 import com.google.inject.Inject;
 
 public class DialectIdentifier implements IDialectIdentifier {
+    private static final ILogger logger = LoggerUtils.logger(DialectIdentifier.class);
+
     private final ILanguageService languageService;
     private final IDialectService dialectService;
     private final ITermFactoryService termFactoryService;
@@ -37,8 +43,15 @@ public class DialectIdentifier implements IDialectIdentifier {
 
 
     @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
+        final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxConstants.LANG_STRATEGO_NAME);
+        if(strategoLanguage == null) {
+            final String message = logger.format(
+                "Could not find Stratego language, Stratego dialects cannot be identified for resource: {}", resource);
+            throw new MetaborgRuntimeException(message);
+        }
+
         // GTODO: use identifier service instead, but that introduces a cyclic dependency. Could use a provider.
-        final ILanguageImpl strategoImpl = languageService.getImpl(SpoofaxConstants.LANG_STRATEGO_ID);
+        final ILanguageImpl strategoImpl = strategoLanguage.activeImpl();
         if(strategoImpl == null) {
             return null;
         }

@@ -10,8 +10,6 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageName;
-import org.metaborg.core.language.LanguageNameUtils;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 
@@ -32,10 +30,6 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
 
-    private static final String KEY_CONTRIB_ID = "id";
-    private static final String KEY_CONTRIB_NAME = "name";
-    
-    
     private final ProjectConfig projectConfig;
 
     public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig) {
@@ -121,9 +115,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         for(HierarchicalConfiguration<ImmutableNode> langContribConfig : langContribConfigs) {
             // HACK: for some reason get(LanguageIdentifier.class, "id") does not work here, it cannot convert to a
             // language identifier, do manually instead.
-            final String idString = langContribConfig.getString(KEY_CONTRIB_ID);
+            final String idString = langContribConfig.getString("id");
             final LanguageIdentifier id = LanguageIdentifier.parse(idString);
-            final String name = langContribConfig.getString(KEY_CONTRIB_NAME);
+            final String name = langContribConfig.getString("name");
             langContribs.add(new LanguageContributionIdentifier(id, name));
         }
         return langContribs;
@@ -180,38 +174,17 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         }
 
         final String name = config.getString(PROP_NAME);
-        final boolean hasName = name != null;
-        if(hasName) {
-            if(!LanguageNameUtils.validId(name)) {
+        if(name == null) {
+            messages.add(mb.withMessage("Field 'name' must be set").build());
+        } else {
+            if(!LanguageIdentifier.validId(name)) {
                 messages.add(mb
-                        .withMessage("Field 'name' contains invalid characters, " + LanguageNameUtils.errorDescription)
+                        .withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
                         .build());
             }
         }
 
-        final List<HierarchicalConfiguration<ImmutableNode>> contribs = config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
-        final boolean hasContribs = !contribs.isEmpty();
-        if(!(hasName ^ hasContribs)) {
-            if(!hasContribs) {
-                messages.add(mb.withMessage("Either field 'name', or 'contributions' must be set.").build());
-            }
-        }
-        for(HierarchicalConfiguration<ImmutableNode> contrib : contribs) {
-            final String contribId = contrib.getString(KEY_CONTRIB_ID);
-            if(contribId == null) {
-                messages.add(mb.withMessage("Field 'id' of contribution must be set.").build());
-            } else if(!LanguageName.valid(contribId)) {
-                messages.add(mb.withMessage("Invalid contribution id '" + contribId  + "'. ").build());
-            }
-
-            final String contribName = contrib.getString(KEY_CONTRIB_NAME);
-            if(contribName == null) {
-                messages.add(mb.withMessage("Field 'name' of contribution must be set.").build());
-            } else if(!LanguageNameUtils.validId(contribName)) {
-                messages.add(mb.withMessage("Invalid contribution name '" + contribName  + "'. ").build());
-            }
-        }
-
+        // TODO: validate language contributions
         // TODO: validate generates
         // TODO: validate exports
 

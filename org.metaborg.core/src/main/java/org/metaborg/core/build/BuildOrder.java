@@ -8,7 +8,6 @@ import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.ILanguageImplConfig;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.LanguageName;
 import org.metaborg.util.collection.BiLinkedHashMultimap;
 import org.metaborg.util.collection.BiSetMultimap;
 
@@ -42,9 +41,9 @@ public class BuildOrder {
         }
 
         // We're only interested in dependencies between given languages, create a lookup map for them.
-        final Map<LanguageName, ILanguageImpl> lookup = Maps.newHashMap();
+        final Map<String, ILanguageImpl> lookup = Maps.newHashMap();
         for(ILanguageImpl language : languages) {
-            lookup.put(language.id().name(), language);
+            lookup.put(language.belongsTo().name(), language);
         }
 
         // Create dependency graph between language implementations.

@@ -8,7 +8,6 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
-import org.metaborg.core.language.LanguageName;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
@@ -28,13 +27,13 @@ public class LanguagePathService implements ILanguagePathService {
 
 
     @Inject public LanguagePathService(ILanguageIdentifierService languageIdentifierService,
-            Set<ILanguagePathProvider> providers) {
+        Set<ILanguagePathProvider> providers) {
         this.languageIdentifierService = languageIdentifierService;
         this.providers = providers;
     }
 
 
-    @Override public Set<FileObject> sourcePaths(IProject project, LanguageName languageName) {
+    @Override public Set<FileObject> sourcePaths(IProject project, String languageName) {
         final Set<FileObject> sources = Sets.newLinkedHashSet();
         for(ILanguagePathProvider provider : providers) {
             try {
@@ -42,13 +41,13 @@ public class LanguagePathService implements ILanguagePathService {
                 Iterables.addAll(sources, providedSources);
             } catch(MetaborgException e) {
                 logger.error("Getting source paths from provider {} failed unexpectedly, skipping this provider", e,
-                        provider);
+                    provider);
             }
         }
         return sources;
     }
 
-    @Override public Set<FileObject> includePaths(IProject project, LanguageName languageName) {
+    @Override public Set<FileObject> includePaths(IProject project, String languageName) {
         final Set<FileObject> includes = Sets.newLinkedHashSet();
         for(ILanguagePathProvider provider : providers) {
             try {
@@ -56,13 +55,13 @@ public class LanguagePathService implements ILanguagePathService {
                 Iterables.addAll(includes, providedIncludes);
             } catch(MetaborgException e) {
                 logger.error("Getting include paths from provider {} failed unexpectedly, skipping this provider", e,
-                        provider);
+                    provider);
             }
         }
         return includes;
     }
 
-    @Override public Iterable<FileObject> sourceAndIncludePaths(IProject project, LanguageName languageName) {
+    @Override public Iterable<FileObject> sourceAndIncludePaths(IProject project, String languageName) {
         final Set<FileObject> paths = Sets.newLinkedHashSet();
         paths.addAll(sourcePaths(project, languageName));
         paths.addAll(includePaths(project, languageName));
@@ -71,17 +70,17 @@ public class LanguagePathService implements ILanguagePathService {
 
 
     @Override public Iterable<IdentifiedResource> sourceFiles(IProject project, ILanguageImpl language) {
-        final Iterable<FileObject> sourcePaths = sourcePaths(project, language.id().name());
+        final Iterable<FileObject> sourcePaths = sourcePaths(project, language.belongsTo().name());
         return toFiles(sourcePaths, language);
     }
 
     @Override public Iterable<IdentifiedResource> includeFiles(IProject project, ILanguageImpl language) {
-        final Iterable<FileObject> includePaths = includePaths(project, language.id().name());
+        final Iterable<FileObject> includePaths = includePaths(project, language.belongsTo().name());
         return toFiles(includePaths, language);
     }
 
     @Override public Iterable<IdentifiedResource> sourceAndIncludeFiles(IProject project, ILanguageImpl language) {
-        final Iterable<FileObject> paths = sourceAndIncludePaths(project, language.id().name());
+        final Iterable<FileObject> paths = sourceAndIncludePaths(project, language.belongsTo().name());
         return toFiles(paths, language);
     }
 
@@ -91,7 +90,7 @@ public class LanguagePathService implements ILanguagePathService {
         final Collection<IdentifiedResource> identifiedFiles = Lists.newArrayListWithExpectedSize(files.size());
         for(FileObject file : files) {
             final IdentifiedResource identifiedFile =
-                    languageIdentifierService.identifyToResource(file, Iterables2.singleton(language));
+                languageIdentifierService.identifyToResource(file, Iterables2.singleton(language));
             if(identifiedFile != null) {
                 identifiedFiles.add(identifiedFile);
             }

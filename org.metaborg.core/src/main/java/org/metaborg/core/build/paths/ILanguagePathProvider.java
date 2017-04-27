@@ -2,7 +2,6 @@ package org.metaborg.core.build.paths;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.language.LanguageName;
 import org.metaborg.core.project.IProject;
 
 /**
@@ -20,7 +19,7 @@ public interface ILanguagePathProvider {
      * @throws MetaborgException
      *             When getting source paths fails unexpectedly.
      */
-    Iterable<FileObject> sourcePaths(IProject project, LanguageName languageName) throws MetaborgException;
+    Iterable<FileObject> sourcePaths(IProject project, String languageName) throws MetaborgException;
 
     /**
      * Gets include paths in given project, for given language.
@@ -33,5 +32,5 @@ public interface ILanguagePathProvider {
      * @throws MetaborgException
      *             When getting include paths fails unexpectedly.
      */
-    Iterable<FileObject> includePaths(IProject project, LanguageName languageName) throws MetaborgException;
+    Iterable<FileObject> includePaths(IProject project, String languageName) throws MetaborgException;
 }

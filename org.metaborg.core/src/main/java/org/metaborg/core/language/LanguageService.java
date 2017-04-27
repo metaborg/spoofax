@@ -3,6 +3,7 @@ package org.metaborg.core.language;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,7 +12,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -40,7 +40,7 @@ public class LanguageService implements ILanguageService {
     private final Subject<LanguageComponentChange, LanguageComponentChange> componentChanges = PublishSubject.create();
 
     private final Map<LanguageIdentifier, ILanguageImplInternal> identifierToImpl = Maps.newHashMap();
-    private final SetMultimap<LanguageName, ILanguageImplInternal> idToImpl = HashMultimap.create();
+    private final SetMultimap<String, ILanguageImplInternal> idToImpl = HashMultimap.create();
     private final Subject<LanguageImplChange, LanguageImplChange> implChanges = PublishSubject.create();
 
     private final Map<String, ILanguageInternal> nameToLanguage = Maps.newHashMap();
@@ -50,13 +50,13 @@ public class LanguageService implements ILanguageService {
     // This fixes several issues, including issues with cached parse and analysis results that store
     // the old ILanguage(Impl) instances.
     private final LoadingCache<String, ILanguageInternal> languageCache =
-            CacheBuilder.newBuilder().weakValues().build(new CacheLoader<String, ILanguageInternal>() {
-                @Override public ILanguageInternal load(final String languageName) throws Exception {
-                    return new Language(languageName);
-                }
-            });
+        CacheBuilder.newBuilder().weakValues().build(new CacheLoader<String, ILanguageInternal>() {
+            @Override public ILanguageInternal load(final String languageName) throws Exception {
+                return new Language(languageName);
+            }
+        });
     private final Cache<LanguageIdentifier, ILanguageImplInternal> languageImplCache =
-            CacheBuilder.newBuilder().weakValues().build();
+        CacheBuilder.newBuilder().weakValues().build();
 
     @Override public @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier) {
         return identifierToComponent.get(identifier);
@@ -68,10 +68,6 @@ public class LanguageService implements ILanguageService {
 
     @Override public @Nullable ILanguageImpl getImpl(LanguageIdentifier identifier) {
         return identifierToImpl.get(identifier);
-    }
-
-    @Override public @Nullable ILanguageImpl getImpl(LanguageName language) {
-        return LanguageUtils.active(idToImpl.get(language));
     }
 
     @Override public @Nullable ILanguage getLanguage(String name) {
@@ -87,8 +83,8 @@ public class LanguageService implements ILanguageService {
         return identifierToImpl.values();
     }
 
-    @Override public Iterable<? extends ILanguageImpl> getAllImpls(LanguageName language) {
-        return idToImpl.get(language);
+    @Override public Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id) {
+        return idToImpl.get(groupIdId(groupId, id));
     }
 
     @Override public Iterable<? extends ILanguage> getAllLanguages() {
@@ -110,13 +106,14 @@ public class LanguageService implements ILanguageService {
 
         final Collection<ILanguageImplInternal> impls = Lists.newLinkedList();
         for(LanguageContributionIdentifier identifier : config.implIds) {
-            ILanguageInternal language = getOrCreateLanguage(identifier.name());
-            ILanguageImplInternal impl = getOrCreateLanguageImpl(identifier.id(), language);
+            ILanguageInternal language = getOrCreateLanguage(identifier.name);
+            ILanguageImplInternal impl = getOrCreateLanguageImpl(identifier.id, language);
             impls.add(impl);
         }
 
         final ILanguageComponentInternal existingComponent = identifierToComponent.get(config.identifier);
-        final ILanguageComponentInternal newComponent = new LanguageComponent(config.identifier, config.location,
+        final ILanguageComponentInternal newComponent =
+            new LanguageComponent(config.identifier, config.location,
                 sequenceIdGenerator.getAndIncrement(), impls, config.config, config.facets);
         if(existingComponent == null) {
             addComponent(newComponent);
@@ -200,13 +197,17 @@ public class LanguageService implements ILanguageService {
     }
 
     private ILanguageImplInternal getOrCreateLanguageImpl(final LanguageIdentifier identifier,
-            final ILanguageInternal language) {
+        final ILanguageInternal language) {
         ILanguageImplInternal impl = identifierToImpl.get(identifier);
         if(impl == null) {
             try {
-                impl = this.languageImplCache.get(identifier, () -> new LanguageImplementation(identifier, language));
+                impl = this.languageImplCache.get(identifier, new Callable<ILanguageImplInternal>() {
+                    @Override public ILanguageImplInternal call() throws Exception {
+                        return new LanguageImplementation(identifier, language);
+                    }
+                });
             } catch(ExecutionException e) {
-                throw new MetaborgRuntimeException(e);
+                throw new RuntimeException(e);
             }
             addImplementation(impl);
             language.add(impl);
@@ -259,7 +260,7 @@ public class LanguageService implements ILanguageService {
         try {
             if(!location.exists()) {
                 throw new IllegalStateException(
-                        "Cannot add language component at location " + location + ", location does not exist");
+                    "Cannot add language component at location " + location + ", location does not exist");
             }
         } catch(FileSystemException e) {
             throw new IllegalStateException("Cannot add language component at location " + location, e);
@@ -276,7 +277,7 @@ public class LanguageService implements ILanguageService {
     private void addImplementation(ILanguageImplInternal impl) {
         final LanguageIdentifier id = impl.id();
         identifierToImpl.put(id, impl);
-        idToImpl.put(id.name(), impl);
+        idToImpl.put(groupIdId(id), impl);
         logger.debug("Adding {}", impl);
     }
 
@@ -295,7 +296,7 @@ public class LanguageService implements ILanguageService {
     private void removeImplementation(ILanguageImplInternal impl) {
         final LanguageIdentifier id = impl.id();
         identifierToImpl.remove(id);
-        idToImpl.remove(id.name(), impl);
+        idToImpl.remove(groupIdId(id), impl);
         logger.debug("Removing {}", impl);
     }
 
@@ -306,13 +307,21 @@ public class LanguageService implements ILanguageService {
     }
 
 
+    private String groupIdId(String groupId, String id) {
+        return groupId + ":" + id;
+    }
+
+    private String groupIdId(LanguageIdentifier identifier) {
+        return groupIdId(identifier.groupId, identifier.id);
+    }
+
+
     private void componentChange(LanguageComponentChange.Kind kind, ILanguageComponent oldComponent,
-            ILanguageComponent newComponent) {
+        ILanguageComponent newComponent) {
         componentChanges.onNext(new LanguageComponentChange(kind, oldComponent, newComponent));
     }
 
     private void implChange(LanguageImplChange.Kind kind, ILanguageImpl impl) {
         implChanges.onNext(new LanguageImplChange(kind, impl));
     }
-
 }

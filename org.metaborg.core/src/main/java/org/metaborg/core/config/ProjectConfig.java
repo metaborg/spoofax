@@ -11,7 +11,6 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageName;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 
@@ -69,18 +68,14 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
     }
 
     @Override public Collection<ISourceConfig> sources() {
-        final List<HierarchicalConfiguration<ImmutableNode>> sourceConfigs =
-                config.configurationsAt(PROP_SOURCES, false);
+        final List<HierarchicalConfiguration<ImmutableNode>> sourceConfigs = config.configurationsAt(PROP_SOURCES, false);
         final List<ISourceConfig> sources = Lists.newArrayListWithCapacity(sourceConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> sourceConfig : sourceConfigs) {
+            final String[] languages = sourceConfig.getStringArray("language");
             final String directory = sourceConfig.getString("directory");
-            if(directory != null) {
-                final LanguageName[] languages = (LanguageName[]) sourceConfig
-                        .getArray(LanguageName.class, "language");
-                if(languages != null) {
-                    for(LanguageName language : languages) {
-                        sources.add(new LangSource(language, directory));
-                    }
+            if(languages != null && directory != null) {
+                for(String language : languages) {
+                    sources.add(new LangSource(language, directory));
                 }
             }
         }

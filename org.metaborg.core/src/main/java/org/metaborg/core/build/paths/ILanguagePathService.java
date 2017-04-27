@@ -3,7 +3,6 @@ package org.metaborg.core.build.paths;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
-import org.metaborg.core.language.LanguageName;
 import org.metaborg.core.project.IProject;
 
 /**
@@ -19,7 +18,7 @@ public interface ILanguagePathService {
      *            Name of the language to get source paths for.
      * @return Source paths.
      */
-    Iterable<FileObject> sourcePaths(IProject project, LanguageName language);
+    Iterable<FileObject> sourcePaths(IProject project, String languageName);
 
     /**
      * Gets include paths in given project, for given language.
@@ -30,7 +29,7 @@ public interface ILanguagePathService {
      *            Name of the language to get include paths for.
      * @return Include paths.
      */
-    Iterable<FileObject> includePaths(IProject project, LanguageName language);
+    Iterable<FileObject> includePaths(IProject project, String languageName);
 
     /**
      * Gets source and include paths in given project, for given language.
@@ -41,7 +40,7 @@ public interface ILanguagePathService {
      *            Name of the language to get source and include paths for.
      * @return Source and include paths.
      */
-    Iterable<FileObject> sourceAndIncludePaths(IProject project, LanguageName language);
+    Iterable<FileObject> sourceAndIncludePaths(IProject project, String languageName);
 
 
     /**
@@ -88,5 +87,4 @@ public interface ILanguagePathService {
      * @return Identified source and include files.
      */
     Iterable<IdentifiedResource> toFiles(Iterable<FileObject> paths, ILanguageImpl language);
-
 }

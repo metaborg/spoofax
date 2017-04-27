@@ -7,7 +7,6 @@ import java.util.Collection;
 import org.metaborg.core.config.AllLangSource;
 import org.metaborg.core.config.ISourceConfig;
 import org.metaborg.core.config.LangSource;
-import org.metaborg.core.language.LanguageName;
 
 import com.google.common.collect.Lists;
 
@@ -17,17 +16,17 @@ public class SpoofaxDefaultSources {
     public static final Collection<ISourceConfig> DEFAULT_SPOOFAX_SOURCES = Lists.newArrayList();
 
     static {
-        for(LanguageName metaLang : META_LANG_IDS) {
+        for(String metaLang : META_LANG_NAMES) {
             DEFAULT_SPOOFAX_SOURCES.add(new LangSource(metaLang, DIR_LIB));
             DEFAULT_SPOOFAX_SOURCES.add(new LangSource(metaLang, DIR_SRCGEN));
         }
-        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_SDF_ID, DIR_SYNTAX));
-        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_STRATEGO_ID, DIR_TRANS));
-        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_ESV_ID, DIR_EDITOR));
-        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_SDF3_ID, DIR_SYNTAX));
-        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_NABL_ID, DIR_TRANS));
-        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_TS_ID, DIR_TRANS));
-        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_DYNSEM_ID, DIR_TRANS));
+        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_SDF_NAME, DIR_SYNTAX));
+        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_STRATEGO_NAME, DIR_TRANS));
+        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_ESV_NAME, DIR_EDITOR));
+        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_SDF3_NAME, DIR_SYNTAX));
+        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_NABL_NAME, DIR_TRANS));
+        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_TS_NAME, DIR_TRANS));
+        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_DYNSEM_NAME, DIR_TRANS));
         DEFAULT_SPOOFAX_SOURCES.add(new AllLangSource(ROOT));
     }
 

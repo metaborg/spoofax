@@ -26,8 +26,8 @@ import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
+import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
@@ -150,7 +150,7 @@ public class LanguageSpecBuilder {
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
         final Iterable<FileObject> esvRoots = languagePathService.sourcePaths(input.project(),
-                SpoofaxConstants.LANG_ESV_ID);
+                SpoofaxConstants.LANG_ESV_NAME);
         final FileObject mainEsvFile = paths.findEsvMainFile(esvRoots);
         try {
             if(mainEsvFile != null && mainEsvFile.exists()) {
@@ -178,7 +178,7 @@ public class LanguageSpecBuilder {
         // HACK: compile the main DS file if available, after generating sources (because ds can depend on Stratego
         // strategies), to generate an interpreter.
         final Iterable<FileObject> dsRoots = languagePathService.sourcePaths(input.project(),
-                SpoofaxConstants.LANG_DYNSEM_ID);
+                SpoofaxConstants.LANG_DYNSEM_NAME);
         final FileObject mainDsFile = paths.findDsMainFile(dsRoots, input.languageSpec().config().strategoName());
         try {
             if(mainDsFile != null && mainDsFile.exists()) {
@@ -337,7 +337,7 @@ public class LanguageSpecBuilder {
         switch(sdfVersion) {
             case sdf2:
                 final Iterable<FileObject> sdfRoots = languagePathService.sourcePaths(input.project(),
-                        SpoofaxConstants.LANG_SDF_ID);
+                        SpoofaxConstants.LANG_SDF_NAME);
                 sdfFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfModule);
                 break;
             case sdf3:
@@ -366,7 +366,7 @@ public class LanguageSpecBuilder {
         }
 
         final Iterable<FileObject> sdfIncludePaths =
-            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_SDF_ID);
+            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_SDF_NAME);
         final FileObject packSdfIncludesReplicateDir = paths.replicateDir().resolveFile("pack-sdf-includes");
         packSdfIncludesReplicateDir.delete(new AllFileSelector());
         final List<File> packSdfIncludePaths = Lists.newArrayList();
@@ -399,7 +399,7 @@ public class LanguageSpecBuilder {
 
         // Meta-SDF
         final Iterable<FileObject> sdfRoots = languagePathService.sourcePaths(input.project(),
-                SpoofaxConstants.LANG_SDF_ID);
+                SpoofaxConstants.LANG_SDF_NAME);
         final String sdfMetaModule = config.metaSdfName();
         final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
         final @Nullable File sdfMetaFile;
@@ -414,7 +414,7 @@ public class LanguageSpecBuilder {
         final String strModule = config.strategoName();
 
         final Iterable<FileObject> strRoots = languagePathService.sourcePaths(input.project(),
-                SpoofaxConstants.LANG_STRATEGO_ID);
+                SpoofaxConstants.LANG_STRATEGO_NAME);
         final FileObject strFileCandidate = paths.findStrMainFile(strRoots, strModule);
         final @Nullable File strFile;
         if(strFileCandidate != null && strFileCandidate.exists()) {
@@ -422,10 +422,10 @@ public class LanguageSpecBuilder {
         } else {
             strFile = null;
         }
-        final String strStratPkg = paths.strJavaTransPkg(config.identifier().id());
+        final String strStratPkg = paths.strJavaTransPkg(config.identifier().id);
 
-        final String strJavaStratPkg = paths.strJavaStratPkg(config.identifier().id());
-        final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id());
+        final String strJavaStratPkg = paths.strJavaStratPkg(config.identifier().id);
+        final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id);
         final @Nullable File strJavaStratFile;
         if(strJavaStratFileCandidate.exists()) {
             strJavaStratFile = resourceService.localPath(strJavaStratFileCandidate);
@@ -449,7 +449,7 @@ public class LanguageSpecBuilder {
         final String strExternalJarFlags = config.strExternalJarFlags();
 
         final Iterable<FileObject> strIncludePaths =
-            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_ID);
+            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
         strjIncludesReplicateDir.delete(new AllFileSelector());
         final List<File> strjIncludeDirs = Lists.newArrayList();
@@ -462,7 +462,7 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id(), config.sourceDeps(),
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(),
             sdfEnabled, sdfModule, sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
             packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg,
             strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
@@ -480,7 +480,7 @@ public class LanguageSpecBuilder {
 
         final StrategoFormat strFormat = config.strFormat();
 
-        final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id());
+        final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id);
         final @Nullable File strJavaStratFile;
         if(strJavaStratFileCandidate.exists()) {
             strJavaStratFile = resourceService.localPath(strJavaStratFileCandidate);
@@ -489,13 +489,13 @@ public class LanguageSpecBuilder {
         }
 
         final File javaStratClassesDir =
-            resourceService.localPath(paths.strTargetClassesJavaStratDir(config.identifier().id()));
+            resourceService.localPath(paths.strTargetClassesJavaStratDir(config.identifier().id));
         final File dsGeneratedClassesDir = resourceService.localPath(paths.dsTargetClassesGenerateDir());
         final File dsManualClassesDir = resourceService.localPath(paths.dsTargetClassesManualDir());
         final List<File> strJavaStratIncludeDirs =
             Lists.newArrayList(javaStratClassesDir, dsGeneratedClassesDir, dsManualClassesDir);
 
-        return new PackageBuilder.Input(context, config.identifier().id(), origin, strFormat, strJavaStratFile,
+        return new PackageBuilder.Input(context, config.identifier().id, origin, strFormat, strJavaStratFile,
             strJavaStratIncludeDirs);
     }
 

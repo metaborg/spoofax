@@ -31,7 +31,6 @@ public interface ILanguageService {
      */
     @Nullable ILanguageComponent getComponent(FileName location);
 
-
     /**
      * Gets a language implementation by its identifier.
      * 
@@ -40,16 +39,6 @@ public interface ILanguageService {
      * @return Implementation with given identifier, or null if it could not be found.
      */
     @Nullable ILanguageImpl getImpl(LanguageIdentifier identifier);
-
-    /**
-     * Gets a language implementation by its identifier.
-     * 
-     * @param identifier
-     *            Identifier of the implementation to get.
-     * @return Implementation with given identifier, or null if it could not be found.
-     */
-    @Nullable ILanguageImpl getImpl(LanguageName name);
-
 
     /**
      * Gets a language by its name.
@@ -80,7 +69,7 @@ public interface ILanguageService {
      *            ID of the implementations to get.
      * @return Implementations with given group id and id.
      */
-    Iterable<? extends ILanguageImpl> getAllImpls(LanguageName name);
+    Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id);
 
     /**
      * @return All languages
