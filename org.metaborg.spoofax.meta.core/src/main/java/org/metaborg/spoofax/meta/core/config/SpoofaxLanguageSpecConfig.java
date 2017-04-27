@@ -16,9 +16,9 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.meta.core.config.LanguageSpecConfig;
+import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 import org.metaborg.util.cmd.Arguments;
-import org.metaborg.util.config.NaBL2Config;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 

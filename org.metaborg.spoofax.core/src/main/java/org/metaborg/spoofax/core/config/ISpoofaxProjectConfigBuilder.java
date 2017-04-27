@@ -5,8 +5,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.IProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.core.config.IExportConfig;
-import org.metaborg.util.config.NaBL2Config;
 
 public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
 

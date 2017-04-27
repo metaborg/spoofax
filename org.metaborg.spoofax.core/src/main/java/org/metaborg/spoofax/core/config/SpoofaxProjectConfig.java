@@ -7,13 +7,13 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ISourceConfig;
-import org.metaborg.core.config.NaBL2ConfigReaderWriter;
 import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
+import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.spoofax.core.build.SpoofaxDefaultSources;
-import org.metaborg.util.config.NaBL2Config;
+import org.metaborg.spoofax.core.config.language.NaBL2ConfigReaderWriter;
 
 public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProjectConfig {
 
