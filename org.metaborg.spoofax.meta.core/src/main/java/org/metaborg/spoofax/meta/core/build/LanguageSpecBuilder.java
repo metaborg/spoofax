@@ -15,7 +15,6 @@ import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
-import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.IExportConfig;
@@ -27,6 +26,7 @@ import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
@@ -92,7 +92,7 @@ public class LanguageSpecBuilder {
 
 
     public void initialize(LanguageSpecBuildInput input) throws MetaborgException {
-        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final SpoofaxCommonPaths paths = new SpoofaxLangSpecCommonPaths(input.languageSpec().location(), input.languageSpec().config());
         try {
             paths.srcGenDir().createFolder();
             paths.targetMetaborgDir().createFolder();
@@ -146,12 +146,14 @@ public class LanguageSpecBuilder {
             throw new MetaborgException(e);
         }
 
-        final CommonPaths paths = new LangSpecCommonPaths(input.languageSpec().location());
+        final SpoofaxCommonPaths paths = new SpoofaxLangSpecCommonPaths(input.languageSpec().location(), input.languageSpec().config());
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
-        final FileObject mainEsvFile = paths.esvMainFile();
+        final Iterable<FileObject> esvRoots = languagePathService.sourcePaths(input.project(),
+                SpoofaxConstants.LANG_ESV_NAME);
+        final FileObject mainEsvFile = paths.findEsvMainFile(esvRoots);
         try {
-            if(mainEsvFile.exists()) {
+            if(mainEsvFile != null && mainEsvFile.exists()) {
                 logger.info("Compiling Main ESV file {}", mainEsvFile);
                 // @formatter:off
                 final BuildInput buildInput = 
@@ -175,9 +177,11 @@ public class LanguageSpecBuilder {
 
         // HACK: compile the main DS file if available, after generating sources (because ds can depend on Stratego
         // strategies), to generate an interpreter.
-        final FileObject mainDsFile = paths.dsMainFile(input.languageSpec().config().strategoName());
+        final Iterable<FileObject> dsRoots = languagePathService.sourcePaths(input.project(),
+                SpoofaxConstants.LANG_DYNSEM_NAME);
+        final FileObject mainDsFile = paths.findDsMainFile(dsRoots, input.languageSpec().config().strategoName());
         try {
-            if(mainDsFile.exists()) {
+            if(mainDsFile != null && mainDsFile.exists()) {
                 logger.info("Compiling Main DynSem file {}", mainDsFile);
                 // @formatter:off
                 final BuildInput buildInput =
@@ -264,7 +268,7 @@ public class LanguageSpecBuilder {
         logger.debug("Cleaning {}", location);
 
 
-        final CommonPaths paths = new LangSpecCommonPaths(location);
+        final SpoofaxCommonPaths paths = new SpoofaxLangSpecCommonPaths(location, input.languageSpec().config());
         cleanAndLog(paths.srcGenDir());
         cleanAndLog(paths.targetDir());
 
@@ -318,7 +322,7 @@ public class LanguageSpecBuilder {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
+        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc, config);
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 
@@ -332,7 +336,9 @@ public class LanguageSpecBuilder {
         final Sdf2tableVersion sdf2tableVersion = config.sdf2tableVersion();
         switch(sdfVersion) {
             case sdf2:
-                sdfFileCandidate = paths.syntaxMainFile(sdfModule);
+                final Iterable<FileObject> sdfRoots = languagePathService.sourcePaths(input.project(),
+                        SpoofaxConstants.LANG_SDF_NAME);
+                sdfFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfModule);
                 break;
             case sdf3:
                 sdfFileCandidate = paths.syntaxSrcGenMainFile(sdfModule);
@@ -341,7 +347,7 @@ public class LanguageSpecBuilder {
                 throw new MetaborgException("Unknown SDF version: " + sdfVersion);
         }
         final @Nullable File sdfFile;
-        if(sdfFileCandidate.exists()) {
+        if(sdfFileCandidate != null && sdfFileCandidate.exists()) {
             sdfFile = resourceService.localPath(sdfFileCandidate);
         } else {
             sdfFile = null;
@@ -392,10 +398,12 @@ public class LanguageSpecBuilder {
         }
 
         // Meta-SDF
+        final Iterable<FileObject> sdfRoots = languagePathService.sourcePaths(input.project(),
+                SpoofaxConstants.LANG_SDF_NAME);
         final String sdfMetaModule = config.metaSdfName();
-        final FileObject sdfMetaFileCandidate = paths.syntaxMainFile(sdfMetaModule);
+        final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
         final @Nullable File sdfMetaFile;
-        if(sdfMetaFileCandidate.exists()) {
+        if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists()) {
             sdfMetaFile = resourceService.localPath(sdfMetaFileCandidate);
         } else {
             sdfMetaFile = null;
@@ -405,9 +413,11 @@ public class LanguageSpecBuilder {
         // Stratego
         final String strModule = config.strategoName();
 
-        final FileObject strFileCandidate = paths.strMainFile(strModule);
+        final Iterable<FileObject> strRoots = languagePathService.sourcePaths(input.project(),
+                SpoofaxConstants.LANG_STRATEGO_NAME);
+        final FileObject strFileCandidate = paths.findStrMainFile(strRoots, strModule);
         final @Nullable File strFile;
-        if(strFileCandidate.exists()) {
+        if(strFileCandidate != null && strFileCandidate.exists()) {
             strFile = resourceService.localPath(strFileCandidate);
         } else {
             strFile = null;
@@ -464,7 +474,7 @@ public class LanguageSpecBuilder {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
+        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc, config);
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 
@@ -493,7 +503,7 @@ public class LanguageSpecBuilder {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
-        final LangSpecCommonPaths paths = new LangSpecCommonPaths(baseLoc);
+        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc, config);
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 

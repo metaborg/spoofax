@@ -1,4 +1,4 @@
-package org.metaborg.core.config;
+package org.metaborg.spoofax.core.config.language;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,9 +10,9 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-import org.metaborg.util.config.NaBL2Config;
-import org.metaborg.util.config.NaBL2DebugConfig;
-import org.metaborg.util.config.NaBL2DebugConfig.Flag;
+import org.metaborg.meta.nabl2.config.NaBL2Config;
+import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
+import org.metaborg.meta.nabl2.config.NaBL2DebugConfig.Flag;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

@@ -42,6 +42,24 @@ public interface IProjectConfigBuilder {
     IProjectConfigBuilder withMetaborgVersion(String metaborgVersion);
 
     /**
+     * Sets the file sources.
+     *
+     * @param sources
+     *            The file sources.
+     * @return This builder.
+     */
+    IProjectConfigBuilder withSources(Iterable<IExportConfig> sources);
+
+    /**
+     * Adds file sources.
+     *
+     * @param sources
+     *            The file sources.
+     * @return This builder.
+     */
+    IProjectConfigBuilder addSources(Iterable<IExportConfig> sources);
+
+    /**
      * Sets the compile-time dependencies.
      *
      * @param deps

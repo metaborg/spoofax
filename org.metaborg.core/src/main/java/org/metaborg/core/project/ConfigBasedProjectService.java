@@ -61,7 +61,13 @@ public class ConfigBasedProjectService implements IProjectService {
                         configRequest.reportErrors(new StreamMessagePrinter(sourceTextService, false, false, logger));
                     }
 
-                    final IProject project = new Project(dir, configRequest.config());
+                    final IProjectConfig config = configRequest.config();
+                    if(config == null) {
+                        logger.error("Could not retrieve project configuration from project directory {}", dir);
+                        return null;
+                    }
+
+                    final IProject project = new Project(dir, config);
                     IProject prevProject;
                     if((prevProject = projects.putIfAbsent(name, project)) != null) {
                         logger.warn("Project with location {} already exists", name);

@@ -1,7 +1,5 @@
 package org.metaborg.core.project;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.IProjectConfig;
 
@@ -10,10 +8,10 @@ import org.metaborg.core.config.IProjectConfig;
  */
 public class Project implements IProject {
     private final FileObject location;
-    private final @Nullable IProjectConfig config;
+    private final IProjectConfig config;
 
 
-    public Project(FileObject location, @Nullable IProjectConfig config) {
+    public Project(FileObject location, IProjectConfig config) {
         this.location = location;
         this.config = config;
     }
@@ -23,7 +21,7 @@ public class Project implements IProject {
         return location;
     }
 
-    @Override public @Nullable IProjectConfig config() {
+    @Override public IProjectConfig config() {
         return config;
     }
 
@@ -31,4 +29,5 @@ public class Project implements IProject {
     @Override public String toString() {
         return location.toString();
     }
+
 }
