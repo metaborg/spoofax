@@ -50,7 +50,7 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
             return genericFactory;
         }
 
-        TypesmartContext context = getTypesmartContext(impl, config);
+        TypesmartContext context = getTypesmartContext(impl);
         if(!context.isEmpty()) {
             return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
         } else {
@@ -68,7 +68,7 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
             return genericFactory;
         }
 
-        TypesmartContext context = getTypesmartContext(component, config);
+        TypesmartContext context = getTypesmartContext(component);
         if(!context.isEmpty()) {
             return new TypesmartTermFactory(genericFactory, typesmartLogger, context);
         } else {
@@ -88,26 +88,26 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
         mergedTypesmartContexts.remove(component);
     }
 
-    private TypesmartContext getTypesmartContext(ILanguageImpl impl, ISpoofaxProjectConfig config) {
+    private TypesmartContext getTypesmartContext(ILanguageImpl impl) {
         TypesmartContext context = implMergedTypesmartContexts.get(impl);
         if(context == null) {
             context = TypesmartContext.empty();
             for(ILanguageComponent component : impl.components()) {
-                context = context.merge(getTypesmartContext(component, config));
+                context = context.merge(getTypesmartContext(component));
             }
             implMergedTypesmartContexts.put(impl, context);
         }
         return context;
     }
 
-    private TypesmartContext getTypesmartContext(ILanguageComponent component, ISpoofaxProjectConfig config) {
+    private TypesmartContext getTypesmartContext(ILanguageComponent component) {
         TypesmartContext context = mergedTypesmartContexts.get(component);
         if(context == null) {
-            FileObject localContextFile = new SpoofaxCommonPaths(component.location(), config).strTypesmartExportedFile();
+            FileObject localContextFile = new SpoofaxCommonPaths(component.location()).strTypesmartExportedFile();
             context = TypesmartContext.load(localContextFile, typesmartLogger);
             try {
                 for(ILanguageComponent other : dependencyService.sourceDeps(component)) {
-                    FileObject otherContextFile = new SpoofaxCommonPaths(other.location(), config).strTypesmartExportedFile();
+                    FileObject otherContextFile = new SpoofaxCommonPaths(other.location()).strTypesmartExportedFile();
                     TypesmartContext otherContext = TypesmartContext.load(otherContextFile, typesmartLogger);
                     context = context.merge(otherContext);
                 }

@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.project.NameUtil;
-import org.metaborg.spoofax.core.config.ISpoofaxProjectConfig;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -16,11 +15,8 @@ import com.google.common.collect.Lists;
 public class SpoofaxCommonPaths extends CommonPaths {
     static final ILogger logger = LoggerUtils.logger(SpoofaxCommonPaths.class);
 
-    protected final ISpoofaxProjectConfig config;
-
-    public SpoofaxCommonPaths(FileObject root, ISpoofaxProjectConfig config) {
+    public SpoofaxCommonPaths(FileObject root) {
         super(root);
-        this.config = config;
     }
 
     /* Shared input directories */

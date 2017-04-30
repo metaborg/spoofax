@@ -24,7 +24,7 @@ abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Output
     public SpoofaxBuilder(In input) {
         super(input);
         this.context = input.context;
-        this.paths = new SpoofaxLangSpecCommonPaths(context.base, context.languageSpec.config());
+        this.paths = new SpoofaxLangSpecCommonPaths(context.base);
     }
 
 
@@ -58,6 +58,6 @@ abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Output
 
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
         in.defaultReadObject();
-        this.paths = new SpoofaxLangSpecCommonPaths(context.base, context.languageSpec.config());
+        this.paths = new SpoofaxLangSpecCommonPaths(context.base);
     }
 }

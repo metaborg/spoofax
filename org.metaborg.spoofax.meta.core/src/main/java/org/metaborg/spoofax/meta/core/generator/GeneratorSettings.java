@@ -55,7 +55,7 @@ public class GeneratorSettings {
 
         this.location = location;
         this.config = config;
-        this.paths = new SpoofaxLangSpecCommonPaths(location, config);
+        this.paths = new SpoofaxLangSpecCommonPaths(location);
         this.analysisType = analysisType;
     }
 
