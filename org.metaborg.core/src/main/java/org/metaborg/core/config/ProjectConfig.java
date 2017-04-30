@@ -71,9 +71,9 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
         final List<HierarchicalConfiguration<ImmutableNode>> sourceConfigs = config.configurationsAt(PROP_SOURCES, false);
         final List<ISourceConfig> sources = Lists.newArrayListWithCapacity(sourceConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> sourceConfig : sourceConfigs) {
-            final String[] languages = sourceConfig.getStringArray("language");
+            final List<String> languages = sourceConfig.getList(String.class, "language", Collections.emptyList());
             final String directory = sourceConfig.getString("directory");
-            if(languages != null && directory != null) {
+            if(directory != null) {
                 for(String language : languages) {
                     sources.add(new LangSource(language, directory));
                 }

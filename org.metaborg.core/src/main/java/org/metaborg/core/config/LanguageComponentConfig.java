@@ -1,6 +1,7 @@
 package org.metaborg.core.config;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -127,9 +128,13 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         final List<HierarchicalConfiguration<ImmutableNode>> generateConfigs = config.configurationsAt(PROP_GENERATES);
         final List<IGenerateConfig> generates = Lists.newArrayListWithCapacity(generateConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> generateConfig : generateConfigs) {
-            final String language = generateConfig.getString("language");
+            final List<String> languages = generateConfig.getList(String.class, "language", Collections.emptyList());
             final String directory = generateConfig.getString("directory");
-            generates.add(new GenerateConfig(language, directory));
+            if(directory != null) {
+                for(String language : languages) {
+                    generates.add(new GenerateConfig(language, directory));
+                }
+            }
         }
         return generates;
     }
@@ -139,16 +144,20 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
                 config.configurationsAt(PROP_EXPORTS, false);
         final List<IExportConfig> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> exportConfig : exportConfigs) {
-            final String languageName = exportConfig.getString("language");
+            final List<String> languages = exportConfig.getList(String.class, "language");
             final String directory = exportConfig.getString("directory");
             final String file = exportConfig.getString("file");
-            final List<String> includes = exportConfig.getList(String.class, "includes", Lists.<String>newArrayList());
-            final List<String> excludes = exportConfig.getList(String.class, "excludes", Lists.<String>newArrayList());
-            if(languageName != null) {
+            final List<String> includes = exportConfig.getList(String.class, "includes", Lists.newArrayList());
+            final List<String> excludes = exportConfig.getList(String.class, "excludes", Lists.newArrayList());
+            if(languages != null) {
                 if(directory != null) {
-                    exports.add(new LangDirExport(languageName, directory, includes, excludes));
+                    for(String language : languages) {
+                        exports.add(new LangDirExport(language, directory, includes, excludes));
+                    }
                 } else if(file != null) {
-                    exports.add(new LangFileExport(languageName, file));
+                    for(String language : languages) {
+                        exports.add(new LangFileExport(language, file));
+                    }
                 }
             } else {
                 if(directory != null) {
