@@ -4,13 +4,12 @@ import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
-import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 
 import com.google.common.collect.Lists;
 
 public class SpoofaxLangSpecCommonPaths extends SpoofaxCommonPaths {
-    public SpoofaxLangSpecCommonPaths(FileObject root, ISpoofaxLanguageSpecConfig config) {
-        super(root, config);
+    public SpoofaxLangSpecCommonPaths(FileObject root) {
+        super(root);
     }
 
 
