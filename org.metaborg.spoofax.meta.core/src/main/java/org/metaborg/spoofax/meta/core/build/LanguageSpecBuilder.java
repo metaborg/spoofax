@@ -453,11 +453,17 @@ public class LanguageSpecBuilder {
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
         strjIncludesReplicateDir.delete(new AllFileSelector());
         final List<File> strjIncludeDirs = Lists.newArrayList();
+        final List<File> strjIncludeFiles = Lists.newArrayList();
         for(FileObject path : strIncludePaths) {
             if(!path.exists()) {
                 continue;
             }
-            strjIncludeDirs.add(resourceService.localFile(path, strjIncludesReplicateDir));
+            if(path.isFolder()) {
+                strjIncludeDirs.add(resourceService.localFile(path, strjIncludesReplicateDir));
+            }
+            if(path.isFile()) {
+                strjIncludeFiles.add(resourceService.localFile(path, strjIncludesReplicateDir));
+            }
         }
 
         final Arguments strjArgs = config.strArgs();
@@ -465,7 +471,8 @@ public class LanguageSpecBuilder {
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(),
             sdfEnabled, sdfModule, sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
             packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg,
-            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjArgs);
+            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
+            strjIncludeFiles, strjArgs);
 
     }
 
