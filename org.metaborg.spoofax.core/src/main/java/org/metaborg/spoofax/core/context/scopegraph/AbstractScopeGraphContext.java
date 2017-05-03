@@ -2,7 +2,6 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -60,7 +59,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     public NaBL2Config config() {
         return config != null ? config : NaBL2Config.DEFAULT;
     }
-    
+
     @Override public Injector injector() {
         return injector;
     }
@@ -205,11 +204,13 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     private void writeContext(FileObject file) throws IOException {
-        try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
-            oos.writeObject(state);
-        } catch(Exception ex) {
-            throw new IOException("Context file could not be written.", ex);
-        }
+        logger.warn("Scope graph context persistence is disabled until capsule data structures are serializable.");
+        return;
+        //try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
+        //    oos.writeObject(state);
+        //} catch(Exception ex) {
+        //    throw new IOException("Context file could not be written.", ex);
+        //}
     }
 
     private void deleteContextFile(FileObject file) {
