@@ -34,6 +34,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         public final boolean library;
         public final boolean clean;
         public final List<File> includeDirs;
+        public final List<File> includeFiles;
         public final List<String> includeLibs;
         public final File cacheDir;
         public final Arguments extraArgs;
@@ -41,8 +42,8 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
 
 
         public Input(SpoofaxContext context, File inputPath, File outputPath, File depPath, String packageName,
-            boolean library, boolean clean, List<File> includeDirs, List<String> includeLibs, File cacheDir,
-            Arguments extraArgs, Origin origin) {
+            boolean library, boolean clean, List<File> includeDirs, List<File> includeFiles, List<String> includeLibs,
+            File cacheDir, Arguments extraArgs, Origin origin) {
             super(context);
             this.inputFile = inputPath;
             this.outputPath = outputPath;
@@ -51,6 +52,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
             this.library = library;
             this.clean = clean;
             this.includeDirs = includeDirs;
+            this.includeFiles = includeFiles;
             this.includeLibs = includeLibs;
             this.cacheDir = cacheDir;
             this.extraArgs = extraArgs;
@@ -108,6 +110,11 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         for(File dir : input.includeDirs) {
             if(dir != null) {
                 arguments.addFile("-I", dir);
+            }
+        }
+        for(File file : input.includeFiles) {
+            if(file != null) {
+                arguments.addFile("-i", file);
             }
         }
         for(String lib : input.includeLibs) {
