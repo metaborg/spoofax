@@ -12,11 +12,11 @@ import org.metaborg.core.config.IConfig;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.LanguageComponentConfig;
+import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-import org.metaborg.util.config.NaBL2Config;
 
 /**
  * An implementation of the {@link ILanguageSpecConfig} interface that is backed by an {@link ImmutableConfiguration}
@@ -31,16 +31,14 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         super(config);
     }
 
-    protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, @Nullable String metaborgVersion,
-        @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Collection<LanguageIdentifier> compileDeps,
-        @Nullable Collection<LanguageIdentifier> sourceDeps, @Nullable Collection<LanguageIdentifier> javaDeps,
-        @Nullable Boolean sdfEnabled, @Nullable String parseTable, @Nullable String completionsParseTable,
-        @Nullable Boolean typesmart, @Nullable NaBL2Config nabl2Config,
-        @Nullable Collection<LanguageContributionIdentifier> langContribs,
-        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
-        @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
-        super(config, metaborgVersion, id, name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable,
-            completionsParseTable, typesmart, nabl2Config, langContribs, generates, exports);
+    protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
+            @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Boolean sdfEnabled,
+            @Nullable String parseTable, @Nullable String completionsParseTable,
+            @Nullable Collection<LanguageContributionIdentifier> langContribs,
+            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
+            @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
+        super(config, projectConfig, id, name, sdfEnabled, parseTable, completionsParseTable, langContribs, generates,
+                exports);
 
         if(pardonedLanguages != null) {
             config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);

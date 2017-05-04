@@ -5,6 +5,7 @@ import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacySpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.meta.core.stratego.primitive.CheckSdf2TablePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.GetContextualGrammarPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecPpNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecificationPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LegacyLanguageSpecNamePrimitive;
@@ -33,7 +34,8 @@ public class SpoofaxExtensionModule extends AbstractModule {
         spoofaxPrimitiveLibrary.addBinding().to(CheckSdf2TablePrimitive.class).in(Singleton.class);
         spoofaxPrimitiveLibrary.addBinding().to(PlaceholderCharsPrimitive.class).in(Singleton.class);
         spoofaxPrimitiveLibrary.addBinding().to(LanguageSpecPpNamePrimitive.class).in(Singleton.class);
-
+        spoofaxPrimitiveLibrary.addBinding().to(GetContextualGrammarPrimitive.class).in(Singleton.class);
+        
         final Multibinder<AbstractPrimitive> legacySpoofaxPrimitiveLibrary = Multibinder.newSetBinder(binder(),
             AbstractPrimitive.class, Names.named(LegacySpoofaxPrimitiveLibrary.name));
         legacySpoofaxPrimitiveLibrary.addBinding().to(LegacyLanguageSpecNamePrimitive.class).in(Singleton.class);

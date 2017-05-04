@@ -66,14 +66,14 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     @Override ISpoofaxLanguageSpecConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> dependencies);
 
     /**
-     * {@inheritDoc}
+     * {@see ISpoofaxProjectConfigBuilder#withTypesmart(boolean)}
      */
-    @Override ISpoofaxLanguageSpecConfigBuilder withTypesmart(boolean typesmart);
+    ISpoofaxLanguageSpecConfigBuilder withTypesmart(boolean typesmart);
 
     /**
-     * {@inheritDoc}
+     * {@see ISpoofaxProjectConfigBuilder#withNaBL2Config(NaBL2Config)}
      */
-    @Override ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config);
+    ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config);
 
 
     /**

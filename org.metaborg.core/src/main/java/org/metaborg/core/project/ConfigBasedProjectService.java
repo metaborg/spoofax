@@ -55,7 +55,7 @@ public class ConfigBasedProjectService implements IProjectService {
             while(dir != null) {
                 FileName name = dir.getName();
                 if(projectConfigService.available(dir)) {
-                    final ConfigRequest<IProjectConfig> configRequest = projectConfigService.get(dir);
+                    final ConfigRequest<? extends IProjectConfig> configRequest = projectConfigService.get(dir);
                     if(!configRequest.valid()) {
                         logger.error("Errors occurred when retrieving project configuration from project directory {}", dir);
                         configRequest.reportErrors(new StreamMessagePrinter(sourceTextService, false, false, logger));

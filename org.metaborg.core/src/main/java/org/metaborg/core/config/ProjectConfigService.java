@@ -46,7 +46,7 @@ public class ProjectConfigService extends AConfigService<IProject, IProjectConfi
         if(!(config instanceof IConfig)) {
             configBuilder.reset();
             configBuilder.copyFrom(config);
-            config = configBuilder.build(null);
+            config = configBuilder.build((FileObject) null);
         }
         return ((IConfig) config).getConfig();
     }
