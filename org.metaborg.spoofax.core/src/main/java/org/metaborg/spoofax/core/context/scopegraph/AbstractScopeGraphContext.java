@@ -1,7 +1,9 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -180,6 +182,9 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
             S fileState;
             try {
                 fileState = (S) ois.readObject();
+            } catch(NotSerializableException ex) {
+                logger.warn("Scope graph context persistence not functioning until Capsule data structures are serializable.");
+                fileState = initState();
             } catch(Exception ex) {
                 throw new IOException("Context file could not be read.", ex);
             }
@@ -204,13 +209,13 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     private void writeContext(FileObject file) throws IOException {
-        logger.warn("Scope graph context persistence is disabled until capsule data structures are serializable.");
-        return;
-        //try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
-        //    oos.writeObject(state);
-        //} catch(Exception ex) {
-        //    throw new IOException("Context file could not be written.", ex);
-        //}
+        try (ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
+            oos.writeObject(state);
+        } catch (NotSerializableException ex) {
+            logger.warn("Scope graph context persistence not functioning until Capsule data structures are serializable.");
+        } catch (Exception ex) {
+            throw new IOException("Context file could not be written.", ex);
+        }
     }
 
     private void deleteContextFile(FileObject file) {
