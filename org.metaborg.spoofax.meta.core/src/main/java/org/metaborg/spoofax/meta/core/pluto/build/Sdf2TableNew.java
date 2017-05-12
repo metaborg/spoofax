@@ -26,10 +26,11 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         public final File outputNormGrammarFile;
         public final List<String> paths;
         public final boolean parenthesize;
+        public final boolean dynamic;
 
 
         public Input(SpoofaxContext context, File inputFile, File outputFile, File outputNormGrammarFile,
-            File outputContextGrammarFile, List<String> paths, boolean parenthesize) {
+            File outputContextGrammarFile, List<String> paths, boolean parenthesize, boolean dynamic) {
             super(context);
             this.inputFile = inputFile;
             this.outputFile = outputFile;
@@ -37,6 +38,7 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
             this.outputContextGrammarFile = outputContextGrammarFile;
             this.paths = paths;
             this.parenthesize = parenthesize;
+            this.dynamic = dynamic;
         }
     }
 
@@ -74,7 +76,7 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         try {
             ParseTableGenerator pt_gen = new ParseTableGenerator(input.inputFile, input.outputFile,
                 input.outputNormGrammarFile, input.outputContextGrammarFile, input.paths, input.parenthesize);
-            pt_gen.createTable();
+            pt_gen.createTable(input.dynamic);
             for(File required : pt_gen.requiredFiles()) {
                 require(required);
             }
