@@ -211,6 +211,12 @@ public class LanguageService implements ILanguageService {
             }
             addImplementation(impl);
             language.add(impl);
+        } else {
+            final ILanguageInternal prevLanguage = impl.belongsToInternal();
+            if(!prevLanguage.equals(language)) {
+                throw new IllegalStateException(
+                        "Contributions of " + identifier + " use conflicting " + prevLanguage + " and " + language);
+            }
         }
         assert impl != null;
         return impl;

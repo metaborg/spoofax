@@ -56,13 +56,19 @@ public class SimpleProjectService implements ISimpleProjectService {
             }
         }
 
-        final ConfigRequest<IProjectConfig> configRequest = projectConfigService.get(location);
+        final ConfigRequest<? extends IProjectConfig> configRequest = projectConfigService.get(location);
         if(!configRequest.valid()) {
             logger.error("Errors occurred when retrieving project configuration from project directory {}", location);
             configRequest.reportErrors(new StreamMessagePrinter(sourceTextService, false, false, logger));
         }
 
-        final IProject project = new Project(location, configRequest.config());
+        final IProjectConfig config = configRequest.config();
+        if(config == null) {
+            logger.error("Could not retrieve project configuration from project directory {}", location);
+            return null;
+        }
+
+        final IProject project = new Project(location, config);
         if(projects.putIfAbsent(name, project) != null) {
             final String message = String.format("Project with location %s already exists", name);
             throw new MetaborgException(message);

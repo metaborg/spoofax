@@ -26,4 +26,5 @@ public class LanguageIdentifierDeserializer extends StdDeserializer<LanguageIden
 
         return LanguageIdentifier.parse(root.asText());
     }
+
 }

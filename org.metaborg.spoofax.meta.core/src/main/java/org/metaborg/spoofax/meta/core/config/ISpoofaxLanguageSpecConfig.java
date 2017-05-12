@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
+import org.metaborg.spoofax.core.config.ISpoofaxProjectConfig;
 import org.metaborg.util.cmd.Arguments;
 
 /**
@@ -13,35 +14,36 @@ import org.metaborg.util.cmd.Arguments;
  *
  * To create a new instance of this interface, use the {@link ILanguageSpecConfigBuilder} interface.
  */
-public interface ISpoofaxLanguageSpecConfig extends ILanguageSpecConfig {
+public interface ISpoofaxLanguageSpecConfig extends ISpoofaxProjectConfig, ILanguageSpecConfig {
+
     /**
      * Gets the SDF version to use.
      *
      * @return Sdf version to use.
      */
     SdfVersion sdfVersion();
-    
+
     /**
      * Gets the sdf2table version to use.
      *
      * @return sdf2table version to use.
      */
     Sdf2tableVersion sdf2tableVersion();
-    
+
     /**
      * Gets the (relative) path to the sdf main file.
      *
      * @return path to the parse table.
      */
     String sdfMainFile();
-    
+
     /**
      * Gets the Placeholder fences.
      * 
      * @return Placeholder fences
      */
     PlaceholderCharacters placeholderChars();
-    
+
     /**
      * Gets the language to be pretty printed.
      * 

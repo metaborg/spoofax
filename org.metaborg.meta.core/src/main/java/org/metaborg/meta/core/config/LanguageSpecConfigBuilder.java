@@ -10,9 +10,9 @@ import org.metaborg.core.config.IConfig;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.LanguageComponentConfigBuilder;
+import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -35,9 +35,10 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        final LanguageSpecConfig config = new LanguageSpecConfig(configuration, metaborgVersion, identifier, name,
-            compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart,
-            nabl2Config, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+        ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
+        final LanguageSpecConfig config =
+                new LanguageSpecConfig(configuration, projectConfig, identifier, name, sdfEnabled, parseTable,
+                        completionsParseTable, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         return config;
     }
 
@@ -93,16 +94,6 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         return this;
     }
 
-    @Override public ILanguageSpecConfigBuilder withTypesmart(boolean typesmart) {
-        super.withTypesmart(typesmart);
-        return this;
-    }
-
-    @Override public ILanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config) {
-        super.withNaBL2Config(config);
-        return this;
-    }
-
 
     @Override public ILanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier) {
         super.withIdentifier(identifier);
@@ -113,7 +104,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         super.withName(name);
         return this;
     }
-    
+
     @Override public ILanguageSpecConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
         super.withLangContribs(contribs);
         return this;

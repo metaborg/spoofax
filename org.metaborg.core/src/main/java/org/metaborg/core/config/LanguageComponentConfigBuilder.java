@@ -8,7 +8,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.util.config.NaBL2Config;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -18,7 +17,9 @@ import com.google.inject.Inject;
 /**
  * Configuration-based builder for {@link ILanguageComponentConfig} objects.
  */
-public class LanguageComponentConfigBuilder extends ProjectConfigBuilder implements ILanguageComponentConfigBuilder {
+public class LanguageComponentConfigBuilder extends AConfigBuilder implements ILanguageComponentConfigBuilder {
+    protected final ProjectConfigBuilder projectConfigBuilder;
+
     protected @Nullable LanguageIdentifier identifier;
     protected @Nullable String name;
     protected @Nullable Set<LanguageContributionIdentifier> langContribs;
@@ -31,6 +32,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
+        this.projectConfigBuilder = new ProjectConfigBuilder(configReaderWriter);
     }
 
 
@@ -38,15 +40,15 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         if(configuration == null) {
             configuration = configReaderWriter.create(null, rootFolder);
         }
-        final LanguageComponentConfig config = new LanguageComponentConfig(configuration, metaborgVersion, identifier,
-            name, compileDeps, sourceDeps, javaDeps, sdfEnabled, parseTable, completionsParseTable, typesmart,
-            nabl2Config, langContribs, generates, exports);
+        ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
+        final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
+                name, sdfEnabled, parseTable, completionsParseTable, langContribs, generates, exports);
         return config;
     }
 
 
     @Override public ILanguageComponentConfigBuilder reset() {
-        super.reset();
+        projectConfigBuilder.reset();
         identifier = null;
         name = null;
         langContribs = null;
@@ -59,8 +61,10 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
     }
 
     @Override public ILanguageComponentConfigBuilder copyFrom(ILanguageComponentConfig config) {
-        super.copyFrom(config);
-        if(!(config instanceof IConfig)) {
+        if(config instanceof IConfig) {
+            this.configuration = cloneConfiguration((IConfig) config);
+            projectConfigBuilder.setConfiguration(this.configuration);
+        } else {
             withIdentifier(config.identifier());
             withName(config.name());
             withLangContribs(config.langContribs());
@@ -69,53 +73,44 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
             withSdfTable(config.parseTable());
             withSdfCompletionsTable(config.completionsParseTable());
             withSdfEnabled(config.sdfEnabled());
+            projectConfigBuilder.copyValuesFrom(config);
         }
         return this;
     }
 
 
     @Override public ILanguageComponentConfigBuilder withMetaborgVersion(String metaborgVersion) {
-        super.withMetaborgVersion(metaborgVersion);
+        projectConfigBuilder.withMetaborgVersion(metaborgVersion);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder withCompileDeps(Iterable<LanguageIdentifier> deps) {
-        super.withCompileDeps(deps);
+        projectConfigBuilder.withCompileDeps(deps);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps) {
-        super.addCompileDeps(deps);
+        projectConfigBuilder.addCompileDeps(deps);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder withSourceDeps(Iterable<LanguageIdentifier> deps) {
-        super.withSourceDeps(deps);
+        projectConfigBuilder.withSourceDeps(deps);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps) {
-        super.addSourceDeps(deps);
+        projectConfigBuilder.addSourceDeps(deps);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder withJavaDeps(Iterable<LanguageIdentifier> deps) {
-        super.withJavaDeps(deps);
+        projectConfigBuilder.withJavaDeps(deps);
         return this;
     }
 
     @Override public ILanguageComponentConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps) {
-        super.addJavaDeps(deps);
-        return this;
-    }
-
-    @Override public ILanguageComponentConfigBuilder withTypesmart(boolean typesmart) {
-        super.withTypesmart(typesmart);
-        return this;
-    }
-
-    @Override public ILanguageComponentConfigBuilder withNaBL2Config(NaBL2Config config) {
-        super.withNaBL2Config(config);
+        projectConfigBuilder.addJavaDeps(deps);
         return this;
     }
 
@@ -146,7 +141,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
     }
 
     @Override public ILanguageComponentConfigBuilder
-        withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
+            withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
         if(this.langContribs != null) {
             this.langContribs.clear();
         }
@@ -156,7 +151,7 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
     }
 
     @Override public ILanguageComponentConfigBuilder
-        addLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
+            addLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
         if(this.langContribs == null) {
             this.langContribs = Sets.newHashSet();
         }
@@ -200,4 +195,5 @@ public class LanguageComponentConfigBuilder extends ProjectConfigBuilder impleme
         Iterables.addAll(this.exports, exports);
         return this;
     }
+
 }

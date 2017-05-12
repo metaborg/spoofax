@@ -14,15 +14,21 @@ import org.metaborg.core.project.IProject;
 import com.google.inject.Inject;
 
 public class ProjectConfigService extends AConfigService<IProject, IProjectConfig>
-    implements IProjectConfigService, IProjectConfigWriter {
+        implements IProjectConfigService, IProjectConfigWriter {
     private final ProjectConfigBuilder configBuilder;
 
 
     @Inject public ProjectConfigService(AConfigurationReaderWriter configReaderWriter,
-        ProjectConfigBuilder configBuilder) {
+            ProjectConfigBuilder configBuilder) {
         super(configReaderWriter);
 
         this.configBuilder = configBuilder;
+    }
+
+
+    @Override public IProjectConfig defaultConfig(FileObject rootFolder) {
+        configBuilder.reset();
+        return configBuilder.build(rootFolder);
     }
 
 
@@ -35,7 +41,7 @@ public class ProjectConfigService extends AConfigService<IProject, IProjectConfi
     }
 
     @Override protected ConfigRequest<IProjectConfig> toConfig(HierarchicalConfiguration<ImmutableNode> config,
-        FileObject configFile) {
+            FileObject configFile) {
         final ProjectConfig projectConfig = new ProjectConfig(config);
         final MessageBuilder mb = MessageBuilder.create().asError().asInternal().withSource(configFile);
         final Collection<IMessage> messages = projectConfig.validate(mb);
@@ -46,7 +52,7 @@ public class ProjectConfigService extends AConfigService<IProject, IProjectConfi
         if(!(config instanceof IConfig)) {
             configBuilder.reset();
             configBuilder.copyFrom(config);
-            config = configBuilder.build(null);
+            config = configBuilder.build((FileObject) null);
         }
         return ((IConfig) config).getConfig();
     }

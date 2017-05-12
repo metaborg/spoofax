@@ -40,8 +40,8 @@ public class LangSpecGenerator extends BaseGenerator {
         return Iterables.get(extensions, 0);
     }
 
-    public String syntaxType() {
-        return config.syntaxType.id;
+    public SyntaxType syntaxType() {
+        return config.syntaxType;
     }
 
     public boolean syntaxEnabled() {
@@ -72,20 +72,16 @@ public class LangSpecGenerator extends BaseGenerator {
         return null;
     }
 
-    public String analysisType() {
-        return config.generatorSettings.analysisType.id;
-    }
-
     public boolean analysisEnabled() {
-        return syntaxEnabled() && config.generatorSettings.analysisType != AnalysisType.None;
+        return syntaxEnabled() && config.generatorSettings.analysisType() != AnalysisType.None;
     }
 
     public boolean analysisNablTs() {
-        return syntaxEnabled() && config.generatorSettings.analysisType == AnalysisType.NaBL_TS;
+        return syntaxEnabled() && config.generatorSettings.analysisType() == AnalysisType.NaBL_TS;
     }
 
     public boolean analysisNabl2() {
-        return syntaxEnabled() && config.generatorSettings.analysisType == AnalysisType.NaBL2;
+        return syntaxEnabled() && config.generatorSettings.analysisType() == AnalysisType.NaBL2;
     }
 
     public boolean syntaxOrAnalysisEnabled() {
@@ -132,14 +128,14 @@ public class LangSpecGenerator extends BaseGenerator {
     public void generateTrans() throws IOException {
         writer.write("langspec/trans/{{strategoName}}.str", "trans/{{strategoName}}.str", false);
         if(analysisEnabled()) {
-            writer.writeResolve("langspec/trans/analysis.{{analysisType}}.str", "trans/analysis.str", false);
+            writer.writeResolve("langspec/trans/analysis.{{analysisType.id}}.str", "trans/analysis.str", false);
             if(analysisNabl2()) {
                 writer.write("langspec/trans/static-semantics.nabl2", "trans/static-semantics.nabl2", false);
             }
         }
         if(syntaxEnabled()) {
             writer.write("langspec/trans/outline.str", "trans/outline.str", false);
-            writer.writeResolve("langspec/trans/pp.{{syntaxType}}.str", "trans/pp.str", false);
+            writer.writeResolve("langspec/trans/pp.{{syntaxType.id}}.str", "trans/pp.str", false);
         }
     }
 
@@ -151,10 +147,10 @@ public class LangSpecGenerator extends BaseGenerator {
 
     public void generateEditorServices() throws IOException {
         if(syntaxEnabled()) {
-            writer.writeResolve("langspec/editor/Syntax.{{syntaxType}}.esv", "editor/Syntax.esv", false);
+            writer.writeResolve("langspec/editor/Syntax.{{syntaxType.id}}.esv", "editor/Syntax.esv", false);
         }
         if(analysisEnabled()) {
-            writer.writeResolve("langspec/editor/Analysis.{{analysisType}}.esv", "editor/Analysis.esv", false);
+            writer.writeResolve("langspec/editor/Analysis.{{analysisType.id}}.esv", "editor/Analysis.esv", false);
         }
         writer.write("langspec/editor/Main.esv", "editor/Main.esv", false);
     }

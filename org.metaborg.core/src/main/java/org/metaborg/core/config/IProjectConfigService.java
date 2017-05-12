@@ -22,5 +22,14 @@ public interface IProjectConfigService {
      *            The project root folder.
      * @return Configuration request, either with a valid configuration, or a collection of error messages.
      */
-    ConfigRequest<IProjectConfig> get(FileObject rootFolder);
+    ConfigRequest<? extends IProjectConfig> get(FileObject rootFolder);
+
+    /**
+     * Gets the default configuration for the project at the given location.
+     *
+     * @param rootFolder
+     *            The project root folder.
+     * @return Default project configuration.
+     */
+    IProjectConfig defaultConfig(FileObject rootFolder);
 }

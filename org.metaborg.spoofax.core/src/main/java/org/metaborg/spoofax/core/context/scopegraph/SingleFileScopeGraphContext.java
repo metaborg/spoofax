@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.metaborg.core.context.ContextIdentifier;
+import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.solver.Fresh;
 import org.metaborg.meta.nabl2.solver.Solution;
@@ -23,8 +24,8 @@ import com.google.inject.Injector;
 public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State>
         implements ISingleFileScopeGraphContext {
 
-    public SingleFileScopeGraphContext(Injector injector, ContextIdentifier identifier) {
-        super(injector, identifier);
+    public SingleFileScopeGraphContext(Injector injector, ContextIdentifier identifier, NaBL2Config config) {
+        super(injector, identifier, config);
     }
 
     @Override protected State initState() {

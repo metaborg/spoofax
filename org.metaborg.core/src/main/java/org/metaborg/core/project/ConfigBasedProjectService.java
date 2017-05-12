@@ -55,13 +55,19 @@ public class ConfigBasedProjectService implements IProjectService {
             while(dir != null) {
                 FileName name = dir.getName();
                 if(projectConfigService.available(dir)) {
-                    final ConfigRequest<IProjectConfig> configRequest = projectConfigService.get(dir);
+                    final ConfigRequest<? extends IProjectConfig> configRequest = projectConfigService.get(dir);
                     if(!configRequest.valid()) {
                         logger.error("Errors occurred when retrieving project configuration from project directory {}", dir);
                         configRequest.reportErrors(new StreamMessagePrinter(sourceTextService, false, false, logger));
                     }
 
-                    final IProject project = new Project(dir, configRequest.config());
+                    final IProjectConfig config = configRequest.config();
+                    if(config == null) {
+                        logger.error("Could not retrieve project configuration from project directory {}", dir);
+                        return null;
+                    }
+
+                    final IProject project = new Project(dir, config);
                     IProject prevProject;
                     if((prevProject = projects.putIfAbsent(name, project)) != null) {
                         logger.warn("Project with location {} already exists", name);

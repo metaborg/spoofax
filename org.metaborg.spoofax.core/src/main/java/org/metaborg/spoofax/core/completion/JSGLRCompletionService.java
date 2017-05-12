@@ -460,6 +460,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
             if(proposalsOptional == null) {
                 logger.error("Getting proposals for {} failed", strategoInput);
+                continue;
             }
 
             for(IStrategoTerm proposalTerm : proposalsOptional) {

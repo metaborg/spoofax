@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.meta.core.build.LangSpecCommonPaths;
+import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.util.file.IFileAccess;
 
@@ -18,13 +18,13 @@ import build.pluto.stamp.Stamper;
 abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Output> extends Builder<In, Out>
     implements IFileAccess {
     protected final SpoofaxContext context;
-    protected transient LangSpecCommonPaths paths;
+    protected transient SpoofaxLangSpecCommonPaths paths;
 
 
     public SpoofaxBuilder(In input) {
         super(input);
         this.context = input.context;
-        this.paths = new LangSpecCommonPaths(context.base);
+        this.paths = new SpoofaxLangSpecCommonPaths(context.base);
     }
 
 
@@ -58,6 +58,6 @@ abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Output
 
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
         in.defaultReadObject();
-        this.paths = new LangSpecCommonPaths(context.base);
+        this.paths = new SpoofaxLangSpecCommonPaths(context.base);
     }
 }
