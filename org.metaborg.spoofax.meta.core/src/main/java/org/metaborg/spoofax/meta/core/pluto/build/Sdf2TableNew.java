@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.metaborg.newsdf2table.parsetable.ParseTableGenerator;
+import org.metaborg.sdf2table.parsetable.ParseTableGenerator;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -23,18 +23,22 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         public final File inputFile;
         public final File outputFile;
         public final File outputContextGrammarFile;
+        public final File outputNormGrammarFile;
         public final List<String> paths;
         public final boolean parenthesize;
+        public final boolean dynamic;
 
 
-        public Input(SpoofaxContext context, File inputFile, File outputFile, File outputContextGrammarFile, List<String> paths,
-            boolean parenthesize) {
+        public Input(SpoofaxContext context, File inputFile, File outputFile, File outputNormGrammarFile,
+            File outputContextGrammarFile, List<String> paths, boolean parenthesize, boolean dynamic) {
             super(context);
             this.inputFile = inputFile;
             this.outputFile = outputFile;
+            this.outputNormGrammarFile = outputNormGrammarFile;
             this.outputContextGrammarFile = outputContextGrammarFile;
             this.paths = paths;
             this.parenthesize = parenthesize;
+            this.dynamic = dynamic;
         }
     }
 
@@ -70,11 +74,12 @@ public class Sdf2TableNew extends SpoofaxBuilder<Sdf2TableNew.Input, OutputPersi
         boolean status = true;
 
         try {
-            ParseTableGenerator pt_gen = new ParseTableGenerator(input.inputFile, input.outputFile, input.outputContextGrammarFile, input.paths, input.parenthesize);
-            pt_gen.createTable();
+            ParseTableGenerator pt_gen = new ParseTableGenerator(input.inputFile, input.outputFile,
+                input.outputNormGrammarFile, input.outputContextGrammarFile, input.paths, input.parenthesize);
+            pt_gen.createTable(input.dynamic);
             for(File required : pt_gen.requiredFiles()) {
                 require(required);
-            }           
+            }
         } catch(Exception e) {
             System.out.println("Failed to generate parse table");
             e.printStackTrace();

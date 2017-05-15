@@ -62,10 +62,12 @@ public class SimpleProjectService implements ISimpleProjectService {
             configRequest.reportErrors(new StreamMessagePrinter(sourceTextService, false, false, logger));
         }
 
-        final IProjectConfig config = configRequest.config();
-        if(config == null) {
-            logger.error("Could not retrieve project configuration from project directory {}", location);
-            return null;
+        final IProjectConfig config;
+        if(configRequest.config() != null) {
+            config = configRequest.config();
+        } else {
+            logger.info("Using default configuration for project at {}", location);
+            config = projectConfigService.defaultConfig(location);
         }
 
         final IProject project = new Project(location, config);

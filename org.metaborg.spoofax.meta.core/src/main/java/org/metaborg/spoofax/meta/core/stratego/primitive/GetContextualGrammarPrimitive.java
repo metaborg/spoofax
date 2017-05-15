@@ -41,7 +41,7 @@ public class GetContextualGrammarPrimitive extends AbstractPrimitive {
 
         String path = ((IStrategoString) tvars[0]).stringValue();
         ResourceService rs = context.injector().getInstance(ResourceService.class);
-        FileObject fo = rs.resolve(path + "/target/metaborg/sdf-ctxgrammar.aterm");
+        FileObject fo = rs.resolve(path + "/target/metaborg/ctxgrammar.aterm");
 
         InputStream inputStream;
         String text = "";
