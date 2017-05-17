@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.metaborg.newsdf2table.parsetable.ParseTableGenerator;
+import org.metaborg.sdf2table.parsetable.ParseTableGenerator;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
