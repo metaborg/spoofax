@@ -79,7 +79,6 @@ public class TeamCityWriter {
     @Nullable private String escape(@Nullable Object value) {
         if (value == null) return null;
 
-        // FIXME: Escape unicode slash-U as well? (as |0xNNNN)
         return value.toString()
                 // The order matters! We must escape the pipe "|" first.
                 .replace("|", "||")
