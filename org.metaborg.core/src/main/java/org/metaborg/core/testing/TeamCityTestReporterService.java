@@ -17,9 +17,8 @@ import java.nio.charset.StandardCharsets;
  */
 public class TeamCityTestReporterService extends TestReporterServiceBase {
 
-    // TODO: Move to constructor
-    private TeamCityWriter writer = new TeamCityWriter(System.out, null);
-    private TeamCityLogger logger = new TeamCityLogger(writer);
+    private final TeamCityWriter writer;
+    private final TeamCityLogger logger;
 
     /**
      * Stopwatch used to measure the time each test takes.
@@ -38,8 +37,9 @@ public class TeamCityTestReporterService extends TestReporterServiceBase {
     private PrintStream err = new PrintStream(this.errStream);
 
     @Inject
-    public TeamCityTestReporterService() {
-
+    public TeamCityTestReporterService(TeamCityWriter writer, TeamCityLogger logger) {
+        this.writer = writer;
+        this.logger = logger;
     }
 
     @Override

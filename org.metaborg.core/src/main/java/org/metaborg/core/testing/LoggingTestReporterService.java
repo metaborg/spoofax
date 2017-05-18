@@ -9,6 +9,8 @@ import java.io.PrintStream;
 
 /**
  * Test reporter that logs to the logger, standard out and standard error.
+ *
+ * If you want to change the default output of a test runner (e.g. SPT), this is the place to be.
  */
 public final class LoggingTestReporterService extends TestReporterServiceBase {
 
