@@ -13,14 +13,11 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
-import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
-import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
-import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.solver.Solution;
-import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.SolverException;
+import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.messages.Messages;
+import org.metaborg.meta.nabl2.solver_new.singlefile.SingleFileSolver;
 import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
@@ -156,10 +153,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         }
                         Function1<String, ITermVar> fresh =
                                 base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
-                        IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
-                                Actions.sourceTerm(source));
-                        solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints,
-                                Collections.emptySet(), messageInfo, progress.subProgress(1), cancel, debugConfig);
+                        solution = new SingleFileSolver(initialResult.getConfig()).solve(constraints, fresh, cancel,
+                                progress.subProgress(1));
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {
                             logger.info("Solved constraints of {}.", source);
@@ -198,10 +193,12 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.files()) {
                             logger.info("Processing messages of {}.", source);
                         }
-                        Messages messages = new Messages();
-                        messages.addAll(Solver.unsolvedErrors(solution.getUnsolvedConstraints()));
-                        messages.addAll(solution.getMessages());
-                        customSolution.map(CustomSolution::getMessages).ifPresent(messages::addAll);
+                        Messages.Builder messageBuilder = new Messages.Builder();
+                        messageBuilder.addAll(Messages.unsolvedErrors(solution.getUnsolvedConstraints()));
+                        messageBuilder.addAll(solution.getMessages().getAll());
+                        customSolution.map(CustomSolution::getMessages).map(IMessages::getAll)
+                                .ifPresent(messageBuilder::addAll);
+                        IMessages messages = messageBuilder.build();
 
                         success = messages.getErrors().isEmpty();
 

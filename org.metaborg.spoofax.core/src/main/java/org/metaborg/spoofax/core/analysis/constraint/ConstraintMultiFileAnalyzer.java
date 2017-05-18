@@ -26,6 +26,7 @@ import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.Solver;
 import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.solver.messages.EmptyMessages;
+import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.messages.Messages;
 import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
@@ -315,10 +316,13 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 if(debugConfig.analysis()) {
                     logger.info("Processing project messages.");
                 }
-                Messages messages = new Messages();
-                messages.addAll(Solver.unsolvedErrors(solution.getUnsolvedConstraints()));
-                messages.addAll(solution.getMessages());
-                customSolution.map(CustomSolution::getMessages).ifPresent(messages::addAll);
+                Messages.Builder messageBuilder = new Messages.Builder();
+                messageBuilder.addAll(Messages.unsolvedErrors(solution.getUnsolvedConstraints()));
+                messageBuilder.addAll(solution.getMessages().getAll());
+                customSolution.map(CustomSolution::getMessages).map(IMessages::getAll)
+                        .ifPresent(messageBuilder::addAll);
+                IMessages messages = messageBuilder.build();
+
                 IRelation3.Mutable<FileObject, MessageSeverity, IMessage> messagesByFile =
                         messagesByFile(Iterables.concat(failures.values(),
                                 messages(messages.getAll(), solution.getUnifier(), context, context.location())));
