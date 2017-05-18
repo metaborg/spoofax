@@ -21,6 +21,7 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.resource.IResourceService;
@@ -67,6 +68,7 @@ public class LanguageSpecBuilder {
     private final Injector injector;
     private final IResourceService resourceService;
     private final ISourceTextService sourceTextService;
+    private final ILanguageIdentifierService languageIdentifierService;
     private final IDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
     private final ISpoofaxProcessorRunner runner;
@@ -76,12 +78,14 @@ public class LanguageSpecBuilder {
 
 
     @Inject public LanguageSpecBuilder(Injector injector, IResourceService resourceService,
-        ISourceTextService sourceTextService, IDependencyService dependencyService,
-        ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner, Set<IBuildStep> buildSteps,
-        ILanguageComponentConfigBuilder componentConfigBuilder, ILanguageComponentConfigWriter componentConfigWriter) {
+        ISourceTextService sourceTextService, ILanguageIdentifierService languageIdentifierService,
+        IDependencyService dependencyService, ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner,
+        Set<IBuildStep> buildSteps, ILanguageComponentConfigBuilder componentConfigBuilder,
+        ILanguageComponentConfigWriter componentConfigWriter) {
         this.injector = injector;
         this.resourceService = resourceService;
         this.sourceTextService = sourceTextService;
+        this.languageIdentifierService = languageIdentifierService;
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
         this.runner = runner;
@@ -149,8 +153,8 @@ public class LanguageSpecBuilder {
         final SpoofaxCommonPaths paths = new SpoofaxLangSpecCommonPaths(input.languageSpec().location());
 
         // HACK: compile the main ESV file to make sure that packed.esv file is always available.
-        final Iterable<FileObject> esvRoots = languagePathService.sourcePaths(input.project(),
-                SpoofaxConstants.LANG_ESV_NAME);
+        final Iterable<FileObject> esvRoots =
+            languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_ESV_NAME);
         final FileObject mainEsvFile = paths.findEsvMainFile(esvRoots);
         try {
             if(mainEsvFile != null && mainEsvFile.exists()) {
@@ -177,12 +181,17 @@ public class LanguageSpecBuilder {
 
         // HACK: compile the main DS file if available, after generating sources (because ds can depend on Stratego
         // strategies), to generate an interpreter.
-        final Iterable<FileObject> dsRoots = languagePathService.sourcePaths(input.project(),
-                SpoofaxConstants.LANG_DYNSEM_NAME);
+        final Iterable<FileObject> dsRoots =
+            languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_DYNSEM_NAME);
         final FileObject mainDsFile = paths.findDsMainFile(dsRoots, input.languageSpec().config().strategoName());
         try {
             if(mainDsFile != null && mainDsFile.exists()) {
-                logger.info("Compiling Main DynSem file {}", mainDsFile);
+                if(languageIdentifierService.identify(mainDsFile, input.project()) == null) {
+                    logger.error("Could not identify DynSem main file {}, please add DynSem as a compile dependency",
+                        mainDsFile);
+                }
+
+                logger.info("Compiling main DynSem file {}", mainDsFile);
                 // @formatter:off
                 final BuildInput buildInput =
                     new BuildInputBuilder(input.languageSpec())
@@ -193,7 +202,7 @@ public class LanguageSpecBuilder {
                 // @formatter:on
                 final ISpoofaxBuildOutput result = runner.build(buildInput, null, null).schedule().block().result();
                 if(!result.success()) {
-                    throw new MetaborgException("Compiling Main DynSem file failed");
+                    logger.error("Compiling main DynSem file {} failed", mainDsFile);
                 }
             }
         } catch(FileSystemException e) {
@@ -336,8 +345,8 @@ public class LanguageSpecBuilder {
         final Sdf2tableVersion sdf2tableVersion = config.sdf2tableVersion();
         switch(sdfVersion) {
             case sdf2:
-                final Iterable<FileObject> sdfRoots = languagePathService.sourcePaths(input.project(),
-                        SpoofaxConstants.LANG_SDF_NAME);
+                final Iterable<FileObject> sdfRoots =
+                    languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_SDF_NAME);
                 sdfFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfModule);
                 break;
             case sdf3:
@@ -398,8 +407,8 @@ public class LanguageSpecBuilder {
         }
 
         // Meta-SDF
-        final Iterable<FileObject> sdfRoots = languagePathService.sourcePaths(input.project(),
-                SpoofaxConstants.LANG_SDF_NAME);
+        final Iterable<FileObject> sdfRoots =
+            languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_SDF_NAME);
         final String sdfMetaModule = config.metaSdfName();
         final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
         final @Nullable File sdfMetaFile;
@@ -413,8 +422,8 @@ public class LanguageSpecBuilder {
         // Stratego
         final String strModule = config.strategoName();
 
-        final Iterable<FileObject> strRoots = languagePathService.sourcePaths(input.project(),
-                SpoofaxConstants.LANG_STRATEGO_NAME);
+        final Iterable<FileObject> strRoots =
+            languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_STRATEGO_NAME);
         final FileObject strFileCandidate = paths.findStrMainFile(strRoots, strModule);
         final @Nullable File strFile;
         if(strFileCandidate != null && strFileCandidate.exists()) {
@@ -468,11 +477,11 @@ public class LanguageSpecBuilder {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(),
-            sdfEnabled, sdfModule, sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
-            packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg,
-            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
-            strjIncludeFiles, strjArgs);
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
+            sdfModule, sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
+            sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg,
+            strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjIncludeFiles,
+            strjArgs);
 
     }
 

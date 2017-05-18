@@ -8,7 +8,7 @@ dependencies:
 {{/syntaxSdf3}}{{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lang.nabl:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.ts:${metaborgVersion}
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.lang:${metaborgVersion}
-{{/analysisNabl2}}
+{{/analysisNabl2}}  - org.metaborg:dynsem:${metaborgVersion}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 {{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
