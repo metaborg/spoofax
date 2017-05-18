@@ -54,7 +54,7 @@
     </dependency>    
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>sdf2table-new</artifactId>
+      <artifactId>sdf2table</artifactId>
       <version>${metaborg-version}</version>
     </dependency>   
 
