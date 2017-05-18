@@ -65,6 +65,10 @@ import org.metaborg.core.resource.ResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.source.SourceTextService;
 import org.metaborg.core.syntax.IParseUnit;
+import org.metaborg.core.testing.ITestReporterService;
+import org.metaborg.core.testing.LoggingTestReporterService;
+import org.metaborg.core.testing.TeamCityLogger;
+import org.metaborg.core.testing.TeamCityWriter;
 import org.metaborg.core.transform.ITransformUnit;
 
 import com.google.inject.AbstractModule;
@@ -123,6 +127,8 @@ public class MetaborgModule extends AbstractModule {
         bindProcessorRunner();
         bindLanguageChangeProcessing();
         bindEditor();
+        bindTestFramework();
+        bindTestReporter();
 
         bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
     }
@@ -240,5 +246,15 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindEditor() {
         bind(IEditorRegistry.class).to(DummyEditorRegistry.class).in(Singleton.class);
+    }
+
+    protected void bindTestFramework() {
+        bind(TeamCityWriter.class).in(Singleton.class);
+        bind(TeamCityLogger.class).in(Singleton.class);
+    }
+
+    protected void bindTestReporter() {
+        // IDE's would override this to show test results in their UI instead.
+        bind(ITestReporterService.class).to(LoggingTestReporterService.class).in(Singleton.class);
     }
 }
