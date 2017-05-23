@@ -119,12 +119,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         final TransformAction action = action(actionContribution.action);
 
         // Get input term
-        final IStrategoTerm inputTerm;
-        try {
-            inputTerm = common.builderInputTerm(term, source, location);
-        } catch(MetaborgException e) {
-            throw new TransformException("Transformation failed unexpectedly; cannot create input term", e);
-        }
+        final IStrategoTerm inputTerm = common.builderInputTerm(term, source, location);
 
         // Get Stratego runtime
         final HybridInterpreter runtime;
