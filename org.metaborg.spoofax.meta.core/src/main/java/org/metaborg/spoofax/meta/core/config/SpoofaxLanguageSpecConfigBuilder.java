@@ -56,7 +56,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         SpoofaxProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, projectConfig, identifier,
                 name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
-                sdfMainFile, parseTable, completionsParseTable, sdf2tableVersion, placeholderCharacters, prettyPrint,
+                sdfMainFile, parseTable, jsglrVersion, completionsParseTable, sdf2tableVersion, placeholderCharacters, prettyPrint,
                 sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 

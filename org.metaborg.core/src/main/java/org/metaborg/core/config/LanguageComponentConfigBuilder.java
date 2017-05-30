@@ -29,6 +29,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable Boolean sdfEnabled;
     protected @Nullable String parseTable;
     protected @Nullable String completionsParseTable;
+    protected @Nullable JSGLRVersion jsglrVersion;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -42,7 +43,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         }
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
-                name, sdfEnabled, parseTable, completionsParseTable, langContribs, generates, exports);
+            name, sdfEnabled, parseTable, completionsParseTable, jsglrVersion, langContribs, generates, exports);
         return config;
     }
 
@@ -56,6 +57,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         exports = null;
         parseTable = null;
         completionsParseTable = null;
+        jsglrVersion = null;
         sdfEnabled = null;
         return this;
     }
@@ -72,6 +74,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withExports(config.exports());
             withSdfTable(config.parseTable());
             withSdfCompletionsTable(config.completionsParseTable());
+            withJSGLRVersion(config.jsglrVersion());
             withSdfEnabled(config.sdfEnabled());
             projectConfigBuilder.copyValuesFrom(config);
         }
@@ -137,6 +140,11 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
 
     @Override public ILanguageComponentConfigBuilder withSdfCompletionsTable(String completionsTable) {
         this.completionsParseTable = completionsTable;
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withJSGLRVersion(JSGLRVersion jsglrVersion) {
+        this.jsglrVersion = jsglrVersion;
         return this;
     }
 

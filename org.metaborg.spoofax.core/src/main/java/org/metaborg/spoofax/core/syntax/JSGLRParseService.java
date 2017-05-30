@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -21,6 +22,8 @@ import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.InvalidParseTableException;
+import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -79,17 +82,28 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         try {
             logger.trace("Parsing {}", source);
 
+            JSGLRVersion version = JSGLRVersion.v1;
+            for(ILanguageComponent langComp : input.langImpl().components()) {
+            	version = langComp.config().jsglrVersion();
+            	break;
+            }
+            
             final JSGLRI parser;
-            if(base != null) {
-                parser = new JSGLRI(config, termFactory, base, langImpl, source, text);
+            
+            if (version == JSGLRVersion.v2) {
+                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text);
             } else {
-                parser = new JSGLRI(config, termFactory, langImpl, null, source, text);
+                if(base != null) {
+                    parser = new JSGLR1I(config, termFactory, base, langImpl, source, text);
+                } else {
+                    parser = new JSGLR1I(config, termFactory, langImpl, null, source, text);
+                }
             }
 
             final ParseContrib contrib = parser.parse(parserConfig);
             final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
             return unit;
-        } catch(IOException e) {
+        } catch(IOException | InvalidParseTableException | ParseTableReadException e) {
             throw new ParseException(input, e);
         }
     }
@@ -147,7 +161,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             }
 
 
-            final IParseTableProvider provider = new FileParseTableProvider(parseTable, termFactory);
+            final IParseTableTermProvider provider = new FileParseTableTermProvider(parseTable, termFactory);
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
             parserConfigs.put(lang, config);
         }
@@ -201,7 +215,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
                 throw new ParseException(input, e);
             }
 
-            final IParseTableProvider provider = new FileParseTableProvider(completionParseTable, termFactory);
+            final IParseTableTermProvider provider = new FileParseTableTermProvider(completionParseTable, termFactory);
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
             completionParserConfigs.put(lang, config);
         }

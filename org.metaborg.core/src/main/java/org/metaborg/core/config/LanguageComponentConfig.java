@@ -30,6 +30,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_ENABLED = "language.sdf.enabled";
     private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
+    private static final String PROP_SDF_JSGLR_VERSION = "language.sdf.jsglr-version";
 
     private final ProjectConfig projectConfig;
 
@@ -39,10 +40,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     }
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
-            @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
-            @Nullable String parseTable, @Nullable String completionParseTable,
-            @Nullable Collection<LanguageContributionIdentifier> langContribs,
-            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
+        @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
+        @Nullable String parseTable, @Nullable String completionParseTable, @Nullable JSGLRVersion jsglrVersion,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config);
         this.projectConfig = projectConfig;
 
@@ -55,7 +56,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         if(completionParseTable != null) {
             config.setProperty(PROP_SDF_COMPLETION_PARSE_TABLE, completionParseTable);
         }
-
+        if(jsglrVersion != null) {
+            config.setProperty(PROP_SDF_JSGLR_VERSION, jsglrVersion);
+        }
         if(name != null) {
             config.setProperty(PROP_NAME, name);
         }
@@ -110,9 +113,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Collection<LanguageContributionIdentifier> langContribs() {
         final List<HierarchicalConfiguration<ImmutableNode>> langContribConfigs =
-                config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
+            config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
         final List<LanguageContributionIdentifier> langContribs =
-                Lists.newArrayListWithCapacity(langContribConfigs.size());
+            Lists.newArrayListWithCapacity(langContribConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> langContribConfig : langContribConfigs) {
             // HACK: for some reason get(LanguageIdentifier.class, "id") does not work here, it cannot convert to a
             // language identifier, do manually instead.
@@ -141,7 +144,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Collection<IExportConfig> exports() {
         final List<HierarchicalConfiguration<ImmutableNode>> exportConfigs =
-                config.configurationsAt(PROP_EXPORTS, false);
+            config.configurationsAt(PROP_EXPORTS, false);
         final List<IExportConfig> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> exportConfig : exportConfigs) {
             final List<String> languages = exportConfig.getList(String.class, "language");
@@ -168,6 +171,25 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         return exports;
     }
 
+    @Override public Boolean sdfEnabled() {
+        return this.config.getBoolean(PROP_SDF_ENABLED, true);
+    }
+
+    @Override public String parseTable() {
+        final String value = this.config.getString(PROP_SDF_PARSE_TABLE);
+        return value != null ? value : "target/metaborg/sdf.tbl";
+    }
+
+    @Override public String completionsParseTable() {
+        final String value = this.config.getString(PROP_SDF_COMPLETION_PARSE_TABLE);
+        return value != null ? value : "target/metaborg/sdf-completions.tbl";
+    }
+
+    @Override public JSGLRVersion jsglrVersion() {
+        final String value = this.config.getString(PROP_SDF_JSGLR_VERSION);
+        return value != null ? JSGLRVersion.valueOf(value) : JSGLRVersion.v1;
+    }
+
 
     public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = projectConfig.validate(mb);
@@ -187,8 +209,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             messages.add(mb.withMessage("Field 'name' must be set").build());
         } else {
             if(!LanguageIdentifier.validId(name)) {
-                messages.add(mb
-                        .withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
+                messages.add(
+                    mb.withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
                         .build());
             }
         }
@@ -198,19 +220,5 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         // TODO: validate exports
 
         return messages;
-    }
-
-    @Override public Boolean sdfEnabled() {
-        return this.config.getBoolean(PROP_SDF_ENABLED, true);
-    }
-
-    @Override public String parseTable() {
-        final String value = this.config.getString(PROP_SDF_PARSE_TABLE);
-        return value != null ? value : "target/metaborg/sdf.tbl";
-    }
-
-    @Override public String completionsParseTable() {
-        final String value = this.config.getString(PROP_SDF_COMPLETION_PARSE_TABLE);
-        return value != null ? value : "target/metaborg/sdf-completions.tbl";
     }
 }

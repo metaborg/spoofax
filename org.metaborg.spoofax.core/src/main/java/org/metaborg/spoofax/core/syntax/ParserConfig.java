@@ -2,10 +2,10 @@ package org.metaborg.spoofax.core.syntax;
 
 public class ParserConfig implements IParserConfig {
     private final String startSymbol;
-    private final IParseTableProvider parseTableProvider;
+    private final IParseTableTermProvider parseTableProvider;
 
 
-    public ParserConfig(String startSymbol, IParseTableProvider provider) {
+    public ParserConfig(String startSymbol, IParseTableTermProvider provider) {
         this.startSymbol = startSymbol;
         this.parseTableProvider = provider;
     }
@@ -15,7 +15,7 @@ public class ParserConfig implements IParserConfig {
         return this.startSymbol;
     }
 
-    @Override public IParseTableProvider getParseTableProvider() {
+    @Override public IParseTableTermProvider getParseTableProvider() {
         return this.parseTableProvider;
     }
 }

@@ -122,6 +122,8 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withSdfCompletionsTable(String completionsParseTable);
+    
+    ILanguageComponentConfigBuilder withJSGLRVersion(JSGLRVersion jsglrVersion);
 
     /**
      * Adds language contributions.

@@ -61,6 +61,13 @@ public interface ILanguageComponentConfig extends IProjectConfig {
     String completionsParseTable();
     
     /**
+     * Gets the parser version.
+     *
+     * @return the parser version.
+     */
+    JSGLRVersion jsglrVersion();
+    
+    /**
      * Gets the file exports.
      *
      * @return The file exports.
