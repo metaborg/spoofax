@@ -27,7 +27,7 @@ import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.unification.IUnifier;
-import org.metaborg.meta.nabl2.util.collections.HashRelation3;
+import org.metaborg.meta.nabl2.util.collections.HashTrieRelation3;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -188,8 +188,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
 
-    protected IRelation3.Mutable<FileObject, MessageSeverity, IMessage> messagesByFile(Iterable<IMessage> messages) {
-        IRelation3.Mutable<FileObject, MessageSeverity, IMessage> fmessages = HashRelation3.create();
+    protected IRelation3.Transient<FileObject, MessageSeverity, IMessage> messagesByFile(Iterable<IMessage> messages) {
+        IRelation3.Transient<FileObject, MessageSeverity, IMessage> fmessages = HashTrieRelation3.Transient.of();
         for(IMessage message : messages) {
             fmessages.put(message.source(), message.severity(), message);
         }

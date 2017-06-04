@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.util.Optional;
 
-import org.metaborg.meta.nabl2.solver.Solution;
+import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
@@ -19,7 +19,7 @@ public interface ISingleFileScopeGraphUnit extends IScopeGraphUnit {
 
     void setUnitResult(UnitResult result);
 
-    void setSolution(Solution solution);
+    void setSolution(ISolution solution);
 
     void setCustomSolution(CustomSolution solution);
 

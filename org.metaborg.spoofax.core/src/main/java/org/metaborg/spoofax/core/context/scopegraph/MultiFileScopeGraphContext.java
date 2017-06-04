@@ -11,8 +11,7 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.solver.Fresh;
-import org.metaborg.meta.nabl2.solver.PartialSolution;
-import org.metaborg.meta.nabl2.solver.Solution;
+import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
@@ -65,7 +64,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         return Optional.ofNullable(state.initialResult);
     }
 
-    @Override public void setSolution(Solution solution) {
+    @Override public void setSolution(ISolution solution) {
         state.solution = solution;
     }
 
@@ -92,7 +91,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         final Map<String, IMultiFileScopeGraphUnit> units = Maps.newHashMap();
 
         InitialResult initialResult;
-        Solution solution;
+        ISolution solution;
         CustomSolution customSolution;
         FinalResult finalResult;
 
@@ -116,7 +115,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
             private final Fresh fresh;
 
             private UnitResult unitResult;
-            private PartialSolution partialSolution;
+            private ISolution partialSolution;
 
             private Unit(String resource, boolean isProject) {
                 this.resource = resource;
@@ -147,15 +146,15 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
                 return constraints;
             }
 
-            @Override public void setPartialSolution(PartialSolution constraints) {
+            @Override public void setPartialSolution(ISolution constraints) {
                 this.partialSolution = constraints;
             }
 
-            @Override public Optional<PartialSolution> partialSolution() {
+            @Override public Optional<ISolution> partialSolution() {
                 return Optional.ofNullable(partialSolution);
             }
 
-            @Override public Optional<Solution> solution() {
+            @Override public Optional<ISolution> solution() {
                 return Optional.ofNullable(solution);
             }
 

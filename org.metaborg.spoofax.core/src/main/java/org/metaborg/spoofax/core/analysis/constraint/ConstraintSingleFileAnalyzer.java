@@ -13,11 +13,11 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.solver.Solution;
+import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.messages.Messages;
-import org.metaborg.meta.nabl2.solver_new.singlefile.SingleFileSolver;
+import org.metaborg.meta.nabl2.solver.solvers.SingleFileSolver;
 import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
@@ -144,7 +144,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     }
 
                     // solve
-                    final Solution solution;
+                    final ISolution solution;
                     {
                         Set<IConstraint> constraints =
                                 Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
@@ -193,18 +193,18 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.files()) {
                             logger.info("Processing messages of {}.", source);
                         }
-                        Messages.Builder messageBuilder = new Messages.Builder();
-                        messageBuilder.addAll(Messages.unsolvedErrors(solution.getUnsolvedConstraints()));
-                        messageBuilder.addAll(solution.getMessages().getAll());
+                        Messages.Transient messageBuilder = Messages.Transient.of();
+                        messageBuilder.addAll(Messages.unsolvedErrors(solution.constraints()));
+                        messageBuilder.addAll(solution.messages().getAll());
                         customSolution.map(CustomSolution::getMessages).map(IMessages::getAll)
                                 .ifPresent(messageBuilder::addAll);
-                        IMessages messages = messageBuilder.build();
+                        IMessages messages = messageBuilder.freeze();
 
                         success = messages.getErrors().isEmpty();
 
-                        Iterable<IMessage> fileMessages = Iterables.concat(
-                                analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST),
-                                messages(messages.getAll(), solution.getUnifier(), context, context.location()));
+                        Iterable<IMessage> fileMessages =
+                                Iterables.concat(analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST),
+                                        messages(messages.getAll(), solution.unifier(), context, context.location()));
 
                         // result
                         results.add(unitService.analyzeUnit(parseUnit,
