@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.stratego;
 
-import java.io.File;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -181,23 +180,26 @@ public class StrategoCommon implements IStrategoCommon {
         }
         return sb.toString();
     }
-    
-    @Override public IStrategoString localLocationTerm(File localLocation) {
+
+    @Override public IStrategoString locationTerm(FileObject location) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
-        final String locationPath = localLocation.getAbsolutePath();
-        final IStrategoString locationPathTerm = termFactory.makeString(locationPath);
-        return locationPathTerm;
+
+        final String locationURI = location.getName().getURI();
+        final IStrategoString locationTerm = termFactory.makeString(locationURI);
+
+        return locationTerm;
     }
 
-    @Override public IStrategoString localResourceTerm(File localResource, File localLocation) {
+    @Override public IStrategoString resourceTerm(FileObject resource, FileObject location) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
-        final String resourcePath = localLocation.toURI().relativize(localResource.toURI()).getPath();
-        final IStrategoString resourcePathTerm = termFactory.makeString(resourcePath);
-        return resourcePathTerm;
+
+        String resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
+        final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
+
+        return resourceTerm;
     }
 
-    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location)
-        throws MetaborgException {
+    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
         // TODO: support selected node
