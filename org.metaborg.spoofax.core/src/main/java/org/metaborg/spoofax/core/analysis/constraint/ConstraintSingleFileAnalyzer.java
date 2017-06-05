@@ -14,6 +14,7 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.messages.Messages;
@@ -153,8 +154,11 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         }
                         Function1<String, ITermVar> fresh =
                                 base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
-                        solution = new SingleFileSolver(initialResult.getConfig()).solve(constraints, fresh, cancel,
-                                progress.subProgress(1));
+                        final IProgress subprogress = progress.subProgress(1);
+                        final SingleFileSolver solver = new SingleFileSolver(initialResult.getConfig());
+                        final ISolution preSolution = solver
+                                .solveGraph(Solution.of(initialResult.getConfig(), constraints), cancel, subprogress);
+                        solution = solver.solve(preSolution, fresh, cancel, subprogress);
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {
                             logger.info("Solved constraints of {}.", source);

@@ -208,10 +208,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         }
                         try {
                             solverTimer.start();
-                            Function1<String, ITermVar> fresh =
+                            final Function1<String, ITermVar> fresh =
                                     base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
-                            unitSolution = solver.solveUnit(unitResult.getConstraints(), intfVars, intfScopes, fresh,
-                                    cancel, progress.subProgress(1));
+                            final IProgress subprogress = progress.subProgress(1);
+                            final ISolution preSolution = solver.solveGraph(
+                                    Solution.of(initialResult.getConfig(), unitResult.getConstraints()), cancel,
+                                    subprogress);
+                            unitSolution =
+                                    solver.solveUnit(preSolution, intfVars, intfScopes, fresh, cancel, subprogress);
                             if(debugConfig.resolution()) {
                                 logger.info("Reduced file constraints to {}.", unitSolution.constraints().size());
                             }
