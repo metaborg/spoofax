@@ -14,10 +14,11 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.solver.ISolution;
-import org.metaborg.meta.nabl2.solver.Solution;
 import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.messages.Messages;
+import org.metaborg.meta.nabl2.solver.solvers.BaseSolver.GraphSolution;
+import org.metaborg.meta.nabl2.solver.solvers.ImmutableBaseSolution;
 import org.metaborg.meta.nabl2.solver.solvers.SingleFileSolver;
 import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
@@ -145,7 +146,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     }
 
                     // solve
-                    final ISolution solution;
+                    ISolution solution;
                     {
                         Set<IConstraint> constraints =
                                 Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
@@ -155,10 +156,12 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         Function1<String, ITermVar> fresh =
                                 base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
                         final IProgress subprogress = progress.subProgress(1);
-                        final SingleFileSolver solver = new SingleFileSolver(initialResult.getConfig());
-                        final ISolution preSolution = solver
-                                .solveGraph(Solution.of(initialResult.getConfig(), constraints), cancel, subprogress);
+                        final SingleFileSolver solver = new SingleFileSolver(context.config().debug());
+                        GraphSolution preSolution = solver.solveGraph(
+                                ImmutableBaseSolution.of(initialResult.getConfig(), constraints), cancel, subprogress);
+                        preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         solution = solver.solve(preSolution, fresh, cancel, subprogress);
+                        solution = solver.reportUnsolvedConstraints(solution);
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {
                             logger.info("Solved constraints of {}.", source);

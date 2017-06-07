@@ -13,6 +13,10 @@ public interface IMultiFileScopeGraphContext extends ISpoofaxScopeGraphContext<I
 
     Optional<InitialResult> initialResult();
 
+    void setInitialSolution(ISolution solution);
+
+    Optional<ISolution> initialSolution();
+
     void setSolution(ISolution solution);
 
     void setCustomSolution(CustomSolution solution);

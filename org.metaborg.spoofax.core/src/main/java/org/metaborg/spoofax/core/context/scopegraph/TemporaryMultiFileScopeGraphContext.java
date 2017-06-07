@@ -29,6 +29,14 @@ public class TemporaryMultiFileScopeGraphContext extends AbstractTemporaryScopeG
         return context.initialResult();
     }
 
+    public void setInitialSolution(ISolution solution) {
+        context.setInitialSolution(solution);
+    }
+
+    public Optional<ISolution> initialSolution() {
+        return context.initialSolution();
+    }
+
     @Override public void setSolution(ISolution solution) {
         context.setSolution(solution);
     }
