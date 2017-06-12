@@ -17,8 +17,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.MultiBadTokenException;
 import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.RegionRecovery;
+import org.spoofax.jsglr.client.imploder.AbstractTokenizer;
 import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.ITokens;
 import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
@@ -60,20 +61,20 @@ public class JSGLRParseErrorHandler {
      */
 
     public void gatherNonFatalErrors(IStrategoTerm top) {
-        final ITokenizer tokenizer = getTokenizer(top);
+        final ITokens tokenizer = getTokenizer(top);
         if(tokenizer != null) {
             for(int i = 0, max = tokenizer.getTokenCount(); i < max; i++) {
                 final IToken token = tokenizer.getTokenAt(i);
                 final String error = token.getError();
                 if(error != null) {
-                    if(error == ITokenizer.ERROR_SKIPPED_REGION) {
+                    if(error == ITokens.ERROR_SKIPPED_REGION) {
                         i = findRightMostWithSameError(token, null);
                         reportSkippedRegion(token, tokenizer.getTokenAt(i));
-                    } else if(error.startsWith(ITokenizer.ERROR_WARNING_PREFIX)) {
+                    } else if(error.startsWith(ITokens.ERROR_WARNING_PREFIX)) {
                         i = findRightMostWithSameError(token, null);
                         reportWarningAtTokens(token, tokenizer.getTokenAt(i), error);
-                    } else if(error.startsWith(ITokenizer.ERROR_WATER_PREFIX)) {
-                        i = findRightMostWithSameError(token, ITokenizer.ERROR_WATER_PREFIX);
+                    } else if(error.startsWith(ITokens.ERROR_WATER_PREFIX)) {
+                        i = findRightMostWithSameError(token, ITokens.ERROR_WATER_PREFIX);
                         reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
                     } else {
                         i = findRightMostWithSameError(token, null);
@@ -88,7 +89,7 @@ public class JSGLRParseErrorHandler {
 
     private static int findRightMostWithSameError(IToken token, String prefix) {
         final String expectedError = token.getError();
-        final ITokenizer tokenizer = token.getTokenizer();
+        final ITokens tokenizer = token.getTokenizer();
         int i = token.getIndex();
         for(int max = tokenizer.getTokenCount(); i + 1 < max; i++) {
             String error = tokenizer.getTokenAt(i + 1).getError();
@@ -110,7 +111,7 @@ public class JSGLRParseErrorHandler {
 
         if(reportedLine == -1) {
             // Report entire region
-            reportErrorAtTokens(left, right, ITokenizer.ERROR_SKIPPED_REGION);
+            reportErrorAtTokens(left, right, ITokens.ERROR_SKIPPED_REGION);
         } else if(reportedLine - line >= LARGE_REGION_SIZE) {
             // Warn at start of region
             reportErrorAtTokens(findLeftMostTokenOnSameLine(left), findRightMostTokenOnSameLine(left),
@@ -134,7 +135,7 @@ public class JSGLRParseErrorHandler {
      * Fatal errors
      */
 
-    public void processFatalException(ITokenizer tokenizer, Exception exception) {
+    public void processFatalException(ITokens tokenizer, Exception exception) {
         try {
             throw exception;
         } catch(ParseTimeoutException e) {
@@ -150,44 +151,44 @@ public class JSGLRParseErrorHandler {
         }
     }
 
-    private void reportTimeOut(ITokenizer tokenizer, ParseTimeoutException exception) {
+    private void reportTimeOut(ITokens tokenizer, ParseTimeoutException exception) {
         final String message = "Internal parsing error: " + exception.getMessage();
         createErrorAtFirstLine(message);
         reportMultiBadToken(tokenizer, exception);
     }
 
-    private void reportTokenExpected(ITokenizer tokenizer, TokenExpectedException exception) {
+    private void reportTokenExpected(ITokens tokenizer, TokenExpectedException exception) {
         final String message = exception.getShortMessage();
         reportErrorNearOffset(tokenizer, exception.getOffset(), message);
     }
 
-    private void reportMultiBadToken(ITokenizer tokenizer, MultiBadTokenException exception) {
+    private void reportMultiBadToken(ITokens tokenizer, MultiBadTokenException exception) {
         for(BadTokenException e : exception.getCauses()) {
             processFatalException(tokenizer, e);
         }
     }
 
-    private void reportBadToken(ITokenizer tokenizer, BadTokenException exception) {
+    private void reportBadToken(ITokens tokenizer, BadTokenException exception) {
         final String message;
         if(exception.isEOFToken() || tokenizer.getTokenCount() <= 1) {
             message = exception.getShortMessage();
         } else {
             IToken token = tokenizer.getTokenAtOffset(exception.getOffset());
             token = findNextNonEmptyToken(token);
-            message = ITokenizer.ERROR_WATER_PREFIX + ": " + token.toString().trim();
+            message = ITokens.ERROR_WATER_PREFIX + ": " + token.toString().trim();
         }
         reportErrorNearOffset(tokenizer, exception.getOffset(), message);
     }
 
 
-    private void reportErrorNearOffset(ITokenizer tokenizer, int offset, String message) {
-        final IToken errorToken = tokenizer.getErrorTokenOrAdjunct(offset);
+    private void reportErrorNearOffset(ITokens tokenizer, int offset, String message) {
+        final IToken errorToken = ((AbstractTokenizer) tokenizer).getErrorTokenOrAdjunct(offset);
         final ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(errorToken, errorToken);
         reportErrorAtRegion(region, message);
     }
 
     private static IToken findNextNonEmptyToken(IToken token) {
-        final ITokenizer tokenizer = token.getTokenizer();
+        final ITokens tokenizer = token.getTokenizer();
         IToken result = null;
         for(int i = token.getIndex(), max = tokenizer.getTokenCount(); i < max; i++) {
             result = tokenizer.getTokenAt(i);

@@ -12,10 +12,11 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.ITokens;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 
@@ -40,7 +41,7 @@ public class CategorizerService implements ISpoofaxCategorizerService {
         }
 
         final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.ast());
-        final ITokenizer tokenizer = rootImploderAttachment.getLeftToken().getTokenizer();
+        final ITokens tokenizer = rootImploderAttachment.getLeftToken().getTokenizer();
         final int tokenCount = tokenizer.getTokenCount();
         int offset = -1;
         for(int i = 0; i < tokenCount; ++i) {
