@@ -12,6 +12,7 @@ import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.solver.Fresh;
 import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.solvers.IncrementalMultiFileSolver.IncrementalSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
@@ -72,6 +73,14 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         return Optional.ofNullable(state.initialSolution);
     }
 
+    @Override public void setIncrementalSolution(IncrementalSolution solution) {
+        state.incrementalSolution = solution;
+    }
+
+    @Override public Optional<IncrementalSolution> incrementalSolution() {
+        return Optional.ofNullable(state.incrementalSolution);
+    }
+
     @Override public void setSolution(ISolution solution) {
         state.solution = solution;
     }
@@ -101,6 +110,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         InitialResult initialResult;
         ISolution initialSolution;
         ISolution solution;
+        IncrementalSolution incrementalSolution;
         CustomSolution customSolution;
         FinalResult finalResult;
 

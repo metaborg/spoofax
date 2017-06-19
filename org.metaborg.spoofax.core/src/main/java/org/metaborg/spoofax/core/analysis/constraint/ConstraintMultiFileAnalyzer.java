@@ -172,10 +172,16 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     new IncrementalMultiFileSolver(globalSource, context.config().debug());
 
             // global
-            ISolution initialSolution;
+            final ISolution initialSolution;
+            final IncrementalSolution incrementalSolution;
             {
                 if(context.initialSolution().isPresent()) {
                     initialSolution = context.initialSolution().get();
+                    if(context.incrementalSolution().isPresent()) {
+                        incrementalSolution = context.incrementalSolution().get();
+                    } else {
+                        incrementalSolution = IncrementalSolution.of(initialSolution);
+                    }
                 } else {
                     try {
                         solverTimer.start();
@@ -186,6 +192,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         initialSolution =
                                 solver.solveIntra(preSolution, intfVars, intfScopes, globalFresh, cancel, subprogress);
+                        incrementalSolution = IncrementalSolution.of(initialSolution);
                         if(debugConfig.resolution()) {
                             logger.info("Reduced file constraints to {}.", initialSolution.constraints().size());
                         }
@@ -202,6 +209,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             final Map<String, IStrategoTerm> astsByFile = Maps.newHashMap();
             final Map<String, IMessage> failures = Maps.newHashMap();
             final Multimap<String, IMessage> ambiguitiesByFile = HashMultimap.create();
+            final Map<String, ISolution> updatedUnits = Maps.newHashMap();
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
                 final String source = input.getKey();
                 final ISpoofaxParseUnit parseUnit = input.getValue();
@@ -270,6 +278,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             solverTimer.stop();
                         }
                         unit.setPartialSolution(unitSolution);
+                        updatedUnits.put(source, unitSolution);
                         if(debugConfig.files() || debugConfig.resolution()) {
                             logger.info("Analyzed {}: {} errors, {} warnings, {} notes, {} unsolved constraints.",
                                     source, unitSolution.messages().getErrors().size(),
@@ -301,12 +310,11 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             base -> TB.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
                     final IMessageInfo message = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                             Actions.sourceTerm(globalSource));
-                    final IncrementalSolution result = solver.solveInter(initialSolution, partialSolutions, message,
-                            fresh, cancel, progress.subProgress(w));
-                    for(Map.Entry<String, ISolution> entry : result.unitInters().entrySet()) {
-                        ISolution solution = solver.reportUnsolvedConstraints(entry.getValue());
-                        context.unit(entry.getKey()).setSolution(solution);
-                    }
+                    final IncrementalSolution result = solver.solveInter(incrementalSolution, updatedUnits, removed,
+                            intfScopes, message, fresh, cancel, progress.subProgress(w));
+                    context.setIncrementalSolution(result);
+                    ISolution solution = result.globalInter().map(solver::reportUnsolvedConstraints).orElse(null);
+                    context.setSolution(solution);
                 } catch(SolverException e) {
                     throw new AnalysisException(context, e);
                 } finally {
