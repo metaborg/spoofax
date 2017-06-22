@@ -40,7 +40,7 @@ public class FileParseTableProvider implements IParseTableProvider {
             if(grammar.exists()) {
                 parseTable = new ParseTable(parseTableTerm, termFactory, grammar);
             } else {
-                parseTable = new ParseTable(parseTableTerm, termFactory, null);
+                parseTable = new ParseTable(parseTableTerm, termFactory);
             }
 
         } catch(Exception e) {
