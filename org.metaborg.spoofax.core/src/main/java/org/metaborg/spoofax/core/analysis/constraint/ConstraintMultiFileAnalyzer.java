@@ -3,8 +3,8 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -71,7 +71,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+
+import io.usethesource.capsule.Set;
 
 public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -90,9 +93,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         this.unitService = unitService;
     }
 
-    @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
-            IMultiFileScopeGraphContext context, HybridInterpreter runtime, String strategy, IProgress progress,
-            ICancel cancel) throws AnalysisException {
+    @Override protected ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed,
+            java.util.Set<String> removed, IMultiFileScopeGraphContext context, HybridInterpreter runtime,
+            String strategy, IProgress progress, ICancel cancel) throws AnalysisException {
         if(context.config().incremental()) {
             return analyzeIncremental(changed, removed, context, runtime, strategy, progress, cancel);
         } else {
@@ -100,9 +103,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         }
     }
 
-    private ISpoofaxAnalyzeResults analyzeIncremental(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
-            IMultiFileScopeGraphContext context, HybridInterpreter runtime, String strategy, IProgress progress,
-            ICancel cancel) throws AnalysisException {
+    private ISpoofaxAnalyzeResults analyzeIncremental(Map<String, ISpoofaxParseUnit> changed,
+            java.util.Set<String> removed, IMultiFileScopeGraphContext context, HybridInterpreter runtime,
+            String strategy, IProgress progress, ICancel cancel) throws AnalysisException {
         final NaBL2DebugConfig debugConfig = context.config().debug();
         final Timer totalTimer = new Timer(true);
         final AggregateTimer collectionTimer = new AggregateTimer();
@@ -160,8 +163,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
 
             // global parameters, that form the interface for a single unit
-            final List<ITermVar> intfVars = Lists.newArrayList();
-            final List<Scope> intfScopes = Lists.newArrayList();
+            final java.util.Set<ITermVar> intfVars = Sets.newHashSet();
+            final java.util.Set<Scope> intfScopes = Sets.newHashSet();
             {
                 initialResult.getArgs().getParams().stream().forEach(param -> intfVars.addAll(param.getVars()));
                 initialResult.getArgs().getType().ifPresent(type -> intfVars.addAll(type.getVars()));
@@ -313,6 +316,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     final IncrementalSolution result = solver.solveInter(incrementalSolution, updatedUnits, removed,
                             intfScopes, message, fresh, cancel, progress.subProgress(w));
                     context.setIncrementalSolution(result);
+                    // set unit solutions
+                    for(Entry<Set.Immutable<String>, ISolution> componentResult : result.unitInters().entrySet()) {
+                        ISolution solution = componentResult.getValue();
+                        componentResult.getKey().stream().forEach(resource -> {
+                            context.unit(resource).setSolution(solution);
+                        });
+                    }
+                    // set global solution
                     ISolution solution = result.globalInter().map(solver::reportUnsolvedConstraints).orElse(null);
                     context.setSolution(solution);
                 } catch(SolverException e) {
@@ -341,8 +352,6 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         finalResult = FinalResult.matcher().match(finalResultTerm)
                                 .orElseThrow(() -> new AnalysisException(context, "Invalid final results."));
                         context.setFinalResult(finalResult);
-
-                        // FIXME Custom analysis: need topological order, and support for strongly-connected components
                     }
 
 
@@ -372,7 +381,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 for(IMultiFileScopeGraphUnit unit : context.units()) {
                     final String source = unit.resource();
                     final FileObject file = resource(source, context);
-                    final Set<IMessage> fileMessages =
+                    final java.util.Set<IMessage> fileMessages =
                             messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
                     if(changed.containsKey(source)) {
                         fileMessages.addAll(ambiguitiesByFile.get(source));
@@ -389,7 +398,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     messagesByFile.remove(file);
                 }
                 for(FileObject file : messagesByFile.keySet()) {
-                    final Set<IMessage> fileMessages =
+                    final java.util.Set<IMessage> fileMessages =
                             messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
                     updateResults
                             .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
@@ -415,9 +424,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         return new SpoofaxAnalyzeResults(results, updateResults, context, debugData);
     }
 
-    private ISpoofaxAnalyzeResults analyzeSemiIncremental(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
-            IMultiFileScopeGraphContext context, HybridInterpreter runtime, String strategy, IProgress progress,
-            ICancel cancel) throws AnalysisException {
+    private ISpoofaxAnalyzeResults analyzeSemiIncremental(Map<String, ISpoofaxParseUnit> changed,
+            java.util.Set<String> removed, IMultiFileScopeGraphContext context, HybridInterpreter runtime,
+            String strategy, IProgress progress, ICancel cancel) throws AnalysisException {
         final NaBL2DebugConfig debugConfig = context.config().debug();
         final Timer totalTimer = new Timer(true);
         final AggregateTimer collectionTimer = new AggregateTimer();
@@ -678,7 +687,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 for(IMultiFileScopeGraphUnit unit : context.units()) {
                     final String source = unit.resource();
                     final FileObject file = resource(source, context);
-                    final Set<IMessage> fileMessages =
+                    final java.util.Set<IMessage> fileMessages =
                             messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
                     if(changed.containsKey(source)) {
                         fileMessages.addAll(ambiguitiesByFile.get(source));
@@ -695,7 +704,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     messagesByFile.remove(file);
                 }
                 for(FileObject file : messagesByFile.keySet()) {
-                    final Set<IMessage> fileMessages =
+                    final java.util.Set<IMessage> fileMessages =
                             messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
                     updateResults
                             .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
