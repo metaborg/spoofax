@@ -39,7 +39,7 @@ public class LanguageSpecificationPrimitive extends ASpoofaxContextPrimitive {
         if(languageSpecServiceProvider == null) {
             // Indicates that meta-Spoofax is not available (ISpoofaxLanguageSpecService cannot be injected), but this
             // should never happen because this primitive is inside meta-Spoofax. Check for null just in case.
-            logger.debug("Language specification service is not available; static injection failed");
+            logger.error("Language specification service is not available; static injection failed");
             return null;
         }
         final ISpoofaxLanguageSpecService languageSpecService = languageSpecServiceProvider.get();
