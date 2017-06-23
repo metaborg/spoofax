@@ -3,8 +3,8 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -36,7 +36,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.ITermVar;
 import org.metaborg.meta.nabl2.terms.generic.TB;
-import org.metaborg.meta.nabl2.unification.Unifier;
+import org.metaborg.meta.nabl2.util.collections.HashTrieRelation3;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
@@ -67,7 +67,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -298,6 +297,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             }
 
             // solve
+            final IncrementalSolution result;
             {
                 final Map<String, ISolution> partialSolutions = Maps.newHashMap();
                 for(IMultiFileScopeGraphUnit unit : context.units()) {
@@ -313,11 +313,11 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             base -> TB.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
                     final IMessageInfo message = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                             Actions.sourceTerm(globalSource));
-                    final IncrementalSolution result = solver.solveInter(incrementalSolution, updatedUnits, removed,
-                            intfScopes, message, fresh, cancel, progress.subProgress(w));
+                    result = solver.solveInter(incrementalSolution, updatedUnits, removed, intfScopes, message, fresh,
+                            cancel, progress.subProgress(w));
                     context.setIncrementalSolution(result);
                     // set unit solutions
-                    for(Entry<Set.Immutable<String>, ISolution> componentResult : result.unitInters().entrySet()) {
+                    for(Map.Entry<Set.Immutable<String>, ISolution> componentResult : result.unitInters().entrySet()) {
                         ISolution solution = componentResult.getValue();
                         componentResult.getKey().stream().forEach(resource -> {
                             context.unit(resource).setSolution(solution);
@@ -368,17 +368,23 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 if(debugConfig.analysis()) {
                     logger.info("Processing project messages.");
                 }
-                IMessages.Transient messages = Messages.Transient.of();
-                messages.addAll(initialSolution.messages());
-                for(IMultiFileScopeGraphUnit unit : context.units()) {
-                    unit.solution().map(ISolution::messages).ifPresent(messages::addAll);
-                }
                 IRelation3.Transient<FileObject, MessageSeverity, IMessage> messagesByFile =
-                        messagesByFile(Iterables.concat(failures.values(),
-                                messages(messages.getAll(),
-                                        Unifier.Immutable.of() /* FIXME This should use the unit unifier */, context,
-                                        context.location())));
-                for(IMultiFileScopeGraphUnit unit : context.units()) {
+                        HashTrieRelation3.Transient.of();
+                AtomicInteger numErrors = new AtomicInteger(0);
+                AtomicInteger numWarnings = new AtomicInteger(0);
+                AtomicInteger numNotes = new AtomicInteger(0);
+                countMessages(initialSolution.messages(), numErrors, numWarnings, numNotes);
+                messagesByFile(messages(initialSolution.messages().getAll(), initialSolution.unifier(), context,
+                        context.location()), messagesByFile);
+                messagesByFile(failures.values(), messagesByFile);
+                result.updates().stream().map(result.unitInters()::get).forEach(s -> {
+                    countMessages(s.messages(), numErrors, numWarnings, numNotes);
+                    messagesByFile(messages(s.messages().getAll(), s.unifier(), context, context.location()),
+                            messagesByFile);
+                });
+                // FIXME the global check messages are probably lost like this, but they are not separately available,
+                //       only in the global solution that contains everything
+                result.updates().stream().flatMap(Collection::stream).map(context::unit).forEach(unit -> {
                     final String source = unit.resource();
                     final FileObject file = resource(source, context);
                     final java.util.Set<IMessage> fileMessages =
@@ -396,7 +402,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                 .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
                     }
                     messagesByFile.remove(file);
-                }
+                });
                 for(FileObject file : messagesByFile.keySet()) {
                     final java.util.Set<IMessage> fileMessages =
                             messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
@@ -404,8 +410,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
                 }
                 if(debugConfig.analysis() || debugConfig.files() || debugConfig.resolution()) {
-                    logger.info("Analyzed {} files: {} errors, {} warnings, {} notes.", n, messages.getErrors().size(),
-                            messages.getWarnings().size(), messages.getNotes().size());
+                    logger.info("Analyzed {} files: {} errors, {} warnings, {} notes.", n, numErrors.get(),
+                            numWarnings.get(), numNotes.get());
                 }
             }
 
@@ -682,8 +688,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 IMessages messages = messageBuilder.freeze();
 
                 IRelation3.Transient<FileObject, MessageSeverity, IMessage> messagesByFile =
-                        messagesByFile(Iterables.concat(failures.values(),
-                                messages(messages.getAll(), solution.unifier(), context, context.location())));
+                        HashTrieRelation3.Transient.of();
+                messagesByFile(failures.values(), messagesByFile);
+                messagesByFile(messages(messages.getAll(), solution.unifier(), context, context.location()),
+                        messagesByFile);
                 for(IMultiFileScopeGraphUnit unit : context.units()) {
                     final String source = unit.resource();
                     final FileObject file = resource(source, context);

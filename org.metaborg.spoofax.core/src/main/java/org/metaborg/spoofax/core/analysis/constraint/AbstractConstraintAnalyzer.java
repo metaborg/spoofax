@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,13 +22,13 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
+import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
 import org.metaborg.meta.nabl2.stratego.ConstraintTerms;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.unification.IUnifier;
-import org.metaborg.meta.nabl2.util.collections.HashTrieRelation3;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -188,12 +189,18 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
 
-    protected IRelation3.Transient<FileObject, MessageSeverity, IMessage> messagesByFile(Iterable<IMessage> messages) {
-        IRelation3.Transient<FileObject, MessageSeverity, IMessage> fmessages = HashTrieRelation3.Transient.of();
+    protected void messagesByFile(Iterable<IMessage> messages,
+            IRelation3.Transient<FileObject, MessageSeverity, IMessage> fmessages) {
         for(IMessage message : messages) {
             fmessages.put(message.source(), message.severity(), message);
         }
-        return fmessages;
+    }
+
+    protected void countMessages(IMessages messages, AtomicInteger numErrors, AtomicInteger numWarnings,
+            AtomicInteger numNotes) {
+        numErrors.addAndGet(messages.getErrors().size());
+        numWarnings.addAndGet(messages.getWarnings().size());
+        numNotes.addAndGet(messages.getNotes().size());
     }
 
     protected Set<IMessage> messages(Iterable<IMessageInfo> messages, IUnifier unifier, C context,
