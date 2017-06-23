@@ -88,6 +88,7 @@ import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuildOutput;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
+import org.metaborg.spoofax.core.completion.ISpoofaxCompletionService;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigBuilder;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigService;
@@ -608,6 +609,7 @@ public class SpoofaxModule extends MetaborgModule {
 
     protected void bindCompletion() {
         bind(JSGLRCompletionService.class).in(Singleton.class);
+        bind(ISpoofaxCompletionService.class).to(JSGLRCompletionService.class);
         bind(new TypeLiteral<ICompletionService<ISpoofaxParseUnit>>() {}).to(JSGLRCompletionService.class);
         bind(new TypeLiteral<ICompletionService<?>>() {}).to(JSGLRCompletionService.class);
         bind(ICompletionService.class).to(JSGLRCompletionService.class);
