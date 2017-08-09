@@ -40,7 +40,17 @@ public class CategorizerService implements ISpoofaxCategorizerService {
         }
 
         final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.ast());
+        if(rootImploderAttachment == null) {
+            logger.error("Cannot categorize input {} of {}, it does not have an imploder attachment", parseResult, language);
+            // GTODO: throw exception instead
+            return regionCategories;
+        }
         final ITokenizer tokenizer = rootImploderAttachment.getLeftToken().getTokenizer();
+        if(tokenizer == null) {
+            logger.error("Cannot categorize input {} of {}, it does not have a tokenizer", parseResult, language);
+            // GTODO: throw exception instead
+            return regionCategories;
+        }
         final int tokenCount = tokenizer.getTokenCount();
         int offset = -1;
         for(int i = 0; i < tokenCount; ++i) {

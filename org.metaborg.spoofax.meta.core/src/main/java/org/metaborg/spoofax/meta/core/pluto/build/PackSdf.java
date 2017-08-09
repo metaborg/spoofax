@@ -82,6 +82,10 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
     @Override public OutputPersisted<File> build(Input input) throws IOException {
         require(input.inputFile);
 
+        if(input.origin != null) {
+            requireBuild(input.origin);
+        }
+        
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
         for(File path : input.includePaths) {
