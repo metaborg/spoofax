@@ -76,6 +76,11 @@ rules // Source and include directories and files
   current-language-relative-source-path = prim("language_relative_source_path", <language>)
 
   /**
+   * Returns a path relative to the source or include folder, or the project root.
+   */
+  current-language-relative-source-or-include-path = prim("language_relative_source_or_include_path", <language>)
+
+  /**
    * Returns a list of source files (strings) for language with given name (string).
    */
   language-source-files = prim("language_source_files", <id>)
