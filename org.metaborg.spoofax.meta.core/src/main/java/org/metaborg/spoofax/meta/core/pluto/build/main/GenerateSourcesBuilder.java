@@ -8,7 +8,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IExportVisitor;
@@ -36,7 +35,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableNew;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
-import org.metaborg.spoofax.nativebundle.NativeBundle;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle;
 import org.metaborg.util.cmd.Arguments;
 
 import com.google.common.collect.Lists;
@@ -44,6 +43,7 @@ import com.google.common.collect.Lists;
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
+import build.pluto.output.OutputTransient;
 import build.pluto.stamp.FileExistsStamper;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
@@ -379,16 +379,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
             final String sdfMetaModule = input.sdfMetaModule;
 
-            final FileObject strategoMixPath = context.resourceService().resolve(NativeBundle.getStrategoMix());
-            final File strategoMixFile = toFileReplicate(strategoMixPath);
+            final BuildRequest<PrepareNativeBundle.Input, OutputTransient<PrepareNativeBundle.Output>, PrepareNativeBundle, SpoofaxBuilderFactory<PrepareNativeBundle.Input, OutputTransient<PrepareNativeBundle.Output>, PrepareNativeBundle>> nativeBundleRequest =
+                PrepareNativeBundle.request(new PrepareNativeBundle.Input(context));
+            final File strategoMixFile = requireBuild(nativeBundleRequest).val().strategoMixFile;
+            final Origin strategoMixOrigin = Origin.from(nativeBundleRequest);
             final Arguments packSdfMetaArgs = new Arguments(input.packSdfArgs);
             packSdfMetaArgs.addFile("-Idef", strategoMixFile);
-            provide(strategoMixFile);
 
             final File packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + ".def");
 
             final Origin packSdfOrigin = PackSdf.origin(new PackSdf.Input(context, sdfMetaModule, sdfMetaFile,
-                packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, null));
+                packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, strategoMixOrigin));
 
             final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + "-permissive.def");
             final Origin permissiveDefOrigin = MakePermissive.origin(

@@ -1,16 +1,16 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
-import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
+import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -18,28 +18,24 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class LanguageSpecPpNamePrimitive extends ASpoofaxContextPrimitive {
-    private static final ILogger logger = LoggerUtils.logger(LanguageSpecPpNamePrimitive.class);
+public class LanguageSpecSrcGenDirectory extends ASpoofaxContextPrimitive {
+    private static final ILogger logger = LoggerUtils.logger(LanguageSpecSrcGenDirectory.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
-    private final IProjectService projectService;
 
-
-    @Inject public LanguageSpecPpNamePrimitive(IProjectService projectService) {
-        super("pp_language_spec_name", 0, 0);
-
-        this.projectService = projectService;
+    @Inject public LanguageSpecSrcGenDirectory() {
+        super("language_spec_srcgen_dir", 0, 0);
     }
 
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
-        ITermFactory factory, IContext context) throws MetaborgException {
-        final FileObject location = context.location();
-        final IProject project = projectService.get(location);
+            ITermFactory factory, IContext context) throws MetaborgException {
+        final IProject project = context.project();
         if(project == null) {
             return null;
         }
+        final CommonPaths paths = new CommonPaths(project.location());
 
         if(languageSpecServiceProvider == null) {
             // Indicates that meta-Spoofax is not available (ISpoofaxLanguageSpecService cannot be injected), but this
@@ -47,20 +43,20 @@ public class LanguageSpecPpNamePrimitive extends ASpoofaxContextPrimitive {
             logger.error("Language specification service is not available; static injection failed");
             return null;
         }
-        final ISpoofaxLanguageSpecService languageSpecService = languageSpecServiceProvider.get();
-        if(!languageSpecService.available(project)) {
-            return null;
+
+        if(!Tools.isTermString(current)) {
+            throw new MetaborgException("Expect a string as argument term, got " + current);
         }
-        final ISpoofaxLanguageSpec languageSpec;
+        String name = Tools.asJavaString(current);
+
+        final String srcGenDir;
         try {
-            languageSpec = languageSpecService.get(project);
-        } catch(ConfigException e) {
-            throw new MetaborgException("Unable to get language specification name for " + location, e);
-        }
-        if(languageSpec == null) {
+            srcGenDir = ResourceUtils.relativeName(paths.srcGenDir().resolveFile(name).getName(),
+                    project.location().getName(), true);
+        } catch(FileSystemException e) {
             return null;
         }
 
-        return factory.makeString(languageSpec.config().prettyPrintLanguage());
+        return factory.makeString(srcGenDir);
     }
 }

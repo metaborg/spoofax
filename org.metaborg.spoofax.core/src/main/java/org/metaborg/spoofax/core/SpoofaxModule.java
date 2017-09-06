@@ -88,6 +88,7 @@ import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuildOutput;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
+import org.metaborg.spoofax.core.completion.ISpoofaxCompletionService;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigBuilder;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigService;
@@ -138,6 +139,8 @@ import org.metaborg.spoofax.core.stratego.primitive.LocalPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LocalReplicatePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ProjectPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.RelativeSourceOrIncludePath;
+import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
 import org.metaborg.spoofax.core.stratego.primitive.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.generic.DummyPrimitive;
@@ -364,6 +367,8 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceFilesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeDirectoriesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeFilesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourcePath.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourceOrIncludePath.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ParsePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, CallStrategyPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, IsLanguageActivePrimitive.class);
@@ -608,6 +613,7 @@ public class SpoofaxModule extends MetaborgModule {
 
     protected void bindCompletion() {
         bind(JSGLRCompletionService.class).in(Singleton.class);
+        bind(ISpoofaxCompletionService.class).to(JSGLRCompletionService.class);
         bind(new TypeLiteral<ICompletionService<ISpoofaxParseUnit>>() {}).to(JSGLRCompletionService.class);
         bind(new TypeLiteral<ICompletionService<?>>() {}).to(JSGLRCompletionService.class);
         bind(ICompletionService.class).to(JSGLRCompletionService.class);

@@ -47,7 +47,7 @@ public class JSGLR1I extends JSGLRI {
         if(grammar.exists()) {
             parseTable = new ParseTable(parseTableTermProvider.parseTableTerm(), termFactory, grammar);
         } else {
-            parseTable = new ParseTable(parseTableTermProvider.parseTableTerm(), termFactory, null);
+            parseTable = new ParseTable(parseTableTermProvider.parseTableTerm(), termFactory);
         }
         
         this.parser = new SGLR(new TreeBuilder(factory), parseTable);
