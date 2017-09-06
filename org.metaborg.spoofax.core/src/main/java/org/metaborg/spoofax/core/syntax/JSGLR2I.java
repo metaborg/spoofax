@@ -9,35 +9,21 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.messages.MessageSeverity;
-import org.metaborg.core.messages.MessageUtils;
 import org.metaborg.spoofax.core.unit.ParseContrib;
-import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.Asfix2TreeBuilder;
-import org.spoofax.jsglr.client.Disambiguator;
-import org.spoofax.jsglr.client.FilterException;
-import org.spoofax.jsglr.client.NullTreeBuilder;
-import org.spoofax.jsglr.client.SGLRParseResult;
-import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.shared.BadTokenException;
-import org.spoofax.jsglr.shared.SGLRException;
-import org.spoofax.jsglr2.SGLR2;
+import org.spoofax.jsglr2.JSGLR2;
 import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 
 public class JSGLR2I extends JSGLRI {
-    private final SGLR2 parser;
-    
-    private static final ILogger logger = LoggerUtils.logger(JSGLR2I.class);
+    private final JSGLR2<?, ?, IStrategoTerm> parser;
 
-    public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
-        @Nullable FileObject resource, String input) throws IOException, ParseTableReadException {
+    public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect, @Nullable FileObject resource, String input) throws IOException, ParseTableReadException {
         super(config, termFactory, language, dialect, resource, input);
 
-        this.parser = new SGLR2(config.getParseTableProvider().parseTableTerm());
+        this.parser = JSGLR2.standard(config.getParseTableProvider().parseTableTerm());
     }
 
     public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException {
@@ -46,13 +32,13 @@ public class JSGLR2I extends JSGLRI {
         }
 
         final Timer timer = new Timer(true);
-
+        
         final IStrategoTerm ast = parser.parse(input);
 
         final long duration = timer.stop();
 
         final boolean hasAst = ast != null;
-        final Iterable<IMessage> messages = Collections.emptyList();
+        final Iterable<IMessage> messages = Collections.emptyList(); // TODO: add message if parse is invalid
         final boolean hasErrors = ast == null;
         return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
     }
