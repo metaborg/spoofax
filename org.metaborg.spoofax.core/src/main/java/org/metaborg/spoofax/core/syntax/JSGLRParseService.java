@@ -88,6 +88,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             	break;
             }
             
+            logger.info("Using parser " + version);
+            
             final JSGLRI parser;
             
             if (version == JSGLRVersion.v2) {
@@ -101,6 +103,14 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             }
 
             final ParseContrib contrib = parser.parse(parserConfig);
+            
+            if (version == JSGLRVersion.v2) {
+                if (contrib.valid)
+                    logger.info("Valid jSGLR2 parse");
+                else
+                    logger.info("Invalid jSGLR2 parse");
+            }
+            
             final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
             return unit;
         } catch(IOException | InvalidParseTableException | ParseTableReadException e) {
