@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 public class LangSpecGeneratorSettingsBuilder {
     public static final String standardGroupId = "org.example";
     public static final String standardVersionString = "0.1.0-SNAPSHOT";
-    public static final AnalysisType standardAnalysisType = AnalysisType.NaBL_TS;
+    public static final AnalysisType standardAnalysisType = AnalysisType.NaBL2;
     public static final SyntaxType standardSyntaxType = SyntaxType.SDF3;
     public static final String standardMetaborgVersion = MetaborgConstants.METABORG_VERSION;
 
