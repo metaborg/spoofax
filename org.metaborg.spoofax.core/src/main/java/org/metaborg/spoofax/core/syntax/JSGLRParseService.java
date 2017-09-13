@@ -88,7 +88,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             	break;
             }
             
-            final JSGLRI parser;
+            final JSGLRI<?> parser;
             
             if (version == JSGLRVersion.v2) {
                 parser = new JSGLR2I(config, termFactory, langImpl, null, source, text);

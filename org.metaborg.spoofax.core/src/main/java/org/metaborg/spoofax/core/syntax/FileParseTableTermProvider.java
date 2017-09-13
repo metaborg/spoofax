@@ -13,6 +13,7 @@ public class FileParseTableTermProvider implements IParseTableTermProvider {
     private final ITermFactory termFactory;
 
     private IStrategoTerm parseTableTerm;
+    private Object cachedParseTable;
 
     public FileParseTableTermProvider(FileObject resource, ITermFactory termFactory) {
         this.resource = resource;
@@ -43,5 +44,13 @@ public class FileParseTableTermProvider implements IParseTableTermProvider {
         }
 
         return parseTableTerm;
+    }
+
+    public void setCachedParseTable(Object parseTable) {
+        cachedParseTable = parseTable;
+    }
+
+    public Object getCachedParseTable() {
+        return cachedParseTable;
     }
 }

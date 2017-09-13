@@ -31,7 +31,7 @@ public class JSGLRParseErrorHandler {
     private static final String LARGE_REGION_START =
         "Region could not be parsed because of subsequent syntax error(s) indicated below";
 
-    private final JSGLRI parser;
+    private final JSGLRI<?> parser;
     @Nullable
     private final FileObject resource;
     private final boolean hasRecoveryRules;
@@ -40,7 +40,7 @@ public class JSGLRParseErrorHandler {
     private boolean recoveryFailed;
 
 
-    public JSGLRParseErrorHandler(JSGLRI parser, @Nullable FileObject resource, boolean hasRecoveryRules) {
+    public JSGLRParseErrorHandler(JSGLRI<?> parser, @Nullable FileObject resource, boolean hasRecoveryRules) {
         this.parser = parser;
         this.resource = resource;
         this.hasRecoveryRules = hasRecoveryRules;

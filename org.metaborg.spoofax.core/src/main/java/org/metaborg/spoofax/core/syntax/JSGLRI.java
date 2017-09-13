@@ -11,7 +11,7 @@ import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.shared.BadTokenException;
 
-abstract public class JSGLRI {
+abstract public class JSGLRI<PT> {
     protected final IParserConfig config;
     protected final ITermFactory termFactory;
     protected final ILanguageImpl language;
@@ -28,6 +28,21 @@ abstract public class JSGLRI {
         this.resource = resource;
         this.input = input;
     }
+    
+    @SuppressWarnings("unchecked")
+    protected PT getParseTable(IParseTableTermProvider parseTableTermProvider, ITermFactory termFactory, FileObject grammar) throws IOException {
+        if (parseTableTermProvider.getCachedParseTable() == null) {
+            PT parseTable = parseTableFromTerm(parseTableTermProvider, termFactory, grammar);
+            
+            parseTableTermProvider.setCachedParseTable(parseTable);
+            
+            return parseTable;
+        } else {
+            return (PT) parseTableTermProvider.getCachedParseTable();
+        }
+    }
+    
+    abstract protected PT parseTableFromTerm(IParseTableTermProvider parseTableTermProvider, ITermFactory termFactory, FileObject grammar) throws IOException;
 
     abstract public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException;
 

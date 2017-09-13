@@ -8,4 +8,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 public interface IParseTableTermProvider {
     FileObject resource();
     IStrategoTerm parseTableTerm() throws IOException;
+    void setCachedParseTable(Object parseTable);
+    Object getCachedParseTable();
 }

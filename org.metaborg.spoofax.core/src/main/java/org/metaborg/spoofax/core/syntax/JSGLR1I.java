@@ -30,7 +30,7 @@ import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.attachments.ParentTermFactory;
 
-public class JSGLR1I extends JSGLRI {
+public class JSGLR1I extends JSGLRI<ParseTable> {
     private final ParseTable parseTable;
     private final SGLR parser;
     
@@ -44,13 +44,20 @@ public class JSGLR1I extends JSGLRI {
         
         FileObject grammar = resource.getParent().resolveFile("normgrammar.bin");
         
-        if(grammar.exists()) {
-            parseTable = new ParseTable(parseTableTermProvider.parseTableTerm(), termFactory, grammar);
-        } else {
-            parseTable = new ParseTable(parseTableTermProvider.parseTableTerm(), termFactory);
-        }
+        parseTable = getParseTable(parseTableTermProvider, termFactory, grammar);
         
         this.parser = new SGLR(new TreeBuilder(factory), parseTable);
+    }
+
+    protected ParseTable parseTableFromTerm(IParseTableTermProvider parseTableTermProvider, ITermFactory termFactory, FileObject grammar) throws IOException {
+        try {
+            if(grammar.exists())
+                return new ParseTable(parseTableTermProvider.parseTableTerm(), termFactory, grammar);
+            else
+                return new ParseTable(parseTableTermProvider.parseTableTerm(), termFactory);
+        } catch(Exception e) {
+            throw new IOException("Could not load parse table from " + resource, e);
+        }
     }
 
     public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException {
