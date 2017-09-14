@@ -122,6 +122,15 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withSdfCompletionsTable(String completionsParseTable);
+    
+    /**
+     * Sets the sdf2table version.
+     *
+     * @param sdf2tableVersion
+     *            The sdf2table version.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion);
 
     /**
      * Adds language contributions.

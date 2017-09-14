@@ -37,7 +37,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         }
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageSpecConfig config =
-                new LanguageSpecConfig(configuration, projectConfig, identifier, name, sdfEnabled, parseTable,
+                new LanguageSpecConfig(configuration, projectConfig, identifier, name, sdfEnabled, sdf2tableVersion, parseTable,
                         completionsParseTable, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         return config;
     }

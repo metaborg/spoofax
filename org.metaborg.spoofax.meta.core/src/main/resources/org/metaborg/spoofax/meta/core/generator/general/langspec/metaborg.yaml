@@ -29,7 +29,7 @@ language:
     placeholder:
       prefix: "$"
 {{#syntaxSdf2}}  
-    version: sdf2
+  version: sdf2
 {{/syntaxSdf2}}
   stratego:
     format: ctree

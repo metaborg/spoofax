@@ -30,6 +30,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_ENABLED = "language.sdf.enabled";
     private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
+    private static final String PROP_SDF2TABLE_VERSION = "language.sdf.sdf2table";
 
     private final ProjectConfig projectConfig;
 
@@ -40,6 +41,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
             @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
+            @Nullable Sdf2tableVersion sdf2tableVersion,
             @Nullable String parseTable, @Nullable String completionParseTable,
             @Nullable Collection<LanguageContributionIdentifier> langContribs,
             @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
@@ -49,6 +51,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         if(sdfEnabled != null) {
             config.setProperty(PROP_SDF_ENABLED, sdfEnabled);
         }
+        if(sdf2tableVersion != null) {
+            config.setProperty(PROP_SDF2TABLE_VERSION, sdf2tableVersion);
+        }        
         if(parseTable != null) {
             config.setProperty(PROP_SDF_PARSE_TABLE, parseTable);
         }
@@ -212,5 +217,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     @Override public String completionsParseTable() {
         final String value = this.config.getString(PROP_SDF_COMPLETION_PARSE_TABLE);
         return value != null ? value : "target/metaborg/sdf-completions.tbl";
+    }
+
+    @Override public Sdf2tableVersion sdf2tableVersion() {
+        final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
+        return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.c;
     }
 }
