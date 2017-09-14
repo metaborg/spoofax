@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -53,8 +54,15 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         final long duration = timer.stop();
 
         final boolean hasAst = ast != null;
-        final Iterable<IMessage> messages = Collections.emptyList(); // TODO: add message if parse is invalid
         final boolean hasErrors = ast == null;
+        
+        final Iterable<IMessage> messages;
+
+        if (hasErrors)
+        		messages = Collections.singletonList(MessageFactory.newParseErrorAtTop(resource, "Invalid syntax", null));
+        else
+    			messages = Collections.emptyList();
+        	
         return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
     }
     
