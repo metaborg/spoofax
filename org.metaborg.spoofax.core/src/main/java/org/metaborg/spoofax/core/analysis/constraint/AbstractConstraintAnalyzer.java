@@ -23,6 +23,7 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
+import org.metaborg.meta.nabl2.solver.solvers.CallExternal;
 import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
 import org.metaborg.meta.nabl2.stratego.ConstraintTerms;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
@@ -186,6 +187,21 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             final String message = "Custom analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
         }
+    }
+
+    protected CallExternal callExternal(HybridInterpreter runtime) {
+        return (name, args) -> {
+            final IStrategoTerm[] sargs = Iterables2.stream(args).map(strategoTerms::toStratego)
+                    .collect(Collectors.toList()).toArray(new IStrategoTerm[0]);
+            final IStrategoTerm sarg = sargs.length == 1 ? sargs[0] : termFactory.makeTuple(sargs);
+            try {
+                final IStrategoTerm sresult = strategoCommon.invoke(runtime, sarg, name);
+                return Optional.ofNullable(sresult).map(strategoTerms::fromStratego);
+            } catch(Exception ex) {
+                logger.warn("External call to {} failed.", ex, name);
+                return Optional.empty();
+            }
+        };
     }
 
 

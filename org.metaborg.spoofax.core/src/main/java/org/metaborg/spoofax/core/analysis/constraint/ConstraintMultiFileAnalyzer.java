@@ -171,7 +171,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         .forEach(param -> Scope.matcher().match(param).ifPresent(intfScopes::add));
             }
             final IncrementalMultiFileSolver solver =
-                    new IncrementalMultiFileSolver(globalSource, context.config().debug());
+                    new IncrementalMultiFileSolver(globalSource, context.config().debug(), callExternal(runtime));
 
             // global
             final ISolution initialSolution;
@@ -383,7 +383,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             messagesByFile);
                 });
                 // FIXME the global check messages are probably lost like this, but they are not separately available,
-                //       only in the global solution that contains everything
+                // only in the global solution that contains everything
                 result.updates().stream().flatMap(Collection::stream).map(context::unit).forEach(unit -> {
                     final String source = unit.resource();
                     final FileObject file = resource(source, context);
@@ -498,7 +498,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 initialResult.getArgs().getParams().stream()
                         .forEach(param -> Scope.matcher().match(param).ifPresent(intfScopes::add));
             }
-            final SemiIncrementalMultiFileSolver solver = new SemiIncrementalMultiFileSolver(context.config().debug());
+            final SemiIncrementalMultiFileSolver solver =
+                    new SemiIncrementalMultiFileSolver(context.config().debug(), callExternal(runtime));
 
             // global
             ISolution initialSolution;
