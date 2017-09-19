@@ -66,7 +66,7 @@ public class SimpleProjectService implements ISimpleProjectService {
         if(configRequest.config() != null) {
             config = configRequest.config();
         } else {
-            logger.info("Using default configuration for project at {}", location);
+            logger.debug("Using default configuration for project at {}", location);
             config = projectConfigService.defaultConfig(location);
         }
 
