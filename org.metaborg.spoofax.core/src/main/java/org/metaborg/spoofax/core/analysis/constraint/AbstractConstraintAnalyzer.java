@@ -196,9 +196,9 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             final IStrategoTerm sarg = sargs.length == 1 ? sargs[0] : termFactory.makeTuple(sargs);
             try {
                 final IStrategoTerm sresult = strategoCommon.invoke(runtime, sarg, name);
-                return Optional.ofNullable(sresult).map(strategoTerms::fromStratego);
+                return Optional.ofNullable(sresult).map(strategoTerms::fromStratego).map(ConstraintTerms::specialize);
             } catch(Exception ex) {
-                logger.warn("External call to {} failed.", ex, name);
+                logger.warn("External call to '{}' failed.", name);
                 return Optional.empty();
             }
         };
