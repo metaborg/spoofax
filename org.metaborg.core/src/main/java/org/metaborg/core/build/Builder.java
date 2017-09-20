@@ -198,7 +198,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                         continue;
                     }
                 } catch(FileSystemException e) {
-                    logger.error("Error determining if {} should be ignored from the build, including it", e, resource);
+                    logger.error("Error {} determining if {} should be ignored from the build, including it", e, resource);
                 }
             }
 
@@ -432,6 +432,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         if(size == 0) {
             return allTransformUnits;
         }
+        final FileSelector transformSelector = input.transformSelector;
 
         progress.setDescription("Compiling " + size + " file(s) of " + langImpl.belongsTo().name());
         logger.debug("Compiling {} analysis results", size);
@@ -445,6 +446,17 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     cancel.throwIfCancelled();
 
                     final FileObject source = analysisResult.source();
+                    if(transformSelector != null) {
+                        try {
+                            if(!FileSelectorUtils.include(transformSelector, source, location)) {
+                                progress.work(1);
+                                continue;
+                            }
+                        } catch(FileSystemException e) {
+                            logger.error("Error {} determining if {} should be ignored from the build, including it", e, source);
+                        }
+                    }
+
                     final FileName name = source.getName();
 
                     if(removedResources.contains(name) || includeFiles.contains(name)) {
