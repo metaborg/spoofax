@@ -21,6 +21,7 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.StreamMessagePrinter;
@@ -32,7 +33,6 @@ import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
-import org.metaborg.spoofax.meta.core.config.Sdf2tableVersion;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
@@ -396,7 +396,7 @@ public class LanguageSpecBuilder {
 
         if(sdf2tableVersion == Sdf2tableVersion.c) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
-        } else if(sdf2tableVersion == Sdf2tableVersion.java) {
+        } else if(sdf2tableVersion == Sdf2tableVersion.java || sdf2tableVersion == Sdf2tableVersion.dynamic) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
         }
 

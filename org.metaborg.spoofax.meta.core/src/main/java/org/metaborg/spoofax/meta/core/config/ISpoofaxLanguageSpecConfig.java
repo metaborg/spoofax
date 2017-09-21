@@ -24,13 +24,6 @@ public interface ISpoofaxLanguageSpecConfig extends ISpoofaxProjectConfig, ILang
     SdfVersion sdfVersion();
 
     /**
-     * Gets the sdf2table version to use.
-     *
-     * @return sdf2table version to use.
-     */
-    Sdf2tableVersion sdf2tableVersion();
-
-    /**
      * Gets the (relative) path to the sdf main file.
      *
      * @return path to the parse table.

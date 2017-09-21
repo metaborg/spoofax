@@ -9,6 +9,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.config.IGenerateConfig;
+import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -38,7 +39,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_MAIN_FILE = PROP_SDF + ".main-file";
 
 
-    private static final String PROP_SDF2TABLE_VERSION = PROP_SDF + ".sdf2table";
     private static final String PROP_SDF_EXTERNAL_DEF = PROP_SDF + ".externalDef";
     private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
@@ -61,37 +61,32 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     private final SpoofaxProjectConfig projectConfig;
 
-    public SpoofaxLanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, SpoofaxProjectConfig projectConfig) {
+    public SpoofaxLanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config,
+        SpoofaxProjectConfig projectConfig) {
         super(config, projectConfig);
         this.projectConfig = projectConfig;
     }
 
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
-            SpoofaxProjectConfig projectConfig, @Nullable LanguageIdentifier id, @Nullable String name,
-            @Nullable Collection<LanguageContributionIdentifier> langContribs,
-            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
-            @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec,
-            @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable String parseTable,
-            @Nullable String completionsParseTable, @Nullable String sdfMainFile,
-            @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable PlaceholderCharacters placeholderCharacters,
-            @Nullable String prettyPrint, @Nullable String externalDef, @Nullable Arguments sdfArgs,
-            @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
-            @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
-        super(config, projectConfig, id, name, sdfEnabled, parseTable, completionsParseTable, langContribs, generates,
-                exports, pardonedLanguages, useBuildSystemSpec);
+        SpoofaxProjectConfig projectConfig, @Nullable LanguageIdentifier id, @Nullable String name,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
+        @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec,
+        @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable String parseTable, @Nullable String completionsParseTable,
+        @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters,
+        @Nullable String prettyPrint, @Nullable String externalDef, @Nullable Arguments sdfArgs,
+        @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
+        @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
+        super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, parseTable, completionsParseTable,
+            langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         this.projectConfig = projectConfig;
 
         if(sdfVersion != null) {
             config.setProperty(PROP_SDF_VERSION, sdfVersion);
         }
-        if(sdf2tableVersion != null) {
-            config.setProperty(PROP_SDF2TABLE_VERSION, sdf2tableVersion);
-        }
-
         if(sdfMainFile != null) {
             config.setProperty(PROP_SDF_MAIN_FILE, sdfMainFile);
         }
-
         if(placeholderCharacters != null) {
             config.setProperty(PROP_PLACEHOLDER_PREFIX, placeholderCharacters.prefix);
             config.setProperty(PROP_PLACEHOLDER_SUFFIX, placeholderCharacters.suffix);
@@ -153,10 +148,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return value != null ? SdfVersion.valueOf(value) : SdfVersion.sdf3;
     }
 
-    @Override public Sdf2tableVersion sdf2tableVersion() {
-        final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
-        return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.c;
-    }
+
 
     @Override public String sdfMainFile() {
         final String value = this.config.getString(PROP_SDF_MAIN_FILE);
@@ -239,7 +231,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             return phaseStr != null ? LanguageSpecBuildPhase.valueOf(phaseStr) : defaultPhase;
         } catch(IllegalArgumentException e) {
             logger.warn("Language specification build phase with name {} does not exist, defaulting to {}", e, phaseStr,
-                    defaultPhase);
+                defaultPhase);
             return defaultPhase;
         }
     }
@@ -291,8 +283,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
                 placeholderChars = new PlaceholderCharacters(prefix, suffix);
             } catch(IllegalArgumentException e) {
                 logger.warn(
-                        "Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead",
-                        suffix);
+                    "Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead",
+                    suffix);
                 placeholderChars = new PlaceholderCharacters("$", null);
             }
         }

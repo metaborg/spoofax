@@ -29,6 +29,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable Boolean sdfEnabled;
     protected @Nullable String parseTable;
     protected @Nullable String completionsParseTable;
+    protected @Nullable Sdf2tableVersion sdf2tableVersion;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -42,7 +43,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         }
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
-                name, sdfEnabled, parseTable, completionsParseTable, langContribs, generates, exports);
+                name, sdfEnabled, sdf2tableVersion, parseTable, completionsParseTable, langContribs, generates, exports);
         return config;
     }
 
@@ -56,6 +57,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         exports = null;
         parseTable = null;
         completionsParseTable = null;
+        sdf2tableVersion = null;
         sdfEnabled = null;
         return this;
     }
@@ -72,6 +74,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withExports(config.exports());
             withSdfTable(config.parseTable());
             withSdfCompletionsTable(config.completionsParseTable());
+            withSdf2tableVersion(config.sdf2tableVersion());
             withSdfEnabled(config.sdfEnabled());
             projectConfigBuilder.copyValuesFrom(config);
         }
@@ -139,6 +142,12 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         this.completionsParseTable = completionsTable;
         return this;
     }
+
+    @Override public ILanguageComponentConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion) {
+        this.sdf2tableVersion = sdf2tableVersion;
+        return this;
+    }
+
 
     @Override public ILanguageComponentConfigBuilder
             withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
