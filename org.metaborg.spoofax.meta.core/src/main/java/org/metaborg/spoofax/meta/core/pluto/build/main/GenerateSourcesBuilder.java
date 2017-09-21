@@ -171,7 +171,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final File srcNormDir = toFile(paths.syntaxNormDir());
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-new.tbl");
                 final File contextualGrammarFile = FileUtils.getFile(targetMetaborgDir, "ctxgrammar.aterm");
-                final File normGrammarFile = FileUtils.getFile(targetMetaborgDir, "normgrammar.bin");
+                final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table.bin");
                 final File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
@@ -210,14 +210,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
 
                 final Origin sdf2TableJavaOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, sdfNormFile, tableFile,
-                    normGrammarFile, contextualGrammarFile, paths, dynamicGeneration));
+                    persistedTableFile, contextualGrammarFile, paths, dynamicGeneration));
 
                 requireBuild(sdf2TableJavaOrigin);
 
                 // New parenthesizer
                 final File parenthesizerFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
                 javaParenthesizeOrigin = Sdf2Parenthesize
-                    .origin(new Sdf2Parenthesize.Input(context, normGrammarFile, parenthesizerFile, sdfModule));
+                    .origin(new Sdf2Parenthesize.Input(context, persistedTableFile, parenthesizerFile, sdfModule));
 
                 parenthesizeOrigin = null;
                 sigOrigin = null;

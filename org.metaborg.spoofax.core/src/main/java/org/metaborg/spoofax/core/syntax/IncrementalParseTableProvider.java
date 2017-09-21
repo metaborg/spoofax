@@ -39,12 +39,12 @@ public class IncrementalParseTableProvider implements IParseTableProvider {
             final TermReader termReader = new TermReader(termFactory);
             final IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
 
-            FileObject grammar = resource.getParent().resolveFile("normgrammar.bin");
-            if(grammar.exists()) {
+            FileObject persistedTable = resource.getParent().resolveFile("table.bin");
+            if(persistedTable.exists()) {
                 if(referenceTable != null) {
-                    parseTable = new ParseTable(parseTableTerm, termFactory, grammar, referenceTable);
+                    parseTable = new ParseTable(parseTableTerm, termFactory, persistedTable, referenceTable);
                 } else {
-                    parseTable = new ParseTable(parseTableTerm, termFactory, grammar);
+                    parseTable = new ParseTable(parseTableTerm, termFactory, persistedTable);
                 }
             } else {
                 parseTable = new ParseTable(parseTableTerm, termFactory);

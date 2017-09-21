@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 
 import org.metaborg.sdf2parenthesize.parenthesizer.Parenthesizer;
-import org.metaborg.sdf2table.grammar.NormGrammar;
+import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -73,8 +73,8 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
             InputStream out = Files.asByteSource(input.inputFile).openStream();
             ObjectInputStream ois = new ObjectInputStream(out);
             // read persisted normalized grammar
-            NormGrammar grammar = (NormGrammar) ois.readObject();
-            Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, grammar);
+            ParseTable table = (ParseTable) ois.readObject();
+            Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, table.normalizedGrammar());
             ois.close();
             out.close();
         } catch(Exception e) {

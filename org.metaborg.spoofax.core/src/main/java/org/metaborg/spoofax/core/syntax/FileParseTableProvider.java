@@ -36,9 +36,9 @@ public class FileParseTableProvider implements IParseTableProvider {
             final TermReader termReader = new TermReader(termFactory);
             final IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
             
-            FileObject grammar = resource.getParent().resolveFile("normgrammar.bin");
-            if(grammar.exists()) {
-                parseTable = new ParseTable(parseTableTerm, termFactory, grammar);
+            FileObject persistedTable = resource.getParent().resolveFile("table.bin");
+            if(persistedTable.exists()) {
+                parseTable = new ParseTable(parseTableTerm, termFactory, persistedTable);
             } else {
                 parseTable = new ParseTable(parseTableTerm, termFactory);
             }
