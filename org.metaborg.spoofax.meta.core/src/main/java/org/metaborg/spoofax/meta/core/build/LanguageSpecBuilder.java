@@ -396,7 +396,7 @@ public class LanguageSpecBuilder {
 
         if(sdf2tableVersion == Sdf2tableVersion.c) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
-        } else if(sdf2tableVersion == Sdf2tableVersion.java) {
+        } else if(sdf2tableVersion == Sdf2tableVersion.java || sdf2tableVersion == Sdf2tableVersion.dynamic) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
         }
 
