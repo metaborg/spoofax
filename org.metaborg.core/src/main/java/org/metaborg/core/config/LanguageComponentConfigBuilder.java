@@ -29,6 +29,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable Boolean sdfEnabled;
     protected @Nullable String parseTable;
     protected @Nullable String completionsParseTable;
+    protected @Nullable Sdf2tableVersion sdf2tableVersion;
     protected @Nullable JSGLRVersion jsglrVersion;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -43,7 +44,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         }
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
-            name, sdfEnabled, parseTable, completionsParseTable, jsglrVersion, langContribs, generates, exports);
+            name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, jsglrVersion, langContribs, generates, exports);
         return config;
     }
 
@@ -57,6 +58,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         exports = null;
         parseTable = null;
         completionsParseTable = null;
+        sdf2tableVersion = null;
         jsglrVersion = null;
         sdfEnabled = null;
         return this;
@@ -74,7 +76,8 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withExports(config.exports());
             withSdfTable(config.parseTable());
             withSdfCompletionsTable(config.completionsParseTable());
-            withJSGLRVersion(config.jsglrVersion());
+            withSdf2tableVersion(config.sdf2tableVersion());
+			withJSGLRVersion(config.jsglrVersion());
             withSdfEnabled(config.sdfEnabled());
             projectConfigBuilder.copyValuesFrom(config);
         }
@@ -140,6 +143,11 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
 
     @Override public ILanguageComponentConfigBuilder withSdfCompletionsTable(String completionsTable) {
         this.completionsParseTable = completionsTable;
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion) {
+        this.sdf2tableVersion = sdf2tableVersion;
         return this;
     }
 

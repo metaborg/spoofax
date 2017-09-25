@@ -30,19 +30,10 @@ abstract public class JSGLRI<PT> {
     }
     
     @SuppressWarnings("unchecked")
-    protected PT getParseTable(IParseTableTermProvider parseTableTermProvider, ITermFactory termFactory, FileObject grammar) throws IOException {
-        if (parseTableTermProvider.getCachedParseTable() == null) {
-            PT parseTable = parseTableFromTerm(parseTableTermProvider, termFactory, grammar);
-            
-            parseTableTermProvider.setCachedParseTable(parseTable);
-            
-            return parseTable;
-        } else {
-            return (PT) parseTableTermProvider.getCachedParseTable();
-        }
+    protected PT getParseTable(IParseTableProvider parseTableProvider) throws IOException {
+    		// Since JSGLR v1 and v2 use different parse table representations we have to cast here 
+        return (PT) parseTableProvider.parseTable();
     }
-    
-    abstract protected PT parseTableFromTerm(IParseTableTermProvider parseTableTermProvider, ITermFactory termFactory, FileObject grammar) throws IOException;
 
     abstract public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException;
 

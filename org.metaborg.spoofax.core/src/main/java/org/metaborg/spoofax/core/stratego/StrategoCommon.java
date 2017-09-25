@@ -69,16 +69,13 @@ public class StrategoCommon implements IStrategoCommon {
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
             try {
                 final IStrategoTerm result = invoke(runtime, input, strategy);
-                if(result != null) {
-                    return result;
-                }
+                return result;
             } catch (MetaborgException ex) {
                 exceptions.add(ex);
             }
 
         }
-        AggregateMetaborgException.throwIfAny(exceptions);
-        return null;
+        throw new AggregateMetaborgException(exceptions);
     }
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
@@ -92,16 +89,13 @@ public class StrategoCommon implements IStrategoCommon {
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
             try {
                 final IStrategoTerm result = invoke(runtime, input, strategy);
-                if(result != null) {
-                    return result;
-                }
+                return result;
             } catch (MetaborgException ex) {
                 exceptions.add(ex);
             }
 
         }
-        AggregateMetaborgException.throwIfAny(exceptions);
-        return null;
+        throw new AggregateMetaborgException(exceptions);
     }
 
     @Override public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)

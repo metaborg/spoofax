@@ -30,7 +30,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected final SpoofaxProjectConfigBuilder projectConfigBuilder;
 
     protected @Nullable SdfVersion sdfVersion;
-    protected @Nullable Sdf2tableVersion sdf2tableVersion;
     protected @Nullable String sdfMainFile;
     protected @Nullable PlaceholderCharacters placeholderCharacters;
     protected @Nullable String prettyPrint;
@@ -55,8 +54,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
         SpoofaxProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, projectConfig, identifier,
-                name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
-                sdfMainFile, parseTable, jsglrVersion, completionsParseTable, sdf2tableVersion, placeholderCharacters, prettyPrint,
+                name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled, sdf2tableVersion, sdfMainFile, parseTable, jsglrVersion, completionsParseTable, placeholderCharacters, prettyPrint,
                 sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
@@ -66,7 +64,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         super.reset();
 
         sdfVersion = null;
-        sdf2tableVersion = null;
         sdfMainFile = null;
         placeholderCharacters = null;
         prettyPrint = null;
@@ -208,11 +205,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion sdfVersion) {
         this.sdfVersion = sdfVersion;
-        return this;
-    }
-
-    @Override public ISpoofaxLanguageSpecConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion) {
-        this.sdf2tableVersion = sdf2tableVersion;
         return this;
     }
 

@@ -59,6 +59,13 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      * @return path to the completions parse table.
      */
     String completionsParseTable();
+
+    /**
+     * Gets the sdf2table version to use.
+     *
+     * @return sdf2table version to use.
+     */
+    Sdf2tableVersion sdf2tableVersion();
     
     /**
      * Gets the parser version.

@@ -30,6 +30,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_ENABLED = "language.sdf.enabled";
     private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
+    private static final String PROP_SDF2TABLE_VERSION = "language.sdf.sdf2table";
     private static final String PROP_SDF_JSGLR_VERSION = "language.sdf.jsglr-version";
 
     private final ProjectConfig projectConfig;
@@ -41,8 +42,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
         @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
-        @Nullable String parseTable, @Nullable String completionParseTable, @Nullable JSGLRVersion jsglrVersion,
-        @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable String parseTable, @Nullable String completionParseTable, @Nullable Sdf2tableVersion sdf2tableVersion,
+        @Nullable JSGLRVersion jsglrVersion, @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config);
         this.projectConfig = projectConfig;
@@ -50,6 +51,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         if(sdfEnabled != null) {
             config.setProperty(PROP_SDF_ENABLED, sdfEnabled);
         }
+        if(sdf2tableVersion != null) {
+            config.setProperty(PROP_SDF2TABLE_VERSION, sdf2tableVersion);
+        }        
         if(parseTable != null) {
             config.setProperty(PROP_SDF_PARSE_TABLE, parseTable);
         }
@@ -171,26 +175,6 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         return exports;
     }
 
-    @Override public Boolean sdfEnabled() {
-        return this.config.getBoolean(PROP_SDF_ENABLED, true);
-    }
-
-    @Override public String parseTable() {
-        final String value = this.config.getString(PROP_SDF_PARSE_TABLE);
-        return value != null ? value : "target/metaborg/sdf.tbl";
-    }
-
-    @Override public String completionsParseTable() {
-        final String value = this.config.getString(PROP_SDF_COMPLETION_PARSE_TABLE);
-        return value != null ? value : "target/metaborg/sdf-completions.tbl";
-    }
-
-    @Override public JSGLRVersion jsglrVersion() {
-        final String value = this.config.getString(PROP_SDF_JSGLR_VERSION);
-        return value != null ? JSGLRVersion.valueOf(value) : JSGLRVersion.v1;
-    }
-
-
     public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = projectConfig.validate(mb);
         final String idStr = config.getString(PROP_IDENTIFIER);
@@ -220,5 +204,29 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         // TODO: validate exports
 
         return messages;
+    }
+
+    @Override public Boolean sdfEnabled() {
+        return this.config.getBoolean(PROP_SDF_ENABLED, true);
+    }
+
+    @Override public String parseTable() {
+        final String value = this.config.getString(PROP_SDF_PARSE_TABLE);
+        return value != null ? value : "target/metaborg/sdf.tbl";
+    }
+
+    @Override public String completionsParseTable() {
+        final String value = this.config.getString(PROP_SDF_COMPLETION_PARSE_TABLE);
+        return value != null ? value : "target/metaborg/sdf-completions.tbl";
+    }
+
+    @Override public Sdf2tableVersion sdf2tableVersion() {
+        final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
+        return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.c;
+    }
+
+    @Override public JSGLRVersion jsglrVersion() {
+        final String value = this.config.getString(PROP_SDF_JSGLR_VERSION);
+        return value != null ? JSGLRVersion.valueOf(value) : JSGLRVersion.v1;
     }
 }

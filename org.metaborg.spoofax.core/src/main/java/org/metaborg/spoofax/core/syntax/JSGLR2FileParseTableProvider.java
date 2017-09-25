@@ -6,27 +6,24 @@ import java.io.InputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr2.parsetable.IParseTable;
+import org.spoofax.jsglr2.parsetable.ParseTableReader;
 import org.spoofax.terms.io.binary.TermReader;
 
-public class FileParseTableTermProvider implements IParseTableTermProvider {
+public class JSGLR2FileParseTableProvider implements IParseTableProvider {
     private final FileObject resource;
     private final ITermFactory termFactory;
 
-    private IStrategoTerm parseTableTerm;
-    private Object cachedParseTable;
+    private IParseTable parseTable;
 
-    public FileParseTableTermProvider(FileObject resource, ITermFactory termFactory) {
+    public JSGLR2FileParseTableProvider(FileObject resource, ITermFactory termFactory) {
         this.resource = resource;
         this.termFactory = termFactory;
     }
-    
-    @Override public FileObject resource() {
-        return resource;
-    }
 
-    @Override public IStrategoTerm parseTableTerm() throws IOException {
-        if(parseTableTerm != null) {
-            return parseTableTerm;
+    @Override public IParseTable parseTable() throws IOException {
+        if(parseTable != null) {
+            return parseTable;
         }
 
         resource.refresh();
@@ -37,20 +34,13 @@ public class FileParseTableTermProvider implements IParseTableTermProvider {
 
         try(final InputStream stream = resource.getContent().getInputStream()) {
             final TermReader termReader = new TermReader(termFactory);
-            
-            parseTableTerm = termReader.parseFromStream(stream);
+            IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
+
+            parseTable = ParseTableReader.read(parseTableTerm);
         } catch(Exception e) {
             throw new IOException("Could not load parse table from " + resource, e);
         }
 
-        return parseTableTerm;
-    }
-
-    public void setCachedParseTable(Object parseTable) {
-        cachedParseTable = parseTable;
-    }
-
-    public Object getCachedParseTable() {
-        return cachedParseTable;
+        return parseTable;
     }
 }

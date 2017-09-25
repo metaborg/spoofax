@@ -18,7 +18,6 @@ import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr2.JSGLR2;
 import org.spoofax.jsglr2.parsetable.IParseTable;
 import org.spoofax.jsglr2.parsetable.ParseTableReadException;
-import org.spoofax.jsglr2.parsetable.ParseTableReader;
 
 public class JSGLR2I extends JSGLRI<IParseTable> {
     private final JSGLR2<?, ?, IStrategoTerm> parser;
@@ -26,20 +25,10 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect, @Nullable FileObject resource, String input) throws IOException, ParseTableReadException {
         super(config, termFactory, language, dialect, resource, input);
 
-        IParseTableTermProvider parseTableTermProvider = config.getParseTableProvider();
-        FileObject grammar = resource.getParent().resolveFile("normgrammar.bin");
+        IParseTableProvider parseTableProvider = config.getParseTableProvider();
+        IParseTable parseTable = getParseTable(parseTableProvider);
         
-        this.parser = JSGLR2.standard(getParseTable(parseTableTermProvider, termFactory, grammar));
-    }
-
-    protected IParseTable parseTableFromTerm(IParseTableTermProvider parseTableTermProvider, ITermFactory termFactory, FileObject grammar) throws IOException {
-        try {
-            IStrategoTerm parseTableTerm = config.getParseTableProvider().parseTableTerm();
-            
-            return ParseTableReader.read(parseTableTerm);
-        } catch(Exception e) {
-            throw new IOException("Could not load parse table from " + resource, e);
-        }
+        this.parser = JSGLR2.standard(parseTable);
     }
 
     public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException {
