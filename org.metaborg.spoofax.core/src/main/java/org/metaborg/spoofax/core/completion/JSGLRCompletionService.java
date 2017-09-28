@@ -42,7 +42,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.ITokens;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.ListImploderAttachment;
 import org.spoofax.terms.StrategoAppl;
@@ -587,7 +587,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         int insertionPoint, suffixPoint;
 
         final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
-        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNode);
 
         // check if it's an empty node
         if(oldNodeIA.getLeftToken().getStartOffset() > oldNodeIA.getRightToken().getEndOffset()) {
@@ -664,7 +664,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         int insertionPoint, suffixPoint;
 
-        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNode);
 
         IStrategoTerm[] subterms = oldList.getAllSubterms();
         int indexOfElement;
@@ -739,7 +739,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         int insertionPoint, suffixPoint;
 
-        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNode);
         final ImploderAttachment oldListIA = oldNode.getAttachment(ImploderAttachment.TYPE);
         int tokenPosition;
         // if list is empty
@@ -933,7 +933,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private String calculatePrefix(int cursorPosition, IStrategoTerm proposalTerm) {
 
         String prefix = "";
-        ITokenizer tokenizer = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken().getTokenizer();
+        ITokens tokenizer = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken().getTokenizer();
         IToken leftToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken();
         IToken rightToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getRightToken();
         IToken current = leftToken;
@@ -953,7 +953,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private String calculateSuffix(int cursorPosition, IStrategoTerm proposalTerm) {
 
         String suffix = "";
-        ITokenizer tokenizer = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken().getTokenizer();
+        ITokens tokenizer = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken().getTokenizer();
         IToken leftToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken();
         IToken rightToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getRightToken();
         IToken current = rightToken;
@@ -982,7 +982,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         int insertionPoint, suffixPoint;
 
-        ITokenizer tokenizer = ImploderAttachment.getTokenizer(newNode);
+        ITokens tokenizer = ImploderAttachment.getTokenizer(newNode);
 
         final StrategoTerm topMostAmb = findTopMostAmbNode(newNode);
         final ImploderAttachment topMostAmbIA = topMostAmb.getAttachment(ImploderAttachment.TYPE);
@@ -1050,7 +1050,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // if inserted element is first (only two elements)
         if(indexOfCompletion == 1) {
             // insert after the first non-layout token before the leftmost token of the list
-            ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldList);
+            ITokens tokenizer = ImploderAttachment.getTokenizer(oldList);
 
             // to avoid keeping duplicate tokens due to ambiguity
             IStrategoTerm topMostAmbOldList = findTopMostAmbNode(oldList);
@@ -1104,7 +1104,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final String sort = ImploderAttachment.getElementSort(oldNode);
 
         int insertionPoint, suffixPoint;
-        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNodeTopMostAmb);
+        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNodeTopMostAmb);
         final ImploderAttachment oldNodeIA = oldNodeTopMostAmb.getAttachment(ImploderAttachment.TYPE);
 
         // if list is empty
@@ -1379,7 +1379,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         int insertionPoint, suffixPoint;
 
         final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
-        ITokenizer tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNode);
 
         // check if it's an empty node
         if(oldNodeIA.getLeftToken().getStartOffset() > oldNodeIA.getRightToken().getEndOffset()) {
@@ -1596,7 +1596,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final FileObject resource = SourceAttachment.getResource(fragment, resourceService);
         final IToken left = ImploderAttachment.getLeftToken(fragment);
         final IToken right = ImploderAttachment.getRightToken(fragment);
-        ITokenizer tokenizer = ImploderAttachment.getTokenizer(fragment);
+        ITokens tokenizer = ImploderAttachment.getTokenizer(fragment);
         IToken leftmostValid = left;
         IToken rightmostValid = right;
         boolean isList = (fragment instanceof IStrategoList) ? true : false;

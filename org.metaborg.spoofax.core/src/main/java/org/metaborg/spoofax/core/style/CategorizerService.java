@@ -12,10 +12,11 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.ITokens;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 
@@ -45,7 +46,7 @@ public class CategorizerService implements ISpoofaxCategorizerService {
             // GTODO: throw exception instead
             return regionCategories;
         }
-        final ITokenizer tokenizer = rootImploderAttachment.getLeftToken().getTokenizer();
+        final ITokens tokenizer = rootImploderAttachment.getLeftToken().getTokenizer();
         if(tokenizer == null) {
             logger.error("Cannot categorize input {} of {}, it does not have a tokenizer", parseResult, language);
             // GTODO: throw exception instead

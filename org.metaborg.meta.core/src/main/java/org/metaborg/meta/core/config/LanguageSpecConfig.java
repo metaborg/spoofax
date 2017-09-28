@@ -10,6 +10,7 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.config.IConfig;
 import org.metaborg.core.config.IGenerateConfig;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.LanguageComponentConfig;
 import org.metaborg.core.config.ProjectConfig;
@@ -33,13 +34,11 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
     }
 
     protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
-        @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Boolean sdfEnabled,
-        @Nullable Sdf2tableVersion sdf2tableVersion,
-        @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable Collection<LanguageContributionIdentifier> langContribs,
-        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
-        @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
-        super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, parseTable, completionsParseTable,
-            langContribs, generates, exports);
+        @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
+        @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs, @Nullable Collection<IGenerateConfig> generates,
+        @Nullable Collection<IExportConfig> exports, @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
+        super(config, projectConfig, id, name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, jsglrVersion, langContribs, generates, exports);
 
         if(pardonedLanguages != null) {
             config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);

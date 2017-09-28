@@ -30,6 +30,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable String parseTable;
     protected @Nullable String completionsParseTable;
     protected @Nullable Sdf2tableVersion sdf2tableVersion;
+    protected @Nullable JSGLRVersion jsglrVersion;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -43,7 +44,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         }
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
-                name, sdfEnabled, sdf2tableVersion, parseTable, completionsParseTable, langContribs, generates, exports);
+            name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, jsglrVersion, langContribs, generates, exports);
         return config;
     }
 
@@ -58,6 +59,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         parseTable = null;
         completionsParseTable = null;
         sdf2tableVersion = null;
+        jsglrVersion = null;
         sdfEnabled = null;
         return this;
     }
@@ -75,6 +77,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withSdfTable(config.parseTable());
             withSdfCompletionsTable(config.completionsParseTable());
             withSdf2tableVersion(config.sdf2tableVersion());
+			withJSGLRVersion(config.jsglrVersion());
             withSdfEnabled(config.sdfEnabled());
             projectConfigBuilder.copyValuesFrom(config);
         }
@@ -148,6 +151,10 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         return this;
     }
 
+    @Override public ILanguageComponentConfigBuilder withJSGLRVersion(JSGLRVersion jsglrVersion) {
+        this.jsglrVersion = jsglrVersion;
+        return this;
+    }
 
     @Override public ILanguageComponentConfigBuilder
             withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
