@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
@@ -23,6 +24,8 @@ import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.InvalidParseTableException;
+import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -51,6 +54,16 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         this.defaultParserConfig = defaultParserConfig;
     }
 
+    private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input) {
+    		JSGLRVersion version = JSGLRVersion.v1;
+    		
+        for(ILanguageComponent langComp : input.langImpl().components()) {
+        		version = langComp.config().jsglrVersion();
+        			break;
+        }
+        
+        return version;
+    }
 
     @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel)
         throws ParseException {
@@ -84,18 +97,32 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         try {
             logger.trace("Parsing {}", source);
 
-            final JSGLRI parser;
+            JSGLRVersion version = jsglrVersion(input);
+            
+            final JSGLRI<?> parser;
 
-            if(base != null) {
-                parser = new JSGLRI(config, termFactory, base, langImpl, source, text);
+            if (version == JSGLRVersion.v2) {
+                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text);
             } else {
-                parser = new JSGLRI(config, termFactory, langImpl, null, source, text);
+                if(base != null) {
+                    parser = new JSGLR1I(config, termFactory, base, langImpl, source, text);
+                } else {
+                    parser = new JSGLR1I(config, termFactory, langImpl, null, source, text);
+                }
             }
 
             final ParseContrib contrib = parser.parse(parserConfig);
+            
+            if (version == JSGLRVersion.v2) {
+                if (contrib.valid)
+                    logger.info("Valid JSGLR2 parse");
+                else
+                    logger.info("Invalid JSGLR2 parse");
+            }
+            
             final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
             return unit;
-        } catch(IOException e) {
+        } catch(IOException | InvalidParseTableException | ParseTableReadException e) {
             throw new ParseException(input, e);
         }
     }
@@ -160,12 +187,18 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             }
 
             final IParseTableProvider provider;
-            final ParseTable referenceParseTable = referenceParseTables.get(lang);
-
-            if(referenceParseTable != null && incrementalPTGen) {
-                provider = new IncrementalParseTableProvider(parseTable, termFactory, referenceParseTable);
+            JSGLRVersion version = jsglrVersion(input);
+            
+            if (version == JSGLRVersion.v2) {
+                provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
             } else {
-                provider = new FileParseTableProvider(parseTable, termFactory);
+	            final ParseTable referenceParseTable = referenceParseTables.get(lang);
+	
+	            if(referenceParseTable != null && incrementalPTGen) {
+	                provider = new JSGLR1IncrementalParseTableProvider(parseTable, termFactory, referenceParseTable);
+	            } else {
+	                provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
+	            }
             }
 
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
@@ -236,9 +269,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             final ParseTable referenceParseTable = referenceCompletionParseTables.get(lang);
 
             if(referenceParseTable != null && incrementalPTGen) {
-                provider = new IncrementalParseTableProvider(completionParseTable, termFactory, referenceParseTable);
+                provider = new JSGLR1IncrementalParseTableProvider(completionParseTable, termFactory, referenceParseTable);
             } else {
-                provider = new FileParseTableProvider(completionParseTable, termFactory);
+                provider = new JSGLR1FileParseTableProvider(completionParseTable, termFactory);
             }
 
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
@@ -265,7 +298,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
         logger.debug("Storing reference parse table for {}", impl);
         if(parserConfigs.get(impl) != null && incrementalPTGen) {
             try {
-                pt = parserConfigs.get(impl).getParseTableProvider().parseTable();
+                pt = (org.spoofax.jsglr.client.ParseTable) parserConfigs.get(impl).getParseTableProvider().parseTable();
                 if(pt != null && pt.getPTgenerator() != null && pt.getPTgenerator().getParseTable() != null) {
                     referenceParseTables.put(impl, pt.getPTgenerator().getParseTable());
                 }
@@ -276,7 +309,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
         if(completionParserConfigs.get(impl) != null && incrementalPTGen) {
             try {
-                pt = completionParserConfigs.get(impl).getParseTableProvider().parseTable();
+                pt = (org.spoofax.jsglr.client.ParseTable) completionParserConfigs.get(impl).getParseTableProvider().parseTable();
                 if(pt != null && pt.getPTgenerator() != null && pt.getPTgenerator().getParseTable() != null) {
                     referenceCompletionParseTables.put(impl, pt.getPTgenerator().getParseTable());
                 }

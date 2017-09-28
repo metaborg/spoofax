@@ -122,7 +122,7 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withSdfCompletionsTable(String completionsParseTable);
-    
+
     /**
      * Sets the sdf2table version.
      *
@@ -131,6 +131,15 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion);
+    
+    /**
+     * Sets the JSGLR parser version.
+     *
+     * @param jsglrVersion
+     *            The JSGLR parser version.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withJSGLRVersion(JSGLRVersion jsglrVersion);
 
     /**
      * Adds language contributions.

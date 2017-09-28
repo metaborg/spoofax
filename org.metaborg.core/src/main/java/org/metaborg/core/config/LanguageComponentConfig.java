@@ -31,6 +31,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
     private static final String PROP_SDF2TABLE_VERSION = "language.sdf.sdf2table";
+    private static final String PROP_SDF_JSGLR_VERSION = "language.sdf.jsglr-version";
 
     private final ProjectConfig projectConfig;
 
@@ -40,11 +41,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     }
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
-            @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
-            @Nullable Sdf2tableVersion sdf2tableVersion,
-            @Nullable String parseTable, @Nullable String completionParseTable,
-            @Nullable Collection<LanguageContributionIdentifier> langContribs,
-            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
+        @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
+        @Nullable String parseTable, @Nullable String completionParseTable, @Nullable Sdf2tableVersion sdf2tableVersion,
+        @Nullable JSGLRVersion jsglrVersion, @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config);
         this.projectConfig = projectConfig;
 
@@ -60,7 +60,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         if(completionParseTable != null) {
             config.setProperty(PROP_SDF_COMPLETION_PARSE_TABLE, completionParseTable);
         }
-
+        if(jsglrVersion != null) {
+            config.setProperty(PROP_SDF_JSGLR_VERSION, jsglrVersion);
+        }
         if(name != null) {
             config.setProperty(PROP_NAME, name);
         }
@@ -115,9 +117,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Collection<LanguageContributionIdentifier> langContribs() {
         final List<HierarchicalConfiguration<ImmutableNode>> langContribConfigs =
-                config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
+            config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
         final List<LanguageContributionIdentifier> langContribs =
-                Lists.newArrayListWithCapacity(langContribConfigs.size());
+            Lists.newArrayListWithCapacity(langContribConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> langContribConfig : langContribConfigs) {
             // HACK: for some reason get(LanguageIdentifier.class, "id") does not work here, it cannot convert to a
             // language identifier, do manually instead.
@@ -146,7 +148,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Collection<IExportConfig> exports() {
         final List<HierarchicalConfiguration<ImmutableNode>> exportConfigs =
-                config.configurationsAt(PROP_EXPORTS, false);
+            config.configurationsAt(PROP_EXPORTS, false);
         final List<IExportConfig> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> exportConfig : exportConfigs) {
             final List<String> languages = exportConfig.getList(String.class, "language");
@@ -173,7 +175,6 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         return exports;
     }
 
-
     public Collection<IMessage> validate(MessageBuilder mb) {
         final Collection<IMessage> messages = projectConfig.validate(mb);
         final String idStr = config.getString(PROP_IDENTIFIER);
@@ -192,8 +193,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             messages.add(mb.withMessage("Field 'name' must be set").build());
         } else {
             if(!LanguageIdentifier.validId(name)) {
-                messages.add(mb
-                        .withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
+                messages.add(
+                    mb.withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
                         .build());
             }
         }
@@ -222,5 +223,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     @Override public Sdf2tableVersion sdf2tableVersion() {
         final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
         return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.c;
+    }
+
+    @Override public JSGLRVersion jsglrVersion() {
+        final String value = this.config.getString(PROP_SDF_JSGLR_VERSION);
+        return value != null ? JSGLRVersion.valueOf(value) : JSGLRVersion.v1;
     }
 }
