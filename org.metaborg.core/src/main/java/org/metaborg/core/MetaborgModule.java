@@ -15,6 +15,7 @@ import org.metaborg.core.build.paths.DependencyPathProvider;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.build.paths.LanguagePathService;
+import org.metaborg.core.build.paths.SourcePathProvider;
 import org.metaborg.core.config.AConfigurationReaderWriter;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigService;
@@ -64,6 +65,10 @@ import org.metaborg.core.resource.ResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.source.SourceTextService;
 import org.metaborg.core.syntax.IParseUnit;
+import org.metaborg.core.testing.ITestReporterService;
+import org.metaborg.core.testing.LoggingTestReporterService;
+import org.metaborg.core.testing.TeamCityLogger;
+import org.metaborg.core.testing.TeamCityWriter;
 import org.metaborg.core.transform.ITransformUnit;
 
 import com.google.inject.AbstractModule;
@@ -122,6 +127,8 @@ public class MetaborgModule extends AbstractModule {
         bindProcessorRunner();
         bindLanguageChangeProcessing();
         bindEditor();
+        bindTestFramework();
+        bindTestReporter();
 
         bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
     }
@@ -188,6 +195,9 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
+        // Bind builtin path provider before other providers such that builtin
+        // paths have preference over others.
+        binder.addBinding().to(SourcePathProvider.class);
         binder.addBinding().to(DependencyPathProvider.class);
     }
 
@@ -236,5 +246,15 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindEditor() {
         bind(IEditorRegistry.class).to(DummyEditorRegistry.class).in(Singleton.class);
+    }
+
+    protected void bindTestFramework() {
+        bind(TeamCityWriter.class).in(Singleton.class);
+        bind(TeamCityLogger.class).in(Singleton.class);
+    }
+
+    protected void bindTestReporter() {
+        // IDE's would override this to show test results in their UI instead.
+        bind(ITestReporterService.class).to(LoggingTestReporterService.class).in(Singleton.class);
     }
 }

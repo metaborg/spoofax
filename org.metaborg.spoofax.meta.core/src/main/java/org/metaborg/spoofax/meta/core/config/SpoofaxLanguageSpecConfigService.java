@@ -14,6 +14,7 @@ import org.metaborg.core.config.IConfig;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
+import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 
 import com.google.inject.Inject;
 
@@ -45,7 +46,8 @@ public class SpoofaxLanguageSpecConfigService extends AConfigService<ILanguageSp
 
     @Override protected ConfigRequest<ISpoofaxLanguageSpecConfig>
         toConfig(HierarchicalConfiguration<ImmutableNode> config, FileObject configFile) {
-        final SpoofaxLanguageSpecConfig languageSpecConfig = new SpoofaxLanguageSpecConfig(config);
+        final SpoofaxProjectConfig projectConfig = new SpoofaxProjectConfig(config);
+        final SpoofaxLanguageSpecConfig languageSpecConfig = new SpoofaxLanguageSpecConfig(config, projectConfig);
         final MessageBuilder mb = MessageBuilder.create().asError().asInternal().withSource(configFile);
         final Collection<IMessage> messages = languageSpecConfig.validate(mb);
         return new ConfigRequest<ISpoofaxLanguageSpecConfig>(languageSpecConfig, messages);

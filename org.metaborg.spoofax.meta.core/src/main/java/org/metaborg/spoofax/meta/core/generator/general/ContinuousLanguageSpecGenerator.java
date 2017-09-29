@@ -34,11 +34,16 @@ public class ContinuousLanguageSpecGenerator extends BaseGenerator {
     public void generateAll() throws IOException {
         if(sdfEnabled && version == SdfVersion.sdf3) {
             generateCompletionStrategies();
+            generatePermissiveAterm();
         }
     }
 
 
     public void generateCompletionStrategies() throws IOException {
         writer.write("langspec/src-gen/completion/completion.str", "src-gen/completion/completion.str", true);
+    }
+
+    public void generatePermissiveAterm() throws IOException {
+        writer.write("langspec/src-gen/syntax/normalized/permissive-norm.aterm", "src-gen/syntax/normalized/permissive-norm.aterm", true);        
     }
 }

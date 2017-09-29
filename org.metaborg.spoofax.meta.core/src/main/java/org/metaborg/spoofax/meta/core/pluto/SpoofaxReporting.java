@@ -65,7 +65,7 @@ public class SpoofaxReporting implements IReporting {
 
     @Override public <O extends Output> void canceledBuilderRequiredBuilderFailed(BuildRequest<?, O, ?, ?> req,
         BuildUnit<O> unit, RequiredBuilderFailed e) {
-        if(!e.getCause().getMessage().equals("Builder failed")) {
+        if(e != null && !e.getCause().getMessage().equals("Builder failed")) {
             log.error("Required builder failed", e.getCause());
         }
     }

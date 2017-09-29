@@ -5,13 +5,13 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.dependency.MissingDependencyException;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
+import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfig;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigService;
 import org.metaborg.util.log.ILogger;
@@ -103,11 +103,11 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
     private TypesmartContext getTypesmartContext(ILanguageComponent component) {
         TypesmartContext context = mergedTypesmartContexts.get(component);
         if(context == null) {
-            FileObject localContextFile = new CommonPaths(component.location()).strTypesmartExportedFile();
+            FileObject localContextFile = new SpoofaxCommonPaths(component.location()).strTypesmartExportedFile();
             context = TypesmartContext.load(localContextFile, typesmartLogger);
             try {
                 for(ILanguageComponent other : dependencyService.sourceDeps(component)) {
-                    FileObject otherContextFile = new CommonPaths(other.location()).strTypesmartExportedFile();
+                    FileObject otherContextFile = new SpoofaxCommonPaths(other.location()).strTypesmartExportedFile();
                     TypesmartContext otherContext = TypesmartContext.load(otherContextFile, typesmartLogger);
                     context = context.merge(otherContext);
                 }

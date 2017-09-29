@@ -3,12 +3,12 @@ package org.metaborg.spoofax.meta.core.build;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.build.CommonPaths;
+import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 
 import com.google.common.collect.Lists;
 
-public class LangSpecCommonPaths extends CommonPaths {
-    public LangSpecCommonPaths(FileObject root) {
+public class SpoofaxLangSpecCommonPaths extends SpoofaxCommonPaths {
+    public SpoofaxLangSpecCommonPaths(FileObject root) {
         super(root);
     }
 

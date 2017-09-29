@@ -37,6 +37,10 @@ public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
     }
 
     @Override public @Nullable ISpoofaxLanguageSpec get(IProject project) throws ConfigException {
+        if(project instanceof ISpoofaxLanguageSpec) {
+            return (ISpoofaxLanguageSpec) project;
+        }
+
         final FileObject location = project.location();
         if(!configService.available(location)) {
             return null;

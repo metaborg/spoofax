@@ -5,12 +5,15 @@ import java.util.Optional;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.metaborg.core.config.NaBL2ConfigReaderWriter;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.ISourceConfig;
 import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-import org.metaborg.util.config.NaBL2Config;
+import org.metaborg.meta.nabl2.config.NaBL2Config;
+import org.metaborg.spoofax.core.build.SpoofaxDefaultSources;
+import org.metaborg.spoofax.core.config.language.NaBL2ConfigReaderWriter;
 
 public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProjectConfig {
 
@@ -24,9 +27,10 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
     }
 
     protected SpoofaxProjectConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
-            Collection<LanguageIdentifier> compileDeps, Collection<LanguageIdentifier> sourceDeps,
-            Collection<LanguageIdentifier> javaDeps, Boolean typesmart, NaBL2Config nabl2Config) {
-        super(config, metaborgVersion, compileDeps, sourceDeps, javaDeps);
+            Collection<IExportConfig> sources, Collection<LanguageIdentifier> compileDeps,
+            Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps, Boolean typesmart,
+            NaBL2Config nabl2Config) {
+        super(config, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps);
         if(typesmart != null) {
             config.setProperty(PROP_STR_TYPESMART, typesmart);
         }
@@ -36,6 +40,14 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
         }
     }
 
+    @Override public Collection<ISourceConfig> sources() {
+        Collection<ISourceConfig> sources = super.sources();
+        if(sources.isEmpty()) {
+            return SpoofaxDefaultSources.DEFAULT_SPOOFAX_SOURCES;
+        } else {
+            return sources;
+        }
+    }
 
     @Override public boolean typesmart() {
         return config.getBoolean(PROP_STR_TYPESMART, false);

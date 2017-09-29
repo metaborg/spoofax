@@ -6,7 +6,6 @@ import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzer;
 import org.metaborg.core.build.IBuildOutputInternal;
 import org.metaborg.core.build.IBuilder;
-import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.config.IProjectConfigBuilder;
 import org.metaborg.core.config.IProjectConfigService;
@@ -89,7 +88,7 @@ import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuildOutput;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
-import org.metaborg.spoofax.core.build.paths.BuiltinLanguagePathProvider;
+import org.metaborg.spoofax.core.completion.ISpoofaxCompletionService;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigBuilder;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigService;
@@ -140,6 +139,8 @@ import org.metaborg.spoofax.core.stratego.primitive.LocalPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LocalReplicatePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ProjectPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.RelativeSourceOrIncludePath;
+import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
 import org.metaborg.spoofax.core.stratego.primitive.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.generic.DummyPrimitive;
@@ -283,14 +284,6 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ISpoofaxProjectConfigBuilder.class).to(SpoofaxProjectConfigBuilder.class);
     }
 
-    @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
-        // Bind builtin path provider before other providers such that builtin
-        // paths have preference over others.
-        binder.addBinding().to(BuiltinLanguagePathProvider.class);
-
-        super.bindLanguagePathProviders(binder);
-    }
-
     @Override protected void bindContextFactories(MapBinder<String, IContextFactory> binder) {
         super.bindContextFactories(binder);
 
@@ -374,6 +367,8 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceFilesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeDirectoriesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeFilesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourcePath.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourceOrIncludePath.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ParsePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, CallStrategyPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, IsLanguageActivePrimitive.class);
@@ -618,6 +613,7 @@ public class SpoofaxModule extends MetaborgModule {
 
     protected void bindCompletion() {
         bind(JSGLRCompletionService.class).in(Singleton.class);
+        bind(ISpoofaxCompletionService.class).to(JSGLRCompletionService.class);
         bind(new TypeLiteral<ICompletionService<ISpoofaxParseUnit>>() {}).to(JSGLRCompletionService.class);
         bind(new TypeLiteral<ICompletionService<?>>() {}).to(JSGLRCompletionService.class);
         bind(ICompletionService.class).to(JSGLRCompletionService.class);

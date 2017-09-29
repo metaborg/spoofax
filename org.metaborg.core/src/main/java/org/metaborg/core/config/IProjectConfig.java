@@ -11,6 +11,13 @@ public interface IProjectConfig {
     String metaborgVersion();
 
     /**
+     * Gets the file sources.
+     *
+     * @return The file sources.
+     */
+    Collection<ISourceConfig> sources();
+
+    /**
      * @return Compile dependency identifiers.
      */
     Collection<LanguageIdentifier> compileDeps();

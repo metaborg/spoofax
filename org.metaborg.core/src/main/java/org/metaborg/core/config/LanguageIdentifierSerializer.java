@@ -16,9 +16,9 @@ public class LanguageIdentifierSerializer extends StdSerializer<LanguageIdentifi
         super(LanguageIdentifier.class);
     }
 
-
     @Override public void serialize(final LanguageIdentifier value, final JsonGenerator generator,
         final SerializerProvider provider) throws IOException {
         generator.writeString(value.toString());
     }
+
 }

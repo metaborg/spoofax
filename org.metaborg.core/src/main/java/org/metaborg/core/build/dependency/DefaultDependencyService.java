@@ -32,8 +32,8 @@ public final class DefaultDependencyService implements IDependencyService {
 
     @Override public Collection<ILanguageComponent> compileDeps(IProject project) throws MissingDependencyException {
         final IProjectConfig config = project.config();
-        if(config == null) {
-            logger.trace("No configuration found for project '{}'."
+        if(config.compileDeps().isEmpty()) {
+            logger.trace("No compile dependencies found for project '{}'."
                 + "Returning all active language components as compile dependencies instead.", project);
             return ImmutableList.copyOf(LanguageUtils.allActiveComponents(languageService));
         }
@@ -42,9 +42,7 @@ public final class DefaultDependencyService implements IDependencyService {
 
     @Override public Collection<ILanguageComponent> sourceDeps(IProject project) throws MissingDependencyException {
         final IProjectConfig config = project.config();
-        if(config == null) {
-            logger.trace("No configuration found for project '{}'. " + "Returning no runtime dependencies instead.",
-                project);
+        if(config.sourceDeps().isEmpty()) {
             return Collections.emptyList();
         }
         return getLanguages(config.sourceDeps());
@@ -57,9 +55,6 @@ public final class DefaultDependencyService implements IDependencyService {
 
     @Override public MissingDependencies checkDependencies(IProject project) {
         final IProjectConfig config = project.config();
-        if(config == null) {
-            return new MissingDependencies();
-        }
 
         final Collection<LanguageIdentifier> compileDeps = config.compileDeps();
         final Collection<LanguageIdentifier> missingCompile = Lists.newLinkedList();

@@ -36,7 +36,8 @@ public class LanguageComponentConfigService extends AConfigService<ILanguageComp
 
     @Override protected ConfigRequest<ILanguageComponentConfig>
         toConfig(HierarchicalConfiguration<ImmutableNode> config, FileObject configFile) {
-        final LanguageComponentConfig languageComponentConfig = new LanguageComponentConfig(config);
+        final ProjectConfig projectConfig = new ProjectConfig(config);
+        final LanguageComponentConfig languageComponentConfig = new LanguageComponentConfig(config, projectConfig);
         final MessageBuilder mb = MessageBuilder.create().asError().asInternal().withSource(configFile);
         final Collection<IMessage> messages = languageComponentConfig.validate(mb);
         return new ConfigRequest<ILanguageComponentConfig>(languageComponentConfig, messages);

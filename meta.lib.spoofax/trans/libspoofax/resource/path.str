@@ -49,7 +49,12 @@ rules // Source and include directories and files
    */
   language-source-and-include-directories = Dupl; (language-source-directories, language-include-directories); conc
   
-  
+  /**
+   * Returns a path relative to the source folder, or the project root.
+   */
+  language-relative-source-path(|lang) = prim("language_relative_source_path", lang)
+
+
   /**
    * Returns a list of source directories (strings) for the current language.
    */
@@ -65,6 +70,15 @@ rules // Source and include directories and files
    */
   current-language-source-and-include-directories = language; Dupl; (language-source-directories, language-include-directories); conc
 
+  /**
+   * Returns a path relative to the source folder, or the project root.
+   */
+  current-language-relative-source-path = prim("language_relative_source_path", <language>)
+
+  /**
+   * Returns a path relative to the source or include folder, or the project root.
+   */
+  current-language-relative-source-or-include-path = prim("language_relative_source_or_include_path", <language>)
 
   /**
    * Returns a list of source files (strings) for language with given name (string).

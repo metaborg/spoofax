@@ -11,6 +11,7 @@ import org.metaborg.core.config.AConfigService;
 import org.metaborg.core.config.AConfigurationReaderWriter;
 import org.metaborg.core.config.ConfigRequest;
 import org.metaborg.core.config.IConfig;
+import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
@@ -40,10 +41,11 @@ public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILa
 
     @Override protected ConfigRequest<ILanguageSpecConfig> toConfig(HierarchicalConfiguration<ImmutableNode> config,
         FileObject configFile) {
-        final LanguageSpecConfig languageSpecConfig = new LanguageSpecConfig(config);
+        final ProjectConfig projectConfig = new ProjectConfig(config);
+        final LanguageSpecConfig languageSpecConfig = new LanguageSpecConfig(config, projectConfig);
         final MessageBuilder mb = MessageBuilder.create().asError().asInternal().withSource(configFile);
         final Collection<IMessage> messages = languageSpecConfig.validate(mb);
-        return new ConfigRequest<ILanguageSpecConfig>(languageSpecConfig, messages);
+        return new ConfigRequest<>(languageSpecConfig, messages);
     }
 
     @Override protected HierarchicalConfiguration<ImmutableNode> fromConfig(ILanguageSpecConfig config) {

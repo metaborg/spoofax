@@ -1,8 +1,10 @@
+/bin
 /target
 
 /.classpath
 /.project
 /.settings
+/.factorypath
 
 {{#analysisNabl2}}*.constraints
 *.scope-graph

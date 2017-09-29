@@ -5,7 +5,7 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 public enum SyntaxType {
-    SDF3("sdf3", "SDF3"), SDF2("sdf2", "SDF2"), None("none", "None");
+    SDF3("sdf3", "SDF3"), SDF2("sdf2", "SDF2 (deprecated)"), None("none", "None");
 
 
     public final String id;

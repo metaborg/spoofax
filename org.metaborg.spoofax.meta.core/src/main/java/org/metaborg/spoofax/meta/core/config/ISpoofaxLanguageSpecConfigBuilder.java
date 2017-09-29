@@ -8,8 +8,8 @@ import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
+import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.util.cmd.Arguments;
-import org.metaborg.util.config.NaBL2Config;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
@@ -141,15 +141,6 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withSdfVersion(SdfVersion sdfversion);
-
-    /**
-     * Sets the sdf2table version.
-     *
-     * @param sdf2tableVersion
-     *            The sdf2table version.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion);
 
     /**
      * Sets the path to the main SDF file.

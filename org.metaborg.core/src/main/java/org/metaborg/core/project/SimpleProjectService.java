@@ -62,7 +62,15 @@ public class SimpleProjectService implements ISimpleProjectService {
             configRequest.reportErrors(new StreamMessagePrinter(sourceTextService, false, false, logger));
         }
 
-        final IProject project = new Project(location, configRequest.config());
+        final IProjectConfig config;
+        if(configRequest.config() != null) {
+            config = configRequest.config();
+        } else {
+            logger.debug("Using default configuration for project at {}", location);
+            config = projectConfigService.defaultConfig(location);
+        }
+
+        final IProject project = new Project(location, config);
         if(projects.putIfAbsent(name, project) != null) {
             final String message = String.format("Project with location %s already exists", name);
             throw new MetaborgException(message);

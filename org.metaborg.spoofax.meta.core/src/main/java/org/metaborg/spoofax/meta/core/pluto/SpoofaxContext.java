@@ -20,8 +20,6 @@ import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
-import org.metaborg.meta.core.project.ILanguageSpec;
-import org.metaborg.meta.core.project.ILanguageSpecService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -29,6 +27,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -50,7 +50,7 @@ public class SpoofaxContext implements Serializable {
     private static ILanguageIdentifierService languageIdentifierService;
     private static ILanguagePathService languagePathService;
     private static IProjectService projectService;
-    private static ILanguageSpecService languageSpecService;
+    private static ISpoofaxLanguageSpecService languageSpecService;
     private static ISourceTextService sourceTextService;
     private static ISpoofaxUnitService unitService;
     private static ISpoofaxSyntaxService syntaxService;
@@ -62,7 +62,7 @@ public class SpoofaxContext implements Serializable {
 
     public transient FileObject base;
     private transient @Nullable IProject project;
-    public transient @Nullable ILanguageSpec languageSpec;
+    public transient @Nullable ISpoofaxLanguageSpec languageSpec;
 
 
     public static void init(Injector newInjector) {
@@ -76,7 +76,7 @@ public class SpoofaxContext implements Serializable {
         languageIdentifierService = newInjector.getInstance(ILanguageIdentifierService.class);
         languagePathService = newInjector.getInstance(ILanguagePathService.class);
         projectService = newInjector.getInstance(IProjectService.class);
-        languageSpecService = newInjector.getInstance(ILanguageSpecService.class);
+        languageSpecService = newInjector.getInstance(ISpoofaxLanguageSpecService.class);
         sourceTextService = newInjector.getInstance(ISourceTextService.class);
         unitService = newInjector.getInstance(ISpoofaxUnitService.class);
         syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);

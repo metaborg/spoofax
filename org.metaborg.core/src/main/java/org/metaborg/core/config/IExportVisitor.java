@@ -5,26 +5,26 @@ package org.metaborg.core.config;
  */
 public interface IExportVisitor {
     /**
-     * Visit a language-specific directory export
+     * Visit a language-specific resource directory.
      * 
-     * @param export
-     *            Language directory export.
+     * @param resource
+     *            Language resource directory.
      */
-    void visit(LangDirExport export);
+    void visit(LangDirExport resource);
 
     /**
-     * Visit a language-specific single-file export.
+     * Visit a language-specific single-file resource.
      * 
-     * @param export
-     *            Language file export.
+     * @param resource
+     *            Language resource file.
      */
-    void visit(LangFileExport export);
+    void visit(LangFileExport resource);
 
     /**
-     * Visit a generic resource export.
+     * Visit a generic resource.
      * 
-     * @param export
-     *            Generic resource export.
+     * @param resource
+     *            Generic resource.
      */
-    void visit(ResourceExport export);
+    void visit(ResourceExport resource);
 }

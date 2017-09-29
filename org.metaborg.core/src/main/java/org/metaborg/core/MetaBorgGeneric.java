@@ -15,6 +15,7 @@ import org.metaborg.core.outline.IOutlineService;
 import org.metaborg.core.plugin.IModulePluginLoader;
 import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
+import org.metaborg.core.processing.analyze.IAnalysisResultRequester;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
@@ -73,6 +74,7 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
 
     public final IParseResultProcessor<I, P> parseResultProcessor;
     public final IAnalysisResultProcessor<I, P, A> analysisResultProcessor;
+    public final IAnalysisResultRequester<I, A> analysisResultRequester;
 
     public final IActionService actionService;
     public final IMenuService menuService;
@@ -125,6 +127,8 @@ public class MetaBorgGeneric<I extends IInputUnit, P extends IParseUnit, A exten
         this.parseResultProcessor = instance(new TypeLiteral<IParseResultProcessor<I, P>>() {}, iClass, pClass);
         this.analysisResultProcessor =
             instance(new TypeLiteral<IAnalysisResultProcessor<I, P, A>>() {}, iClass, pClass, aClass);
+        this.analysisResultRequester =
+            instance(new TypeLiteral<IAnalysisResultRequester<I, A>>() {}, iClass, aClass);
 
         this.actionService = injector.getInstance(IActionService.class);
         this.menuService = injector.getInstance(IMenuService.class);

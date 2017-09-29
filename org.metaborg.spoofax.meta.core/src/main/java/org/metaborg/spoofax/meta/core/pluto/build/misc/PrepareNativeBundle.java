@@ -14,6 +14,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.util.ExecutableCommandStrategy;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
 
+import build.pluto.builder.BuildRequest;
 import build.pluto.output.OutputTransient;
 import build.pluto.stamp.LastModifiedStamper;
 
@@ -36,11 +37,13 @@ public class PrepareNativeBundle
 
         public final transient ExecutableCommandStrategy sdf2table;
         public final transient ExecutableCommandStrategy implodePT;
+        public final transient File strategoMixFile;
 
 
-        public Output(ExecutableCommandStrategy sdf2table, ExecutableCommandStrategy implodePT) {
+        public Output(ExecutableCommandStrategy sdf2table, ExecutableCommandStrategy implodePT, File strategoMixFile) {
             this.sdf2table = sdf2table;
             this.implodePT = implodePT;
+            this.strategoMixFile = strategoMixFile;
         }
     }
 
@@ -51,6 +54,13 @@ public class PrepareNativeBundle
 
     public PrepareNativeBundle(Input input) {
         super(input);
+    }
+
+
+    public static
+        BuildRequest<Input, OutputTransient<Output>, PrepareNativeBundle, SpoofaxBuilderFactory<Input, OutputTransient<Output>, PrepareNativeBundle>>
+        request(Input input) {
+        return new BuildRequest<>(factory, input);
     }
 
 
@@ -68,13 +78,17 @@ public class PrepareNativeBundle
         final File nativeBundleDir = toFileReplicate(nativeBundleLocation);
         restoreExecutablePermissions(nativeBundleDir);
         final File sdf2TableFile = new File(nativeBundleDir, NativeBundle.getSdf2TableName());
-        final File implodePtFile = new File(nativeBundleDir, NativeBundle.getImplodePTName());
-
         provide(sdf2TableFile, LastModifiedStamper.instance);
+        final File implodePtFile = new File(nativeBundleDir, NativeBundle.getImplodePTName());
         provide(implodePtFile, LastModifiedStamper.instance);
 
+        final URI strategoMixUri = NativeBundle.getStrategoMix();
+        final FileObject strategoMixLocation = context.resourceService().resolve(strategoMixUri);
+        final File strategoMixFile = toFileReplicate(strategoMixLocation);
+        provide(strategoMixFile, LastModifiedStamper.instance);
+
         return OutputTransient.of(new Output(new ExecutableCommandStrategy("sdf2table", sdf2TableFile),
-            new ExecutableCommandStrategy("implodePT", implodePtFile)));
+            new ExecutableCommandStrategy("implodePT", implodePtFile), strategoMixFile));
     }
 
     private static void restoreExecutablePermissions(File directory) {

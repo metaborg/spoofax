@@ -1,5 +1,6 @@
 package org.metaborg.core.config;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -10,6 +11,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -18,6 +20,7 @@ import com.google.inject.Inject;
  */
 public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConfigBuilder {
     protected @Nullable String metaborgVersion;
+    protected @Nullable List<IExportConfig> sources;
     protected @Nullable Set<LanguageIdentifier> compileDeps;
     protected @Nullable Set<LanguageIdentifier> sourceDeps;
     protected @Nullable Set<LanguageIdentifier> javaDeps;
@@ -35,7 +38,7 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
     }
 
     public ProjectConfig build(HierarchicalConfiguration<ImmutableNode> configuration) {
-        return new ProjectConfig(configuration, metaborgVersion, compileDeps, sourceDeps, javaDeps);
+        return new ProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps);
     }
 
 
@@ -70,6 +73,24 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
 
     @Override public IProjectConfigBuilder withMetaborgVersion(String metaborgVersion) {
         this.metaborgVersion = metaborgVersion;
+        return this;
+    }
+
+    @Override public IProjectConfigBuilder withSources(Iterable<IExportConfig> sources) {
+        if(this.sources != null) {
+            this.sources.clear();
+        }
+
+        addSources(sources);
+        return this;
+    }
+
+    @Override public IProjectConfigBuilder addSources(Iterable<IExportConfig> sources) {
+        if(this.sources == null) {
+            this.sources = Lists.newArrayList();
+        }
+
+        Iterables.addAll(this.sources, sources);
         return this;
     }
 

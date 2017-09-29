@@ -8,7 +8,7 @@ dependencies:
 {{/syntaxSdf3}}{{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lang.nabl:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.ts:${metaborgVersion}
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.lang:${metaborgVersion}
-{{/analysisNabl2}}
+{{/analysisNabl2}}  - org.metaborg:dynsem:${metaborgVersion}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 {{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
@@ -24,12 +24,11 @@ debug:
 language:
   sdf:
     pretty-print: {{name}}
-    # If set to java, set the table in editor/Syntax.esv to target/metaborg/sdf-new.tbl
     sdf2table: c
     placeholder:
       prefix: "$"
 {{#syntaxSdf2}}  
-    version: sdf2
+  version: sdf2
 {{/syntaxSdf2}}
   stratego:
     format: ctree

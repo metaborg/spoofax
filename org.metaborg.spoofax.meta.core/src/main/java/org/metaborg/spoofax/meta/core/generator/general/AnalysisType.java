@@ -5,7 +5,7 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 public enum AnalysisType {
-    NaBL_TS("nabl_ts", "NaBL & TS"), NaBL2("nabl2", "NaBL2"), Stratego("stratego", "Stratego"), None("none", "None");
+    NaBL2("nabl2", "NaBL2"), NaBL_TS("nabl_ts", "NaBL & TS (deprecated)"), Stratego("stratego", "Stratego (deprecated)"), None("none", "None");
 
 
     public final String id;
