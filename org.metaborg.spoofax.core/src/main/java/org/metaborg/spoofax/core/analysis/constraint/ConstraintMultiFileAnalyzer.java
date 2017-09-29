@@ -112,8 +112,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         final AggregateTimer finalizeTimer = new AggregateTimer();
 
         final String globalSource = "";
-        final Function1<String, ITermVar> globalFresh =
-                base -> TB.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
+        final Function1<String, String> globalFresh = base -> context.unit(globalSource).fresh().fresh(base);
 
         for(String input : removed) {
             context.removeUnit(input);
@@ -262,8 +261,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         }
                         try {
                             solverTimer.start();
-                            final Function1<String, ITermVar> fresh =
-                                    base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
+                            final Function1<String, String> fresh = base -> context.unit(source).fresh().fresh(base);
                             final IProgress subprogress = progress.subProgress(1);
                             GraphSolution preSolution = solver.solveGraph(
                                     ImmutableBaseSolution.of(initialResult.getConfig(), unitResult.getConstraints()),
@@ -309,8 +307,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 }
                 try {
                     solverTimer.start();
-                    final Function1<String, ITermVar> fresh =
-                            base -> TB.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
+                    final Function1<String, String> fresh = base -> context.unit(globalSource).fresh().fresh(base);
                     final IMessageInfo message = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                             Actions.sourceTerm(globalSource));
                     result = solver.solveInter(incrementalSolution, updatedUnits, removed, intfScopes, message, fresh,
@@ -440,8 +437,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
         final AggregateTimer finalizeTimer = new AggregateTimer();
 
         final String globalSource = "";
-        final Function1<String, ITermVar> globalFresh =
-                base -> TB.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
+        final Function1<String, String> globalFresh = base -> context.unit(globalSource).fresh().fresh(base);
 
         for(String input : removed) {
             context.removeUnit(input);
@@ -582,8 +578,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         }
                         try {
                             solverTimer.start();
-                            final Function1<String, ITermVar> fresh =
-                                    base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
+                            final Function1<String, String> fresh = base -> context.unit(source).fresh().fresh(base);
                             final IProgress subprogress = progress.subProgress(1);
                             GraphSolution preSolution = solver.solveGraph(
                                     ImmutableBaseSolution.of(initialResult.getConfig(), unitResult.getConstraints()),
@@ -629,8 +624,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 }
                 try {
                     solverTimer.start();
-                    Function1<String, ITermVar> fresh =
-                            base -> TB.newVar(globalSource, context.unit(globalSource).fresh().fresh(base));
+                    Function1<String, String> fresh = base -> context.unit(globalSource).fresh().fresh(base);
                     IMessageInfo message = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                             Actions.sourceTerm(globalSource));
                     solution = solver.solveInter(initialSolution, partialSolutions, message, fresh, cancel,

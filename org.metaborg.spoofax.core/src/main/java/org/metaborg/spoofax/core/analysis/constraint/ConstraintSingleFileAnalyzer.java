@@ -26,7 +26,6 @@ import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.terms.ITermVar;
 import org.metaborg.meta.nabl2.terms.generic.TB;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
@@ -153,8 +152,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.resolution()) {
                             logger.info("Solving {} constraints of {}.", constraints.size(), source);
                         }
-                        Function1<String, ITermVar> fresh =
-                                base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
+                        Function1<String, String> fresh = base -> context.unit(source).fresh().fresh(base);
                         final IProgress subprogress = progress.subProgress(1);
                         final SingleFileSolver solver =
                                 new SingleFileSolver(context.config().debug(), callExternal(runtime));
