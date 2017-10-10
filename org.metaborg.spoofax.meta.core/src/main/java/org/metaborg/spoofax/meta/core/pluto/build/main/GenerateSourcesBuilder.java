@@ -59,6 +59,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable File sdfFile;
         public final SdfVersion sdfVersion;
         public final Sdf2tableVersion sdf2tableVersion;
+        public final Boolean dataDependent;
         public final @Nullable File sdfExternalDef;
         public final List<File> packSdfIncludePaths;
         public final Arguments packSdfArgs;
@@ -82,14 +83,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final Arguments strjArgs;
 
 
+
         public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
             @Nullable Boolean sdfEnabled, @Nullable String sdfModule, @Nullable File sdfFile, SdfVersion sdfVersion,
-            Sdf2tableVersion sdf2tableVersion, @Nullable File sdfExternalDef, List<File> packSdfIncludePaths,
-            Arguments packSdfArgs, @Nullable String sdfCompletionModule, @Nullable File sdfCompletionFile,
-            @Nullable String sdfMetaModule, @Nullable File sdfMetaFile, @Nullable File strFile,
-            @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
-            StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
-            List<File> strjIncludeDirs, List<File> strjIncludeFiles, Arguments strjArgs) {
+            Sdf2tableVersion sdf2tableVersion, Boolean dataDependent, @Nullable File sdfExternalDef,
+            List<File> packSdfIncludePaths, Arguments packSdfArgs, @Nullable String sdfCompletionModule,
+            @Nullable File sdfCompletionFile, @Nullable String sdfMetaModule, @Nullable File sdfMetaFile,
+            @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
+            @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
+            @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, List<File> strjIncludeFiles,
+            Arguments strjArgs) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -98,6 +101,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.sdfFile = sdfFile;
             this.sdfVersion = sdfVersion;
             this.sdf2tableVersion = sdf2tableVersion;
+            this.dataDependent = dataDependent;
             this.sdfExternalDef = sdfExternalDef;
             this.packSdfIncludePaths = packSdfIncludePaths;
             this.packSdfArgs = packSdfArgs;
@@ -168,6 +172,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 // Get JSGLR parse table from the normalized SDF aterm
                 final boolean dynamicGeneration = (input.sdf2tableVersion == Sdf2tableVersion.dynamic
                     || input.sdf2tableVersion == Sdf2tableVersion.incremental);
+                final boolean dataDependent = input.dataDependent;
                 final File srcNormDir = toFile(paths.syntaxNormDir());
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf.tbl");
                 final File contextualGrammarFile = FileUtils.getFile(targetMetaborgDir, "ctxgrammar.aterm");
@@ -210,7 +215,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
 
                 final Origin sdf2TableJavaOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, sdfNormFile, tableFile,
-                    persistedTableFile, contextualGrammarFile, paths, dynamicGeneration));
+                    persistedTableFile, contextualGrammarFile, paths, dynamicGeneration, dataDependent));
 
                 requireBuild(sdf2TableJavaOrigin);
 
@@ -303,6 +308,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 final boolean dynamicGeneration = (input.sdf2tableVersion == Sdf2tableVersion.dynamic
                     || input.sdf2tableVersion == Sdf2tableVersion.incremental);
+                final boolean dataDependent = input.dataDependent;
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
 
@@ -340,8 +346,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
 
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
-                sdfCompletionOrigin = Sdf2Table.origin(
-                    new Sdf2Table.Input(context, sdfCompletionsFile, tableFile, null, null, paths, dynamicGeneration));
+                sdfCompletionOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, sdfCompletionsFile, tableFile, null,
+                    null, paths, dynamicGeneration, dataDependent));
 
                 requireBuild(sdfCompletionOrigin);
             } else {
