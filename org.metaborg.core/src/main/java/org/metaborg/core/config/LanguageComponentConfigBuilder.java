@@ -30,6 +30,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable String parseTable;
     protected @Nullable String completionsParseTable;
     protected @Nullable Sdf2tableVersion sdf2tableVersion;
+    protected @Nullable Boolean dataDependent;
     protected @Nullable JSGLRVersion jsglrVersion;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
@@ -44,7 +45,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         }
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
-            name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, jsglrVersion, langContribs, generates, exports);
+            name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, dataDependent, jsglrVersion, langContribs, generates, exports);
         return config;
     }
 
@@ -77,6 +78,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withSdfTable(config.parseTable());
             withSdfCompletionsTable(config.completionsParseTable());
             withSdf2tableVersion(config.sdf2tableVersion());
+            withDataDependent(config.dataDependent());
 			withJSGLRVersion(config.jsglrVersion());
             withSdfEnabled(config.sdfEnabled());
             projectConfigBuilder.copyValuesFrom(config);
@@ -148,6 +150,11 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
 
     @Override public ILanguageComponentConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion) {
         this.sdf2tableVersion = sdf2tableVersion;
+        return this;
+    }
+    
+    @Override public ILanguageComponentConfigBuilder withDataDependent(Boolean dataDependent) {
+        this.dataDependent = dataDependent;
         return this;
     }
 
