@@ -110,11 +110,11 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.collection()) {
                             logger.info("Collecting initial constraints of {}.", source);
                         }
-                        ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(source), context, runtime)
+                        ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(source, ast), context, runtime)
                                 .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new MetaborgException("Invalid initial results."));
-                        customInitial = doCustomAction(strategy, Actions.customInitial(source), context, runtime);
+                        customInitial = doCustomAction(strategy, Actions.customInitial(source, ast), context, runtime);
                         initialResult = initialResult.withCustomResult(customInitial);
                         if(debugConfig.collection()) {
                             logger.info("Collected {} initial constraints of {}.",

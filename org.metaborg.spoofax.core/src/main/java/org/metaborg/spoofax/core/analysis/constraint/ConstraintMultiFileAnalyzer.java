@@ -130,12 +130,13 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } else {
                     collectionTimer.start();
                     try {
+                        final ITerm globalAST = Actions.sourceTerm(globalSource, TB.EMPTY_TUPLE);
                         ITerm initialResultTerm =
-                                doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
+                                doAction(strategy, Actions.analyzeInitial(globalSource, globalAST), context, runtime)
                                         .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
-                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
+                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource, globalAST), context, runtime);
                         initialResult = initialResult.withCustomResult(customInitial);
                         context.setInitialResult(initialResult);
                     } finally {
