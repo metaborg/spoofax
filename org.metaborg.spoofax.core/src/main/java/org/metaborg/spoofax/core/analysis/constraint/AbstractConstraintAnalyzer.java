@@ -176,10 +176,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
 
-    protected IRelation3.Mutable<FileObject, MessageSeverity, IMessage> messagesByFile(Iterable<IMessage> messages) {
-        IRelation3.Mutable<FileObject, MessageSeverity, IMessage> fmessages = HashRelation3.create();
+    protected IRelation3.Mutable<String, MessageSeverity, IMessage> messagesByFile(Iterable<IMessage> messages, C context) {
+        IRelation3.Mutable<String, MessageSeverity, IMessage> fmessages = HashRelation3.create();
         for(IMessage message : messages) {
-            fmessages.put(message.source(), message.severity(), message);
+            fmessages.put(resource(message.source(), context), message.severity(), message);
         }
         return fmessages;
     }
