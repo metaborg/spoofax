@@ -2,8 +2,6 @@ package org.metaborg.core.processing;
 
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import org.metaborg.core.context.IContextProcessor;
 import org.metaborg.core.editor.IEditor;
 import org.metaborg.core.editor.IEditorRegistry;
@@ -13,6 +11,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
+import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
 
 import com.google.inject.Inject;
 
@@ -22,14 +21,17 @@ import com.google.inject.Inject;
 public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     private final IDialectProcessor dialectProcessor;
     private final IContextProcessor contextProcessor;
+    private final IAnalysisResultProcessor<?, ?, ?> analysisResultProcessor;
     private final IEditorRegistry editorRegistry;
     private final Set<ILanguageCache> languageCaches;
 
 
     @Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IContextProcessor contextProcessor,
-        IEditorRegistry editorRegistry, Set<ILanguageCache> languageCaches) {
+        IAnalysisResultProcessor<?, ?, ?> analysisResultProcessor, IEditorRegistry editorRegistry,
+        Set<ILanguageCache> languageCaches) {
         this.dialectProcessor = dialectProcessor;
         this.contextProcessor = contextProcessor;
+        this.analysisResultProcessor = analysisResultProcessor;
         this.editorRegistry = editorRegistry;
         this.languageCaches = languageCaches;
     }
@@ -132,6 +134,8 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
             languageCache.invalidateCache(impl);
         }
 
+        analysisResultProcessor.invalidate(impl);
+
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
             final ILanguageImpl editorLanguage = editor.language();
@@ -152,6 +156,8 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
         for(ILanguageCache languageCache : languageCaches) {
             languageCache.invalidateCache(impl);
         }
+
+        analysisResultProcessor.invalidate(impl);
 
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
