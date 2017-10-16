@@ -35,10 +35,13 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         if(parserConfig == null) {
             parserConfig = new JSGLRParserConfiguration();
         }
+        
+        final String fileName = resource != null ? resource.getName().getURI() : null;
+        String startSymbol = getOrDefaultStartSymbol(parserConfig);
 
         final Timer timer = new Timer(true);
         
-        final IStrategoTerm ast = parser.parse(input);
+        final IStrategoTerm ast = parser.parse(input, fileName, startSymbol);
 
         final long duration = timer.stop();
 
