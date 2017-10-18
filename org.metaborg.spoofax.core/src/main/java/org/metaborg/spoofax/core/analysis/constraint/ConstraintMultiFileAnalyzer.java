@@ -189,7 +189,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         final IProgress subprogress = progress.subProgress(1);
                         GraphSolution preSolution = solver.solveGraph(
                                 ImmutableBaseSolution.of(initialResult.getConfig(), initialResult.getConstraints()),
-                                cancel, subprogress);
+                                globalFresh, cancel, subprogress);
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         initialSolution =
                                 solver.solveIntra(preSolution, intfVars, intfScopes, globalFresh, cancel, subprogress);
@@ -265,7 +265,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             final IProgress subprogress = progress.subProgress(1);
                             GraphSolution preSolution = solver.solveGraph(
                                     ImmutableBaseSolution.of(initialResult.getConfig(), unitResult.getConstraints()),
-                                    cancel, subprogress);
+                                    fresh, cancel, subprogress);
                             preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                             unitSolution =
                                     solver.solveIntra(preSolution, intfVars, intfScopes, fresh, cancel, subprogress);
@@ -508,7 +508,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         final IProgress subprogress = progress.subProgress(1);
                         GraphSolution preSolution = solver.solveGraph(
                                 ImmutableBaseSolution.of(initialResult.getConfig(), initialResult.getConstraints()),
-                                cancel, subprogress);
+                                globalFresh, cancel, subprogress);
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         initialSolution =
                                 solver.solveIntra(preSolution, intfVars, intfScopes, globalFresh, cancel, subprogress);
@@ -582,7 +582,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             final IProgress subprogress = progress.subProgress(1);
                             GraphSolution preSolution = solver.solveGraph(
                                     ImmutableBaseSolution.of(initialResult.getConfig(), unitResult.getConstraints()),
-                                    cancel, subprogress);
+                                    fresh, cancel, subprogress);
                             preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                             unitSolution =
                                     solver.solveIntra(preSolution, intfVars, intfScopes, fresh, cancel, subprogress);

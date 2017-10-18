@@ -157,7 +157,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         final SingleFileSolver solver =
                                 new SingleFileSolver(context.config().debug(), callExternal(runtime));
                         GraphSolution preSolution = solver.solveGraph(
-                                ImmutableBaseSolution.of(initialResult.getConfig(), constraints), cancel, subprogress);
+                                ImmutableBaseSolution.of(initialResult.getConfig(), constraints), fresh, cancel, subprogress);
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         solution = solver.solve(preSolution, fresh, cancel, subprogress);
                         solution = solver.reportUnsolvedConstraints(solution);
