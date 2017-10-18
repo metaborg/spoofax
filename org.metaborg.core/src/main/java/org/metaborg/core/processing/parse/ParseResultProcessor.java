@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.UpdateKind;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IInputUnit;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.syntax.ISyntaxService;
@@ -108,6 +109,15 @@ public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> im
         logger.trace("Invalidating parse result for {}", resource);
         final BehaviorSubject<ParseChange<P>> updates = getUpdates(resource.getName());
         updates.onNext(ParseChange.<P>invalidate(resource));
+    }
+
+    @Override public void invalidate(ILanguageImpl impl) {
+        for(BehaviorSubject<ParseChange<P>> changes : updatesPerResource.values()) {
+            final ParseChange<P> change = changes.toBlocking().firstOrDefault(null);
+            if(change != null && change.unit != null && impl.equals(change.unit.input().langImpl())) {
+                changes.onNext(ParseChange.<P>invalidate(change.resource));
+            }
+        }
     }
 
     @Override public void update(FileObject resource, P unit) {

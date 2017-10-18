@@ -206,9 +206,9 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
 
     protected void messagesByFile(Iterable<IMessage> messages,
-            IRelation3.Transient<FileObject, MessageSeverity, IMessage> fmessages) {
+            IRelation3.Transient<String, MessageSeverity, IMessage> fmessages, C context) {
         for(IMessage message : messages) {
-            fmessages.put(message.source(), message.severity(), message);
+            fmessages.put(resource(message.source(), context), message.severity(), message);
         }
     }
 

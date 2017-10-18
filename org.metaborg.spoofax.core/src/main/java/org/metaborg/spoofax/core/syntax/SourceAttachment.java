@@ -23,7 +23,7 @@ public class SourceAttachment extends AbstractTermAttachment {
     public static final TermAttachmentType<SourceAttachment> TYPE = new VolatileTermAttachmentType<>(
             SourceAttachment.class);
 
-    private final FileObject resource;
+    private transient final FileObject resource;
 
 
     private SourceAttachment(FileObject resource) {

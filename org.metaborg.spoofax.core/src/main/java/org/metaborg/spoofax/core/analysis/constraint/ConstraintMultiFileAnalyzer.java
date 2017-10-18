@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -142,12 +143,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } else {
                     collectionTimer.start();
                     try {
+                        final ITerm globalAST = Actions.sourceTerm(globalSource, TB.EMPTY_TUPLE);
                         ITerm initialResultTerm =
-                                doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
+                                doAction(strategy, Actions.analyzeInitial(globalSource, globalAST), context, runtime)
                                         .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
-                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
+                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource, globalAST),
+                                context, runtime);
                         initialResult = initialResult.withCustomResult(customInitial);
                         context.setInitialResult(initialResult);
                     } finally {
@@ -365,46 +368,48 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 if(debugConfig.analysis()) {
                     logger.info("Processing project messages.");
                 }
-                IRelation3.Transient<FileObject, MessageSeverity, IMessage> messagesByFile =
+                IRelation3.Transient<String, MessageSeverity, IMessage> messagesByFile =
                         HashTrieRelation3.Transient.of();
                 AtomicInteger numErrors = new AtomicInteger(0);
                 AtomicInteger numWarnings = new AtomicInteger(0);
                 AtomicInteger numNotes = new AtomicInteger(0);
                 countMessages(initialSolution.messages(), numErrors, numWarnings, numNotes);
                 messagesByFile(messages(initialSolution.messages().getAll(), initialSolution.unifier(), context,
-                        context.location()), messagesByFile);
-                messagesByFile(failures.values(), messagesByFile);
+                        context.location()), messagesByFile, context);
+                messagesByFile(failures.values(), messagesByFile, context);
                 result.updates().stream().map(result.unitInters()::get).forEach(s -> {
                     countMessages(s.messages(), numErrors, numWarnings, numNotes);
                     messagesByFile(messages(s.messages().getAll(), s.unifier(), context, context.location()),
-                            messagesByFile);
+                            messagesByFile, context);
                 });
                 // FIXME the global check messages are probably lost like this, but they are not separately available,
                 // only in the global solution that contains everything
                 result.updates().stream().flatMap(Collection::stream).map(context::unit).forEach(unit -> {
                     final String source = unit.resource();
-                    final FileObject file = resource(source, context);
+                    //final FileObject file = resource(source, context);
                     final java.util.Set<IMessage> fileMessages =
-                            messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
+                            messagesByFile.get(source).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
                     if(changed.containsKey(source)) {
                         fileMessages.addAll(ambiguitiesByFile.get(source));
                         final boolean valid = !failures.containsKey(source);
-                        final boolean success = valid && messagesByFile.get(file, MessageSeverity.ERROR).isEmpty();
+                        final boolean success = valid && messagesByFile.get(source, MessageSeverity.ERROR).isEmpty();
                         final IStrategoTerm analyzedAST = astsByFile.get(source);
                         results.add(unitService.analyzeUnit(changed.get(source),
                                 new AnalyzeContrib(valid, success, analyzedAST != null, analyzedAST, fileMessages, -1),
                                 context));
                     } else {
-                        updateResults
-                                .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                        try {
+                            final FileObject file = context.location().resolveFile(source);
+                            updateResults.add(
+                                    unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                        } catch(IOException ex) {
+                            logger.error("Could not resolve {} to update messages", source);
+                        }
                     }
-                    messagesByFile.remove(file);
+                    messagesByFile.remove(source);
                 });
-                for(FileObject file : messagesByFile.keySet()) {
-                    final java.util.Set<IMessage> fileMessages =
-                            messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
-                    updateResults
-                            .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                if(!messagesByFile.keySet().isEmpty()) {
+                    logger.error("Found messages for unanalyzed files {}", messagesByFile.keySet());
                 }
                 if(debugConfig.analysis() || debugConfig.files() || debugConfig.resolution()) {
                     logger.info("Analyzed {} files: {} errors, {} warnings, {} notes.", n, numErrors.get(),
@@ -467,12 +472,13 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } else {
                     collectionTimer.start();
                     try {
+                        final ITerm globalAST = Actions.sourceTerm(globalSource, TB.EMPTY_TUPLE);
                         ITerm initialResultTerm =
-                                doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
+                                doAction(strategy, Actions.analyzeInitial(globalSource, globalAST), context, runtime)
                                         .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
-                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
+                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource, globalAST), context, runtime);
                         initialResult = initialResult.withCustomResult(customInitial);
                         context.setInitialResult(initialResult);
                     } finally {
@@ -682,35 +688,37 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                         .ifPresent(messageBuilder::addAll);
                 IMessages messages = messageBuilder.freeze();
 
-                IRelation3.Transient<FileObject, MessageSeverity, IMessage> messagesByFile =
+                IRelation3.Transient<String, MessageSeverity, IMessage> messagesByFile =
                         HashTrieRelation3.Transient.of();
-                messagesByFile(failures.values(), messagesByFile);
+                messagesByFile(failures.values(), messagesByFile, context);
                 messagesByFile(messages(messages.getAll(), solution.unifier(), context, context.location()),
-                        messagesByFile);
+                        messagesByFile, context);
+                // precondition: the messagesByFile should not contain any files that do not have corresponding units
                 for(IMultiFileScopeGraphUnit unit : context.units()) {
                     final String source = unit.resource();
-                    final FileObject file = resource(source, context);
                     final java.util.Set<IMessage> fileMessages =
-                            messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
+                            messagesByFile.get(source).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
                     if(changed.containsKey(source)) {
                         fileMessages.addAll(ambiguitiesByFile.get(source));
                         final boolean valid = !failures.containsKey(source);
-                        final boolean success = valid && messagesByFile.get(file, MessageSeverity.ERROR).isEmpty();
+                        final boolean success = valid && messagesByFile.get(source, MessageSeverity.ERROR).isEmpty();
                         final IStrategoTerm analyzedAST = astsByFile.get(source);
                         results.add(unitService.analyzeUnit(changed.get(source),
                                 new AnalyzeContrib(valid, success, analyzedAST != null, analyzedAST, fileMessages, -1),
                                 context));
                     } else {
-                        updateResults
-                                .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                        try {
+                            final FileObject file = context.location().resolveFile(source);
+                            updateResults.add(
+                                    unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                        } catch(IOException ex) {
+                            logger.error("Could not resolve {} to update messages", source);
+                        }
                     }
-                    messagesByFile.remove(file);
+                    messagesByFile.remove(source);
                 }
-                for(FileObject file : messagesByFile.keySet()) {
-                    final java.util.Set<IMessage> fileMessages =
-                            messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
-                    updateResults
-                            .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                if(!messagesByFile.keySet().isEmpty()) {
+                    logger.error("Found messages for unanalyzed files {}", messagesByFile.keySet());
                 }
                 if(debugConfig.analysis() || debugConfig.files() || debugConfig.resolution()) {
                     logger.info("Analyzed {} files: {} errors, {} warnings, {} notes.", n, messages.getErrors().size(),

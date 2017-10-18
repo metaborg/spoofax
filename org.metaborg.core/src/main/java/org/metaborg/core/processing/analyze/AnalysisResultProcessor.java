@@ -15,6 +15,7 @@ import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.build.UpdateKind;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.metaborg.core.syntax.IInputUnit;
 import org.metaborg.core.syntax.IParseUnit;
@@ -132,6 +133,15 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
                 throw new MetaborgRuntimeException("Cannot invalidate results for detached (no source) units");
             }
             invalidate(parseResult.source());
+        }
+    }
+
+    @Override public void invalidate(ILanguageImpl impl) {
+        for(BehaviorSubject<AnalysisChange<A>> changes : updatesPerResource.values()) {
+            final AnalysisChange<A> change = changes.toBlocking().firstOrDefault(null);
+            if(change != null && change.result != null && impl.equals(change.result.context().language())) {
+                changes.onNext(AnalysisChange.<A>invalidate(change.resource));
+            }
         }
     }
 
