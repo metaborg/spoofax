@@ -12,6 +12,7 @@ import org.metaborg.core.language.LanguageComponentChange;
 import org.metaborg.core.language.LanguageImplChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
+import org.metaborg.core.processing.parse.IParseResultProcessor;
 
 import com.google.inject.Inject;
 
@@ -21,16 +22,18 @@ import com.google.inject.Inject;
 public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     private final IDialectProcessor dialectProcessor;
     private final IContextProcessor contextProcessor;
+    private final IParseResultProcessor<?, ?> parseResultProcessor;
     private final IAnalysisResultProcessor<?, ?, ?> analysisResultProcessor;
     private final IEditorRegistry editorRegistry;
     private final Set<ILanguageCache> languageCaches;
 
 
     @Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IContextProcessor contextProcessor,
-        IAnalysisResultProcessor<?, ?, ?> analysisResultProcessor, IEditorRegistry editorRegistry,
-        Set<ILanguageCache> languageCaches) {
+        IParseResultProcessor<?, ?> parseResultProcessor, IAnalysisResultProcessor<?, ?, ?> analysisResultProcessor,
+        IEditorRegistry editorRegistry, Set<ILanguageCache> languageCaches) {
         this.dialectProcessor = dialectProcessor;
         this.contextProcessor = contextProcessor;
+        this.parseResultProcessor = parseResultProcessor;
         this.analysisResultProcessor = analysisResultProcessor;
         this.editorRegistry = editorRegistry;
         this.languageCaches = languageCaches;
@@ -134,6 +137,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
             languageCache.invalidateCache(impl);
         }
 
+        parseResultProcessor.invalidate(impl);
         analysisResultProcessor.invalidate(impl);
 
         final Iterable<IEditor> editors = editorRegistry.openEditors();
@@ -157,6 +161,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
             languageCache.invalidateCache(impl);
         }
 
+        parseResultProcessor.invalidate(impl);
         analysisResultProcessor.invalidate(impl);
 
         final Iterable<IEditor> editors = editorRegistry.openEditors();

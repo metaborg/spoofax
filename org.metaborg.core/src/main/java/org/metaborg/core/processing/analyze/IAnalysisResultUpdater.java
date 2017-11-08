@@ -43,10 +43,10 @@ public interface IAnalysisResultUpdater<P extends IParseUnit, A extends IAnalyze
      * {@link #update} or {@link #error} for those resources eventually. Failing to do so will block any requests made
      * while resources were in invalid states.
      * 
-     * @param results
-     *            Parse results with sources to invalidate.
+     * @param lang
+     *            Language to invalidate for.
      */
-    void invalidate(ILanguageImpl impl);
+    void invalidate(ILanguageImpl lang);
 
     /**
      * Updates the analysis result for a single resource. Pushes the analysis result to subscribed requests. Removes

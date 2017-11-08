@@ -1,6 +1,7 @@
 package org.metaborg.core.processing.parse;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.syntax.ParseException;
 
@@ -17,6 +18,16 @@ public interface IParseResultUpdater<P extends IParseUnit> {
      *            Resource to invalidate.
      */
     void invalidate(FileObject resource);
+
+    /**
+     * Invalidates the parse result for all sources of the given language. Must be followed by a call to
+     * {@link #update} or {@link #error} for that resource eventually. Failing to do so will block any
+     * request made while resource was in an invalid state.
+     * 
+     * @param lang
+     *            Language to invalidate for.
+     */
+    void invalidate(ILanguageImpl lang);
 
     /**
      * Updates the parse result for a single resource. Pushes the parse result to subscribed requests.

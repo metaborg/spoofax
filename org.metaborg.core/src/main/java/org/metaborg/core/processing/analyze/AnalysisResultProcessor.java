@@ -1,6 +1,5 @@
 package org.metaborg.core.processing.analyze;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -138,9 +137,7 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
     }
 
     @Override public void invalidate(ILanguageImpl impl) {
-        final Iterator<BehaviorSubject<AnalysisChange<A>>> it = updatesPerResource.values().iterator();
-        while(it.hasNext()) {
-            final BehaviorSubject<AnalysisChange<A>> changes = it.next();
+        for(BehaviorSubject<AnalysisChange<A>> changes : updatesPerResource.values()) {
             final AnalysisChange<A> change = changes.toBlocking().firstOrDefault(null);
             if(change != null && change.result != null && impl.equals(change.result.context().language())) {
                 changes.onNext(AnalysisChange.<A>invalidate(change.resource));
