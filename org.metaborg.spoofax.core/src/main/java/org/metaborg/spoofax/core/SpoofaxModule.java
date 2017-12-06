@@ -458,8 +458,10 @@ public class SpoofaxModule extends MetaborgModule {
         spoofaxAnalyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
         analyzerBinder.addBinding(ConstraintSingleFileAnalyzer.name).to(ConstraintSingleFileAnalyzer.class);
         spoofaxAnalyzerBinder.addBinding(ConstraintSingleFileAnalyzer.name).to(ConstraintSingleFileAnalyzer.class);
+        languageCacheBinder.addBinding().to(ConstraintSingleFileAnalyzer.class);
         analyzerBinder.addBinding(ConstraintMultiFileAnalyzer.name).to(ConstraintMultiFileAnalyzer.class);
         spoofaxAnalyzerBinder.addBinding(ConstraintMultiFileAnalyzer.name).to(ConstraintMultiFileAnalyzer.class);
+        languageCacheBinder.addBinding().to(ConstraintMultiFileAnalyzer.class);
     }
 
     protected void bindAction() {

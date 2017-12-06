@@ -1,5 +1,13 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import static meta.flowspec.java.Path.TRANSFER_FUNCTIONS_FILE;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -10,11 +18,16 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
+import org.metaborg.core.language.ILanguageCache;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
@@ -22,6 +35,7 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
+import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.solvers.CallExternal;
 import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
@@ -53,13 +67,18 @@ import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.ParseError;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>> implements ISpoofaxAnalyzer {
+import meta.flowspec.nabl2.controlflow.IControlFlowGraph;
+import meta.flowspec.nabl2.util.tuples.Tuple2;
+
+abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>>
+        implements ISpoofaxAnalyzer, ILanguageCache {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
@@ -73,6 +92,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected final ITermFactory termFactory;
     protected final StrategoTerms strategoTerms;
+    protected final Map<ILanguageComponent, IStrategoTerm> flowSpecTransferFunctionCache = new HashMap<>();
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
             final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
@@ -145,6 +165,20 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
     }
 
+    @Override
+    public void invalidateCache(ILanguageComponent component) {
+        logger.debug("Removing cached flowspec transfer functions for {}", component);
+        flowSpecTransferFunctionCache.remove(component);
+    }
+
+    @Override
+    public void invalidateCache(ILanguageImpl impl) {
+        logger.debug("Removing cached flowspec transfer functions for {}", impl);
+        for (ILanguageComponent component : impl.components()) {
+            flowSpecTransferFunctionCache.remove(component);
+        }
+    }
+
     protected String resource(FileObject resource, C context) {
         return ResourceUtils.relativeName(resource.getName(), context.location().getName(), true);
     }
@@ -155,6 +189,32 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     private boolean isEmptyAST(IStrategoTerm ast) {
         return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
+    }
+
+    protected IStrategoTerm getFlowSpecTransferFunctions(ILanguageComponent component) {
+        IStrategoTerm transferFunctions = flowSpecTransferFunctionCache.get(component);
+        if (transferFunctions != null) {
+            return transferFunctions;
+        }
+
+        FileObject tfs = resourceService.resolve(component.location(), TRANSFER_FUNCTIONS_FILE);
+        try {
+            transferFunctions = termFactory
+                    .parseFromString(IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
+        } catch (ParseError | IOException e) {
+            logger.error("Could not read transfer functions file for {}", component);
+            throw new MetaborgRuntimeException("Could not read transfer functions file", e);
+        }
+        flowSpecTransferFunctionCache.put(component, transferFunctions);
+        return transferFunctions;
+    }
+
+    protected List<IStrategoTerm> getFlowSpecTransferFunctions(ILanguageImpl impl) {
+        List<IStrategoTerm> result = new ArrayList<>();
+        for (ILanguageComponent comp : impl.components()) {
+            result.add(getFlowSpecTransferFunctions(comp));
+        }
+        return result;
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
@@ -275,4 +335,19 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         };
     }
 
+    protected void flowspecDemoOutput(C context, final IControlFlowGraph<CFGNode> controlFlowGraph) {
+        FileObject file = this.resource("target/flowspec-out.aterm", context);
+        try (PrintWriter out = new PrintWriter(file.getContent().getOutputStream())) {
+            out.println("// CFG");
+            for (Map.Entry<CFGNode, CFGNode> e : controlFlowGraph.getDirectEdges().entrySet()) {
+                out.println("(" + e.getKey() + ", " + e.getValue() + ")");
+            }
+            out.println("// Properties");
+            for (Map.Entry<Tuple2<CFGNode, String>, Object> e : controlFlowGraph.getProperties().entrySet()) {
+                out.println(e.getKey()._2() + "(" + e.getKey()._1() + ") = " + e.getValue());
+            }
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -19,6 +19,7 @@ import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
+import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
 import org.metaborg.meta.nabl2.scopegraph.terms.Scope;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.SolverException;
@@ -75,6 +76,8 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import io.usethesource.capsule.Set;
+import meta.flowspec.java.solver.MaximalFixedPoint;
+import meta.flowspec.nabl2.controlflow.IControlFlowGraph;
 
 public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -325,6 +328,11 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     }
                     // set global solution
                     ISolution solution = result.globalInter().map(solver::reportUnsolvedConstraints).orElse(null);
+                    final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
+                    if (!controlFlowGraph.isEmpty()) {
+                        MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                        flowspecDemoOutput(context, controlFlowGraph);
+                    }
                     context.setSolution(solution);
                 } catch(SolverException e) {
                     throw new AnalysisException(context, e);
@@ -640,6 +648,11 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     throw new AnalysisException(context, e);
                 } finally {
                     solverTimer.stop();
+                }
+                final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
+                if (!controlFlowGraph.isEmpty()) {
+                    MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                    flowspecDemoOutput(context, controlFlowGraph);
                 }
                 context.setSolution(solution);
                 if(debugConfig.resolution()) {

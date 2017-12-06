@@ -13,6 +13,7 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
+import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
@@ -54,6 +55,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+
+import meta.flowspec.java.solver.MaximalFixedPoint;
+import meta.flowspec.nabl2.controlflow.IControlFlowGraph;
 
 public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISingleFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -161,6 +165,11 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         solution = solver.solve(preSolution, fresh, cancel, subprogress);
                         solution = solver.reportUnsolvedConstraints(solution);
+                        final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
+                        if (!controlFlowGraph.isEmpty()) {
+                            MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                            flowspecDemoOutput(context, controlFlowGraph);
+                        }
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {
                             logger.info("Solved constraints of {}.", source);
