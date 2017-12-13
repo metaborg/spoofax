@@ -36,14 +36,20 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
+import org.metaborg.meta.nabl2.solver.ISolution;
+import org.metaborg.meta.nabl2.solver.ImmutableSolution;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.solvers.CallExternal;
 import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
 import org.metaborg.meta.nabl2.stratego.ConstraintTerms;
+import org.metaborg.meta.nabl2.stratego.ImmutableTermIndex;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
+import org.metaborg.meta.nabl2.stratego.TermIndex;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
+import org.metaborg.meta.nabl2.terms.generic.TB;
 import org.metaborg.meta.nabl2.unification.IUnifier;
+import org.metaborg.meta.nabl2.util.collections.IProperties;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -336,6 +342,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     }
 
     protected void flowspecDemoOutput(C context, final IControlFlowGraph<CFGNode> controlFlowGraph) {
+        logger.debug("Outputting FlowSpec demo output file");
         FileObject file = this.resource("target/flowspec-out.aterm", context);
         try (PrintWriter out = new PrintWriter(file.getContent().getOutputStream())) {
             out.println("// CFG");
@@ -343,11 +350,32 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                 out.println("(" + e.getKey() + ", " + e.getValue() + ")");
             }
             out.println("// Properties");
-            for (Map.Entry<Tuple2<CFGNode, String>, Object> e : controlFlowGraph.getProperties().entrySet()) {
-                out.println(e.getKey()._2() + "(" + e.getKey()._1() + ") = " + e.getValue());
+            for (Map.Entry<Tuple2<CFGNode, String>, ITerm> e : controlFlowGraph.getProperties().entrySet()) {
+                out.println(e.getKey()._2() + "(" + e.getKey()._1() + ") = " + e.getValue().toString());
             }
         } catch (FileSystemException e) {
             e.printStackTrace();
         }
     }
+
+    protected static ISolution flowspecCopyProperties(ISolution solution) {
+        logger.debug("Copying FlowSpec properties to NaBL2 ast properties in solution");
+        IProperties.Transient<TermIndex, ITerm, ITerm> astProperties = solution.astProperties().melt();
+        IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
+
+        for (Map.Entry<Tuple2<CFGNode, String>, ITerm> property : controlFlowGraph.getProperties().entrySet()) {
+            CFGNode node = property.getKey()._1();
+            String propName = property.getKey()._2();
+            ITerm value = property.getValue();
+
+            TermIndex ti = TermIndex.get(node).orElse(ImmutableTermIndex.of(node.getResource(), 0));
+
+            astProperties.putValue(ti, TB.newAppl("Property", TB.newString(propName)), value);
+        }
+
+        return ImmutableSolution.of(solution.config(), astProperties.freeze(), solution.scopeGraph(),
+                solution.nameResolution(), solution.declProperties(), solution.relations(), solution.unifier(),
+                solution.symbolic(), solution.controlFlowGraph(), solution.messages(), solution.constraints());
+    }
+
 }
