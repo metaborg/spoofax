@@ -20,7 +20,7 @@ import org.spoofax.jsglr2.parsetable.IParseTable;
 import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 
 public class JSGLR2I extends JSGLRI<IParseTable> {
-    private final JSGLR2<?, ?, IStrategoTerm> parser;
+    private final JSGLR2<?, IStrategoTerm> parser;
 
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect, @Nullable FileObject resource, String input) throws IOException, ParseTableReadException {
         super(config, termFactory, language, dialect, resource, input);
