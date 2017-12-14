@@ -77,7 +77,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
             ParseTableGenerator pt_gen = new ParseTableGenerator(input.inputFile, input.outputFile,
                 input.outputNormGrammarFile, input.outputContextGrammarFile, input.paths);
             // TODO add option to generate the contextual grammar in the Yaml file
-            pt_gen.outputTable(input.dynamic, input.dataDependent);
+            pt_gen.outputTable(input.dynamic, input.dataDependent, true);
             for(File required : pt_gen.getParseTable().normalizedGrammar().getFilesRead()) {
                 require(required);
             }
