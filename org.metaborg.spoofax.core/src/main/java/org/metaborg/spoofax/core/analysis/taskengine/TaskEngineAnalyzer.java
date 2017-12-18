@@ -264,13 +264,6 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         return unitService.analyzeUnitUpdate(source, new AnalyzeUpdateData(messages), context);
     }
 
-
-    @Override
-    public void flowspecCopyTFAppls(IControlFlowGraph<CFGNode> controlFlowGraph, Immutable<TermIndex, ITerm, ITerm> astProperties) {
-        // TODO Auto-generated method stub
-        
-    }
-
     /* Currently unused debugging and performance data. @formatter:off
     private Collection<String> affectedPartitions(IStrategoTerm affectedTerm) {
         final Collection<String> affected = new ArrayList<>(affectedTerm.getSubtermCount());

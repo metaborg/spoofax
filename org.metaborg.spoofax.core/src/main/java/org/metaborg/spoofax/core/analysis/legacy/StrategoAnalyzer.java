@@ -235,11 +235,4 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         return unitService.analyzeUnit(input,
             new AnalyzeContrib(false, false, true, null, Iterables2.singleton(message), duration), context);
     }
-
-
-    @Override
-    public void flowspecCopyTFAppls(IControlFlowGraph<CFGNode> controlFlowGraph, Immutable<TermIndex, ITerm, ITerm> astProperties) {
-        // TODO Auto-generated method stub
-        
-    }
 }
