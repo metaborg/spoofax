@@ -20,6 +20,7 @@ import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
+import org.metaborg.meta.nabl2.controlflow.terms.ControlFlowGraph;
 import org.metaborg.meta.nabl2.scopegraph.terms.Scope;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.SolverException;
@@ -77,7 +78,7 @@ import com.google.inject.Inject;
 
 import io.usethesource.capsule.Set;
 import meta.flowspec.java.solver.MaximalFixedPoint;
-import meta.flowspec.nabl2.controlflow.IControlFlowGraph;
+import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
 
 public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -331,7 +332,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
                     if (!controlFlowGraph.isEmpty()) {
                         logger.info("CFG is not empty: calling FlowSpec dataflow solver");
+                        flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
                         MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                        flowspecDemoOutput(context, controlFlowGraph);
                         solution = flowspecCopyProperties(solution);
                     }
                     context.setSolution(solution);
@@ -653,7 +656,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
                 if (!controlFlowGraph.isEmpty()) {
                     logger.info("CFG is not empty: calling FlowSpec dataflow solver");
+                    flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
                     MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                    flowspecDemoOutput(context, controlFlowGraph);
                     solution = flowspecCopyProperties(solution);
                 }
                 context.setSolution(solution);

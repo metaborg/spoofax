@@ -39,6 +39,11 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>meta.flowspec.java</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.spoofax.interpreter.core</artifactId>
       <version>${metaborg-version}</version>
     </dependency>

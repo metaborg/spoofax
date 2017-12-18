@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
-import static meta.flowspec.java.Path.TRANSFER_FUNCTIONS_FILE;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -36,8 +34,12 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
+import org.metaborg.meta.nabl2.controlflow.terms.ControlFlowGraph;
+import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
+import org.metaborg.meta.nabl2.controlflow.terms.TransferFunctionAppl;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.ImmutableSolution;
+import org.metaborg.meta.nabl2.solver.TypeException;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.solvers.CallExternal;
 import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
@@ -46,11 +48,18 @@ import org.metaborg.meta.nabl2.stratego.ImmutableTermIndex;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermIndex;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
+import org.metaborg.meta.nabl2.terms.IApplTerm;
+import org.metaborg.meta.nabl2.terms.IIntTerm;
+import org.metaborg.meta.nabl2.terms.IListTerm;
+import org.metaborg.meta.nabl2.terms.IStringTerm;
 import org.metaborg.meta.nabl2.terms.ITerm;
+import org.metaborg.meta.nabl2.terms.generic.ListTermIterator;
 import org.metaborg.meta.nabl2.terms.generic.TB;
 import org.metaborg.meta.nabl2.unification.IUnifier;
 import org.metaborg.meta.nabl2.util.collections.IProperties;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
+import org.metaborg.meta.nabl2.util.tuples.ImmutableTuple2;
+import org.metaborg.meta.nabl2.util.tuples.Tuple2;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -77,11 +86,9 @@ import org.spoofax.terms.ParseError;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
-import meta.flowspec.nabl2.controlflow.IControlFlowGraph;
-import meta.flowspec.nabl2.util.tuples.Tuple2;
 
 abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>>
         implements ISpoofaxAnalyzer, ILanguageCache {
@@ -89,6 +96,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     private static final String PP_STRATEGY = "pp-NaBL2-objlangterm";
+    private static final String TRANSFER_FUNCTIONS_FILE = "target/metaborg/transfer-functions.aterm";
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
@@ -343,19 +351,63 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected void flowspecDemoOutput(C context, final IControlFlowGraph<CFGNode> controlFlowGraph) {
         logger.debug("Outputting FlowSpec demo output file");
-        FileObject file = this.resource("target/flowspec-out.aterm", context);
+        FileObject file = this.resource("target/flowspec-demo-output.aterm", context);
         try (PrintWriter out = new PrintWriter(file.getContent().getOutputStream())) {
-            out.println("// CFG");
+            out.println("(CFG([");
+            boolean first = true;
             for (Map.Entry<CFGNode, CFGNode> e : controlFlowGraph.getDirectEdges().entrySet()) {
-                out.println("(" + e.getKey() + ", " + e.getValue() + ")");
+                if (!first) {
+                    out.print(", ");
+                }
+                first = false;
+                out.println("(\"" + e.getKey() + "\", \"" + e.getValue() + "\", \"" + controlFlowGraph.getTFAppls().get(ImmutableTuple2.of(TermIndex.get(e.getKey()), "live")) + "\")");
             }
-            out.println("// Properties");
+            out.println("]),");
+            out.println("Properties([");
+            first = true;
             for (Map.Entry<Tuple2<CFGNode, String>, ITerm> e : controlFlowGraph.getProperties().entrySet()) {
-                out.println(e.getKey()._2() + "(" + e.getKey()._1() + ") = " + e.getValue().toString());
+                if(!first) {
+                    out.print(", ");
+                }
+                first = false;
+                out.println(e.getKey()._2() + "(\"" + e.getKey()._1() + "\", " + e.getValue().toString() +")");
             }
+            out.println("]))");
         } catch (FileSystemException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void flowspecCopyTFAppls(IControlFlowGraph<CFGNode> controlFlowGraph, IProperties.Immutable<TermIndex, ITerm, ITerm> astProperties) {
+        ControlFlowGraph<CFGNode> cfg = (ControlFlowGraph<CFGNode>) controlFlowGraph;
+        for(TermIndex index: astProperties.getIndices()) {
+            for(ITerm key: astProperties.getDefinedKeys(index)) {
+                if(key instanceof IApplTerm && ((IApplTerm) key).getOp().equals("TF") && ((IApplTerm) key).getArity() == 1) {
+                    cfg.addTFAppl(index, ((IStringTerm) ((IApplTerm) key).getArgs().get(0)).getValue(), matchStringTFAppl(astProperties.getValue(index, key).get()));
+                }
+            }
+        }
+    }
+
+    private static TransferFunctionAppl matchStringTFAppl(ITerm pairTerm) {
+        if (!(pairTerm instanceof IApplTerm)) {
+            throw new TypeException("Expected occurence in CFDecl to have a list of (String, appl) as a \"name\"");
+        }
+        IApplTerm pair2 = (IApplTerm) pairTerm;
+        if (pair2.getOp() != "" || pair2.getArity() != 2) {
+            throw new TypeException("Expected occurence in CFDecl to have a list of (String, (_,_)) as a \"name\"");
+        }
+        ITerm intTerm = pair2.getArgs().get(0);
+        ITerm argsTerm = pair2.getArgs().get(1);
+        if (!(intTerm instanceof IIntTerm)) {
+            throw new TypeException("Expected occurence in CFDecl to have a list of (String, (int, _)) as a \"name\"");
+        }
+        if (!(argsTerm instanceof IListTerm)) {
+            throw new TypeException(
+                    "Expected occurence in CFDecl to have a list of (String, (int, [...])) as a \"name\"");
+        }
+        ITerm[] args = Iterators.toArray(new ListTermIterator((IListTerm) argsTerm), ITerm.class);
+        return new TransferFunctionAppl(((IIntTerm) intTerm).getValue(), args);
     }
 
     protected static ISolution flowspecCopyProperties(ISolution solution) {

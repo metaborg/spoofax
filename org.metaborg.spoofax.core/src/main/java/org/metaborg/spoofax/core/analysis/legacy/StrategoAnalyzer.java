@@ -11,6 +11,11 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
+import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
+import org.metaborg.meta.nabl2.stratego.TermIndex;
+import org.metaborg.meta.nabl2.terms.ITerm;
+import org.metaborg.meta.nabl2.util.collections.IProperties.Immutable;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -229,5 +234,12 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final IMessage message = MessageFactory.newAnalysisErrorAtTop(source, error, e);
         return unitService.analyzeUnit(input,
             new AnalyzeContrib(false, false, true, null, Iterables2.singleton(message), duration), context);
+    }
+
+
+    @Override
+    public void flowspecCopyTFAppls(IControlFlowGraph<CFGNode> controlFlowGraph, Immutable<TermIndex, ITerm, ITerm> astProperties) {
+        // TODO Auto-generated method stub
+        
     }
 }

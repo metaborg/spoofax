@@ -26,8 +26,10 @@ import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
+import org.metaborg.meta.nabl2.stratego.TermIndex;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.generic.TB;
+import org.metaborg.meta.nabl2.util.collections.IProperties.Immutable;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -57,7 +59,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import meta.flowspec.java.solver.MaximalFixedPoint;
-import meta.flowspec.nabl2.controlflow.IControlFlowGraph;
+import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
 
 public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISingleFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -168,7 +170,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
                         if (!controlFlowGraph.isEmpty()) {
                             logger.info("CFG is not empty: calling FlowSpec dataflow solver");
+                            flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
                             MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                            flowspecDemoOutput(context, controlFlowGraph);
                             solution = flowspecCopyProperties(solution);
                         }
                         unit.setSolution(solution);
