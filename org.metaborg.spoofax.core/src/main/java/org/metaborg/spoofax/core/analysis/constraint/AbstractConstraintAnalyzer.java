@@ -360,7 +360,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                     out.print(", ");
                 }
                 first = false;
-                out.println("(\"" + e.getKey() + "\", \"" + e.getValue() + "\", \"" + controlFlowGraph.getTFAppls().get(ImmutableTuple2.of(TermIndex.get(e.getKey()), "live")) + "\")");
+                out.println("(\"" + e.getKey() + "\", \"" + e.getValue() + "\")");
             }
             out.println("]),");
             out.println("Properties([");
@@ -380,16 +380,23 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     public static void flowspecCopyTFAppls(IControlFlowGraph<CFGNode> controlFlowGraph, IProperties.Immutable<TermIndex, ITerm, ITerm> astProperties) {
         ControlFlowGraph<CFGNode> cfg = (ControlFlowGraph<CFGNode>) controlFlowGraph;
-        for(TermIndex index: astProperties.getIndices()) {
-            for(ITerm key: astProperties.getDefinedKeys(index)) {
-                if(key instanceof IApplTerm && ((IApplTerm) key).getOp().equals("TF") && ((IApplTerm) key).getArity() == 1) {
-                    cfg.addTFAppl(index, ((IStringTerm) ((IApplTerm) key).getArgs().get(0)).getValue(), matchStringTFAppl(astProperties.getValue(index, key).get()));
+        astProperties.stream().forEach(tuple -> {
+            ITerm key = tuple._2();
+            if(key instanceof IApplTerm) {
+                IApplTerm keyAppl = (IApplTerm) key;
+                if(keyAppl.getOp().equals("TF") && keyAppl.getArity() == 1) {
+                    ITerm propertyName = keyAppl.getArgs().get(0);
+                    assert propertyName instanceof IStringTerm : "Property name in TF property is not a string";
+                    TermIndex index = tuple._1();
+                    ITerm tfApplTerm = tuple._3();
+
+                    cfg.addTFAppl(index, ((IStringTerm) propertyName).getValue(), matchTFAppl(tfApplTerm));
                 }
             }
-        }
+        });
     }
 
-    private static TransferFunctionAppl matchStringTFAppl(ITerm pairTerm) {
+    private static TransferFunctionAppl matchTFAppl(ITerm pairTerm) {
         if (!(pairTerm instanceof IApplTerm)) {
             throw new TypeException("Expected occurence in CFDecl to have a list of (String, appl) as a \"name\"");
         }
