@@ -36,7 +36,7 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
             final TermReader termReader = new TermReader(termFactory);
             IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
 
-            parseTable = ParseTableReader.read(parseTableTerm);
+            parseTable = new ParseTableReader().read(parseTableTerm);
         } catch(Exception e) {
             throw new IOException("Could not load parse table from " + resource, e);
         }
