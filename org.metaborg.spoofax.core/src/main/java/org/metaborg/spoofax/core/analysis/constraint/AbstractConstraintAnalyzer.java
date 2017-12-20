@@ -206,10 +206,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
     }
 
-    protected IStrategoTerm getFlowSpecTransferFunctions(ILanguageComponent component) {
+    protected Optional<IStrategoTerm> getFlowSpecTransferFunctions(ILanguageComponent component) {
         IStrategoTerm transferFunctions = flowSpecTransferFunctionCache.get(component);
         if (transferFunctions != null) {
-            return transferFunctions;
+            return Optional.of(transferFunctions);
         }
 
         FileObject tfs = resourceService.resolve(component.location(), TRANSFER_FUNCTIONS_FILE);
@@ -218,16 +218,18 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                     .parseFromString(IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
         } catch (ParseError | IOException e) {
             logger.error("Could not read transfer functions file for {}", component);
-            throw new MetaborgRuntimeException("Could not read transfer functions file", e);
+            return Optional.empty();
         }
         flowSpecTransferFunctionCache.put(component, transferFunctions);
-        return transferFunctions;
+        return Optional.of(transferFunctions);
     }
 
     protected List<IStrategoTerm> getFlowSpecTransferFunctions(ILanguageImpl impl) {
         List<IStrategoTerm> result = new ArrayList<>();
         for (ILanguageComponent comp : impl.components()) {
-            result.add(getFlowSpecTransferFunctions(comp));
+            getFlowSpecTransferFunctions(comp).ifPresent(tfs -> {
+                result.add(tfs);
+            });
         }
         return result;
     }
