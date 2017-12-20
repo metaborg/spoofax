@@ -53,6 +53,7 @@ import org.metaborg.meta.nabl2.terms.IIntTerm;
 import org.metaborg.meta.nabl2.terms.IListTerm;
 import org.metaborg.meta.nabl2.terms.IStringTerm;
 import org.metaborg.meta.nabl2.terms.ITerm;
+import org.metaborg.meta.nabl2.terms.Terms.M;
 import org.metaborg.meta.nabl2.terms.generic.ListTermIterator;
 import org.metaborg.meta.nabl2.terms.generic.TB;
 import org.metaborg.meta.nabl2.unification.IUnifier;
@@ -382,39 +383,22 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         ControlFlowGraph<CFGNode> cfg = (ControlFlowGraph<CFGNode>) controlFlowGraph;
         astProperties.stream().forEach(tuple -> {
             ITerm key = tuple._2();
-            if(key instanceof IApplTerm) {
-                IApplTerm keyAppl = (IApplTerm) key;
-                if(keyAppl.getOp().equals("TF") && keyAppl.getArity() == 1) {
-                    ITerm propertyName = keyAppl.getArgs().get(0);
-                    assert propertyName instanceof IStringTerm : "Property name in TF property is not a string";
-                    TermIndex index = tuple._1();
-                    ITerm tfApplTerm = tuple._3();
-
-                    cfg.addTFAppl(index, ((IStringTerm) propertyName).getValue(), matchTFAppl(tfApplTerm));
-                }
-            }
+            M.appl1("TF", M.string(), (keyAppl, propName) -> {
+                return propName.getValue();
+            }).match(key).ifPresent(propName -> {
+                TermIndex index = tuple._1();
+                ITerm tfApplTerm = tuple._3();
+                matchTFAppl(tfApplTerm).ifPresent(tfAppl -> {
+                    cfg.addTFAppl(index, propName, tfAppl);
+                });
+            });
         });
     }
 
-    private static TransferFunctionAppl matchTFAppl(ITerm pairTerm) {
-        if (!(pairTerm instanceof IApplTerm)) {
-            throw new TypeException("Expected occurence in CFDecl to have a list of (String, appl) as a \"name\"");
-        }
-        IApplTerm pair2 = (IApplTerm) pairTerm;
-        if (pair2.getOp() != "" || pair2.getArity() != 2) {
-            throw new TypeException("Expected occurence in CFDecl to have a list of (String, (_,_)) as a \"name\"");
-        }
-        ITerm intTerm = pair2.getArgs().get(0);
-        ITerm argsTerm = pair2.getArgs().get(1);
-        if (!(intTerm instanceof IIntTerm)) {
-            throw new TypeException("Expected occurence in CFDecl to have a list of (String, (int, _)) as a \"name\"");
-        }
-        if (!(argsTerm instanceof IListTerm)) {
-            throw new TypeException(
-                    "Expected occurence in CFDecl to have a list of (String, (int, [...])) as a \"name\"");
-        }
-        ITerm[] args = Iterators.toArray(new ListTermIterator((IListTerm) argsTerm), ITerm.class);
-        return new TransferFunctionAppl(((IIntTerm) intTerm).getValue(), args);
+    private static Optional<TransferFunctionAppl> matchTFAppl(ITerm pairTerm) {
+        return M.appl2("", M.integer(), M.list(), (applTerm, intTerm, argsTerm) -> {
+            return new TransferFunctionAppl(intTerm.getValue(), Iterators.toArray(new ListTermIterator(argsTerm), ITerm.class));
+        }).match(pairTerm);
     }
 
     protected static ISolution flowspecCopyProperties(ISolution solution) {
