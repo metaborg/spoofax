@@ -40,6 +40,7 @@ import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_analysis_has_errors;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_constraints;
+import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_control_flow_graph;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_name_resolution;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_scope_graph;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_symbolic_constraints;
@@ -383,6 +384,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_name_resolution.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_scope_graph.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_control_flow_graph.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_symbolic_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_unifier.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_erase_ast_indices.class);
