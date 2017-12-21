@@ -169,10 +169,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         solution = solver.reportUnsolvedConstraints(solution);
                         final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
                         if (!controlFlowGraph.isEmpty()) {
-                            logger.info("CFG is not empty: calling FlowSpec dataflow solver");
+                            logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
                             flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
                             MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
-                            flowspecDemoOutput(context, controlFlowGraph);
                             solution = flowspecCopyProperties(solution);
                         }
                         unit.setSolution(solution);

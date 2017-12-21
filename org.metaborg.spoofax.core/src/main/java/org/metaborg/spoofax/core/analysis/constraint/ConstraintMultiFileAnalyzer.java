@@ -331,10 +331,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     ISolution solution = result.globalInter().map(solver::reportUnsolvedConstraints).orElse(null);
                     final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
                     if (!controlFlowGraph.isEmpty()) {
-                        logger.info("CFG is not empty: calling FlowSpec dataflow solver");
+                        logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
                         flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
                         MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
-                        flowspecDemoOutput(context, controlFlowGraph);
                         solution = flowspecCopyProperties(solution);
                     }
                     context.setSolution(solution);
@@ -655,10 +654,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 }
                 final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
                 if (!controlFlowGraph.isEmpty()) {
-                    logger.info("CFG is not empty: calling FlowSpec dataflow solver");
+                    logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
                     flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
                     MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
-                    flowspecDemoOutput(context, controlFlowGraph);
                     solution = flowspecCopyProperties(solution);
                 }
                 context.setSolution(solution);

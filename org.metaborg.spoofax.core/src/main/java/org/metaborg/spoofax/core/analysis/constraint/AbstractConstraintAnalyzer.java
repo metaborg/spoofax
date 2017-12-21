@@ -345,35 +345,6 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         };
     }
 
-    protected void flowspecDemoOutput(C context, final IControlFlowGraph<CFGNode> controlFlowGraph) {
-        logger.debug("Outputting FlowSpec demo output file");
-        FileObject file = this.resource("target/flowspec-demo-output.aterm", context);
-        try (PrintWriter out = new PrintWriter(file.getContent().getOutputStream())) {
-            out.println("(CFG([");
-            boolean first = true;
-            for (Map.Entry<CFGNode, CFGNode> e : controlFlowGraph.getDirectEdges().entrySet()) {
-                if (!first) {
-                    out.print(", ");
-                }
-                first = false;
-                out.println("(\"" + e.getKey() + "\", \"" + e.getValue() + "\")");
-            }
-            out.println("]),");
-            out.println("Properties([");
-            first = true;
-            for (Map.Entry<Tuple2<CFGNode, String>, ITerm> e : controlFlowGraph.getProperties().entrySet()) {
-                if(!first) {
-                    out.print(", ");
-                }
-                first = false;
-                out.println(e.getKey()._2() + "(\"" + e.getKey()._1() + "\", " + e.getValue().toString() +")");
-            }
-            out.println("]))");
-        } catch (FileSystemException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static void flowspecCopyTFAppls(IControlFlowGraph<CFGNode> controlFlowGraph, IProperties.Immutable<TermIndex, ITerm, ITerm> astProperties) {
         ControlFlowGraph<CFGNode> cfg = (ControlFlowGraph<CFGNode>) controlFlowGraph;
         astProperties.stream().forEach(tuple -> {
