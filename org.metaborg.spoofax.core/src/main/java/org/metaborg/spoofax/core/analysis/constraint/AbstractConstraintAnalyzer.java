@@ -20,7 +20,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
@@ -39,7 +38,6 @@ import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
 import org.metaborg.meta.nabl2.controlflow.terms.TransferFunctionAppl;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.ImmutableSolution;
-import org.metaborg.meta.nabl2.solver.TypeException;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.solvers.CallExternal;
 import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
@@ -48,10 +46,6 @@ import org.metaborg.meta.nabl2.stratego.ImmutableTermIndex;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermIndex;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
-import org.metaborg.meta.nabl2.terms.IApplTerm;
-import org.metaborg.meta.nabl2.terms.IIntTerm;
-import org.metaborg.meta.nabl2.terms.IListTerm;
-import org.metaborg.meta.nabl2.terms.IStringTerm;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.Terms.M;
 import org.metaborg.meta.nabl2.terms.generic.ListTermIterator;
@@ -59,7 +53,6 @@ import org.metaborg.meta.nabl2.terms.generic.TB;
 import org.metaborg.meta.nabl2.unification.IUnifier;
 import org.metaborg.meta.nabl2.util.collections.IProperties;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
-import org.metaborg.meta.nabl2.util.tuples.ImmutableTuple2;
 import org.metaborg.meta.nabl2.util.tuples.Tuple2;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -415,7 +408,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
             TermIndex ti = TermIndex.get(node).orElse(ImmutableTermIndex.of(node.getResource(), 0));
 
-            astProperties.putValue(ti, TB.newAppl("Property", TB.newString(propName)), value);
+            astProperties.putValue(ti, TB.newAppl("DFProperty", TB.newString(propName)), value);
         }
 
         return ImmutableSolution.of(solution.config(), astProperties.freeze(), solution.scopeGraph(),
