@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +17,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
@@ -239,7 +237,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             return Optional
                     .ofNullable(strategoCommon.invoke(runtime,
                             strategoTerms.toStratego(ConstraintTerms.explicate(action)), strategy))
-                    .map(strategoTerms::fromStratego);
+                    .map(StrategoTerms::fromStratego);
         } catch(MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
@@ -252,7 +250,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             return Optional
                     .ofNullable(strategoCommon.invoke(runtime,
                             strategoTerms.toStratego(ConstraintTerms.explicate(action)), strategy))
-                    .map(strategoTerms::fromStratego);
+                    .map(StrategoTerms::fromStratego);
         } catch(Exception ex) {
             final String message = "Custom analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
@@ -266,7 +264,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             final IStrategoTerm sarg = sargs.length == 1 ? sargs[0] : termFactory.makeTuple(sargs);
             try {
                 final IStrategoTerm sresult = strategoCommon.invoke(runtime, sarg, name);
-                return Optional.ofNullable(sresult).map(strategoTerms::fromStratego).map(ConstraintTerms::specialize);
+                return Optional.ofNullable(sresult).map(StrategoTerms::fromStratego).map(ConstraintTerms::specialize);
             } catch(Exception ex) {
                 logger.warn("External call to '{}' failed.", name);
                 return Optional.empty();
