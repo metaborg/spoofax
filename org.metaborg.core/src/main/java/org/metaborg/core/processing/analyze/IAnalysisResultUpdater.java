@@ -6,6 +6,7 @@ import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.IAnalyzeUnit;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParseUnit;
 
 /**
@@ -36,6 +37,16 @@ public interface IAnalysisResultUpdater<P extends IParseUnit, A extends IAnalyze
      *            Parse results with sources to invalidate.
      */
     void invalidate(Iterable<P> results);
+
+    /**
+     * Invalidates the analysis results for all sources for the given language. Must be followed by a call to
+     * {@link #update} or {@link #error} for those resources eventually. Failing to do so will block any requests made
+     * while resources were in invalid states.
+     * 
+     * @param lang
+     *            Language to invalidate for.
+     */
+    void invalidate(ILanguageImpl lang);
 
     /**
      * Updates the analysis result for a single resource. Pushes the analysis result to subscribed requests. Removes

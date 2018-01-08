@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -130,12 +131,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } else {
                     collectionTimer.start();
                     try {
+                        final ITerm globalAST = Actions.sourceTerm(globalSource, TB.EMPTY_TUPLE);
                         ITerm initialResultTerm =
-                                doAction(strategy, Actions.analyzeInitial(globalSource), context, runtime)
+                                doAction(strategy, Actions.analyzeInitial(globalSource, globalAST), context, runtime)
                                         .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
-                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource), context, runtime);
+                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource, globalAST),
+                                context, runtime);
                         initialResult = initialResult.withCustomResult(customInitial);
                         context.setInitialResult(initialResult);
                     } finally {
@@ -320,28 +323,36 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 messages.addAll(Solver.unsolvedErrors(solution.getUnsolvedConstraints()));
                 messages.addAll(solution.getMessages());
                 customSolution.map(CustomSolution::getMessages).ifPresent(messages::addAll);
-                IRelation3.Mutable<FileObject, MessageSeverity, IMessage> messagesByFile =
-                        messagesByFile(Iterables.concat(failures.values(),
-                                messages(messages.getAll(), solution.getUnifier(), context, context.location())));
-                for(String source : changed.keySet()) {
-                    final ISpoofaxParseUnit parseUnit = changed.get(source);
-                    final FileObject file = parseUnit.source();
-                    final Set<IMessage> fileMessages =
-                            messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
-                    fileMessages.addAll(ambiguitiesByFile.get(source));
-                    final boolean valid = !failures.containsKey(source);
-                    final boolean success = valid && messagesByFile.get(file, MessageSeverity.ERROR).isEmpty();
-                    final IStrategoTerm analyzedAST = astsByFile.get(source);
-                    results.add(unitService.analyzeUnit(changed.get(source),
-                            new AnalyzeContrib(valid, success, analyzedAST != null, analyzedAST, fileMessages, -1),
-                            context));
-                    messagesByFile.remove(file);
+                IRelation3.Mutable<String, MessageSeverity, IMessage> messagesByFile = messagesByFile(
+                        Iterables.concat(failures.values(),
+                                messages(messages.getAll(), solution.getUnifier(), context, context.location())),
+                        context);
+                // precondition: the messagesByFile should not contain any files that do not have corresponding units
+                for(IMultiFileScopeGraphUnit unit : context.units()) {
+                    final String source = unit.resource();
+                    final Set<IMessage> fileMessages = messagesByFile.get(source).stream().map(Map.Entry::getValue)
+                            .collect(Collectors2.toHashSet());
+                    if(changed.containsKey(source)) {
+                        fileMessages.addAll(ambiguitiesByFile.get(source));
+                        final boolean valid = !failures.containsKey(source);
+                        final boolean success = valid && messagesByFile.get(source, MessageSeverity.ERROR).isEmpty();
+                        final IStrategoTerm analyzedAST = astsByFile.get(source);
+                        results.add(unitService.analyzeUnit(changed.get(source),
+                                new AnalyzeContrib(valid, success, analyzedAST != null, analyzedAST, fileMessages, -1),
+                                context));
+                    } else {
+                        try {
+                            final FileObject file = context.location().resolveFile(source);
+                            updateResults.add(
+                                    unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                        } catch(IOException ex) {
+                            logger.error("Could not resolve {} to update messages", source);
+                        }
+                    }
+                    messagesByFile.remove(source);
                 }
-                for(FileObject file : messagesByFile.keySet()) {
-                    final Set<IMessage> fileMessages =
-                            messagesByFile.get(file).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
-                    updateResults
-                            .add(unitService.analyzeUnitUpdate(file, new AnalyzeUpdateData(fileMessages), context));
+                if(!messagesByFile.keySet().isEmpty()) {
+                    logger.error("Found messages for unanalyzed files {}", messagesByFile.keySet());
                 }
                 if(debugConfig.analysis() || debugConfig.files() || debugConfig.resolution()) {
                     logger.info("Analyzed {} files: {} errors, {} warnings, {} notes.", n, messages.getErrors().size(),
