@@ -6,4 +6,4 @@ Bundle-Version: {{eclipseVersion}}
 Bundle-Vendor: {{groupId}}
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.metaborg.spoofax.eclipse
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
