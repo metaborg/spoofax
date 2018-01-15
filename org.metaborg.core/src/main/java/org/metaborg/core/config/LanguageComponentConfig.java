@@ -32,6 +32,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
     private static final String PROP_SDF2TABLE_VERSION = "language.sdf.sdf2table";
     private static final String PROP_SDF_JSGLR_VERSION = "language.sdf.jsglr-version";
+    private static final String PROP_SDF_DATA_DEPENDENT = "language.sdf.data-dependent";
 
     private final ProjectConfig projectConfig;
 
@@ -43,7 +44,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
         @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
         @Nullable String parseTable, @Nullable String completionParseTable, @Nullable Sdf2tableVersion sdf2tableVersion,
-        @Nullable JSGLRVersion jsglrVersion, @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Boolean dataDependent, @Nullable JSGLRVersion jsglrVersion,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config);
         this.projectConfig = projectConfig;
@@ -53,7 +55,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         }
         if(sdf2tableVersion != null) {
             config.setProperty(PROP_SDF2TABLE_VERSION, sdf2tableVersion);
-        }        
+        }
+        if(dataDependent != null) {
+            config.setProperty(PROP_SDF_DATA_DEPENDENT, dataDependent);
+        }
         if(parseTable != null) {
             config.setProperty(PROP_SDF_PARSE_TABLE, parseTable);
         }
@@ -228,5 +233,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     @Override public JSGLRVersion jsglrVersion() {
         final String value = this.config.getString(PROP_SDF_JSGLR_VERSION);
         return value != null ? JSGLRVersion.valueOf(value) : JSGLRVersion.v1;
+    }
+
+    @Override public Boolean dataDependent() {
+        return this.config.getBoolean(PROP_SDF_DATA_DEPENDENT, false);
     }
 }

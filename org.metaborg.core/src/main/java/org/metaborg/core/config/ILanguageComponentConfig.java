@@ -68,6 +68,13 @@ public interface ILanguageComponentConfig extends IProjectConfig {
     Sdf2tableVersion sdf2tableVersion();
     
     /**
+     * Gets whether to use data dependent parsing to solve deep conflicts or not.
+     *
+     * @return whether to use data dependent parsing to solve deep conflicts or not.
+     */
+    Boolean dataDependent();    
+    
+    /**
      * Gets the parser version.
      *
      * @return the parser version.
