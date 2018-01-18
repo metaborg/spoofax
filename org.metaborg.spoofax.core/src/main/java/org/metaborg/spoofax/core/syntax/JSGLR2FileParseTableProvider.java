@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.characterclasses.CharacterClassFactory;
 import org.metaborg.parsetable.IParseTable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr2.actions.ActionsFactory;
-import org.spoofax.jsglr2.characterclasses.CharacterClassFactory;
 import org.spoofax.jsglr2.parsetable.ParseTableReader;
 import org.spoofax.jsglr2.states.StateFactory;
 import org.spoofax.terms.io.binary.TermReader;
@@ -43,7 +43,7 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
             if(!persistedTable.exists()) {
                 parseTable = new ParseTableReader(new CharacterClassFactory(true, true), new ActionsFactory(true), new StateFactory()).read(parseTableTerm);
             } else {
-                parseTable = ParseTableReader.read(parseTableTerm, persistedTable);
+                parseTable = new ParseTableReader(new CharacterClassFactory(true, true), new ActionsFactory(true), new StateFactory()).read(parseTableTerm, persistedTable);
             }
 
         } catch(Exception e) {

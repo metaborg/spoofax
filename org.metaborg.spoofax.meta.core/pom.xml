@@ -1,127 +1,137 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>org.metaborg.spoofax.meta.core</artifactId>
-  <description>Spoofax meta core library</description>
-  <url>https://github.com/metaborg/spoofax</url>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>org.metaborg.spoofax.meta.core</artifactId>
+	<description>Spoofax meta core library</description>
+	<url>https://github.com/metaborg/spoofax</url>
 
-  <parent>
-    <groupId>org.metaborg</groupId>
-    <artifactId>parent.java</artifactId>
-    <version>2.5.0-SNAPSHOT</version>
-    <relativePath>../../releng/parent/java</relativePath>
-  </parent>
+	<parent>
+		<groupId>org.metaborg</groupId>
+		<artifactId>parent.java</artifactId>
+		<version>2.5.0-SNAPSHOT</version>
+		<relativePath>../../releng/parent/java</relativePath>
+	</parent>
 
-  <dependencies>
-    <dependency>
+	<dependencies>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>org.metaborg.core</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>org.metaborg.meta.core</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>org.metaborg.spoofax.core</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>org.metaborg.spoofax.nativebundle</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>org.metaborg.util</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>strategoxt-min-jar</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>make-permissive</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>sdf2table</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>sdf2parenthesize</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>characterclasses</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.core</artifactId>
+      <artifactId>tableinterfaces</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.meta.core</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.spoofax.core</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>org.metaborg.spoofax.nativebundle</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.util</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>strategoxt-min-jar</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>make-permissive</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>sdf2table</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>sdf2parenthesize</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>build.pluto</groupId>
-      <artifactId>pluto</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>build.pluto</groupId>
-      <artifactId>build-java</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>build.pluto</groupId>
+			<artifactId>pluto</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>build.pluto</groupId>
+			<artifactId>build-java</artifactId>
+		</dependency>
 
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject.extensions</groupId>
-      <artifactId>guice-multibindings</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.github.spullara.mustache.java</groupId>
-      <artifactId>compiler</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-      <version>1.9.6</version>
-    </dependency>
-    <dependency>
-      <groupId>ant-contrib</groupId>
-      <artifactId>ant-contrib</artifactId>
-      <version>1.0b3</version>
-      <exclusions>
-        <exclusion>
-          <groupId>ant</groupId>
-          <artifactId>ant</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-multibindings</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.spullara.mustache.java</groupId>
+			<artifactId>compiler</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant</artifactId>
+			<version>1.9.6</version>
+		</dependency>
+		<dependency>
+			<groupId>ant-contrib</groupId>
+			<artifactId>ant-contrib</artifactId>
+			<version>1.0b3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>ant</groupId>
+					<artifactId>ant</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
 
-  <developers>
-    <developer>
-      <name>Gabriël Konat</name>
-      <email>g.d.p.konat@tudelft.nl</email>
-      <organization>Delft University of Technology</organization>
-      <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
-    </developer>
-    <developer>
-      <name>Hendrik van Antwerpen</name>
-      <email>h.vanantwerpen@tudelft.nl</email>
-      <organization>Delft University of Technology</organization>
-      <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
-    </developer>
-  </developers>
+	<developers>
+		<developer>
+			<name>Gabriël Konat</name>
+			<email>g.d.p.konat@tudelft.nl</email>
+			<organization>Delft University of Technology</organization>
+			<organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+		</developer>
+		<developer>
+			<name>Hendrik van Antwerpen</name>
+			<email>h.vanantwerpen@tudelft.nl</email>
+			<organization>Delft University of Technology</organization>
+			<organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+		</developer>
+	</developers>
 
-  <scm>
-    <connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
-    <developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
-    <url>https://github.com/metaborg/spoofax</url>
-  </scm>
+	<scm>
+		<connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
+		<developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
+		<url>https://github.com/metaborg/spoofax</url>
+	</scm>
 </project>
