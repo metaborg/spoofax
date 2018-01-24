@@ -26,7 +26,7 @@ import com.google.inject.Inject;
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
  */
 public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
-        implements ISpoofaxLanguageSpecConfigBuilder {
+    implements ISpoofaxLanguageSpecConfigBuilder {
     protected final SpoofaxProjectConfigBuilder projectConfigBuilder;
 
     protected @Nullable SdfVersion sdfVersion;
@@ -54,8 +54,9 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         }
         SpoofaxProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, projectConfig, identifier,
-                name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled, sdf2tableVersion, sdfMainFile, parseTable, jsglrVersion, completionsParseTable, placeholderCharacters, prettyPrint,
-                sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
+            sdf2tableVersion, dataDependent, sdfMainFile, parseTable, jsglrVersion, completionsParseTable, placeholderCharacters,
+            prettyPrint, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -82,6 +83,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         if(!(config instanceof IConfig)) {
             withSdfVersion(config.sdfVersion());
             withSdf2tableVersion(config.sdf2tableVersion());
+            withDataDependent(config.dataDependent());
             withPrettyPrintLanguage(config.prettyPrintLanguage());
             withSdfMainFile(config.sdfMainFile());
             withPlaceholderPrefix(config.placeholderChars().prefix);
@@ -156,13 +158,13 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder
-            withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
+        withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
         super.withLangContribs(contribs);
         return this;
     }
 
     @Override public ISpoofaxLanguageSpecConfigBuilder
-            addLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
+        addLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
         super.addLangContribs(contribs);
         return this;
     }
