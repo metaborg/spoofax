@@ -100,9 +100,20 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             JSGLRVersion version = jsglrVersion(input);
             
             final JSGLRI<?> parser;
+            
+            boolean dataDependentParsing = false;
+            for(ILanguageComponent component : langImpl.components()) {
+                if(component.config().dataDependent()) {
+                    dataDependentParsing = true;
+                }
+            }
 
             if (version == JSGLRVersion.v2) {
-                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text);
+                if(dataDependentParsing) {
+                    parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, true);
+                } else {
+                    parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false);
+                }                
             } else {
                 if(base != null) {
                     parser = new JSGLR1I(config, termFactory, base, langImpl, source, text);

@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core.stratego.primitive;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
@@ -58,6 +59,11 @@ public class CheckSdf2TablePrimitive extends AbstractPrimitive {
         }
         if(languageSpec == null) {
             return false;
+        }
+        
+        if(!languageSpec.config().sdfEnabled()) {
+            env.setCurrent(env.getFactory().makeString("disabled"));
+            return true;
         }
 
         env.setCurrent(env.getFactory().makeString(languageSpec.config().sdf2tableVersion().toString()));

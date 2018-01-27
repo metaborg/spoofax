@@ -74,7 +74,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
             ObjectInputStream ois = new ObjectInputStream(out);
             // read persisted normalized grammar
             ParseTable table = (ParseTable) ois.readObject();
-            Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, table.normalizedGrammar());
+            Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, table);
             ois.close();
             out.close();
         } catch(Exception e) {

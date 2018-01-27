@@ -28,7 +28,7 @@
   <repositories>
     <repository>
       <id>metaborg-release-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -38,7 +38,7 @@
     </repository>
     <repository>
       <id>metaborg-snapshot-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/snapshots/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/snapshots/</url>
       <releases>
         <enabled>false</enabled>
       </releases>
@@ -51,7 +51,7 @@
   <pluginRepositories>
     <pluginRepository>
       <id>metaborg-release-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -61,7 +61,7 @@
     </pluginRepository>
     <pluginRepository>
       <id>metaborg-snapshot-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/snapshots/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/snapshots/</url>
       <releases>
         <enabled>false</enabled>
       </releases>
