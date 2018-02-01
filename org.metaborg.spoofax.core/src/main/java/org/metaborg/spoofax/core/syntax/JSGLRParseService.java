@@ -110,9 +110,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
             if (version == JSGLRVersion.v2) {
                 if(dataDependentParsing) {
-                    parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, true);
+                    parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, true, false);
                 } else {
-                    parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false);
+                    parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false, true);
                 }                
             } else {
                 if(base != null) {
