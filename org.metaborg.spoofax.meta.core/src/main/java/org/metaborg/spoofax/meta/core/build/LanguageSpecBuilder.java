@@ -399,6 +399,8 @@ public class LanguageSpecBuilder {
         } else if(sdf2tableVersion == Sdf2tableVersion.java || sdf2tableVersion == Sdf2tableVersion.dynamic) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
         }
+        
+        boolean dataDependent = config.dataDependent();
 
         if(sdfCompletionFileCandidate != null && sdfCompletionFileCandidate.exists()) {
             sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
@@ -478,7 +480,7 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
-            sdfModule, sdfFile, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
+            sdfModule, sdfFile, sdfVersion, sdf2tableVersion, dataDependent, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
             sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg,
             strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjIncludeFiles,
             strjArgs);

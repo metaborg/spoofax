@@ -28,7 +28,7 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.core.source.SourceRegion;
+import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
 import org.metaborg.meta.nabl2.controlflow.terms.ControlFlowGraph;
@@ -62,6 +62,7 @@ import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.context.scopegraph.ISpoofaxScopeGraphContext;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -315,8 +316,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         Optional<TermOrigin> maybeOrigin = TermOrigin.get(originatingTerm);
         if(maybeOrigin.isPresent()) {
             TermOrigin origin = maybeOrigin.get();
-            SourceRegion region = new SourceRegion(origin.getStartOffset(), origin.getStartLine(),
-                    origin.getStartColumn(), origin.getEndOffset(), origin.getEndLine(), origin.getEndColumn());
+            ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(origin.getLeftToken(), origin.getRightToken());
             FileObject resource = resourceService.resolve(context.location(), origin.getResource());
             String message = messageInfo.getContent().apply(unifier::find)
                     .toString(prettyprint(context, resource(resource, context)));
