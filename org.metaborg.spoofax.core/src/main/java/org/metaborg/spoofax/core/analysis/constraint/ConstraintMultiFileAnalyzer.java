@@ -20,7 +20,7 @@ import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
 import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
-import org.metaborg.meta.nabl2.controlflow.terms.ControlFlowGraph;
+import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
 import org.metaborg.meta.nabl2.scopegraph.terms.Scope;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.SolverException;
@@ -36,6 +36,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
+import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.ITermVar;
 import org.metaborg.meta.nabl2.terms.generic.TB;
@@ -77,8 +78,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import io.usethesource.capsule.Set;
-import meta.flowspec.java.solver.MaximalFixedPoint;
-import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
+import meta.flowspec.java.solver.FixedPoint;
 
 public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -221,7 +221,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
                 final String source = input.getKey();
                 final ISpoofaxParseUnit parseUnit = input.getValue();
-                final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
+                final ITerm ast = StrategoTerms.fromStratego(parseUnit.ast());
 
                 if(debugConfig.files()) {
                     logger.info("Analyzing {}.", source);
@@ -333,7 +333,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     if (!controlFlowGraph.isEmpty()) {
                         logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
                         flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
-                        MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                        FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                         solution = flowspecCopyProperties(solution);
                     }
                     context.setSolution(solution);
@@ -548,7 +548,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
                 final String source = input.getKey();
                 final ISpoofaxParseUnit parseUnit = input.getValue();
-                final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
+                final ITerm ast = StrategoTerms.fromStratego(parseUnit.ast());
 
                 if(debugConfig.files()) {
                     logger.info("Analyzing {}.", source);
@@ -656,7 +656,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 if (!controlFlowGraph.isEmpty()) {
                     logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
                     flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
-                    MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                    FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                     solution = flowspecCopyProperties(solution);
                 }
                 context.setSolution(solution);

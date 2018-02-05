@@ -14,6 +14,7 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
 import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
+import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
@@ -26,10 +27,9 @@ import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
-import org.metaborg.meta.nabl2.stratego.TermIndex;
+import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.generic.TB;
-import org.metaborg.meta.nabl2.util.collections.IProperties.Immutable;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -58,8 +58,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-import meta.flowspec.java.solver.MaximalFixedPoint;
-import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
+import meta.flowspec.java.solver.FixedPoint;
 
 public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISingleFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -98,7 +97,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
                 final String source = input.getKey();
                 final ISpoofaxParseUnit parseUnit = input.getValue();
-                final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
+                final ITerm ast = StrategoTerms.fromStratego(parseUnit.ast());
 
                 if(debugConfig.files()) {
                     logger.info("Analyzing {}.", source);
@@ -171,7 +170,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if (!controlFlowGraph.isEmpty()) {
                             logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
                             flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
-                            MaximalFixedPoint.entryPoint(controlFlowGraph, getFlowSpecTransferFunctions(context.language()));
+                            FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                             solution = flowspecCopyProperties(solution);
                         }
                         unit.setSolution(solution);
