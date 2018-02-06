@@ -19,6 +19,7 @@ import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
@@ -189,7 +190,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                         for(IExportConfig exportConfig : exports) {
                             exportConfig.accept(new IExportVisitor() {
                                 @Override public void visit(LangDirExport export) {
-                                    if(export.language.equals("ATerm")) {
+                                    if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
                                         try {
                                             paths
                                                 .add(toFileReplicate(component.location().resolveFile(export.directory))
@@ -320,7 +321,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                         for(IExportConfig exportConfig : exports) {
                             exportConfig.accept(new IExportVisitor() {
                                 @Override public void visit(LangDirExport export) {
-                                    if(export.language.equals("ATerm")) {
+                                    if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
                                         try {
                                             paths
                                                 .add(toFileReplicate(component.location().resolveFile(export.directory))
