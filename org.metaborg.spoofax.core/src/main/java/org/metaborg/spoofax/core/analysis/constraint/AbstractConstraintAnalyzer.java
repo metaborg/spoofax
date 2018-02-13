@@ -29,7 +29,7 @@ import org.metaborg.meta.nabl2.stratego.ConstraintTerms;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.unification.IUnifier;
+import org.metaborg.meta.nabl2.terms.unification.IUnifier;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -250,11 +250,12 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             TermOrigin origin = maybeOrigin.get();
             ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(origin.getLeftToken(), origin.getRightToken());
             FileObject resource = resourceService.resolve(context.location(), origin.getResource());
-            String message = messageInfo.getContent().apply(unifier::find)
+            String message = messageInfo.getContent().apply(unifier::findRecursive)
                     .toString(prettyprint(context, resource(resource, context)));
             return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
         } else {
-            String message = messageInfo.getContent().apply(unifier::find).toString(prettyprint(context, null));
+            String message =
+                    messageInfo.getContent().apply(unifier::findRecursive).toString(prettyprint(context, null));
             return MessageFactory.newAnalysisMessageAtTop(defaultLocation, message, severity, null);
         }
     }
