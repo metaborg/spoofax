@@ -19,8 +19,6 @@ import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
 import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
 import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
-import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
-import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
 import org.metaborg.meta.nabl2.scopegraph.terms.Scope;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.SolverException;
@@ -329,12 +327,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     }
                     // set global solution
                     ISolution solution = result.globalInter().map(solver::reportUnsolvedConstraints).orElse(null);
-                    final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
-                    if (!controlFlowGraph.isEmpty()) {
+                    if (!solution.controlFlowGraph().isEmpty()) {
                         logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
-                        flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
-                        FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
-                        solution = flowspecCopyProperties(solution);
+                        solution = FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                     }
                     context.setSolution(solution);
                 } catch(SolverException e) {
@@ -652,12 +647,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } finally {
                     solverTimer.stop();
                 }
-                final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
-                if (!controlFlowGraph.isEmpty()) {
+                if (!solution.controlFlowGraph().isEmpty()) {
                     logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
-                    flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
-                    FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
-                    solution = flowspecCopyProperties(solution);
+                    solution = FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                 }
                 context.setSolution(solution);
                 if(debugConfig.resolution()) {

@@ -13,8 +13,6 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
 import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
-import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
 import org.metaborg.meta.nabl2.solver.ISolution;
 import org.metaborg.meta.nabl2.solver.SolverException;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
@@ -166,12 +164,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         solution = solver.solve(preSolution, fresh, cancel, subprogress);
                         solution = solver.reportUnsolvedConstraints(solution);
-                        final IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
-                        if (!controlFlowGraph.isEmpty()) {
+                        if (!solution.controlFlowGraph().isEmpty()) {
                             logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
-                            flowspecCopyTFAppls(controlFlowGraph, solution.astProperties());
-                            FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
-                            solution = flowspecCopyProperties(solution);
+                            solution = FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                         }
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {

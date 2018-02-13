@@ -2,9 +2,7 @@ package org.metaborg.spoofax.core.analysis.constraint;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -30,28 +28,15 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
-import org.metaborg.meta.nabl2.controlflow.terms.CFGNode;
-import org.metaborg.meta.nabl2.controlflow.terms.ControlFlowGraph;
-import org.metaborg.meta.nabl2.controlflow.terms.IControlFlowGraph;
-import org.metaborg.meta.nabl2.controlflow.terms.TransferFunctionAppl;
-import org.metaborg.meta.nabl2.solver.ISolution;
-import org.metaborg.meta.nabl2.solver.ImmutableSolution;
 import org.metaborg.meta.nabl2.solver.messages.IMessages;
 import org.metaborg.meta.nabl2.solver.solvers.CallExternal;
 import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
 import org.metaborg.meta.nabl2.stratego.ConstraintTerms;
-import org.metaborg.meta.nabl2.stratego.ImmutableTermIndex;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
-import org.metaborg.meta.nabl2.stratego.TermIndex;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.terms.Terms.M;
-import org.metaborg.meta.nabl2.terms.generic.ListTermIterator;
-import org.metaborg.meta.nabl2.terms.generic.TB;
 import org.metaborg.meta.nabl2.unification.IUnifier;
-import org.metaborg.meta.nabl2.util.collections.IProperties;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
-import org.metaborg.meta.nabl2.util.tuples.Tuple2;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -79,9 +64,11 @@ import org.spoofax.terms.ParseError;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import meta.flowspec.java.solver.ParseException;
+import meta.flowspec.java.solver.TFFileInfo;
 
 abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>>
         implements ISpoofaxAnalyzer, ILanguageCache {
@@ -99,7 +86,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected final ITermFactory termFactory;
     protected final StrategoTerms strategoTerms;
-    protected final Map<ILanguageComponent, IStrategoTerm> flowSpecTransferFunctionCache = new HashMap<>();
+    protected final Map<ILanguageComponent, TFFileInfo> flowSpecTransferFunctionCache = new HashMap<>();
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
             final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
@@ -198,17 +185,19 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
     }
 
-    protected Optional<IStrategoTerm> getFlowSpecTransferFunctions(ILanguageComponent component) {
-        IStrategoTerm transferFunctions = flowSpecTransferFunctionCache.get(component);
+    protected Optional<TFFileInfo> getFlowSpecTransferFunctions(ILanguageComponent component) {
+        TFFileInfo transferFunctions = flowSpecTransferFunctionCache.get(component);
         if (transferFunctions != null) {
             return Optional.of(transferFunctions);
         }
 
         FileObject tfs = resourceService.resolve(component.location(), TRANSFER_FUNCTIONS_FILE);
         try {
-            transferFunctions = termFactory
-                    .parseFromString(IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
-        } catch (ParseError | IOException e) {
+            IStrategoTerm sTerm = termFactory.parseFromString(
+                            IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
+            ITerm term = StrategoTerms.fromStratego(sTerm);
+            transferFunctions = TFFileInfo.match().match(term).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
+        } catch (ParseError | ParseException | IOException e) {
             logger.error("Could not read transfer functions file for {}", component);
             return Optional.empty();
         }
@@ -216,14 +205,19 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return Optional.of(transferFunctions);
     }
 
-    protected List<IStrategoTerm> getFlowSpecTransferFunctions(ILanguageImpl impl) {
-        List<IStrategoTerm> result = new ArrayList<>();
+    protected TFFileInfo getFlowSpecTransferFunctions(ILanguageImpl impl) {
+        Optional<TFFileInfo> result = Optional.empty();
         for (ILanguageComponent comp : impl.components()) {
-            getFlowSpecTransferFunctions(comp).ifPresent(tfs -> {
-                result.add(tfs);
-            });
+            Optional<TFFileInfo> tfs = getFlowSpecTransferFunctions(comp);
+            if (tfs.isPresent()) {
+                if (!result.isPresent()) {
+                    result = tfs;
+                } else {
+                    result = Optional.of(result.get().addAll(tfs.get()));
+                }
+            }
         }
-        return result;
+        return result.orElse(TFFileInfo.of());
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
@@ -341,48 +335,6 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             }
             return text;
         };
-    }
-
-    public static void flowspecCopyTFAppls(IControlFlowGraph<CFGNode> controlFlowGraph, IProperties.Immutable<TermIndex, ITerm, ITerm> astProperties) {
-        ControlFlowGraph<CFGNode> cfg = (ControlFlowGraph<CFGNode>) controlFlowGraph;
-        astProperties.stream().forEach(tuple -> {
-            ITerm key = tuple._2();
-            M.appl1("TF", M.string(), (keyAppl, propName) -> {
-                return propName.getValue();
-            }).match(key).ifPresent(propName -> {
-                TermIndex index = tuple._1();
-                ITerm tfApplTerm = tuple._3();
-                matchTFAppl(tfApplTerm).ifPresent(tfAppl -> {
-                    cfg.addTFAppl(index, propName, tfAppl);
-                });
-            });
-        });
-    }
-
-    private static Optional<TransferFunctionAppl> matchTFAppl(ITerm pairTerm) {
-        return M.appl2("", M.integer(), M.list(), (applTerm, intTerm, argsTerm) -> {
-            return new TransferFunctionAppl(intTerm.getValue(), Iterators.toArray(new ListTermIterator(argsTerm), ITerm.class));
-        }).match(pairTerm);
-    }
-
-    protected static ISolution flowspecCopyProperties(ISolution solution) {
-        logger.debug("Copying FlowSpec properties to NaBL2 ast properties in solution");
-        IProperties.Transient<TermIndex, ITerm, ITerm> astProperties = solution.astProperties().melt();
-        IControlFlowGraph<CFGNode> controlFlowGraph = solution.controlFlowGraph();
-
-        for (Map.Entry<Tuple2<CFGNode, String>, ITerm> property : controlFlowGraph.getProperties().entrySet()) {
-            CFGNode node = property.getKey()._1();
-            String propName = property.getKey()._2();
-            ITerm value = property.getValue();
-
-            TermIndex ti = TermIndex.get(node).orElse(ImmutableTermIndex.of(node.getResource(), 0));
-
-            astProperties.putValue(ti, TB.newAppl("DFProperty", TB.newString(propName)), value);
-        }
-
-        return ImmutableSolution.of(solution.config(), astProperties.freeze(), solution.scopeGraph(),
-                solution.nameResolution(), solution.declProperties(), solution.relations(), solution.unifier(),
-                solution.symbolic(), solution.controlFlowGraph(), solution.messages(), solution.constraints());
     }
 
 }
