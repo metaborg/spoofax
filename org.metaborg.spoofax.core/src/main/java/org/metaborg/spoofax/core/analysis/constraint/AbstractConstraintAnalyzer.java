@@ -201,6 +201,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             logger.error("Could not read transfer functions file for {}", component);
             return Optional.empty();
         }
+        logger.debug("Caching flowspec transfer functions for language {}", component);
         flowSpecTransferFunctionCache.put(component, transferFunctions);
         return Optional.of(transferFunctions);
     }
@@ -217,7 +218,11 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
                 }
             }
         }
-        return result.orElse(TFFileInfo.of());
+        if (!result.isPresent()) {
+            logger.error("No flowspec transfer functions found for {}", impl);
+            return TFFileInfo.of();
+        }
+        return result.get();
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
