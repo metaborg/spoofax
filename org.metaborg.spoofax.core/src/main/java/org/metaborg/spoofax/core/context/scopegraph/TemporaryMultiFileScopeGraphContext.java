@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.context.scopegraph;
 import java.util.Optional;
 
 import org.metaborg.meta.nabl2.solver.ISolution;
-import org.metaborg.meta.nabl2.solver.solvers.IncrementalMultiFileSolver.IncrementalSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
@@ -36,14 +35,6 @@ public class TemporaryMultiFileScopeGraphContext extends AbstractTemporaryScopeG
 
     public Optional<ISolution> initialSolution() {
         return context.initialSolution();
-    }
-
-    public void setIncrementalSolution(IncrementalSolution solution) {
-        context.setIncrementalSolution(solution);
-    }
-
-    public Optional<IncrementalSolution> incrementalSolution() {
-        return context.incrementalSolution();
     }
 
     @Override public void setSolution(ISolution solution) {
