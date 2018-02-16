@@ -4,6 +4,7 @@ import static org.metaborg.meta.nabl2.terms.build.TermBuild.B;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -497,16 +498,13 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 }
             }
 
-
             // global parameters, that form the interface for a single unit
-            final List<ITermVar> intfVars = Lists.newArrayList();
-            final List<Scope> intfScopes = Lists.newArrayList();
+            final java.util.Set<ITermVar> intfVars = Sets.newHashSet();
             {
                 initialResult.getArgs().getParams().stream().forEach(param -> intfVars.addAll(param.getVars()));
                 initialResult.getArgs().getType().ifPresent(type -> intfVars.addAll(type.getVars()));
-                initialResult.getArgs().getParams().stream()
-                        .forEach(param -> Scope.matcher().match(param).ifPresent(intfScopes::add));
             }
+
             final SemiIncrementalMultiFileSolver solver =
                     new SemiIncrementalMultiFileSolver(context.config().debug(), callExternal(runtime));
 
@@ -525,8 +523,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                                 initialResult.getConstraints(), PersistentUnifier.Immutable.of()),
                                         globalFresh, cancel, subprogress);
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
-                        initialSolution =
-                                solver.solveIntra(preSolution, intfVars, intfScopes, globalFresh, cancel, subprogress);
+                        // FIXME we don't know the interface scopes yet, since they are instantiated during solving only 
+                        initialSolution = solver.solveIntra(preSolution, intfVars, Collections.emptySet(), globalFresh,
+                                cancel, subprogress);
                         if(debugConfig.resolution()) {
                             logger.info("Reduced file constraints to {}.", initialSolution.constraints().size());
                         }
@@ -537,6 +536,12 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     }
                     context.setInitialSolution(initialSolution);
                 }
+            }
+
+            final java.util.Set<Scope> intfScopes = Sets.newHashSet();
+            {
+                initialResult.getArgs().getParams().stream().forEach(
+                        param -> Scope.matcher().match(param, initialSolution.unifier()).ifPresent(intfScopes::add));
             }
 
             // units
