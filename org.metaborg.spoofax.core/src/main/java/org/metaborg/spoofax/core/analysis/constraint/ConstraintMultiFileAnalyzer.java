@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import static org.metaborg.meta.nabl2.terms.build.TermBuild.B;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -36,7 +38,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.ITermVar;
-import org.metaborg.meta.nabl2.terms.build.TB;
+import org.metaborg.meta.nabl2.terms.unification.PersistentUnifier;
 import org.metaborg.meta.nabl2.util.collections.HashTrieRelation3;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
@@ -143,7 +145,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } else {
                     collectionTimer.start();
                     try {
-                        final ITerm globalAST = Actions.sourceTerm(globalSource, TB.EMPTY_TUPLE);
+                        final ITerm globalAST = Actions.sourceTerm(globalSource, B.EMPTY_TUPLE);
                         ITerm initialResultTerm =
                                 doAction(strategy, Actions.analyzeInitial(globalSource, globalAST), context, runtime)
                                         .orElseThrow(() -> new AnalysisException(context, "No initial result."));
@@ -190,9 +192,11 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     try {
                         solverTimer.start();
                         final IProgress subprogress = progress.subProgress(1);
-                        GraphSolution preSolution = solver.solveGraph(
-                                ImmutableBaseSolution.of(initialResult.getConfig(), initialResult.getConstraints()),
-                                globalFresh, cancel, subprogress);
+                        GraphSolution preSolution =
+                                solver.solveGraph(
+                                        ImmutableBaseSolution.of(initialResult.getConfig(),
+                                                initialResult.getConstraints(), PersistentUnifier.Immutable.of()),
+                                        globalFresh, cancel, subprogress);
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         initialSolution =
                                 solver.solveIntra(preSolution, intfVars, intfScopes, globalFresh, cancel, subprogress);
@@ -241,7 +245,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                     .orElseThrow(() -> new MetaborgException("Invalid unit results."));
                             final ITerm desugaredAST = unitResult.getAST();
                             customUnit = doCustomAction(strategy,
-                                    Actions.customUnit(source, desugaredAST, customInitial.orElse(TB.EMPTY_TUPLE)),
+                                    Actions.customUnit(source, desugaredAST, customInitial.orElse(B.EMPTY_TUPLE)),
                                     context, runtime);
                             unitResult = unitResult.withCustomResult(customUnit);
                             final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
@@ -266,9 +270,11 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             solverTimer.start();
                             final Function1<String, String> fresh = base -> context.unit(source).fresh().fresh(base);
                             final IProgress subprogress = progress.subProgress(1);
-                            GraphSolution preSolution = solver.solveGraph(
-                                    ImmutableBaseSolution.of(initialResult.getConfig(), unitResult.getConstraints()),
-                                    fresh, cancel, subprogress);
+                            GraphSolution preSolution =
+                                    solver.solveGraph(
+                                            ImmutableBaseSolution.of(initialResult.getConfig(),
+                                                    unitResult.getConstraints(), initialSolution.unifier()),
+                                            fresh, cancel, subprogress);
                             preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                             unitSolution =
                                     solver.solveIntra(preSolution, intfVars, intfScopes, fresh, cancel, subprogress);
@@ -386,9 +392,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 // only in the global solution that contains everything
                 result.updates().stream().flatMap(Collection::stream).map(context::unit).forEach(unit -> {
                     final String source = unit.resource();
-                    //final FileObject file = resource(source, context);
-                    final java.util.Set<IMessage> fileMessages =
-                            messagesByFile.get(source).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
+                    // final FileObject file = resource(source, context);
+                    final java.util.Set<IMessage> fileMessages = messagesByFile.get(source).stream()
+                            .map(Map.Entry::getValue).collect(Collectors2.toHashSet());
                     if(changed.containsKey(source)) {
                         fileMessages.addAll(ambiguitiesByFile.get(source));
                         final boolean valid = !failures.containsKey(source);
@@ -472,13 +478,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } else {
                     collectionTimer.start();
                     try {
-                        final ITerm globalAST = Actions.sourceTerm(globalSource, TB.EMPTY_TUPLE);
+                        final ITerm globalAST = Actions.sourceTerm(globalSource, B.EMPTY_TUPLE);
                         ITerm initialResultTerm =
                                 doAction(strategy, Actions.analyzeInitial(globalSource, globalAST), context, runtime)
                                         .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new AnalysisException(context, "Invalid initial results."));
-                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource, globalAST), context, runtime);
+                        customInitial = doCustomAction(strategy, Actions.customInitial(globalSource, globalAST),
+                                context, runtime);
                         initialResult = initialResult.withCustomResult(customInitial);
                         context.setInitialResult(initialResult);
                     } finally {
@@ -512,9 +519,11 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     try {
                         solverTimer.start();
                         final IProgress subprogress = progress.subProgress(1);
-                        GraphSolution preSolution = solver.solveGraph(
-                                ImmutableBaseSolution.of(initialResult.getConfig(), initialResult.getConstraints()),
-                                globalFresh, cancel, subprogress);
+                        GraphSolution preSolution =
+                                solver.solveGraph(
+                                        ImmutableBaseSolution.of(initialResult.getConfig(),
+                                                initialResult.getConstraints(), PersistentUnifier.Immutable.of()),
+                                        globalFresh, cancel, subprogress);
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         initialSolution =
                                 solver.solveIntra(preSolution, intfVars, intfScopes, globalFresh, cancel, subprogress);
@@ -561,7 +570,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                                     .orElseThrow(() -> new MetaborgException("Invalid unit results."));
                             final ITerm desugaredAST = unitResult.getAST();
                             customUnit = doCustomAction(strategy,
-                                    Actions.customUnit(source, desugaredAST, customInitial.orElse(TB.EMPTY_TUPLE)),
+                                    Actions.customUnit(source, desugaredAST, customInitial.orElse(B.EMPTY_TUPLE)),
                                     context, runtime);
                             unitResult = unitResult.withCustomResult(customUnit);
                             final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
@@ -586,9 +595,11 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             solverTimer.start();
                             final Function1<String, String> fresh = base -> context.unit(source).fresh().fresh(base);
                             final IProgress subprogress = progress.subProgress(1);
-                            GraphSolution preSolution = solver.solveGraph(
-                                    ImmutableBaseSolution.of(initialResult.getConfig(), unitResult.getConstraints()),
-                                    fresh, cancel, subprogress);
+                            GraphSolution preSolution =
+                                    solver.solveGraph(
+                                            ImmutableBaseSolution.of(initialResult.getConfig(),
+                                                    unitResult.getConstraints(), initialSolution.unifier()),
+                                            fresh, cancel, subprogress);
                             preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                             unitSolution =
                                     solver.solveIntra(preSolution, intfVars, intfScopes, fresh, cancel, subprogress);
@@ -617,7 +628,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
             }
 
             // solve
-            ISolution solution;
+            final ISolution solution;
             final List<Optional<ITerm>> customUnits = Lists.newArrayList();
             {
                 final List<ISolution> partialSolutions = Lists.newArrayList();
@@ -633,9 +644,10 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     Function1<String, String> fresh = base -> context.unit(globalSource).fresh().fresh(base);
                     IMessageInfo message = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                             Actions.sourceTerm(globalSource));
-                    solution = solver.solveInter(initialSolution, partialSolutions, message, fresh, cancel,
+                    ISolution sol = solver.solveInter(initialSolution, partialSolutions, message, fresh, cancel,
                             progress.subProgress(w));
-                    solution = solver.reportUnsolvedConstraints(solution);
+                    sol = solver.reportUnsolvedConstraints(sol);
+                    solution = sol;
                 } catch(SolverException e) {
                     throw new AnalysisException(context, e);
                 } finally {
@@ -659,14 +671,14 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 try {
                     ITerm finalResultTerm = doAction(strategy, Actions.analyzeFinal(globalSource), context, runtime)
                             .orElseThrow(() -> new AnalysisException(context, "No final result."));
-                    finalResult = FinalResult.matcher().match(finalResultTerm)
+                    finalResult = FinalResult.matcher().match(finalResultTerm, solution.unifier())
                             .orElseThrow(() -> new AnalysisException(context, "Invalid final results."));
                     customFinal = doCustomAction(strategy, Actions.customFinal(globalSource,
-                            customInitial.orElse(TB.EMPTY_TUPLE), Optionals.filter(customUnits)), context, runtime);
+                            customInitial.orElse(B.EMPTY_TUPLE), Optionals.filter(customUnits)), context, runtime);
                     finalResult = finalResult.withCustomResult(customFinal);
                     context.setFinalResult(finalResult);
 
-                    customSolution = customFinal.flatMap(CustomSolution.matcher()::match);
+                    customSolution = customFinal.flatMap(cs -> CustomSolution.matcher().match(cs, solution.unifier()));
                     customSolution.ifPresent(cs -> context.setCustomSolution(cs));
                 } finally {
                     finalizeTimer.stop();
@@ -696,8 +708,8 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 // precondition: the messagesByFile should not contain any files that do not have corresponding units
                 for(IMultiFileScopeGraphUnit unit : context.units()) {
                     final String source = unit.resource();
-                    final java.util.Set<IMessage> fileMessages =
-                            messagesByFile.get(source).stream().map(Map.Entry::getValue).collect(Collectors2.toHashSet());
+                    final java.util.Set<IMessage> fileMessages = messagesByFile.get(source).stream()
+                            .map(Map.Entry::getValue).collect(Collectors2.toHashSet());
                     if(changed.containsKey(source)) {
                         fileMessages.addAll(ambiguitiesByFile.get(source));
                         final boolean valid = !failures.containsKey(source);
