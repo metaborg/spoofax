@@ -327,9 +327,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                     }
                     // set global solution
                     ISolution solution = result.globalInter().map(solver::reportUnsolvedConstraints).orElse(null);
-                    if (!solution.controlFlowGraph().isEmpty()) {
+                    if (!solution.flowSpecSolution().controlFlowGraph().isEmpty()) {
                         logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
-                        solution = FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
+                        solution = new FixedPoint().entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                     }
                     context.setSolution(solution);
                 } catch(SolverException e) {
@@ -647,9 +647,9 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 } finally {
                     solverTimer.stop();
                 }
-                if (!solution.controlFlowGraph().isEmpty()) {
+                if (!solution.flowSpecSolution().controlFlowGraph().isEmpty()) {
                     logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
-                    solution = FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
+                    solution = new FixedPoint().entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                 }
                 context.setSolution(solution);
                 if(debugConfig.resolution()) {

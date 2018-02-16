@@ -164,9 +164,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         solution = solver.solve(preSolution, fresh, cancel, subprogress);
                         solution = solver.reportUnsolvedConstraints(solution);
-                        if (!solution.controlFlowGraph().isEmpty()) {
+                        if (!solution.flowSpecSolution().controlFlowGraph().isEmpty()) {
                             logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
-                            solution = FixedPoint.entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
+                            solution = new FixedPoint().entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
                         }
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {
