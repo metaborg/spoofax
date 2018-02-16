@@ -7,3 +7,5 @@
 /.project
 /.settings
 /.factorypath
+
+/.polyglot.metaborg.yaml

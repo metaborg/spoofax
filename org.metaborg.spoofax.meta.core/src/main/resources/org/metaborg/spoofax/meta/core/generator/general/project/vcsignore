@@ -6,6 +6,8 @@
 /.settings
 /.factorypath
 
+/.polyglot.metaborg.yaml
+
 {{#analysisNabl2}}*.constraints
 *.scope-graph
 *.name-resolution
