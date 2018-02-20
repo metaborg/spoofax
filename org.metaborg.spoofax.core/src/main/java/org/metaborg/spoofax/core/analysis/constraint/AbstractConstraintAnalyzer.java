@@ -36,6 +36,7 @@ import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.unification.IUnifier;
+import org.metaborg.meta.nabl2.terms.unification.PersistentUnifier;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -196,7 +197,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             IStrategoTerm sTerm = termFactory.parseFromString(
                             IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
             ITerm term = strategoTerms.fromStratego(sTerm);
-            transferFunctions = TFFileInfo.match().match(term).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
+            transferFunctions = TFFileInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
         } catch (ParseError | ParseException | IOException e) {
             logger.error("Could not read transfer functions file for {}", component);
             return Optional.empty();
