@@ -35,7 +35,7 @@ import org.metaborg.meta.nabl2.stratego.ConstraintTerms;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.unification.IUnifier;
+import org.metaborg.meta.nabl2.terms.unification.IUnifier;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -195,7 +195,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         try {
             IStrategoTerm sTerm = termFactory.parseFromString(
                             IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
-            ITerm term = StrategoTerms.fromStratego(sTerm);
+            ITerm term = strategoTerms.fromStratego(sTerm);
             transferFunctions = TFFileInfo.match().match(term).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
         } catch (ParseError | ParseException | IOException e) {
             logger.error("Could not read transfer functions file for {}", component);
@@ -237,7 +237,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             return Optional
                     .ofNullable(strategoCommon.invoke(runtime,
                             strategoTerms.toStratego(ConstraintTerms.explicate(action)), strategy))
-                    .map(StrategoTerms::fromStratego);
+                    .map(strategoTerms::fromStratego);
         } catch(MetaborgException ex) {
             final String message = "Analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
@@ -250,7 +250,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             return Optional
                     .ofNullable(strategoCommon.invoke(runtime,
                             strategoTerms.toStratego(ConstraintTerms.explicate(action)), strategy))
-                    .map(StrategoTerms::fromStratego);
+                    .map(strategoTerms::fromStratego);
         } catch(Exception ex) {
             final String message = "Custom analysis failed.\n" + ex.getMessage();
             throw new AnalysisException(context, message, ex);
@@ -264,7 +264,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             final IStrategoTerm sarg = sargs.length == 1 ? sargs[0] : termFactory.makeTuple(sargs);
             try {
                 final IStrategoTerm sresult = strategoCommon.invoke(runtime, sarg, name);
-                return Optional.ofNullable(sresult).map(StrategoTerms::fromStratego).map(ConstraintTerms::specialize);
+                return Optional.ofNullable(sresult).map(strategoTerms::fromStratego).map(ConstraintTerms::specialize);
             } catch(Exception ex) {
                 logger.warn("External call to '{}' failed.", name);
                 return Optional.empty();
@@ -317,11 +317,12 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             TermOrigin origin = maybeOrigin.get();
             ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(origin.getLeftToken(), origin.getRightToken());
             FileObject resource = resourceService.resolve(context.location(), origin.getResource());
-            String message = messageInfo.getContent().apply(unifier::find)
+            String message = messageInfo.getContent().apply(unifier::findRecursive)
                     .toString(prettyprint(context, resource(resource, context)));
             return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
         } else {
-            String message = messageInfo.getContent().apply(unifier::find).toString(prettyprint(context, null));
+            String message =
+                    messageInfo.getContent().apply(unifier::findRecursive).toString(prettyprint(context, null));
             return MessageFactory.newAnalysisMessageAtTop(defaultLocation, message, severity, null);
         }
     }

@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import static org.metaborg.meta.nabl2.terms.build.TermBuild.B;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -27,7 +29,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.terms.generic.TB;
+import org.metaborg.meta.nabl2.terms.unification.PersistentUnifier;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -95,7 +97,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
             for(Map.Entry<String, ISpoofaxParseUnit> input : changed.entrySet()) {
                 final String source = input.getKey();
                 final ISpoofaxParseUnit parseUnit = input.getValue();
-                final ITerm ast = StrategoTerms.fromStratego(parseUnit.ast());
+                final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
 
                 if(debugConfig.files()) {
                     logger.info("Analyzing {}.", source);
@@ -111,8 +113,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.collection()) {
                             logger.info("Collecting initial constraints of {}.", source);
                         }
-                        ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(source, ast), context, runtime)
-                                .orElseThrow(() -> new AnalysisException(context, "No initial result."));
+                        ITerm initialResultTerm =
+                                doAction(strategy, Actions.analyzeInitial(source, ast), context, runtime)
+                                        .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new MetaborgException("Invalid initial results."));
                         customInitial = doCustomAction(strategy, Actions.customInitial(source, ast), context, runtime);
@@ -138,7 +141,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         final ITerm desugaredAST = unitResult.getAST();
 
                         customUnit = doCustomAction(strategy,
-                                Actions.customUnit(source, desugaredAST, customInitial.orElse(TB.EMPTY_TUPLE)), context,
+                                Actions.customUnit(source, desugaredAST, customInitial.orElse(B.EMPTY_TUPLE)), context,
                                 runtime);
                         unitResult = unitResult.withCustomResult(customUnit);
                         unit.setUnitResult(unitResult);
@@ -159,8 +162,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         final IProgress subprogress = progress.subProgress(1);
                         final SingleFileSolver solver =
                                 new SingleFileSolver(context.config().debug(), callExternal(runtime));
-                        GraphSolution preSolution = solver.solveGraph(
-                                ImmutableBaseSolution.of(initialResult.getConfig(), constraints), fresh, cancel, subprogress);
+                        GraphSolution preSolution =
+                                solver.solveGraph(ImmutableBaseSolution.of(initialResult.getConfig(), constraints,
+                                        PersistentUnifier.Immutable.of()), fresh, cancel, subprogress);
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         solution = solver.solve(preSolution, fresh, cancel, subprogress);
                         solution = solver.reportUnsolvedConstraints(solution);
@@ -186,7 +190,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         finalResult = FinalResult.matcher().match(finalResultTerm)
                                 .orElseThrow(() -> new MetaborgException("Invalid final results."));
                         customFinal = doCustomAction(strategy,
-                                Actions.customFinal(source, customInitial.orElse(TB.EMPTY_TUPLE), customUnit
+                                Actions.customFinal(source, customInitial.orElse(B.EMPTY_TUPLE), customUnit
                                         .map(cu -> Collections.singletonList(cu)).orElse(Collections.emptyList())),
                                 context, runtime);
                         finalResult = finalResult.withCustomResult(customFinal);
