@@ -40,7 +40,7 @@ public class RelativeSourcePath extends ASpoofaxContextPrimitive {
         }
 
         final String path = Tools.asJavaString(current);
-        final FileObject resource = resourceService.resolve(path);
+        final FileObject resource = resourceService.resolve(context.project().location(), path);
 
         FileObject base = context.location();
         final IProject project = projectService.get(context.location());
