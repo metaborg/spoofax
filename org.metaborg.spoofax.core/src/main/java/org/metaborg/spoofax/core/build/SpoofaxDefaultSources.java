@@ -25,6 +25,7 @@ public class SpoofaxDefaultSources {
         DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_ESV_NAME, DIR_EDITOR));
         DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_SDF3_NAME, DIR_SYNTAX));
         DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_NABL_NAME, DIR_TRANS));
+        DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_NABL2_NAME, DIR_TRANS));
         DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_TS_NAME, DIR_TRANS));
         DEFAULT_SPOOFAX_SOURCES.add(new LangSource(LANG_DYNSEM_NAME, DIR_TRANS));
         DEFAULT_SPOOFAX_SOURCES.add(new AllLangSource(ROOT));
