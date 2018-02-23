@@ -204,7 +204,6 @@ import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
-import meta.flowspec.primitives.FS_debug_control_flow_graph;
 import meta.flowspec.primitives.FS_get_property_post;
 import meta.flowspec.primitives.FS_get_property_pre;
 import meta.flowspec.primitives.FS_show_control_flow_graph;
@@ -434,7 +433,6 @@ public class SpoofaxModule extends MetaborgModule {
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(FlowSpecLibrary.name));
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_property_pre.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_property_post.class);
-        bindPrimitive(spoofaxFlowSpecLibrary, FS_debug_control_flow_graph.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_show_control_flow_graph.class);
 
         final Multibinder<AbstractPrimitive> legacySpoofaxLibrary = Multibinder.newSetBinder(binder(),
