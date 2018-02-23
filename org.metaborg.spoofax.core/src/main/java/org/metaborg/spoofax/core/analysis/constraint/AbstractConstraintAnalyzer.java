@@ -1,5 +1,8 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -10,11 +13,14 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
+import org.metaborg.core.language.ILanguageCache;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
@@ -30,6 +36,7 @@ import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.stratego.TermOrigin;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.unification.IUnifier;
+import org.metaborg.meta.nabl2.terms.unification.PersistentUnifier;
 import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -54,17 +61,23 @@ import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.ParseError;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>> implements ISpoofaxAnalyzer {
+import meta.flowspec.java.solver.ParseException;
+import meta.flowspec.java.solver.TFFileInfo;
+
+abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>>
+        implements ISpoofaxAnalyzer, ILanguageCache {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     private static final String PP_STRATEGY = "pp-NaBL2-objlangterm";
+    private static final String TRANSFER_FUNCTIONS_FILE = "target/metaborg/transfer-functions.aterm";
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
@@ -74,6 +87,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected final ITermFactory termFactory;
     protected final StrategoTerms strategoTerms;
+    protected final Map<ILanguageComponent, TFFileInfo> flowSpecTransferFunctionCache = new HashMap<>();
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
             final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
@@ -146,6 +160,20 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
     }
 
+    @Override
+    public void invalidateCache(ILanguageComponent component) {
+        logger.debug("Removing cached flowspec transfer functions for {}", component);
+        flowSpecTransferFunctionCache.remove(component);
+    }
+
+    @Override
+    public void invalidateCache(ILanguageImpl impl) {
+        logger.debug("Removing cached flowspec transfer functions for {}", impl);
+        for (ILanguageComponent component : impl.components()) {
+            flowSpecTransferFunctionCache.remove(component);
+        }
+    }
+
     protected String resource(FileObject resource, C context) {
         return ResourceUtils.relativeName(resource.getName(), context.location().getName(), true);
     }
@@ -156,6 +184,46 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     private boolean isEmptyAST(IStrategoTerm ast) {
         return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
+    }
+
+    protected Optional<TFFileInfo> getFlowSpecTransferFunctions(ILanguageComponent component) {
+        TFFileInfo transferFunctions = flowSpecTransferFunctionCache.get(component);
+        if (transferFunctions != null) {
+            return Optional.of(transferFunctions);
+        }
+
+        FileObject tfs = resourceService.resolve(component.location(), TRANSFER_FUNCTIONS_FILE);
+        try {
+            IStrategoTerm sTerm = termFactory.parseFromString(
+                            IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
+            ITerm term = strategoTerms.fromStratego(sTerm);
+            transferFunctions = TFFileInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
+        } catch (ParseError | ParseException | IOException e) {
+            logger.error("Could not read transfer functions file for {}", component);
+            return Optional.empty();
+        }
+        logger.debug("Caching flowspec transfer functions for language {}", component);
+        flowSpecTransferFunctionCache.put(component, transferFunctions);
+        return Optional.of(transferFunctions);
+    }
+
+    protected TFFileInfo getFlowSpecTransferFunctions(ILanguageImpl impl) {
+        Optional<TFFileInfo> result = Optional.empty();
+        for (ILanguageComponent comp : impl.components()) {
+            Optional<TFFileInfo> tfs = getFlowSpecTransferFunctions(comp);
+            if (tfs.isPresent()) {
+                if (!result.isPresent()) {
+                    result = tfs;
+                } else {
+                    result = Optional.of(result.get().addAll(tfs.get()));
+                }
+            }
+        }
+        if (!result.isPresent()) {
+            logger.error("No flowspec transfer functions found for {}", impl);
+            return TFFileInfo.of();
+        }
+        return result.get();
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,

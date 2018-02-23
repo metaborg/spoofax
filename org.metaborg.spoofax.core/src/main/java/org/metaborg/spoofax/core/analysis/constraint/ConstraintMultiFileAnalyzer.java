@@ -33,6 +33,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
+import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.ITermVar;
 import org.metaborg.meta.nabl2.terms.unification.PersistentUnifier;
@@ -72,6 +73,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+
+import io.usethesource.capsule.Set;
+import meta.flowspec.java.solver.FixedPoint;
 
 public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -303,20 +307,25 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 if(debugConfig.resolution()) {
                     logger.info("Solving {} partial solutions.", partialSolutions.size());
                 }
+                ISolution sol;
                 try {
                     solverTimer.start();
                     Function1<String, String> fresh = base -> context.unit(globalSource).fresh().fresh(base);
                     IMessageInfo message = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
                             Actions.sourceTerm(globalSource));
-                    ISolution sol = solver.solveInter(initialSolution, partialSolutions, message, fresh, cancel,
+                    sol = solver.solveInter(initialSolution, partialSolutions, message, fresh, cancel,
                             progress.subProgress(w));
                     sol = solver.reportUnsolvedConstraints(sol);
-                    solution = sol;
                 } catch(SolverException e) {
                     throw new AnalysisException(context, e);
                 } finally {
                     solverTimer.stop();
                 }
+                if (!sol.flowSpecSolution().controlFlowGraph().isEmpty()) {
+                    logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
+                    sol= new FixedPoint().entryPoint(sol, getFlowSpecTransferFunctions(context.language()));
+                }
+                solution = sol;
                 context.setSolution(solution);
                 if(debugConfig.resolution()) {
                     logger.info("Project constraints solved.");

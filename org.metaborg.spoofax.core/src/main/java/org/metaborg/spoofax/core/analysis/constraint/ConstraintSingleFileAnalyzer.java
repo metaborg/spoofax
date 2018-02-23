@@ -27,6 +27,7 @@ import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
 import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
 import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
+import org.metaborg.meta.nabl2.stratego.StrategoTerms;
 import org.metaborg.meta.nabl2.terms.ITerm;
 import org.metaborg.meta.nabl2.terms.unification.PersistentUnifier;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
@@ -56,6 +57,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+
+import meta.flowspec.java.solver.FixedPoint;
 
 public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISingleFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -165,6 +168,10 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         solution = solver.solve(preSolution, fresh, cancel, subprogress);
                         solution = solver.reportUnsolvedConstraints(solution);
+                        if (!solution.flowSpecSolution().controlFlowGraph().isEmpty()) {
+                            logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
+                            solution = new FixedPoint().entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
+                        }
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {
                             logger.info("Solved constraints of {}.", source);
