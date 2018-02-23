@@ -40,7 +40,6 @@ import org.metaborg.core.unit.IInputUnitService;
 import org.metaborg.core.unit.IUnitService;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_analysis_has_errors;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_constraints;
-import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_control_flow_graph;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_name_resolution;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_scope_graph;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_debug_symbolic_constraints;
@@ -80,7 +79,6 @@ import org.metaborg.meta.nabl2.spoofax.primitives.SG_is_debug_collection_enabled
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_is_debug_custom_enabled;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_is_debug_resolution_enabled;
 import org.metaborg.meta.nabl2.spoofax.primitives.SG_set_ast_index;
-import org.metaborg.meta.nabl2.spoofax.primitives.SG_show_control_flow_graph;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.action.ActionService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
@@ -132,6 +130,7 @@ import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitive.AbsolutePathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.CallStrategyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.DigestPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.FlowSpecLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.GetSortNamePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.IsLanguageActivePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageComponentsPrimitive;
@@ -205,8 +204,10 @@ import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
+import meta.flowspec.primitives.FS_debug_control_flow_graph;
 import meta.flowspec.primitives.FS_get_property_post;
 import meta.flowspec.primitives.FS_get_property_pre;
+import meta.flowspec.primitives.FS_show_control_flow_graph;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -359,6 +360,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitiveLibrary(libraryBinder, LegacyIndexLibrary.class);
         bindPrimitiveLibrary(libraryBinder, SpoofaxPrimitiveLibrary.class);
         bindPrimitiveLibrary(libraryBinder, ScopeGraphLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, FlowSpecLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacySpoofaxPrimitiveLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacySpoofaxJSGLRLibrary.class);
 
@@ -390,8 +392,6 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_name_resolution.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_scope_graph.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_control_flow_graph.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_show_control_flow_graph.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_symbolic_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_unifier.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_erase_ast_indices.class);
@@ -431,9 +431,11 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
 
         final Multibinder<AbstractPrimitive> spoofaxFlowSpecLibrary =
-            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("FlowSpecLibrary"));
+            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(FlowSpecLibrary.name));
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_property_pre.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_property_post.class);
+        bindPrimitive(spoofaxFlowSpecLibrary, FS_debug_control_flow_graph.class);
+        bindPrimitive(spoofaxFlowSpecLibrary, FS_show_control_flow_graph.class);
 
         final Multibinder<AbstractPrimitive> legacySpoofaxLibrary = Multibinder.newSetBinder(binder(),
             AbstractPrimitive.class, Names.named(LegacySpoofaxPrimitiveLibrary.name));
