@@ -204,9 +204,9 @@ import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
-import meta.flowspec.primitives.FS_get_property_post;
-import meta.flowspec.primitives.FS_get_property_pre;
-import meta.flowspec.primitives.FS_show_control_flow_graph;
+import mb.flowspec.primitives.FS_get_property_post;
+import mb.flowspec.primitives.FS_get_property_pre;
+import mb.flowspec.primitives.FS_show_control_flow_graph;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.

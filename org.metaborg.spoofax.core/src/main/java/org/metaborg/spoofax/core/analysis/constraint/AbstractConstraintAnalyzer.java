@@ -68,8 +68,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import meta.flowspec.java.solver.ParseException;
-import meta.flowspec.java.solver.TFFileInfo;
+import mb.flowspec.runtime.solver.ParseException;
+import mb.flowspec.runtime.solver.TFFileInfo;
 
 abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>>
         implements ISpoofaxAnalyzer, ILanguageCache {

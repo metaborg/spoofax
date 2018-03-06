@@ -73,7 +73,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-import meta.flowspec.java.solver.FixedPoint;
+import mb.flowspec.runtime.solver.FixedPoint;
 
 public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMultiFileScopeGraphContext>
         implements ISpoofaxAnalyzer {

@@ -39,7 +39,7 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>meta.flowspec.java</artifactId>
+      <artifactId>flowspec.runtime</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
