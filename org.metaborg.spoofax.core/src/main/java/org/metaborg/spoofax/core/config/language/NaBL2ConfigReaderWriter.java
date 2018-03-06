@@ -10,12 +10,13 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
-import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
-import org.metaborg.meta.nabl2.config.NaBL2DebugConfig.Flag;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import mb.nabl2.config.NaBL2Config;
+import mb.nabl2.config.NaBL2DebugConfig;
+import mb.nabl2.config.NaBL2DebugConfig.Flag;
 
 public final class NaBL2ConfigReaderWriter {
 

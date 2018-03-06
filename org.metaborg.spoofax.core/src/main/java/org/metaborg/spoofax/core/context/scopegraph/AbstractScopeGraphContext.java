@@ -16,7 +16,6 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
@@ -25,6 +24,8 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.inject.Injector;
+
+import mb.nabl2.config.NaBL2Config;
 
 abstract class AbstractScopeGraphContext<S extends Serializable> implements IContextInternal {
 

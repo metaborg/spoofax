@@ -34,7 +34,7 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.meta.nabl2.java</artifactId>
+      <artifactId>nabl2.solver</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>

@@ -27,17 +27,6 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
-import org.metaborg.meta.nabl2.solver.messages.IMessages;
-import org.metaborg.meta.nabl2.solver.solvers.CallExternal;
-import org.metaborg.meta.nabl2.spoofax.TermSimplifier;
-import org.metaborg.meta.nabl2.stratego.ConstraintTerms;
-import org.metaborg.meta.nabl2.stratego.StrategoTerms;
-import org.metaborg.meta.nabl2.stratego.TermOrigin;
-import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.terms.unification.IUnifier;
-import org.metaborg.meta.nabl2.terms.unification.PersistentUnifier;
-import org.metaborg.meta.nabl2.util.collections.IRelation3;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -70,6 +59,17 @@ import com.google.common.collect.Sets;
 
 import mb.flowspec.runtime.solver.ParseException;
 import mb.flowspec.runtime.solver.TFFileInfo;
+import mb.nabl2.constraints.messages.IMessageInfo;
+import mb.nabl2.solver.messages.IMessages;
+import mb.nabl2.solver.solvers.CallExternal;
+import mb.nabl2.spoofax.TermSimplifier;
+import mb.nabl2.stratego.ConstraintTerms;
+import mb.nabl2.stratego.StrategoTerms;
+import mb.nabl2.stratego.TermOrigin;
+import mb.nabl2.terms.ITerm;
+import mb.nabl2.terms.unification.IUnifier;
+import mb.nabl2.terms.unification.PersistentUnifier;
+import mb.nabl2.util.collections.IRelation3;
 
 abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>>
         implements ISpoofaxAnalyzer, ILanguageCache {

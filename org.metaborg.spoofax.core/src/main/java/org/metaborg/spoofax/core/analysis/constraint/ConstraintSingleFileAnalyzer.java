@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
-import static org.metaborg.meta.nabl2.terms.build.TermBuild.B;
+import static mb.nabl2.terms.build.TermBuild.B;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -13,23 +13,6 @@ import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
-import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.solver.ISolution;
-import org.metaborg.meta.nabl2.solver.SolverException;
-import org.metaborg.meta.nabl2.solver.messages.IMessages;
-import org.metaborg.meta.nabl2.solver.messages.Messages;
-import org.metaborg.meta.nabl2.solver.solvers.BaseSolver.GraphSolution;
-import org.metaborg.meta.nabl2.solver.solvers.ImmutableBaseSolution;
-import org.metaborg.meta.nabl2.solver.solvers.SingleFileSolver;
-import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
-import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
-import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
-import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
-import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
-import org.metaborg.meta.nabl2.stratego.StrategoTerms;
-import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.terms.unification.PersistentUnifier;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -59,6 +42,22 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import mb.flowspec.runtime.solver.FixedPoint;
+import mb.nabl2.config.NaBL2DebugConfig;
+import mb.nabl2.constraints.IConstraint;
+import mb.nabl2.solver.ISolution;
+import mb.nabl2.solver.SolverException;
+import mb.nabl2.solver.messages.IMessages;
+import mb.nabl2.solver.messages.Messages;
+import mb.nabl2.solver.solvers.BaseSolver.GraphSolution;
+import mb.nabl2.solver.solvers.ImmutableBaseSolution;
+import mb.nabl2.solver.solvers.SingleFileSolver;
+import mb.nabl2.spoofax.analysis.Actions;
+import mb.nabl2.spoofax.analysis.CustomSolution;
+import mb.nabl2.spoofax.analysis.FinalResult;
+import mb.nabl2.spoofax.analysis.InitialResult;
+import mb.nabl2.spoofax.analysis.UnitResult;
+import mb.nabl2.terms.ITerm;
+import mb.nabl2.terms.unification.PersistentUnifier;
 
 public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISingleFileScopeGraphContext>
         implements ISpoofaxAnalyzer {

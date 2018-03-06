@@ -8,8 +8,9 @@ import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.util.cmd.Arguments;
+
+import mb.nabl2.config.NaBL2Config;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
