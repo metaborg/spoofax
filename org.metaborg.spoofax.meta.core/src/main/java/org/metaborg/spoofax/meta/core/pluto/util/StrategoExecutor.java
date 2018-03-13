@@ -132,6 +132,9 @@ public class StrategoExecutor {
             if(e.getValue() == 0) {
                 return new ExecutionResult(true, tracker.stdout(), tracker.stderr());
             }
+            if(!silent) {
+                log.error("Executing {} failed: {}", name, e);
+            }
             return new ExecutionResult(false, tracker.stdout(), tracker.stderr());
         } finally {
             dr_scope_all_end_0_0.instance.invoke(context, context.getFactory().makeTuple());
