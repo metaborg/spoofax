@@ -46,6 +46,7 @@ import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.constraint.ConstraintMultiFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.constraint.ConstraintSingleFileAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.SG_solve_constraints;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
@@ -428,6 +429,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_custom_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_resolution_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_constraints.class);
 
         final Multibinder<AbstractPrimitive> spoofaxFlowSpecLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(FlowSpecLibrary.name));

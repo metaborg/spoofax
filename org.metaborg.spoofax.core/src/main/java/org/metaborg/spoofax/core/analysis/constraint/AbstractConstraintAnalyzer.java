@@ -77,7 +77,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     private static final String PP_STRATEGY = "pp-NaBL2-objlangterm";
-    private static final String TRANSFER_FUNCTIONS_FILE = "target/metaborg/transfer-functions.aterm";
+    static final String TRANSFER_FUNCTIONS_FILE = "target/metaborg/transfer-functions.aterm";
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
