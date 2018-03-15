@@ -25,6 +25,8 @@ import org.metaborg.spoofax.core.context.scopegraph.ISingleFileScopeGraphUnit;
 import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContext;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxPrimitive;
 import org.metaborg.util.functions.Function1;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -72,6 +74,7 @@ import mb.nabl2.terms.unification.PersistentUnifier;
  * message (messages can be trees, see {@link #buildMessages(Set)})
  */
 public class SG_solve_constraints extends ASpoofaxPrimitive {
+    public static final ILogger logger = LoggerUtils.logger(SG_solve_constraints.class);
 
     protected final IResourceService resourceService;
 
@@ -163,8 +166,12 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
             return Optional
                     .of(B.newTuple(unitResult.getAST(), B.newBlob(unit), B.newTuple(buildMessages(messages.getErrors()),
                             buildMessages(messages.getWarnings()), buildMessages(messages.getNotes()))));
-        } catch (MetaborgException | SolverException | InterruptedException e) {
-            return null;
+        } catch (MetaborgException | SolverException e) {
+            logger.warn("Analysis of failed.", e);
+            return Optional.empty();
+        } catch (InterruptedException e) {
+            logger.debug("Analysis was interrupted.");
+            return Optional.empty();
         }
     }
 
