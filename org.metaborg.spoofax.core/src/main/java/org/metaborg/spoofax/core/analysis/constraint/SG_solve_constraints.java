@@ -4,15 +4,17 @@ import static mb.nabl2.terms.build.TermBuild.B;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Function;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -20,10 +22,12 @@ import org.metaborg.core.processing.NullCancel;
 import org.metaborg.core.processing.NullProgress;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.context.scopegraph.ISingleFileScopeGraphUnit;
-import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
+import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContext;
+import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxPrimitive;
 import org.metaborg.util.functions.Function1;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -45,9 +49,9 @@ import mb.nabl2.solver.messages.Messages;
 import mb.nabl2.solver.solvers.BaseSolver.GraphSolution;
 import mb.nabl2.solver.solvers.ImmutableBaseSolution;
 import mb.nabl2.solver.solvers.SingleFileSolver;
+import mb.nabl2.spoofax.analysis.Actions;
 import mb.nabl2.spoofax.analysis.CustomSolution;
 import mb.nabl2.spoofax.analysis.FinalResult;
-import mb.nabl2.spoofax.analysis.ImmutableFinalResult;
 import mb.nabl2.spoofax.analysis.InitialResult;
 import mb.nabl2.spoofax.analysis.UnitResult;
 import mb.nabl2.stratego.ConstraintTerms;
@@ -57,43 +61,71 @@ import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.unification.PersistentUnifier;
 
 /**
- * Do a one-shot constraint solver using some code duplicated & adapted from {@link ConstraintSingleFileAnalyzer#analyzeAll(java.util.Map, Set, org.metaborg.spoofax.core.context.scopegraph.ISingleFileScopeGraphContext, org.strategoxt.HybridInterpreter, String, IProgress, ICancel)}
- * This does not take custom analysis into account. Since it's not connected to the editor, messages are returned.
- * Expects the AST as current term. Expects the InitialResult and UnitResult as term arguments. 
- * Returns a 3-tuple with the analysed AST, the analysis result term (blob), and the messages 3-tuple (errors, warnings, notes).
- * Warnings are 2-tuples of the origin term and the message (messages can be trees, see {@link #buildMessages(Set)})
+ * Do a one-shot constraint solver using some code duplicated & adapted from
+ * {@link ConstraintSingleFileAnalyzer#analyzeAll(java.util.Map, Set, org.metaborg.spoofax.core.context.scopegraph.ISingleFileScopeGraphContext, org.strategoxt.HybridInterpreter, String, IProgress, ICancel)}
+ * This does not take custom analysis into account. Since it's not connected to
+ * the editor, messages are returned. Expects the AST as current term. Expects
+ * the InitialResult and UnitResult as term arguments. Returns a 3-tuple with
+ * the analysed AST, the analysis result term (blob), and the messages 3-tuple
+ * (errors, warnings, notes). Warnings are 2-tuples of the origin term and the
+ * message (messages can be trees, see {@link #buildMessages(Set)})
  */
-public class SG_solve_constraints extends ASpoofaxContextPrimitive {
+public class SG_solve_constraints extends ASpoofaxPrimitive {
 
     protected final IResourceService resourceService;
 
     public SG_solve_constraints(final IResourceService resourceService) {
-        super(SG_solve_constraints.class.getSimpleName(), 0, 2);
+        super(SG_solve_constraints.class.getSimpleName(), 1, 0);
         this.resourceService = resourceService;
     }
 
-    private Optional<? extends ITerm> call(IContext context, ITermFactory factory, ITerm ast, ITerm initialResultTerm,
-            ITerm unitResultTerm) {
-        Optional<InitialResult> initialResultOption = InitialResult.matcher().match(initialResultTerm,
-                PersistentUnifier.Immutable.of());
-        Optional<UnitResult> unitResultOption = UnitResult.matcher().match(unitResultTerm,
-                PersistentUnifier.Immutable.of());
-        return initialResultOption.flatMap(initialResult -> unitResultOption.map(unitResult -> {
-            Set<IConstraint> constraints = Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
-            Fresh f = new Fresh();
-            Function1<String, String> fresh = base -> f.fresh(base);
-            // Duplicating NullProgress and NullCancel here so we don't have circular
-            // dependencies
-            final IProgress subprogress = new NullProgress();
-            final ICancel cancel = new NullCancel();
-            // Note how we do not support debugging and external calls
-            final SingleFileSolver solver = new SingleFileSolver(NaBL2DebugConfig.NONE,
-                    (name, args) -> Optional.empty());
-            GraphSolution preSolution;
+    private Optional<? extends ITerm> call(IContext context, ITermFactory factory, ITerm ast,
+            Function<ITerm, Optional<ITerm>> doAction) {
+        String source = context.location().getPublicURIString();
+        ICancel cancel = new NullCancel();
+        IProgress progress = new NullProgress();
+        Fresh f = new Fresh();
+        final ISingleFileScopeGraphUnit unit = new SolveConstraintsPrimitiveUnit(source, f);
+
+        try {
+            // initial
+            InitialResult initialResult;
+            final Optional<ITerm> customInitial;
+            {
+                ITerm initialResultTerm = doAction.apply(Actions.analyzeInitial(source, ast))
+                        .orElseThrow(() -> new AnalysisException(context, "No initial result."));
+                initialResult = InitialResult.matcher().match(initialResultTerm, PersistentUnifier.Immutable.of())
+                        .orElseThrow(() -> new MetaborgException("Invalid initial results."));
+                customInitial = doAction.apply(Actions.customInitial(source, ast));
+                initialResult = initialResult.withCustomResult(customInitial);
+            }
+
+            // unit
+            UnitResult unitResult;
+            final Optional<ITerm> customUnit;
+            {
+                final ITerm unitResultTerm = doAction.apply(Actions.analyzeUnit(source, ast, initialResult.getArgs()))
+                        .orElseThrow(() -> new AnalysisException(context, "No unit result."));
+                unitResult = UnitResult.matcher().match(unitResultTerm, PersistentUnifier.Immutable.of())
+                        .orElseThrow(() -> new MetaborgException("Invalid unit results."));
+                final ITerm desugaredAST = unitResult.getAST();
+                customUnit = doAction
+                        .apply(Actions.customUnit(source, desugaredAST, customInitial.orElse(B.EMPTY_TUPLE)));
+                unitResult = unitResult.withCustomResult(customUnit);
+                unit.setUnitResult(unitResult);
+            }
+
+            // solve
             ISolution solution;
-            try {
-                preSolution = solver.solveGraph(ImmutableBaseSolution.of(initialResult.getConfig(), constraints,
-                        PersistentUnifier.Immutable.of()), fresh, cancel, subprogress);
+            {
+                Set<IConstraint> constraints = Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
+                Function1<String, String> fresh = base -> f.fresh(base);
+                final IProgress subprogress = progress.subProgress(1);
+                // Note how we do not support debugging and external calls
+                final SingleFileSolver solver = new SingleFileSolver(NaBL2DebugConfig.NONE,
+                        (name, args) -> Optional.empty());
+                GraphSolution preSolution = solver.solveGraph(ImmutableBaseSolution.of(initialResult.getConfig(),
+                        constraints, PersistentUnifier.Immutable.of()), fresh, cancel, subprogress);
                 preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                 solution = solver.solve(preSolution, fresh, cancel, subprogress);
                 solution = solver.reportUnsolvedConstraints(solution);
@@ -101,22 +133,38 @@ public class SG_solve_constraints extends ASpoofaxContextPrimitive {
                     solution = new FixedPoint().entryPoint(solution,
                             getFlowSpecTransferFunctions(context.language(), factory));
                 }
-
-                final ISolution s = solution;
-                ISingleFileScopeGraphUnit unit = new SolveConstraintsPrimitiveUnit(unitResult, context, f, s,
-                        initialResult, ImmutableFinalResult.of());
-
-                Messages.Transient messageBuilder = Messages.Transient.of();
-                messageBuilder.addAll(Messages.unsolvedErrors(solution.constraints()));
-                messageBuilder.addAll(solution.messages().getAll());
-                IMessages messages = messageBuilder.freeze();
-
-                return B.newTuple(unitResult.getAST(), B.newBlob(unit), B.newTuple(buildMessages(messages.getErrors()),
-                        buildMessages(messages.getWarnings()), buildMessages(messages.getNotes())));
-            } catch (SolverException | InterruptedException e) {
-                return null;
+                unit.setSolution(solution);
             }
-        }));
+
+            // final
+            FinalResult finalResult;
+            final Optional<ITerm> customFinal;
+            {
+                ITerm finalResultTerm = doAction.apply(Actions.analyzeFinal(source))
+                        .orElseThrow(() -> new AnalysisException(context, "No final result."));
+                finalResult = FinalResult.matcher().match(finalResultTerm, PersistentUnifier.Immutable.of())
+                        .orElseThrow(() -> new MetaborgException("Invalid final results."));
+                customFinal = doAction.apply(Actions.customFinal(source, customInitial.orElse(B.EMPTY_TUPLE),
+                        customUnit.map(cu -> Collections.singletonList(cu)).orElse(Collections.emptyList())));
+                finalResult = finalResult.withCustomResult(customFinal);
+                unit.setFinalResult(finalResult);
+            }
+
+            Optional<CustomSolution> customSolution = customFinal
+                    .flatMap(cf -> CustomSolution.matcher().match(cf, PersistentUnifier.Immutable.of()));
+            customSolution.ifPresent(cs -> unit.setCustomSolution(cs));
+
+            Messages.Transient messageBuilder = Messages.Transient.of();
+            messageBuilder.addAll(Messages.unsolvedErrors(solution.constraints()));
+            messageBuilder.addAll(solution.messages().getAll());
+            IMessages messages = messageBuilder.freeze();
+
+            return Optional
+                    .of(B.newTuple(unitResult.getAST(), B.newBlob(unit), B.newTuple(buildMessages(messages.getErrors()),
+                            buildMessages(messages.getWarnings()), buildMessages(messages.getNotes()))));
+        } catch (MetaborgException | SolverException | InterruptedException e) {
+            return null;
+        }
     }
 
     private IListTerm buildMessages(Set<IMessageInfo> set) {
@@ -161,16 +209,29 @@ public class SG_solve_constraints extends ASpoofaxContextPrimitive {
     }
 
     @Override
-    protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars, ITermFactory factory,
-            IContext context) throws MetaborgException, IOException {
+    protected @Nullable IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
+            ITermFactory factory, org.spoofax.interpreter.core.IContext context) throws MetaborgException, IOException {
         StrategoTerms strategoTerms = new StrategoTerms(factory);
-        ITerm term = ConstraintTerms.specialize(strategoTerms.fromStratego(current));
-        List<ITerm> terms = Arrays.asList(tvars).stream().map(strategoTerms::fromStratego)
-                .map(ConstraintTerms::specialize).collect(Collectors.toList());
-        Optional<? extends ITerm> result = call(context, factory, term, terms.get(0), terms.get(1));
+        ITerm ast = ConstraintTerms.specialize(strategoTerms.fromStratego(current));
+        Function<ITerm, Optional<ITerm>> strategy = (term) -> {
+            context.setCurrent(strategoTerms.toStratego(ConstraintTerms.explicate(term)));
+            try {
+                if (svars[0].evaluate(context)) {
+                    return Optional.ofNullable(context.current()).map(strategoTerms::fromStratego);
+                } else {
+                    return Optional.empty();
+                }
+            } catch (InterpreterException e) {
+                return Optional.empty();
+            }
+        };
+        Optional<? extends ITerm> result = call(metaborgContext(context), factory, ast, strategy);
         return result.map(ConstraintTerms::explicate).map(strategoTerms::toStratego).orElse(null);
     }
 
+    /**
+     * Based on {@link SingleFileScopeGraphContext#Unit}
+     */
     private static final class SolveConstraintsPrimitiveUnit implements ISingleFileScopeGraphUnit {
         private static final long serialVersionUID = 1375323492952578547L;
         private final String resource;
@@ -178,17 +239,22 @@ public class SG_solve_constraints extends ASpoofaxContextPrimitive {
         private InitialResult initialResult;
         private UnitResult unitResult;
         private ISolution solution;
-        private CustomSolution customSolution = null;
+        private CustomSolution customSolution;
         private FinalResult finalResult;
 
-        private SolveConstraintsPrimitiveUnit(UnitResult unitResult, IContext context, Fresh f, ISolution s,
+        private SolveConstraintsPrimitiveUnit(String resource, Fresh fresh) {
+            this.resource = resource;
+            this.fresh = fresh;
+            clear();
+        }
+
+        private SolveConstraintsPrimitiveUnit(String resource, Fresh fresh, ISolution solution, UnitResult unitResult,
                 InitialResult initialResult, FinalResult finalResult) {
-            this.resource = context.location().getPublicURIString();
-            this.fresh = f;
+            this(resource, fresh);
             this.initialResult = initialResult;
             this.unitResult = unitResult;
-            this.solution = s;
             this.finalResult = finalResult;
+            this.solution = solution;
         }
 
         @Override
