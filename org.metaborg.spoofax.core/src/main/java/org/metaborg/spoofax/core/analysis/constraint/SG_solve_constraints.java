@@ -34,6 +34,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.ParseError;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 import mb.flowspec.runtime.solver.FixedPoint;
 import mb.flowspec.runtime.solver.ParseException;
@@ -74,7 +75,7 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
 
     protected final IResourceService resourceService;
 
-    public SG_solve_constraints(final IResourceService resourceService) {
+    public @Inject SG_solve_constraints(final IResourceService resourceService) {
         super(SG_solve_constraints.class.getSimpleName(), 1, 0);
         this.resourceService = resourceService;
     }
