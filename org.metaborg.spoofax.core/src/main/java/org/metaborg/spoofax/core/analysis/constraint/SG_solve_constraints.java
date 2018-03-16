@@ -88,8 +88,7 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
         String source = context.location().getPublicURIString();
         ICancel cancel = new NullCancel();
         IProgress progress = new NullProgress();
-        Fresh f = new Fresh();
-        final ISingleFileScopeGraphUnit unit = new SolveConstraintsPrimitiveUnit(source, f);
+        final ISingleFileScopeGraphUnit unit = new SolveConstraintsPrimitiveUnit(source);
 
         try {
             // initial
@@ -123,7 +122,7 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
             ISolution solution;
             {
                 Set<IConstraint> constraints = Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
-                Function1<String, String> fresh = base -> f.fresh(base);
+                Function1<String, String> fresh = unit.fresh()::fresh;
                 final IProgress subprogress = progress.subProgress(1);
                 // Note how we do not support debugging and external calls
                 final SingleFileSolver solver = new SingleFileSolver(NaBL2DebugConfig.NONE,
@@ -250,15 +249,15 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
         private CustomSolution customSolution;
         private FinalResult finalResult;
 
-        private SolveConstraintsPrimitiveUnit(String resource, Fresh fresh) {
+        private SolveConstraintsPrimitiveUnit(String resource) {
             this.resource = resource;
-            this.fresh = fresh;
+            this.fresh = new Fresh();
             clear();
         }
 
-        private SolveConstraintsPrimitiveUnit(String resource, Fresh fresh, ISolution solution, UnitResult unitResult,
+        private SolveConstraintsPrimitiveUnit(String resource, ISolution solution, UnitResult unitResult,
                 InitialResult initialResult, FinalResult finalResult) {
-            this(resource, fresh);
+            this(resource);
             this.initialResult = initialResult;
             this.unitResult = unitResult;
             this.finalResult = finalResult;
