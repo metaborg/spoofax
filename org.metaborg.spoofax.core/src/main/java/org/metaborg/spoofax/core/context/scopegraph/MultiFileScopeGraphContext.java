@@ -8,20 +8,20 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.context.ContextIdentifier;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
-import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.solver.Fresh;
-import org.metaborg.meta.nabl2.solver.PartialSolution;
-import org.metaborg.meta.nabl2.solver.Solution;
-import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
-import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
-import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
-import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContext.State;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Injector;
+
+import mb.nabl2.config.NaBL2Config;
+import mb.nabl2.constraints.IConstraint;
+import mb.nabl2.solver.Fresh;
+import mb.nabl2.solver.ISolution;
+import mb.nabl2.spoofax.analysis.CustomSolution;
+import mb.nabl2.spoofax.analysis.FinalResult;
+import mb.nabl2.spoofax.analysis.InitialResult;
+import mb.nabl2.spoofax.analysis.UnitResult;
 
 public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         implements IMultiFileScopeGraphContext {
@@ -65,7 +65,15 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         return Optional.ofNullable(state.initialResult);
     }
 
-    @Override public void setSolution(Solution solution) {
+    @Override public void setInitialSolution(ISolution result) {
+        state.initialSolution = result;
+    }
+
+    @Override public Optional<ISolution> initialSolution() {
+        return Optional.ofNullable(state.initialSolution);
+    }
+
+    @Override public void setSolution(ISolution solution) {
         state.solution = solution;
     }
 
@@ -92,7 +100,8 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
         final Map<String, IMultiFileScopeGraphUnit> units = Maps.newHashMap();
 
         InitialResult initialResult;
-        Solution solution;
+        ISolution initialSolution;
+        ISolution solution;
         CustomSolution customSolution;
         FinalResult finalResult;
 
@@ -116,7 +125,9 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
             private final Fresh fresh;
 
             private UnitResult unitResult;
-            private PartialSolution partialSolution;
+            private ISolution partialSolution;
+            private CustomSolution unitCustomSolution;
+            private ISolution unitSolution;
 
             private Unit(String resource, boolean isProject) {
                 this.resource = resource;
@@ -147,20 +158,28 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
                 return constraints;
             }
 
-            @Override public void setPartialSolution(PartialSolution constraints) {
+            @Override public void setPartialSolution(ISolution constraints) {
                 this.partialSolution = constraints;
             }
 
-            @Override public Optional<PartialSolution> partialSolution() {
+            @Override public Optional<ISolution> partialSolution() {
                 return Optional.ofNullable(partialSolution);
             }
 
-            @Override public Optional<Solution> solution() {
-                return Optional.ofNullable(solution);
+            @Override public void setSolution(ISolution solution) {
+                this.unitSolution = solution;
+            }
+
+            @Override public Optional<ISolution> solution() {
+                return Optional.ofNullable(unitSolution != null ? unitSolution : solution);
+            }
+
+            @Override public void setCustomSolution(CustomSolution solution) {
+                this.unitCustomSolution = solution;
             }
 
             @Override public Optional<CustomSolution> customSolution() {
-                return Optional.ofNullable(customSolution);
+                return Optional.ofNullable(unitCustomSolution != null ? unitCustomSolution : customSolution);
             }
 
             @Override public Fresh fresh() {
@@ -168,7 +187,7 @@ public class MultiFileScopeGraphContext extends AbstractScopeGraphContext<State>
             }
 
             @Override public boolean isPrimary() {
-                return isProject;
+                return unitSolution != null || isProject;
             }
 
             @Override public void clear() {

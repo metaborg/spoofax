@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import static mb.nabl2.terms.build.TermBuild.B;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -11,25 +13,6 @@ import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.meta.nabl2.config.NaBL2DebugConfig;
-import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.constraints.messages.IMessageInfo;
-import org.metaborg.meta.nabl2.constraints.messages.ImmutableMessageInfo;
-import org.metaborg.meta.nabl2.constraints.messages.MessageContent;
-import org.metaborg.meta.nabl2.constraints.messages.MessageKind;
-import org.metaborg.meta.nabl2.solver.Solution;
-import org.metaborg.meta.nabl2.solver.Solver;
-import org.metaborg.meta.nabl2.solver.SolverException;
-import org.metaborg.meta.nabl2.solver.messages.Messages;
-import org.metaborg.meta.nabl2.spoofax.analysis.Actions;
-import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
-import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
-import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
-import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
-import org.metaborg.meta.nabl2.terms.ITerm;
-import org.metaborg.meta.nabl2.terms.ITermVar;
-import org.metaborg.meta.nabl2.terms.generic.TB;
-import org.metaborg.meta.nabl2.util.functions.Function1;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -44,6 +27,7 @@ import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.util.functions.Function1;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -56,6 +40,24 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+
+import mb.flowspec.runtime.solver.FixedPoint;
+import mb.nabl2.config.NaBL2DebugConfig;
+import mb.nabl2.constraints.IConstraint;
+import mb.nabl2.solver.ISolution;
+import mb.nabl2.solver.SolverException;
+import mb.nabl2.solver.messages.IMessages;
+import mb.nabl2.solver.messages.Messages;
+import mb.nabl2.solver.solvers.BaseSolver.GraphSolution;
+import mb.nabl2.solver.solvers.ImmutableBaseSolution;
+import mb.nabl2.solver.solvers.SingleFileSolver;
+import mb.nabl2.spoofax.analysis.Actions;
+import mb.nabl2.spoofax.analysis.CustomSolution;
+import mb.nabl2.spoofax.analysis.FinalResult;
+import mb.nabl2.spoofax.analysis.InitialResult;
+import mb.nabl2.spoofax.analysis.UnitResult;
+import mb.nabl2.terms.ITerm;
+import mb.nabl2.terms.unification.PersistentUnifier;
 
 public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISingleFileScopeGraphContext>
         implements ISpoofaxAnalyzer {
@@ -110,8 +112,9 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.collection()) {
                             logger.info("Collecting initial constraints of {}.", source);
                         }
-                        ITerm initialResultTerm = doAction(strategy, Actions.analyzeInitial(source, ast), context, runtime)
-                                .orElseThrow(() -> new AnalysisException(context, "No initial result."));
+                        ITerm initialResultTerm =
+                                doAction(strategy, Actions.analyzeInitial(source, ast), context, runtime)
+                                        .orElseThrow(() -> new AnalysisException(context, "No initial result."));
                         initialResult = InitialResult.matcher().match(initialResultTerm)
                                 .orElseThrow(() -> new MetaborgException("Invalid initial results."));
                         customInitial = doCustomAction(strategy, Actions.customInitial(source, ast), context, runtime);
@@ -137,7 +140,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         final ITerm desugaredAST = unitResult.getAST();
 
                         customUnit = doCustomAction(strategy,
-                                Actions.customUnit(source, desugaredAST, customInitial.orElse(TB.EMPTY_TUPLE)), context,
+                                Actions.customUnit(source, desugaredAST, customInitial.orElse(B.EMPTY_TUPLE)), context,
                                 runtime);
                         unitResult = unitResult.withCustomResult(customUnit);
                         unit.setUnitResult(unitResult);
@@ -147,19 +150,27 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     }
 
                     // solve
-                    final Solution solution;
+                    ISolution solution;
                     {
                         Set<IConstraint> constraints =
                                 Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
                         if(debugConfig.resolution()) {
                             logger.info("Solving {} constraints of {}.", constraints.size(), source);
                         }
-                        Function1<String, ITermVar> fresh =
-                                base -> TB.newVar(source, context.unit(source).fresh().fresh(base));
-                        IMessageInfo messageInfo = ImmutableMessageInfo.of(MessageKind.ERROR, MessageContent.of(),
-                                Actions.sourceTerm(source));
-                        solution = Solver.solveFinal(initialResult.getConfig(), fresh, constraints,
-                                Collections.emptySet(), messageInfo, progress.subProgress(1), cancel, debugConfig);
+                        Function1<String, String> fresh = base -> context.unit(source).fresh().fresh(base);
+                        final IProgress subprogress = progress.subProgress(1);
+                        final SingleFileSolver solver =
+                                new SingleFileSolver(context.config().debug(), callExternal(runtime));
+                        GraphSolution preSolution =
+                                solver.solveGraph(ImmutableBaseSolution.of(initialResult.getConfig(), constraints,
+                                        PersistentUnifier.Immutable.of()), fresh, cancel, subprogress);
+                        preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
+                        solution = solver.solve(preSolution, fresh, cancel, subprogress);
+                        solution = solver.reportUnsolvedConstraints(solution);
+                        if (!solution.flowSpecSolution().controlFlowGraph().isEmpty()) {
+                            logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
+                            solution = new FixedPoint().entryPoint(solution, getFlowSpecTransferFunctions(context.language()));
+                        }
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {
                             logger.info("Solved constraints of {}.", source);
@@ -177,11 +188,10 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                                 .orElseThrow(() -> new AnalysisException(context, "No final result."));
                         finalResult = FinalResult.matcher().match(finalResultTerm)
                                 .orElseThrow(() -> new MetaborgException("Invalid final results."));
-                        customFinal =
-                                doCustomAction(strategy,
-                                        Actions.customFinal(source, customInitial.orElse(TB.EMPTY_TUPLE),
-                                                customUnit.map(cu -> TB.newList(cu)).orElse(TB.EMPTY_LIST)),
-                                        context, runtime);
+                        customFinal = doCustomAction(strategy,
+                                Actions.customFinal(source, customInitial.orElse(B.EMPTY_TUPLE), customUnit
+                                        .map(cu -> Collections.singletonList(cu)).orElse(Collections.emptyList())),
+                                context, runtime);
                         finalResult = finalResult.withCustomResult(customFinal);
                         unit.setFinalResult(finalResult);
                         if(debugConfig.files()) {
@@ -199,16 +209,18 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.files()) {
                             logger.info("Processing messages of {}.", source);
                         }
-                        Messages messages = new Messages();
-                        messages.addAll(Solver.unsolvedErrors(solution.getUnsolvedConstraints()));
-                        messages.addAll(solution.getMessages());
-                        customSolution.map(CustomSolution::getMessages).ifPresent(messages::addAll);
+                        Messages.Transient messageBuilder = Messages.Transient.of();
+                        messageBuilder.addAll(Messages.unsolvedErrors(solution.constraints()));
+                        messageBuilder.addAll(solution.messages().getAll());
+                        customSolution.map(CustomSolution::getMessages).map(IMessages::getAll)
+                                .ifPresent(messageBuilder::addAll);
+                        IMessages messages = messageBuilder.freeze();
 
                         success = messages.getErrors().isEmpty();
 
-                        Iterable<IMessage> fileMessages = Iterables.concat(
-                                analysisCommon.ambiguityMessages(parseUnit.source(), parseUnit.ast()),
-                                messages(messages.getAll(), solution.getUnifier(), context, context.location()));
+                        Iterable<IMessage> fileMessages =
+                            Iterables.concat(analysisCommon.ambiguityMessages(parseUnit.source(), parseUnit.ast()),
+                                        messages(messages.getAll(), solution.unifier(), context, context.location()));
 
                         // result
                         results.add(unitService.analyzeUnit(parseUnit,

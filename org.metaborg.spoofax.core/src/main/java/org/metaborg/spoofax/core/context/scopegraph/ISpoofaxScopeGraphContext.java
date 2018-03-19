@@ -1,8 +1,9 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
 import org.metaborg.core.context.IContextInternal;
-import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphContext;
-import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
+
+import mb.nabl2.spoofax.analysis.IScopeGraphContext;
+import mb.nabl2.spoofax.analysis.IScopeGraphUnit;
 
 public interface ISpoofaxScopeGraphContext<U extends IScopeGraphUnit> extends IContextInternal, IScopeGraphContext<U> {
 

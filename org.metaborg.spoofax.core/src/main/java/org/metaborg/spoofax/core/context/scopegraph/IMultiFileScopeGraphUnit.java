@@ -2,9 +2,10 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.util.Optional;
 
-import org.metaborg.meta.nabl2.solver.PartialSolution;
-import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
-import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
+import mb.nabl2.solver.ISolution;
+import mb.nabl2.spoofax.analysis.CustomSolution;
+import mb.nabl2.spoofax.analysis.IScopeGraphUnit;
+import mb.nabl2.spoofax.analysis.UnitResult;
 
 public interface IMultiFileScopeGraphUnit extends IScopeGraphUnit {
 
@@ -12,9 +13,13 @@ public interface IMultiFileScopeGraphUnit extends IScopeGraphUnit {
 
     Optional<UnitResult> unitResult();
 
-    void setPartialSolution(PartialSolution solution);
+    void setPartialSolution(ISolution solution);
 
-    Optional<PartialSolution> partialSolution();
+    Optional<ISolution> partialSolution();
+
+    void setSolution(ISolution solution);
+
+    void setCustomSolution(CustomSolution solution);
 
     void clear();
 

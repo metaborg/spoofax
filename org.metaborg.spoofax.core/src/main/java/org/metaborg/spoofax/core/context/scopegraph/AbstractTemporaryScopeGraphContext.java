@@ -8,12 +8,13 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
-import org.metaborg.meta.nabl2.spoofax.analysis.IScopeGraphUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 
 import com.google.inject.Injector;
+
+import mb.nabl2.config.NaBL2Config;
+import mb.nabl2.spoofax.analysis.IScopeGraphUnit;
 
 public abstract class AbstractTemporaryScopeGraphContext<U extends IScopeGraphUnit>
         implements ISpoofaxScopeGraphContext<U>, ITemporaryContextInternal {
