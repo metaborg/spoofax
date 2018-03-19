@@ -207,7 +207,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         success = messages.getErrors().isEmpty();
 
                         Iterable<IMessage> fileMessages = Iterables.concat(
-                                analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST),
+                                analysisCommon.ambiguityMessages(parseUnit.source(), parseUnit.ast()),
                                 messages(messages.getAll(), solution.getUnifier(), context, context.location()));
 
                         // result
