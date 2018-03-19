@@ -242,7 +242,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                             final IStrategoTerm analyzedAST = strategoTerms.toStratego(desugaredAST);
                             astsByFile.put(source, analyzedAST);
                             ambiguitiesByFile.putAll(source,
-                                    analysisCommon.ambiguityMessages(parseUnit.source(), analyzedAST));
+                                    analysisCommon.ambiguityMessages(parseUnit.source(), parseUnit.ast()));
                             unit.setUnitResult(unitResult);
                         } finally {
                             collectionTimer.stop();
