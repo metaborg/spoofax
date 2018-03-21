@@ -125,7 +125,7 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
                 Function1<String, String> fresh = unit.fresh()::fresh;
                 final IProgress subprogress = progress.subProgress(1);
                 // Note how we do not support debugging and external calls
-                final SingleFileSolver solver = new SingleFileSolver(NaBL2DebugConfig.NONE,
+                final SingleFileSolver solver = new SingleFileSolver(new NaBL2DebugConfig(NaBL2DebugConfig.Flag.ALL),
                         (name, args) -> Optional.empty());
                 GraphSolution preSolution = solver.solveGraph(ImmutableBaseSolution.of(initialResult.getConfig(),
                         constraints, PersistentUnifier.Immutable.of()), fresh, cancel, subprogress);
