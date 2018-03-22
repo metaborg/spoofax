@@ -184,7 +184,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
             try {
                 fileState = (S) ois.readObject();
             } catch(NotSerializableException ex) {
-                logger.warn("Scope graph context persistence not functioning until Capsule data structures are serializable.");
+                logger.error("Scope graph context could not be presisted.", ex);
                 fileState = initState();
             } catch(Exception ex) {
                 final String msg = logger.format("Context file could not be read: {}", ex.getMessage());
