@@ -178,7 +178,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf.tbl");
                 final File contextualGrammarFile = FileUtils.getFile(targetMetaborgDir, "ctxgrammar.aterm");
                 final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table.bin");
-                final File sdfNormFile = FileUtils.getFile(srcNormDir, "permissive-norm.aterm");
+                final File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
 

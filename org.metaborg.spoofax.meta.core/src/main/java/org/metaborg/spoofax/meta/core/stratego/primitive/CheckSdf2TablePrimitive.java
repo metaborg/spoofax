@@ -1,10 +1,13 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
-import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
+import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.log.ILogger;
@@ -24,11 +27,13 @@ public class CheckSdf2TablePrimitive extends AbstractPrimitive {
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
+    private final ILanguagePathService languagePathService;
 
-    @Inject public CheckSdf2TablePrimitive(IProjectService projectService) {
+    @Inject public CheckSdf2TablePrimitive(IProjectService projectService, ILanguagePathService languagePathService) {
         super("SSL_EXT_check_sdf2_table", 0, 0);
- 
+
         this.projectService = projectService;
+        this.languagePathService = languagePathService;
     }
 
 
@@ -60,8 +65,22 @@ public class CheckSdf2TablePrimitive extends AbstractPrimitive {
         if(languageSpec == null) {
             return false;
         }
-        
-        if(!languageSpec.config().sdfEnabled()) {
+
+        boolean metaSDFfile = false;
+//        try {
+//            final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(languageSpec.location());
+//            final Iterable<FileObject> sdfRoots =
+//                languagePathService.sourcePaths(project, SpoofaxConstants.LANG_SDF_NAME);
+//            final String sdfMetaModule = languageSpec.config().metaSdfName();
+//            final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
+//            if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists())
+//                metaSDFfile = true;
+//
+//        } catch(FileSystemException fse) {
+//            metaSDFfile = false;
+//        }
+
+        if(!languageSpec.config().sdfEnabled() || metaSDFfile) {
             env.setCurrent(env.getFactory().makeString("disabled"));
             return true;
         }
