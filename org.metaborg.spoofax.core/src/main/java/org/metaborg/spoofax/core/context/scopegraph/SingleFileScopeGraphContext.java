@@ -7,19 +7,20 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.metaborg.core.context.ContextIdentifier;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
-import org.metaborg.meta.nabl2.constraints.IConstraint;
-import org.metaborg.meta.nabl2.solver.Fresh;
-import org.metaborg.meta.nabl2.solver.Solution;
-import org.metaborg.meta.nabl2.spoofax.analysis.CustomSolution;
-import org.metaborg.meta.nabl2.spoofax.analysis.FinalResult;
-import org.metaborg.meta.nabl2.spoofax.analysis.InitialResult;
-import org.metaborg.meta.nabl2.spoofax.analysis.UnitResult;
 import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContext.State;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Injector;
+
+import mb.nabl2.config.NaBL2Config;
+import mb.nabl2.constraints.IConstraint;
+import mb.nabl2.solver.Fresh;
+import mb.nabl2.solver.ISolution;
+import mb.nabl2.spoofax.analysis.CustomSolution;
+import mb.nabl2.spoofax.analysis.FinalResult;
+import mb.nabl2.spoofax.analysis.InitialResult;
+import mb.nabl2.spoofax.analysis.UnitResult;
 
 public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State>
         implements ISingleFileScopeGraphContext {
@@ -65,7 +66,7 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
 
             private InitialResult initialResult;
             private UnitResult unitResult;
-            private Solution solution;
+            private ISolution solution;
             private CustomSolution customSolution;
             private FinalResult finalResult;
 
@@ -102,11 +103,11 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
                 return constraints;
             }
 
-            @Override public Optional<Solution> solution() {
+            @Override public Optional<ISolution> solution() {
                 return Optional.ofNullable(solution);
             }
 
-            @Override public void setSolution(Solution solution) {
+            @Override public void setSolution(ISolution solution) {
                 this.solution = solution;
             }
 

@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.action.TransformActionContrib;
+import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.syntax.IParseUnit;
@@ -19,11 +20,14 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     private static final ILogger logger = LoggerUtils.logger(TransformService.class);
 
     private final IActionService actionService;
+    private final IAnalysisService<P, A, ?> analysisService;
     private final ITransformer<P, A, TP, TA> transformer;
 
 
-    @Inject public TransformService(IActionService actionService, ITransformer<P, A, TP, TA> transformer) {
+    @Inject public TransformService(IActionService actionService, IAnalysisService<P, A, ?> analysisService,
+            ITransformer<P, A, TP, TA> transformer) {
         this.actionService = actionService;
+        this.analysisService = analysisService;
         this.transformer = transformer;
     }
 
@@ -46,7 +50,8 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TP> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
-            checkAnalyzed(action);
+            if(analysisService.available(context.language()))
+                checkAnalyzed(action);
             final TP result = transformer.transform(input, context, action, config);
             results.add(result);
         }
@@ -58,7 +63,8 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         if(!input.valid()) {
             throw new TransformException("Cannot transform parse unit " + input + ", it is not valid");
         }
-        checkAnalyzed(action);
+        if(analysisService.available(context.language()))
+            checkAnalyzed(action);
 
         final TP result = transformer.transform(input, context, action, config);
         return result;
@@ -96,7 +102,8 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TP> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
-            checkAnalyzed(action);
+            if(analysisService.available(context.language()))
+                checkAnalyzed(action);
             final Collection<TP> result = transformer.transformAllParsed(inputs, context, action, config);
             results.addAll(result);
         }
@@ -105,7 +112,8 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
 
     @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context,
         TransformActionContrib action, ITransformConfig config) throws TransformException {
-        checkAnalyzed(action);
+        if(analysisService.available(context.language()))
+            checkAnalyzed(action);
         final Collection<TP> result = transformer.transformAllParsed(inputs, context, action, config);
         return result;
     }

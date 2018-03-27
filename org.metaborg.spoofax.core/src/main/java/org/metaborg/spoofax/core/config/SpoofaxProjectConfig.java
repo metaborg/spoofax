@@ -11,9 +11,10 @@ import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.spoofax.core.build.SpoofaxDefaultSources;
 import org.metaborg.spoofax.core.config.language.NaBL2ConfigReaderWriter;
+
+import mb.nabl2.config.NaBL2Config;
 
 public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProjectConfig {
 

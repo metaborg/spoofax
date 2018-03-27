@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.context.scopegraph;
 
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -15,7 +16,6 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
@@ -24,6 +24,8 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.inject.Injector;
+
+import mb.nabl2.config.NaBL2Config;
 
 abstract class AbstractScopeGraphContext<S extends Serializable> implements IContextInternal {
 
@@ -60,7 +62,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     public NaBL2Config config() {
         return config != null ? config : NaBL2Config.DEFAULT;
     }
-    
+
     @Override public Injector injector() {
         return injector;
     }
@@ -181,8 +183,12 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
             S fileState;
             try {
                 fileState = (S) ois.readObject();
+            } catch(NotSerializableException ex) {
+                logger.error("Scope graph context could not be presisted.", ex);
+                fileState = initState();
             } catch(Exception ex) {
-                throw new IOException("Context file could not be read.", ex);
+                final String msg = logger.format("Context file could not be read: {}", ex.getMessage());
+                throw new IOException(msg);
             }
             if(fileState == null) {
                 throw new IOException("Context file contains null.");
@@ -205,9 +211,11 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     }
 
     private void writeContext(FileObject file) throws IOException {
-        try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
             oos.writeObject(state);
-        } catch(Exception ex) {
+        } catch (NotSerializableException ex) {
+            logger.warn("Scope graph context persistence not functioning until Capsule data structures are serializable.");
+        } catch (Exception ex) {
             throw new IOException("Context file could not be written.", ex);
         }
     }
@@ -246,7 +254,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
 
     protected String normalizeResource(String resource) {
         try {
-            resource = ResourceUtils.relativeName(location().resolveFile(resource).getName(), location().getName(), false);
+            resource = ResourceUtils.relativeName(location().resolveFile(resource).getName(), location().getName(), true);
         } catch(FileSystemException e) {
             logger.warn("Failed to resolve {} in context {}. Lookup of unit results might fail.", resource, location());
         }

@@ -2,12 +2,13 @@ package org.metaborg.spoofax.core.context.scopegraph;
 
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextFactory;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfig;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigService;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import mb.nabl2.config.NaBL2Config;
 
 public class MultiFileScopeGraphContextFactory implements IContextFactory {
 
