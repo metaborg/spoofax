@@ -32,7 +32,6 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
     private static final String PROP_SDF2TABLE_VERSION = "language.sdf.sdf2table";
     private static final String PROP_SDF_JSGLR_VERSION = "language.sdf.jsglr-version";
-    private static final String PROP_SDF_DATA_DEPENDENT = "language.sdf.data-dependent";
 
     private final ProjectConfig projectConfig;
 
@@ -55,9 +54,6 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         }
         if(sdf2tableVersion != null) {
             config.setProperty(PROP_SDF2TABLE_VERSION, sdf2tableVersion);
-        }
-        if(dataDependent != null) {
-            config.setProperty(PROP_SDF_DATA_DEPENDENT, dataDependent);
         }
         if(parseTable != null) {
             config.setProperty(PROP_SDF_PARSE_TABLE, parseTable);
@@ -231,11 +227,13 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     }
 
     @Override public JSGLRVersion jsglrVersion() {
-        final String value = this.config.getString(PROP_SDF_JSGLR_VERSION);
+        String value = this.config.getString(PROP_SDF_JSGLR_VERSION);
+        if(value != null && value.equals("data-dependent")) {
+            return JSGLRVersion.dataDependent;
+        }
+        if(value != null && value.equals("layout-sensitive")) {
+            return JSGLRVersion.layoutSensitive;
+        }
         return value != null ? JSGLRVersion.valueOf(value) : JSGLRVersion.v1;
-    }
-
-    @Override public Boolean dataDependent() {
-        return this.config.getBoolean(PROP_SDF_DATA_DEPENDENT, false);
     }
 }

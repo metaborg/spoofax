@@ -1,13 +1,10 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
-import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.log.ILogger;

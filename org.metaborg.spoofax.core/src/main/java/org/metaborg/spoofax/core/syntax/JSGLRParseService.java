@@ -55,13 +55,13 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
     }
 
     private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input) {
-    		JSGLRVersion version = JSGLRVersion.v1;
-    		
+        JSGLRVersion version = JSGLRVersion.v1;
+
         for(ILanguageComponent langComp : input.langImpl().components()) {
-        		version = langComp.config().jsglrVersion();
-        			break;
+            version = langComp.config().jsglrVersion();
+            break;
         }
-        
+
         return version;
     }
 
@@ -98,22 +98,15 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             logger.trace("Parsing {}", source);
 
             JSGLRVersion version = jsglrVersion(input);
-            
-            final JSGLRI<?> parser;
-            
-            boolean dataDependentParsing = false;
-            for(ILanguageComponent component : langImpl.components()) {
-                if(component.config().dataDependent()) {
-                    dataDependentParsing = true;
-                }
-            }
 
-            if (version == JSGLRVersion.v2) {
-                if(dataDependentParsing) {
-                    parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, true, false);
-                } else {
-                    parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false, true);
-                }                
+            final JSGLRI<?> parser;
+
+            if(version == JSGLRVersion.v2) {
+                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false, false);
+            } else if(version == JSGLRVersion.layoutSensitive) {
+                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false, true);
+            } else if(version == JSGLRVersion.dataDependent) {
+                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, true, false);
             } else {
                 if(base != null) {
                     parser = new JSGLR1I(config, termFactory, base, langImpl, source, text);
@@ -123,14 +116,14 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             }
 
             final ParseContrib contrib = parser.parse(parserConfig);
-            
-            if (version == JSGLRVersion.v2) {
-                if (contrib.valid)
+
+            if(version == JSGLRVersion.v2) {
+                if(contrib.valid)
                     logger.info("Valid JSGLR2 parse");
                 else
                     logger.info("Invalid JSGLR2 parse");
             }
-            
+
             final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
             return unit;
         } catch(IOException | InvalidParseTableException | ParseTableReadException e) {
@@ -199,17 +192,18 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
             final IParseTableProvider provider;
             JSGLRVersion version = jsglrVersion(input);
-            
-            if (version == JSGLRVersion.v2) {
+
+            if(version == JSGLRVersion.v2 || version == JSGLRVersion.dataDependent
+                || version == JSGLRVersion.layoutSensitive) {
                 provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
             } else {
-	            final ParseTable referenceParseTable = referenceParseTables.get(lang);
-	
-	            if(referenceParseTable != null && incrementalPTGen) {
-	                provider = new JSGLR1IncrementalParseTableProvider(parseTable, termFactory, referenceParseTable);
-	            } else {
-	                provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
-	            }
+                final ParseTable referenceParseTable = referenceParseTables.get(lang);
+
+                if(referenceParseTable != null && incrementalPTGen) {
+                    provider = new JSGLR1IncrementalParseTableProvider(parseTable, termFactory, referenceParseTable);
+                } else {
+                    provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
+                }
             }
 
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
@@ -280,7 +274,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
             final ParseTable referenceParseTable = referenceCompletionParseTables.get(lang);
 
             if(referenceParseTable != null && incrementalPTGen) {
-                provider = new JSGLR1IncrementalParseTableProvider(completionParseTable, termFactory, referenceParseTable);
+                provider =
+                    new JSGLR1IncrementalParseTableProvider(completionParseTable, termFactory, referenceParseTable);
             } else {
                 provider = new JSGLR1FileParseTableProvider(completionParseTable, termFactory);
             }
@@ -320,7 +315,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
         if(completionParserConfigs.get(impl) != null && incrementalPTGen) {
             try {
-                pt = (org.spoofax.jsglr.client.ParseTable) completionParserConfigs.get(impl).getParseTableProvider().parseTable();
+                pt = (org.spoofax.jsglr.client.ParseTable) completionParserConfigs.get(impl).getParseTableProvider()
+                    .parseTable();
                 if(pt != null && pt.getPTgenerator() != null && pt.getPTgenerator().getParseTable() != null) {
                     referenceCompletionParseTables.put(impl, pt.getPTgenerator().getParseTable());
                 }
