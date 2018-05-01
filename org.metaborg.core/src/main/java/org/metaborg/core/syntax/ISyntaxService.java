@@ -4,10 +4,10 @@ import java.util.Collection;
 
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.processing.NullCancel;
-import org.metaborg.core.processing.NullProgress;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import org.metaborg.util.task.NullCancel;
+import org.metaborg.util.task.NullProgress;
 
 /**
  * Interface for context-free syntactical services, including parsing and information about lexical characters.

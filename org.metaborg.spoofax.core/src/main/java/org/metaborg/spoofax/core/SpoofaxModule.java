@@ -207,6 +207,7 @@ import mb.nabl2.spoofax.primitives.SG_is_debug_collection_enabled;
 import mb.nabl2.spoofax.primitives.SG_is_debug_custom_enabled;
 import mb.nabl2.spoofax.primitives.SG_is_debug_resolution_enabled;
 import mb.nabl2.spoofax.primitives.SG_set_ast_index;
+import mb.nabl2.spoofax.primitives.SG_solve;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -428,6 +429,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_custom_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_resolution_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve.class);
 
         final Multibinder<AbstractPrimitive> spoofaxFlowSpecLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(FlowSpecLibrary.name));
