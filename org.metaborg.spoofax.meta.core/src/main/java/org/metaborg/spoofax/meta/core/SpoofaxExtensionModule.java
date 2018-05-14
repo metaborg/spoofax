@@ -9,6 +9,7 @@ import org.metaborg.spoofax.meta.core.stratego.primitive.GetContextualGrammarPri
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecPpNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecSrcGenDirectory;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecificationPrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.LayoutSensitivePrettyPrinterPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LegacyLanguageSpecNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.PlaceholderCharsPrimitive;
 import org.spoofax.interpreter.library.AbstractPrimitive;
@@ -35,6 +36,7 @@ public class SpoofaxExtensionModule extends AbstractModule {
         spoofaxPrimitiveLibrary.addBinding().to(LanguageSpecSrcGenDirectory.class).in(Singleton.class);
         spoofaxPrimitiveLibrary.addBinding().to(CheckSdf2TablePrimitive.class).in(Singleton.class);
         spoofaxPrimitiveLibrary.addBinding().to(PlaceholderCharsPrimitive.class).in(Singleton.class);
+        spoofaxPrimitiveLibrary.addBinding().to(LayoutSensitivePrettyPrinterPrimitive.class).in(Singleton.class);
         spoofaxPrimitiveLibrary.addBinding().to(LanguageSpecPpNamePrimitive.class).in(Singleton.class);
         spoofaxPrimitiveLibrary.addBinding().to(GetContextualGrammarPrimitive.class).in(Singleton.class);
         

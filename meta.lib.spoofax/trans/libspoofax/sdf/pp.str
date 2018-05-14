@@ -12,6 +12,14 @@ signature constructors
 
   Parenthetical : Unknown -> Unknown
 
+  // signatures for layout constraints
+  Offside    : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  Indent     : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  Align      : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  PosRef     : NatCon -> ConstraintTreeReference
+  LiteralRef : StrCon -> ConstraintTreeReference
+  LabelRef   : IdCon -> ConstraintTreeReference
+
 strategies
 
   // Unwrap Parenthetical/1 if pp fails, in case the user is using
@@ -27,7 +35,9 @@ strategies
   pp-V-list(pp|vs) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp))>)
   pp-V-list(pp|vs, sep) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp)); at-init(add-sep(|sep), id)>)
 
-  pp-indent(|is) = filter(gpp-is-real-vbox); (?[] <+ !I([SOpt(IS(), is)], H([SOpt(HS(), "0")], <id>)))
+  // pp-indent(|is) = filter(gpp-is-real-vbox); (?[] <+ !I([SOpt(IS(), is)], H([SOpt(HS(), "0")], <id>)))
+  
+  pp-indent(|is) = filter(gpp-is-real-vbox); (?[] <+ !H([SOpt(HS(), is)], [S(""), H([SOpt(HS(), "0")], <id>)]))
 
   pp-H-list(pp)     = ?[] <+ !H([], <map(pp-one-Z(pp))>)
   pp-H-list(pp|sep) = ?[] <+ !H([SOpt(HS(), "0")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
@@ -48,6 +58,64 @@ rules
   prettyprint-completion-aux = (?CURSOR_ELEMENT(); ![S("##CURSOR##")]) <+ 
   ((?""; ![]) <+ ![S(<is-string>)])
 
+// pretty-printing empty trees
+signature constructors
+  FALSE : BooleanCondition
+  TRUE  : BooleanCondition
+
+rules
+  // typical empty non-terminals
+  check-nonterminal-isEmpty = ?None() <+ ?() <+ ?[]
+  
+  // h is layout and read-empty is false, move on to next symbol and add current to pred-layout
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> <clean-layout-empty-symbols(|pred-layout', read-empty, read-non-empty)> hs
+    where
+      <?FALSE()> read-empty;
+      layout-string := <?S(<id>); is-layout-string> h;
+      pred-layout'  := <conc-strings> (pred-layout, layout-string)
+  
+  // h is layout and read-empty is true, move on to next symbol      
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> <clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty)> hs
+    where
+      <?TRUE()> read-empty;
+      layout-string := <?S(<id>); is-layout-string> h
+  
+  // h is not layout and not empty symbol print pred-layout an put into list before h
+  // read-non-empty becomes true (to indicate that it's not the beginning of the list anymore)        
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> [S(pred-layout), h, <clean-layout-empty-symbols(|"", read-empty, TRUE())> hs ]
+    where
+      <not(check-nonterminal-isEmpty <+ ?S(<id>); is-layout-string)> h
+
+  // if read-non-empty is true 
+  // h is empty symbol pred-layout becomes " " and 
+  // read-empty becomes true
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> <clean-layout-empty-symbols(|" ", TRUE(), read-non-empty)> hs
+    where
+      <?TRUE()> read-non-empty;
+      <check-nonterminal-isEmpty> h
+      
+  // read-non-empty is false 
+  // h is empty symbol pred-layout becomes "" and 
+  // read-empty becomes true   
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> <clean-layout-empty-symbols(|"", TRUE(), read-non-empty)> hs
+    where
+      <?FALSE()> read-non-empty;
+      <check-nonterminal-isEmpty> h
+      
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [] -> []
+      
+  is-layout-string:
+    s -> s
+    where
+      <explode-string; map(is-whitespace)> s 
+
+// separator for lists
 rules
   
  add-sep(|sep):
