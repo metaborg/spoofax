@@ -111,11 +111,11 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
                 this.solution = solution;
             }
 
-            public Optional<CustomSolution> customSolution() {
+            @Override public Optional<CustomSolution> customSolution() {
                 return Optional.ofNullable(customSolution);
             }
 
-            public void setCustomSolution(CustomSolution solution) {
+            @Override public void setCustomSolution(CustomSolution solution) {
                 this.customSolution = solution;
             }
 

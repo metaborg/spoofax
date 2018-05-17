@@ -337,7 +337,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                     switch(analysisType) {
                         default:
                         case StrategoAnalyzer.name:
-                            analysisContextType = LegacyContextFactory.name;
+                            analysisContextType = contextType == null ? LegacyContextFactory.name : contextType;
                             break;
                         case TaskEngineAnalyzer.name:
                             analysisContextType = IndexTaskContextFactory.name;
@@ -349,7 +349,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                             analysisContextType = MultiFileScopeGraphContextFactory.name;
                             break;
                     }
-                    if(hasContext && !analysisContextType.equals(contextType)) {
+                    if(hasContext && !analysisType.equals(StrategoAnalyzer.name) && !analysisContextType.equals(contextType)) {
                         logger.warn("Ignoring explicit context type {}, because it is incompatible with analysis {}.",
                             contextType, analysisType);
                     }

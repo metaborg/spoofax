@@ -9,9 +9,10 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 public class ScopeGraphLibrary extends GenericPrimitiveLibrary {
+    public static final String name = "ScopeGraphLibrary";
     public static final String REGISTRY_NAME = "SCOPEGRAPH";
 
-    @Inject public ScopeGraphLibrary(@Named("ScopeGraphLibrary") Set<AbstractPrimitive> primitives) {
+    @Inject public ScopeGraphLibrary(@Named(name) Set<AbstractPrimitive> primitives) {
         super(primitives, ScopeGraphLibrary.REGISTRY_NAME);
     }
 
