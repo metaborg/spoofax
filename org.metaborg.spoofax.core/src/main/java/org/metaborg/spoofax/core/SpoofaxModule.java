@@ -105,7 +105,6 @@ import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ProjectPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.RelativeSourceOrIncludePath;
 import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
-import org.metaborg.spoofax.core.stratego.primitive.SG_set_resource_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.ScopeGraphLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.StatixLibrary;
@@ -433,7 +432,6 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_custom_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_resolution_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_set_resource_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_constraint.class);
 
         final Multibinder<AbstractPrimitive> statixLibrary =
