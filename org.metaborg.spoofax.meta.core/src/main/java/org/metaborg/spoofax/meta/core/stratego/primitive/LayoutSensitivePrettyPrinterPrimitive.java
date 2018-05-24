@@ -18,9 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.SetMultimap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -37,13 +35,11 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         this.projectService = projectService;
     }
 
-    private SetMultimap<Integer, EditInformation> edits;
     private ITermFactory tf;
 
     @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
         IStrategoAppl topmostBox = (IStrategoAppl) env.current(); // Should be V([], box)
         tf = env.getFactory();
-        edits = HashMultimap.create();
 
         IStrategoTerm result = checkForConstraints(topmostBox);
         // System.out.println(result);
@@ -67,15 +63,34 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
                 if(boxes.getAnnotations() != null) {
                     for(IStrategoTerm t : boxes.getAnnotations()) {
-                        if(t instanceof IStrategoAppl
-                            && ((IStrategoAppl) t).getConstructor().getName().equals("Align")) {
+                        // Align(_, [_ | _])
+                        if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("Align")
+                            && t.getSubterm(1).getSubtermCount() != 0) {
+                            System.out.println("Applying constraint " + t);
                             newBoxes = applyAlignConstraint(newBoxes, t);
                             result = annotateTerm(
                                 tf.makeAppl(((IStrategoAppl) term).getConstructor(), term.getSubterm(0), newBoxes),
                                 term.getAnnotations());
-                            result = updateColumnBoxes(result, getPosition(result));
+                            result = updateColumnBoxes(result, getPositionWithLayout(result));
                             newBoxes = result.getSubterm(1);
                         }
+                    }
+                }
+
+
+            }
+
+            if(constructorName.equals("V")) {
+                for(IStrategoTerm t : term.getAnnotations()) {
+                    // Align(_, [])
+                    if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("Align")
+                        && t.getSubterm(1).getSubtermCount() == 0) {
+                        System.out.println("Applying constraint " + t);
+                        IStrategoTerm newBoxes = applyAlignListConstraint(result.getSubterm(1));
+                        result = annotateTerm(
+                            tf.makeAppl(((IStrategoAppl) term).getConstructor(), term.getSubterm(0), newBoxes),
+                            term.getAnnotations());
+                        result = updateColumnBoxes(result, getPositionWithLayout(result));
                     }
                 }
             }
@@ -106,12 +121,29 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         IStrategoTerm posRef = getPositionRef(t, ref, true);
         IStrategoTerm termTarg = getTermFromSelector(t, targ, true);
 
-        return applyAlignConstraintToSelector(t, posRef, termTarg, ref);
+        return applyAlignConstraintToSelector(t, posRef, termTarg);
     }
 
 
-    private IStrategoTerm applyAlignConstraintToSelector(IStrategoTerm t, IStrategoTerm posRef, IStrategoTerm termTarg,
-        IStrategoTerm ref) {
+    private IStrategoTerm applyAlignListConstraint(IStrategoTerm boxes) {
+        if(boxes.getSubtermCount() == 0) {
+            return boxes;
+        }
+
+        IStrategoTerm[] newBoxes = new IStrategoTerm[boxes.getSubtermCount()];
+        IStrategoTerm posRef = getPosition(boxes.getSubterm(0));
+
+        newBoxes[0] = boxes.getSubterm(0);
+        for(int i = 1; i < boxes.getSubtermCount(); i++) {
+            newBoxes[i] = applyAlignConstraintToSelector(boxes.getSubterm(i), posRef, boxes.getSubterm(i));
+        }
+
+        return tf.makeList(newBoxes);
+    }
+
+
+    private IStrategoTerm applyAlignConstraintToSelector(IStrategoTerm t, IStrategoTerm posRef,
+        IStrategoTerm termTarg) {
 
         if(t.equals(termTarg)) {
             // Pos(_, <id>)
@@ -127,18 +159,18 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             targLine = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
 
             if(targCol > refCol) {
-                // wrap in Z box to jump to next line and wrap into H box to add X spaces
+                // wrap in Z box to jump to next line and wrap into H box to indent X spaces
                 // Z([], [S(""), H([SOpt(HS(), X)], [S(""), t])])
 
-                int indentationSpaces = countIndentation(termTarg, 0);
+                // remove the indentation that is there already
+                termTarg = removeCurrentIndentation(termTarg);
 
-                edits.put(targLine, new EditInformation(targCol, -(targCol - refCol)));
                 System.out.println("In Line " + targLine + " after column " + targCol + " shifted boxes by "
                     + -(targCol - refCol) + " spaces.");
 
                 IStrategoTerm emptyBox = tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString(""));
                 IStrategoTerm hBoxConfig = tf.makeAppl(tf.makeConstructor("SOpt", 2),
-                    tf.makeAppl(tf.makeConstructor("HS", 0)), tf.makeString("" + (refCol - 1 - indentationSpaces)));
+                    tf.makeAppl(tf.makeConstructor("HS", 0)), tf.makeString("" + (refCol - 1)));
                 IStrategoTerm hBox =
                     tf.makeAppl(tf.makeConstructor("H", 2), tf.makeList(hBoxConfig), tf.makeList(emptyBox, termTarg));
 
@@ -147,7 +179,6 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                 // wrap in H box to add spaces
                 // H([SOpt(HS(), "dif")], [S(""), t])
 
-                edits.put(targLine, new EditInformation(targCol, refCol - targCol));
                 System.out.println("In Line " + targLine + " after column " + targCol + " shifted boxes by "
                     + (refCol - targCol) + " spaces.");
 
@@ -159,6 +190,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                     tf.makeList(emptyBox, termTarg));
 
             } else {
+                System.out.println("Didn't change anything.");
                 return termTarg;
             }
 
@@ -168,7 +200,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         IStrategoTerm[] subTerms = new IStrategoTerm[t.getSubtermCount()];
 
         for(int i = 0; i < t.getSubtermCount(); i++) {
-            subTerms[i] = applyAlignConstraintToSelector(t.getSubterm(i), posRef, termTarg, ref);
+            subTerms[i] = applyAlignConstraintToSelector(t.getSubterm(i), posRef, termTarg);
         }
 
         if(t instanceof IStrategoAppl) {
@@ -181,6 +213,61 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         return t;
 
     }
+
+    private IStrategoTerm removeCurrentIndentation(IStrategoTerm t) {
+        // if box is indentation box, i.e., H([SOpt(HS(), is)], [S(""), H([SOpt(HS(), "0")], <id>)])
+        // get 'is' to discount it from shift
+        String constructorName = ((IStrategoAppl) t).getConstructor().getName();
+
+        // H([SOpt(HS(), is)], [S(""), H([SOpt(HS(), "0")], <id>)])
+        if(constructorName.equals("H")) {
+            // first list is not empty and second list has two elements
+            if(t.getSubterm(0).getSubtermCount() != 0 && t.getSubterm(1).getSubtermCount() == 2) {
+                // second list starts with S("")
+                IStrategoTerm secondList = t.getSubterm(1).getSubterm(0);
+                IStrategoTerm emptyStringBox = tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString(""));
+                if(secondList.equals(emptyStringBox)) {
+                    // second element is H([SOpt(HS(), "0")], <id>)
+                    IStrategoTerm hBox = t.getSubterm(1).getSubterm(1);
+                    if(hBox instanceof IStrategoAppl && ((IStrategoAppl) hBox).getConstructor().getName().equals("H")) {
+                        IStrategoTerm hBoxFirstList = hBox.getSubterm(0);
+                        if(hBoxFirstList.getSubtermCount() == 1) {
+                            IStrategoString zeroHS = tf.makeString("0");
+                            if(hBoxFirstList.getSubterm(0).getSubterm(1).equals(zeroHS)) {
+                                IStrategoTerm indentation = t.getSubterm(0).getSubterm(0).getSubterm(1);
+                                assert indentation instanceof IStrategoString;
+                                IStrategoTerm noIndentConfig = tf.makeAppl(tf.makeConstructor("SOpt", 2),
+                                    tf.makeAppl(tf.makeConstructor("HS", 0)), tf.makeString("0"));
+                                return annotateTerm(tf.makeAppl(tf.makeConstructor("H", 2), tf.makeList(noIndentConfig),
+                                    t.getSubterm(1)), t.getAnnotations());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // H(_, box*) box or V(_, box*) box or Z(_, box*) box
+        if(constructorName.equals("H") || constructorName.equals("V") || constructorName.equals("Z")) {
+            IStrategoTerm boxes = t.getSubterm(1);
+            if(boxes.getSubtermCount() != 0) {
+                List<IStrategoTerm> subterms = Lists.newArrayList();
+
+                subterms.add(removeCurrentIndentation(boxes.getSubterm(0)));
+                for(int i = 1; i < boxes.getSubtermCount(); i++) {
+                    subterms.add(boxes.getSubterm(i));
+                }
+
+                return annotateTerm(
+                    tf.makeAppl(tf.makeConstructor(constructorName, 2), t.getSubterm(0), annotateTerm(
+                        tf.makeList(subterms.toArray(new IStrategoTerm[subterms.size()])), boxes.getAnnotations())),
+                    t.getAnnotations());
+            }
+        }
+
+        return t;
+    }
+
 
     private IStrategoTerm getTermFromSelector(IStrategoTerm t, IStrategoTerm selector, boolean topmost) {
         if(t.getAnnotations() != null) {
@@ -224,6 +311,20 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         return null;
     }
 
+    private IStrategoTerm getPositionWithLayout(IStrategoTerm t) {
+        if(t.getAnnotations() != null) {
+            for(IStrategoTerm anno : t.getAnnotations()) {
+                if(anno instanceof IStrategoAppl
+                    && ((IStrategoAppl) anno).getConstructor().getName().equals("PositionWithLayout")) {
+                    return tf.makeAppl(tf.makeConstructor("Position", 2), anno.getSubterm(0), anno.getSubterm(1));
+                }
+            }
+        }
+
+        return null;
+    }
+
+
     private IStrategoTerm getPositionRef(IStrategoTerm t, IStrategoTerm ref, boolean topmost) {
         if(t.getAnnotations() != null) {
             IStrategoTerm pos = null;
@@ -263,26 +364,6 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         }
 
         return null;
-    }
-
-    private IStrategoTerm updateHorizontalListOfBoxes(IStrategoTerm t, IStrategoTerm head, List<IStrategoTerm> tail,
-        IStrategoTerm position, int hs) {
-        IStrategoTerm updatedPosition = shiftColumn(getEndPosition(head, position), hs);
-
-        List<IStrategoTerm> newList = Lists.newArrayList();
-
-        newList.add(head);
-        newList.addAll(updateColumnBoxesHorizontal(updatedPosition, hs, tail));
-
-        IStrategoTerm newTerm = tf.makeAppl(((IStrategoAppl) t).getConstructor(), t.getSubterm(0), annotateTerm(
-            tf.makeList(newList.toArray(new IStrategoTerm[newList.size()])), t.getSubterm(1).getAnnotations()));
-
-        IStrategoTerm firstPositionBox = findFirstPosition(newTerm);
-        if(firstPositionBox != null) {
-            return annotateBoxPosition(newTerm, firstPositionBox, t.getAnnotations());
-        } else {
-            return tf.annotateTerm(newTerm, t.getAnnotations());
-        }
     }
 
     private IStrategoTerm updateColumnBoxes(IStrategoTerm t, IStrategoTerm position) {
@@ -343,9 +424,98 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             }
 
 
+
         }
 
         return null;
+    }
+
+
+    private IStrategoTerm indentAllPositions(IStrategoTerm t, int is) {
+        List<IStrategoTerm> newAnnos = Lists.newArrayList();
+        if(!t.getAnnotations().isEmpty()) {
+            for(IStrategoTerm anno : t.getAnnotations()) {
+                if(anno instanceof IStrategoAppl && ((IStrategoAppl) anno).getConstructor().getName().equals("Position")
+                    || anno instanceof IStrategoAppl
+                        && ((IStrategoAppl) anno).getConstructor().getName().equals("PositionWithLayout")) {
+                    newAnnos.add(shiftColumn(anno, is));
+                } else {
+                    newAnnos.add(anno);
+                }
+            }
+        }
+
+        IStrategoTerm[] subterms = new IStrategoTerm[t.getSubtermCount()];
+        for(int i = 0; i < t.getSubtermCount(); i++) {
+            subterms[i] = indentAllPositions(t.getSubterm(i), is);
+        }
+
+        if(t instanceof IStrategoAppl) {
+            return annotateTerm(tf.makeAppl(((IStrategoAppl) t).getConstructor(), subterms),
+                tf.makeList(newAnnos.toArray(new IStrategoTerm[newAnnos.size()])));
+        } else if(t instanceof IStrategoList) {
+            return annotateTerm(tf.makeList(subterms),
+                tf.makeList(newAnnos.toArray(new IStrategoTerm[newAnnos.size()])));
+        } else {
+            return annotateTerm(t, tf.makeList(newAnnos.toArray(new IStrategoTerm[newAnnos.size()])));
+        }
+
+
+    }
+
+
+    private IStrategoTerm updateHorizontalListOfBoxes(IStrategoTerm t, IStrategoTerm head, List<IStrategoTerm> tail,
+        IStrategoTerm position, int hs) {
+        IStrategoTerm updatedPosition = shiftColumn(getEndPosition(head, position), hs);
+
+        List<IStrategoTerm> newList = Lists.newArrayList();
+
+        newList.add(head);
+        newList.addAll(updateColumnBoxesHorizontal(updatedPosition, hs, tail));
+
+        IStrategoTerm newTerm = tf.makeAppl(((IStrategoAppl) t).getConstructor(), t.getSubterm(0), annotateTerm(
+            tf.makeList(newList.toArray(new IStrategoTerm[newList.size()])), t.getSubterm(1).getAnnotations()));
+
+        IStrategoTerm firstPositionBox = findFirstPosition(newTerm);
+        IStrategoTerm line = position.getSubterm(0);
+        IStrategoTerm column = position.getSubterm(1);
+        IStrategoTerm result;
+        if(firstPositionBox != null) {
+            result = annotateBoxPosition(newTerm, firstPositionBox, t.getAnnotations());
+        } else {
+            result = tf.annotateTerm(newTerm, t.getAnnotations());
+        }
+
+        return annotateBoxPositionWithLayout(result,
+            tf.makeAppl(tf.makeConstructor("PositionWithLayout", 2), line, column), result.getAnnotations());
+    }
+
+
+    private IStrategoTerm updateVerticalListOfBoxes(IStrategoTerm t, IStrategoTerm head, List<IStrategoTerm> tail,
+        IStrategoTerm position, int vs) {
+        IStrategoTerm line = position.getSubterm(0);
+        IStrategoTerm column = position.getSubterm(1);
+
+        IStrategoTerm updatedPosition = shiftLine(getEndPosition(head, position), vs, column);
+
+        List<IStrategoTerm> newList = Lists.newArrayList();
+
+        newList.add(head);
+        newList.addAll(updateColumnBoxesVertical(updatedPosition, vs, tail));
+
+        IStrategoTerm newTerm = tf.makeAppl(((IStrategoAppl) t).getConstructor(), t.getSubterm(0), annotateTerm(
+            tf.makeList(newList.toArray(new IStrategoTerm[newList.size()])), t.getSubterm(1).getAnnotations()));
+
+        IStrategoTerm result;
+        IStrategoTerm firstPositionBox = findFirstPosition(newTerm);
+        if(firstPositionBox != null) {
+            result = annotateBoxPosition(newTerm, firstPositionBox, t.getAnnotations());
+        } else {
+            result = tf.annotateTerm(newTerm, t.getAnnotations());
+        }
+
+        return annotateBoxPositionWithLayout(result,
+            tf.makeAppl(tf.makeConstructor("PositionWithLayout", 2), line, column), result.getAnnotations());
     }
 
 
@@ -361,39 +531,24 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         IStrategoTerm newTerm = tf.makeAppl(((IStrategoAppl) t).getConstructor(), t.getSubterm(0), annotateTerm(
             tf.makeList(newList.toArray(new IStrategoTerm[newList.size()])), t.getSubterm(1).getAnnotations()));
 
-        IStrategoTerm firstPositionBox = findFirstPosition(newTerm);
-        if(firstPositionBox != null) {
-            return annotateBoxPosition(newTerm, firstPositionBox, t.getAnnotations());
-        } else {
-            return tf.annotateTerm(newTerm, t.getAnnotations());
-        }
-    }
-
-
-    private IStrategoTerm updateVerticalListOfBoxes(IStrategoTerm t, IStrategoTerm head, List<IStrategoTerm> tail,
-        IStrategoTerm position, int vs) {
+        IStrategoTerm line = position.getSubterm(0);
         IStrategoTerm column = position.getSubterm(1);
-        IStrategoTerm updatedPosition = shiftLine(getEndPosition(head, position), vs, column);
 
-        List<IStrategoTerm> newList = Lists.newArrayList();
-
-        newList.add(head);
-        newList.addAll(updateColumnBoxesVertical(updatedPosition, vs, tail));
-
-        IStrategoTerm newTerm = tf.makeAppl(((IStrategoAppl) t).getConstructor(), t.getSubterm(0), annotateTerm(
-            tf.makeList(newList.toArray(new IStrategoTerm[newList.size()])), t.getSubterm(1).getAnnotations()));
-
+        IStrategoTerm result;
         IStrategoTerm firstPositionBox = findFirstPosition(newTerm);
         if(firstPositionBox != null) {
-            return annotateBoxPosition(newTerm, firstPositionBox, t.getAnnotations());
+            result = annotateBoxPosition(newTerm, firstPositionBox, t.getAnnotations());
         } else {
-            return tf.annotateTerm(newTerm, t.getAnnotations());
+            result = tf.annotateTerm(newTerm, t.getAnnotations());
         }
+
+        return annotateBoxPositionWithLayout(result,
+            tf.makeAppl(tf.makeConstructor("PositionWithLayout", 2), line, column), result.getAnnotations());
     }
 
 
     private IStrategoTerm shiftColumn(IStrategoTerm position, int hs) {
-        return tf.makeAppl(tf.makeConstructor("Position", 2), position.getSubterm(0),
+        return tf.makeAppl(((IStrategoAppl) position).getConstructor(), position.getSubterm(0),
             tf.makeInt(((IStrategoInt) position.getSubterm(1)).intValue() + hs));
     }
 
@@ -523,6 +678,21 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         return tf.annotateTerm(t, tf.makeList(newAnnotations.toArray(new IStrategoTerm[newAnnotations.size()])));
     }
 
+    private IStrategoTerm annotateBoxPositionWithLayout(IStrategoTerm t, IStrategoTerm position,
+        IStrategoList oldAnnotations) {
+        List<IStrategoTerm> newAnnotations = Lists.newArrayList();
+
+        for(IStrategoTerm anno : oldAnnotations) {
+            if(anno instanceof IStrategoAppl
+                && ((IStrategoAppl) anno).getConstructor().getName().equals("PositionWithLayout")) {
+                continue;
+            }
+            newAnnotations.add(anno);
+        }
+        newAnnotations.add(position);
+        return tf.annotateTerm(t, tf.makeList(newAnnotations.toArray(new IStrategoTerm[newAnnotations.size()])));
+    }
+
 
     private List<IStrategoTerm> updateColumnBoxesHorizontal(IStrategoTerm position, int hs, List<IStrategoTerm> list) {
 
@@ -578,72 +748,13 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
         IStrategoTerm endPosition = shiftLine(getEndPosition(head, position), vs);
 
-        result.addAll(updateColumnBoxesHorizontal(endPosition, vs, list.subList(1, list.size())));
+        result.addAll(updateColumnBoxesVertical(endPosition, vs, list.subList(1, list.size())));
 
         return result;
     }
 
     private IStrategoTerm annotateTerm(IStrategoTerm t, IStrategoList annotations) {
         return tf.annotateTerm(t, annotations);
-    }
-
-    private int countIndentation(IStrategoTerm t, int indentation) {
-        
-        return 0;
-//        // H box
-//        if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("H")) {
-//            // H([], _)
-//            if(t.getSubterm(0).getSubtermCount() == 0) {
-//                // if head of list is S(_){Position(x, y)}
-//                // return indentation
-//                // if head of list is S("")
-//                // return countIndentation(tail, indentation+1)
-//                // if is head = box{Position(x, y)}
-//                // return countIndentation(head, indentation)
-//                // else
-//                // return countIndentation(tail, countIndentation(head, indentation)+1)
-//            } else {
-//                // if head of list is S(_){Position(x, y)}
-//                // return indentation
-//                // if head of list is S("")
-//                // return countIndentation(tail, indentation+hs)
-//                // if is head = box{Position(x, y)}
-//                // return countIndentation(head, indentation)
-//                // else
-//                // return countIndentation(tail, countIndentation(head, indentation)+hs)
-//            }
-//        }
-//        // V box
-//        if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("V")) {
-//            // V([], _)
-//            // if head of list is S(_){Position(x, y)}
-//            // return indentation
-//            // if head of list is S("")
-//            // return countIndentation(tail, indentation)
-//            // if is head = box{Position(x, y)}
-//            // return countIndentation(head, indentation)
-//            // else
-//            // return countIndentation(tail, indentation)
-//        }
-//        // Z box
-//        if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("Z")) {
-//         // Z([], _)
-//            // if head of list is S(_){Position(x, y)}
-//            // return indentation
-//            // if head of list is S("")
-//            // return countIndentation(tail, indentation)
-//            // if is head = box{Position(x, y)}
-//            // return countIndentation(head, indentation)
-//            // else
-//            // return countIndentation(tail, indentation)
-//        }
-//        // S box
-//        if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("S")) {
-//            return indentation;
-//        }
-//        // return accumulated indentation
-//
-//        return indentation;
     }
 
     private IStrategoTerm findFirstPosition(IStrategoTerm t) {
