@@ -58,7 +58,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import mb.flowspec.runtime.solver.ParseException;
-import mb.flowspec.runtime.solver.TFFileInfo;
+import mb.flowspec.runtime.solver.StaticInfo;
 import mb.nabl2.constraints.messages.IMessageInfo;
 import mb.nabl2.solver.messages.IMessages;
 import mb.nabl2.solver.solvers.CallExternal;
@@ -77,7 +77,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     private static final String PP_STRATEGY = "pp-NaBL2-objlangterm";
-    static final String TRANSFER_FUNCTIONS_FILE = "target/metaborg/transfer-functions.aterm";
+    static final String FLOWSPEC_STATIC_INFO_FILE = "target/metaborg/flowspec-static-info.aterm";
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
@@ -87,7 +87,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected final ITermFactory termFactory;
     protected final StrategoTerms strategoTerms;
-    protected final Map<ILanguageComponent, TFFileInfo> flowSpecTransferFunctionCache = new HashMap<>();
+    protected final Map<ILanguageComponent, StaticInfo> flowSpecTransferFunctionCache = new HashMap<>();
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
             final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
@@ -186,18 +186,18 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
     }
 
-    protected Optional<TFFileInfo> getFlowSpecTransferFunctions(ILanguageComponent component) {
-        TFFileInfo transferFunctions = flowSpecTransferFunctionCache.get(component);
+    protected Optional<StaticInfo> getFlowSpecTransferFunctions(ILanguageComponent component) {
+        StaticInfo transferFunctions = flowSpecTransferFunctionCache.get(component);
         if (transferFunctions != null) {
             return Optional.of(transferFunctions);
         }
 
-        FileObject tfs = resourceService.resolve(component.location(), TRANSFER_FUNCTIONS_FILE);
+        FileObject tfs = resourceService.resolve(component.location(), FLOWSPEC_STATIC_INFO_FILE);
         try {
             IStrategoTerm sTerm = termFactory.parseFromString(
                             IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
             ITerm term = strategoTerms.fromStratego(sTerm);
-            transferFunctions = TFFileInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
+            transferFunctions = StaticInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
         } catch (ParseError | ParseException | IOException e) {
             logger.error("Could not read transfer functions file for {}", component);
             return Optional.empty();
@@ -207,10 +207,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return Optional.of(transferFunctions);
     }
 
-    protected TFFileInfo getFlowSpecTransferFunctions(ILanguageImpl impl) {
-        Optional<TFFileInfo> result = Optional.empty();
+    protected StaticInfo getFlowSpecTransferFunctions(ILanguageImpl impl) {
+        Optional<StaticInfo> result = Optional.empty();
         for (ILanguageComponent comp : impl.components()) {
-            Optional<TFFileInfo> tfs = getFlowSpecTransferFunctions(comp);
+            Optional<StaticInfo> tfs = getFlowSpecTransferFunctions(comp);
             if (tfs.isPresent()) {
                 if (!result.isPresent()) {
                     result = tfs;
@@ -221,7 +221,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         }
         if (!result.isPresent()) {
             logger.error("No flowspec transfer functions found for {}", impl);
-            return TFFileInfo.of();
+            return StaticInfo.of();
         }
         return result.get();
     }

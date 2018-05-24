@@ -321,7 +321,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
                 }
                 if (!sol.flowSpecSolution().controlFlowGraph().isEmpty()) {
                     logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
-                    sol= new FixedPoint().entryPoint(sol, getFlowSpecTransferFunctions(context.language()));
+                    sol= new FixedPoint().entryPoint(sol, getFlowSpecTransferFunctions(context.language()).transfers());
                 }
                 solution = sol;
                 context.setSolution(solution);

@@ -40,7 +40,8 @@ import com.google.inject.Inject;
 
 import mb.flowspec.runtime.solver.FixedPoint;
 import mb.flowspec.runtime.solver.ParseException;
-import mb.flowspec.runtime.solver.TFFileInfo;
+import mb.flowspec.runtime.solver.StaticInfo;
+import mb.flowspec.runtime.solver.TransferFunctionInfo;
 import mb.nabl2.config.NaBL2DebugConfig;
 import mb.nabl2.constraints.IConstraint;
 import mb.nabl2.constraints.messages.IMessageInfo;
@@ -180,10 +181,10 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
                 .toArray(l -> new ITerm[l]));
     }
 
-    protected TFFileInfo getFlowSpecTransferFunctions(ILanguageImpl impl, ITermFactory factory) {
-        Optional<TFFileInfo> result = Optional.empty();
+    protected TransferFunctionInfo getFlowSpecTransferFunctions(ILanguageImpl impl, ITermFactory factory) {
+        Optional<TransferFunctionInfo> result = Optional.empty();
         for (ILanguageComponent comp : impl.components()) {
-            Optional<TFFileInfo> tfs = getFlowSpecTransferFunctions(comp, factory);
+            Optional<TransferFunctionInfo> tfs = getFlowSpecTransferFunctions(comp, factory);
             if (tfs.isPresent()) {
                 if (!result.isPresent()) {
                     result = tfs;
@@ -193,26 +194,26 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
             }
         }
         if (!result.isPresent()) {
-            return TFFileInfo.of();
+            return TransferFunctionInfo.of();
         }
         return result.get();
     }
 
-    private Optional<TFFileInfo> getFlowSpecTransferFunctions(ILanguageComponent component, ITermFactory termFactory) {
-        TFFileInfo transferFunctions;
+    private Optional<TransferFunctionInfo> getFlowSpecTransferFunctions(ILanguageComponent component, ITermFactory termFactory) {
+        StaticInfo staticInfo;
         StrategoTerms strategoTerms = new StrategoTerms(termFactory);
         FileObject tfs = resourceService.resolve(component.location(),
-                AbstractConstraintAnalyzer.TRANSFER_FUNCTIONS_FILE);
+                AbstractConstraintAnalyzer.FLOWSPEC_STATIC_INFO_FILE);
         try {
             IStrategoTerm sTerm = termFactory
                     .parseFromString(IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
             ITerm term = strategoTerms.fromStratego(sTerm);
-            transferFunctions = TFFileInfo.match().match(term, PersistentUnifier.Immutable.of())
+            staticInfo = StaticInfo.match().match(term, PersistentUnifier.Immutable.of())
                     .orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
         } catch (ParseError | ParseException | IOException e) {
             return Optional.empty();
         }
-        return Optional.of(transferFunctions);
+        return Optional.of(staticInfo.transfers());
     }
 
     @Override
