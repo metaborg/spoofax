@@ -84,7 +84,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         if(!(config instanceof IConfig)) {
             withSdfVersion(config.sdfVersion());
             withSdf2tableVersion(config.sdf2tableVersion());
-            withDataDependent(config.dataDependent());
             withPrettyPrintLanguage(config.prettyPrintLanguage());
             withSdfMainFile(config.sdfMainFile());
             withPlaceholderPrefix(config.placeholderChars().prefix);

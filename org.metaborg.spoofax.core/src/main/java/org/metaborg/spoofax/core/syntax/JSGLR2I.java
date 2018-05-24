@@ -24,7 +24,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
 
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
-        @Nullable FileObject resource, String input, boolean dataDependent)
+        @Nullable FileObject resource, String input, boolean dataDependent, boolean layoutSensitive)
         throws IOException, ParseTableReadException {
         super(config, termFactory, language, dialect, resource, input);
 
@@ -33,6 +33,8 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
         if(dataDependent) {
             this.parser = JSGLR2.dataDependent(parseTable);
+        } else if(layoutSensitive) {
+            this.parser = JSGLR2.layoutSensitive(parseTable);
         } else {
             this.parser = JSGLR2.standard(parseTable);
         }
@@ -42,7 +44,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         if(parserConfig == null) {
             parserConfig = new JSGLRParserConfiguration();
         }
-        
+
         final String fileName = resource != null ? resource.getName().getURI() : null;
         String startSymbol = getOrDefaultStartSymbol(parserConfig);
 

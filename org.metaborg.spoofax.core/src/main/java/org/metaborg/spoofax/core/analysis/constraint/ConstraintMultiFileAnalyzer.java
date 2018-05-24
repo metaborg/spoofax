@@ -417,7 +417,7 @@ public class ConstraintMultiFileAnalyzer extends AbstractConstraintAnalyzer<IMul
 
         final ConstraintDebugData debugData = new ConstraintDebugData(totalTimer.stop(), collectionTimer.total(),
                 solverTimer.total(), finalizeTimer.total());
-        if(debugConfig.analysis()) {
+        if(debugConfig.timing()) {
             logger.info("{}", debugData);
         }
 

@@ -133,15 +133,6 @@ public interface ILanguageComponentConfigBuilder {
     ILanguageComponentConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion);
     
     /**
-     * Sets whether to use data dependent parsing.
-     *
-     * @param dataDependent
-     *            Whether to use data dependent parsing.
-     * @return This builder.
-     */
-    ILanguageComponentConfigBuilder withDataDependent(Boolean dataDependent);
-    
-    /**
      * Sets the JSGLR parser version.
      *
      * @param jsglrVersion

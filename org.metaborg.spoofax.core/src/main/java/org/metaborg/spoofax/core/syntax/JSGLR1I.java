@@ -112,13 +112,14 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         } else {
             disambiguator.setHeuristicFilters(false);
         }
-
+        
         String startSymbol = getOrDefaultStartSymbol(parserConfig);
         try {
             return parser.parse(text, filename, startSymbol);
         } catch(FilterException e) {
-            if(e.getCause() == null && disambiguator.getFilterPriorities()) {
+            if((e.getCause() == null || e.getCause() instanceof UnsupportedOperationException) && disambiguator.getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
+                disambiguator.setFilterAssociativity(false);
                 try {
                     return parser.parse(text, filename, startSymbol);
                 } finally {

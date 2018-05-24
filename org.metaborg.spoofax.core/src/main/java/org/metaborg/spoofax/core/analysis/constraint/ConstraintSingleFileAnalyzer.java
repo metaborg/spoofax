@@ -33,6 +33,8 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import org.metaborg.util.time.AggregateTimer;
+import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
@@ -98,6 +100,11 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                 final ISpoofaxParseUnit parseUnit = input.getValue();
                 final ITerm ast = strategoTerms.fromStratego(parseUnit.ast());
 
+                final Timer totalTimer = new Timer(true);
+                final AggregateTimer collectionTimer = new AggregateTimer();
+                final AggregateTimer solverTimer = new AggregateTimer();
+                final AggregateTimer finalizeTimer = new AggregateTimer();
+
                 if(debugConfig.files()) {
                     logger.info("Analyzing {}.", source);
                 }
@@ -108,7 +115,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                     // initial
                     InitialResult initialResult;
                     final Optional<ITerm> customInitial;
-                    {
+                    try {
+                        collectionTimer.start();
                         if(debugConfig.collection()) {
                             logger.info("Collecting initial constraints of {}.", source);
                         }
@@ -123,12 +131,15 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                             logger.info("Collected {} initial constraints of {}.",
                                     initialResult.getConstraints().size(), source);
                         }
+                    } finally {
+                        collectionTimer.stop();
                     }
 
                     // unit
                     UnitResult unitResult;
                     final Optional<ITerm> customUnit;
-                    {
+                    try {
+                        collectionTimer.start();
                         if(debugConfig.collection()) {
                             logger.info("Collecting constraints of {}.", source);
                         }
@@ -147,11 +158,14 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.collection()) {
                             logger.info("Collected {} constraints of {}.", unitResult.getConstraints().size(), source);
                         }
+                    } finally {
+                        collectionTimer.stop();
                     }
 
                     // solve
                     ISolution solution;
-                    {
+                    try {
+                        solverTimer.start();
                         Set<IConstraint> constraints =
                                 Sets.union(initialResult.getConstraints(), unitResult.getConstraints());
                         if(debugConfig.resolution()) {
@@ -167,20 +181,24 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         preSolution = solver.reportUnsolvedGraphConstraints(preSolution);
                         solution = solver.solve(preSolution, fresh, cancel, subprogress);
                         solution = solver.reportUnsolvedConstraints(solution);
-                        if (!solution.flowSpecSolution().controlFlowGraph().isEmpty()) {
+                        if(!solution.flowSpecSolution().controlFlowGraph().isEmpty()) {
                             logger.debug("CFG is not empty: calling FlowSpec dataflow solver");
-                            solution = new FixedPoint().entryPoint(solution, getFlowSpecTransferFunctions(context.language()).transfers());
+                            solution = new FixedPoint().entryPoint(solution, 
+                                    getFlowSpecTransferFunctions(context.language()).transfers());
                         }
                         unit.setSolution(solution);
                         if(debugConfig.resolution()) {
                             logger.info("Solved constraints of {}.", source);
                         }
+                    } finally {
+                        solverTimer.stop();
                     }
 
                     // final
                     FinalResult finalResult;
                     final Optional<ITerm> customFinal;
-                    {
+                    try {
+                        finalizeTimer.start();
                         if(debugConfig.files()) {
                             logger.info("Finalizing analysis of {}.", source);
                         }
@@ -197,6 +215,8 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         if(debugConfig.files()) {
                             logger.info("Finalized analysis of {}.", source);
                         }
+                    } finally {
+                        finalizeTimer.stop();
                     }
                     final IStrategoTerm analyzedAST = strategoTerms.toStratego(unitResult.getAST());
 
@@ -219,7 +239,7 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                         success = messages.getErrors().isEmpty();
 
                         Iterable<IMessage> fileMessages =
-                            Iterables.concat(analysisCommon.ambiguityMessages(parseUnit.source(), parseUnit.ast()),
+                                Iterables.concat(analysisCommon.ambiguityMessages(parseUnit.source(), parseUnit.ast()),
                                         messages(messages.getAll(), solution.unifier(), context, context.location()));
 
                         // result
@@ -238,6 +258,14 @@ public class ConstraintSingleFileAnalyzer extends AbstractConstraintAnalyzer<ISi
                             MessageFactory.newAnalysisErrorAtTop(parseUnit.source(), "File analysis failed.", e));
                     results.add(unitService.analyzeUnit(parseUnit,
                             new AnalyzeContrib(false, false, true, parseUnit.ast(), messages, -1), context));
+                } finally {
+                    totalTimer.stop();
+                }
+
+                final ConstraintDebugData debugData = new ConstraintDebugData(totalTimer.stop(),
+                        collectionTimer.total(), solverTimer.total(), finalizeTimer.total());
+                if(debugConfig.timing()) {
+                    logger.info("{}", debugData);
                 }
             }
         } catch(InterruptedException e) {
