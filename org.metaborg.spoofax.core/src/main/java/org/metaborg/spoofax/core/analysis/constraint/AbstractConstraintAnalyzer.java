@@ -186,10 +186,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
     }
 
-    protected Optional<StaticInfo> getFlowSpecTransferFunctions(ILanguageComponent component) {
-        StaticInfo transferFunctions = flowSpecTransferFunctionCache.get(component);
-        if (transferFunctions != null) {
-            return Optional.of(transferFunctions);
+    protected Optional<StaticInfo> getFlowSpecStaticInfo(ILanguageComponent component) {
+        StaticInfo staticInfo = flowSpecTransferFunctionCache.get(component);
+        if (staticInfo != null) {
+            return Optional.of(staticInfo);
         }
 
         FileObject tfs = resourceService.resolve(component.location(), FLOWSPEC_STATIC_INFO_FILE);
@@ -197,25 +197,25 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             IStrategoTerm sTerm = termFactory.parseFromString(
                             IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
             ITerm term = strategoTerms.fromStratego(sTerm);
-            transferFunctions = StaticInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
+            staticInfo = StaticInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
         } catch (ParseError | ParseException | IOException e) {
             logger.error("Could not read transfer functions file for {}", component);
             return Optional.empty();
         }
         logger.debug("Caching flowspec transfer functions for language {}", component);
-        flowSpecTransferFunctionCache.put(component, transferFunctions);
-        return Optional.of(transferFunctions);
+        flowSpecTransferFunctionCache.put(component, staticInfo);
+        return Optional.of(staticInfo);
     }
 
-    protected StaticInfo getFlowSpecTransferFunctions(ILanguageImpl impl) {
+    protected StaticInfo getFlowSpecStaticInfo(ILanguageImpl impl) {
         Optional<StaticInfo> result = Optional.empty();
         for (ILanguageComponent comp : impl.components()) {
-            Optional<StaticInfo> tfs = getFlowSpecTransferFunctions(comp);
-            if (tfs.isPresent()) {
+            Optional<StaticInfo> sfi = getFlowSpecStaticInfo(comp);
+            if (sfi.isPresent()) {
                 if (!result.isPresent()) {
-                    result = tfs;
+                    result = sfi;
                 } else {
-                    result = Optional.of(result.get().addAll(tfs.get()));
+                    result = Optional.of(result.get().addAll(sfi.get()));
                 }
             }
         }

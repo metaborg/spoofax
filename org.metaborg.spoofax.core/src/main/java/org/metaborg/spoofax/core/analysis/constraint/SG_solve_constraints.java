@@ -41,7 +41,6 @@ import com.google.inject.Inject;
 import mb.flowspec.runtime.solver.FixedPoint;
 import mb.flowspec.runtime.solver.ParseException;
 import mb.flowspec.runtime.solver.StaticInfo;
-import mb.flowspec.runtime.solver.TransferFunctionInfo;
 import mb.nabl2.config.NaBL2DebugConfig;
 import mb.nabl2.constraints.IConstraint;
 import mb.nabl2.constraints.messages.IMessageInfo;
@@ -135,7 +134,7 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
                 solution = solver.reportUnsolvedConstraints(solution);
                 if (!solution.flowSpecSolution().controlFlowGraph().isEmpty()) {
                     solution = new FixedPoint().entryPoint(solution,
-                            getFlowSpecTransferFunctions(context.language(), factory));
+                            getStaticFileInfo(context.language(), factory));
                 }
                 unit.setSolution(solution);
             }
@@ -181,25 +180,25 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
                 .toArray(l -> new ITerm[l]));
     }
 
-    protected TransferFunctionInfo getFlowSpecTransferFunctions(ILanguageImpl impl, ITermFactory factory) {
-        Optional<TransferFunctionInfo> result = Optional.empty();
+    protected StaticInfo getStaticFileInfo(ILanguageImpl impl, ITermFactory factory) {
+        Optional<StaticInfo> result = Optional.empty();
         for (ILanguageComponent comp : impl.components()) {
-            Optional<TransferFunctionInfo> tfs = getFlowSpecTransferFunctions(comp, factory);
-            if (tfs.isPresent()) {
+            Optional<StaticInfo> sfi = getStaticFileInfo(comp, factory);
+            if (sfi.isPresent()) {
                 if (!result.isPresent()) {
-                    result = tfs;
+                    result = sfi;
                 } else {
-                    result = Optional.of(result.get().addAll(tfs.get()));
+                    result = Optional.of(result.get().addAll(sfi.get()));
                 }
             }
         }
         if (!result.isPresent()) {
-            return TransferFunctionInfo.of();
+            return StaticInfo.of();
         }
         return result.get();
     }
 
-    private Optional<TransferFunctionInfo> getFlowSpecTransferFunctions(ILanguageComponent component, ITermFactory termFactory) {
+    private Optional<StaticInfo> getStaticFileInfo(ILanguageComponent component, ITermFactory termFactory) {
         StaticInfo staticInfo;
         StrategoTerms strategoTerms = new StrategoTerms(termFactory);
         FileObject tfs = resourceService.resolve(component.location(),
@@ -211,9 +210,12 @@ public class SG_solve_constraints extends ASpoofaxPrimitive {
             staticInfo = StaticInfo.match().match(term, PersistentUnifier.Immutable.of())
                     .orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
         } catch (ParseError | ParseException | IOException e) {
+            logger.warn("Exception during parsing of static info file: " + e.getMessage());
+            return Optional.empty();
+        } catch (NullPointerException e) {
             return Optional.empty();
         }
-        return Optional.of(staticInfo.transfers());
+        return Optional.of(staticInfo);
     }
 
     @Override
