@@ -160,16 +160,14 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
     }
 
-    @Override
-    public void invalidateCache(ILanguageComponent component) {
+    @Override public void invalidateCache(ILanguageComponent component) {
         logger.debug("Removing cached flowspec transfer functions for {}", component);
         flowSpecTransferFunctionCache.remove(component);
     }
 
-    @Override
-    public void invalidateCache(ILanguageImpl impl) {
+    @Override public void invalidateCache(ILanguageImpl impl) {
         logger.debug("Removing cached flowspec transfer functions for {}", impl);
-        for (ILanguageComponent component : impl.components()) {
+        for(ILanguageComponent component : impl.components()) {
             flowSpecTransferFunctionCache.remove(component);
         }
     }
@@ -188,17 +186,18 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected Optional<TFFileInfo> getFlowSpecTransferFunctions(ILanguageComponent component) {
         TFFileInfo transferFunctions = flowSpecTransferFunctionCache.get(component);
-        if (transferFunctions != null) {
+        if(transferFunctions != null) {
             return Optional.of(transferFunctions);
         }
 
         FileObject tfs = resourceService.resolve(component.location(), TRANSFER_FUNCTIONS_FILE);
         try {
-            IStrategoTerm sTerm = termFactory.parseFromString(
-                            IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
+            IStrategoTerm sTerm = termFactory
+                    .parseFromString(IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
             ITerm term = strategoTerms.fromStratego(sTerm);
-            transferFunctions = TFFileInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
-        } catch (ParseError | ParseException | IOException e) {
+            transferFunctions = TFFileInfo.match().match(term, PersistentUnifier.Immutable.of())
+                    .orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
+        } catch(ParseError | ParseException | IOException e) {
             logger.error("Could not read transfer functions file for {}", component);
             return Optional.empty();
         }
@@ -209,17 +208,17 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected TFFileInfo getFlowSpecTransferFunctions(ILanguageImpl impl) {
         Optional<TFFileInfo> result = Optional.empty();
-        for (ILanguageComponent comp : impl.components()) {
+        for(ILanguageComponent comp : impl.components()) {
             Optional<TFFileInfo> tfs = getFlowSpecTransferFunctions(comp);
-            if (tfs.isPresent()) {
-                if (!result.isPresent()) {
+            if(tfs.isPresent()) {
+                if(!result.isPresent()) {
                     result = tfs;
                 } else {
                     result = Optional.of(result.get().addAll(tfs.get()));
                 }
             }
         }
-        if (!result.isPresent()) {
+        if(!result.isPresent()) {
             logger.error("No flowspec transfer functions found for {}", impl);
             return TFFileInfo.of();
         }
@@ -260,8 +259,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected CallExternal callExternal(HybridInterpreter runtime) {
         return (name, args) -> {
-            final IStrategoTerm[] sargs = Iterables2.stream(args).map(strategoTerms::toStratego)
-                    .collect(Collectors.toList()).toArray(new IStrategoTerm[0]);
+            final IStrategoTerm[] sargs = Iterables2.stream(args).map(ConstraintTerms::explicate)
+                    .map(strategoTerms::toStratego).collect(Collectors.toList()).toArray(new IStrategoTerm[0]);
             final IStrategoTerm sarg = sargs.length == 1 ? sargs[0] : termFactory.makeTuple(sargs);
             try {
                 final IStrategoTerm sresult = strategoCommon.invoke(runtime, sarg, name);
