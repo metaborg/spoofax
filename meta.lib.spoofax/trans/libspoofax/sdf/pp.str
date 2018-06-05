@@ -13,12 +13,15 @@ signature constructors
   Parenthetical : Unknown -> Unknown
 
   // signatures for layout constraints
-  Offside    : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
-  Indent     : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
-  Align      : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
-  PosRef     : NatCon -> ConstraintTreeReference
-  LiteralRef : StrCon -> ConstraintTreeReference
-  LabelRef   : IdCon -> ConstraintTreeReference
+  Offside         : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  Indent          : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  NewLineIndent   : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  NewLineIndentBy : NatCon * ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  Align           : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  Align           : ConstraintTreeReference -> ShortConstraint
+  PosRef          : NatCon -> ConstraintTreeReference
+  LiteralRef      : StrCon -> ConstraintTreeReference
+  LabelRef        : IdCon -> ConstraintTreeReference
 
 strategies
 

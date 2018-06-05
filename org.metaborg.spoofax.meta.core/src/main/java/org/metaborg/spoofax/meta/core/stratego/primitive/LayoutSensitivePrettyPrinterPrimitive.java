@@ -35,14 +35,19 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private ITermFactory tf;
 
+    private boolean foundOffside;
+
     @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
         IStrategoAppl topmostBox = (IStrategoAppl) env.current(); // Should be V([], box)
         tf = env.getFactory();
+
+
 
         /*
          * For an offside box which has more characters in the same line where it ends move the remaining characters to
          * a new line
          */
+        foundOffside = false;
         IStrategoTerm newTopMostBox = isolateOffsideBoxes(topmostBox);
 
 
@@ -58,14 +63,14 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         Multimap<Integer, IStrategoTerm> line2Box = HashMultimap.create();
         createMappingLine2Box(t, line2Box);
 
-        // TODO
-        // done: create a map of line -> box
+        // create a map of line -> box
         // for all offside boxes, check if there is a box that starts in the same line in a column higher
-        // if so, add a newline to the offside box
+        // if so, add a newline to the next string box after the offside box
 
+        IStrategoTerm positionWithLayout = getPositionWithLayout(t);
         IStrategoTerm newBox = checkOffsideBoxes(t, line2Box);
 
-        return updateColumnBoxes(newBox, getPositionWithLayout(t));
+        return updateColumnBoxes(newBox, positionWithLayout);
     }
 
 
@@ -100,7 +105,30 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     private IStrategoTerm checkOffsideBoxes(IStrategoTerm t, Multimap<Integer, IStrategoTerm> line2Box) {
 
         IStrategoTerm result = t;
-        boolean hasFollowingBox = false;
+
+        IStrategoTerm[] subTerms = new IStrategoTerm[result.getSubtermCount()];
+
+        if(t instanceof IStrategoAppl) {
+            String constructorName = ((IStrategoAppl) t).getConstructor().getName();
+            if(constructorName.equals("S") && foundOffside) {
+                String value = ((IStrategoString) t.getSubterm(0)).stringValue();
+                if(!value.trim().isEmpty()) {
+                    foundOffside = false;
+                    return tf.makeAppl(tf.makeConstructor("Z", 2), tf.makeList(),
+                        tf.makeList(tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString("")), result));
+                }
+            } else if(foundOffside
+                && (constructorName.equals("H") || constructorName.equals("V") || constructorName.equals("Z"))) {
+                foundOffside = false;
+                return tf.makeAppl(tf.makeConstructor("Z", 2), tf.makeList(), tf.makeList(
+                    tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString("")), checkOffsideBoxes(result, line2Box)));
+
+            }
+        }
+
+        for(int i = 0; i < result.getSubtermCount(); i++) {
+            subTerms[i] = checkOffsideBoxes(result.getSubterm(i), line2Box);
+        }
 
         if(t instanceof IStrategoAppl) {
             String constructorName = ((IStrategoAppl) t).getConstructor().getName();
@@ -116,7 +144,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                             && ((IStrategoAppl) anno).getConstructor().getName().equals("Offside")
                             && anno.getSubterm(1).getSubtermCount() != 0) {
                             if(hasFollowingBox(result, line2Box)) {
-                                hasFollowingBox = true;
+                                foundOffside = true;
                             }
                         }
 
@@ -129,30 +157,15 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         && ((IStrategoAppl) anno).getConstructor().getName().equals("Offside")
                         && anno.getSubterm(1).getSubtermCount() == 0) {
                         if(hasFollowingBox(result, line2Box)) {
-                            hasFollowingBox = true;
+                            foundOffside = true;
                         }
                     }
                 }
-
             }
         }
-
-        IStrategoTerm[] subTerms = new IStrategoTerm[result.getSubtermCount()];
-
-        for(int i = 0; i < result.getSubtermCount(); i++) {
-            subTerms[i] = checkOffsideBoxes(result.getSubterm(i), line2Box);
-        }
-
 
         if(result instanceof IStrategoAppl) {
             result = annotateTerm(tf.makeAppl(((IStrategoAppl) result).getConstructor(), subTerms), t.getAnnotations());
-            if(hasFollowingBox) {
-                // result = Z([], [result, S("")]
-                result = tf.makeAppl(tf.makeConstructor("Z", 2), tf.makeList(),
-                    tf.makeList(result, annotateTerm(tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString("")),
-                        tf.makeList(tf.makeAppl(tf.makeConstructor("Position", 2), tf.makeInt(0), tf.makeInt(0))))));
-
-            }
         } else if(result instanceof IStrategoList) {
             result = annotateTerm(tf.makeList(subTerms), t.getAnnotations());
         }
@@ -212,7 +225,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
                         // Align(_, [_ | _])
                         if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("Align")
-                            && t.getSubterm(1).getSubtermCount() != 0) {
+                            && t.getSubtermCount() == 2) {
                             System.out.println("Applying constraint " + t);
                             newBoxes = applyAlignConstraint(newBoxes, t);
                             result = annotateTerm(
@@ -230,6 +243,26 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                             result = annotateTerm(
                                 tf.makeAppl(((IStrategoAppl) term).getConstructor(), term.getSubterm(0), newBoxes),
                                 term.getAnnotations());
+                            result = updateColumnBoxes(result, getPositionWithLayout(result));
+                            newBoxes = result.getSubterm(1);
+                        }
+
+                        // NewLineIndent(_, [_ | _])
+                        if(t instanceof IStrategoAppl
+                            && ((IStrategoAppl) t).getConstructor().getName().equals("NewLineIndent")
+                            && t.getSubterm(1).getSubtermCount() != 0) {
+                            System.out.println("Applying constraint " + t);
+                            result = applyNewLineIndentConstraint(result, t, 1);
+                            result = updateColumnBoxes(result, getPositionWithLayout(result));
+                            newBoxes = result.getSubterm(1);
+                        }
+
+                        // NewLineIndentBy(_, _, [_ | _])
+                        if(t instanceof IStrategoAppl
+                            && ((IStrategoAppl) t).getConstructor().getName().equals("NewLineIndentBy")) {
+                            System.out.println("Applying constraint " + t);
+                            result =
+                                applyNewLineIndentConstraint(result, t, ((IStrategoInt) t.getSubterm(0)).intValue());
                             result = updateColumnBoxes(result, getPositionWithLayout(result));
                             newBoxes = result.getSubterm(1);
                         }
@@ -253,9 +286,9 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
             if(constructorName.equals("V")) {
                 for(IStrategoTerm t : term.getAnnotations()) {
-                    // Align(_, [])
+                    // Align(_)
                     if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("Align")
-                        && t.getSubterm(1).getSubtermCount() == 0) {
+                        && t.getSubtermCount() == 1) {
                         System.out.println("Applying constraint " + t);
                         IStrategoTerm newBoxes = applyAlignListConstraint(result.getSubterm(1));
                         result = annotateTerm(
@@ -331,6 +364,69 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         } else {
             return t;
         }
+    }
+
+
+    private IStrategoTerm applyNewLineIndentConstraint(IStrategoTerm t, IStrategoTerm constraint, int size) {
+        IStrategoTerm ref, targ;
+        if(((IStrategoAppl) constraint).getConstructor().getName().equals("NewLineIndentBy")) {
+            ref = constraint.getSubterm(1);
+            targ = constraint.getSubterm(2).getSubterm(0);
+        } else {
+            ref = constraint.getSubterm(0);
+            targ = constraint.getSubterm(1).getSubterm(0);
+        }
+
+        IStrategoTerm posRef = getPositionRef(t.getSubterm(1), ref, true);
+        IStrategoTerm termTarg = getTermFromSelector(t.getSubterm(1), targ, true);
+
+        IStrategoTerm posTarg = getPosition(termTarg);
+
+        int lineRef = ((IStrategoInt) posRef.getSubterm(0)).intValue();
+        int lineTarg = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
+
+        // if target term is not in a line greater than the reference term
+        if(lineRef >= lineTarg) {
+            t = moveToNextLine(t, termTarg);
+            t = updateColumnBoxes(t, getPositionWithLayout(t));
+            termTarg = getTermFromSelector(t.getSubterm(1), targ, true);
+            posTarg = getPosition(termTarg);
+        }
+
+        // if not in a column further already, align it with a column higher than posRef
+        int colRef = ((IStrategoInt) posRef.getSubterm(1)).intValue();
+        int colTarg = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
+
+        if(colTarg <= colRef) {
+            return applyAlignConstraintToSelector(t, shiftColumn(posRef, size), termTarg);
+        } else {
+            return t;
+        }
+    }
+
+
+    private IStrategoTerm moveToNextLine(IStrategoTerm t, IStrategoTerm termTarg) {
+        if(t.equals(termTarg)) {
+            // wrap in Z box to jump to next line
+            // Z([], [S(""), t])
+            IStrategoTerm emptyBox = tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString(""));
+            return tf.makeAppl(tf.makeConstructor("Z", 2), tf.makeList(), tf.makeList(emptyBox, t));
+        }
+
+        IStrategoTerm[] subTerms = new IStrategoTerm[t.getSubtermCount()];
+
+        for(int i = 0; i < t.getSubtermCount(); i++) {
+            subTerms[i] = moveToNextLine(t.getSubterm(i), termTarg);
+        }
+
+        if(t instanceof IStrategoAppl) {
+            return tf.copyAttachments(t,
+                tf.makeAppl(((IStrategoAppl) t).getConstructor(), subTerms, t.getAnnotations()));
+        } else if(t instanceof IStrategoList) {
+            return tf.copyAttachments(t, tf.makeList(subTerms, t.getAnnotations()));
+        }
+
+        return t;
     }
 
 
@@ -726,9 +822,6 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             if(((IStrategoAppl) t).getConstructor().getName().equals("Z")) {
                 return updateVerticalZListOfBoxes(t, head, tail, position);
             }
-
-
-
         }
 
         return null;
