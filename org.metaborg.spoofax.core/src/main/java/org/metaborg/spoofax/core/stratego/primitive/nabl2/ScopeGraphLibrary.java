@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.stratego.primitive;
+package org.metaborg.spoofax.core.stratego.primitive.nabl2;
 
 import java.util.Set;
 
