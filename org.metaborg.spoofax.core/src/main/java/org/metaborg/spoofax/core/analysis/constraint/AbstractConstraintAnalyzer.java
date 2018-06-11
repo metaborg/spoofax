@@ -160,16 +160,14 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
         return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
     }
 
-    @Override
-    public void invalidateCache(ILanguageComponent component) {
+    @Override public void invalidateCache(ILanguageComponent component) {
         logger.debug("Removing cached flowspec transfer functions for {}", component);
         flowSpecTransferFunctionCache.remove(component);
     }
 
-    @Override
-    public void invalidateCache(ILanguageImpl impl) {
+    @Override public void invalidateCache(ILanguageImpl impl) {
         logger.debug("Removing cached flowspec transfer functions for {}", impl);
-        for (ILanguageComponent component : impl.components()) {
+        for(ILanguageComponent component : impl.components()) {
             flowSpecTransferFunctionCache.remove(component);
         }
     }
@@ -194,8 +192,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
         FileObject tfs = resourceService.resolve(component.location(), FLOWSPEC_STATIC_INFO_FILE);
         try {
-            IStrategoTerm sTerm = termFactory.parseFromString(
-                            IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
+            IStrategoTerm sTerm = termFactory
+                    .parseFromString(IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
             ITerm term = strategoTerms.fromStratego(sTerm);
             staticInfo = StaticInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
         } catch (ParseError | ParseException | IOException e) {
@@ -260,8 +258,8 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
 
     protected CallExternal callExternal(HybridInterpreter runtime) {
         return (name, args) -> {
-            final IStrategoTerm[] sargs = Iterables2.stream(args).map(strategoTerms::toStratego)
-                    .collect(Collectors.toList()).toArray(new IStrategoTerm[0]);
+            final IStrategoTerm[] sargs = Iterables2.stream(args).map(ConstraintTerms::explicate)
+                    .map(strategoTerms::toStratego).collect(Collectors.toList()).toArray(new IStrategoTerm[0]);
             final IStrategoTerm sarg = sargs.length == 1 ? sargs[0] : termFactory.makeTuple(sargs);
             try {
                 final IStrategoTerm sresult = strategoCommon.invoke(runtime, sarg, name);
