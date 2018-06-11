@@ -199,10 +199,10 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             ITerm term = strategoTerms.fromStratego(sTerm);
             staticInfo = StaticInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
         } catch (ParseError | ParseException | IOException e) {
-            logger.error("Could not read transfer functions file for {}", component);
+            logger.error("Could not read FlowSpec static info file for {}. \nError: {}", component, e.getMessage());
             return Optional.empty();
         }
-        logger.debug("Caching flowspec transfer functions for language {}", component);
+        logger.debug("Caching FlowSpec static info for language {}", component);
         flowSpecTransferFunctionCache.put(component, staticInfo);
         return Optional.of(staticInfo);
     }
@@ -220,7 +220,7 @@ abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>
             }
         }
         if (!result.isPresent()) {
-            logger.error("No flowspec transfer functions found for {}", impl);
+            logger.error("No FlowSpec static info found for {}", impl);
             return StaticInfo.of();
         }
         return result.get();
