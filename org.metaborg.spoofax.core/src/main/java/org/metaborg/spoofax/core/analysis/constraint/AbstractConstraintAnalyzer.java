@@ -71,13 +71,13 @@ import mb.nabl2.terms.unification.IUnifier;
 import mb.nabl2.terms.unification.PersistentUnifier;
 import mb.nabl2.util.collections.IRelation3;
 
-abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>>
+public abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphContext<?>>
         implements ISpoofaxAnalyzer, ILanguageCache {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     private static final String PP_STRATEGY = "pp-NaBL2-objlangterm";
-    static final String FLOWSPEC_STATIC_INFO_FILE = "target/metaborg/flowspec-static-info.aterm";
+    public static final String FLOWSPEC_STATIC_INFO_FILE = "target/metaborg/flowspec-static-info.aterm";
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
