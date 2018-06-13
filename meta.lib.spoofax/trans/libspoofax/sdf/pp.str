@@ -54,6 +54,9 @@ strategies
     
   indent-Z-boxes(|is):
     s@S(_) -> s
+  
+  indent-Z-boxes(|is):
+    [] -> []
     
   indent-Z-boxes(|is):
     z@Z([], []) -> z
@@ -66,7 +69,7 @@ strategies
       
   indent-boxes-list(|is):   
     b{a*} -> H([SOpt(HS(), is)], [S(""), b'{a*}]) 
-    where
+    with
       b' := <indent-Z-boxes(|is)> b
 
   pp-H-list(pp)     = ?[] <+ !H([], <map(pp-one-Z(pp))>)
