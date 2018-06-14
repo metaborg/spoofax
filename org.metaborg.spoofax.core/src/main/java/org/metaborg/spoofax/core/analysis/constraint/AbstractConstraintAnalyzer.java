@@ -1,14 +1,20 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
-import org.apache.commons.vfs2.FileObject;
+import javax.annotation.Nullable;
+
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
@@ -27,15 +33,18 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.core.Tools;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
@@ -103,27 +112,42 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
-        final Set<ISpoofaxParseUnit> changed = Iterables2.stream(inputs)
-                .filter(i -> i.valid() && i.success() && !isEmptyAST(i.ast())).collect(Collectors.toSet());
-        final Set<ISpoofaxParseUnit> removed = Iterables2.stream(inputs)
-                .filter(i -> !i.valid() || !i.success() || isEmptyAST(i.ast())).collect(Collectors.toSet());
+        final Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
+        final Set<String> removed = Sets.newHashSet();
+        for(ISpoofaxParseUnit input : inputs) {
+            final String source =
+                    input.detached() ? "detached-" + UUID.randomUUID().toString() : context.resourceKey(input.source());
+            if(input.valid() && input.success() && !isEmptyAST(input.ast())) {
+                changed.put(source, input);
+            } else {
+                removed.add(source);
+            }
+        }
+
         return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
-    }
-
-    protected String resource(FileObject resource, IConstraintContext context) {
-        return ResourceUtils.relativeName(resource.getName(), context.location().getName(), true);
-    }
-
-    protected FileObject resource(String resource, IConstraintContext context) {
-        return resourceService.resolve(context.location(), resource);
     }
 
     private boolean isEmptyAST(IStrategoTerm ast) {
         return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
     }
 
-    protected abstract ISpoofaxAnalyzeResults analyzeAll(Set<ISpoofaxParseUnit> changed, Set<ISpoofaxParseUnit> removed,
+    protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
             IConstraintContext context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
             throws AnalysisException;
+
+    protected boolean success(Collection<IMessage> messages) {
+        return messages.stream().noneMatch(m -> m.severity().equals(MessageSeverity.ERROR));
+    }
+
+    protected IStrategoTerm build(String op, IStrategoTerm... subterms) {
+        return termFactory.makeAppl(termFactory.makeConstructor(op, subterms.length), subterms);
+    }
+
+    protected @Nullable List<IStrategoTerm> match(IStrategoTerm term, String op, int n) {
+        if(!Tools.isTermAppl(term) || !Tools.hasConstructor((IStrategoAppl) term, op, n)) {
+            return null;
+        }
+        return ImmutableList.copyOf(term.getAllSubterms());
+    }
 
 }

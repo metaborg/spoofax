@@ -11,7 +11,6 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Injector;
 
@@ -30,20 +29,60 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.mode();
     }
 
-    public boolean put(String resource, IStrategoTerm value) {
-        return context.put(resource, value);
+    public void setInitial(InitialResult value) {
+        context.setInitial(value);
     }
 
-    public boolean remove(String resource) {
-        return context.remove(resource);
+    public boolean hasInitial() {
+        return context.hasInitial();
     }
 
-    public Set<Entry<String, IStrategoTerm>> entrySet() {
+    public InitialResult getInitial() {
+        return context.getInitial();
+    }
+
+    public void setFinal(FinalResult value) {
+        context.setFinal(value);
+    }
+
+    public boolean hasFinal() {
+        return context.hasFinal();
+    }
+
+    public FinalResult getFinal() {
+        return context.getFinal();
+    }
+
+    public boolean contains(String key) {
+        return context.contains(key);
+    }
+
+    public boolean put(String key, FileResult value) {
+        return context.put(key, value);
+    }
+
+    public FileResult get(String key) {
+        return context.get(key);
+    }
+
+    public boolean remove(String key) {
+        return context.remove(key);
+    }
+
+    public Set<Entry<String, FileResult>> entrySet() {
         return context.entrySet();
     }
 
     public void clear() {
         context.clear();
+    }
+
+    public FileObject keyResource(String key) throws IOException {
+        return context.keyResource(key);
+    }
+
+    public String resourceKey(FileObject resource) {
+        return context.resourceKey(resource);
     }
 
     // -------------------------------------

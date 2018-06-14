@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -23,7 +26,6 @@ import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
@@ -38,7 +40,7 @@ public class ConstraintContext implements IConstraintContext {
     private final Injector injector;
     private final ReadWriteLock lock;
 
-    private Map<String, IStrategoTerm> state = null;
+    private State state = null;
 
     public ConstraintContext(Mode mode, Injector injector, ContextIdentifier identifier) {
         this.mode = mode;
@@ -48,26 +50,62 @@ public class ConstraintContext implements IConstraintContext {
         this.lock = new ReentrantReadWriteLock(true);
     }
 
-    // ----------------------------------------------------------
-
     public Mode mode() {
         return mode;
     }
 
-    @Override public boolean put(String resource, IStrategoTerm value) {
-        return state.put(resource, value) != null;
+    // ----------------------------------------------------------
+
+    public boolean hasInitial() {
+        return state.initialResult != null;
+    }
+
+    public InitialResult getInitial() {
+        return state.initialResult;
+    }
+
+    public void setInitial(InitialResult value) {
+        state.initialResult = value;
+    }
+
+    // ----------------------------------------------------------
+
+    public boolean hasFinal() {
+        return state.finalResult != null;
+    }
+
+    public FinalResult getFinal() {
+        return state.finalResult;
+    }
+
+    public void setFinal(FinalResult value) {
+        state.finalResult = value;
+    }
+
+    // ----------------------------------------------------------
+
+    @Override public boolean contains(String key) {
+        return state.unitResults.containsKey(key);
+    }
+
+    @Override public boolean put(String resource, FileResult value) {
+        return state.unitResults.put(resource, value) != null;
+    }
+
+    @Override public FileResult get(String key) {
+        return state.unitResults.get(key);
     }
 
     @Override public boolean remove(String resource) {
-        return state.remove(resource) != null;
+        return state.unitResults.remove(resource) != null;
     }
 
-    @Override public Set<Entry<String, IStrategoTerm>> entrySet() {
-        return state.entrySet();
+    @Override public Set<Entry<String, FileResult>> entrySet() {
+        return state.unitResults.entrySet();
     }
 
     @Override public void clear() {
-        state.clear();
+        state.unitResults.clear();
     }
 
     // ----------------------------------------------------------
@@ -174,7 +212,7 @@ public class ConstraintContext implements IConstraintContext {
         }
     }
 
-    private Map<String, IStrategoTerm> loadOrInitState() {
+    private State loadOrInitState() {
         try {
             final FileObject contextFile = contextFile();
             try {
@@ -191,8 +229,8 @@ public class ConstraintContext implements IConstraintContext {
         return initState();
     }
 
-    private Map<String, IStrategoTerm> initState() {
-        return Maps.newHashMap();
+    private State initState() {
+        return new State();
     }
 
     private FileObject contextFile() throws FileSystemException {
@@ -200,12 +238,11 @@ public class ConstraintContext implements IConstraintContext {
         return paths.targetDir().resolveFile("analysis").resolveFile(persistentIdentifier).resolveFile("constraint");
     }
 
-    @SuppressWarnings("unchecked") private Map<String, IStrategoTerm> readContext(FileObject file)
-            throws IOException, ClassNotFoundException, ClassCastException {
+    private State readContext(FileObject file) throws IOException, ClassNotFoundException, ClassCastException {
         try(ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
-            Map<String, IStrategoTerm> fileState;
+            State fileState;
             try {
-                fileState = (Map<String, IStrategoTerm>) ois.readObject();
+                fileState = (State) ois.readObject();
             } catch(NotSerializableException ex) {
                 logger.error("Context could not be persisted.", ex);
                 fileState = initState();
@@ -275,14 +312,26 @@ public class ConstraintContext implements IConstraintContext {
         return String.format("Constraint context for %s, %s", identifier.location, identifier.language);
     }
 
-    private String normalizeResource(String resource) {
-        try {
-            resource =
-                    ResourceUtils.relativeName(location().resolveFile(resource).getName(), location().getName(), true);
-        } catch(FileSystemException e) {
-            logger.warn("Failed to resolve {} in context {}. Lookup of unit results might fail.", resource, location());
+    @Override public FileObject keyResource(String key) throws IOException {
+        return location().resolveFile(key);
+    }
+
+    @Override public String resourceKey(FileObject resource) {
+        return ResourceUtils.relativeName(resource.getName(), location().getName(), true);
+    }
+
+    private static class State implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        public @Nullable InitialResult initialResult;
+        public final Map<String, FileResult> unitResults;
+        public @Nullable FinalResult finalResult;
+
+        public State() {
+            this.unitResults = Maps.newHashMap();
         }
-        return resource;
+
     }
 
 }

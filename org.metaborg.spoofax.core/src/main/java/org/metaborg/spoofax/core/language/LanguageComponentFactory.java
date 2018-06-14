@@ -36,8 +36,8 @@ import org.metaborg.spoofax.core.action.ActionFacetFromESV;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
-import org.metaborg.spoofax.core.analysis.constraint.ConstraintMultiFileAnalyzer;
-import org.metaborg.spoofax.core.analysis.constraint.ConstraintSingleFileAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.MultiFileConstraintAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.SingleFileConstraintAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.scopegraph.ScopeGraphMultiFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.scopegraph.ScopeGraphSingleFileAnalyzer;
@@ -352,10 +352,10 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                         case ScopeGraphMultiFileAnalyzer.name:
                             analysisContextType = MultiFileScopeGraphContextFactory.name;
                             break;
-                        case ConstraintSingleFileAnalyzer.name:
+                        case SingleFileConstraintAnalyzer.name:
                             analysisContextType = SingleFileConstraintContextFactory.name;
                             break;
-                        case ConstraintMultiFileAnalyzer.name:
+                        case MultiFileConstraintAnalyzer.name:
                             analysisContextType = MultiFileConstraintContextFactory.name;
                             break;
                     }
