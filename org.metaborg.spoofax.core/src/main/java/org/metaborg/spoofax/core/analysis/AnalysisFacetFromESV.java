@@ -4,9 +4,9 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.analysis.constraint.ConstraintMultiFileAnalyzer;
-import org.metaborg.spoofax.core.analysis.constraint.ConstraintSingleFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
+import org.metaborg.spoofax.core.analysis.scopegraph.ScopeGraphMultiFileAnalyzer;
+import org.metaborg.spoofax.core.analysis.scopegraph.ScopeGraphSingleFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.core.Tools;
@@ -49,7 +49,7 @@ public class AnalysisFacetFromESV {
             constraint |= Tools.hasConstructor((IStrategoAppl) annotation, "Constraint", 0);
         }
         if(constraint) {
-            return multifile ? ConstraintMultiFileAnalyzer.name : ConstraintSingleFileAnalyzer.name;
+            return multifile ? ScopeGraphMultiFileAnalyzer.name : ScopeGraphSingleFileAnalyzer.name;
         } else if(multifile) {
             return TaskEngineAnalyzer.name;
         }

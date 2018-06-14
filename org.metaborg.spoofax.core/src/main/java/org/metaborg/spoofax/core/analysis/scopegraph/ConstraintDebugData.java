@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.analysis.constraint;
+package org.metaborg.spoofax.core.analysis.scopegraph;
 
 import java.time.Duration;
 
