@@ -77,8 +77,11 @@ public class FS_solve extends AbstractPrimitive {
             return Optional.of(StaticInfo.match()
                     .match(term, PersistentUnifier.Immutable.of())
                     .orElseThrow(() -> new ParseException("Parse error on reading the transfer function file")));
-        } catch (ParseError | ParseException | IOException e) {
-            logger.error("Could not read FlowSpec static info file for {}. \nError: {}", component, e.getMessage());
+        } catch (IOException e) {
+            logger.info("Could not read FlowSpec static info file for {}. \n{}", component, e.getMessage());
+            return Optional.empty();
+        } catch (ParseError | ParseException e) {
+            logger.warn("Could not parse FlowSpec static info file for {}. \nError: {}", component, e.getMessage());
             return Optional.empty();
         }
     }
