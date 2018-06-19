@@ -209,7 +209,7 @@ import mb.nabl2.spoofax.primitives.SG_get_visible_decls;
 import mb.nabl2.spoofax.primitives.SG_index_ast;
 import mb.nabl2.spoofax.primitives.SG_set_ast_index;
 import mb.nabl2.spoofax.primitives.SG_solve_constraint;
-import mb.statix.spoofax.STX_analyze;
+import mb.statix.spoofax.STX_solve_constraint;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -436,7 +436,7 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> statixLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));
-        bindPrimitive(statixLibrary, STX_analyze.class);
+        bindPrimitive(statixLibrary, STX_solve_constraint.class);
 
         final Multibinder<AbstractPrimitive> spoofaxFlowSpecLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(FlowSpecLibrary.name));
