@@ -1,5 +1,7 @@
 package org.metaborg.core.tracing;
 
+import javax.annotation.Nullable;
+
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
 
@@ -15,11 +17,25 @@ public class Resolution {
     /**
      * Resolution targets. Multiple targets indicate resolution to multiple valid locations.
      */
-    public final Iterable<ISourceLocation> targets;
+    public final Iterable<Resolution.Target> targets;
 
 
-    public Resolution(ISourceRegion highlight, Iterable<ISourceLocation> targets) {
+    public Resolution(ISourceRegion highlight, Iterable<Resolution.Target> targets) {
         this.highlight = highlight;
         this.targets = targets;
+    }
+
+    public static class Target {
+        public final @Nullable String hyperlinkName;
+        public final ISourceLocation location;
+
+        public Target(ISourceLocation location) {
+            this(null, location);
+        }
+
+        public Target(String hyperlinkName, ISourceLocation location) {
+            this.hyperlinkName = hyperlinkName;
+            this.location = location;
+        }
     }
 }
