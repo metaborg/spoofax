@@ -89,7 +89,6 @@ import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitive.AbsolutePathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.CallStrategyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.DigestPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.FlowSpecLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.GetSortNamePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.IsLanguageActivePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageComponentsPrimitive;
@@ -108,6 +107,8 @@ import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.StatixLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_analysis;
+import org.metaborg.spoofax.core.stratego.primitive.flowspec.FS_solve;
+import org.metaborg.spoofax.core.stratego.primitive.flowspec.FlowSpecLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.generic.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyForeignCallPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyLanguageIncludeFilesPrimitive;
@@ -211,7 +212,7 @@ import mb.nabl2.spoofax.primitives.SG_solve_constraint;
 import mb.nabl2.spoofax.primitives.SG_solve_final_constraint;
 import mb.nabl2.spoofax.primitives.SG_solve_initial_constraint;
 import mb.nabl2.spoofax.primitives.SG_solve_unit_constraint;
-import mb.statix.spoofax.STX_analyze;
+import mb.statix.spoofax.STX_solve_constraint;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -438,10 +439,11 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> statixLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));
-        bindPrimitive(statixLibrary, STX_analyze.class);
+        bindPrimitive(statixLibrary, STX_solve_constraint.class);
 
         final Multibinder<AbstractPrimitive> spoofaxFlowSpecLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(FlowSpecLibrary.name));
+        bindPrimitive(spoofaxFlowSpecLibrary, FS_solve.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_property_pre.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_property_post.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_show_control_flow_graph.class);
