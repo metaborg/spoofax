@@ -44,9 +44,9 @@ import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalysisService;
+import org.metaborg.spoofax.core.analysis.constraint.MultiFileConstraintAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.SingleFileConstraintAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
-import org.metaborg.spoofax.core.analysis.scopegraph.ScopeGraphMultiFileAnalyzer;
-import org.metaborg.spoofax.core.analysis.scopegraph.ScopeGraphSingleFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuildOutput;
@@ -62,8 +62,6 @@ import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContextFactory;
 import org.metaborg.spoofax.core.language.LanguageComponentFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
@@ -109,6 +107,7 @@ import org.metaborg.spoofax.core.stratego.primitive.RelativeSourceOrIncludePath;
 import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.StatixLibrary;
+import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.generic.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyForeignCallPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacyLanguageIncludeFilesPrimitive;
@@ -180,7 +179,6 @@ import mb.nabl2.spoofax.primitives.SG_debug_symbolic_constraints;
 import mb.nabl2.spoofax.primitives.SG_debug_unifier;
 import mb.nabl2.spoofax.primitives.SG_erase_ast_indices;
 import mb.nabl2.spoofax.primitives.SG_focus_term;
-import mb.nabl2.spoofax.primitives.SG_fresh;
 import mb.nabl2.spoofax.primitives.SG_get_all_decls;
 import mb.nabl2.spoofax.primitives.SG_get_all_refs;
 import mb.nabl2.spoofax.primitives.SG_get_all_scopes;
@@ -190,7 +188,6 @@ import mb.nabl2.spoofax.primitives.SG_get_ast_index;
 import mb.nabl2.spoofax.primitives.SG_get_ast_property;
 import mb.nabl2.spoofax.primitives.SG_get_ast_refs;
 import mb.nabl2.spoofax.primitives.SG_get_ast_resolution;
-import mb.nabl2.spoofax.primitives.SG_get_custom_analysis;
 import mb.nabl2.spoofax.primitives.SG_get_decl_property;
 import mb.nabl2.spoofax.primitives.SG_get_decl_scope;
 import mb.nabl2.spoofax.primitives.SG_get_direct_edges;
@@ -211,6 +208,9 @@ import mb.nabl2.spoofax.primitives.SG_get_visible_decls;
 import mb.nabl2.spoofax.primitives.SG_index_ast;
 import mb.nabl2.spoofax.primitives.SG_set_ast_index;
 import mb.nabl2.spoofax.primitives.SG_solve_constraint;
+import mb.nabl2.spoofax.primitives.SG_solve_final_constraint;
+import mb.nabl2.spoofax.primitives.SG_solve_initial_constraint;
+import mb.nabl2.spoofax.primitives.SG_solve_unit_constraint;
 import mb.statix.spoofax.STX_analyze;
 
 /**
@@ -305,8 +305,6 @@ public class SpoofaxModule extends MetaborgModule {
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
         binder.addBinding(SingleFileConstraintContextFactory.name).to(SingleFileConstraintContextFactory.class).in(Singleton.class);
         binder.addBinding(MultiFileConstraintContextFactory.name).to(MultiFileConstraintContextFactory.class).in(Singleton.class);
-        binder.addBinding(MultiFileScopeGraphContextFactory.name).to(MultiFileScopeGraphContextFactory.class).in(Singleton.class);
-        binder.addBinding(SingleFileScopeGraphContextFactory.name).to(SingleFileScopeGraphContextFactory.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {
@@ -393,6 +391,7 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(ScopeGraphLibrary.name));
+        bindPrimitive(spoofaxScopeGraphLibrary, C_get_resource_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_analysis_has_errors.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_name_resolution.class);
@@ -400,7 +399,6 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_symbolic_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_unifier.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_erase_ast_indices.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_fresh.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_focus_term.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_refs.class);
@@ -411,7 +409,6 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_property.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_refs.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_resolution.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_custom_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_decl_property.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_decl_scope.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_direct_edges_inv.class);
@@ -435,6 +432,9 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_resolution_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_constraint.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_initial_constraint.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_unit_constraint.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_final_constraint.class);
 
         final Multibinder<AbstractPrimitive> statixLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));
@@ -476,19 +476,19 @@ public class SpoofaxModule extends MetaborgModule {
         MapBinder<String, ISpoofaxAnalyzer> spoofaxAnalyzerBinder) {
         bind(StrategoAnalyzer.class).in(Singleton.class);
         bind(TaskEngineAnalyzer.class).in(Singleton.class);
-        bind(ScopeGraphSingleFileAnalyzer.class).in(Singleton.class);
-        bind(ScopeGraphMultiFileAnalyzer.class).in(Singleton.class);
+        bind(SingleFileConstraintAnalyzer.class).in(Singleton.class);
+        bind(MultiFileConstraintAnalyzer.class).in(Singleton.class);
 
         analyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
         spoofaxAnalyzerBinder.addBinding(StrategoAnalyzer.name).to(StrategoAnalyzer.class);
         analyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
         spoofaxAnalyzerBinder.addBinding(TaskEngineAnalyzer.name).to(TaskEngineAnalyzer.class);
-        analyzerBinder.addBinding(ScopeGraphSingleFileAnalyzer.name).to(ScopeGraphSingleFileAnalyzer.class);
-        spoofaxAnalyzerBinder.addBinding(ScopeGraphSingleFileAnalyzer.name).to(ScopeGraphSingleFileAnalyzer.class);
-        languageCacheBinder.addBinding().to(ScopeGraphSingleFileAnalyzer.class);
-        analyzerBinder.addBinding(ScopeGraphMultiFileAnalyzer.name).to(ScopeGraphMultiFileAnalyzer.class);
-        spoofaxAnalyzerBinder.addBinding(ScopeGraphMultiFileAnalyzer.name).to(ScopeGraphMultiFileAnalyzer.class);
-        languageCacheBinder.addBinding().to(ScopeGraphMultiFileAnalyzer.class);
+        analyzerBinder.addBinding(SingleFileConstraintAnalyzer.name).to(SingleFileConstraintAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(SingleFileConstraintAnalyzer.name).to(SingleFileConstraintAnalyzer.class);
+//        languageCacheBinder.addBinding().to(MultiFileConstraintAnalyzer.class);
+        analyzerBinder.addBinding(MultiFileConstraintAnalyzer.name).to(MultiFileConstraintAnalyzer.class);
+        spoofaxAnalyzerBinder.addBinding(MultiFileConstraintAnalyzer.name).to(MultiFileConstraintAnalyzer.class);
+//        languageCacheBinder.addBinding().to(MultiFileConstraintAnalyzer.class);
     }
 
     protected void bindAction() {

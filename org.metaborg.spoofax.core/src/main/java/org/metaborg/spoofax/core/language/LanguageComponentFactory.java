@@ -39,16 +39,12 @@ import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.constraint.MultiFileConstraintAnalyzer;
 import org.metaborg.spoofax.core.analysis.constraint.SingleFileConstraintAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
-import org.metaborg.spoofax.core.analysis.scopegraph.ScopeGraphMultiFileAnalyzer;
-import org.metaborg.spoofax.core.analysis.scopegraph.ScopeGraphSingleFileAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
@@ -345,12 +341,6 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                             break;
                         case TaskEngineAnalyzer.name:
                             analysisContextType = IndexTaskContextFactory.name;
-                            break;
-                        case ScopeGraphSingleFileAnalyzer.name:
-                            analysisContextType = SingleFileScopeGraphContextFactory.name;
-                            break;
-                        case ScopeGraphMultiFileAnalyzer.name:
-                            analysisContextType = MultiFileScopeGraphContextFactory.name;
                             break;
                         case SingleFileConstraintAnalyzer.name:
                             analysisContextType = SingleFileConstraintContextFactory.name;

@@ -2,7 +2,6 @@ package org.metaborg.spoofax.core.context;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -33,8 +32,6 @@ public class ContextFacetFromESV {
                 return LegacyContextFactory.name;
             case "TaskEngine":
                 return IndexTaskContextFactory.name;
-            case "ScopeGraph":
-                return SingleFileScopeGraphContextFactory.name;
         }
     }
 }

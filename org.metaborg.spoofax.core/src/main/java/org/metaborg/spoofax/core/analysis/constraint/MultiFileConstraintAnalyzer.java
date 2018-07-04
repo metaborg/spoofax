@@ -80,10 +80,10 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
         if(context.hasInitial()) {
             initialResult = context.getInitial();
         } else {
-            final IStrategoTerm action = build("AnalyzeMultiInitial", projectTerm);
+            final IStrategoTerm action = build("AnalyzeInitial", projectTerm);
             final List<IStrategoTerm> result;
             try {
-                result = match(strategoCommon.invoke(runtime, action, strategy), "MultiInitialResult", 1);
+                result = match(strategoCommon.invoke(runtime, action, strategy), "InitialResult", 1);
             } catch(MetaborgException ex) {
                 logger.error("Initial analysis of failed.", ex);
                 throw new AnalysisException(context, "Initial project analysis failed.", ex);
@@ -113,9 +113,9 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
                 }
 
                 // analyze single unit
-                final IStrategoTerm action = build("AnalyzeMultiUnit", sourceTerm, input.ast(), initialResult.analysis);
+                final IStrategoTerm action = build("AnalyzeUnit", sourceTerm, input.ast(), initialResult.analysis);
                 final List<IStrategoTerm> result =
-                        match(strategoCommon.invoke(runtime, action, strategy), "SingleResult", 5);
+                        match(strategoCommon.invoke(runtime, action, strategy), "UnitResult", 2);
                 if(result == null) {
                     logger.warn("Analysis of '" + source + "' failed.");
                     List<IMessage> messages = ImmutableList
@@ -150,10 +150,10 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
             final IStrategoList unitAnalyses = termFactory
                     .makeList(context.entrySet().stream().map(e -> e.getValue().analysis).collect(Collectors.toList()));
             final IStrategoTerm action =
-                    build("AnalyzeMultiInitial", projectTerm, initialResult.analysis, unitAnalyses);
+                    build("AnalyzeFinal", projectTerm, initialResult.analysis, unitAnalyses);
             final List<IStrategoTerm> result;
             try {
-                result = match(strategoCommon.invoke(runtime, action, strategy), "MultiFinalResult", 1);
+                result = match(strategoCommon.invoke(runtime, action, strategy), "FinalResult", 4);
             } catch(MetaborgException ex) {
                 logger.error("Initial analysis of failed.", ex);
                 throw new AnalysisException(context, "Initial project analysis failed.", ex);

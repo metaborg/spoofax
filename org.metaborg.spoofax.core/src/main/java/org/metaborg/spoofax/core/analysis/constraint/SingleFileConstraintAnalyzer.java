@@ -76,9 +76,9 @@ public class SingleFileConstraintAnalyzer extends AbstractConstraintAnalyzer imp
                 }
 
                 // analyze single unit
-                final IStrategoTerm action = build("AnalyzeSingleUnit", sourceTerm, input.ast());
+                final IStrategoTerm action = build("AnalyzeUnit", sourceTerm, input.ast());
                 final List<IStrategoTerm> unitResult =
-                        match(strategoCommon.invoke(runtime, action, strategy), "SingleUnitResult", 5);
+                        match(strategoCommon.invoke(runtime, action, strategy), "UnitResult", 5);
                 if(unitResult == null) {
                     logger.warn("Analysis of " + source + " failed.");
                     Iterable<IMessage> messages = Iterables2.singleton(
