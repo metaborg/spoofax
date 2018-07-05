@@ -11,6 +11,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Injector;
 
@@ -29,16 +30,16 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.mode();
     }
 
-    public boolean isRoot(String resource) {
-        return context.isRoot(resource);
-    }
-
     public boolean isRoot(FileObject resource) {
         return context.isRoot(resource);
     }
 
-    public String resourceKey(String resource) {
-        return context.resourceKey(resource);
+    public boolean hasAnalysis(FileObject resource) {
+        return context.hasAnalysis(resource);
+    }
+
+    public IStrategoTerm getAnalysis(FileObject resource) {
+        return context.getAnalysis(resource);
     }
 
     public String resourceKey(FileObject resource) {
@@ -73,32 +74,16 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.getFinal();
     }
 
-    public boolean hasUnit(String key) {
-        return context.hasUnit(key);
-    }
-
     public boolean hasUnit(FileObject resource) {
         return context.hasUnit(resource);
-    }
-
-    public boolean setUnit(String key, FileResult value) {
-        return context.setUnit(key, value);
     }
 
     public boolean setUnit(FileObject resource, FileResult value) {
         return context.setUnit(resource, value);
     }
 
-    public FileResult getUnit(String key) {
-        return context.getUnit(key);
-    }
-
     public FileResult getUnit(FileObject resource) {
         return context.getUnit(resource);
-    }
-
-    public boolean remove(String key) {
-        return context.remove(key);
     }
 
     public boolean remove(FileObject resource) {

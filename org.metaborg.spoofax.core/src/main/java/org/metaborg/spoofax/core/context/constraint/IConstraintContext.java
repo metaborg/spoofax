@@ -20,15 +20,36 @@ public interface IConstraintContext extends IContextInternal {
 
     Mode mode();
 
-    boolean isRoot(String resource);
+
+    default boolean isRoot(String resource) {
+        return isRoot(keyResource(resource));
+    }
 
     boolean isRoot(FileObject resource);
 
-    String resourceKey(String resource);
+
+    default boolean hasAnalysis(String resource) {
+        return hasAnalysis(keyResource(resource));
+    }
+
+    boolean hasAnalysis(FileObject resource);
+
+
+    default IStrategoTerm getAnalysis(String resource) {
+        return getAnalysis(keyResource(resource));
+    }
+
+    IStrategoTerm getAnalysis(FileObject resource);
+
+
+    default String resourceKey(String resource) {
+        return resourceKey(keyResource(resource));
+    }
 
     String resourceKey(FileObject resource);
 
     FileObject keyResource(String resource);
+
 
     // --- initial ---
 
@@ -38,6 +59,7 @@ public interface IConstraintContext extends IContextInternal {
 
     InitialResult getInitial();
 
+
     // --- final ---
 
     void setFinal(FinalResult value);
@@ -46,23 +68,36 @@ public interface IConstraintContext extends IContextInternal {
 
     FinalResult getFinal();
 
+
     // --- file ---
 
-    boolean hasUnit(String key);
+    default boolean hasUnit(String resource) {
+        return hasUnit(keyResource(resource));
+    }
 
     boolean hasUnit(FileObject resource);
 
-    boolean setUnit(String key, FileResult value);
+
+    default boolean setUnit(String resource, FileResult value) {
+        return setUnit(keyResource(resource), value);
+    }
 
     boolean setUnit(FileObject resource, FileResult value);
 
-    FileResult getUnit(String key);
+
+    default FileResult getUnit(String resource) {
+        return getUnit(keyResource(resource));
+    }
 
     FileResult getUnit(FileObject resource);
 
-    boolean remove(String key);
+
+    default boolean remove(String resource) {
+        return remove(keyResource(resource));
+    }
 
     boolean remove(FileObject resource);
+
 
     Set<Entry<String, FileResult>> entrySet();
 

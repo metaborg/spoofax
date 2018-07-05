@@ -27,6 +27,7 @@ import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
@@ -59,12 +60,26 @@ public class ConstraintContext implements IConstraintContext {
         return location().equals(resource);
     }
 
-    @Override public boolean isRoot(String resource) {
-        return isRoot(keyResource(resource));
+    @Override public boolean hasAnalysis(FileObject resource) {
+        switch(mode()) {
+            case MULTI_FILE:
+                return hasFinal();
+            case SINGLE_FILE:
+                return hasUnit(resource);
+            default:
+                return false;
+        }
     }
 
-    @Override public String resourceKey(String resource) {
-        return resourceKey(keyResource(resource));
+    @Override public IStrategoTerm getAnalysis(FileObject resource) {
+        switch(mode()) {
+            case MULTI_FILE:
+                return getFinal().analysis;
+            case SINGLE_FILE:
+                return getUnit(resource).analysis;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     @Override public String resourceKey(FileObject resource) {
@@ -109,32 +124,16 @@ public class ConstraintContext implements IConstraintContext {
 
     // ----------------------------------------------------------
 
-    @Override public boolean hasUnit(String resource) {
-        return state.unitResults.containsKey(resourceKey(resource));
-    }
-
     @Override public boolean hasUnit(FileObject resource) {
         return state.unitResults.containsKey(resourceKey(resource));
-    }
-
-    @Override public boolean setUnit(String resource, FileResult value) {
-        return state.unitResults.put(resourceKey(resource), value) != null;
     }
 
     @Override public boolean setUnit(FileObject resource, FileResult value) {
         return state.unitResults.put(resourceKey(resource), value) != null;
     }
 
-    @Override public FileResult getUnit(String resource) {
-        return state.unitResults.get(resourceKey(resource));
-    }
-
     @Override public FileResult getUnit(FileObject resource) {
         return state.unitResults.get(resourceKey(resource));
-    }
-
-    @Override public boolean remove(String resource) {
-        return state.unitResults.remove(resourceKey(resource)) != null;
     }
 
     @Override public boolean remove(FileObject resource) {

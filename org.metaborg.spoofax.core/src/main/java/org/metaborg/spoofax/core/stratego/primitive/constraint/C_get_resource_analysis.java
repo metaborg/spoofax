@@ -22,16 +22,10 @@ public class C_get_resource_analysis extends ConstraintContextPrimitive {
         }
         final String resource = Tools.asJavaString(sterm);
         final IStrategoTerm analysis;
-        switch(context.mode()) {
-            case MULTI_FILE:
-                analysis = context.hasFinal() ? context.getFinal().analysis : null;
-                break;
-            case SINGLE_FILE:
-                analysis = context.hasUnit(resource) ? context.getUnit(resource).analysis : null;
-                break;
-            default:
-                analysis = null;
-                break;
+        if(context.hasAnalysis(resource)) {
+            analysis = context.getAnalysis(resource);
+        } else {
+            analysis = null;
         }
         return Optional.ofNullable(analysis);
     }
