@@ -98,7 +98,7 @@ public class SingleFileConstraintAnalyzer extends AbstractConstraintAnalyzer imp
                 messages.addAll(analysisCommon.messages(resource, MessageSeverity.NOTE, unitResult.get(4)));
 
                 if(!input.detached()) {
-                    context.put(source, new FileResult(analyzedAST, analysis, messages));
+                    context.setUnit(source, new FileResult(analyzedAST, analysis, messages));
                 }
                 results.add(unitService.analyzeUnit(input,
                         new AnalyzeContrib(true, success(messages), true, analyzedAST, messages, -1), context));

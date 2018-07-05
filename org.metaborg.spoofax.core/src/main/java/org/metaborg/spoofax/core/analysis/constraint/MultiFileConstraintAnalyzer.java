@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.analysis.constraint;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -133,7 +132,7 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
                 final FileResult unitResult = new FileResult(analyzedAST, analysis, messages);
                 unitResults.put(source, unitResult);
                 if(!input.detached()) {
-                    context.put(source, unitResult);
+                    context.setUnit(source, unitResult);
                 }
             } catch(MetaborgException e) {
                 logger.warn("Analysis of '" + source + "' failed.", e);
@@ -149,14 +148,13 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
         {
             final IStrategoList unitAnalyses = termFactory
                     .makeList(context.entrySet().stream().map(e -> e.getValue().analysis).collect(Collectors.toList()));
-            final IStrategoTerm action =
-                    build("AnalyzeFinal", projectTerm, initialResult.analysis, unitAnalyses);
+            final IStrategoTerm action = build("AnalyzeFinal", projectTerm, initialResult.analysis, unitAnalyses);
             final List<IStrategoTerm> result;
             try {
                 result = match(strategoCommon.invoke(runtime, action, strategy), "FinalResult", 4);
             } catch(MetaborgException ex) {
-                logger.error("Initial analysis of failed.", ex);
-                throw new AnalysisException(context, "Initial project analysis failed.", ex);
+                logger.error("Final analysis of failed.", ex);
+                throw new AnalysisException(context, "Final project analysis failed.", ex);
             }
             if(result == null) {
                 logger.error("Final analysis of failed.");
@@ -192,18 +190,11 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
                 continue;
             }
             final FileResult unitResult = entry.getValue();
-            FileObject resource;
-            try {
-                resource = context.keyResource(source);
-            } catch(IOException e) {
-                logger.warn("Cannot update analysis for {}, because it cannot be resolved", source);
-                continue;
-            }
+            final FileObject resource = context.keyResource(source);
             final Collection<IMessage> messages = ImmutableList.<IMessage>builder().addAll(unitResult.messages)
                     .addAll(messagesByFile.get(resource)).build();
             updateResults.add(unitService.analyzeUnitUpdate(resource, new AnalyzeUpdateData(messages), context));
         }
-
 
         return new SpoofaxAnalyzeResults(analysisResults, updateResults, context, null);
     }

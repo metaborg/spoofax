@@ -9,10 +9,10 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-public class C_get_resource_analysis extends ConstraintContextPrimitive {
+public class C_get_resource_partial_analysis extends ConstraintContextPrimitive {
 
-    public C_get_resource_analysis() {
-        super(C_get_resource_analysis.class.getSimpleName());
+    public C_get_resource_partial_analysis() {
+        super(C_get_resource_partial_analysis.class.getSimpleName());
     }
 
     @Override protected Optional<? extends IStrategoTerm> call(IConstraintContext context, IStrategoTerm sterm,
@@ -24,7 +24,11 @@ public class C_get_resource_analysis extends ConstraintContextPrimitive {
         final IStrategoTerm analysis;
         switch(context.mode()) {
             case MULTI_FILE:
-                analysis = context.hasFinal() ? context.getFinal().analysis : null;
+                if(context.isRoot(resource)) {
+                    analysis = context.hasInitial() ? context.getInitial().analysis : null;
+                } else {
+                    analysis = context.hasUnit(resource) ? context.getUnit(resource).analysis : null;
+                }
                 break;
             case SINGLE_FILE:
                 analysis = context.hasUnit(resource) ? context.getUnit(resource).analysis : null;

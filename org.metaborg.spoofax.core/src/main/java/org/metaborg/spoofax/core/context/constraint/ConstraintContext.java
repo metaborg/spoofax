@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.language.ILanguageImpl;
@@ -54,6 +55,30 @@ public class ConstraintContext implements IConstraintContext {
         return mode;
     }
 
+    @Override public boolean isRoot(FileObject resource) {
+        return location().equals(resource);
+    }
+
+    @Override public boolean isRoot(String resource) {
+        return isRoot(keyResource(resource));
+    }
+
+    @Override public String resourceKey(String resource) {
+        return resourceKey(keyResource(resource));
+    }
+
+    @Override public String resourceKey(FileObject resource) {
+        return ResourceUtils.relativeName(resource.getName(), location().getName(), true);
+    }
+
+    @Override public FileObject keyResource(String resource) {
+        try {
+            return location().resolveFile(resource);
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException(e);
+        }
+    }
+
     // ----------------------------------------------------------
 
     public boolean hasInitial() {
@@ -84,20 +109,36 @@ public class ConstraintContext implements IConstraintContext {
 
     // ----------------------------------------------------------
 
-    @Override public boolean contains(String key) {
-        return state.unitResults.containsKey(key);
+    @Override public boolean hasUnit(String resource) {
+        return state.unitResults.containsKey(resourceKey(resource));
     }
 
-    @Override public boolean put(String resource, FileResult value) {
-        return state.unitResults.put(resource, value) != null;
+    @Override public boolean hasUnit(FileObject resource) {
+        return state.unitResults.containsKey(resourceKey(resource));
     }
 
-    @Override public FileResult get(String key) {
-        return state.unitResults.get(key);
+    @Override public boolean setUnit(String resource, FileResult value) {
+        return state.unitResults.put(resourceKey(resource), value) != null;
+    }
+
+    @Override public boolean setUnit(FileObject resource, FileResult value) {
+        return state.unitResults.put(resourceKey(resource), value) != null;
+    }
+
+    @Override public FileResult getUnit(String resource) {
+        return state.unitResults.get(resourceKey(resource));
+    }
+
+    @Override public FileResult getUnit(FileObject resource) {
+        return state.unitResults.get(resourceKey(resource));
     }
 
     @Override public boolean remove(String resource) {
-        return state.unitResults.remove(resource) != null;
+        return state.unitResults.remove(resourceKey(resource)) != null;
+    }
+
+    @Override public boolean remove(FileObject resource) {
+        return state.unitResults.remove(resourceKey(resource)) != null;
     }
 
     @Override public Set<Entry<String, FileResult>> entrySet() {
@@ -310,14 +351,6 @@ public class ConstraintContext implements IConstraintContext {
 
     @Override public String toString() {
         return String.format("Constraint context for %s, %s", identifier.location, identifier.language);
-    }
-
-    @Override public FileObject keyResource(String key) throws IOException {
-        return location().resolveFile(key);
-    }
-
-    @Override public String resourceKey(FileObject resource) {
-        return ResourceUtils.relativeName(resource.getName(), location().getName(), true);
     }
 
     private static class State implements Serializable {

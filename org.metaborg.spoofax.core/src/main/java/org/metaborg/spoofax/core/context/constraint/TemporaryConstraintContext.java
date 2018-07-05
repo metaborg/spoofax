@@ -29,6 +29,26 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.mode();
     }
 
+    public boolean isRoot(String resource) {
+        return context.isRoot(resource);
+    }
+
+    public boolean isRoot(FileObject resource) {
+        return context.isRoot(resource);
+    }
+
+    public String resourceKey(String resource) {
+        return context.resourceKey(resource);
+    }
+
+    public String resourceKey(FileObject resource) {
+        return context.resourceKey(resource);
+    }
+
+    public FileObject keyResource(String resource) {
+        return context.keyResource(resource);
+    }
+
     public void setInitial(InitialResult value) {
         context.setInitial(value);
     }
@@ -53,20 +73,36 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.getFinal();
     }
 
-    public boolean contains(String key) {
-        return context.contains(key);
+    public boolean hasUnit(String key) {
+        return context.hasUnit(key);
     }
 
-    public boolean put(String key, FileResult value) {
-        return context.put(key, value);
+    public boolean hasUnit(FileObject resource) {
+        return context.hasUnit(resource);
     }
 
-    public FileResult get(String key) {
-        return context.get(key);
+    public boolean setUnit(String key, FileResult value) {
+        return context.setUnit(key, value);
+    }
+
+    public boolean setUnit(FileObject resource, FileResult value) {
+        return context.setUnit(resource, value);
+    }
+
+    public FileResult getUnit(String key) {
+        return context.getUnit(key);
+    }
+
+    public FileResult getUnit(FileObject resource) {
+        return context.getUnit(resource);
     }
 
     public boolean remove(String key) {
         return context.remove(key);
+    }
+
+    public boolean remove(FileObject resource) {
+        return context.remove(resource);
     }
 
     public Set<Entry<String, FileResult>> entrySet() {
@@ -77,18 +113,18 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         context.clear();
     }
 
-    public FileObject keyResource(String key) throws IOException {
-        return context.keyResource(key);
-    }
-
-    public String resourceKey(FileObject resource) {
-        return context.resourceKey(resource);
-    }
-
     // -------------------------------------
 
     @Override public ContextIdentifier identifier() {
         return context.identifier();
+    }
+
+    @Override public int hashCode() {
+        return context.hashCode();
+    }
+
+    @Override public boolean equals(Object other) {
+        return context.equals(other);
     }
 
     @Override public void init() {

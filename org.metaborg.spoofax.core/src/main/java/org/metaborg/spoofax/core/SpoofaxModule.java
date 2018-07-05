@@ -107,6 +107,7 @@ import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.StatixLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_analysis;
+import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_partial_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.flowspec.FS_solve;
 import org.metaborg.spoofax.core.stratego.primitive.flowspec.FlowSpecLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.generic.DummyPrimitive;
@@ -183,12 +184,12 @@ import mb.nabl2.spoofax.primitives.SG_focus_term;
 import mb.nabl2.spoofax.primitives.SG_get_all_decls;
 import mb.nabl2.spoofax.primitives.SG_get_all_refs;
 import mb.nabl2.spoofax.primitives.SG_get_all_scopes;
-import mb.nabl2.spoofax.primitives.SG_get_ast_analysis;
 import mb.nabl2.spoofax.primitives.SG_get_ast_decls;
 import mb.nabl2.spoofax.primitives.SG_get_ast_index;
 import mb.nabl2.spoofax.primitives.SG_get_ast_property;
 import mb.nabl2.spoofax.primitives.SG_get_ast_refs;
 import mb.nabl2.spoofax.primitives.SG_get_ast_resolution;
+import mb.nabl2.spoofax.primitives.SG_get_custom_analysis;
 import mb.nabl2.spoofax.primitives.SG_get_decl_property;
 import mb.nabl2.spoofax.primitives.SG_get_decl_scope;
 import mb.nabl2.spoofax.primitives.SG_get_direct_edges;
@@ -200,7 +201,6 @@ import mb.nabl2.spoofax.primitives.SG_get_import_edges_inv;
 import mb.nabl2.spoofax.primitives.SG_get_reachable_decls;
 import mb.nabl2.spoofax.primitives.SG_get_ref_resolution;
 import mb.nabl2.spoofax.primitives.SG_get_ref_scope;
-import mb.nabl2.spoofax.primitives.SG_get_resource_analysis;
 import mb.nabl2.spoofax.primitives.SG_get_scope_decls;
 import mb.nabl2.spoofax.primitives.SG_get_scope_refs;
 import mb.nabl2.spoofax.primitives.SG_get_symbolic_facts;
@@ -208,10 +208,11 @@ import mb.nabl2.spoofax.primitives.SG_get_symbolic_goals;
 import mb.nabl2.spoofax.primitives.SG_get_visible_decls;
 import mb.nabl2.spoofax.primitives.SG_index_ast;
 import mb.nabl2.spoofax.primitives.SG_set_ast_index;
-import mb.nabl2.spoofax.primitives.SG_solve_constraint;
-import mb.nabl2.spoofax.primitives.SG_solve_final_constraint;
-import mb.nabl2.spoofax.primitives.SG_solve_initial_constraint;
-import mb.nabl2.spoofax.primitives.SG_solve_unit_constraint;
+import mb.nabl2.spoofax.primitives.SG_set_custom_analysis;
+import mb.nabl2.spoofax.primitives.SG_solve_multi_final_constraint;
+import mb.nabl2.spoofax.primitives.SG_solve_multi_initial_constraint;
+import mb.nabl2.spoofax.primitives.SG_solve_multi_unit_constraint;
+import mb.nabl2.spoofax.primitives.SG_solve_single_constraint;
 import mb.statix.spoofax.STX_solve_constraint;
 
 /**
@@ -393,6 +394,7 @@ public class SpoofaxModule extends MetaborgModule {
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(ScopeGraphLibrary.name));
         bindPrimitive(spoofaxScopeGraphLibrary, C_get_resource_analysis.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, C_get_resource_partial_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_analysis_has_errors.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_name_resolution.class);
@@ -404,12 +406,12 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_refs.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_scopes.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_property.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_refs.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_resolution.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_custom_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_decl_property.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_decl_scope.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_direct_edges_inv.class);
@@ -421,7 +423,6 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_reachable_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ref_resolution.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ref_scope.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_resource_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_scope_refs.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_symbolic_facts.class);
@@ -432,10 +433,11 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_custom_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_resolution_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_constraint.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_initial_constraint.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_unit_constraint.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_final_constraint.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_set_custom_analysis.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_single_constraint.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_multi_initial_constraint.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_multi_unit_constraint.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_multi_final_constraint.class);
 
         final Multibinder<AbstractPrimitive> statixLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));

@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.context.constraint;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map.Entry;
@@ -11,6 +10,8 @@ import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.messages.IMessage;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.common.collect.ImmutableList;
+
 public interface IConstraintContext extends IContextInternal {
 
     enum Mode {
@@ -18,6 +19,16 @@ public interface IConstraintContext extends IContextInternal {
     }
 
     Mode mode();
+
+    boolean isRoot(String resource);
+
+    boolean isRoot(FileObject resource);
+
+    String resourceKey(String resource);
+
+    String resourceKey(FileObject resource);
+
+    FileObject keyResource(String resource);
 
     // --- initial ---
 
@@ -37,37 +48,27 @@ public interface IConstraintContext extends IContextInternal {
 
     // --- file ---
 
-    boolean contains(String key);
+    boolean hasUnit(String key);
 
-    default boolean contains(FileObject resource) {
-        return contains(resourceKey(resource));
-    }
+    boolean hasUnit(FileObject resource);
 
-    boolean put(String key, FileResult value);
+    boolean setUnit(String key, FileResult value);
 
-    default boolean put(FileObject resource, FileResult value) {
-        return put(resourceKey(resource), value);
-    }
+    boolean setUnit(FileObject resource, FileResult value);
 
-    FileResult get(String key);
+    FileResult getUnit(String key);
 
-    default FileResult get(FileObject resource) {
-        return get(resourceKey(resource));
-    }
+    FileResult getUnit(FileObject resource);
 
     boolean remove(String key);
 
-    default boolean remove(FileObject resource) {
-        return remove(resourceKey(resource));
-    }
+    boolean remove(FileObject resource);
 
     Set<Entry<String, FileResult>> entrySet();
 
     void clear();
 
-    FileObject keyResource(String key) throws IOException;
-
-    String resourceKey(FileObject resource);
+    // --- result classes ---
 
     class InitialResult implements Serializable {
 
@@ -92,7 +93,7 @@ public interface IConstraintContext extends IContextInternal {
         public FileResult(IStrategoTerm ast, IStrategoTerm analysis, Collection<IMessage> messages) {
             this.ast = ast;
             this.analysis = analysis;
-            this.messages = messages;
+            this.messages = ImmutableList.copyOf(messages);
         }
 
     }
@@ -106,9 +107,10 @@ public interface IConstraintContext extends IContextInternal {
 
         public FinalResult(IStrategoTerm analysis, Collection<IMessage> messages) {
             this.analysis = analysis;
-            this.messages = messages;
+            this.messages = ImmutableList.copyOf(messages);
         }
 
     }
+
 }
 

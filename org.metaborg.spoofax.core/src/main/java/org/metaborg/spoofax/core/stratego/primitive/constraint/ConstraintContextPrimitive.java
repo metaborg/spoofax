@@ -32,7 +32,7 @@ public abstract class ConstraintContextPrimitive extends AbstractPrimitive {
         final IStrategoTerm term = env.current();
         final List<IStrategoTerm> terms = Arrays.asList(tvars);
         final Optional<? extends IStrategoTerm> result;
-        try(IClosableLock lock = context.write()) {
+        try(IClosableLock lock = context.read()) {
             result = call(context, term, terms, env.getFactory());
         }
         return result.map(t -> {
