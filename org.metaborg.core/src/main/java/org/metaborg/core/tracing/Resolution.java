@@ -34,8 +34,16 @@ public class Resolution {
         }
 
         public Target(String hyperlinkName, ISourceLocation location) {
-            this.hyperlinkName = hyperlinkName;
+            this.hyperlinkName = hyperlinkName == null ? defaultHyperlinkName(location) : hyperlinkName;
             this.location = location;
+        }
+        
+        private static String defaultHyperlinkName(ISourceLocation location) {
+            String fileName = location.resource().getName().getBaseName();
+            ISourceRegion region = location.region();
+            int row = region.startRow();
+            int col = region.startColumn();
+            return fileName + ":" + row + ":" + col;
         }
     }
 }
