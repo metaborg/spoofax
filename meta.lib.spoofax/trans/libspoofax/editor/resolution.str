@@ -1,0 +1,9 @@
+module libspoofax/editor/resolution
+
+signature constructors
+  HyperlinkText : Term -> Term
+
+strategies
+
+  set-resolution-text(|text): t{a*} -> t{a'*}
+  where a'* := [ HyperlinkText(text) | <remove-all(?HyperlinkText(_))> a* ]
