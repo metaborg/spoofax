@@ -1,8 +1,5 @@
 package org.metaborg.core.tracing;
 
-import javax.annotation.Nullable;
-
-import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
 
 /**
@@ -17,33 +14,11 @@ public class Resolution {
     /**
      * Resolution targets. Multiple targets indicate resolution to multiple valid locations.
      */
-    public final Iterable<Resolution.Target> targets;
+    public final Iterable<ResolutionTarget> targets;
 
 
-    public Resolution(ISourceRegion highlight, Iterable<Resolution.Target> targets) {
+    public Resolution(ISourceRegion highlight, Iterable<ResolutionTarget> targets) {
         this.highlight = highlight;
         this.targets = targets;
-    }
-
-    public static class Target {
-        public final @Nullable String hyperlinkName;
-        public final ISourceLocation location;
-
-        public Target(ISourceLocation location) {
-            this(null, location);
-        }
-
-        public Target(String hyperlinkName, ISourceLocation location) {
-            this.hyperlinkName = hyperlinkName == null ? defaultHyperlinkName(location) : hyperlinkName;
-            this.location = location;
-        }
-        
-        private static String defaultHyperlinkName(ISourceLocation location) {
-            String fileName = location.resource().getName().getBaseName();
-            ISourceRegion region = location.region();
-            int row = region.startRow();
-            int col = region.startColumn();
-            return fileName + ":" + (row+1) + ":" + (col+1);
-        }
     }
 }

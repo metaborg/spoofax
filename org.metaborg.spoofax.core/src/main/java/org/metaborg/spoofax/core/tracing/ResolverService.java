@@ -19,6 +19,7 @@ import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.tracing.Resolution;
+import org.metaborg.core.tracing.ResolutionTarget;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.TracingCommon.TermWithRegion;
@@ -153,7 +154,7 @@ public class ResolverService implements ISpoofaxResolverService {
         final IStrategoTerm output = tuple.term;
         final ISourceRegion offsetRegion = tuple.region;
 
-        final Collection<Resolution.Target> targets = Lists.newLinkedList();
+        final Collection<ResolutionTarget> targets = Lists.newLinkedList();
         if(output.getTermType() == IStrategoTerm.LIST) {
             for(IStrategoTerm subterm : output) {
                 final String hyperlinkText = getHyperlinkText(subterm);
@@ -162,7 +163,7 @@ public class ResolverService implements ISpoofaxResolverService {
                     logger.debug("Cannot get target location for {}", subterm);
                     continue;
                 }
-                targets.add(new Resolution.Target(hyperlinkText, targetLocation));
+                targets.add(new ResolutionTarget(hyperlinkText, targetLocation));
             }
         } else {
             final String hyperlinkText = getHyperlinkText(output);
@@ -171,7 +172,7 @@ public class ResolverService implements ISpoofaxResolverService {
                 logger.debug("Reference resolution failed, cannot get target location for {}", output);
                 return null;
             }
-            targets.add(new Resolution.Target(hyperlinkText, targetLocation));
+            targets.add(new ResolutionTarget(hyperlinkText, targetLocation));
         }
 
         if(targets.isEmpty()) {
