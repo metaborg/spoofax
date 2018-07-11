@@ -19,6 +19,7 @@ import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.tracing.Resolution;
+import org.metaborg.core.tracing.ResolutionTarget;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.TracingCommon.TermWithRegion;
@@ -27,6 +28,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.core.Tools;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
@@ -151,23 +154,25 @@ public class ResolverService implements ISpoofaxResolverService {
         final IStrategoTerm output = tuple.term;
         final ISourceRegion offsetRegion = tuple.region;
 
-        final Collection<ISourceLocation> targets = Lists.newLinkedList();
+        final Collection<ResolutionTarget> targets = Lists.newLinkedList();
         if(output.getTermType() == IStrategoTerm.LIST) {
             for(IStrategoTerm subterm : output) {
+                final String hyperlinkText = getHyperlinkText(subterm);
                 final ISourceLocation targetLocation = common.getTargetLocation(subterm);
                 if(targetLocation == null) {
                     logger.debug("Cannot get target location for {}", subterm);
                     continue;
                 }
-                targets.add(targetLocation);
+                targets.add(new ResolutionTarget(hyperlinkText, targetLocation));
             }
         } else {
+            final String hyperlinkText = getHyperlinkText(output);
             final ISourceLocation targetLocation = common.getTargetLocation(output);
             if(targetLocation == null) {
                 logger.debug("Reference resolution failed, cannot get target location for {}", output);
                 return null;
             }
-            targets.add(targetLocation);
+            targets.add(new ResolutionTarget(hyperlinkText, targetLocation));
         }
 
         if(targets.isEmpty()) {
@@ -175,5 +180,20 @@ public class ResolverService implements ISpoofaxResolverService {
             return null;
         }
         return new Resolution(offsetRegion, targets);
+    }
+
+
+    private @Nullable String getHyperlinkText(IStrategoTerm subterm) {
+        for (IStrategoTerm annoterm : subterm.getAnnotations()) {
+            if(Tools.isTermAppl(annoterm)
+                    && Tools.hasConstructor((IStrategoAppl) annoterm, "HyperlinkText", 1)) {
+                IStrategoTerm hyperlinkTextTerm = Tools.termAt(annoterm, 0);
+                if(Tools.isTermString(hyperlinkTextTerm))
+                    return Tools.asJavaString(hyperlinkTextTerm);
+                else
+                    return hyperlinkTextTerm.toString();
+            }
+        }
+        return null;
     }
 }
