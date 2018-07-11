@@ -1,0 +1,27 @@
+module libspoofax/editor/resolution
+
+imports
+
+  libspoofax/term/annotation
+  libspoofax/term/origin
+
+signature constructors
+  HyperlinkText : Term -> Term
+
+strategies
+
+  set-resolution-text(|text) = replace-annotation(?HyperlinkText(_)|HyperlinkText(text))
+
+  sort-resolutions = sort-list(SortL(where((origin-location-offset, origin-location-offset);resolution-gt)))
+
+  resolution-gt: ((file, line, column1, _, _), (file, line, column2, _, _)) -> <id>
+  where <gt> (column1, column2)
+
+  resolution-gt: ((file, line1, _, _, _), (file, line2, _, _, _)) -> <id>
+  where <gt> (line1, line2)
+
+  resolution-gt: ((file1, _, _, _, _), (file2, _, _, _, _)) -> <id>
+  where <not(eq);base-filename;not(eq);string-gt> (file1, file2)
+
+  resolution-gt: ((file1, _, _, _, _), (file2, _, _, _, _)) -> <id>
+  where <not(eq);where(base-filename;eq);string-gt> (file1, file2)
