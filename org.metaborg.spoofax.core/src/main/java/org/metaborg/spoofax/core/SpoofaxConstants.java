@@ -33,6 +33,9 @@ public class SpoofaxConstants {
     public static final String LANG_NABL2_ID = "org.metaborg.meta.nabl2.lang";
     public static final String LANG_NABL2_NAME = "NaBL2Lang";
 
+    public static final String LANG_FLOWSPEC_ID = "mb.flowspec.lang";
+    public static final String LANG_FLOWSPEC_NAME = "FlowSpec";
+
     public static final String LANG_DYNSEM_ID = "org.metaborg.meta.lang.dynsem";
     public static final String LANG_DYNSEM_NAME = "ds";
 
@@ -84,6 +87,7 @@ public class SpoofaxConstants {
         .add(LANG_NABL_ID)
         .add(LANG_TS_ID)
         .add(LANG_NABL2_ID)
+        .add(LANG_FLOWSPEC_ID)
         .add(LANG_DYNSEM_ID)
         .add(LIB_ANALYSIS_ID)
         .build();
@@ -99,6 +103,7 @@ public class SpoofaxConstants {
         .add(LANG_NABL_NAME)
         .add(LANG_TS_NAME)
         .add(LANG_NABL2_NAME)
+        .add(LANG_FLOWSPEC_NAME)
         .add(LANG_DYNSEM_NAME)
         .add(LIB_ANALYSIS_NAME)
         .build();
