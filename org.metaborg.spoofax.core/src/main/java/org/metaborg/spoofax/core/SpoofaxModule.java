@@ -354,6 +354,7 @@ public class SpoofaxModule extends MetaborgModule {
         // Semantic provider
         bind(SemanticProviderService.class).in(Singleton.class);
         bind(ISemanticProviderService.class).to(SemanticProviderService.class);
+        languageCacheBinder.addBinding().to(SemanticProviderService.class);
 
         // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);
