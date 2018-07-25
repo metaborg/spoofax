@@ -12,7 +12,7 @@ import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.test.language.LanguageServiceTest;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
-import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
+import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 
 import com.google.common.collect.Iterables;
@@ -51,7 +51,7 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
 
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
-        final StrategoRuntimeFacet strategoFacet = impl.facet(StrategoRuntimeFacet.class);
+        final SemanticProviderFacet strategoFacet = impl.facet(SemanticProviderFacet.class);
 
         assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
         assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));

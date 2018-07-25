@@ -11,6 +11,7 @@ import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.FacetContribution;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
@@ -20,18 +21,21 @@ import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.tracing.Resolution;
 import org.metaborg.core.tracing.ResolutionTarget;
+import org.metaborg.spoofax.core.outline.JavaOutlineFacet;
+import org.metaborg.spoofax.core.outline.StrategoOutlineFacet;
+import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
+import org.metaborg.spoofax.core.semantic_provider.SemanticProviderService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.TracingCommon.TermWithRegion;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.user_definable.IResolver;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
@@ -42,26 +46,30 @@ public class ResolverService implements ISpoofaxResolverService {
 
     private final IProjectService projectService;
     private final IContextService contextService;
-    private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
     private final TracingCommon common;
+    private final ISemanticProviderService semanticProviderService;
 
 
     @Inject public ResolverService(IProjectService projectService, IContextService contextService,
-        ITermFactoryService termFactoryService, IStrategoRuntimeService strategoRuntimeService,
-        ISpoofaxTracingService tracingService, TracingCommon common) {
+        IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService, 
+        TracingCommon common, SemanticProviderService semanticProviderService) {
         this.projectService = projectService;
         this.contextService = contextService;
-        this.termFactoryService = termFactoryService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;
         this.common = common;
+        this.semanticProviderService = semanticProviderService;
     }
 
 
     @Override public boolean available(ILanguageImpl language) {
-        return language.facet(ResolverFacet.class) != null;
+        try {
+            return facet(language) != null;
+        } catch (MetaborgException e) {
+            return false;
+        }
     }
 
     @Override public Resolution resolve(int offset, ISpoofaxParseUnit result) throws MetaborgException {
@@ -84,23 +92,13 @@ public class ResolverService implements ISpoofaxResolverService {
             }
         }
 
-        final FacetContribution<ResolverFacet> facetContrib = facet(langImpl);
-        final ResolverFacet facet = facetContrib.facet;
+        final FacetContribution<IFacet> facetContrib = facet(langImpl);
+        final IFacet facet = facetContrib.facet;
         final ILanguageComponent contributor = facetContrib.contributor;
-        final String strategy = facet.strategyName;
+        final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
 
         try {
-            final ITermFactory termFactory = termFactoryService.get(contributor, project, true);
-            final HybridInterpreter interpreter;
-            if(context == null) {
-                interpreter = strategoRuntimeService.runtime(contributor, source, true);
-            } else {
-                interpreter = strategoRuntimeService.runtime(contributor, context, true);
-            }
-            final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
-            final TermWithRegion tuple =
-                common.outputs(termFactory, interpreter, source, source, result.ast(), inRegion, strategy);
-            return resolve(tuple);
+            return resolve(source, context, inRegion, facet, contributor, result.ast(), context.location());
         } catch(MetaborgException e) {
             throw new MetaborgException("Reference resolution failed", e);
         }
@@ -113,31 +111,75 @@ public class ResolverService implements ISpoofaxResolverService {
 
         final FileObject source = result.source();
         final IContext context = result.context();
-        final IProject project = context.project();
         final ILanguageImpl language = context.language();
 
-        final FacetContribution<ResolverFacet> facetContrib = facet(language);
-        final ResolverFacet facet = facetContrib.facet;
-        final String strategy = facet.strategyName;
+        final FacetContribution<IFacet> facetContrib = facet(language);
+        final IFacet facet = facetContrib.facet;
+        final ILanguageComponent contributor = facetContrib.contributor;
+        final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
 
         try {
-            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor, project, true);
-            final HybridInterpreter interpreter =
-                strategoRuntimeService.runtime(facetContrib.contributor, context, true);
-            final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
-            final TermWithRegion tuple;
-            try(IClosableLock lock = context.read()) {
-                tuple = common.outputs(termFactory, interpreter, source, source, result.ast(), inRegion, strategy);
-            }
-            return resolve(tuple);
+            return resolve(source, context, inRegion, facet, contributor, result.ast(), context.location());
         } catch(MetaborgException e) {
             throw new MetaborgException("Reference resolution failed", e);
         }
     }
 
 
-    private FacetContribution<ResolverFacet> facet(ILanguageImpl language) throws MetaborgException {
-        final FacetContribution<ResolverFacet> facet = language.facetContribution(ResolverFacet.class);
+    private Resolution resolve(FileObject source, IContext context, Iterable<IStrategoTerm> inRegion, IFacet facet,
+            ILanguageComponent contributor, IStrategoTerm ast, FileObject location) throws MetaborgException {
+        if(facet instanceof StrategoOutlineFacet) {
+            return strategoResolve(source, context, inRegion, contributor, ((StrategoOutlineFacet) facet).strategyName);
+        }
+        if(facet instanceof JavaOutlineFacet) {
+            return javaResolve(context, contributor, ((JavaOutlineFacet) facet).javaClassName, inRegion);
+        }
+        logger.warn("Outlining facet has unexpected type: ", facet.getClass());
+        return null;
+    }
+
+
+    private Resolution strategoResolve(FileObject source, IContext context, Iterable<IStrategoTerm> inRegion, 
+            ILanguageComponent contributor, String strategy) throws MetaborgException {
+        final HybridInterpreter interpreter;
+        if(context == null) {
+            interpreter = strategoRuntimeService.runtime(contributor, source, true);
+        } else {
+            interpreter = strategoRuntimeService.runtime(contributor, context, true);
+        }
+        final TermWithRegion tuple;
+        try(IClosableLock lock = context.read()) {
+            tuple = common.outputs(interpreter, source, source, inRegion, strategy);
+        }
+        return resolve(tuple);
+    }
+
+
+    private Resolution javaResolve(IContext env, ILanguageComponent contributor, String javaClassName,
+            Iterable<IStrategoTerm> inRegion) throws MetaborgException {
+        IResolver resolver = semanticProviderService.resolver(contributor, javaClassName);
+        Iterable<ResolutionTarget> resolutions = null;
+        ISourceLocation highlightLocation = null;
+        for (IStrategoTerm region : inRegion) {
+            resolutions = resolver.resolve(env, region);
+            if(resolutions != null) {
+                highlightLocation = tracingService.location(region);
+                break;
+            }
+        }
+        if(resolutions == null) {
+            return null;
+        }
+        return new Resolution(highlightLocation.region(), resolutions);
+    }
+
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private FacetContribution<IFacet> facet(ILanguageImpl language) throws MetaborgException {
+        FacetContribution<IFacet> facet = (FacetContribution) language.facetContribution(StrategoResolverFacet.class);
+        if(facet == null) {
+            facet = (FacetContribution) language.facetContribution(JavaResolverFacet.class);
+        }
         if(facet == null) {
             final String message =
                 logger.format("Cannot resolve reference of {}, it does not have a resolver facet", language);

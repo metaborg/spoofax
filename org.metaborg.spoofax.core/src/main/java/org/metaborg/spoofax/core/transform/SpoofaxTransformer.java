@@ -20,7 +20,10 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.transform.ITransformConfig;
 import org.metaborg.core.transform.TransformException;
 import org.metaborg.core.unit.IUnit;
-import org.metaborg.spoofax.core.action.TransformAction;
+import org.metaborg.spoofax.core.action.JavaTransformAction;
+import org.metaborg.spoofax.core.action.StrategoTransformAction;
+import org.metaborg.spoofax.core.semantic_provider.IBuilderInput;
+import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
@@ -29,6 +32,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.core.unit.TransformContrib;
 import org.metaborg.spoofax.core.unit.TransformOutput;
+import org.metaborg.spoofax.core.user_definable.ITransformer;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -44,23 +48,39 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class StrategoTransformer implements IStrategoTransformer {
-    private static final ILogger logger = LoggerUtils.logger(StrategoTransformer.class);
+public class SpoofaxTransformer implements ISpoofaxTransformer {
+    private static final ILogger logger = LoggerUtils.logger(SpoofaxTransformer.class);
 
     private final IResourceService resourceService;
     private final ISpoofaxUnitService unitService;
     private final IEditorRegistry editorRegistry;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final IStrategoCommon common;
+    private final ISemanticProviderService semanticProviderService;
 
 
-    @Inject public StrategoTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
-        IEditorRegistry editorRegistry, IStrategoRuntimeService strategoRuntimeService, IStrategoCommon common) {
+    private static class TransformResult {
+        public final long duration;
+        public final List<TransformOutput> outputs;
+        public final IStrategoTerm resultTerm;
+
+        public TransformResult(long duration, List<TransformOutput> outputs, IStrategoTerm resultTerm) {
+            this.duration = duration;
+            this.outputs = outputs;
+            this.resultTerm = resultTerm;
+        }
+    }
+
+
+    @Inject public SpoofaxTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
+        IEditorRegistry editorRegistry, IStrategoRuntimeService strategoRuntimeService, 
+        IStrategoCommon common, ISemanticProviderService semanticProviderService) {
         this.resourceService = resourceService;
         this.unitService = unitService;
         this.editorRegistry = editorRegistry;
         this.strategoRuntimeService = strategoRuntimeService;
         this.common = common;
+        this.semanticProviderService = semanticProviderService;
     }
 
 
@@ -116,11 +136,60 @@ public class StrategoTransformer implements IStrategoTransformer {
         throws TransformException {
         final FileObject location = context.location();
         final ILanguageComponent component = actionContribution.contributor;
-        final TransformAction action = action(actionContribution.action);
+        final ITransformAction action = actionContribution.action;
 
         // Get input term
-        final IStrategoTerm inputTerm = common.builderInputTerm(term, source, location);
+        final IBuilderInput inputTerm = common.builderInputTerm(term, source, location);
 
+        // Transform
+        TransformResult transformResult = transform(context, source, location, component, action, inputTerm);
+
+        // Output files
+        if(!config.dryRun()) {
+            for (TransformOutput output : transformResult.outputs) {
+                try(OutputStream stream = output.resource.getContent().getOutputStream()) {
+                    IOUtils.write(common.toString(output.ast), stream, Charset.defaultCharset());
+                } catch(IOException e) {
+                    logger.error("Error occurred while writing output file", e);
+                }
+            }
+        }
+
+        // Open editor
+        if(action.flags().openEditor) {
+            List<FileObject> resources = Lists.newArrayListWithExpectedSize(transformResult.outputs.size());
+            for(TransformOutput output : transformResult.outputs) {
+                if(output.resource != null) {
+                    resources.add(output.resource);
+                }
+            }
+            editorRegistry.open(resources, context.project());
+        }
+
+        // Return result
+        final TransformContrib contrib = new TransformContrib(transformResult.resultTerm != null || !Iterables.isEmpty(transformResult.outputs), true,
+                transformResult.resultTerm, transformResult.outputs, Iterables2.<IMessage>empty(), transformResult.duration);
+        return unitService.transformUnit(input, contrib, context, actionContribution);
+    }
+
+
+    private TransformResult transform(IContext context, FileObject source, FileObject location,
+            ILanguageComponent component, ITransformAction action, IBuilderInput inputTerm)
+            throws TransformException {
+        if(action instanceof StrategoTransformAction) {
+            return strategoTransform(context, source, location, component, (StrategoTransformAction) action, inputTerm);
+        }
+        if(action instanceof JavaTransformAction) {
+            return javaTransform(context, source, location, component, (JavaTransformAction) action, inputTerm);
+        }
+        logger.warn("ITransformAction has unexpected type: ", action.getClass());
+        return null;
+    }
+
+
+    private TransformResult strategoTransform(IContext context, FileObject source, FileObject location,
+            ILanguageComponent component, StrategoTransformAction action, IStrategoTerm inputTerm)
+            throws TransformException {
         // Get Stratego runtime
         final HybridInterpreter runtime;
         try {
@@ -153,7 +222,7 @@ public class StrategoTransformer implements IStrategoTransformer {
             try {
                 if(resourceTerm instanceof IStrategoString) {
                     resultTerm = contentTerm;
-                    outputs = Lists.newArrayList(output(resourceTerm, contentTerm, location, config));
+                    outputs = Lists.newArrayList(output(resourceTerm, contentTerm, location));
                 } else if(resourceTerm instanceof IStrategoList) {
                     if(!(contentTerm instanceof IStrategoList) || resourceTerm.getSubtermCount() != contentTerm.getSubtermCount()) {
                         logger.error("List of terms does not match list of file names, cannot write to file.");
@@ -162,7 +231,7 @@ public class StrategoTransformer implements IStrategoTransformer {
                     } else {
                         outputs = Lists.newArrayListWithExpectedSize(resourceTerm.getSubtermCount());
                         for(int i = 0; i < resourceTerm.getSubtermCount(); i++) {
-                            outputs.add(output(resourceTerm.getSubterm(i), contentTerm.getSubterm(i), location, config));
+                            outputs.add(output(resourceTerm.getSubterm(i), contentTerm.getSubterm(i), location));
                         }
                         resultTerm = resourceTerm.getSubtermCount() == 1 ? resourceTerm.getSubterm(0) : null;
                     }
@@ -180,52 +249,40 @@ public class StrategoTransformer implements IStrategoTransformer {
             outputs = Collections.emptyList();
         }
 
-        // Open editor
-        if(action.flags.openEditor) {
-            List<FileObject> resources = Lists.newArrayListWithExpectedSize(outputs.size());
-            for(TransformOutput output : outputs) {
-                if(output.resource != null) {
-                    resources.add(output.resource);
-                }
-            }
-            editorRegistry.open(resources, context.project());
-        }
-
-        // Return result
-        final TransformContrib contrib = new TransformContrib(resultTerm != null || !Iterables.isEmpty(outputs), true,
-            resultTerm, outputs, Iterables2.<IMessage>empty(), duration);
-        return unitService.transformUnit(input, contrib, context, actionContribution);
+        return new TransformResult(duration, outputs, resultTerm);
     }
 
-    private TransformAction action(ITransformAction action) throws TransformException {
-        if(!(action instanceof TransformAction)) {
-            final String message = logger.format("Action {} is not a Stratego transformation action", action);
-            throw new TransformException(message);
+
+    private TransformResult javaTransform(IContext context, FileObject source, FileObject location,
+            ILanguageComponent component, JavaTransformAction action, IBuilderInput inputTerm)
+            throws TransformException {
+        final ITransformer transformer;
+        try {
+            transformer = semanticProviderService.transformer(component, action.className);
+        } catch(MetaborgException e) {
+            throw new TransformException(e.getMessage(), e.getCause());
         }
-        return (TransformAction) action;
+
+        logger.debug("Transforming {} with '{}'", source, action.name);
+
+        final List<TransformOutput> outputs = Lists.newArrayList();
+
+        final Timer timer = new Timer(true);
+        final IStrategoTerm resultTerm = transformer.transform(context, inputTerm, location, outputs);
+        final long duration = timer.stop();
+
+        return new TransformResult(duration, outputs, resultTerm);
     }
- 
-    private TransformOutput output(IStrategoTerm resourceTerm, IStrategoTerm contentTerm, FileObject location,
-            ITransformConfig config) throws MetaborgException {
+
+    private TransformOutput output(IStrategoTerm resourceTerm, IStrategoTerm contentTerm, FileObject location)
+            throws MetaborgException {
         if(!(resourceTerm instanceof IStrategoString)) {
             throw new MetaborgException("First term of result tuple {} is not a string, cannot write output file");
         } else {
             final String resourceString = Tools.asJavaString(resourceTerm);
-            final String resultContents = common.toString(contentTerm);
-            // writing to output file is allowed
-            FileObject output;
-            if(!config.dryRun()) {
-                output = resourceService.resolve(location, resourceString);
-                try(OutputStream stream = output.getContent().getOutputStream()) {
-                    IOUtils.write(resultContents, stream, Charset.defaultCharset());
-                } catch(IOException e) {
-                    logger.error("Error occurred while writing output file", e);
-                }
-            } else {
-                output = null;
-            }
+            FileObject output = resourceService.resolve(location, resourceString);
             return new TransformOutput(resourceString, output, contentTerm);
         }
     }
- 
+
 }

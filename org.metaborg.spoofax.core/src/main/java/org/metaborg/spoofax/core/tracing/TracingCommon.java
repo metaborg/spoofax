@@ -10,7 +10,6 @@ import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.inject.Inject;
@@ -44,8 +43,8 @@ public class TracingCommon {
     }
 
 
-    public TermWithRegion outputs(ITermFactory termFactory, HybridInterpreter runtime, FileObject location,
-        FileObject resource, IStrategoTerm result, Iterable<IStrategoTerm> inRegion, String strategy)
+    public TermWithRegion outputs(HybridInterpreter runtime, FileObject location, FileObject resource,
+        Iterable<IStrategoTerm> inRegion, String strategy)
         throws MetaborgException {
 
         for(IStrategoTerm term : inRegion) {

@@ -19,6 +19,8 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
+import org.metaborg.spoofax.core.semantic_provider.SemanticProviderClassLoader;
+import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacet;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
@@ -153,7 +155,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
     private void loadFiles(HybridInterpreter runtime, ILanguageComponent component) throws MetaborgException {
-        final StrategoRuntimeFacet facet = component.facet(StrategoRuntimeFacet.class);
+        final SemanticProviderFacet facet = component.facet(SemanticProviderFacet.class);
         if(facet == null) {
             final String message =
                 String.format("Cannot get Stratego runtime for %s, it does not have a Stratego facet", component);
@@ -182,7 +184,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
-            final ClassLoader classLoader = new StrategoRuntimeClassLoader(additionalClassLoaders);
+            final ClassLoader classLoader = new SemanticProviderClassLoader(additionalClassLoaders);
             runtime.loadJars(classLoader, classpath);
         } catch(IncompatibleJarException | IOException | MetaborgRuntimeException e) {
             throw new MetaborgException("Failed to load JAR", e);

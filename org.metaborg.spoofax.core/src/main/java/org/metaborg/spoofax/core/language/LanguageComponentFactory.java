@@ -21,6 +21,7 @@ import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.language.ComponentCreationConfig;
 import org.metaborg.core.language.IComponentCreationConfigRequest;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageComponentFactory;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
@@ -46,21 +47,20 @@ import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.metaborg.spoofax.core.outline.OutlineFacet;
+import org.metaborg.spoofax.core.outline.IOutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
+import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacet;
+import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacetFromESV;
 import org.metaborg.spoofax.core.shell.ShellFacet;
 import org.metaborg.spoofax.core.shell.ShellFacetFromESV;
-import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
-import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.ParseFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.tracing.HoverFacet;
-import org.metaborg.spoofax.core.tracing.ResolverFacet;
 import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
+import org.metaborg.spoofax.core.tracing.StrategoHoverFacet;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -218,7 +218,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         }
 
         SyntaxFacet syntaxFacet = null;
-        StrategoRuntimeFacet strategoRuntimeFacet = null;
+        SemanticProviderFacet strategoRuntimeFacet = null;
         if(esvTerm != null) {
             try {
                 syntaxFacet = SyntaxFacetFromESV.create(esvTerm, root);
@@ -230,7 +230,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             }
 
             try {
-                strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, root);
+                strategoRuntimeFacet = SemanticProviderFacetFromESV.create(esvTerm, root);
                 if(strategoRuntimeFacet != null) {
                     Iterables.addAll(errors, strategoRuntimeFacet.available(resourceService));
                 }
@@ -292,7 +292,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             syntaxFacet = null;
         }
 
-        final StrategoRuntimeFacet strategoRuntimeFacet = request.strategoRuntimeFacet();
+        final SemanticProviderFacet strategoRuntimeFacet = request.strategoRuntimeFacet();
         if(strategoRuntimeFacet != null) {
             config.addFacet(strategoRuntimeFacet);
         }
@@ -388,17 +388,17 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                 config.addFacet(stylerFacet);
             }
 
-            final ResolverFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
+            final IFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
             if(resolverFacet != null) {
                 config.addFacet(resolverFacet);
             }
 
-            final HoverFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
+            final StrategoHoverFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
             if(hoverFacet != null) {
                 config.addFacet(hoverFacet);
             }
 
-            final OutlineFacet outlineFacet = OutlineFacetFromESV.create(esvTerm);
+            final IOutlineFacet outlineFacet = OutlineFacetFromESV.create(esvTerm);
             if(outlineFacet != null) {
                 config.addFacet(outlineFacet);
             }

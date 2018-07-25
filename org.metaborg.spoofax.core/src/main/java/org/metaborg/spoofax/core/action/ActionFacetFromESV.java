@@ -68,12 +68,11 @@ public class ActionFacetFromESV {
                     break;
                 case "Action":
                     final String actionName = name(item.getSubterm(0));
-                    final String strategy = Tools.asJavaString(item.getSubterm(1).getSubterm(0));
                     final TransformActionFlags actionFlags = flags(item.getSubterm(2));
                     final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
                     final ImmutableList<String> newActionNesting = ImmutableList.<String>builder().addAll(newNesting).add(actionName).build();
                     final NamedGoal goal = new NamedGoal(newActionNesting);
-                    final TransformAction action = new TransformAction(actionName, goal, mergedActionFlags, strategy);
+                    final ITransformAction action = transformAction(actionName, goal, mergedActionFlags, item.getSubterm(1));
                     actions.put(goal, action);
                     actions.put(new EndNamedGoal(goal.names.get(goal.names.size() - 1)), action);
                     final MenuAction menuAction = new MenuAction(action);
@@ -89,6 +88,13 @@ public class ActionFacetFromESV {
             }
         }
         return menu;
+    }
+    
+    private static ITransformAction transformAction(String name, ITransformGoal goal, TransformActionFlags flags, IStrategoTerm callTerm) {
+        if(Tools.constructorName(callTerm) == "Java") {
+            return new JavaTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
+        }
+        return new StrategoTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
     }
 
     private static String name(IStrategoTerm nameTerm) {
@@ -140,9 +146,8 @@ public class ActionFacetFromESV {
             return;
         }
         for(IStrategoAppl onSaveHandler : onSaveHandlers) {
-            final String strategyName = Tools.asJavaString(onSaveHandler.getSubterm(0).getSubterm(0));
             final ITransformGoal goal = new CompileGoal();
-            final ITransformAction action = new TransformAction("Compile", goal, new TransformActionFlags(), strategyName);
+            final ITransformAction action = transformAction("Compile", goal, new TransformActionFlags(), onSaveHandler.getSubterm(0));
             actions.put(goal, action);
         }
     }

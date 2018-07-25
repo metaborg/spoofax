@@ -17,7 +17,7 @@ public class SpoofaxTransformService extends
     TransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
     implements ISpoofaxTransformService {
     @Inject public SpoofaxTransformService(IActionService actionService, ISpoofaxAnalysisService analysisService,
-            IStrategoTransformer transformer) {
+            ISpoofaxTransformer transformer) {
         super(actionService, analysisService, transformer);
     }
 }

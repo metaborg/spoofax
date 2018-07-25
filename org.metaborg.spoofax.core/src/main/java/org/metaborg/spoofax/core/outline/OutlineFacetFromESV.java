@@ -7,14 +7,15 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.Term;
 
 public class OutlineFacetFromESV {
-    public static @Nullable OutlineFacet create(IStrategoAppl esv) {
+    public static @Nullable IOutlineFacet create(IStrategoAppl esv) {
         final IStrategoAppl outlineTerm = ESVReader.findTerm(esv, "OutlineView");
         if(outlineTerm == null) {
             return null;
         }
-        final String strategyName = ESVReader.termContents(outlineTerm.getSubterm(0));
+        final String name = ESVReader.termContents(outlineTerm.getSubterm(0));
 
         final int expandTo;
         final IStrategoAppl expandToTerm = ESVReader.findTerm(esv, "ExpandToLevel");
@@ -33,6 +34,11 @@ public class OutlineFacetFromESV {
             }
         }
 
-        return new OutlineFacet(strategyName, expandTo);
+        switch (Term.tryGetName(outlineTerm.getSubterm(0))) {
+            case "Java":
+                return new JavaOutlineFacet(name, expandTo);
+            default:
+                return new StrategoOutlineFacet(name, expandTo);
+        }
     }
 }

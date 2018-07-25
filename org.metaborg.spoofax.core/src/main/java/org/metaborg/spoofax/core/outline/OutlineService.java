@@ -22,11 +22,14 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
+import org.metaborg.spoofax.core.semantic_provider.IBuilderInput;
+import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.user_definable.IOutliner;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
@@ -47,20 +50,27 @@ public class OutlineService implements ISpoofaxOutlineService {
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
     private final IStrategoCommon common;
+    private final ISemanticProviderService semanticProviderService;
 
 
     @Inject public OutlineService(IProjectService projectService, IContextService contextService,
-        IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService, IStrategoCommon common) {
+        IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService, IStrategoCommon common,
+        ISemanticProviderService semanticProviderService) {
         this.projectService = projectService;
         this.contextService = contextService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;
         this.common = common;
+        this.semanticProviderService = semanticProviderService;
     }
 
 
     @Override public boolean available(ILanguageImpl language) {
-        return language.facet(OutlineFacet.class) != null;
+        try {
+            return facet(language) != null;
+        } catch (MetaborgException e) {
+            return false;
+        }
     }
 
     @Override public IOutline outline(ISpoofaxParseUnit result) throws MetaborgException {
@@ -83,29 +93,16 @@ public class OutlineService implements ISpoofaxOutlineService {
             }
         }
 
-        final FacetContribution<OutlineFacet> facetContrib = facet(langImpl);
-        final OutlineFacet facet = facetContrib.facet;
+        final FacetContribution<IOutlineFacet> facetContrib = facet(langImpl);
+        final IOutlineFacet facet = facetContrib.facet;
         final ILanguageComponent contributor = facetContrib.contributor;
-        final String strategy = facet.strategyName;
-
         try {
-            final HybridInterpreter interpreter;
-            if(context == null) {
-                interpreter = strategoRuntimeService.runtime(contributor, source, true);
-            } else {
-                interpreter = strategoRuntimeService.runtime(contributor, context, true);
-            }
-            final IStrategoTerm input = common.builderInputTerm(result.ast(), source, source);
-            final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
-            if(outlineTerm == null) {
-                return null;
-            }
-            final IOutline outline = toOutline(outlineTerm, facet.expandTo, contributor.location());
-            return outline;
+            return outline(source, context, facet, contributor, result.ast(), source);
         } catch(MetaborgException e) {
             throw new MetaborgException("Creating outline failed", e);
         }
     }
+
 
     @Override public IOutline outline(ISpoofaxAnalyzeUnit result) throws MetaborgException {
         if(!result.valid() || !result.hasAst()) {
@@ -116,28 +113,62 @@ public class OutlineService implements ISpoofaxOutlineService {
         final IContext context = result.context();
         final ILanguageImpl language = context.language();
 
-        final FacetContribution<OutlineFacet> facetContrib = facet(language);
-        final OutlineFacet facet = facetContrib.facet;
+        final FacetContribution<IOutlineFacet> facetContrib = facet(language);
+        final IOutlineFacet facet = facetContrib.facet;
         final ILanguageComponent contributor = facetContrib.contributor;
-        final String strategy = facet.strategyName;
 
         try {
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, context, true);
-            final IStrategoTerm input = common.builderInputTerm(result.ast(), source, context.location());
-            final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
-            if(outlineTerm == null) {
-                return null;
-            }
-            final IOutline outline = toOutline(outlineTerm, facet.expandTo, contributor.location());
-            return outline;
+            return outline(source, context, facet, contributor, result.ast(), context.location());
         } catch(MetaborgException e) {
             throw new MetaborgException("Creating outline failed", e);
         }
     }
 
 
-    private FacetContribution<OutlineFacet> facet(ILanguageImpl language) throws MetaborgException {
-        final FacetContribution<OutlineFacet> facet = language.facetContribution(OutlineFacet.class);
+    private IOutline outline(FileObject source, IContext context, IOutlineFacet facet,
+            ILanguageComponent contributor, IStrategoTerm ast, FileObject location) throws MetaborgException {
+        final IBuilderInput input = common.builderInputTerm(ast, source, location);
+        if(facet instanceof StrategoOutlineFacet) {
+            return strategoOutline(source, context, (StrategoOutlineFacet) facet, contributor, input);
+        }
+        if(facet instanceof JavaOutlineFacet) {
+            return javaOutline(context, contributor, (JavaOutlineFacet) facet, input);
+        }
+        logger.warn("Outlining facet has unexpected type: ", facet.getClass());
+        return null;
+    }
+
+
+    private IOutline strategoOutline(FileObject source, IContext context, StrategoOutlineFacet facet,
+            ILanguageComponent contributor, IStrategoTerm input) throws MetaborgException {
+        final String strategy = facet.strategyName;
+        final HybridInterpreter interpreter;
+        if(context == null) {
+            interpreter = strategoRuntimeService.runtime(contributor, source, true);
+        } else {
+            interpreter = strategoRuntimeService.runtime(contributor, context, true);
+        }
+        final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
+        if(outlineTerm == null) {
+            return null;
+        }
+        final IOutline outline = toOutline(outlineTerm, facet.getExpansionLevel(), contributor.location());
+        return outline;
+    }
+
+
+    private IOutline javaOutline(IContext context, ILanguageComponent contributor, JavaOutlineFacet facet, IBuilderInput input) throws MetaborgException {
+        IOutliner outliner = semanticProviderService.outliner(contributor, facet.javaClassName);
+        return new Outline(outliner.createOutline(context, input, this::region), facet.getExpansionLevel());
+    }
+
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private FacetContribution<IOutlineFacet> facet(ILanguageImpl language) throws MetaborgException {
+        FacetContribution<IOutlineFacet> facet = (FacetContribution) language.facetContribution(StrategoOutlineFacet.class);
+        if(facet == null) {
+            facet = (FacetContribution) language.facetContribution(JavaOutlineFacet.class);
+        }
         if(facet == null) {
             final String message =
                 logger.format("Cannot create outline for {}, it does not have an outline facet", language);

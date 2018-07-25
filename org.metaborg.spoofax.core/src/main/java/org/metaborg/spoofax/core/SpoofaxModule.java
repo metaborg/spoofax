@@ -82,6 +82,8 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
+import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
+import org.metaborg.spoofax.core.semantic_provider.SemanticProviderService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
@@ -148,9 +150,9 @@ import org.metaborg.spoofax.core.tracing.ResolverService;
 import org.metaborg.spoofax.core.tracing.TracingCommon;
 import org.metaborg.spoofax.core.tracing.TracingService;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
-import org.metaborg.spoofax.core.transform.IStrategoTransformer;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformer;
 import org.metaborg.spoofax.core.transform.SpoofaxTransformService;
-import org.metaborg.spoofax.core.transform.StrategoTransformer;
+import org.metaborg.spoofax.core.transform.SpoofaxTransformer;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
@@ -349,6 +351,10 @@ public class SpoofaxModule extends MetaborgModule {
         bind(new TypeLiteral<IAnalysisService<?, ?, ?>>() {}).to(SpoofaxAnalysisService.class);
         bind(IAnalysisService.class).to(SpoofaxAnalysisService.class);
 
+        // Semantic provider
+        bind(SemanticProviderService.class).in(Singleton.class);
+        bind(ISemanticProviderService.class).to(SemanticProviderService.class);
+
         // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class);
@@ -521,13 +527,13 @@ public class SpoofaxModule extends MetaborgModule {
         bind(ITransformService.class).to(SpoofaxTransformService.class);
 
         // Analyzers
-        bind(StrategoTransformer.class).in(Singleton.class);
-        bind(IStrategoTransformer.class).to(StrategoTransformer.class);
+        bind(SpoofaxTransformer.class).in(Singleton.class);
+        bind(ISpoofaxTransformer.class).to(SpoofaxTransformer.class);
         bind(
             new TypeLiteral<ITransformer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>>() {})
-                .to(StrategoTransformer.class);
-        bind(new TypeLiteral<ITransformer<?, ?, ?, ?>>() {}).to(StrategoTransformer.class);
-        bind(ITransformer.class).to(StrategoTransformer.class);
+                .to(SpoofaxTransformer.class);
+        bind(new TypeLiteral<ITransformer<?, ?, ?, ?>>() {}).to(SpoofaxTransformer.class);
+        bind(ITransformer.class).to(SpoofaxTransformer.class);
     }
 
     /**

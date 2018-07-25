@@ -10,6 +10,8 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.spoofax.core.semantic_provider.BuilderInput;
+import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -51,7 +53,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
         String strategy) throws MetaborgException {
-        if(component.facet(StrategoRuntimeFacet.class) == null) {
+        if(component.facet(SemanticProviderFacet.class) == null) {
             return null;
         }
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
@@ -62,7 +64,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(StrategoRuntimeFacet.class) == null) {
+            if(component.facet(SemanticProviderFacet.class) == null) {
                 continue;
             }
 
@@ -82,7 +84,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(StrategoRuntimeFacet.class) == null) {
+            if(component.facet(SemanticProviderFacet.class) == null) {
                 continue;
             }
 
@@ -193,7 +195,7 @@ public class StrategoCommon implements IStrategoCommon {
         return resourceTerm;
     }
 
-    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location) {
+    @Override public BuilderInput builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
         // TODO: support selected node
@@ -201,13 +203,9 @@ public class StrategoCommon implements IStrategoCommon {
         // TODO: support position
         final IStrategoTerm position = termFactory.makeList();
 
-        final String locationURI = location.getName().getURI();
-        final IStrategoString locationTerm = termFactory.makeString(locationURI);
-
         String resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
-        final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
 
-        return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);
+        return new BuilderInput(node, position, ast, resourceURI, location);
     }
 
     @Override public String toString(IStrategoTerm term) {

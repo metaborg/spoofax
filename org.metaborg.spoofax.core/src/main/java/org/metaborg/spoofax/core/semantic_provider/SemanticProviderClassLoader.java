@@ -1,14 +1,14 @@
-package org.metaborg.spoofax.core.stratego;
+package org.metaborg.spoofax.core.semantic_provider;
 
 import org.strategoxt.HybridInterpreter;
 
-public class StrategoRuntimeClassLoader extends ClassLoader {
+public class SemanticProviderClassLoader extends ClassLoader {
     private final ClassLoader strategoClassLoader = HybridInterpreter.class.getClassLoader();
     private final Iterable<ClassLoader> additionalClassLoaders;
 
 
-    public StrategoRuntimeClassLoader(Iterable<ClassLoader> additionalClassLoaders) {
-        super(StrategoRuntimeClassLoader.class.getClassLoader());
+    public SemanticProviderClassLoader(Iterable<ClassLoader> additionalClassLoaders) {
+        super(SemanticProviderClassLoader.class.getClassLoader());
         this.additionalClassLoaders = additionalClassLoaders;
     }
 

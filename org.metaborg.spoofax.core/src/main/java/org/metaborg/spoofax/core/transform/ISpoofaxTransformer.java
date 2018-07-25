@@ -8,7 +8,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 /**
  * Typedef interface for {@link ITransformer} with Spoofax interfaces.
  */
-public interface IStrategoTransformer extends
+public interface ISpoofaxTransformer extends
     ITransformer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> {
 
 }
