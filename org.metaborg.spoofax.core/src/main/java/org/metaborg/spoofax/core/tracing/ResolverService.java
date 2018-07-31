@@ -21,8 +21,6 @@ import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.tracing.Resolution;
 import org.metaborg.core.tracing.ResolutionTarget;
-import org.metaborg.spoofax.core.outline.JavaOutlineFacet;
-import org.metaborg.spoofax.core.outline.StrategoOutlineFacet;
 import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
 import org.metaborg.spoofax.core.semantic_provider.SemanticProviderService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
@@ -128,13 +126,13 @@ public class ResolverService implements ISpoofaxResolverService {
 
     private Resolution resolve(FileObject source, IContext context, Iterable<IStrategoTerm> inRegion, IFacet facet,
             ILanguageComponent contributor, IStrategoTerm ast, FileObject location) throws MetaborgException {
-        if(facet instanceof StrategoOutlineFacet) {
-            return strategoResolve(source, context, inRegion, contributor, ((StrategoOutlineFacet) facet).strategyName);
+        if(facet instanceof StrategoResolverFacet) {
+            return strategoResolve(source, context, inRegion, contributor, ((StrategoResolverFacet) facet).strategyName);
         }
-        if(facet instanceof JavaOutlineFacet) {
-            return javaResolve(context, contributor, ((JavaOutlineFacet) facet).javaClassName, inRegion);
+        if(facet instanceof JavaResolverFacet) {
+            return javaResolve(context, contributor, ((JavaResolverFacet) facet).javaClassName, inRegion);
         }
-        logger.warn("Outlining facet has unexpected type: ", facet.getClass());
+        logger.warn("Resolver facet has unexpected type: {}", facet.getClass());
         return null;
     }
 
