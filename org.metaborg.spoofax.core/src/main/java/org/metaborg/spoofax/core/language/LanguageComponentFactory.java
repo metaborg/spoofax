@@ -60,7 +60,6 @@ import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
-import org.metaborg.spoofax.core.tracing.StrategoHoverFacet;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -393,7 +392,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                 config.addFacet(resolverFacet);
             }
 
-            final StrategoHoverFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
+            final IFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
             if(hoverFacet != null) {
                 config.addFacet(hoverFacet);
             }

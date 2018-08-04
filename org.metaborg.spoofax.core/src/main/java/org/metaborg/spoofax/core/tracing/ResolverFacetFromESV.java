@@ -20,7 +20,7 @@ public class ResolverFacetFromESV {
         if(resolver == null) {
             return null;
         }
-        IStrategoTerm callTerm = termAt(resolver, 1);
+        final IStrategoTerm callTerm = termAt(resolver, 1);
         final String name = ESVReader.termContents(callTerm);
         if(name == null) {
             logger.error("Could not get contents of ESV ReferenceRule {}, cannot create resolver facet", resolver);
@@ -35,16 +35,23 @@ public class ResolverFacetFromESV {
         }
     }
 
-    public static @Nullable StrategoHoverFacet createHover(IStrategoAppl esv) {
+    public static @Nullable IFacet createHover(IStrategoAppl esv) {
         final IStrategoAppl hover = ESVReader.findTerm(esv, "HoverRule");
         if(hover == null) {
             return null;
         }
-        final String strategyName = ESVReader.termContents(termAt(hover, 1));
-        if(strategyName == null) {
+        final IStrategoTerm callTerm = termAt(hover, 1);
+        final String name = ESVReader.termContents(callTerm);
+        if(name == null) {
             logger.error("Could not get contents of ESV HoverRule {}, cannot create hover facet", hover);
             return null;
         }
-        return new StrategoHoverFacet(strategyName);
+
+        switch (Term.tryGetName(callTerm)) {
+            case "Java":
+                return new JavaHoverFacet(name);
+            default:
+                return new StrategoHoverFacet(name);
+        }
     }
 }
