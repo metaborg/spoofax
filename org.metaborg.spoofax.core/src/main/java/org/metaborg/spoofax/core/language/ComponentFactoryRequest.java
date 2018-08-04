@@ -23,7 +23,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
     @Nullable private final ILanguageComponentConfig config;
     @Nullable private final IStrategoAppl esvTerm;
     @Nullable private final SyntaxFacet syntaxFacet;
-    @Nullable private final SemanticProviderFacet strategoRuntimeFacet;
+    @Nullable private final SemanticProviderFacet semanticProviderFacet;
 
 
     /**
@@ -37,12 +37,12 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
      *            The ESV term.
      * @param syntaxFacet
      *            The syntax facet.
-     * @param strategoRuntimeFacet
+     * @param semanticProviderFacet
      *            The Stratego runtime facet.
      */
     public ComponentFactoryRequest(FileObject location, @Nullable ILanguageComponentConfig config,
         @Nullable IStrategoAppl esvTerm, @Nullable SyntaxFacet syntaxFacet,
-        @Nullable SemanticProviderFacet strategoRuntimeFacet) {
+        @Nullable SemanticProviderFacet semanticProviderFacet) {
         this.available = true;
         this.location = location;
         this.errors = Collections.emptyList();
@@ -50,7 +50,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
         this.esvTerm = esvTerm;
         this.config = config;
         this.syntaxFacet = syntaxFacet;
-        this.strategoRuntimeFacet = strategoRuntimeFacet;
+        this.semanticProviderFacet = semanticProviderFacet;
     }
 
     /**
@@ -71,7 +71,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
         this.esvTerm = null;
         this.config = null;
         this.syntaxFacet = null;
-        this.strategoRuntimeFacet = null;
+        this.semanticProviderFacet = null;
     }
 
     /**
@@ -169,8 +169,8 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
      *
      * @return The Stratego runtime facet; or <code>null</code> when there is no Stratego runtime facet.
      */
-    public @Nullable SemanticProviderFacet strategoRuntimeFacet() {
-        return this.strategoRuntimeFacet;
+    public @Nullable SemanticProviderFacet semanticProviderFacet() {
+        return this.semanticProviderFacet;
     }
 
     /**

@@ -218,7 +218,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         }
 
         SyntaxFacet syntaxFacet = null;
-        SemanticProviderFacet strategoRuntimeFacet = null;
+        SemanticProviderFacet semanticProviderFacet = null;
         if(esvTerm != null) {
             try {
                 syntaxFacet = SyntaxFacetFromESV.create(esvTerm, root);
@@ -230,9 +230,9 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             }
 
             try {
-                strategoRuntimeFacet = SemanticProviderFacetFromESV.create(esvTerm, root);
-                if(strategoRuntimeFacet != null) {
-                    Iterables.addAll(errors, strategoRuntimeFacet.available(resourceService));
+                semanticProviderFacet = SemanticProviderFacetFromESV.create(esvTerm, root);
+                if(semanticProviderFacet != null) {
+                    Iterables.addAll(errors, semanticProviderFacet.available(resourceService));
                 }
             } catch(IOException e) {
                 exceptions.add(e);
@@ -241,7 +241,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
         final ComponentFactoryRequest request;
         if(errors.isEmpty() && exceptions.isEmpty()) {
-            request = new ComponentFactoryRequest(root, config, esvTerm, syntaxFacet, strategoRuntimeFacet);
+            request = new ComponentFactoryRequest(root, config, esvTerm, syntaxFacet, semanticProviderFacet);
         } else {
             request = new ComponentFactoryRequest(root, errors, exceptions);
         }
@@ -292,9 +292,9 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             syntaxFacet = null;
         }
 
-        final SemanticProviderFacet strategoRuntimeFacet = request.strategoRuntimeFacet();
-        if(strategoRuntimeFacet != null) {
-            config.addFacet(strategoRuntimeFacet);
+        final SemanticProviderFacet semanticProviderFacet = request.semanticProviderFacet();
+        if(semanticProviderFacet != null) {
+            config.addFacet(semanticProviderFacet);
         }
 
         final IStrategoAppl esvTerm = request.esvTerm();
