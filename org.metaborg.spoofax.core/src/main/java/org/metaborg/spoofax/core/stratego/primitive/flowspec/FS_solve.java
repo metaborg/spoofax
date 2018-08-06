@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.stratego.primitive.flowspec;
 
 import static mb.nabl2.terms.build.TermBuild.B;
+import static mb.nabl2.terms.matching.TermMatch.M;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -46,17 +47,17 @@ public class FS_solve extends AbstractPrimitive {
     private IContext env;
 
     @Inject public FS_solve(IResourceService resourceService, ITermFactoryService termFactoryService) {
-        super(FS_solve.class.getSimpleName(), 0, 1);
+        super(FS_solve.class.getSimpleName(), 0, 2);
         this.resourceService = resourceService;
         this.termFactory = termFactoryService.getGeneric();
         this.strategoTerms = new StrategoTerms(termFactory);
-        prim = new AnalysisPrimitive(FS_solve.class.getSimpleName()) {
-            @Override protected Optional<? extends ITerm> call(IScopeGraphUnit unit, ITerm term, List<ITerm> terms)
+        prim = new AnalysisPrimitive(FS_solve.class.getSimpleName(), 1) {
+            @Override protected Optional<? extends ITerm> call(IScopeGraphUnit unit, ITerm currentTerm, List<ITerm> terms)
                     throws InterpreterException {
-                Optional<ISolution> solution = unit.solution().map(sol -> {
+                Optional<ISolution> solution = unit.solution().flatMap(sol -> M.listElems(M.stringValue()).match(terms.get(0)).map(l -> {
                     FixedPoint solver = new FixedPoint();
-                    return solver.entryPoint(sol, getStaticInfo(env.language()));
-                });
+                    return solver.entryPoint(sol, getStaticInfo(env.language()), l);
+                }));
                 return Optional.of(B.newBlob(ImmutableScopeGraphUnit.builder().from(unit).solution(solution).build()));
             }
         };
