@@ -19,6 +19,7 @@ import mb.nabl2.solver.Fresh;
 import mb.nabl2.solver.ISolution;
 import mb.nabl2.spoofax.analysis.CustomSolution;
 import mb.nabl2.spoofax.analysis.FinalResult;
+import mb.nabl2.spoofax.analysis.IScopeGraphUnit;
 import mb.nabl2.spoofax.analysis.InitialResult;
 import mb.nabl2.spoofax.analysis.UnitResult;
 
@@ -142,6 +143,12 @@ public class SingleFileScopeGraphContext extends AbstractScopeGraphContext<State
                 this.customSolution = null;
                 this.finalResult = null;
                 this.fresh.reset();
+            }
+
+            @Override
+            public IScopeGraphUnit withSolution(ISolution solution) {
+                this.setSolution(solution);
+                return this;
             }
 
         }
