@@ -313,6 +313,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     || input.sdf2tableVersion == Sdf2tableVersion.incremental);
                 final boolean dataDependent = (input.jsglrVersion == JSGLRVersion.dataDependent);
                 final boolean layoutSensitive = (input.jsglrVersion == JSGLRVersion.layoutSensitive);
+                final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table-completions.bin");
                 final List<String> paths = Lists.newLinkedList();
                 paths.add(srcGenSyntaxDir.getAbsolutePath());
 
@@ -350,7 +351,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
 
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
-                sdfCompletionOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, sdfCompletionsFile, tableFile, null,
+                sdfCompletionOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, sdfCompletionsFile, tableFile, persistedTableFile,
                     null, paths, dynamicGeneration, dataDependent, layoutSensitive));
 
                 requireBuild(sdfCompletionOrigin);
