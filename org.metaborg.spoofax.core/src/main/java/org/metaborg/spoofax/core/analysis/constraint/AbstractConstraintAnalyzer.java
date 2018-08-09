@@ -144,7 +144,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     protected @Nullable List<IStrategoTerm> match(IStrategoTerm term, String op, int n) {
-        if(!Tools.isTermAppl(term) || !Tools.hasConstructor((IStrategoAppl) term, op, n)) {
+        if(term == null || !Tools.isTermAppl(term) || !Tools.hasConstructor((IStrategoAppl) term, op, n)) {
             return null;
         }
         return ImmutableList.copyOf(term.getAllSubterms());
