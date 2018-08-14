@@ -17,6 +17,8 @@ signature constructors
   Indent          : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
   NewLineIndent   : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
   NewLineIndentBy : NatCon * ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+  NewLine         : ConstraintTreeReference -> ShortConstraint
+  NewLineBy       : NatCon * ConstraintTreeReference -> ShortConstraint
   Align           : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
   Align           : ConstraintTreeReference -> ShortConstraint
   PosRef          : NatCon -> ConstraintTreeReference

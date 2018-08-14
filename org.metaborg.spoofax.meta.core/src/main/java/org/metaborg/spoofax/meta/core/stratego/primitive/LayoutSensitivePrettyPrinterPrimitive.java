@@ -211,7 +211,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         if(t instanceof IStrategoAppl
                             && ((IStrategoAppl) t).getConstructor().getName().equals("Offside")
                             && t.getSubterm(1).getSubtermCount() != 0) {
-                            System.out.println("Applying constraint " + t);
+//                            System.out.println("Applying constraint " + t);
                             newBoxes = applyOffsideConstraint(newBoxes, t);
                             result = annotateTerm(
                                 tf.makeAppl(((IStrategoAppl) term).getConstructor(), term.getSubterm(0), newBoxes),
@@ -223,7 +223,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         // Align(_, [_ | _])
                         if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("Align")
                             && t.getSubtermCount() == 2) {
-                            System.out.println("Applying constraint " + t);
+//                            System.out.println("Applying constraint " + t);
                             newBoxes = applyAlignConstraint(newBoxes, t);
                             result = annotateTerm(
                                 tf.makeAppl(((IStrategoAppl) term).getConstructor(), term.getSubterm(0), newBoxes),
@@ -236,7 +236,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         // Indent(_, [_ | _])
                         if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("Indent")
                             && t.getSubterm(1).getSubtermCount() != 0) {
-                            System.out.println("Applying constraint " + t);
+//                            System.out.println("Applying constraint " + t);
                             newBoxes = applyIndentConstraint(newBoxes, t);
                             result = annotateTerm(
                                 tf.makeAppl(((IStrategoAppl) term).getConstructor(), term.getSubterm(0), newBoxes),
@@ -249,7 +249,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         if(t instanceof IStrategoAppl
                             && ((IStrategoAppl) t).getConstructor().getName().equals("NewLineIndent")
                             && t.getSubterm(1).getSubtermCount() != 0) {
-                            System.out.println("Applying constraint " + t);
+//                            System.out.println("Applying constraint " + t);
                             result = applyNewLineIndentConstraint(result, t, 1);
                             result = updateColumnBoxes(result, getPositionWithLayout(result));
                             newBoxes = result.getSubterm(1);
@@ -258,9 +258,28 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         // NewLineIndentBy(_, _, [_ | _])
                         if(t instanceof IStrategoAppl
                             && ((IStrategoAppl) t).getConstructor().getName().equals("NewLineIndentBy")) {
-                            System.out.println("Applying constraint " + t);
+//                            System.out.println("Applying constraint " + t);
                             result =
                                 applyNewLineIndentConstraint(result, t, ((IStrategoInt) t.getSubterm(0)).intValue());
+                            result = updateColumnBoxes(result, getPositionWithLayout(result));
+                            newBoxes = result.getSubterm(1);
+                        }
+                        
+                     // NewLine(_)
+                        if(t instanceof IStrategoAppl
+                            && ((IStrategoAppl) t).getConstructor().getName().equals("NewLine")) {
+//                            System.out.println("Applying constraint " + t);
+                            result = applyNewLineConstraint(result, t, 0);
+                            result = updateColumnBoxes(result, getPositionWithLayout(result));
+                            newBoxes = result.getSubterm(1);
+                        }
+
+                        // NewLineBy(_, _)
+                        if(t instanceof IStrategoAppl
+                            && ((IStrategoAppl) t).getConstructor().getName().equals("NewLineBy")) {
+//                            System.out.println("Applying constraint " + t);
+                            result =
+                                applyNewLineConstraint(result, t, ((IStrategoInt) t.getSubterm(0)).intValue());
                             result = updateColumnBoxes(result, getPositionWithLayout(result));
                             newBoxes = result.getSubterm(1);
                         }
@@ -271,7 +290,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         if(t instanceof IStrategoAppl
                             && ((IStrategoAppl) t).getConstructor().getName().equals("Offside")
                             && t.getSubterm(1).getSubtermCount() == 0) {
-                            System.out.println("Applying constraint " + t);
+//                            System.out.println("Applying constraint " + t);
                             result = annotateTerm(applyOffsideTreeConstraint(result), term.getAnnotations());
                             result = updateColumnBoxes(result, getPositionWithLayout(result));
                         }
@@ -285,7 +304,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                     // Align(_)
                     if(t instanceof IStrategoAppl && ((IStrategoAppl) t).getConstructor().getName().equals("Align")
                         && t.getSubtermCount() == 1) {
-                        System.out.println("Applying constraint " + t);
+//                        System.out.println("Applying constraint " + t);
                         IStrategoTerm newBoxes = applyAlignListConstraint(result.getSubterm(1));
                         result = annotateTerm(
                             tf.makeAppl(((IStrategoAppl) term).getConstructor(), term.getSubterm(0), newBoxes),
@@ -418,6 +437,31 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     }
 
 
+    private IStrategoTerm applyNewLineConstraint(IStrategoTerm t, IStrategoTerm constraint, int size) {
+        IStrategoTerm targ;
+        
+        if(((IStrategoAppl) constraint).getConstructor().getName().equals("NewLine")) {
+            targ = constraint.getSubterm(0);
+        } else {           
+            targ = constraint.getSubterm(1);
+        }
+        
+        IStrategoTerm termTarg = getTermFromSelector(t.getSubterm(1), targ, true);
+        IStrategoTerm posTarg = getPosition(termTarg);
+        
+        int colTarg = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
+        
+        if(colTarg != 1) {
+            t = moveToNextLine(t, termTarg);
+            t = updateColumnBoxes(t, getPositionWithLayout(t));
+            termTarg = getTermFromSelector(t.getSubterm(1), targ, true);
+            posTarg = getPosition(termTarg);
+        }
+        
+        return applyAlignConstraintToSelector(t, shiftColumn(posTarg, size), termTarg);
+    }
+
+
     private IStrategoTerm moveToNextLine(IStrategoTerm t, IStrategoTerm termTarg) {
         if(t.equals(termTarg)) {
             // wrap in Z box to jump to next line
@@ -488,8 +532,8 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                 // remove the indentation that is there already
                 termTarg = removeCurrentIndentation(termTarg);
 
-                System.out.println("In Line " + targLine + " after column " + targCol + " shifted boxes by "
-                    + -(targCol - refCol) + " spaces.");
+//                System.out.println("In Line " + targLine + " after column " + targCol + " shifted boxes by "
+//                    + -(targCol - refCol) + " spaces.");
 
                 IStrategoTerm emptyBox = tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString(""));
                 IStrategoTerm hBoxConfig = tf.makeAppl(tf.makeConstructor("SOpt", 2),
@@ -503,8 +547,8 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                 // H([SOpt(HS(), "dif")], [S(""), t])
                 // all inner Z boxes should also be indented
 
-                System.out.println("In Line " + targLine + " after column " + targCol + " shifted boxes by "
-                    + (refCol - targCol) + " spaces.");
+//                System.out.println("In Line " + targLine + " after column " + targCol + " shifted boxes by "
+//                    + (refCol - targCol) + " spaces.");
 
                 IStrategoTerm emptyBox = tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString(""));
                 IStrategoTerm hBoxConfig = tf.makeAppl(tf.makeConstructor("SOpt", 2),
@@ -514,7 +558,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                     tf.makeList(emptyBox, indentZboxes(termTarg, hBoxConfig)));
 
             } else {
-                System.out.println("Didn't change anything.");
+//                System.out.println("Didn't change anything.");
                 return termTarg;
             }
 
@@ -661,7 +705,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             }
 
         }
-        logger.error("Not a box to apply offside constraint to!");
+//        logger.error("Not a box to apply offside constraint to!");
         return t;
     }
 
