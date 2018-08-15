@@ -13,8 +13,10 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.context.IContext;
@@ -77,7 +79,7 @@ public abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphCon
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
 
     private static final String PP_STRATEGY = "pp-NaBL2-objlangterm";
-    public static final String FLOWSPEC_STATIC_INFO_FILE = "target/metaborg/flowspec-static-info.aterm";
+    public static final String FLOWSPEC_STATIC_INFO_DIR = "target/metaborg/flowspec-static-info";
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
@@ -185,46 +187,24 @@ public abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphCon
     }
 
     protected Optional<StaticInfo> getFlowSpecStaticInfo(ILanguageComponent component) {
-        StaticInfo staticInfo = flowSpecTransferFunctionCache.get(component);
-        if (staticInfo != null) {
-            return Optional.of(staticInfo);
+        Optional<StaticInfo> staticInfo = Optional.ofNullable(flowSpecTransferFunctionCache.get(component));
+        if (staticInfo.isPresent()) {
+            return staticInfo;
         }
 
-        FileObject tfs = resourceService.resolve(component.location(), FLOWSPEC_STATIC_INFO_FILE);
-        try {
-            IStrategoTerm sTerm = termFactory
-                    .parseFromString(IOUtils.toString(tfs.getContent().getInputStream(), StandardCharsets.UTF_8));
-            ITerm term = strategoTerms.fromStratego(sTerm);
-            staticInfo = StaticInfo.match().match(term, PersistentUnifier.Immutable.of()).orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
-        } catch (IOException e) {
-            logger.info("Could not read FlowSpec static info file for {}. \n{}", component, e.getMessage());
-            return Optional.empty();
-        } catch (ParseError | ParseException e) {
-            logger.warn("Could not parse FlowSpec static info file for {}. \nError: {}", component, e.getMessage());
-            return Optional.empty();
+        staticInfo = getFlowSpecStaticInfo(component, resourceService, termFactory, strategoTerms);
+
+        if (!staticInfo.isPresent()) {
+            return staticInfo;
         }
+
         logger.debug("Caching FlowSpec static info for language {}", component);
-        flowSpecTransferFunctionCache.put(component, staticInfo);
-        return Optional.of(staticInfo);
+        flowSpecTransferFunctionCache.put(component, staticInfo.get());
+        return staticInfo;
     }
 
     protected StaticInfo getFlowSpecStaticInfo(ILanguageImpl impl) {
-        Optional<StaticInfo> result = Optional.empty();
-        for (ILanguageComponent comp : impl.components()) {
-            Optional<StaticInfo> sfi = getFlowSpecStaticInfo(comp);
-            if (sfi.isPresent()) {
-                if (!result.isPresent()) {
-                    result = sfi;
-                } else {
-                    result = Optional.of(result.get().addAll(sfi.get()));
-                }
-            }
-        }
-        if (!result.isPresent()) {
-            logger.error("No FlowSpec static info found for {}", impl);
-            return StaticInfo.of();
-        }
-        return result.get();
+        return getFlowSpecStaticInfo(impl, this::getFlowSpecStaticInfo);
     }
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
@@ -343,6 +323,54 @@ public abstract class AbstractConstraintAnalyzer<C extends ISpoofaxScopeGraphCon
             }
             return text;
         };
+    }
+
+    public static StaticInfo getFlowSpecStaticInfo(ILanguageImpl impl, Function<ILanguageComponent, Optional<StaticInfo>> getStaticInfo) {
+        Optional<StaticInfo> result = Optional.empty();
+        for (ILanguageComponent comp : impl.components()) {
+            Optional<StaticInfo> sfi = getStaticInfo.apply(comp);
+            if (sfi.isPresent()) {
+                logger.debug("Found FlowSpec static info directory for {}.", comp);
+                if (!result.isPresent()) {
+                    result = sfi;
+                } else {
+                    result = Optional.of(result.get().addAll(sfi.get()));
+                }
+            }
+        }
+        if (!result.isPresent()) {
+            logger.error("No FlowSpec static info found for {}", impl);
+            return StaticInfo.of();
+        }
+        return result.get();
+    }
+
+    public static Optional<StaticInfo> getFlowSpecStaticInfo(ILanguageComponent component,
+            IResourceService resourceService, ITermFactory termFactory, StrategoTerms strategoTerms) {
+        FileObject staticInfoDir = resourceService.resolve(component.location(), FLOWSPEC_STATIC_INFO_DIR);
+        try {
+            StaticInfo result = StaticInfo.of();
+            for(FileObject staticInfoFile : staticInfoDir.getChildren()) {
+                try {
+                    String moduleName = FilenameUtils.removeExtension(staticInfoFile.getName().getBaseName().replace('+', '/'));
+                    IStrategoTerm sTerm = termFactory
+                            .parseFromString(IOUtils.toString(staticInfoFile.getContent().getInputStream(), StandardCharsets.UTF_8));
+                    ITerm term = strategoTerms.fromStratego(sTerm);
+                    StaticInfo si = StaticInfo.match(moduleName)
+                            .match(term, PersistentUnifier.Immutable.of())
+                            .orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
+                    result = result.addAll(si);
+                } catch (IOException e) {
+                    logger.info("Could not read FlowSpec static info file for {}. \n{}", component, e.getMessage());
+                } catch (ParseError | ParseException e) {
+                    logger.warn("Could not parse FlowSpec static info file for {}. \nError: {}", component, e.getMessage());
+                }
+            }
+            return Optional.of(result);
+        } catch(FileSystemException e) {
+            logger.info("Could not find FlowSpec static info directory for {}.", component);
+            return Optional.empty();
+        }
     }
 
 }
