@@ -408,16 +408,21 @@ public class LanguageSpecBuilder {
             sdfCompletionFile = null;
         }
 
+
+
         // Meta-SDF
         final Iterable<FileObject> sdfRoots =
             languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_SDF_NAME);
-        final String sdfMetaModule = config.metaSdfName();
-        final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
-        final @Nullable File sdfMetaFile;
-        if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists()) {
-            sdfMetaFile = resourceService.localPath(sdfMetaFileCandidate);
-        } else {
-            sdfMetaFile = null;
+        // final String sdfMetaModule = config.metaSdfName();
+
+        List<String> sdfMetaModules = config.sdfMetaFiles();
+        final @Nullable List<File> sdfMetaFiles = Lists.newArrayList();
+
+        for(String sdfMetaModule : sdfMetaModules) {
+            final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
+            if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists()) {
+                sdfMetaFiles.add(resourceService.localPath(sdfMetaFileCandidate));
+            }
         }
 
 
@@ -480,10 +485,10 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
-            sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, sdfExternalDef,
-            packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile,
-            strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags,
-            strjIncludeDirs, strjIncludeFiles, strjArgs);
+            sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
+            packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles, strFile, strStratPkg,
+            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
+            strjIncludeFiles, strjArgs);
 
     }
 

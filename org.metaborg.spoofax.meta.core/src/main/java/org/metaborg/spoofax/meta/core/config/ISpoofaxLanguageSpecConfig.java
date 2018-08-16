@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.meta.core.config;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -29,6 +30,13 @@ public interface ISpoofaxLanguageSpecConfig extends ISpoofaxProjectConfig, ILang
      * @return path to the parse table.
      */
     String sdfMainFile();
+    
+    /**
+     * Gets the (relative) path to the sdf meta files.
+     *
+     * @return path to the sdf meta files.
+     */
+    List<String> sdfMetaFiles();
 
     /**
      * Gets the Placeholder fences.
