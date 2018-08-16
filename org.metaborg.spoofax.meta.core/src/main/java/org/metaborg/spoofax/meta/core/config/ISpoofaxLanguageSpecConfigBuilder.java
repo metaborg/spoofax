@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.meta.core.config;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -151,6 +153,15 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withSdfMainFile(String sdfMainFile);
+    
+    /**
+     * Sets the name of SDF meta files.
+     *
+     * @param sdfMetaFile
+     *            The name of the SDF meta files.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withSdfMetaFiles(List<String> sdfMetaFiles);
 
     /**
      * Sets the external def.

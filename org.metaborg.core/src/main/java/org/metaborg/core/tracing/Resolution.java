@@ -1,6 +1,5 @@
 package org.metaborg.core.tracing;
 
-import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
 
 /**
@@ -15,10 +14,10 @@ public class Resolution {
     /**
      * Resolution targets. Multiple targets indicate resolution to multiple valid locations.
      */
-    public final Iterable<ISourceLocation> targets;
+    public final Iterable<ResolutionTarget> targets;
 
 
-    public Resolution(ISourceRegion highlight, Iterable<ISourceLocation> targets) {
+    public Resolution(ISourceRegion highlight, Iterable<ResolutionTarget> targets) {
         this.highlight = highlight;
         this.targets = targets;
     }

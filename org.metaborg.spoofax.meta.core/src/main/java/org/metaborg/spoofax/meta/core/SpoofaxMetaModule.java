@@ -25,6 +25,7 @@ import org.metaborg.spoofax.meta.core.stratego.primitive.GetContextualGrammarPri
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecPpNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecSrcGenDirectory;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecificationPrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.LayoutSensitivePrettyPrinterPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LegacyLanguageSpecNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.PlaceholderCharsPrimitive;
 
@@ -50,6 +51,7 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         requestStaticInjection(LegacyLanguageSpecNamePrimitive.class);
         requestStaticInjection(CheckSdf2TablePrimitive.class);
         requestStaticInjection(PlaceholderCharsPrimitive.class);
+        requestStaticInjection(LayoutSensitivePrettyPrinterPrimitive.class);
         requestStaticInjection(GetSortNamePrimitive.class);
         requestStaticInjection(GetContextualGrammarPrimitive.class);
     }

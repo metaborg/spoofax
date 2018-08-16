@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.meta.core.config;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -32,6 +33,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     protected @Nullable SdfVersion sdfVersion;
     protected @Nullable String sdfMainFile;
+    protected @Nullable List<String> sdfMetaFile;
     protected @Nullable PlaceholderCharacters placeholderCharacters;
     protected @Nullable String prettyPrint;
     protected @Nullable String sdfExternalDef;
@@ -56,8 +58,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         SpoofaxProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, projectConfig, identifier,
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
-            sdf2tableVersion, dataDependent, sdfMainFile, parseTable, jsglrVersion, completionsParseTable, placeholderCharacters,
-            prettyPrint, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            sdf2tableVersion, dataDependent, sdfMainFile,  parseTable, jsglrVersion, completionsParseTable, placeholderCharacters,
+            prettyPrint, sdfMetaFile, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -67,6 +69,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
         sdfVersion = null;
         sdfMainFile = null;
+        sdfMetaFile = null;
         placeholderCharacters = null;
         prettyPrint = null;
         sdfExternalDef = null;
@@ -86,6 +89,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             withSdf2tableVersion(config.sdf2tableVersion());
             withPrettyPrintLanguage(config.prettyPrintLanguage());
             withSdfMainFile(config.sdfMainFile());
+            withSdfMetaFiles(config.sdfMetaFiles());
             withPlaceholderPrefix(config.placeholderChars().prefix);
             withPlaceholderPostfix(config.placeholderChars().suffix);
             withSdfExternalDef(config.sdfExternalDef());
@@ -212,6 +216,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfMainFile(String sdfMainFile) {
         this.sdfMainFile = sdfMainFile;
+        return this;
+    }
+    
+    @Override public ISpoofaxLanguageSpecConfigBuilder withSdfMetaFiles(List<String> sdfMetaFile) {
+        this.sdfMetaFile = sdfMetaFile;
         return this;
     }
 
