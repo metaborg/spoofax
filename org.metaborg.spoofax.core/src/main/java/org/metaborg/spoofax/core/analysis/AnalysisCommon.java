@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.analysis;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
@@ -17,7 +19,9 @@ import org.spoofax.terms.Term;
 import org.spoofax.terms.TermVisitor;
 import org.strategoxt.HybridInterpreter;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
 public class AnalysisCommon {
@@ -34,7 +38,7 @@ public class AnalysisCommon {
         return "Analysis failed\nStratego stack trace:\n" + stackTracer.getTraceString();
     }
 
-    public Collection<IMessage> messages(FileObject resource, MessageSeverity severity, IStrategoTerm messagesTerm) {
+    public Collection<IMessage> messages(@Nullable FileObject resource, MessageSeverity severity, IStrategoTerm messagesTerm) {
         final Collection<IMessage> messages = Lists.newArrayListWithExpectedSize(messagesTerm.getSubtermCount());
 
         for(IStrategoTerm term : messagesTerm.getAllSubterms()) {
@@ -58,6 +62,36 @@ public class AnalysisCommon {
                 }
             } else {
                 messages.add(message(resource, message, severity));
+            }
+        }
+
+        return messages;
+    }
+
+    public Multimap<FileObject, IMessage> messages(MessageSeverity severity, IStrategoTerm messagesTerm) {
+        final Multimap<FileObject, IMessage> messages = HashMultimap.create();
+
+        for(IStrategoTerm term : messagesTerm.getAllSubterms()) {
+            final IStrategoTerm originTerm;
+            final String message;
+            if(term.getSubtermCount() == 2) {
+                originTerm = term.getSubterm(0);
+                message = toString(term.getSubterm(1));
+            } else {
+                originTerm = term;
+                message = toString(term) + " (no tree node indicated)";
+            }
+
+            if(originTerm != null) {
+                final ISourceLocation location = tracingService.location(originTerm);
+                if(location != null) {
+                    final ISourceRegion region = location.region();
+                    messages.put(location.resource(), message(location.resource(), region, message, severity));
+                } else {
+                    messages.put(null, message(null, message, severity));
+                }
+            } else {
+                messages.put(null, message(null, message, severity));
             }
         }
 
@@ -120,11 +154,11 @@ public class AnalysisCommon {
         }
     }
 
-    private IMessage message(FileObject resource, ISourceRegion region, String message, MessageSeverity severity) {
+    private IMessage message(@Nullable FileObject resource, ISourceRegion region, String message, MessageSeverity severity) {
         return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
     }
 
-    private IMessage message(FileObject resource, String message, MessageSeverity severity) {
+    private IMessage message(@Nullable FileObject resource, String message, MessageSeverity severity) {
         return MessageFactory.newAnalysisMessageAtTop(resource, message + " (no origin information)", severity, null);
     }
 }

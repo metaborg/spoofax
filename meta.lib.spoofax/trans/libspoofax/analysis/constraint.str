@@ -1,0 +1,119 @@
+module libspoofax/analysis/constraint
+
+// This module defines the interface for a stateful analysis cycle. It supports
+// single and multi file analysis.
+//
+// Single file mode
+// ~~~~~~~~~~~~~~~~
+//
+// Single file analysis treats all files in isolation. To use it, set the following
+// in your ESV file:
+//
+//     observer : ANALYSIS-STRATEGY (constraint)
+//
+// The strategy ANALYSIS-STRATEGY should accept an AnalyzeUnit/2 term as input,
+// and return a UnitResult/5 term as output. The input arguments are a string
+// indicating the resource being analyzed, and the AST. The output arguments are
+// the analyzed AST, a term representing the result of analysis , and three lists
+// of errors, warnings, and notes.
+//
+// The result of analysis is stored, and can be used in transformations. It can
+// be retreived by calling the `get-resource-analysis` strategy. The format of
+// this term is completely free.
+//
+// Multi file mode
+// ~~~~~~~~~~~~~~~
+//
+// Multi file analysis analyses the files in a project together. It proceeds in
+// three phaes. An initial phase for project-wide setup, a phase where files are
+// analyzed individually, and a final phase where all file results are combined
+// into a project-wide result. To use multi file mode, set the following in your
+// ESV file:
+//
+//     observer : ANALYSIS-STRATEGY (constraint) (multifile)
+//
+// The strategy ANALYSIS-STRATEGY should implement three cases for the three
+// phases of analysis:
+// 1. The project-wide setup should accept an AnalyzeInitial/1 term as input and
+//    return a InitialResult/1 term as output. The input argument is a string
+//    representing the project resource, and the output argument a term repre-
+//    senting the initial project analysis.
+// 2. The per-file analysis should accept an AnalyzeUnit/3 term is input, and
+//    return a UnitResult/2 term as output. The input arguments are a string
+//    indicating the file being analyzed, the AST of the file, and the initial
+//    analysis from phase (1). The output arguments are the analyzed AST, and the
+//    (partial) result for this file.
+// 3. The project-wide final analysis should accept an AnalyzeFinal/3 term is
+//    input, and return a FinalResult/4 term as output. The input arguments are
+//    a string representing the project resource, the initial analysis result from
+//    phase (1), and a list of the file results from phase (2). The output arguments
+//    are a term representing the final project-wide analysis result, and three
+//    lists of errors, warnings, and notes.
+//
+// The result of analysis is stored, and can be used in transformations. It can
+// be retreived by calling the `get-resource-analysis` strategy. The format of
+// this term is completely free. It is also possible to retreive the results of
+// the initial and unit phases, which can be useful for debugging, by using the
+// strategy `get-partial-resource-analysis`.
+
+signature
+
+  constructors // single file analysis
+
+    AnalyzeUnit : String    // resource
+                * Term      // ast
+               -> AnalysisAction
+    UnitResult  : Term                   // analyzed ast
+                * Term                   // analysis
+                * List(EditorMessage)    // errors
+                * List(EditorMessage)    // warnings
+                * List(EditorMessage)    // notes
+               -> AnalysisResult
+
+
+  constructors // multi file analysis
+
+    AnalyzeInitial : String    // project resource
+                  -> AnalysisAction
+    InitialResult  : Term    // initial analysis
+                  -> AnalysisResult
+
+    AnalyzeUnit : String    // file resource
+                * Term      // ast
+                * Term      // initial analysis
+               -> AnalysisAction
+    UnitResult  : Term    // analyzed ast
+                * Term    // file analysis
+               -> AnalysisResult
+
+    AnalyzeFinal : String        // project resource
+                 * Term          // initial analysis
+                 * List(Term)    // file analyses
+                -> AnalysisAction
+    FinalResult  : Term                   // final analysis
+                 * List(EditorMessage)    // errors
+                 * List(EditorMessage)    // warnings
+                 * List(EditorMessage)    // notes
+                -> AnalysisResult
+
+
+  constructors // messages
+
+    : Term      // origin term
+    * String    // message
+   -> EditorMessage
+
+
+rules
+
+  /**
+   * @type resource:String -> analysis:Term
+   */
+  get-resource-constraint-analysis =
+    prim("C_get_resource_analysis")
+
+  /**
+   * @type resource:String -> analysis:Term
+   */
+  get-resource-partial-constraint-analysis =
+    prim("C_get_resource_partial_analysis")

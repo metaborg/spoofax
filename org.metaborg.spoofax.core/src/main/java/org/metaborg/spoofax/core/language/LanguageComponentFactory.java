@@ -36,15 +36,15 @@ import org.metaborg.spoofax.core.action.ActionFacetFromESV;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
-import org.metaborg.spoofax.core.analysis.constraint.ConstraintMultiFileAnalyzer;
-import org.metaborg.spoofax.core.analysis.constraint.ConstraintSingleFileAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.MultiFileConstraintAnalyzer;
+import org.metaborg.spoofax.core.analysis.constraint.SingleFileConstraintAnalyzer;
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.MultiFileScopeGraphContextFactory;
-import org.metaborg.spoofax.core.context.scopegraph.SingleFileScopeGraphContextFactory;
+import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
+import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
@@ -342,11 +342,11 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                         case TaskEngineAnalyzer.name:
                             analysisContextType = IndexTaskContextFactory.name;
                             break;
-                        case ConstraintSingleFileAnalyzer.name:
-                            analysisContextType = SingleFileScopeGraphContextFactory.name;
+                        case SingleFileConstraintAnalyzer.name:
+                            analysisContextType = SingleFileConstraintContextFactory.name;
                             break;
-                        case ConstraintMultiFileAnalyzer.name:
-                            analysisContextType = MultiFileScopeGraphContextFactory.name;
+                        case MultiFileConstraintAnalyzer.name:
+                            analysisContextType = MultiFileConstraintContextFactory.name;
                             break;
                     }
                     if(hasContext && !analysisType.equals(StrategoAnalyzer.name) && !analysisContextType.equals(contextType)) {

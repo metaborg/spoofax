@@ -1,5 +1,7 @@
 package org.metaborg.core.messages;
 
-public enum MessageType {
+import java.io.Serializable;
+
+public enum MessageType implements Serializable {
     PARSER, ANALYSIS, TRANSFORMATION, INTERNAL
 }
