@@ -159,7 +159,11 @@ public class OutlineService implements ISpoofaxOutlineService {
 
     private IOutline javaOutline(IContext context, ILanguageComponent contributor, JavaOutlineFacet facet, IBuilderInput input) throws MetaborgException {
         IOutliner outliner = semanticProviderService.outliner(contributor, facet.javaClassName);
-        return new Outline(outliner.createOutline(context, input, this::region), facet.getExpansionLevel());
+        Iterable<IOutlineNode> outline = outliner.createOutline(context, input, this::region);
+        if (outline == null) {
+            return null;
+        }
+        return new Outline(outline, facet.getExpansionLevel());
     }
 
 
