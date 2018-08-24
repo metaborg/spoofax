@@ -511,12 +511,12 @@ public class LanguageSpecBuilder {
             strJavaStratFile = null;
         }
 
-        final File javaStratClassesDir =
-            resourceService.localPath(paths.strTargetClassesJavaStratDir(config.identifier().id));
-        final File dsGeneratedClassesDir = resourceService.localPath(paths.dsTargetClassesGenerateDir());
-        final File dsManualClassesDir = resourceService.localPath(paths.dsTargetClassesManualDir());
+//        final File javaStratClassesDir =
+//            resourceService.localPath(paths.strTargetClassesJavaStratDir(config.identifier().id));
+//        final File dsGeneratedClassesDir = resourceService.localPath(paths.dsTargetClassesGenerateDir());
+//        final File dsManualClassesDir = resourceService.localPath(paths.dsTargetClassesManualDir());
         final List<File> strJavaStratIncludeDirs =
-            Lists.newArrayList(javaStratClassesDir, dsGeneratedClassesDir, dsManualClassesDir);
+            Lists.newArrayList(resourceService.localPath(paths.targetClassesDir()));
 
         return new PackageBuilder.Input(context, config.identifier().id, origin, strFormat, strJavaStratFile,
             strJavaStratIncludeDirs);
