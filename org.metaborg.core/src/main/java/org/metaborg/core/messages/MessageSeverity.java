@@ -1,6 +1,8 @@
 package org.metaborg.core.messages;
 
-public enum MessageSeverity {
+import java.io.Serializable;
+
+public enum MessageSeverity implements Serializable {
     NOTE(0), WARNING(1), ERROR(2);
 
 

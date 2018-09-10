@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.transform;
 
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.transform.TransformService;
+import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
@@ -15,7 +16,8 @@ import com.google.inject.Inject;
 public class SpoofaxTransformService extends
     TransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
     implements ISpoofaxTransformService {
-    @Inject public SpoofaxTransformService(IActionService actionService, IStrategoTransformer transformer) {
-        super(actionService, transformer);
+    @Inject public SpoofaxTransformService(IActionService actionService, ISpoofaxAnalysisService analysisService,
+            IStrategoTransformer transformer) {
+        super(actionService, analysisService, transformer);
     }
 }

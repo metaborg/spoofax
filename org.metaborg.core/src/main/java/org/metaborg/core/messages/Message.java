@@ -9,9 +9,9 @@ public class Message implements IMessage {
     private final String message;
     private final MessageSeverity severity;
     private final MessageType type;
-    private final @Nullable FileObject source;
+    private final transient @Nullable FileObject source;
     private final @Nullable ISourceRegion region;
-    private final @Nullable Throwable exception;
+    private final transient @Nullable Throwable exception;
 
 
     public Message(String message, MessageSeverity severity, MessageType type, @Nullable FileObject source,

@@ -114,6 +114,10 @@ public class TracingService implements ISpoofaxTracingService {
         final Collection<IStrategoTerm> parsed = Lists.newLinkedList();
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
             @Override public boolean visit(IStrategoTerm term) {
+                if(term.isList() && term.getSubtermCount() == 1) {
+                    // try element instead of singleton list
+                    return true;
+                }
                 final ISourceLocation location = location(term);
                 if(location != null && region.contains(location.region())) {
                     parsed.add(term);

@@ -35,7 +35,14 @@ public class JSGLR1FileParseTableProvider implements IParseTableProvider {
             final TermReader termReader = new TermReader(termFactory);
             IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
 
-            FileObject persistedTable = resource.getParent().resolveFile("table.bin");
+            // Name of parse table Java object is currently fixed as table.bin and table-completions.bin
+            FileObject persistedTable;
+            if(resource.getName().getBaseName().contains("-completions")) {
+                persistedTable = resource.getParent().resolveFile("table-completions.bin");
+            } else {
+                persistedTable = resource.getParent().resolveFile("table.bin");
+            }
+            
             if(persistedTable.exists()) {
                 parseTable = new ParseTable(parseTableTerm, termFactory, persistedTable);
             } else {

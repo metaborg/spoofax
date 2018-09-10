@@ -21,6 +21,7 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -339,6 +340,7 @@ public class LanguageSpecBuilder {
         // SDF
         final Boolean sdfEnabled = config.sdfEnabled();
         final String sdfModule = config.sdfName();
+        final JSGLRVersion jsglrVersion = config.jsglrVersion();
 
         final FileObject sdfFileCandidate;
         final SdfVersion sdfVersion = config.sdfVersion();
@@ -399,8 +401,6 @@ public class LanguageSpecBuilder {
         } else if(sdf2tableVersion == Sdf2tableVersion.java || sdf2tableVersion == Sdf2tableVersion.dynamic) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
         }
-        
-        boolean dataDependent = config.dataDependent();
 
         if(sdfCompletionFileCandidate != null && sdfCompletionFileCandidate.exists()) {
             sdfCompletionFile = resourceService.localPath(sdfCompletionFileCandidate);
@@ -408,16 +408,21 @@ public class LanguageSpecBuilder {
             sdfCompletionFile = null;
         }
 
+
+
         // Meta-SDF
         final Iterable<FileObject> sdfRoots =
             languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_SDF_NAME);
-        final String sdfMetaModule = config.metaSdfName();
-        final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
-        final @Nullable File sdfMetaFile;
-        if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists()) {
-            sdfMetaFile = resourceService.localPath(sdfMetaFileCandidate);
-        } else {
-            sdfMetaFile = null;
+        // final String sdfMetaModule = config.metaSdfName();
+
+        List<String> sdfMetaModules = config.sdfMetaFiles();
+        final @Nullable List<File> sdfMetaFiles = Lists.newArrayList();
+
+        for(String sdfMetaModule : sdfMetaModules) {
+            final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
+            if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists()) {
+                sdfMetaFiles.add(resourceService.localPath(sdfMetaFileCandidate));
+            }
         }
 
 
@@ -480,10 +485,10 @@ public class LanguageSpecBuilder {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
-            sdfModule, sdfFile, sdfVersion, sdf2tableVersion, dataDependent, sdfExternalDef, packSdfIncludePaths, packSdfArgs,
-            sdfCompletionModule, sdfCompletionFile, sdfMetaModule, sdfMetaFile, strFile, strStratPkg, strJavaStratPkg,
-            strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs, strjIncludeFiles,
-            strjArgs);
+            sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
+            packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles, strFile, strStratPkg,
+            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
+            strjIncludeFiles, strjArgs);
 
     }
 

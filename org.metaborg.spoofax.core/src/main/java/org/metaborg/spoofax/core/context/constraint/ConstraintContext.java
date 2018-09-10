@@ -1,49 +1,154 @@
-package org.metaborg.spoofax.core.context.scopegraph;
+package org.metaborg.spoofax.core.context.constraint;
 
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.context.ContextIdentifier;
-import org.metaborg.core.context.IContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
-abstract class AbstractScopeGraphContext<S extends Serializable> implements IContextInternal {
+public class ConstraintContext implements IConstraintContext {
 
-    private static final ILogger logger = LoggerUtils.logger(AbstractScopeGraphContext.class);
+    private static final ILogger logger = LoggerUtils.logger(ConstraintContext.class);
 
+    private final Mode mode;
     private final ContextIdentifier identifier;
-    private final NaBL2Config config;
     private final String persistentIdentifier;
     private final Injector injector;
     private final ReadWriteLock lock;
 
-    protected S state = null;
+    private State state = null;
 
-    public AbstractScopeGraphContext(Injector injector, ContextIdentifier identifier, NaBL2Config config) {
+    public ConstraintContext(Mode mode, Injector injector, ContextIdentifier identifier) {
+        this.mode = mode;
         this.identifier = identifier;
-        this.config = config;
         this.persistentIdentifier = FileUtils.sanitize(identifier.language.id().toString());
         this.injector = injector;
         this.lock = new ReentrantReadWriteLock(true);
     }
+
+    public Mode mode() {
+        return mode;
+    }
+
+    @Override public boolean isRoot(FileObject resource) {
+        return location().equals(resource);
+    }
+
+    @Override public boolean hasAnalysis(FileObject resource) {
+        switch(mode()) {
+            case MULTI_FILE:
+                return hasFinal();
+            case SINGLE_FILE:
+                return hasUnit(resource);
+            default:
+                return false;
+        }
+    }
+
+    @Override public IStrategoTerm getAnalysis(FileObject resource) {
+        switch(mode()) {
+            case MULTI_FILE:
+                return getFinal().analysis;
+            case SINGLE_FILE:
+                return getUnit(resource).analysis;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override public String resourceKey(FileObject resource) {
+        return ResourceUtils.relativeName(resource.getName(), location().getName(), true);
+    }
+
+    @Override public FileObject keyResource(String resource) {
+        try {
+            return location().resolveFile(resource);
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException(e);
+        }
+    }
+
+    // ----------------------------------------------------------
+
+    public boolean hasInitial() {
+        return state.initialResult != null;
+    }
+
+    public InitialResult getInitial() {
+        return state.initialResult;
+    }
+
+    public void setInitial(InitialResult value) {
+        state.initialResult = value;
+    }
+
+    // ----------------------------------------------------------
+
+    public boolean hasFinal() {
+        return state.finalResult != null;
+    }
+
+    public FinalResult getFinal() {
+        return state.finalResult;
+    }
+
+    public void setFinal(FinalResult value) {
+        state.finalResult = value;
+    }
+
+    // ----------------------------------------------------------
+
+    @Override public boolean hasUnit(FileObject resource) {
+        return state.unitResults.containsKey(resourceKey(resource));
+    }
+
+    @Override public boolean setUnit(FileObject resource, FileResult value) {
+        return state.unitResults.put(resourceKey(resource), value) != null;
+    }
+
+    @Override public FileResult getUnit(FileObject resource) {
+        return state.unitResults.get(resourceKey(resource));
+    }
+
+    @Override public boolean remove(FileObject resource) {
+        return state.unitResults.remove(resourceKey(resource)) != null;
+    }
+
+    @Override public Set<Entry<String, FileResult>> entrySet() {
+        return state.unitResults.entrySet();
+    }
+
+    @Override public void clear() {
+        state.unitResults.clear();
+    }
+
+    // ----------------------------------------------------------
 
     @Override public FileObject location() {
         return identifier.location;
@@ -57,10 +162,6 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         return identifier.language;
     }
 
-    public NaBL2Config config() {
-        return config != null ? config : NaBL2Config.DEFAULT;
-    }
-    
     @Override public Injector injector() {
         return injector;
     }
@@ -151,7 +252,7 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         }
     }
 
-    private S loadOrInitState() {
+    private State loadOrInitState() {
         try {
             final FileObject contextFile = contextFile();
             try {
@@ -168,21 +269,26 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
         return initState();
     }
 
-    protected abstract S initState();
+    private State initState() {
+        return new State();
+    }
 
     private FileObject contextFile() throws FileSystemException {
         final CommonPaths paths = new CommonPaths(identifier.location);
-        return paths.targetDir().resolveFile("analysis").resolveFile(persistentIdentifier).resolveFile("scopegraph");
+        return paths.targetDir().resolveFile("analysis").resolveFile(persistentIdentifier).resolveFile("constraint");
     }
 
-    @SuppressWarnings("unchecked") private S readContext(FileObject file)
-            throws IOException, ClassNotFoundException, ClassCastException {
+    private State readContext(FileObject file) throws IOException, ClassNotFoundException, ClassCastException {
         try(ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
-            S fileState;
+            State fileState;
             try {
-                fileState = (S) ois.readObject();
+                fileState = (State) ois.readObject();
+            } catch(NotSerializableException ex) {
+                logger.error("Context could not be persisted.", ex);
+                fileState = initState();
             } catch(Exception ex) {
-                throw new IOException("Context file could not be read.", ex);
+                final String msg = logger.format("Context file could not be read: {}", ex.getMessage());
+                throw new IOException(msg);
             }
             if(fileState == null) {
                 throw new IOException("Context file contains null.");
@@ -207,6 +313,8 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
     private void writeContext(FileObject file) throws IOException {
         try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
             oos.writeObject(state);
+        } catch(NotSerializableException ex) {
+            logger.warn("Constraint context persistence not serializable", ex);
         } catch(Exception ex) {
             throw new IOException("Context file could not be written.", ex);
         }
@@ -234,23 +342,28 @@ abstract class AbstractScopeGraphContext<S extends Serializable> implements ICon
             return false;
         if(getClass() != obj.getClass())
             return false;
-        @SuppressWarnings("unchecked") AbstractScopeGraphContext<S> other = (AbstractScopeGraphContext<S>) obj;
+        final ConstraintContext other = (ConstraintContext) obj;
         if(!identifier.equals(other.identifier))
             return false;
         return true;
     }
 
     @Override public String toString() {
-        return String.format("scope graph context for %s, %s", identifier.location, identifier.language);
+        return String.format("Constraint context for %s, %s", identifier.location, identifier.language);
     }
 
-    protected String normalizeResource(String resource) {
-        try {
-            resource = ResourceUtils.relativeName(location().resolveFile(resource).getName(), location().getName(), false);
-        } catch(FileSystemException e) {
-            logger.warn("Failed to resolve {} in context {}. Lookup of unit results might fail.", resource, location());
+    private static class State implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        public @Nullable InitialResult initialResult;
+        public final Map<String, FileResult> unitResults;
+        public @Nullable FinalResult finalResult;
+
+        public State() {
+            this.unitResults = Maps.newHashMap();
         }
-        return resource;
+
     }
 
 }

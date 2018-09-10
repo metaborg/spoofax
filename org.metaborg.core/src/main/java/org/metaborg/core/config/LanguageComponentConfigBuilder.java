@@ -78,7 +78,6 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withSdfTable(config.parseTable());
             withSdfCompletionsTable(config.completionsParseTable());
             withSdf2tableVersion(config.sdf2tableVersion());
-            withDataDependent(config.dataDependent());
 			withJSGLRVersion(config.jsglrVersion());
             withSdfEnabled(config.sdfEnabled());
             projectConfigBuilder.copyValuesFrom(config);
@@ -150,11 +149,6 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
 
     @Override public ILanguageComponentConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion) {
         this.sdf2tableVersion = sdf2tableVersion;
-        return this;
-    }
-    
-    @Override public ILanguageComponentConfigBuilder withDataDependent(Boolean dataDependent) {
-        this.dataDependent = dataDependent;
         return this;
     }
 

@@ -3,11 +3,11 @@ package org.metaborg.core.analysis;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.processing.NullCancel;
-import org.metaborg.core.processing.NullProgress;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import org.metaborg.util.task.NullCancel;
+import org.metaborg.util.task.NullProgress;
 
 /**
  * Interface for context-sensitive analysis of parse units.

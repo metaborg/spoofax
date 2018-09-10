@@ -10,9 +10,10 @@ import org.metaborg.core.config.IConfig;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
 
 import com.google.inject.Inject;
+
+import mb.nabl2.config.NaBL2Config;
 
 public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements ISpoofaxProjectConfigBuilder {
     protected @Nullable Boolean typesmart;

@@ -1,6 +1,7 @@
 package org.metaborg.core.build;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileName;
@@ -16,10 +17,8 @@ import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 public class LanguageBuildState {
     private final IResourceService resourceService;
@@ -118,7 +117,7 @@ public class LanguageBuildState {
 
 class FilesBuildState {
     public final Set<FileName> files = Sets.newHashSet();
-    public final Object2LongMap<FileName> modification = new Object2LongOpenHashMap<FileName>();
+    public final Map<FileName,Long> modification = Maps.newHashMap();
 
 
     public long add(FileObject resource) {

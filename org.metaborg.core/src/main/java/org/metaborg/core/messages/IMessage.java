@@ -1,5 +1,7 @@
 package org.metaborg.core.messages;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -8,7 +10,7 @@ import org.metaborg.core.source.ISourceRegion;
 /**
  * Interface representing a message on a region in a source file.
  */
-public interface IMessage {
+public interface IMessage extends Serializable {
     /**
      * @return Message text.
      */

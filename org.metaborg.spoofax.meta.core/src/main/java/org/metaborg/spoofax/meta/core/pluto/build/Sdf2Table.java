@@ -27,10 +27,12 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         public final List<String> paths;
         public final boolean dynamic;
         public final boolean dataDependent;
+        public final boolean layoutSensitive;
 
 
         public Input(SpoofaxContext context, File inputFile, File outputFile, File outputNormGrammarFile,
-            File outputContextGrammarFile, List<String> paths, boolean dynamic, boolean dataDependent) {
+            File outputContextGrammarFile, List<String> paths, boolean dynamic, boolean dataDependent,
+            boolean layoutSensitive) {
             super(context);
             this.inputFile = inputFile;
             this.outputFile = outputFile;
@@ -39,6 +41,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
             this.paths = paths;
             this.dynamic = dynamic;
             this.dataDependent = dataDependent;
+            this.layoutSensitive = layoutSensitive;
         }
     }
 
@@ -76,8 +79,14 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         try {
             ParseTableGenerator pt_gen = new ParseTableGenerator(input.inputFile, input.outputFile,
                 input.outputNormGrammarFile, input.outputContextGrammarFile, input.paths);
+            
+            boolean solveDeepConflicts = true;
             // TODO add option to generate the contextual grammar in the Yaml file
-            pt_gen.outputTable(input.dynamic, input.dataDependent, true);
+            if(input.layoutSensitive) {
+                solveDeepConflicts = false;
+            }
+            
+            pt_gen.outputTable(input.dynamic, input.dataDependent, solveDeepConflicts);
             for(File required : pt_gen.getParseTable().normalizedGrammar().getFilesRead()) {
                 require(required);
             }

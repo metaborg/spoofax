@@ -2,9 +2,9 @@ module analysis
 
 imports
   
-  nabl2shared
-  nabl2runtime
-  
+  nabl2/api
+  nabl2/runtime
+
   static-semantics
 
   pp

@@ -18,13 +18,14 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.meta.core.config.LanguageSpecConfig;
-import org.metaborg.meta.nabl2.config.NaBL2Config;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Lists;
+
+import mb.nabl2.config.NaBL2Config;
 
 /**
  * An implementation of the {@link ISpoofaxLanguageSpecConfig} interface that is backed by an
@@ -47,7 +48,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     private static final String PROP_PLACEHOLDER_PREFIX = PROP_SDF + ".placeholder.prefix";
     private static final String PROP_PLACEHOLDER_SUFFIX = PROP_SDF + ".placeholder.suffix";
-
+    
+    private static final String PROP_SDF_META = PROP_SDF + ".sdf-meta";
 
     private static final String PROP_STR = "language.stratego";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
@@ -76,7 +78,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
         @Nullable Boolean dataDependent, @Nullable String parseTable, @Nullable String completionsParseTable,
         @Nullable JSGLRVersion jsglrVersion, @Nullable String sdfMainFile,
-        @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
+        @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint, @Nullable List<String> sdfMetaFile, 
         @Nullable String externalDef, @Nullable Arguments sdfArgs, @Nullable StrategoFormat format,
         @Nullable String externalJar, @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
         @Nullable Collection<IBuildStepConfig> buildSteps) {
@@ -90,6 +92,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         }
         if(sdfMainFile != null) {
             config.setProperty(PROP_SDF_MAIN_FILE, sdfMainFile);
+        }
+        if(sdfMetaFile != null) {
+            config.setProperty(PROP_SDF_META, sdfMetaFile);
         }
         if(placeholderCharacters != null) {
             config.setProperty(PROP_PLACEHOLDER_PREFIX, placeholderCharacters.prefix);
@@ -178,7 +183,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         }
         return arguments;
     }
-
 
     public StrategoFormat strFormat() {
         final String value = this.config.getString(PROP_STR_FORMAT);
@@ -293,5 +297,13 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             }
         }
         return placeholderChars;
+    }
+
+    @Override public List<String> sdfMetaFiles() {
+        final List<String> values = config.getList(String.class, PROP_SDF_META);
+        if (values == null) {
+            return Lists.newArrayList("Stratego-" + sdfName());
+        }        
+        return values;
     }
 }

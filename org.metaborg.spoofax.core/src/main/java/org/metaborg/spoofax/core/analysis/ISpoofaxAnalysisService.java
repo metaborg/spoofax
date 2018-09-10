@@ -4,13 +4,13 @@ import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.processing.NullCancel;
-import org.metaborg.core.processing.NullProgress;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import org.metaborg.util.task.NullCancel;
+import org.metaborg.util.task.NullProgress;
 
 /**
  * Typedef interface for {@link IAnalysisService} with Spoofax interfaces.
