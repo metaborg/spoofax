@@ -10,11 +10,10 @@ import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.semantic_provider.IBuilderInput;
 import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
 import org.metaborg.spoofax.core.user_definable.IOutliner;
+import org.metaborg.util.iterators.Iterators2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import com.google.common.collect.Iterators;
 
 public class JavaOutliner implements IOutliner {
     private static final ILogger logger = LoggerUtils.logger(JavaOutliner.class);
@@ -34,7 +33,7 @@ public class JavaOutliner implements IOutliner {
                 return semanticProviderService.loadClasses(component, IGeneratedOutliner.class);
             } catch (MetaborgException e) {
                 logger.warn("Outlining using generated Java classes didn't work: {}", e.getMessage());
-                return Iterators.emptyIterator();
+                return Iterators2.from();
             }
         };
         for (IGeneratedOutliner outliner : outliners) {
