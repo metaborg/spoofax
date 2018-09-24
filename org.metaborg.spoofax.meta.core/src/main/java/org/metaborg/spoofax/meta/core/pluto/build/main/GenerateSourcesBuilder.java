@@ -38,6 +38,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableLegacy;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
+import org.metaborg.spoofax.meta.core.pluto.build.misc.GetStrategoMix;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle;
 import org.metaborg.util.cmd.Arguments;
 
@@ -45,8 +46,7 @@ import com.google.common.collect.Lists;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
-import build.pluto.output.None;
-import build.pluto.output.OutputTransient;
+import build.pluto.output.*;
 import build.pluto.stamp.FileExistsStamper;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
@@ -415,10 +415,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
                 final String sdfMetaModule = input.sdfMetaModules.get(i);
 
-                final BuildRequest<PrepareNativeBundle.Input, OutputTransient<PrepareNativeBundle.Output>, PrepareNativeBundle, SpoofaxBuilderFactory<PrepareNativeBundle.Input, OutputTransient<PrepareNativeBundle.Output>, PrepareNativeBundle>> nativeBundleRequest =
-                    PrepareNativeBundle.request(new PrepareNativeBundle.Input(context));
-                final File strategoMixFile = requireBuild(nativeBundleRequest).val().strategoMixFile;
-                final Origin strategoMixOrigin = Origin.from(nativeBundleRequest);
+                final BuildRequest<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix, SpoofaxBuilderFactory<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix>> getStrategoMixRequest =
+                    GetStrategoMix.request(new GetStrategoMix.Input(context));
+                final File strategoMixFile = requireBuild(getStrategoMixRequest).val();
+                final Origin strategoMixOrigin = Origin.from(getStrategoMixRequest);
                 final Arguments packSdfMetaArgs = new Arguments(input.packSdfArgs);
                 packSdfMetaArgs.addFile("-Idef", strategoMixFile);
 
