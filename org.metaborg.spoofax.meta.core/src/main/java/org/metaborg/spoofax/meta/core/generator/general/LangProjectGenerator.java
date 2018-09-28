@@ -50,4 +50,8 @@ public class LangProjectGenerator extends BaseGenerator {
     public boolean analysisNabl2() {
         return settings.analysisType() == AnalysisType.NaBL2;
     }
+
+    public boolean analysisStatix() {
+        return settings.analysisType() == AnalysisType.Statix;
+    }
 }

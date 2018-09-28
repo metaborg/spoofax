@@ -1,0 +1,12 @@
+module static-semantics
+
+signature
+  sorts Start
+  constructors
+    Empty : Start
+
+rules
+
+  programOK : Start
+
+  programOK(Empty()).
