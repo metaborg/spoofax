@@ -74,7 +74,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext, IProgress progress,
             ICancel cancel) throws AnalysisException {
-        if(!input.valid()) {
+        if(!input.valid() || !input.success()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(genericContext, message);
         }
