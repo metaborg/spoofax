@@ -488,7 +488,7 @@ public class LanguageSpecBuilder {
             sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
             packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles, strFile, strStratPkg,
             strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
-            strjIncludeFiles, strjArgs);
+            strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting());
 
     }
 
