@@ -19,7 +19,6 @@ public class SpoofaxCommonPaths extends CommonPaths {
         super(root);
     }
 
-
     /* Shared input directories */
 
     /**
