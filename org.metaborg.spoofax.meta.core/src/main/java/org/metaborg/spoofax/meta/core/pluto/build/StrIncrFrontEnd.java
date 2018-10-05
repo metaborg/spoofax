@@ -19,7 +19,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.util.cmd.Arguments;
 import org.slf4j.helpers.MessageFormatter;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -28,6 +27,7 @@ import org.sugarj.common.FileCommands;
 
 import com.google.common.collect.Iterables;
 
+import build.pluto.BuildUnit.State;
 import build.pluto.dependency.Origin;
 import io.usethesource.capsule.BinaryRelation;
 
@@ -40,20 +40,13 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         public final SpoofaxCommonPaths paths;
         public final File inputFile;
-        public final String packageName;
-        public final File cacheDir;
-        public final Arguments extraArgs;
         public final Origin origin;
 
-        public Input(SpoofaxContext context, SpoofaxCommonPaths paths, File inputFile, String packageName,
-                File cacheDir, Arguments extraArgs, Origin origin) {
+        public Input(SpoofaxContext context, SpoofaxCommonPaths paths, File inputFile, Origin origin) {
             super(context);
 
             this.paths = paths;
             this.inputFile = inputFile;
-            this.packageName = packageName;
-            this.cacheDir = cacheDir;
-            this.extraArgs = extraArgs;
             this.origin = origin;
         }
     }
@@ -118,6 +111,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         provide(context.toFile(input.paths.strSepCompBoilerplateFile(moduleName)));
 
+        setState(State.finished(true));
         return new Output(request(input), moduleName, generatedFiles.freeze());
     }
 

@@ -69,6 +69,11 @@
       <artifactId>tableinterfaces</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>stratego.typed.pack</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
 		<dependency>
 			<groupId>build.pluto</groupId>
 			<artifactId>pluto</artifactId>

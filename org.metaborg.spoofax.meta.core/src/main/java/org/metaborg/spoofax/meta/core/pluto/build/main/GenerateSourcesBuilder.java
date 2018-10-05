@@ -488,7 +488,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             final File outputFile;
             final File depPath;
-            if(input.strFormat == StrategoFormat.ctree) {
+            if(input.strFormat == StrategoFormat.ctree && input.strBuildSetting == StrategoBuildSetting.batch) {
                 outputFile = FileUtils.getFile(targetMetaborgDir, "stratego.ctree");
                 depPath = outputFile;
                 extraArgs.add("-F");
@@ -520,15 +520,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final File cacheDir = toFile(paths.strCacheDir());
 
             switch(input.strBuildSetting) {
-            case batch:
-                strategoBatchTasks(input, strFile, extraArgs, outputFile, depPath, origin, cacheDir);
-                break;
-            case incremental:
-                strategoIncrCompTasks(input, cacheDir, extraArgs, origin);
-                break;
-            default:
-                throw new IOException(
-                        "Stratego build setting has unexpected value: " + input.strBuildSetting.toString());
+                case batch:
+                    strategoBatchTasks(input, strFile, extraArgs, outputFile, depPath, origin, cacheDir);
+                    break;
+                case incremental:
+                    strategoIncrCompTasks(input, cacheDir, extraArgs, depPath, origin);
+                    break;
+                default:
+                    throw new IOException(
+                            "Stratego build setting has unexpected value: " + input.strBuildSetting.toString());
             }
         }
     }
@@ -552,7 +552,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     private void strategoIncrCompTasks(GenerateSourcesBuilder.Input input, File cacheDir, Arguments extraArgs,
-            Origin origin) throws IOException {
+            File outputPath, Origin origin) throws IOException {
         // TODO: use mainFile once we track imports
         @SuppressWarnings("unused")
         File mainFile = input.strFile;
@@ -563,8 +563,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         BinaryRelation.Transient<String, File> generatedFiles = BinaryRelation.Transient.of();
         Map<String, Origin.Builder> strategyOrigins = new HashMap<>();
         for(File strFile : FileUtils.listFiles(context.baseDir, new String[] { "str" }, true)) {
-            StrIncrFrontEnd.Input frontEndInput = new StrIncrFrontEnd.Input(context, paths, strFile, input.strJavaPackage,
-                    cacheDir, extraArgs, origin);
+            StrIncrFrontEnd.Input frontEndInput = new StrIncrFrontEnd.Input(context, paths, strFile, origin);
             StrIncrFrontEnd.Output frontEndOutput = requireBuild(StrIncrFrontEnd.request(frontEndInput));
 
             // shuffling output for backend
@@ -581,13 +580,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // BACKEND
         for(String strategyName : generatedFiles.keySet()) {
             Origin strategyOrigin = strategyOrigins.get(strategyName).get();
+            File strategyDir = context.toFile(paths.strSepCompStrategyDir(strategyName));
             StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, strategyOrigin, strategyName,
-                    generatedFiles.get(strategyName), false);
+                    strategyDir, generatedFiles.get(strategyName), input.strJavaPackage, outputPath, cacheDir, extraArgs, false);
             requireBuild(StrIncrBackEnd.request(backEndInput));
         }
         // boilerplate task
+        File strSrcGenDir = context.toFile(paths.strSepCompSrcGenDir());
         StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, allFrontEndTasks.get(), null,
-                boilerplateFiles, true);
+                strSrcGenDir, boilerplateFiles, input.strJavaPackage, cacheDir, outputPath, extraArgs, true);
         requireBuild(StrIncrBackEnd.request(backEndInput));
     }
 }
