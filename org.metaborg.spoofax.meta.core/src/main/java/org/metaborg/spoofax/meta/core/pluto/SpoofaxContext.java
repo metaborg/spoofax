@@ -10,6 +10,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.action.IActionService;
+import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.language.ILanguageIdentifierService;
@@ -20,6 +22,7 @@ import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -56,6 +59,10 @@ public class SpoofaxContext implements Serializable {
     private static ISpoofaxSyntaxService syntaxService;
     private static ITermFactoryService termFactoryService;
 
+    private static IDependencyService dependencyService;
+    private static IActionService actionService;
+    private static ISpoofaxProcessorRunner runner;
+
     public final File baseDir;
     public final URI baseURI;
     public final File depDir;
@@ -81,6 +88,9 @@ public class SpoofaxContext implements Serializable {
         unitService = newInjector.getInstance(ISpoofaxUnitService.class);
         syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);
         termFactoryService = newInjector.getInstance(ITermFactoryService.class);
+        dependencyService = newInjector.getInstance(IDependencyService.class);
+        actionService = newInjector.getInstance(IActionService.class);
+        runner = newInjector.getInstance(ISpoofaxProcessorRunner.class);
     }
 
 
@@ -187,6 +197,23 @@ public class SpoofaxContext implements Serializable {
 
     public ITermFactory termFactory() {
         return termFactoryService.getGeneric();
+    }
+
+
+    public IDependencyService dependencyService() {
+        return dependencyService;
+    }
+
+    public IActionService actionService() {
+        return actionService;
+    }
+
+    public ISpoofaxProcessorRunner runner() {
+        return runner;
+    }
+
+    public IProject project() {
+        return project;
     }
 
 

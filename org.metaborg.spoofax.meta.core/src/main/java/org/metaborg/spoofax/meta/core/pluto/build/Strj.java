@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -176,7 +177,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
     }
 
     private void registerUsedPaths(File strdep) throws IOException {
-        final List<String> lines = org.apache.commons.io.FileUtils.readLines(strdep);
+        final List<String> lines = org.apache.commons.io.FileUtils.readLines(strdep, Charset.defaultCharset());
 
         // Skip first line (start at 1 instead of 0), which lists the generated CTree file.
         for(int i = 1; i < lines.size(); i++) {

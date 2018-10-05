@@ -233,6 +233,26 @@ public class SpoofaxCommonPaths extends CommonPaths {
         return resolve(targetMetaborgDir(), "typesmart.context");
     }
 
+    public FileObject strSepCompSrcGenDir() {
+        return resolve(srcGenDir(), "stratego_sugar");
+    }
+
+    public FileObject strSepCompStrategyFile(String moduleName, String strategy) {
+        return resolve(strSepCompSrcGenDir(), strategy + "/" + moduleName + ".aterm");
+    }
+
+    public FileObject strSepCompBoilerplateFile(String moduleName) {
+        return resolve(strSepCompSrcGenDir(), moduleName + ".aterm");
+    }
+
+    public FileObject strSepCompPackedStrategyFile(String strategy) {
+        return resolve(strSepCompSrcGenDir(), strategy + "/" + "packed$" + ".aterm");
+    }
+
+    public FileObject strSepCompPackedBoilerplateFile() {
+        return resolve(strSepCompSrcGenDir(), "packed$" + ".aterm");
+    }
+
     /* DynSem */
 
     /**
