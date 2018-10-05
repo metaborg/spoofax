@@ -67,7 +67,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
     // Just a type alias
     public static class BuildRequest extends
-            build.pluto.builder.BuildRequest<Input, Output, StrIncrFrontEnd, SpoofaxBuilderFactory<Input, Output, StrIncrFrontEnd>> {
+        build.pluto.builder.BuildRequest<Input, Output, StrIncrFrontEnd, SpoofaxBuilderFactory<Input, Output, StrIncrFrontEnd>> {
         private static final long serialVersionUID = -1299552527869341531L;
 
         public BuildRequest(SpoofaxBuilderFactory<Input, Output, StrIncrFrontEnd> factory, Input input) {
@@ -75,8 +75,8 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         }
     }
 
-    public static SpoofaxBuilderFactory<Input, Output, StrIncrFrontEnd> factory = SpoofaxBuilderFactoryFactory
-            .of(StrIncrFrontEnd.class, Input.class);
+    public static SpoofaxBuilderFactory<Input, Output, StrIncrFrontEnd> factory =
+        SpoofaxBuilderFactoryFactory.of(StrIncrFrontEnd.class, Input.class);
 
     public static BuildRequest request(Input input) {
         return new BuildRequest(factory, input);
@@ -90,8 +90,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         super(input);
     }
 
-    @Override
-    protected Output build(Input input) throws Throwable {
+    @Override protected Output build(Input input) throws Throwable {
         requireBuild(input.origin);
 
         require(input.inputFile);
@@ -115,13 +114,11 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         return new Output(request(input), moduleName, generatedFiles.freeze());
     }
 
-    @Override
-    protected String description(Input input) {
+    @Override protected String description(Input input) {
         return "Compile Stratego to separate strategy ast files";
     }
 
-    @Override
-    public File persistentPath(Input input) {
+    @Override public File persistentPath(Input input) {
         final Path rel = FileCommands.getRelativePath(context.baseDir, input.inputFile);
         final String relname = rel.toString().replace(File.separatorChar, '_');
         return context.depPath("str_sep_front." + relname + ".dep");
@@ -130,11 +127,8 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
     public IStrategoTerm callStrategoCompileBuilder(FileObject resource) throws IOException {
         final BuildInputBuilder inputBuilder = new BuildInputBuilder(context.project());
         ILanguageImpl strategoLangImpl = context.languageService().getLanguage(STRATEGO_LANG_NAME).activeImpl();
-        inputBuilder.addLanguage(strategoLangImpl)
-                .withDefaultIncludePaths(false)
-                .addSource(resource)
-                .withAnalysis(false)
-                .addTransformGoal(new EndNamedGoal(COMPILE_GOAL_NAME));
+        inputBuilder.addLanguage(strategoLangImpl).withDefaultIncludePaths(false).addSource(resource)
+            .withAnalysis(false).addTransformGoal(new EndNamedGoal(COMPILE_GOAL_NAME));
 
         BuildInput input;
         try {
@@ -155,8 +149,8 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
                     result = Iterables.get(results, 0);
                 } else {
                     final String message = MessageFormatter
-                            .arrayFormat("{} transform results were returned instead of 1", new Object[] { resultSize })
-                            .getMessage();
+                        .arrayFormat("{} transform results were returned instead of 1", new Object[] { resultSize })
+                        .getMessage();
                     throw new IOException(message);
                 }
             }

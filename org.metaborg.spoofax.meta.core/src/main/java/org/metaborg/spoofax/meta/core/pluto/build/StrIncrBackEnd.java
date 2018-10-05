@@ -39,8 +39,8 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         public final boolean isBoilerplate;
 
         public Input(SpoofaxContext context, Origin frontEndTasks, @Nullable String strategyName, File strategyDir,
-                Collection<File> strategyContributions, String packageName, File outputPath, File cacheDir,
-                Arguments extraArgs, boolean isBoilerplate) {
+            Collection<File> strategyContributions, String packageName, File outputPath, File cacheDir,
+            Arguments extraArgs, boolean isBoilerplate) {
             super(context);
 
             this.frontEndTasks = frontEndTasks;
@@ -57,7 +57,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
 
     // Just a type alias
     public static class BuildRequest extends
-            build.pluto.builder.BuildRequest<Input, None, StrIncrBackEnd, SpoofaxBuilderFactory<Input, None, StrIncrBackEnd>> {
+        build.pluto.builder.BuildRequest<Input, None, StrIncrBackEnd, SpoofaxBuilderFactory<Input, None, StrIncrBackEnd>> {
         private static final long serialVersionUID = -1299552527869341531L;
 
         public BuildRequest(SpoofaxBuilderFactory<Input, None, StrIncrBackEnd> factory, Input input) {
@@ -65,8 +65,8 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         }
     }
 
-    public static SpoofaxBuilderFactory<Input, None, StrIncrBackEnd> factory = SpoofaxBuilderFactoryFactory
-            .of(StrIncrBackEnd.class, Input.class);
+    public static SpoofaxBuilderFactory<Input, None, StrIncrBackEnd> factory =
+        SpoofaxBuilderFactoryFactory.of(StrIncrBackEnd.class, Input.class);
 
     public static BuildRequest request(Input input) {
         return new BuildRequest(factory, input);
@@ -80,8 +80,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         super(input);
     }
 
-    @Override
-    protected None build(Input input) throws Throwable {
+    @Override protected None build(Input input) throws Throwable {
         requireBuild(input.frontEndTasks);
 
         for(File strategyContrib : input.strategyContributions) {
@@ -97,9 +96,8 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         }
 
         // Call Stratego compiler
-        final Arguments arguments = new Arguments().addFile("-i", packedFile.toFile())
-                .addFile("-o", input.outputPath)
-                .addLine(input.packageName != null ? "-p " + input.packageName : "");
+        final Arguments arguments = new Arguments().addFile("-i", packedFile.toFile()).addFile("-o", input.outputPath)
+            .addLine(input.packageName != null ? "-p " + input.packageName : "");
         if(input.isBoilerplate) {
             arguments.add("--boilerplate");
         } else {
@@ -112,17 +110,15 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         arguments.addAll(input.extraArgs);
 
         final ResourceAgentTracker tracker = newResourceTracker(Pattern.quote("[ strj | info ]") + ".*",
-                Pattern.quote("[ strj | error ] Compilation failed") + ".*",
-                Pattern.quote("[ strj | warning ] Nullary constructor") + ".*",
-                Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*",
-                Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*",
-                Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]"));
+            Pattern.quote("[ strj | error ] Compilation failed") + ".*",
+            Pattern.quote("[ strj | warning ] Nullary constructor") + ".*",
+            Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*",
+            Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*",
+            Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]"));
 
-        final ExecutionResult result = new StrategoExecutor().withStrjContext()
-                .withStrategy(org.strategoxt.strj.main_0_0.instance)
-                .withTracker(tracker)
-                .withName("strj")
-                .executeCLI(arguments);
+        final ExecutionResult result =
+            new StrategoExecutor().withStrjContext().withStrategy(org.strategoxt.strj.main_0_0.instance)
+                .withTracker(tracker).withName("strj").executeCLI(arguments);
 
         if(input.isBoilerplate) {
             provide(input.outputPath.toPath().resolve("Main.java").toFile());
@@ -135,13 +131,11 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         return None.val;
     }
 
-    @Override
-    protected String description(Input input) {
+    @Override protected String description(Input input) {
         return "Combine and compile Stratego separate strategy ast files to Java file";
     }
 
-    @Override
-    public File persistentPath(Input input) {
+    @Override public File persistentPath(Input input) {
         final Path rel = FileCommands.getRelativePath(context.baseDir, input.strategyDir);
         final String relname = rel.toString().replace(File.separatorChar, '_');
         return context.depPath("str_sep_back." + relname + ".dep");

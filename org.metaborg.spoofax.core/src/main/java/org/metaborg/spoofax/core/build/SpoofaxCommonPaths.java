@@ -19,6 +19,7 @@ public class SpoofaxCommonPaths extends CommonPaths {
         super(root);
     }
 
+
     /* Shared input directories */
 
     /**
@@ -35,11 +36,18 @@ public class SpoofaxCommonPaths extends CommonPaths {
         return resolve(root(), "src", "main");
     }
 
+
     /* Shared generated sources directories */
+
+
 
     /* Shared output directories */
 
+
+
     /* Metaborg */
+
+
 
     /* Spoofax */
 
@@ -52,6 +60,8 @@ public class SpoofaxCommonPaths extends CommonPaths {
         return resolve(targetDir(), languageId + ".spoofax-language");
     }
 
+
+
     /* ESV */
 
     /**
@@ -60,6 +70,7 @@ public class SpoofaxCommonPaths extends CommonPaths {
     public @Nullable FileObject findEsvMainFile(Iterable<FileObject> sources) {
         return find(sources, "Main.esv");
     }
+
 
     /* SDF2 and SDF3 */
 
@@ -106,8 +117,7 @@ public class SpoofaxCommonPaths extends CommonPaths {
 
     /**
      * 
-     * @return Generated SDF2 completion syntax directory, generated from SDF3
-     *         definition.
+     * @return Generated SDF2 completion syntax directory, generated from SDF3 definition.
      */
     public FileObject syntaxCompletionSrcGenDir() {
         return resolve(syntaxSrcGenDir(), "completion");
@@ -115,12 +125,12 @@ public class SpoofaxCommonPaths extends CommonPaths {
 
     /**
      * 
-     * @return Generated normalized completion syntax directory, generated from SDF3
-     *         definition.
+     * @return Generated normalized completion syntax directory, generated from SDF3 definition.
      */
     private FileObject syntaxNormalizedCompletionSrcGenDir() {
         return resolve(syntaxNormDir(), "completion");
     }
+
 
     /**
      * @param languageName
@@ -141,20 +151,19 @@ public class SpoofaxCommonPaths extends CommonPaths {
     }
 
     /**
-     * @return Generated Stratego signatures directory, generated from SDF3
-     *         definition.
+     * @return Generated Stratego signatures directory, generated from SDF3 definition.
      */
     public FileObject syntaxSrcGenSignatureDir() {
         return resolve(srcGenDir(), "signatures");
     }
 
     /**
-     * @return Generated Stratego/Box pretty printer directory, generated from SDF3
-     *         definition.
+     * @return Generated Stratego/Box pretty printer directory, generated from SDF3 definition.
      */
     public FileObject syntaxSrcGenPpDir() {
         return resolve(srcGenDir(), "pp");
     }
+
 
     /* Stratego */
 
