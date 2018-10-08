@@ -3,6 +3,8 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -12,7 +14,6 @@ import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
-import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
@@ -29,7 +30,6 @@ import com.google.common.collect.Iterables;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.dependency.Origin;
-import io.usethesource.capsule.BinaryRelation;
 
 public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIncrFrontEnd.Output> {
     private static final String COMPILE_GOAL_NAME = "Compile";
@@ -38,14 +38,12 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 1548589152421064400L;
 
-        public final SpoofaxCommonPaths paths;
         public final File inputFile;
         public final Origin origin;
 
-        public Input(SpoofaxContext context, SpoofaxCommonPaths paths, File inputFile, Origin origin) {
+        public Input(SpoofaxContext context, File inputFile, Origin origin) {
             super(context);
 
-            this.paths = paths;
             this.inputFile = inputFile;
             this.origin = origin;
         }
@@ -54,12 +52,10 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
     public static class Output implements build.pluto.output.Output {
         private static final long serialVersionUID = 3808911543715367986L;
 
-        public final BuildRequest request;
         public final String moduleName;
-        public final BinaryRelation.Immutable<String, File> generatedFiles;
+        public final Map<String, File> generatedFiles;
 
-        public Output(BuildRequest request, String moduleName, BinaryRelation.Immutable<String, File> generatedFiles) {
-            this.request = request;
+        public Output(String moduleName, Map<String, File> generatedFiles) {
             this.moduleName = moduleName;
             this.generatedFiles = generatedFiles;
         }
@@ -99,19 +95,19 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         String moduleName = Tools.javaStringAt(result, 0);
         IStrategoList strategyList = Tools.listAt(result, 1);
-        BinaryRelation.Transient<String, File> generatedFiles = BinaryRelation.Transient.of();
+        Map<String, File> generatedFiles = new HashMap<>();
 
         for(IStrategoTerm strategyTerm : strategyList) {
             String strategy = Tools.asJavaString(strategyTerm);
-            File file = context.toFile(input.paths.strSepCompStrategyFile(moduleName, strategy));
-            generatedFiles.__insert(strategy, file);
+            File file = context.toFile(paths.strSepCompStrategyFile(moduleName, strategy));
+            generatedFiles.put(strategy, file);
             provide(file);
         }
 
-        provide(context.toFile(input.paths.strSepCompBoilerplateFile(moduleName)));
+        provide(context.toFile(paths.strSepCompBoilerplateFile(moduleName)));
 
         setState(State.finished(true));
-        return new Output(request(input), moduleName, generatedFiles.freeze());
+        return new Output(moduleName, generatedFiles);
     }
 
     @Override protected String description(Input input) {

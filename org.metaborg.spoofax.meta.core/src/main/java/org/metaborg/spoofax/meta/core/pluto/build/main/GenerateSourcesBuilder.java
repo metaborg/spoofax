@@ -3,11 +3,14 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -555,18 +558,24 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         Origin.Builder allFrontEndTasks = Origin.Builder();
         BinaryRelation.Transient<String, File> generatedFiles = BinaryRelation.Transient.of();
         Map<String, Origin.Builder> strategyOrigins = new HashMap<>();
-        for(File strFile : FileUtils.listFiles(context.baseDir, new String[] { "str" }, true)) {
-            StrIncrFrontEnd.Input frontEndInput = new StrIncrFrontEnd.Input(context, paths, strFile, origin);
+        Set<File> strFiles = new HashSet<>(FileUtils.listFiles(context.baseDir, new String[] { "str" }, true));
+        strFiles.addAll(input.strjIncludeFiles);
+        for(File dir : input.strjIncludeDirs) {
+            strFiles.addAll(FileUtils.listFiles(dir, new String[] { "str" }, true));
+        }
+        for(File strFile : strFiles) {
+            StrIncrFrontEnd.Input frontEndInput = new StrIncrFrontEnd.Input(context, strFile, origin);
             StrIncrFrontEnd.Output frontEndOutput = requireBuild(StrIncrFrontEnd.request(frontEndInput));
 
             // shuffling output for backend
-            allFrontEndTasks.add(frontEndOutput.request);
+            StrIncrFrontEnd.BuildRequest request = StrIncrFrontEnd.request(frontEndInput);
+            allFrontEndTasks.add(request);
             boilerplateFiles.add(context.toFile(paths.strSepCompBoilerplateFile(frontEndOutput.moduleName)));
             for(Entry<String, File> gen : frontEndOutput.generatedFiles.entrySet()) {
                 String strategyName = gen.getKey();
                 generatedFiles.__insert(strategyName, gen.getValue());
                 strategyOrigins.computeIfAbsent(strategyName, k -> new Origin.Builder());
-                strategyOrigins.get(strategyName).add(frontEndOutput.request);
+                strategyOrigins.get(strategyName).add(request);
             }
         }
 
@@ -576,7 +585,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             File strategyDir = context.toFile(paths.strSepCompStrategyDir(strategyName));
             StrIncrBackEnd.Input backEndInput =
                 new StrIncrBackEnd.Input(context, strategyOrigin, strategyName, strategyDir,
-                    generatedFiles.get(strategyName), input.strJavaPackage, outputPath, cacheDir, extraArgs, false);
+                    Arrays.asList(generatedFiles.get(strategyName).toArray(new File[0])), input.strJavaPackage, outputPath, cacheDir, extraArgs, false);
             requireBuild(StrIncrBackEnd.request(backEndInput));
         }
         // boilerplate task
