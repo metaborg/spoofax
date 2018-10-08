@@ -71,7 +71,7 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>stratego.typed.pack</artifactId>
+      <artifactId>stratego.compiler.pack</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
 		<dependency>

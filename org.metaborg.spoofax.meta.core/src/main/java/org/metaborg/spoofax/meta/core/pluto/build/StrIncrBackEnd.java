@@ -22,7 +22,7 @@ import org.sugarj.common.FileCommands;
 import build.pluto.BuildUnit.State;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
-import mb.stratego.typed.pack.Packer;
+import mb.stratego.compiler.pack.Packer;
 
 public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
     public static class Input extends SpoofaxInput {
