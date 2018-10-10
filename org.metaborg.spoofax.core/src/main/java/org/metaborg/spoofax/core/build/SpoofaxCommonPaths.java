@@ -238,15 +238,15 @@ public class SpoofaxCommonPaths extends CommonPaths {
     }
 
     public FileObject strSepCompStrategyDir(String strategy) {
-        return resolve(strSepCompSrcGenDir(), strategy);
+        return resolve(strSepCompSrcGenDir(), capitalsForDollars(strategy));
     }
 
-    public FileObject strSepCompStrategyFile(String moduleName, String strategy) {
-        return resolve(strSepCompStrategyDir(strategy), moduleName + ".aterm");
+    public FileObject strSepCompStrategyFile(String projectName, String moduleName, String strategy) {
+        return resolve(strSepCompStrategyDir(strategy), prepareModuleName(projectName, moduleName) + ".aterm");
     }
 
-    public FileObject strSepCompBoilerplateFile(String moduleName) {
-        return resolve(strSepCompSrcGenDir(), moduleName + ".aterm");
+    public FileObject strSepCompBoilerplateFile(String projectName, String moduleName) {
+        return resolve(strSepCompSrcGenDir(), prepareModuleName(projectName, moduleName) + ".aterm");
     }
 
     public FileObject strSepCompPackedStrategyFile(String strategy) {
@@ -255,6 +255,14 @@ public class SpoofaxCommonPaths extends CommonPaths {
 
     public FileObject strSepCompPackedBoilerplateFile() {
         return resolve(strSepCompSrcGenDir(), "packed$" + ".aterm");
+    }
+
+    public String capitalsForDollars(String strategy) {
+        return strategy.replaceAll("[A-Z]", "\\$$0");
+    }
+
+    public String prepareModuleName(String projectName, String moduleName) {
+        return projectName + "&" + capitalsForDollars(moduleName).replace('/', '+');
     }
 
     /* DynSem */

@@ -10,10 +10,9 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.action.IActionService;
-import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
@@ -22,10 +21,11 @@ import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
-import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
+import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
@@ -59,9 +59,9 @@ public class SpoofaxContext implements Serializable {
     private static ISpoofaxSyntaxService syntaxService;
     private static ITermFactoryService termFactoryService;
 
-    private static IDependencyService dependencyService;
-    private static IActionService actionService;
-    private static ISpoofaxProcessorRunner runner;
+    private static IStrategoCommon strategoCommon;
+    private static ISpoofaxTransformService transformService;
+    private static IContextService contextService;
 
     public final File baseDir;
     public final URI baseURI;
@@ -88,9 +88,9 @@ public class SpoofaxContext implements Serializable {
         unitService = newInjector.getInstance(ISpoofaxUnitService.class);
         syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);
         termFactoryService = newInjector.getInstance(ITermFactoryService.class);
-        dependencyService = newInjector.getInstance(IDependencyService.class);
-        actionService = newInjector.getInstance(IActionService.class);
-        runner = newInjector.getInstance(ISpoofaxProcessorRunner.class);
+        strategoCommon = newInjector.getInstance(IStrategoCommon.class);
+        transformService = newInjector.getInstance(ISpoofaxTransformService.class);
+        contextService = newInjector.getInstance(IContextService.class);
     }
 
 
@@ -200,16 +200,16 @@ public class SpoofaxContext implements Serializable {
     }
 
 
-    public IDependencyService dependencyService() {
-        return dependencyService;
+    public IStrategoCommon strategoCommon() {
+        return strategoCommon;
     }
 
-    public IActionService actionService() {
-        return actionService;
+    public ISpoofaxTransformService transformService() {
+        return transformService;
     }
 
-    public ISpoofaxProcessorRunner runner() {
-        return runner;
+    public IContextService contextService() {
+        return contextService;
     }
 
     public IProject project() {

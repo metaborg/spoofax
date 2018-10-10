@@ -194,6 +194,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
     @Override public StrategoFormat strFormat() {
+        if(strBuildSetting() == StrategoBuildSetting.incremental) {
+            return StrategoFormat.jar;
+        }
         final String value = this.config.getString(PROP_STR_FORMAT);
         return value != null ? StrategoFormat.valueOf(value) : StrategoFormat.ctree;
     }

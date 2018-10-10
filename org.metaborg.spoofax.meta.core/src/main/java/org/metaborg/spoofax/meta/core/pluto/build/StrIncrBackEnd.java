@@ -22,6 +22,7 @@ import org.sugarj.common.FileCommands;
 import build.pluto.BuildUnit.State;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
+import build.pluto.stamp.FileHashStamper;
 import mb.stratego.compiler.pack.Packer;
 
 public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
@@ -52,6 +53,10 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
             this.cacheDir = cacheDir;
             this.extraArgs = extraArgs;
             this.isBoilerplate = isBoilerplate;
+        }
+
+        @Override public String toString() {
+            return "StrIncrFrontEnd$Input(" + strategyName + ", ... )";
         }
     }
 
@@ -84,7 +89,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         requireBuild(input.frontEndTasks);
 
         for(File strategyContrib : input.strategyContributions) {
-            require(strategyContrib);
+            require(strategyContrib, FileHashStamper.instance);
         }
 
         // Pack the directory into a single strategy
@@ -118,7 +123,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
 
         final ExecutionResult result =
             new StrategoExecutor().withStrjContext().withStrategy(org.strategoxt.strj.main_0_0.instance)
-                .withTracker(tracker).withName("strj").executeCLI(arguments);
+                .withTracker(tracker).withName("strj").setSilent(true).executeCLI(arguments);
 
         if(input.isBoilerplate) {
             provide(input.outputPath.toPath().resolve("Main.java").toFile());
@@ -132,7 +137,10 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
     }
 
     @Override protected String description(Input input) {
-        return "Combine and compile Stratego separate strategy ast files to Java file";
+        if (input.strategyName == null) {
+            return "Combine and compile separate strategy ast files to Java file: the interopregistrer";
+        }
+        return "Combine and compile separate strategy ast files to Java file: " + input.strategyName;
     }
 
     @Override public File persistentPath(Input input) {

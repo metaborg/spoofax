@@ -8,44 +8,46 @@ import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.action.EndNamedGoal;
-import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.context.ContextException;
+import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
-import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
+import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.slf4j.helpers.MessageFormatter;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.sugarj.common.FileCommands;
-
-import com.google.common.collect.Iterables;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.dependency.Origin;
 
 public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIncrFrontEnd.Output> {
-    private static final String COMPILE_GOAL_NAME = "Compile";
-    private static final String STRATEGO_LANG_NAME = "StrategoSugar";
+    private static final String COMPILE_STRATEGY_NAME = "clean-and-compile-module";
 
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 1548589152421064400L;
 
         public final File inputFile;
+        public final String projectName;
         public final Origin origin;
 
-        public Input(SpoofaxContext context, File inputFile, Origin origin) {
+        public Input(SpoofaxContext context, File inputFile, String projectName, Origin origin) {
             super(context);
 
             this.inputFile = inputFile;
+            this.projectName = projectName;
             this.origin = origin;
+        }
+
+        @Override public String toString() {
+            return "StrIncrFrontEnd$Input(" + inputFile + ")";
         }
     }
 
@@ -58,6 +60,10 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         public Output(String moduleName, Map<String, File> generatedFiles) {
             this.moduleName = moduleName;
             this.generatedFiles = generatedFiles;
+        }
+
+        @Override public String toString() {
+            return "StrIncrFrontEnd$Output(" + moduleName + ", { ... })";
         }
     }
 
@@ -91,7 +97,8 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         require(input.inputFile);
 
-        IStrategoTerm result = callStrategoCompileBuilder(context.resourceService().resolve(input.inputFile));
+        FileObject resource = context.resourceService().resolve(input.inputFile);
+        IStrategoTerm result = runStrategoCompileBuilder(resource, input.projectName);
 
         String moduleName = Tools.javaStringAt(result, 0);
         IStrategoList strategyList = Tools.listAt(result, 1);
@@ -99,19 +106,19 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         for(IStrategoTerm strategyTerm : strategyList) {
             String strategy = Tools.asJavaString(strategyTerm);
-            File file = context.toFile(paths.strSepCompStrategyFile(moduleName, strategy));
+            File file = context.toFile(paths.strSepCompStrategyFile(input.projectName, moduleName, strategy));
             generatedFiles.put(strategy, file);
             provide(file);
         }
 
-        provide(context.toFile(paths.strSepCompBoilerplateFile(moduleName)));
+        provide(context.toFile(paths.strSepCompBoilerplateFile(input.projectName, moduleName)));
 
         setState(State.finished(true));
         return new Output(moduleName, generatedFiles);
     }
 
     @Override protected String description(Input input) {
-        return "Compile Stratego to separate strategy ast files";
+        return "Compile to separate strategy ast files: " + input.inputFile;
     }
 
     @Override public File persistentPath(Input input) {
@@ -120,42 +127,42 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         return context.depPath("str_sep_front." + relname + ".dep");
     }
 
-    public IStrategoTerm callStrategoCompileBuilder(FileObject resource) throws IOException {
-        final BuildInputBuilder inputBuilder = new BuildInputBuilder(context.project());
-        ILanguageImpl strategoLangImpl = context.languageService().getLanguage(STRATEGO_LANG_NAME).activeImpl();
-        inputBuilder.addLanguage(strategoLangImpl).withDefaultIncludePaths(false).addSource(resource)
-            .withAnalysis(false).addTransformGoal(new EndNamedGoal(COMPILE_GOAL_NAME));
+    public IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName) throws IOException {
+        final ILanguageImpl strategoLangImpl = context.languageIdentifierService().identify(resource);
+        if(strategoLangImpl == null) {
+            throw new IOException("Cannot find/load Stratego language, unable to build...");
+        }
 
-        BuildInput input;
+        // PARSE
+        final String text = context.sourceTextService().text(resource);
+        final ISpoofaxInputUnit inputUnit = context.unitService().inputUnit(resource, text, strategoLangImpl, null);
+        ISpoofaxParseUnit parseResult;
         try {
-            input = inputBuilder.build(context.dependencyService(), context.languagePathService());
+            parseResult = context.syntaxService().parse(inputUnit);
+        } catch(ParseException e) {
+            throw new IOException("Cannot parse stratego file " + resource, e);
+        }
+        if(!parseResult.valid() || !parseResult.success()) {
+            throw new IOException("Cannot parse stratego file " + resource);
+        }
+
+        // TRANSFORM
+        if(!context.contextService().available(strategoLangImpl)) {
+            throw new IOException("Cannot create stratego transformation context");
+        }
+        IContext transformContext;
+        try {
+            transformContext = context.contextService().get(resource, context.project(), strategoLangImpl);
+        } catch(ContextException e) {
+            throw new IOException("Cannot create stratego transformation context", e);
+        }
+        ITermFactory f = context.termFactory();
+        String projectPath = transformContext.project().location().toString();
+        IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), parseResult.ast());
+        try {
+            return context.strategoCommon().invoke(strategoLangImpl, transformContext, inputTerm , COMPILE_STRATEGY_NAME);
         } catch(MetaborgException e) {
-            throw new IOException(e);
-        }
-
-        final ISpoofaxTransformUnit<?> result;
-        try {
-            final ISpoofaxBuildOutput output = context.runner().build(input, null, null).schedule().block().result();
-            if(!output.success()) {
-                throw new IOException("Transformation failed");
-            } else {
-                final Iterable<ISpoofaxTransformUnit<?>> results = output.transformResults();
-                final int resultSize = Iterables.size(results);
-                if(resultSize == 1) {
-                    result = Iterables.get(results, 0);
-                } else {
-                    final String message = MessageFormatter
-                        .arrayFormat("{} transform results were returned instead of 1", new Object[] { resultSize })
-                        .getMessage();
-                    throw new IOException(message);
-                }
-            }
-        } catch(MetaborgRuntimeException e) {
             throw new IOException("Transformation failed", e);
-        } catch(InterruptedException e) {
-            throw new IOException("Transformation was cancelled", e);
         }
-
-        return result.ast();
     }
 }

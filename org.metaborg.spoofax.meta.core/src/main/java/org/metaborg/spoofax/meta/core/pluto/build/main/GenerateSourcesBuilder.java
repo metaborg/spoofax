@@ -526,6 +526,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             if(input.strBuildSetting == StrategoBuildSetting.incremental) {
                 strategoIncrCompTasks(input, cacheDir, extraArgs, depPath, origin);
+                // TODO: still allow typesmart to run?
                 return None.val;
             }
 
@@ -564,13 +565,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             strFiles.addAll(FileUtils.listFiles(dir, new String[] { "str" }, true));
         }
         for(File strFile : strFiles) {
-            StrIncrFrontEnd.Input frontEndInput = new StrIncrFrontEnd.Input(context, strFile, origin);
+            // TODO: *can* we get the project name somehow?
+            String projectName = Integer.toString(strFile.toString().hashCode());
+            StrIncrFrontEnd.Input frontEndInput = new StrIncrFrontEnd.Input(context, strFile, projectName, origin);
             StrIncrFrontEnd.Output frontEndOutput = requireBuild(StrIncrFrontEnd.request(frontEndInput));
 
             // shuffling output for backend
             StrIncrFrontEnd.BuildRequest request = StrIncrFrontEnd.request(frontEndInput);
             allFrontEndTasks.add(request);
-            boilerplateFiles.add(context.toFile(paths.strSepCompBoilerplateFile(frontEndOutput.moduleName)));
+            boilerplateFiles.add(context.toFile(paths.strSepCompBoilerplateFile(projectName, frontEndOutput.moduleName)));
             for(Entry<String, File> gen : frontEndOutput.generatedFiles.entrySet()) {
                 String strategyName = gen.getKey();
                 generatedFiles.__insert(strategyName, gen.getValue());
@@ -591,7 +594,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // boilerplate task
         File strSrcGenDir = context.toFile(paths.strSepCompSrcGenDir());
         StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, allFrontEndTasks.get(), null,
-            strSrcGenDir, boilerplateFiles, input.strJavaPackage, cacheDir, outputPath, extraArgs, true);
+            strSrcGenDir, boilerplateFiles, input.strJavaPackage, outputPath, cacheDir, extraArgs, true);
         requireBuild(StrIncrBackEnd.request(backEndInput));
     }
 }
