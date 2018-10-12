@@ -2,15 +2,8 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -44,8 +37,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2ParenthesizeLegacy;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableLegacy;
-import org.metaborg.spoofax.meta.core.pluto.build.StrIncrBackEnd;
-import org.metaborg.spoofax.meta.core.pluto.build.StrIncrFrontEnd;
+import org.metaborg.spoofax.meta.core.pluto.build.StrIncr;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.GetStrategoMix;
@@ -58,7 +50,6 @@ import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.FileExistsStamper;
-import io.usethesource.capsule.BinaryRelation;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
@@ -525,18 +516,19 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final File cacheDir = toFile(paths.strCacheDir());
 
             if(input.strBuildSetting == StrategoBuildSetting.incremental) {
-                strategoIncrCompTasks(input, cacheDir, extraArgs, depPath, origin);
-                // TODO: still allow typesmart to run?
-                return None.val;
+                final StrIncr.Input strIncrInput = new StrIncr.Input(context, strFile, input.strJavaPackage,
+                    input.strjIncludeDirs, input.strjIncludeFiles, cacheDir, extraArgs, depPath, origin);
+                requireBuild(StrIncr.request(strIncrInput));
+            } else {
+                final Strj.Input strjInput =
+
+                    new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage, true, true,
+                        input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir, extraArgs,
+                        origin);
+
+                final Origin strjOrigin = Strj.origin(strjInput);
+                requireBuild(strjOrigin);
             }
-
-            final Strj.Input strjInput =
-
-                new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage, true, true,
-                    input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir, extraArgs, origin);
-
-            final Origin strjOrigin = Strj.origin(strjInput);
-            requireBuild(strjOrigin);
 
             // Typesmart
             final File typesmartExportedFile = toFile(paths.strTypesmartExportedFile());
@@ -547,54 +539,5 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
 
         return None.val;
-    }
-
-    private void strategoIncrCompTasks(GenerateSourcesBuilder.Input input, File cacheDir, Arguments extraArgs,
-        File outputPath, Origin origin) throws IOException {
-        // TODO: use mainFile once we track imports
-        @SuppressWarnings("unused") File mainFile = input.strFile;
-
-        // FRONTEND
-        List<File> boilerplateFiles = new ArrayList<>();
-        Origin.Builder allFrontEndTasks = Origin.Builder();
-        BinaryRelation.Transient<String, File> generatedFiles = BinaryRelation.Transient.of();
-        Map<String, Origin.Builder> strategyOrigins = new HashMap<>();
-        Set<File> strFiles = new HashSet<>(FileUtils.listFiles(context.baseDir, new String[] { "str" }, true));
-        strFiles.addAll(input.strjIncludeFiles);
-        for(File dir : input.strjIncludeDirs) {
-            strFiles.addAll(FileUtils.listFiles(dir, new String[] { "str" }, true));
-        }
-        for(File strFile : strFiles) {
-            // TODO: *can* we get the project name somehow?
-            String projectName = Integer.toString(strFile.toString().hashCode());
-            StrIncrFrontEnd.Input frontEndInput = new StrIncrFrontEnd.Input(context, strFile, projectName, origin);
-            StrIncrFrontEnd.Output frontEndOutput = requireBuild(StrIncrFrontEnd.request(frontEndInput));
-
-            // shuffling output for backend
-            StrIncrFrontEnd.BuildRequest request = StrIncrFrontEnd.request(frontEndInput);
-            allFrontEndTasks.add(request);
-            boilerplateFiles.add(context.toFile(paths.strSepCompBoilerplateFile(projectName, frontEndOutput.moduleName)));
-            for(Entry<String, File> gen : frontEndOutput.generatedFiles.entrySet()) {
-                String strategyName = gen.getKey();
-                generatedFiles.__insert(strategyName, gen.getValue());
-                strategyOrigins.computeIfAbsent(strategyName, k -> new Origin.Builder());
-                strategyOrigins.get(strategyName).add(request);
-            }
-        }
-
-        // BACKEND
-        for(String strategyName : generatedFiles.keySet()) {
-            Origin strategyOrigin = strategyOrigins.get(strategyName).get();
-            File strategyDir = context.toFile(paths.strSepCompStrategyDir(strategyName));
-            StrIncrBackEnd.Input backEndInput =
-                new StrIncrBackEnd.Input(context, strategyOrigin, strategyName, strategyDir,
-                    Arrays.asList(generatedFiles.get(strategyName).toArray(new File[0])), input.strJavaPackage, outputPath, cacheDir, extraArgs, false);
-            requireBuild(StrIncrBackEnd.request(backEndInput));
-        }
-        // boilerplate task
-        File strSrcGenDir = context.toFile(paths.strSepCompSrcGenDir());
-        StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, allFrontEndTasks.get(), null,
-            strSrcGenDir, boilerplateFiles, input.strJavaPackage, outputPath, cacheDir, extraArgs, true);
-        requireBuild(StrIncrBackEnd.request(backEndInput));
     }
 }
