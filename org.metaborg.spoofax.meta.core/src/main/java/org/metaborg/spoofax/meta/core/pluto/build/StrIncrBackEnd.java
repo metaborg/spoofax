@@ -3,11 +3,13 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -101,8 +103,9 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         }
 
         // Call Stratego compiler
+        // Note that we need --library and turn off fusion with --fusion for separate compilation
         final Arguments arguments = new Arguments().addFile("-i", packedFile.toFile()).addFile("-o", input.outputPath)
-            .addLine(input.packageName != null ? "-p " + input.packageName : "");
+            .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
             arguments.add("--boilerplate");
         } else {
@@ -119,26 +122,28 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
             Pattern.quote("[ strj | warning ] Nullary constructor") + ".*",
             Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*",
             Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*",
+            Pattern.quote(SpoofaxConstants.STRJ_INFO_WRITING_FILE) + ".*",
+            Pattern.quote("* warning (escaping-var-id):") + ".*",
             Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]"));
 
         final ExecutionResult result =
             new StrategoExecutor().withStrjContext().withStrategy(org.strategoxt.strj.main_0_0.instance)
                 .withTracker(tracker).withName("strj").setSilent(true).executeCLI(arguments);
 
-        if(input.isBoilerplate) {
-            provide(input.outputPath.toPath().resolve("Main.java").toFile());
-            provide(input.outputPath.toPath().resolve("InteropRegistrer.java").toFile());
-        } else {
-            provide(input.outputPath.toPath().resolve(input.strategyName + ".java").toFile());
-        }
+        Arrays.stream(result.errLog.split(System.lineSeparator()))
+            .filter(line -> line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE))
+            .forEach(line -> {
+                String fileName = line.substring(SpoofaxConstants.STRJ_INFO_WRITING_FILE.length());
+                provide(new File(fileName));
+            });
 
         setState(State.finished(result.success));
         return None.val;
     }
 
     @Override protected String description(Input input) {
-        if (input.strategyName == null) {
-            return "Combine and compile separate strategy ast files to Java file: the interopregistrer";
+        if(input.strategyName == null) {
+            return "Combine and compile separate strategy ast files to Java file: main / interopregistrer";
         }
         return "Combine and compile separate strategy ast files to Java file: " + input.strategyName;
     }

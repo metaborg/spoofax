@@ -29,8 +29,6 @@ import build.pluto.BuildUnit.State;
 import build.pluto.dependency.Origin;
 
 public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIncrFrontEnd.Output> {
-    private static final String COMPILE_STRATEGY_NAME = "clean-and-compile-module";
-
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 1548589152421064400L;
 
@@ -76,6 +74,8 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
             super(factory, input);
         }
     }
+
+    private static final String COMPILE_STRATEGY_NAME = "clean-and-compile-module";
 
     public static SpoofaxBuilderFactory<Input, Output, StrIncrFrontEnd> factory =
         SpoofaxBuilderFactoryFactory.of(StrIncrFrontEnd.class, Input.class);

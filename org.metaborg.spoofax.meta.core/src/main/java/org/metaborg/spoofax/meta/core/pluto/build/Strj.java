@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -137,6 +138,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
           , Pattern.quote("[ strj | warning ] Nullary constructor") + ".*"
           , Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*"
           , Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*"
+          , Pattern.quote(SpoofaxConstants.STRJ_INFO_WRITING_FILE) + ".*"
           , Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]")
         );
         
