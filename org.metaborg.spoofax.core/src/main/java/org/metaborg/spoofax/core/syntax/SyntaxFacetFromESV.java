@@ -12,6 +12,7 @@ import org.metaborg.core.syntax.FenceCharacters;
 import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.iterators.Iterables2;
+import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Lists;
@@ -30,10 +31,27 @@ public class SyntaxFacetFromESV {
         final Iterable<String> singleLineCommentPrefixes = singleLineCommentPrefixes(esv);
         final Iterable<MultiLineCommentCharacters> multiLineCommentCharacters = multiLineCommentCharacters(esv);
         final Iterable<FenceCharacters> fenceCharacters = fenceCharacters(esv);
+        final ImploderImplementation imploder = imploder(esv);
         final SyntaxFacet syntaxFacet =
             new SyntaxFacet(parseTable, completionParseTable, startSymbols, singleLineCommentPrefixes, multiLineCommentCharacters,
-                fenceCharacters);
+                fenceCharacters, imploder);
         return syntaxFacet;
+    }
+
+
+    private static ImploderImplementation imploder(IStrategoAppl document) {
+        final IStrategoAppl imploder = ESVReader.findTerm(document, "Imploder");
+        if(imploder == null) {
+            return ImploderImplementation.java;
+        }
+        final IStrategoAppl imploderImpl = Tools.applAt(imploder, 0);
+        switch(imploderImpl.getName()) {
+            case "Stratego":
+                return ImploderImplementation.stratego;
+            case "Java":
+                return ImploderImplementation.java;
+        }
+        return ImploderImplementation.java;
     }
 
 

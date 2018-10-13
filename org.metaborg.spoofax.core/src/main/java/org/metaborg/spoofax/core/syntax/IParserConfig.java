@@ -4,4 +4,6 @@ public interface IParserConfig {
     String getStartSymbol();
 
     IParseTableProvider getParseTableProvider();
+
+    ImploderImplementation getImploderSetting();
 }
