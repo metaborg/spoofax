@@ -3,8 +3,10 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,12 +14,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.build.StrIncrFrontEnd.Import;
 import org.metaborg.util.cmd.Arguments;
 import org.sugarj.common.FileCommands;
 
@@ -98,37 +100,34 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
          */
         requireBuild(input.origin);
 
-        Origin.Builder oBuilder = Origin.Builder();
+        final Origin.Builder oBuilder = Origin.Builder();
         for(@SuppressWarnings("rawtypes") build.pluto.builder.BuildRequest req : input.origin.getReqs()) {
             @SuppressWarnings("unchecked") BuilderFactory<Serializable, Output, Builder<Serializable, Output>> factory =
                 req.factory;
             oBuilder.add(factory, req.input, IgnoreOutputStamper.instance);
         }
-        Origin ignoreBuilderOrigin = oBuilder.get();
-
-
-        // TODO: use mainFile once we track imports
-        @SuppressWarnings("unused") File mainFile = input.inputFile;
+        final Origin ignoreBuilderOrigin = oBuilder.get();
 
         // FRONTEND
-        List<File> boilerplateFiles = new ArrayList<>();
-        Origin.Builder allFrontEndTasks = Origin.Builder();
-        BinaryRelation.Transient<String, File> generatedFiles = BinaryRelation.Transient.of();
-        Map<String, Origin.Builder> strategyOrigins = new HashMap<>();
-        Set<File> strFiles = new HashSet<>(FileUtils.listFiles(context.baseDir, new String[] { "str" }, true));
-        strFiles.addAll(input.includeFiles);
-        for(File dir : input.includeDirs) {
-            strFiles.addAll(FileUtils.listFiles(dir, new String[] { "str" }, true));
-        }
-        for(File strFile : strFiles) {
-            // TODO: *can* we get the project name somehow?
-            String projectName = Integer.toString(strFile.toString().hashCode());
-            StrIncrFrontEnd.Input frontEndInput =
+        final Set<File> seen = new HashSet<>();
+        final Deque<File> workList = new ArrayDeque<>();
+        workList.add(input.inputFile);
+        seen.add(input.inputFile);
+
+        final List<File> boilerplateFiles = new ArrayList<>();
+        final Origin.Builder allFrontEndTasks = Origin.Builder();
+        final BinaryRelation.Transient<String, File> generatedFiles = BinaryRelation.Transient.of();
+        final Map<String, Origin.Builder> strategyOrigins = new HashMap<>();
+
+        do {
+            final File strFile = workList.remove();
+            final String projectName = projectName(strFile);
+            final StrIncrFrontEnd.Input frontEndInput =
                 new StrIncrFrontEnd.Input(context, strFile, projectName, ignoreBuilderOrigin);
-            StrIncrFrontEnd.Output frontEndOutput = requireBuild(StrIncrFrontEnd.request(frontEndInput));
+            final StrIncrFrontEnd.BuildRequest request = StrIncrFrontEnd.request(frontEndInput);
+            final StrIncrFrontEnd.Output frontEndOutput = requireBuild(request);
 
             // shuffling output for backend
-            StrIncrFrontEnd.BuildRequest request = StrIncrFrontEnd.request(frontEndInput);
             allFrontEndTasks.add(request);
             boilerplateFiles
                 .add(context.toFile(paths.strSepCompBoilerplateFile(projectName, frontEndOutput.moduleName)));
@@ -138,7 +137,15 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
                 strategyOrigins.computeIfAbsent(strategyName, k -> new Origin.Builder());
                 strategyOrigins.get(strategyName).add(request);
             }
-        }
+
+            // resolving imports
+            for(Import i : frontEndOutput.imports) {
+                final Set<File> resolvedImport = i.resolveImport(input.includeDirs);
+                resolvedImport.removeAll(seen);
+                workList.addAll(resolvedImport);
+                seen.addAll(resolvedImport);
+            }
+        } while(!workList.isEmpty());
 
         // BACKEND
         for(String strategyName : generatedFiles.keySet()) {

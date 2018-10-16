@@ -1,11 +1,20 @@
 package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.Serializable;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.ContextException;
@@ -57,14 +66,108 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         public final String moduleName;
         public final Map<String, File> generatedFiles;
+        public final List<Import> imports;
 
-        public Output(String moduleName, Map<String, File> generatedFiles) {
+        public Output(String moduleName, Map<String, File> generatedFiles, List<Import> imports) {
             this.moduleName = moduleName;
             this.generatedFiles = generatedFiles;
+            this.imports = imports;
         }
 
         @Override public String toString() {
-            return "StrIncrFrontEnd$Output(" + moduleName + ", { ... })";
+            return "StrIncrFrontEnd$Output(" + moduleName + ", { ... }, [ ... ])";
+        }
+    }
+
+    public static class Import implements Serializable {
+        public static enum ImportType {
+            normal, wildcard
+        }
+
+        private static final long serialVersionUID = 7035284070137434795L;
+
+        public final ImportType importType;
+        public final String importString;
+
+        protected Import(ImportType importType, String importString) {
+            this.importType = importType;
+            this.importString = importString;
+        }
+
+        public static Import normal(String importString) {
+            return new Import(ImportType.normal, importString);
+        }
+
+        public static Import wildcard(String importString) {
+            return new Import(ImportType.wildcard, importString);
+        }
+
+        public Set<File> resolveImport(List<File> includeDirs) throws IOException {
+            Set<File> result = new HashSet<>();
+            for(File dir : includeDirs) {
+                switch(importType) {
+                    case normal: {
+                        final Path path = dir.toPath().resolve(importString + ".str");
+                        if(Files.exists(path)) {
+                            result.add(path.toFile());
+                        }
+                        break;
+                    }
+                    case wildcard: {
+                        final Path path = dir.toPath().resolve(importString);
+                        if(Files.exists(path)) {
+                            final File[] strFiles =
+                                path.toFile().listFiles((FilenameFilter) new SuffixFileFilter(".str"));
+                            result.addAll(Arrays.asList(strFiles));
+                        }
+                        break;
+                    }
+                    default:
+                        throw new IOException("Missing case for ImportType: " + importType);
+                }
+            }
+            return result;
+        }
+
+        public static Import fromTerm(IStrategoTerm importTerm) throws IOException {
+            if(!(importTerm instanceof IStrategoAppl)) {
+                throw new IOException("Import term was not a constructor: " + importTerm);
+            }
+            final IStrategoAppl appl = (IStrategoAppl) importTerm;
+            switch(appl.getName()) {
+                case "Import":
+                    return normal(Tools.javaStringAt(appl, 0));
+                case "ImportWildcard":
+                    return wildcard(Tools.javaStringAt(appl, 0));
+                default:
+                    throw new IOException("Import term was not the expected Import or ImportWildcard: " + appl);
+            }
+        }
+
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((importString == null) ? 0 : importString.hashCode());
+            result = prime * result + ((importType == null) ? 0 : importType.hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Import other = (Import) obj;
+            if(importString == null) {
+                if(other.importString != null)
+                    return false;
+            } else if(!importString.equals(other.importString))
+                return false;
+            if(importType != other.importType)
+                return false;
+            return true;
         }
     }
 
@@ -105,8 +208,9 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         String moduleName = Tools.javaStringAt(result, 0);
         IStrategoList strategyList = Tools.listAt(result, 1);
-        Map<String, File> generatedFiles = new HashMap<>();
+        IStrategoList importsTerm = Tools.listAt(result, 2);
 
+        Map<String, File> generatedFiles = new HashMap<>();
         for(IStrategoTerm strategyTerm : strategyList) {
             String strategy = Tools.asJavaString(strategyTerm);
             File file = context.toFile(paths.strSepCompStrategyFile(input.projectName, moduleName, strategy));
@@ -116,8 +220,13 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         provide(context.toFile(paths.strSepCompBoilerplateFile(input.projectName, moduleName)));
 
+        List<Import> imports = new ArrayList<>(importsTerm.size());
+        for(IStrategoTerm importTerm : importsTerm) {
+            imports.add(Import.fromTerm(importTerm));
+        }
+
         setState(State.finished(true));
-        return new Output(moduleName, generatedFiles);
+        return new Output(moduleName, generatedFiles, imports);
     }
 
     @Override protected String description(Input input) {
