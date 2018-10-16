@@ -3,8 +3,10 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -90,16 +92,18 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
     @Override protected None build(Input input) throws Throwable {
         requireBuild(input.frontEndTasks);
 
+        final List<Path> contributionPaths = new ArrayList<>(input.strategyContributions.size());
         for(File strategyContrib : input.strategyContributions) {
             require(strategyContrib, FileHashStamper.instance);
+            contributionPaths.add(strategyContrib.toPath());
         }
 
         // Pack the directory into a single strategy
         Path packedFile = Paths.get(input.strategyDir.toString(), "packed$.ctree");
         if(input.isBoilerplate) {
-            Packer.packBoilerplate(input.strategyDir.toPath(), packedFile);
+            Packer.packBoilerplate(contributionPaths, packedFile);
         } else {
-            Packer.packStrategy(input.strategyDir.toPath(), packedFile, input.strategyName);
+            Packer.packStrategy(contributionPaths, packedFile, input.strategyName);
         }
 
         // Call Stratego compiler
