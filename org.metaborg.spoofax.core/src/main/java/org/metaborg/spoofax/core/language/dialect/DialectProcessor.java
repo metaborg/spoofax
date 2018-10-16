@@ -83,9 +83,10 @@ public class DialectProcessor implements IDialectProcessor {
 
             final String fileName = FilenameUtils.getBaseName(resource.getName().getBaseName());
 
+            // TODO: set imploder setting to ImploderImplementation.stratego by default after it is fixed to preserve origin info
             final SyntaxFacet newFacet =
                 new SyntaxFacet(resource, baseFacet.completionParseTable, baseFacet.startSymbols, baseFacet.singleLineCommentPrefixes,
-                    baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters, ImploderImplementation.stratego);
+                    baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters, baseFacet.imploder);
 
             final ResourceChangeKind changeKind = change.kind;
             try {
