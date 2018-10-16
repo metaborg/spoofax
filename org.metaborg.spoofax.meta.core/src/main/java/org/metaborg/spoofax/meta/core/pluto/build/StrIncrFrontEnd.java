@@ -12,6 +12,8 @@ import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.core.syntax.ImploderImplementation;
+import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
@@ -20,6 +22,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.spoofax.interpreter.core.Tools;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -128,14 +131,30 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
     }
 
     public IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName) throws IOException {
-        final ILanguageImpl strategoLangImpl = context.languageIdentifierService().identify(resource);
-        if(strategoLangImpl == null) {
-            throw new IOException("Cannot find/load Stratego language, unable to build...");
+        ILanguageImpl strategoDialect = context.languageIdentifierService().identify(resource);
+        ILanguageImpl strategoLang = context.dialectService().getBase(strategoDialect);
+        if(strategoLang == null) {
+            strategoLang = strategoDialect;
+            strategoDialect = null;
+            if(strategoLang == null) {
+                throw new IOException("Cannot find/load Stratego language, unable to build...");
+            }
+        }
+        if(strategoDialect != null) {
+            final SyntaxFacet syntaxFacet = (SyntaxFacet) strategoDialect.facet(SyntaxFacet.class);
+            final String dialectName = context.dialectService().dialectName(strategoDialect);
+            // Get dialect with stratego imploder setting
+            final ILanguageImpl adaptedStrategoDialect = context.dialectService().update(dialectName,
+                syntaxFacet.withImploderSetting(ImploderImplementation.stratego));
+            // Update registered dialect back to old one.
+            context.dialectService().update(dialectName, syntaxFacet);
+            strategoDialect = adaptedStrategoDialect;
         }
 
         // PARSE
         final String text = context.sourceTextService().text(resource);
-        final ISpoofaxInputUnit inputUnit = context.unitService().inputUnit(resource, text, strategoLangImpl, null);
+        final ISpoofaxInputUnit inputUnit =
+            context.unitService().inputUnit(resource, text, strategoLang, strategoDialect);
         ISpoofaxParseUnit parseResult;
         try {
             parseResult = context.syntaxService().parse(inputUnit);
@@ -147,12 +166,12 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         }
 
         // TRANSFORM
-        if(!context.contextService().available(strategoLangImpl)) {
+        if(!context.contextService().available(strategoLang)) {
             throw new IOException("Cannot create stratego transformation context");
         }
         IContext transformContext;
         try {
-            transformContext = context.contextService().get(resource, context.project(), strategoLangImpl);
+            transformContext = context.contextService().get(resource, context.project(), strategoLang);
         } catch(ContextException e) {
             throw new IOException("Cannot create stratego transformation context", e);
         }
@@ -160,7 +179,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         String projectPath = transformContext.project().location().toString();
         IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), parseResult.ast());
         try {
-            return context.strategoCommon().invoke(strategoLangImpl, transformContext, inputTerm , COMPILE_STRATEGY_NAME);
+            return context.strategoCommon().invoke(strategoLang, transformContext, inputTerm, COMPILE_STRATEGY_NAME);
         } catch(MetaborgException e) {
             throw new IOException("Transformation failed", e);
         }

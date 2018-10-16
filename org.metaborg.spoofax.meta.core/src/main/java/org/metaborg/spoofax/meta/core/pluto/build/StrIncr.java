@@ -79,18 +79,22 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
         return Origin.from(request(input));
     }
 
+    public static String projectName(File inputFile) {
+        // TODO: *can* we get the project name somehow?
+        return Integer.toString(inputFile.toString().hashCode());
+    }
+
     public StrIncr(Input input) {
         super(input);
     }
 
     @Override protected None build(Input input) throws Throwable {
         /*
-         * Note that we require the sdf tasks here to force it to generated needed str files.
-         * We then discover those in this method with a directory search, and start a front-end
-         * task for each. Every front-end task also depends on the sdf tasks so there is no hidden
-         * dep. To make sure that front-end tasks only run when their input _files_ change, we need
-         * the front-end to depend on the sdf tasks with a simple stamper that allows the execution
-         * of the sdf task to be ignored.
+         * Note that we require the sdf tasks here to force it to generated needed str files. We then discover those in
+         * this method with a directory search, and start a front-end task for each. Every front-end task also depends
+         * on the sdf tasks so there is no hidden dep. To make sure that front-end tasks only run when their input
+         * _files_ change, we need the front-end to depend on the sdf tasks with a simple stamper that allows the
+         * execution of the sdf task to be ignored.
          */
         requireBuild(input.origin);
 

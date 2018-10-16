@@ -16,6 +16,7 @@ import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
@@ -62,6 +63,7 @@ public class SpoofaxContext implements Serializable {
     private static IStrategoCommon strategoCommon;
     private static ISpoofaxTransformService transformService;
     private static IContextService contextService;
+    private static IDialectService dialectService;
 
     public final File baseDir;
     public final URI baseURI;
@@ -91,6 +93,7 @@ public class SpoofaxContext implements Serializable {
         strategoCommon = newInjector.getInstance(IStrategoCommon.class);
         transformService = newInjector.getInstance(ISpoofaxTransformService.class);
         contextService = newInjector.getInstance(IContextService.class);
+        dialectService = newInjector.getInstance(IDialectService.class);
     }
 
 
@@ -210,6 +213,10 @@ public class SpoofaxContext implements Serializable {
 
     public IContextService contextService() {
         return contextService;
+    }
+    
+    public IDialectService dialectService() {
+        return dialectService;
     }
 
     public IProject project() {

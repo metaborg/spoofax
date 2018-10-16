@@ -64,6 +64,15 @@ public class DialectService implements IDialectService {
     }
 
 
+    @Override public @Nullable String dialectName(ILanguageImpl dialect) {
+        final ILanguageImpl base = getBase(dialect);
+        if(base == null) {
+            return null;
+        }
+
+        return dialect.id().id.substring((base.id().id + "-Dialect-").length());
+    }
+
     @Override public boolean hasDialect(String name) {
         return nameToDialect.containsKey(name);
     }
