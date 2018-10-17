@@ -19,6 +19,7 @@ import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
 import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.NullTreeBuilder;
+import org.spoofax.jsglr.client.ParseException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
@@ -28,6 +29,7 @@ import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
@@ -115,19 +117,29 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
             disambiguator.setHeuristicFilters(false);
         }
 
-        String startSymbol = getOrDefaultStartSymbol(parserConfig);
-        SGLRParseResult parseResult;
-        ret: try {
-            parseResult = parser.parse(text, filename, startSymbol);
-            break ret;
+        SGLRParseResult parseResult = parseAndRecover(text, filename, disambiguator, getOrDefaultStartSymbol(parserConfig));
+        if(config.getImploderSetting() == ImploderImplementation.stratego) {
+            final implode_asfix_0_0 imploder = implode_asfix_0_0.instance;
+            final Context strategoContext = new Context(this.termFactory);
+            final IStrategoTerm syntaxTree = (IStrategoTerm) parseResult.output;
+            return new SGLRParseResult(imploder.invoke(strategoContext, syntaxTree));
+        } else {
+            return parseResult;
+        }
+    }
+
+    public SGLRParseResult parseAndRecover(String text, String filename, final Disambiguator disambiguator,
+        String startSymbol) throws BadTokenException, TokenExpectedException, ParseException, SGLRException,
+        InterruptedException, FilterException, StartSymbolException {
+        try {
+            return parser.parse(text, filename, startSymbol);
         } catch(FilterException e) {
             if((e.getCause() == null || e.getCause() instanceof UnsupportedOperationException)
                 && disambiguator.getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
                 disambiguator.setFilterAssociativity(false);
                 try {
-                    parseResult = parser.parse(text, filename, startSymbol);
-                    break ret;
+                    return  parser.parse(text, filename, startSymbol);
                 } finally {
                     disambiguator.setFilterPriorities(true);
                 }
@@ -138,19 +150,10 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
                 // Parse with all symbols as start symbol when start symbol cannot be found and a dialect is set,
                 // indicating that we're parsing Stratego with concrete syntax extensions. We need to parse with all
                 // symbols as start symbol, because the start symbol is unknown.
-                parseResult = parser.parse(text, filename, null);
-                break ret;
+                return parser.parse(text, filename, null);
             } else {
                 throw e;
             }
-        }
-        if(config.getImploderSetting() == ImploderImplementation.stratego) {
-            final implode_asfix_0_0 imploder = implode_asfix_0_0.instance;
-            final Context strategoContext = new Context(this.termFactory);
-            final IStrategoTerm syntaxTree = (IStrategoTerm) parseResult.output;
-            return new SGLRParseResult(imploder.invoke(strategoContext, syntaxTree));
-        } else {
-            return parseResult;
         }
     }
 
