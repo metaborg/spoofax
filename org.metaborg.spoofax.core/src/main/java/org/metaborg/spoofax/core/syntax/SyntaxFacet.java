@@ -25,6 +25,7 @@ public class SyntaxFacet implements IFacet {
     public final Iterable<String> singleLineCommentPrefixes;
     public final Iterable<MultiLineCommentCharacters> multiLineCommentCharacters;
     public final Iterable<FenceCharacters> fenceCharacters;
+    public final ImploderImplementation imploder;
 
 
     /**
@@ -37,7 +38,8 @@ public class SyntaxFacet implements IFacet {
      */
     public SyntaxFacet(FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols) {
         this(parseTable, completionParseTable, startSymbols, Iterables2.<String>empty(),
-            Iterables2.<MultiLineCommentCharacters>empty(), Iterables2.<FenceCharacters>empty());
+            Iterables2.<MultiLineCommentCharacters>empty(), Iterables2.<FenceCharacters>empty(), 
+            ImploderImplementation.java);
     }
 
     /**
@@ -56,13 +58,14 @@ public class SyntaxFacet implements IFacet {
      */
     public SyntaxFacet(FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols,
         Iterable<String> singleLineCommentPrefixes, Iterable<MultiLineCommentCharacters> multiLineCommentCharacters,
-        Iterable<FenceCharacters> fenceCharacters) {
+        Iterable<FenceCharacters> fenceCharacters, ImploderImplementation imploder) {
         this.parseTable = parseTable;
         this.completionParseTable = completionParseTable;
         this.startSymbols = startSymbols;
         this.singleLineCommentPrefixes = singleLineCommentPrefixes;
         this.multiLineCommentCharacters = multiLineCommentCharacters;
         this.fenceCharacters = fenceCharacters;
+        this.imploder = imploder;
     }
 
 
