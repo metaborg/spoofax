@@ -21,6 +21,8 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.StrIncrFrontEnd.Import;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.builder.Builder;
@@ -32,6 +34,8 @@ import build.pluto.output.Output;
 import io.usethesource.capsule.BinaryRelation;
 
 public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
+    private static final ILogger logger = LoggerUtils.logger(StrIncr.class);
+
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -1010675361672399734L;
 
@@ -100,6 +104,9 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
          */
         requireBuild(input.origin);
 
+        logger.debug("Starting measurement");
+        long startTime = System.nanoTime();
+
         final Origin.Builder oBuilder = Origin.Builder();
         for(@SuppressWarnings("rawtypes") build.pluto.builder.BuildRequest req : input.origin.getReqs()) {
             @SuppressWarnings("unchecked") BuilderFactory<Serializable, Output, Builder<Serializable, Output>> factory =
@@ -163,6 +170,8 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
                 input.javaPackageName, input.outputPath, input.cacheDir, input.extraArgs, true);
         requireBuild(StrIncrBackEnd.request(backEndInput));
 
+        long buildDuration = System.nanoTime() - startTime;
+        logger.debug("Build took: {} ns", buildDuration);
         return None.val;
     }
 

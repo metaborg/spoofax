@@ -17,6 +17,8 @@ import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.BuildUnit.State;
@@ -25,6 +27,8 @@ import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
 public class Strj extends SpoofaxBuilder<Strj.Input, None> {
+    private static final ILogger logger = LoggerUtils.logger(Strj.class);
+
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -5234502421638344690L;
 
@@ -92,6 +96,9 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
 
     @Override public None build(Input input) throws IOException {
         requireBuild(input.origin);
+
+        logger.debug("Starting time measurement");
+        long startTime = System.nanoTime();
 
         require(input.inputFile);
 
@@ -174,6 +181,8 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         }
 
         setState(State.finished(result.success));
+        long buildDuration = System.nanoTime() - startTime;
+        logger.debug("Measured: {} ns", buildDuration);
         return None.val;
     }
 
