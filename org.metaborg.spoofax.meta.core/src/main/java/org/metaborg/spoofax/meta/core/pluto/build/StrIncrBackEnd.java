@@ -21,6 +21,8 @@ import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.BuildUnit.State;
@@ -30,6 +32,8 @@ import build.pluto.stamp.FileHashStamper;
 import mb.stratego.compiler.pack.Packer;
 
 public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
+    private static final ILogger logger = LoggerUtils.logger(StrIncrBackEnd.class);
+
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 7275406432476758521L;
 
@@ -62,6 +66,75 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         @Override public String toString() {
             return "StrIncrFrontEnd$Input(" + strategyName + ", ... )";
         }
+
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((context == null) ? 0 : cacheDir.hashCode());
+            result = prime * result + ((cacheDir == null) ? 0 : cacheDir.hashCode());
+            result = prime * result + ((extraArgs == null) ? 0 : extraArgs.hashCode());
+            result = prime * result + ((frontEndTasks == null) ? 0 : frontEndTasks.hashCode());
+            result = prime * result + (isBoilerplate ? 1231 : 1237);
+            result = prime * result + ((outputPath == null) ? 0 : outputPath.hashCode());
+            result = prime * result + ((packageName == null) ? 0 : packageName.hashCode());
+            result = prime * result + ((strategyContributions == null) ? 0 : strategyContributions.hashCode());
+            result = prime * result + ((strategyDir == null) ? 0 : strategyDir.hashCode());
+            result = prime * result + ((strategyName == null) ? 0 : strategyName.hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Input other = (Input) obj;
+            if(cacheDir == null) {
+                if(other.cacheDir != null)
+                    return false;
+            } else if(!cacheDir.equals(other.cacheDir))
+                return false;
+            if(extraArgs == null) {
+                if(other.extraArgs != null)
+                    return false;
+            } else if(!extraArgs.equals(other.extraArgs))
+                return false;
+            if(frontEndTasks == null) {
+                if(other.frontEndTasks != null)
+                    return false;
+            } else if(!frontEndTasks.equals(other.frontEndTasks))
+                return false;
+            if(isBoilerplate != other.isBoilerplate)
+                return false;
+            if(outputPath == null) {
+                if(other.outputPath != null)
+                    return false;
+            } else if(!outputPath.equals(other.outputPath))
+                return false;
+            if(packageName == null) {
+                if(other.packageName != null)
+                    return false;
+            } else if(!packageName.equals(other.packageName))
+                return false;
+            if(strategyContributions == null) {
+                if(other.strategyContributions != null)
+                    return false;
+            } else if(!strategyContributions.equals(other.strategyContributions))
+                return false;
+            if(strategyDir == null) {
+                if(other.strategyDir != null)
+                    return false;
+            } else if(!strategyDir.equals(other.strategyDir))
+                return false;
+            if(strategyName == null) {
+                if(other.strategyName != null)
+                    return false;
+            } else if(!strategyName.equals(other.strategyName))
+                return false;
+            return true;
+        }
     }
 
     // Just a type alias
@@ -92,14 +165,18 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
     @Override protected None build(Input input) throws Throwable {
         requireBuild(input.frontEndTasks);
 
+        long startTime = System.nanoTime();
+
         final List<Path> contributionPaths = new ArrayList<>(input.strategyContributions.size());
         for(File strategyContrib : input.strategyContributions) {
             require(strategyContrib, FileHashStamper.instance);
             contributionPaths.add(strategyContrib.toPath());
         }
 
+        logger.debug("Hashchecks took: {} ns", System.nanoTime() - startTime);
+
         // Pack the directory into a single strategy
-        Path packedFile = Paths.get(input.strategyDir.toString(), "packed$.ctree");
+        final Path packedFile = Paths.get(input.strategyDir.toString(), "packed$.ctree");
         if(input.isBoilerplate) {
             Packer.packBoilerplate(contributionPaths, packedFile);
         } else {
@@ -142,6 +219,8 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
             });
 
         setState(State.finished(result.success));
+        long buildDuration = System.nanoTime() - startTime;
+        logger.debug("Backend task took: {} ns", buildDuration);
         return None.val;
     }
 

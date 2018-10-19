@@ -59,6 +59,41 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         @Override public String toString() {
             return "StrIncrFrontEnd$Input(" + inputFile + ")";
         }
+
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((inputFile == null) ? 0 : inputFile.hashCode());
+            result = prime * result + ((origin == null) ? 0 : origin.hashCode());
+            result = prime * result + ((projectName == null) ? 0 : projectName.hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Input other = (Input) obj;
+            if(inputFile == null) {
+                if(other.inputFile != null)
+                    return false;
+            } else if(!inputFile.equals(other.inputFile))
+                return false;
+            if(origin == null) {
+                if(other.origin != null)
+                    return false;
+            } else if(!origin.equals(other.origin))
+                return false;
+            if(projectName == null) {
+                if(other.projectName != null)
+                    return false;
+            } else if(!projectName.equals(other.projectName))
+                return false;
+            return true;
+        }
     }
 
     public static class Output implements build.pluto.output.Output {
@@ -76,6 +111,41 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         @Override public String toString() {
             return "StrIncrFrontEnd$Output(" + moduleName + ", { ... }, [ ... ])";
+        }
+
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((generatedFiles == null) ? 0 : generatedFiles.hashCode());
+            result = prime * result + ((imports == null) ? 0 : imports.hashCode());
+            result = prime * result + ((moduleName == null) ? 0 : moduleName.hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Output other = (Output) obj;
+            if(generatedFiles == null) {
+                if(other.generatedFiles != null)
+                    return false;
+            } else if(!generatedFiles.equals(other.generatedFiles))
+                return false;
+            if(imports == null) {
+                if(other.imports != null)
+                    return false;
+            } else if(!imports.equals(other.imports))
+                return false;
+            if(moduleName == null) {
+                if(other.moduleName != null)
+                    return false;
+            } else if(!moduleName.equals(other.moduleName))
+                return false;
+            return true;
         }
     }
 
@@ -107,9 +177,12 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
             for(File dir : includeDirs) {
                 switch(importType) {
                     case normal: {
-                        final Path path = dir.toPath().resolve(importString + ".str");
-                        if(Files.exists(path)) {
-                            result.add(path.toFile());
+                        final Path strPath = dir.toPath().resolve(importString + ".str");
+                        final Path rtreePath = dir.toPath().resolve(importString + ".rtree");
+                        if(Files.exists(rtreePath)) {
+                            result.add(rtreePath.toFile());
+                        } else if(Files.exists(strPath)) {
+                            result.add(strPath.toFile());
                         }
                         break;
                     }
@@ -117,7 +190,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
                         final Path path = dir.toPath().resolve(importString);
                         if(Files.exists(path)) {
                             final File[] strFiles =
-                                path.toFile().listFiles((FilenameFilter) new SuffixFileFilter(".str"));
+                                path.toFile().listFiles((FilenameFilter) new SuffixFileFilter(Arrays.asList(".str", ".rtree")));
                             result.addAll(Arrays.asList(strFiles));
                         }
                         break;
@@ -203,14 +276,14 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         require(input.inputFile);
 
-        FileObject resource = context.resourceService().resolve(input.inputFile);
-        IStrategoTerm result = runStrategoCompileBuilder(resource, input.projectName);
+        final FileObject resource = context.resourceService().resolve(input.inputFile);
+        final IStrategoTerm result = runStrategoCompileBuilder(resource, input.projectName);
 
-        String moduleName = Tools.javaStringAt(result, 0);
-        IStrategoList strategyList = Tools.listAt(result, 1);
-        IStrategoList importsTerm = Tools.listAt(result, 2);
+        final String moduleName = Tools.javaStringAt(result, 0);
+        final IStrategoList strategyList = Tools.listAt(result, 1);
+        final IStrategoList importsTerm = Tools.listAt(result, 2);
 
-        Map<String, File> generatedFiles = new HashMap<>();
+        final Map<String, File> generatedFiles = new HashMap<>();
         for(IStrategoTerm strategyTerm : strategyList) {
             String strategy = Tools.asJavaString(strategyTerm);
             File file = context.toFile(paths.strSepCompStrategyFile(input.projectName, moduleName, strategy));
@@ -220,7 +293,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         provide(context.toFile(paths.strSepCompBoilerplateFile(input.projectName, moduleName)));
 
-        List<Import> imports = new ArrayList<>(importsTerm.size());
+        final List<Import> imports = new ArrayList<>(importsTerm.size());
         for(IStrategoTerm importTerm : importsTerm) {
             imports.add(Import.fromTerm(importTerm));
         }
@@ -261,32 +334,38 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         }
 
         // PARSE
+        final IStrategoTerm ast;
         final String text = context.sourceTextService().text(resource);
-        final ISpoofaxInputUnit inputUnit =
-            context.unitService().inputUnit(resource, text, strategoLang, strategoDialect);
-        ISpoofaxParseUnit parseResult;
-        try {
-            parseResult = context.syntaxService().parse(inputUnit);
-        } catch(ParseException e) {
-            throw new IOException("Cannot parse stratego file " + resource, e);
-        }
-        if(!parseResult.valid() || !parseResult.success()) {
-            throw new IOException("Cannot parse stratego file " + resource);
+        if(resource.getName().getExtension() == "rtree") {
+            ast = context.termFactory().parseFromString(text);
+        } else { // assume extension str
+            final ISpoofaxInputUnit inputUnit =
+                context.unitService().inputUnit(resource, text, strategoLang, strategoDialect);
+            final ISpoofaxParseUnit parseResult;
+            try {
+                parseResult = context.syntaxService().parse(inputUnit);
+            } catch(ParseException e) {
+                throw new IOException("Cannot parse stratego file " + resource, e);
+            }
+            if(!parseResult.valid() || !parseResult.success()) {
+                throw new IOException("Cannot parse stratego file " + resource);
+            }
+            ast = parseResult.ast();
         }
 
         // TRANSFORM
         if(!context.contextService().available(strategoLang)) {
             throw new IOException("Cannot create stratego transformation context");
         }
-        IContext transformContext;
+        final IContext transformContext;
         try {
             transformContext = context.contextService().get(resource, context.project(), strategoLang);
         } catch(ContextException e) {
             throw new IOException("Cannot create stratego transformation context", e);
         }
-        ITermFactory f = context.termFactory();
-        String projectPath = transformContext.project().location().toString();
-        IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), parseResult.ast());
+        final ITermFactory f = context.termFactory();
+        final String projectPath = transformContext.project().location().toString();
+        final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
         try {
             return context.strategoCommon().invoke(strategoLang, transformContext, inputTerm, COMPILE_STRATEGY_NAME);
         } catch(MetaborgException e) {

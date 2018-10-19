@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -20,17 +19,14 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.StrIncrFrontEnd.Import;
+import org.metaborg.spoofax.meta.core.pluto.util.OutputIgnoreOriginBuilder;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.sugarj.common.FileCommands;
 
-import build.pluto.builder.Builder;
-import build.pluto.builder.factory.BuilderFactory;
 import build.pluto.dependency.Origin;
-import build.pluto.output.IgnoreOutputStamper;
 import build.pluto.output.None;
-import build.pluto.output.Output;
 import io.usethesource.capsule.BinaryRelation;
 
 public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
@@ -60,6 +56,71 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
             this.extraArgs = extraArgs;
             this.outputPath = outputPath;
             this.origin = origin;
+        }
+
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((cacheDir == null) ? 0 : cacheDir.hashCode());
+            result = prime * result + ((extraArgs == null) ? 0 : extraArgs.hashCode());
+            result = prime * result + ((includeDirs == null) ? 0 : includeDirs.hashCode());
+            result = prime * result + ((includeFiles == null) ? 0 : includeFiles.hashCode());
+            result = prime * result + ((inputFile == null) ? 0 : inputFile.hashCode());
+            result = prime * result + ((javaPackageName == null) ? 0 : javaPackageName.hashCode());
+            result = prime * result + ((origin == null) ? 0 : origin.hashCode());
+            result = prime * result + ((outputPath == null) ? 0 : outputPath.hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Input other = (Input) obj;
+            if(cacheDir == null) {
+                if(other.cacheDir != null)
+                    return false;
+            } else if(!cacheDir.equals(other.cacheDir))
+                return false;
+            if(extraArgs == null) {
+                if(other.extraArgs != null)
+                    return false;
+            } else if(!extraArgs.equals(other.extraArgs))
+                return false;
+            if(includeDirs == null) {
+                if(other.includeDirs != null)
+                    return false;
+            } else if(!includeDirs.equals(other.includeDirs))
+                return false;
+            if(includeFiles == null) {
+                if(other.includeFiles != null)
+                    return false;
+            } else if(!includeFiles.equals(other.includeFiles))
+                return false;
+            if(inputFile == null) {
+                if(other.inputFile != null)
+                    return false;
+            } else if(!inputFile.equals(other.inputFile))
+                return false;
+            if(javaPackageName == null) {
+                if(other.javaPackageName != null)
+                    return false;
+            } else if(!javaPackageName.equals(other.javaPackageName))
+                return false;
+            if(origin == null) {
+                if(other.origin != null)
+                    return false;
+            } else if(!origin.equals(other.origin))
+                return false;
+            if(outputPath == null) {
+                if(other.outputPath != null)
+                    return false;
+            } else if(!outputPath.equals(other.outputPath))
+                return false;
+            return true;
         }
 
     }
@@ -104,16 +165,10 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
          */
         requireBuild(input.origin);
 
-        logger.debug("Starting measurement");
+        logger.debug("Starting time measurement");
         long startTime = System.nanoTime();
 
-        final Origin.Builder oBuilder = Origin.Builder();
-        for(@SuppressWarnings("rawtypes") build.pluto.builder.BuildRequest req : input.origin.getReqs()) {
-            @SuppressWarnings("unchecked") BuilderFactory<Serializable, Output, Builder<Serializable, Output>> factory =
-                req.factory;
-            oBuilder.add(factory, req.input, IgnoreOutputStamper.instance);
-        }
-        final Origin ignoreBuilderOrigin = oBuilder.get();
+        final Origin ignoreBuilderOrigin = OutputIgnoreOriginBuilder.ignoreOutputs(input.origin);
 
         // FRONTEND
         final Set<File> seen = new HashSet<>();
@@ -122,17 +177,24 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
         seen.add(input.inputFile);
 
         final List<File> boilerplateFiles = new ArrayList<>();
-        final Origin.Builder allFrontEndTasks = Origin.Builder();
+        final Origin.Builder allFrontEndTasks = new OutputIgnoreOriginBuilder();
         final BinaryRelation.Transient<String, File> generatedFiles = BinaryRelation.Transient.of();
         final Map<String, Origin.Builder> strategyOrigins = new HashMap<>();
 
+        long frontEndStartTime;
+        long frontEndTime = 0;
+        long shuffleStartTime;
+        long shuffleTime = 0;
         do {
+            frontEndStartTime = System.nanoTime();
             final File strFile = workList.remove();
             final String projectName = projectName(strFile);
             final StrIncrFrontEnd.Input frontEndInput =
                 new StrIncrFrontEnd.Input(context, strFile, projectName, ignoreBuilderOrigin);
             final StrIncrFrontEnd.BuildRequest request = StrIncrFrontEnd.request(frontEndInput);
             final StrIncrFrontEnd.Output frontEndOutput = requireBuild(request);
+            shuffleStartTime = System.nanoTime();
+            frontEndTime += shuffleStartTime - frontEndStartTime;
 
             // shuffling output for backend
             allFrontEndTasks.add(request);
@@ -141,7 +203,7 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
             for(Entry<String, File> gen : frontEndOutput.generatedFiles.entrySet()) {
                 String strategyName = gen.getKey();
                 generatedFiles.__insert(strategyName, gen.getValue());
-                strategyOrigins.computeIfAbsent(strategyName, k -> new Origin.Builder());
+                strategyOrigins.computeIfAbsent(strategyName, k -> new OutputIgnoreOriginBuilder());
                 strategyOrigins.get(strategyName).add(request);
             }
 
@@ -152,7 +214,15 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
                 workList.addAll(resolvedImport);
                 seen.addAll(resolvedImport);
             }
+
+            shuffleStartTime = System.nanoTime();
+            shuffleTime += shuffleStartTime - frontEndStartTime;
         } while(!workList.isEmpty());
+
+        long betweenFrontAndBack = System.nanoTime();
+        logger.debug("Frontends overall took: {} ns", betweenFrontAndBack - startTime);
+        logger.debug("Purely frontend tasks took: {} ns", frontEndTime);
+        logger.debug("While shuffling information and tracking imports took: {} ns", shuffleTime);
 
         // BACKEND
         for(String strategyName : generatedFiles.keySet()) {
@@ -170,8 +240,10 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
                 input.javaPackageName, input.outputPath, input.cacheDir, input.extraArgs, true);
         requireBuild(StrIncrBackEnd.request(backEndInput));
 
-        long buildDuration = System.nanoTime() - startTime;
-        logger.debug("Build took: {} ns", buildDuration);
+        long finishTime = System.nanoTime();
+        logger.debug("Backends overall took: {} ns", finishTime - betweenFrontAndBack);
+
+        logger.debug("Full Stratego incremental build took: {} ns", finishTime - startTime);
         return None.val;
     }
 
