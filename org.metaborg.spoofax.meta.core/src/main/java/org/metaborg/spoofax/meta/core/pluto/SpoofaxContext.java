@@ -12,17 +12,21 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
@@ -56,6 +60,11 @@ public class SpoofaxContext implements Serializable {
     private static ISpoofaxSyntaxService syntaxService;
     private static ITermFactoryService termFactoryService;
 
+    private static IStrategoCommon strategoCommon;
+    private static ISpoofaxTransformService transformService;
+    private static IContextService contextService;
+    private static IDialectService dialectService;
+
     public final File baseDir;
     public final URI baseURI;
     public final File depDir;
@@ -81,6 +90,10 @@ public class SpoofaxContext implements Serializable {
         unitService = newInjector.getInstance(ISpoofaxUnitService.class);
         syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);
         termFactoryService = newInjector.getInstance(ITermFactoryService.class);
+        strategoCommon = newInjector.getInstance(IStrategoCommon.class);
+        transformService = newInjector.getInstance(ISpoofaxTransformService.class);
+        contextService = newInjector.getInstance(IContextService.class);
+        dialectService = newInjector.getInstance(IDialectService.class);
     }
 
 
@@ -187,6 +200,27 @@ public class SpoofaxContext implements Serializable {
 
     public ITermFactory termFactory() {
         return termFactoryService.getGeneric();
+    }
+
+
+    public IStrategoCommon strategoCommon() {
+        return strategoCommon;
+    }
+
+    public ISpoofaxTransformService transformService() {
+        return transformService;
+    }
+
+    public IContextService contextService() {
+        return contextService;
+    }
+    
+    public IDialectService dialectService() {
+        return dialectService;
+    }
+
+    public IProject project() {
+        return project;
     }
 
 

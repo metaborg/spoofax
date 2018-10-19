@@ -68,6 +68,17 @@ public class SyntaxFacet implements IFacet {
         this.imploder = imploder;
     }
 
+    /**
+     * Creates a syntax facet from another syntax facet, only overriding the imploder setting
+     * 
+     * @param imploder
+     *            The imploder setting.
+     */
+    public SyntaxFacet withImploderSetting(ImploderImplementation imploder) {
+        return new SyntaxFacet(parseTable, completionParseTable, startSymbols, singleLineCommentPrefixes,
+            multiLineCommentCharacters, fenceCharacters, imploder);
+    }
+
 
     /**
      * Checks if the parse table file exists, returns errors if not.
