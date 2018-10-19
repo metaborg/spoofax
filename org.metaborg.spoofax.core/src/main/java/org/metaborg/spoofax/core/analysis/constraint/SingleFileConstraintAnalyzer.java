@@ -55,16 +55,20 @@ public class SingleFileConstraintAnalyzer extends AbstractConstraintAnalyzer imp
     }
 
     @Override protected ISpoofaxAnalyzeResults analyzeAll(final Map<String, ISpoofaxParseUnit> changed,
-            final Set<String> removed, final IConstraintContext context, final HybridInterpreter runtime,
-            final String strategy, final IProgress progress, ICancel cancel) throws AnalysisException {
+            final Map<String, ISpoofaxParseUnit> removed, final IConstraintContext context,
+            final HybridInterpreter runtime, final String strategy, final IProgress progress, ICancel cancel)
+            throws AnalysisException {
+        final Set<ISpoofaxAnalyzeUnit> results = Sets.newHashSet();
 
         // clear removed files
-        for(String source : removed) {
+        for(Entry<String, ISpoofaxParseUnit> entry : removed.entrySet()) {
+            final String source = entry.getKey();
+            final ISpoofaxParseUnit input = entry.getValue();
             context.remove(source);
+            results.add(unitService.emptyAnalyzeUnit(input, context));
         }
 
         // analyze changed files
-        final Set<ISpoofaxAnalyzeUnit> results = Sets.newHashSet();
         for(Entry<String, ISpoofaxParseUnit> entry : changed.entrySet()) {
             final String source = entry.getKey();
             final ISpoofaxParseUnit input = entry.getValue();

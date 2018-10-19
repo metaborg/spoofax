@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -44,7 +43,6 @@ import org.strategoxt.HybridInterpreter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
@@ -74,10 +72,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext genericContext, IProgress progress,
             ICancel cancel) throws AnalysisException {
-        if(!input.valid() || !input.success()) {
-            final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
-            throw new AnalysisException(genericContext, message);
-        }
         final ISpoofaxAnalyzeResults results =
                 analyzeAll(Iterables2.singleton(input), genericContext, progress, cancel);
         if(results.results().isEmpty()) {
@@ -113,14 +107,14 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         final Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
-        final Set<String> removed = Sets.newHashSet();
+        final Map<String, ISpoofaxParseUnit> removed = Maps.newHashMap();
         for(ISpoofaxParseUnit input : inputs) {
             final String source =
                     input.detached() ? "detached-" + UUID.randomUUID().toString() : context.resourceKey(input.source());
             if(input.valid() && input.success() && !isEmptyAST(input.ast())) {
                 changed.put(source, input);
             } else {
-                removed.add(source);
+                removed.put(source, input);
             }
         }
 
@@ -131,9 +125,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
     }
 
-    protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed, Set<String> removed,
-            IConstraintContext context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
-            throws AnalysisException;
+    protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed,
+            Map<String, ISpoofaxParseUnit> removed, IConstraintContext context, HybridInterpreter runtime,
+            String strategy, IProgress progress, ICancel cancel) throws AnalysisException;
 
     protected boolean success(Collection<IMessage> messages) {
         return messages.stream().noneMatch(m -> m.severity().equals(MessageSeverity.ERROR));
