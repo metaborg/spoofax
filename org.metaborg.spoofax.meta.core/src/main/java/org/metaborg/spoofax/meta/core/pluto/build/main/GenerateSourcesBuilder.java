@@ -22,6 +22,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
+import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
@@ -36,17 +37,18 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2ParenthesizeLegacy;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableLegacy;
+import org.metaborg.spoofax.meta.core.pluto.build.StrIncr;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.GetStrategoMix;
-import org.metaborg.spoofax.meta.core.pluto.build.misc.PrepareNativeBundle;
 import org.metaborg.util.cmd.Arguments;
 
 import com.google.common.collect.Lists;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
-import build.pluto.output.*;
+import build.pluto.output.None;
+import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.FileExistsStamper;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
@@ -83,7 +85,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final List<File> strjIncludeDirs;
         public final List<File> strjIncludeFiles;
         public final Arguments strjArgs;
-
+        public final StrategoBuildSetting strBuildSetting;
 
 
         public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
@@ -94,7 +96,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
             @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
             @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, List<File> strjIncludeFiles,
-            Arguments strjArgs) {
+            Arguments strjArgs, StrategoBuildSetting strBuildSetting) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -121,6 +123,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strjIncludeDirs = strjIncludeDirs;
             this.strjIncludeFiles = strjIncludeFiles;
             this.strjArgs = strjArgs;
+            this.strBuildSetting = strBuildSetting;
         }
     }
 
@@ -404,10 +407,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // SDF meta-module for creating a Stratego concrete syntax extension parse table
         final List<Origin> sdfMetaOrigins = Lists.newArrayList();
-        
+
         for(int i = 0; i < input.sdfMetaFiles.size(); i++) {
             final File sdfMetaFile = input.sdfMetaFiles.get(i);
-            
+
             if(sdfMetaFile != null) {
                 require(sdfMetaFile, FileExistsStamper.instance);
                 if(!sdfMetaFile.exists()) {
@@ -433,8 +436,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 final File transDir = toFile(paths.transDir());
                 final File tableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
-                sdfMetaOrigins.add(Sdf2TableLegacy.origin(new Sdf2TableLegacy.Input(context, permissiveDefFile, tableFile,
-                    sdfMetaModule, permissiveDefOrigin)));
+                sdfMetaOrigins.add(Sdf2TableLegacy.origin(new Sdf2TableLegacy.Input(context, permissiveDefFile,
+                    tableFile, sdfMetaModule, permissiveDefOrigin)));
                 requireBuild(sdfMetaOrigins.get(i));
             }
         }
@@ -512,13 +515,20 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             final File cacheDir = toFile(paths.strCacheDir());
 
-            final Strj.Input strjInput =
+            if(input.strBuildSetting == StrategoBuildSetting.incremental) {
+                final StrIncr.Input strIncrInput = new StrIncr.Input(context, strFile, input.strJavaPackage,
+                    input.strjIncludeDirs, input.strjIncludeFiles, cacheDir, extraArgs, depPath, origin);
+                requireBuild(StrIncr.request(strIncrInput));
+            } else {
+                final Strj.Input strjInput =
 
-                new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage, true, true,
-                    input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir, extraArgs, origin);
+                    new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage, true, true,
+                        input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir, extraArgs,
+                        origin);
 
-            final Origin strjOrigin = Strj.origin(strjInput);
-            requireBuild(strjOrigin);
+                final Origin strjOrigin = Strj.origin(strjInput);
+                requireBuild(strjOrigin);
+            }
 
             // Typesmart
             final File typesmartExportedFile = toFile(paths.strTypesmartExportedFile());

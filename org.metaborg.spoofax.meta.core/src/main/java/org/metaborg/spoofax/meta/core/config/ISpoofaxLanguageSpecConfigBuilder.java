@@ -212,6 +212,15 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * Sets the project artifact format.
      *
      * @param format
+     *            A member of the {@link StrategoBuildSetting} enumeration.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withStrBuildSetting(StrategoBuildSetting format);
+
+    /**
+     * Sets the project artifact format.
+     *
+     * @param format
      *            A member of the {@link StrategoFormat} enumeration.
      * @return This builder.
      */

@@ -38,6 +38,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable String prettyPrint;
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
+    protected @Nullable StrategoBuildSetting strBuildSetting;
     protected @Nullable StrategoFormat strFormat;
     protected @Nullable String strExternalJar;
     protected @Nullable String strExternalJarFlags;
@@ -59,7 +60,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, projectConfig, identifier,
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
             sdf2tableVersion, dataDependent, sdfMainFile,  parseTable, jsglrVersion, completionsParseTable, placeholderCharacters,
-            prettyPrint, sdfMetaFile, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            prettyPrint, sdfMetaFile, sdfExternalDef, sdfArgs, strBuildSetting, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -74,6 +75,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         prettyPrint = null;
         sdfExternalDef = null;
         sdfArgs = null;
+        strBuildSetting = null;
         strFormat = null;
         strExternalJar = null;
         strExternalJarFlags = null;
@@ -94,6 +96,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             withPlaceholderPostfix(config.placeholderChars().suffix);
             withSdfExternalDef(config.sdfExternalDef());
             withSdfArgs(config.sdfArgs());
+            withStrBuildSetting(config.strBuildSetting());
             withStrFormat(config.strFormat());
             withStrExternalJar(config.strExternalJar());
             withStrExternalJarFlags(config.strExternalJarFlags());
@@ -246,6 +249,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withPrettyPrintLanguage(String prettyPrintLanguage) {
         this.prettyPrint = prettyPrintLanguage;
+        return this;
+    }
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withStrBuildSetting(StrategoBuildSetting buildSetting) {
+        this.strBuildSetting = buildSetting;
         return this;
     }
 

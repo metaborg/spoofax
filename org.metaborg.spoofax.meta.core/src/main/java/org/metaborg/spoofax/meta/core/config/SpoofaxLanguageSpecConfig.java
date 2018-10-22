@@ -52,6 +52,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_META = PROP_SDF + ".sdf-meta";
 
     private static final String PROP_STR = "language.stratego";
+    private static final String PROP_STR_BUILD_SETTING = PROP_STR + ".build";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
     private static final String PROP_STR_EXTERNAL_JAR_FLAGS = PROP_STR + ".externalJar.flags";
@@ -79,7 +80,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable Boolean dataDependent, @Nullable String parseTable, @Nullable String completionsParseTable,
         @Nullable JSGLRVersion jsglrVersion, @Nullable String sdfMainFile,
         @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint, @Nullable List<String> sdfMetaFile, 
-        @Nullable String externalDef, @Nullable Arguments sdfArgs, @Nullable StrategoFormat format,
+        @Nullable String externalDef, @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoFormat format,
         @Nullable String externalJar, @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
         @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, dataDependent, parseTable,
@@ -113,6 +114,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             config.setProperty(PROP_SDF_ARGS, sdfArgs);
         }
 
+        if(buildSetting != null) {
+            config.setProperty(PROP_STR_BUILD_SETTING, buildSetting);
+        }
         if(format != null) {
             config.setProperty(PROP_STR_FORMAT, format);
         }
@@ -169,11 +173,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return value != null ? value : name();
     }
 
-    @Nullable public String sdfExternalDef() {
+    @Override @Nullable public String sdfExternalDef() {
         return config.getString(PROP_SDF_EXTERNAL_DEF);
     }
 
-    public Arguments sdfArgs() {
+    @Override public Arguments sdfArgs() {
         final List<String> values = config.getList(String.class, PROP_SDF_ARGS);
         final Arguments arguments = new Arguments();
         if(values != null) {
@@ -184,7 +188,15 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return arguments;
     }
 
-    public StrategoFormat strFormat() {
+    @Override public StrategoBuildSetting strBuildSetting() {
+        final String value = this.config.getString(PROP_STR_BUILD_SETTING);
+        return value != null ? StrategoBuildSetting.valueOf(value) : StrategoBuildSetting.batch;
+    }
+
+    @Override public StrategoFormat strFormat() {
+        if(strBuildSetting() == StrategoBuildSetting.incremental) {
+            return StrategoFormat.jar;
+        }
         final String value = this.config.getString(PROP_STR_FORMAT);
         return value != null ? StrategoFormat.valueOf(value) : StrategoFormat.ctree;
     }
