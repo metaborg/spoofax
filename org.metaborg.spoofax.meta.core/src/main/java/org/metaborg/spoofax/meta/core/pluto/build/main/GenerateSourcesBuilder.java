@@ -205,7 +205,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final File parenthesizerFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
         
         final Origin javaParenthesizeOrigin = Sdf2Parenthesize.origin(
-            new Sdf2Parenthesize.Input(context, sdf2TableJavaInput.outputFile, parenthesizerFile, input.sdfModule));
+            new Sdf2Parenthesize.Input(context, sdf2TableJavaInput.outputNormGrammarFile, parenthesizerFile, input.sdfModule));
         
         sdfBuilder.add(javaParenthesizeOrigin);
 
