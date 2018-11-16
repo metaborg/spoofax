@@ -179,7 +179,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         build.pluto.dependency.Origin.Builder sdfBuilder = Origin.Builder();
         
         if(input.sdfModule != null && input.sdfEnabled) {
-            // new parse table generator
             if(input.sdf2tableVersion == Sdf2tableVersion.java || input.sdf2tableVersion == Sdf2tableVersion.dynamic
                 || input.sdf2tableVersion == Sdf2tableVersion.incremental) {
                 newParseTableGenerationBuild(input, sdfBuilder);
@@ -192,25 +191,25 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
     
     private void newParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
+        // Standard parser generation
         final File srcNormDir = toFile(paths.syntaxNormDir());
         final File sdfNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
         
         final Sdf2Table.Input sdf2TableJavaInput = newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin", "ctxgrammar.aterm");
-        
         final Origin sdf2TableJavaOrigin = Sdf2Table.origin(sdf2TableJavaInput);
 
         requireBuild(sdf2TableJavaOrigin);
 
-        // New parenthesizer
+        // Generate parenthesizer
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
-        
         final File parenthesizerFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
+        
         final Origin javaParenthesizeOrigin = Sdf2Parenthesize.origin(
             new Sdf2Parenthesize.Input(context, sdf2TableJavaInput.outputFile, parenthesizerFile, input.sdfModule));
         
         sdfBuilder.add(javaParenthesizeOrigin);
 
-        // Completions
+        // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
             Sdf2Table.Input sdf2TableJavaInputCompletions = newParseTableGeneration(input, input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", null);
             
@@ -243,17 +242,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     private void oldParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
         File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
         
-        // Packing .sdf files in a single .def file
+        // Packing normalized .sdf files in a single .def file
         PackSdfBuild packSdfBuild = oldParseTableGenerationPack(input, srcGenSyntaxDir, input.sdfModule, input.sdfFile, input.sdfExternalDef);
 
-        // Get Stratego signatures file when using an external def, or when using sdf2, from the SDF def file
+        // Get Stratego signatures file when using an external .def, or when using sdf2, from the SDF .def file
         if(input.sdfExternalDef != null || input.sdfVersion == SdfVersion.sdf2) {
             final Origin sigOrigin = oldParseTableGenerationSignatures(input, sdfBuilder, packSdfBuild, srcGenSyntaxDir, input.sdfModule, input.sdfExternalDef);
             
             sdfBuilder.add(sigOrigin);
         }
         
-        // Get Stratego parenthesizer file, from the SDF def file.
+        // Get Stratego parenthesizer file, from the SDF .def file
         Origin parenthesizeOrigin = oldParseTableGenerationParenthesize(input, sdfBuilder, packSdfBuild, input.sdfModule);
         
         sdfBuilder.add(parenthesizeOrigin);
@@ -284,8 +283,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
     
     private PackSdfBuild oldParseTableGenerationPack(GenerateSourcesBuilder.Input input, File srcGenSyntaxDir, String sdfModule, File sdfFile, File sdfExternalDef) throws IOException {
-        // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
-        // specification.
+        // Get the SDF .def file, either from existing external .def, or by running pack SDF on the grammar specification
         final @Nullable File packSdfFile;
         final @Nullable Origin packSdfOrigin;
         
@@ -295,7 +293,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         } else if(sdfFile != null) {
             require(sdfFile, FileExistsStamper.instance);
             if(!sdfFile.exists()) {
-                // TODO indicate completions in error
                 throw new IOException("Main SDF file at " + sdfFile + " does not exist");
             }
 
