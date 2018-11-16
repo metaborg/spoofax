@@ -242,10 +242,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
 
         // SDF
-        final @Nullable Origin parenthesizeOrigin;
-        final @Nullable Origin javaParenthesizeOrigin;
-        final @Nullable Origin sigOrigin;
+        build.pluto.dependency.Origin.Builder sdfBuilder = Origin.Builder();
+        
         if(input.sdfModule != null && input.sdfEnabled) {
+            final @Nullable Origin parenthesizeOrigin;
+            final @Nullable Origin javaParenthesizeOrigin;
+            final @Nullable Origin sigOrigin;
+            final @Nullable Origin sdfCompletionOrigin;
+            
             final String sdfModule = input.sdfModule;
             final File sdfFile = input.sdfFile;
 
@@ -264,6 +268,20 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 parenthesizeOrigin = null;
                 sigOrigin = null;
+
+                // Completions
+                if(input.sdfCompletionFile != null && input.sdfEnabled) {
+                    Sdf2Table.Input sdf2TableJavaInputCompletions = newParseTableGenerationCompletions(input);
+                    sdfCompletionOrigin = Sdf2Table.origin(sdf2TableJavaInputCompletions);
+    
+                    requireBuild(sdfCompletionOrigin);
+                } else {
+                    sdfCompletionOrigin = null;
+                }
+                
+                sdfBuilder = sdfBuilder.add(sigOrigin)
+                    .add(sdfCompletionOrigin)
+                    .add(javaParenthesizeOrigin);
             } else {
 
                 // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
@@ -327,29 +345,21 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     parenthesizeOrigin = null;
                     sigOrigin = null;
                 }
-            }
-        } else {
-            javaParenthesizeOrigin = null;
-            parenthesizeOrigin = null;
-            sigOrigin = null;
-        }
-
-        // SDF completions
-        final Origin sdfCompletionOrigin;
-        if(input.sdfCompletionFile != null && input.sdfEnabled) {
-            if(input.sdf2tableVersion == Sdf2tableVersion.java || input.sdf2tableVersion == Sdf2tableVersion.dynamic
-                || input.sdf2tableVersion == Sdf2tableVersion.incremental) {
-                Sdf2Table.Input sdf2TableJavaInputCompletions = newParseTableGenerationCompletions(input);
-                sdfCompletionOrigin = Sdf2Table.origin(sdf2TableJavaInputCompletions);
-
-                requireBuild(sdfCompletionOrigin);
-            } else {
-                sdfCompletionOrigin = oldParseTableGenerationCompletions(input);
                 
-                requireBuild(sdfCompletionOrigin);
+                // Completions
+                if(input.sdfCompletionFile != null && input.sdfEnabled) {
+                    sdfCompletionOrigin = oldParseTableGenerationCompletions(input);
+                    
+                    requireBuild(sdfCompletionOrigin);
+                } else {
+                    sdfCompletionOrigin = null;
+                }
+                
+                sdfBuilder = sdfBuilder
+                    .add(parenthesizeOrigin)
+                    .add(sigOrigin)
+                    .add(sdfCompletionOrigin);
             }
-        } else {
-            sdfCompletionOrigin = null;
         }
 
 
@@ -389,6 +399,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 requireBuild(sdfMetaOrigins.get(i));
             }
         }
+        
+        for(Origin sdfMetaOrigin :  sdfMetaOrigins) {
+            sdfBuilder = sdfBuilder.add(sdfMetaOrigin);
+        }
+        
+        final Origin sdfOrigin = sdfBuilder.get();
 
         // Stratego
         final File strFile = input.strFile;
@@ -429,50 +445,18 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 extraArgs.addLine(input.strExternalJarFlags);
             }
 
-            // @formatter:off            
-            final Origin origin;
-            
-            build.pluto.dependency.Origin.Builder builder = Origin.Builder();
-            
-            if(input.sdf2tableVersion == Sdf2tableVersion.java || input.sdf2tableVersion == Sdf2tableVersion.dynamic) {
-               
-                
-                builder = builder.add(sigOrigin)
-                    .add(sdfCompletionOrigin)
-                    .add(javaParenthesizeOrigin);
-                
-                for(Origin sdfMetaOrigin :  sdfMetaOrigins) {
-                    builder = builder.add(sdfMetaOrigin);
-                }
-                
-                origin = builder.get();
-            } else {
-                builder = builder
-                    .add(parenthesizeOrigin)
-                    .add(sigOrigin)
-                    .add(sdfCompletionOrigin);
-                
-                for(Origin sdfMetaOrigin :  sdfMetaOrigins) {
-                    builder = builder.add(sdfMetaOrigin);
-                }
-                
-                origin = builder.get();   
-                   
-            }
-            // @formatter:on
-
             final File cacheDir = toFile(paths.strCacheDir());
 
             if(input.strBuildSetting == StrategoBuildSetting.incremental) {
                 final StrIncr.Input strIncrInput = new StrIncr.Input(context, strFile, input.strJavaPackage,
-                    input.strjIncludeDirs, input.strjIncludeFiles, cacheDir, extraArgs, depPath, origin);
+                    input.strjIncludeDirs, input.strjIncludeFiles, cacheDir, extraArgs, depPath, sdfOrigin);
                 requireBuild(StrIncr.request(strIncrInput));
             } else {
                 final Strj.Input strjInput =
 
                     new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage, true, true,
                         input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir, extraArgs,
-                        origin);
+                        sdfOrigin);
 
                 final Origin strjOrigin = Strj.origin(strjInput);
                 requireBuild(strjOrigin);
@@ -481,7 +465,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             // Typesmart
             final File typesmartExportedFile = toFile(paths.strTypesmartExportedFile());
             final Typesmart.Input typesmartInput =
-                new Typesmart.Input(context, input.strFile, input.strjIncludeDirs, typesmartExportedFile, origin);
+                new Typesmart.Input(context, input.strFile, input.strjIncludeDirs, typesmartExportedFile, sdfOrigin);
             final Origin typesmartOrigin = Typesmart.origin(typesmartInput);
             requireBuild(typesmartOrigin);
         }
