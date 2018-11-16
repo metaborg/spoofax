@@ -192,7 +192,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
     
     private void newParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
-        final Sdf2Table.Input sdf2TableJavaInput = newParseTableGeneration(input);
+        final File srcNormDir = toFile(paths.syntaxNormDir());
+        final File sdfNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
+        
+        final Sdf2Table.Input sdf2TableJavaInput = newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin", "ctxgrammar.aterm");
+        
         final Origin sdf2TableJavaOrigin = Sdf2Table.origin(sdf2TableJavaInput);
 
         requireBuild(sdf2TableJavaOrigin);
@@ -208,7 +212,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // Completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
-            Sdf2Table.Input sdf2TableJavaInputCompletions = newParseTableGenerationCompletions(input);
+            Sdf2Table.Input sdf2TableJavaInputCompletions = newParseTableGeneration(input, input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", null);
+            
             final Origin sdfCompletionOrigin = Sdf2Table.origin(sdf2TableJavaInputCompletions);
 
             requireBuild(sdfCompletionOrigin);
@@ -217,41 +222,22 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
     }
     
-    private Sdf2Table.Input newParseTableGeneration(GenerateSourcesBuilder.Input input) {
+    private Sdf2Table.Input newParseTableGeneration(GenerateSourcesBuilder.Input input, File sdfNormFile, String tableFilename, String persistedTableFilename, String contextualGrammarFilename) {
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
 
         final boolean dynamicGeneration = (input.sdf2tableVersion == Sdf2tableVersion.dynamic
             || input.sdf2tableVersion == Sdf2tableVersion.incremental);
         final boolean dataDependent = (input.jsglrVersion == JSGLRVersion.dataDependent);
         final boolean layoutSensitive = (input.jsglrVersion == JSGLRVersion.layoutSensitive);
-
-        final File srcNormDir = toFile(paths.syntaxNormDir());
-        final File sdfNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
         
-        final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf.tbl");
-        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table.bin");
-        final File contextualGrammarFile = FileUtils.getFile(targetMetaborgDir, "ctxgrammar.aterm");
+        final File tableFile = FileUtils.getFile(targetMetaborgDir, tableFilename);
+        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, persistedTableFilename);
+        final File contextualGrammarFile = contextualGrammarFilename != null ? FileUtils.getFile(targetMetaborgDir, contextualGrammarFilename) : null;
 
         final List<String> paths = srcGenNormalizedSdf3Paths(input);
 
         return new Sdf2Table.Input(context, sdfNormFile, tableFile, persistedTableFile, contextualGrammarFile, paths,
             dynamicGeneration, dataDependent, layoutSensitive);
-    }
-
-    private Sdf2Table.Input newParseTableGenerationCompletions(GenerateSourcesBuilder.Input input) {
-        final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
-
-        final boolean dynamicGeneration = (input.sdf2tableVersion == Sdf2tableVersion.dynamic
-            || input.sdf2tableVersion == Sdf2tableVersion.incremental);
-        final boolean dataDependent = (input.jsglrVersion == JSGLRVersion.dataDependent);
-        final boolean layoutSensitive = (input.jsglrVersion == JSGLRVersion.layoutSensitive);
-        
-        final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
-        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table-completions.bin");
-        final List<String> paths = srcGenNormalizedSdf3Paths(input);
-
-        return new Sdf2Table.Input(context, input.sdfCompletionFile, tableFile,
-            persistedTableFile, null, paths, dynamicGeneration, dataDependent, layoutSensitive);
     }
 
     private void oldParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
