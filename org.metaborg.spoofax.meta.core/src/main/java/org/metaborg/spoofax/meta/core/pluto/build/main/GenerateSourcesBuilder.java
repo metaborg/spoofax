@@ -47,6 +47,7 @@ import com.google.common.collect.Lists;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
+import build.pluto.dependency.Origin.Builder;
 import build.pluto.output.None;
 import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.FileExistsStamper;
@@ -158,7 +159,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     @Override public None build(GenerateSourcesBuilder.Input input) throws IOException {
         // SDF
-        build.pluto.dependency.Origin.Builder sdfBuilder = buildSdf(input);
+        Builder sdfBuilder = buildSdf(input);
 
         // SDF meta-module for creating a Stratego concrete syntax extension parse table
         List<Origin> sdfMetaOrigins = buildSdfMeta(input);
@@ -175,8 +176,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return None.val;
     }
     
-    private build.pluto.dependency.Origin.Builder buildSdf(GenerateSourcesBuilder.Input input) throws IOException {
-        build.pluto.dependency.Origin.Builder sdfBuilder = Origin.Builder();
+    private Builder buildSdf(GenerateSourcesBuilder.Input input) throws IOException {
+        Builder sdfBuilder = Origin.Builder();
         
         if(input.sdfModule != null && input.sdfEnabled) {
             if(input.sdf2tableVersion == Sdf2tableVersion.java || input.sdf2tableVersion == Sdf2tableVersion.dynamic
@@ -190,7 +191,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return sdfBuilder;
     }
     
-    private void newParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
+    private void newParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Builder sdfBuilder) throws IOException {
         // Standard parser generation
         final File srcNormDir = toFile(paths.syntaxNormDir());
         final File sdfNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
@@ -239,7 +240,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             dynamicGeneration, dataDependent, layoutSensitive);
     }
 
-    private void oldParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
+    private void oldParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Builder sdfBuilder) throws IOException {
         File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
         
         // Packing normalized .sdf files in a single .def file
@@ -319,7 +320,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     }
     
-    private Origin oldParseTableGenerationSignatures(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder, PackSdfBuild packSdfBuild, File srcGenSyntaxDir, String sdfModule, File sdfExternalDef) {
+    private Origin oldParseTableGenerationSignatures(GenerateSourcesBuilder.Input input, Builder sdfBuilder, PackSdfBuild packSdfBuild, File srcGenSyntaxDir, String sdfModule, File sdfExternalDef) {
         final File srcGenSigDir = toFile(paths.syntaxSrcGenSignatureDir());
         final File rtgFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".rtg");
         final Origin rtgOrigin = Sdf2Rtg.origin(new Sdf2Rtg.Input(context, packSdfBuild.file, rtgFile, sdfModule, packSdfBuild.origin));
@@ -331,7 +332,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return sigOrigin;
     }
     
-    private Origin oldParseTableGenerationParenthesize(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder, PackSdfBuild packSdfBuild, String sdfModule) {
+    private Origin oldParseTableGenerationParenthesize(GenerateSourcesBuilder.Input input, Builder sdfBuilder, PackSdfBuild packSdfBuild, String sdfModule) {
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
         final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
         final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
