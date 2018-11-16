@@ -351,8 +351,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             .add(sdfCompletionOrigin);
     }
     
-    @Override public None build(GenerateSourcesBuilder.Input input) throws IOException {
-        // SDF
+    private build.pluto.dependency.Origin.Builder buildSdf(GenerateSourcesBuilder.Input input) throws IOException {
         build.pluto.dependency.Origin.Builder sdfBuilder = Origin.Builder();
         
         if(input.sdfModule != null && input.sdfEnabled) {
@@ -364,8 +363,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 oldParseTableGenerationBuild(input, sdfBuilder);
             }
         }
-
-        // SDF meta-module for creating a Stratego concrete syntax extension parse table
+        
+        return sdfBuilder;
+    }
+    
+    private List<Origin> buildSdfMeta(GenerateSourcesBuilder.Input input) throws IOException {
         final File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
         
         final List<Origin> sdfMetaOrigins = Lists.newArrayList();
@@ -404,13 +406,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
         }
         
-        for(Origin sdfMetaOrigin :  sdfMetaOrigins) {
-            sdfBuilder = sdfBuilder.add(sdfMetaOrigin);
-        }
-        
-        final Origin sdfOrigin = sdfBuilder.get();
-
-        // Stratego
+        return sdfMetaOrigins;
+    }
+    
+    private void buildStratego(GenerateSourcesBuilder.Input input, Origin sdfOrigin) throws IOException {
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
         
         final File strFile = input.strFile;
@@ -475,6 +474,23 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final Origin typesmartOrigin = Typesmart.origin(typesmartInput);
             requireBuild(typesmartOrigin);
         }
+    }
+    
+    @Override public None build(GenerateSourcesBuilder.Input input) throws IOException {
+        // SDF
+        build.pluto.dependency.Origin.Builder sdfBuilder = buildSdf(input);
+
+        // SDF meta-module for creating a Stratego concrete syntax extension parse table
+        List<Origin> sdfMetaOrigins = buildSdfMeta(input);
+        
+        for(Origin sdfMetaOrigin :  sdfMetaOrigins) {
+            sdfBuilder = sdfBuilder.add(sdfMetaOrigin);
+        }
+        
+        final Origin sdfOrigin = sdfBuilder.get();
+
+        // Stratego
+        buildStratego(input, sdfOrigin);
 
         return None.val;
     }
