@@ -234,34 +234,29 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
     
     private void newParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
-        final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
-        
-        final @Nullable Origin javaParenthesizeOrigin;
-        final @Nullable Origin sdfCompletionOrigin;
-        
         final Sdf2Table.Input sdf2TableJavaInput = newParseTableGeneration(input);
         final Origin sdf2TableJavaOrigin = Sdf2Table.origin(sdf2TableJavaInput);
 
         requireBuild(sdf2TableJavaOrigin);
 
         // New parenthesizer
+        final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
+        
         final File parenthesizerFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
-        javaParenthesizeOrigin = Sdf2Parenthesize.origin(
+        final Origin javaParenthesizeOrigin = Sdf2Parenthesize.origin(
             new Sdf2Parenthesize.Input(context, sdf2TableJavaInput.outputFile, parenthesizerFile, input.sdfModule));
+        
+        sdfBuilder.add(javaParenthesizeOrigin);
 
         // Completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
             Sdf2Table.Input sdf2TableJavaInputCompletions = newParseTableGenerationCompletions(input);
-            sdfCompletionOrigin = Sdf2Table.origin(sdf2TableJavaInputCompletions);
+            final Origin sdfCompletionOrigin = Sdf2Table.origin(sdf2TableJavaInputCompletions);
 
             requireBuild(sdfCompletionOrigin);
-        } else {
-            sdfCompletionOrigin = null;
+            
+            sdfBuilder.add(sdfCompletionOrigin);
         }
-        
-        sdfBuilder
-            .add(sdfCompletionOrigin)
-            .add(javaParenthesizeOrigin);
     }
 
     private void oldParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
@@ -280,7 +275,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final @Nullable Origin packSdfOrigin;
         final @Nullable Origin parenthesizeOrigin;
         final @Nullable Origin sigOrigin;
-        final @Nullable Origin sdfCompletionOrigin;
         
         if(input.sdfExternalDef != null) {
             packSdfFile = input.sdfExternalDef;
@@ -336,19 +330,18 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             sigOrigin = null;
         }
         
-        // Completions
-        if(input.sdfCompletionFile != null && input.sdfEnabled) {
-            sdfCompletionOrigin = oldParseTableGenerationCompletions(input);
-            
-            requireBuild(sdfCompletionOrigin);
-        } else {
-            sdfCompletionOrigin = null;
-        }
-        
         sdfBuilder
             .add(parenthesizeOrigin)
-            .add(sigOrigin)
-            .add(sdfCompletionOrigin);
+            .add(sigOrigin);
+        
+        // Completions
+        if(input.sdfCompletionFile != null && input.sdfEnabled) {
+            final Origin sdfCompletionOrigin = oldParseTableGenerationCompletions(input);
+            
+            requireBuild(sdfCompletionOrigin);
+            
+            sdfBuilder.add(sdfCompletionOrigin);
+        }
     }
     
     private build.pluto.dependency.Origin.Builder buildSdf(GenerateSourcesBuilder.Input input) throws IOException {
