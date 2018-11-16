@@ -189,6 +189,49 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return new Sdf2Table.Input(context, input.sdfCompletionFile, tableFile,
             persistedTableFile, null, paths, dynamicGeneration, dataDependent, layoutSensitive);
     }
+    
+    private Origin oldParseTableGenerationCompletions(GenerateSourcesBuilder.Input input) throws IOException {
+        final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
+        final File srcGenSyntaxCompletionDir = toFile(paths.syntaxCompletionSrcGenDir());
+        
+        // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
+        // specification.
+        final @Nullable File packSdfCompletionsFile;
+        final @Nullable Origin packSdfCompletionsOrigin;
+        
+        if(input.sdfCompletionFile != null) {
+            require(input.sdfCompletionFile, FileExistsStamper.instance);
+            if(!input.sdfCompletionFile.exists()) {
+                throw new IOException("Main SDF completions file at " + input.sdfCompletionFile + " does not exist");
+            }
+
+            packSdfCompletionsFile =
+                FileUtils.getFile(srcGenSyntaxCompletionDir, input.sdfCompletionModule + ".def");
+            packSdfCompletionsOrigin =
+                PackSdf.origin(new PackSdf.Input(context, input.sdfCompletionModule, input.sdfCompletionFile,
+                    packSdfCompletionsFile, input.packSdfIncludePaths, input.packSdfArgs, null));
+        } else {
+            packSdfCompletionsFile = null;
+            packSdfCompletionsOrigin = null;
+        }
+
+        if(packSdfCompletionsFile != null) {
+            // Get SDF permissive def file, from the SDF def file.
+            final File permissiveCompletionsDefFile =
+                FileUtils.getFile(srcGenSyntaxCompletionDir, input.sdfCompletionModule + "-permissive.def");
+            final Origin permissiveCompletionsDefOrigin =
+                MakePermissive.origin(new MakePermissive.Input(context, packSdfCompletionsFile,
+                    permissiveCompletionsDefFile, input.sdfCompletionModule, packSdfCompletionsOrigin));
+
+            // Get JSGLR parse table, from the SDF permissive def file.
+            final File completionsTableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
+            return Sdf2TableLegacy
+                .origin(new Sdf2TableLegacy.Input(context, permissiveCompletionsDefFile, completionsTableFile,
+                    "completion/" + input.sdfCompletionModule, permissiveCompletionsDefOrigin));
+        }
+
+        return null;
+    }
 
     @Override public None build(GenerateSourcesBuilder.Input input) throws IOException {
         final File srcGenSigDir = toFile(paths.syntaxSrcGenSignatureDir());
@@ -294,9 +337,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // SDF completions
         final Origin sdfCompletionOrigin;
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
-            final String sdfCompletionsModule = input.sdfCompletionModule;
-            final File sdfCompletionsFile = input.sdfCompletionFile;
-
             if(input.sdf2tableVersion == Sdf2tableVersion.java || input.sdf2tableVersion == Sdf2tableVersion.dynamic
                 || input.sdf2tableVersion == Sdf2tableVersion.incremental) {
                 Sdf2Table.Input sdf2TableJavaInputCompletions = newParseTableGenerationCompletions(input);
@@ -304,45 +344,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 requireBuild(sdfCompletionOrigin);
             } else {
-
-                // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
-                // specification.
-                final @Nullable File packSdfCompletionsFile;
-                final @Nullable Origin packSdfCompletionsOrigin;
-                if(sdfCompletionsFile != null) {
-                    require(sdfCompletionsFile, FileExistsStamper.instance);
-                    if(!sdfCompletionsFile.exists()) {
-                        throw new IOException("Main SDF completions file at " + sdfCompletionsFile + " does not exist");
-                    }
-
-                    packSdfCompletionsFile =
-                        FileUtils.getFile(srcGenSyntaxCompletionDir, sdfCompletionsModule + ".def");
-                    packSdfCompletionsOrigin =
-                        PackSdf.origin(new PackSdf.Input(context, sdfCompletionsModule, sdfCompletionsFile,
-                            packSdfCompletionsFile, input.packSdfIncludePaths, input.packSdfArgs, null));
-                } else {
-                    packSdfCompletionsFile = null;
-                    packSdfCompletionsOrigin = null;
-                }
-
-                if(packSdfCompletionsFile != null) {
-                    // Get SDF permissive def file, from the SDF def file.
-                    final File permissiveCompletionsDefFile =
-                        FileUtils.getFile(srcGenSyntaxCompletionDir, sdfCompletionsModule + "-permissive.def");
-                    final Origin permissiveCompletionsDefOrigin =
-                        MakePermissive.origin(new MakePermissive.Input(context, packSdfCompletionsFile,
-                            permissiveCompletionsDefFile, sdfCompletionsModule, packSdfCompletionsOrigin));
-
-                    // Get JSGLR parse table, from the SDF permissive def file.
-                    final File completionsTableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
-                    sdfCompletionOrigin = Sdf2TableLegacy
-                        .origin(new Sdf2TableLegacy.Input(context, permissiveCompletionsDefFile, completionsTableFile,
-                            "completion/" + sdfCompletionsModule, permissiveCompletionsDefOrigin));
-
-                    requireBuild(sdfCompletionOrigin);
-                } else {
-                    sdfCompletionOrigin = null;
-                }
+                sdfCompletionOrigin = oldParseTableGenerationCompletions(input);
+                
+                requireBuild(sdfCompletionOrigin);
             }
         } else {
             sdfCompletionOrigin = null;
