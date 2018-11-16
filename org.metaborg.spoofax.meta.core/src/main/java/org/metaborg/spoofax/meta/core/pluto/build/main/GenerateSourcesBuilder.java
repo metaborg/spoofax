@@ -245,17 +245,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         build.pluto.dependency.Origin.Builder sdfBuilder = Origin.Builder();
         
         if(input.sdfModule != null && input.sdfEnabled) {
-            final @Nullable Origin parenthesizeOrigin;
-            final @Nullable Origin javaParenthesizeOrigin;
-            final @Nullable Origin sigOrigin;
-            final @Nullable Origin sdfCompletionOrigin;
-            
             final String sdfModule = input.sdfModule;
             final File sdfFile = input.sdfFile;
 
             // new parse table generator
             if(input.sdf2tableVersion == Sdf2tableVersion.java || input.sdf2tableVersion == Sdf2tableVersion.dynamic
                 || input.sdf2tableVersion == Sdf2tableVersion.incremental) {
+                final @Nullable Origin javaParenthesizeOrigin;
+                final @Nullable Origin sdfCompletionOrigin;
+                
                 final Sdf2Table.Input sdf2TableJavaInput = newParseTableGeneration(input);
                 final Origin sdf2TableJavaOrigin = Sdf2Table.origin(sdf2TableJavaInput);
 
@@ -265,9 +263,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final File parenthesizerFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
                 javaParenthesizeOrigin = Sdf2Parenthesize.origin(
                     new Sdf2Parenthesize.Input(context, sdf2TableJavaInput.outputFile, parenthesizerFile, sdfModule));
-
-                parenthesizeOrigin = null;
-                sigOrigin = null;
 
                 // Completions
                 if(input.sdfCompletionFile != null && input.sdfEnabled) {
@@ -279,7 +274,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     sdfCompletionOrigin = null;
                 }
                 
-                sdfBuilder = sdfBuilder.add(sigOrigin)
+                sdfBuilder = sdfBuilder
                     .add(sdfCompletionOrigin)
                     .add(javaParenthesizeOrigin);
             } else {
@@ -288,6 +283,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 // specification.
                 final @Nullable File packSdfFile;
                 final @Nullable Origin packSdfOrigin;
+                final @Nullable Origin parenthesizeOrigin;
+                final @Nullable Origin sigOrigin;
+                final @Nullable Origin sdfCompletionOrigin;
+                
                 if(input.sdfExternalDef != null) {
                     packSdfFile = input.sdfExternalDef;
                     packSdfOrigin = null;
@@ -337,11 +336,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                         permissiveDefFile, tableFile, sdfModule, permissiveDefOrigin));
 
                     requireBuild(sdf2TableOrigin);
-                    javaParenthesizeOrigin = null;
-
-
                 } else {
-                    javaParenthesizeOrigin = null;
                     parenthesizeOrigin = null;
                     sigOrigin = null;
                 }
