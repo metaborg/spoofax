@@ -184,41 +184,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final File contextualGrammarFile = FileUtils.getFile(targetMetaborgDir, "ctxgrammar.aterm");
                 final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table.bin");
                 final File sdfNormFile = FileUtils.getFile(srcNormDir, sdfModule + "-norm.aterm");
-                final List<String> paths = Lists.newLinkedList();
-                paths.add(srcGenSyntaxDir.getAbsolutePath());
-
-                for(LanguageIdentifier langId : input.sourceDeps) {
-                    ILanguageImpl lang = context.languageService().getImpl(langId);
-                    for(final ILanguageComponent component : lang.components()) {
-                        ILanguageComponentConfig config = component.config();
-                        Collection<IExportConfig> exports = config.exports();
-                        for(IExportConfig exportConfig : exports) {
-                            exportConfig.accept(new IExportVisitor() {
-                                @Override public void visit(LangDirExport export) {
-                                    if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
-                                        try {
-                                            paths
-                                                .add(toFileReplicate(component.location().resolveFile(export.directory))
-                                                    .getAbsolutePath());
-                                        } catch(FileSystemException e) {
-                                            System.out.println("Failed to locate path");
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }
-
-                                @Override public void visit(LangFileExport export) {
-                                    // Ignore file exports
-                                }
-
-                                @Override public void visit(ResourceExport export) {
-                                    // Ignore resource exports
-
-                                }
-                            });
-                        }
-                    }
-                }
+                final List<String> paths = srcGenNormalizedSdf3Paths(input);
 
                 final Origin sdf2TableJavaOrigin =
                     Sdf2Table.origin(new Sdf2Table.Input(context, sdfNormFile, tableFile, persistedTableFile,
@@ -318,41 +284,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final boolean dataDependent = (input.jsglrVersion == JSGLRVersion.dataDependent);
                 final boolean layoutSensitive = (input.jsglrVersion == JSGLRVersion.layoutSensitive);
                 final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table-completions.bin");
-                final List<String> paths = Lists.newLinkedList();
-                paths.add(srcGenSyntaxDir.getAbsolutePath());
-
-                for(LanguageIdentifier langId : input.sourceDeps) {
-                    ILanguageImpl lang = context.languageService().getImpl(langId);
-                    for(final ILanguageComponent component : lang.components()) {
-                        ILanguageComponentConfig config = component.config();
-                        Collection<IExportConfig> exports = config.exports();
-                        for(IExportConfig exportConfig : exports) {
-                            exportConfig.accept(new IExportVisitor() {
-                                @Override public void visit(LangDirExport export) {
-                                    if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
-                                        try {
-                                            paths
-                                                .add(toFileReplicate(component.location().resolveFile(export.directory))
-                                                    .getAbsolutePath());
-                                        } catch(FileSystemException e) {
-                                            System.out.println("Failed to locate path");
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }
-
-                                @Override public void visit(LangFileExport export) {
-                                    // Ignore file exports
-                                }
-
-                                @Override public void visit(ResourceExport export) {
-                                    // Ignore resource exports
-
-                                }
-                            });
-                        }
-                    }
-                }
+                final List<String> paths = srcGenNormalizedSdf3Paths(input);
 
                 final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
                 sdfCompletionOrigin = Sdf2Table.origin(new Sdf2Table.Input(context, sdfCompletionsFile, tableFile,
@@ -539,5 +471,47 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
 
         return None.val;
+    }
+    
+    private List<String> srcGenNormalizedSdf3Paths(GenerateSourcesBuilder.Input input) {
+        File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
+        
+        final List<String> paths = Lists.newLinkedList();
+        
+        paths.add(srcGenSyntaxDir.getAbsolutePath());
+
+        for(LanguageIdentifier langId : input.sourceDeps) {
+            ILanguageImpl lang = context.languageService().getImpl(langId);
+            for(final ILanguageComponent component : lang.components()) {
+                ILanguageComponentConfig config = component.config();
+                Collection<IExportConfig> exports = config.exports();
+                for(IExportConfig exportConfig : exports) {
+                    exportConfig.accept(new IExportVisitor() {
+                        @Override public void visit(LangDirExport export) {
+                            if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
+                                try {
+                                    paths
+                                        .add(toFileReplicate(component.location().resolveFile(export.directory))
+                                            .getAbsolutePath());
+                                } catch(FileSystemException e) {
+                                    System.out.println("Failed to locate path");
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                        @Override public void visit(LangFileExport export) {
+                            // Ignore file exports
+                        }
+
+                        @Override public void visit(ResourceExport export) {
+                            // Ignore resource exports
+                        }
+                    });
+                }
+            }
+        }
+        
+        return paths;
     }
 }
