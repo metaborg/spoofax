@@ -259,7 +259,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             sdfCompletionOrigin = null;
         }
         
-        sdfBuilder = sdfBuilder
+        sdfBuilder
             .add(sdfCompletionOrigin)
             .add(javaParenthesizeOrigin);
     }
@@ -345,7 +345,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             sdfCompletionOrigin = null;
         }
         
-        sdfBuilder = sdfBuilder
+        sdfBuilder
             .add(parenthesizeOrigin)
             .add(sigOrigin)
             .add(sdfCompletionOrigin);
