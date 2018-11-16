@@ -192,7 +192,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             persistedTableFile, null, paths, dynamicGeneration, dataDependent, layoutSensitive);
     }
     
-    private Origin oldParseTableGeneration(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder, File srcGenSyntaxDir, String sdfModule, File sdfFile, File sdfExternalDef, String parseTableFilename, String modulePrefix, boolean isCompletions) throws IOException {
+    private PackSdfBuild oldParseTableGenerationPack(GenerateSourcesBuilder.Input input, File srcGenSyntaxDir, String sdfModule, File sdfFile, File sdfExternalDef) throws IOException {
         // Get the SDF def file, either from existing external def, or by running pack SDF on the grammar
         // specification.
         final @Nullable File packSdfFile;
@@ -215,8 +215,24 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             packSdfFile = null;
             packSdfOrigin = null;
         }
+        
+        return new PackSdfBuild(packSdfFile, packSdfOrigin);
+    }
+    
+    private class PackSdfBuild {
+        
+        final @Nullable File file;
+        final @Nullable Origin origin;
+        
+        PackSdfBuild(File packSdfFile, Origin packSdfOrigin) {
+            this.file = packSdfFile;
+            this.origin = packSdfOrigin;
+        }
 
-        if(packSdfFile != null) {
+    }
+    
+    private Origin oldParseTableGeneration(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder, PackSdfBuild packSdfBuild, File srcGenSyntaxDir, String sdfModule, File sdfExternalDef, String parseTableFilename, String modulePrefix, boolean isCompletions) throws IOException {
+        if(packSdfBuild.file != null) {
             if (!isCompletions) {
                 // Get Stratego signatures file when using an external def, or when using sdf2, from the SDF def
                 // file.
@@ -224,7 +240,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     final File srcGenSigDir = toFile(paths.syntaxSrcGenSignatureDir());
                     final File rtgFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".rtg");
                     final Origin rtgOrigin =
-                        Sdf2Rtg.origin(new Sdf2Rtg.Input(context, packSdfFile, rtgFile, sdfModule, packSdfOrigin));
+                        Sdf2Rtg.origin(new Sdf2Rtg.Input(context, packSdfBuild.file, rtgFile, sdfModule, packSdfBuild.origin));
                     final File sigFile = FileUtils.getFile(srcGenSigDir, sdfModule + ".str");
                     final String sigModule = "signatures/" + sdfModule;
                     final Origin sigOrigin = Rtg2Sig.origin(new Rtg2Sig.Input(context, rtgFile, sigFile, sigModule, rtgOrigin));
@@ -237,7 +253,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final File parenthesizeFile = FileUtils.getFile(srcGenPpDir, sdfModule + "-parenthesize.str");
                 final String parenthesizeModule = "pp/" + sdfModule + "-parenthesize";
                 final Origin parenthesizeOrigin = Sdf2ParenthesizeLegacy.origin(new Sdf2ParenthesizeLegacy.Input(context,
-                    packSdfFile, parenthesizeFile, sdfModule, parenthesizeModule, packSdfOrigin));
+                    packSdfBuild.file, parenthesizeFile, sdfModule, parenthesizeModule, packSdfBuild.origin));
     
                 sdfBuilder.add(parenthesizeOrigin);
             }
@@ -245,7 +261,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             // Get SDF permissive def file, from the SDF def file.
             final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + "-permissive.def");
             final Origin permissiveDefOrigin = MakePermissive.origin(
-                new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfModule, packSdfOrigin));
+                new MakePermissive.Input(context, packSdfBuild.file, permissiveDefFile, sdfModule, packSdfBuild.origin));
 
             // Get JSGLR parse table, from the SDF permissive def file.
             final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
@@ -285,14 +301,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     private void oldParseTableGenerationBuild(GenerateSourcesBuilder.Input input, build.pluto.dependency.Origin.Builder sdfBuilder) throws IOException {
         File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
-        final Origin sdfOrigin = oldParseTableGeneration(input, sdfBuilder, srcGenSyntaxDir, input.sdfModule, input.sdfFile, input.sdfExternalDef, "sdf.tbl", "", false);
+        PackSdfBuild packSdfBuild = oldParseTableGenerationPack(input, srcGenSyntaxDir, input.sdfModule, input.sdfFile, input.sdfExternalDef);
+        final Origin sdfOrigin = oldParseTableGeneration(input, sdfBuilder, packSdfBuild, srcGenSyntaxDir, input.sdfModule, input.sdfExternalDef, "sdf.tbl", "", false);
         
         requireBuild(sdfOrigin);
         
         // Completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
             File srcGenSyntaxCompletionsDir = toFile(paths.syntaxCompletionSrcGenDir());
-            final Origin sdfCompletionOrigin = oldParseTableGeneration(input, sdfBuilder, srcGenSyntaxCompletionsDir, input.sdfCompletionModule, input.sdfCompletionFile, null, "sdf-completions.tbl", "completion/", true);
+            PackSdfBuild packSdfCompletionsBuild = oldParseTableGenerationPack(input, srcGenSyntaxCompletionsDir, input.sdfCompletionModule, input.sdfCompletionFile, null);
+            final Origin sdfCompletionOrigin = oldParseTableGeneration(input, sdfBuilder, packSdfCompletionsBuild, srcGenSyntaxCompletionsDir, input.sdfCompletionModule, null, "sdf-completions.tbl", "completion/", true);
             
             requireBuild(sdfCompletionOrigin);
             
