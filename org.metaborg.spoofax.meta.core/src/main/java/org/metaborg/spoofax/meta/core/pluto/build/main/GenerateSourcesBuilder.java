@@ -299,7 +299,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return new PackSdfBuild(packSdfFile, packSdfOrigin);
     }
     
-    private class PackSdfBuild {
+    private static class PackSdfBuild {
         
         final @Nullable File file;
         final @Nullable Origin origin;
@@ -340,7 +340,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return new MakePermissiveBuild(permissiveDefFile, permissiveDefOrigin); 
     }
     
-    private class MakePermissiveBuild {
+    private static class MakePermissiveBuild {
         
         final @Nullable File file;
         final @Nullable Origin origin;
