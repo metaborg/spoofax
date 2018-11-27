@@ -237,20 +237,20 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // Packing normalized .sdf files in a single .def file
         PackSdfBuild packSdfBuild = oldParseTableGenerationPack(input, srcGenSyntaxDir, input.sdfModule, input.sdfFile, input.sdfExternalDef);
 
-        // Get Stratego signatures file when using an external .def, or when using sdf2, from the SDF .def file
-        if(input.sdfExternalDef != null || input.sdfVersion == SdfVersion.sdf2) {
-            final Origin sigOrigin = oldParseTableGenerationSignatures(input, sdfOriginBuilder, packSdfBuild, srcGenSyntaxDir, input.sdfModule, input.sdfExternalDef);
-            
-            sdfOriginBuilder.add(sigOrigin);
-        }
-        
-        // Get Stratego parenthesizer file, from the SDF .def file
-        Origin parenthesizeOrigin = oldParseTableGenerationParenthesize(input, sdfOriginBuilder, packSdfBuild, input.sdfModule);
-        
-        sdfOriginBuilder.add(parenthesizeOrigin);
-        
-        // Standard parser generation
         if(packSdfBuild.file != null) {
+            // Get Stratego signatures file when using an external .def, or when using sdf2, from the SDF .def file
+            if(input.sdfExternalDef != null || input.sdfVersion == SdfVersion.sdf2) {
+                final Origin sigOrigin = oldParseTableGenerationSignatures(input, sdfOriginBuilder, packSdfBuild, srcGenSyntaxDir, input.sdfModule, input.sdfExternalDef);
+                
+                sdfOriginBuilder.add(sigOrigin);
+            }
+            
+            // Get Stratego parenthesizer file, from the SDF .def file
+            Origin parenthesizeOrigin = oldParseTableGenerationParenthesize(input, sdfOriginBuilder, packSdfBuild, input.sdfModule);
+            
+            sdfOriginBuilder.add(parenthesizeOrigin);
+            
+            // Standard parser generation
             MakePermissiveBuild makePermissiveBuild = oldParseTableGenerationMakePermissive(packSdfBuild, srcGenSyntaxDir, input.sdfModule);
             
             final Origin sdfOrigin = oldParseTableGeneration(makePermissiveBuild, input.sdfModule, "sdf.tbl", "");       
