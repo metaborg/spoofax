@@ -449,6 +449,12 @@ public class SpoofaxModule extends MetaborgModule {
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
 
+        /*
+         * Note that FS_solve first needs to be identified as a Singleton, so that afterwards it
+         * can be used with bindPrimitive and languageCacheBinder without creating multiple
+         * instances. Multiple instances would mess up the language cache invalidation.
+         */
+        bind(FS_solve.class).in(Singleton.class);
         final Multibinder<AbstractPrimitive> spoofaxFlowSpecLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(FlowSpecLibrary.name));
         bindPrimitive(spoofaxFlowSpecLibrary, FS_solve.class);
