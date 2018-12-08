@@ -9,6 +9,8 @@ import org.metaborg.core.language.LanguageIdentifier;
 import com.google.common.collect.ImmutableSet;
 
 public class SpoofaxConstants {
+    public static final String GROUP_ID = "org.metaborg";
+
     public static final String LANG_ATERM_ID = "org.metaborg.meta.lang.aterm";
     public static final String LANG_ATERM_NAME = "ATerm";
 
@@ -38,6 +40,8 @@ public class SpoofaxConstants {
 
     public static final String LANG_DYNSEM_ID = "org.metaborg.meta.lang.dynsem";
     public static final String LANG_DYNSEM_NAME = "ds";
+
+    public static final String LANG_SPT_ID = "org.metaborg.meta.lang.spt";
 
     public static final String LIB_ANALYSIS_ID = "org.metaborg.meta.lib.analysis";
     public static final String LIB_ANALYSIS_NAME = "runtime-libraries";
