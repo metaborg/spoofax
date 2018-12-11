@@ -168,6 +168,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         
         final Origin sdfOrigin = sdfOriginBuilder.get();
 
+        requireBuild(sdfOrigin);
+        
         // Stratego
         buildStratego(input, sdfOrigin);
 
@@ -193,14 +195,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGeneration = newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin", "ctxgrammar.aterm");
 
         sdfOriginBuilder.add(parseTableGeneration);
-        
-        OutputPersisted<ParseTable> parseTable = requireBuild(parseTableGeneration);
 
         // Generate parenthesizer
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
         final File parenthesizerOutputFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
         
-        final BuildRequest<?, ?, ?, ?> parenthesize = Sdf2Parenthesize.request(new Sdf2Parenthesize.Input(context, parseTable.val, input.sdfModule, parenthesizerOutputFile));
+        Sdf2Parenthesize.Input parenthesizeInput = new Sdf2Parenthesize.Input(context, parseTableGeneration, input.sdfModule, parenthesizerOutputFile);
+        final BuildRequest<?, ?, ?, ?> parenthesize = Sdf2Parenthesize.request(parenthesizeInput);
         
         sdfOriginBuilder.add(parenthesize);
 
@@ -209,8 +210,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input, input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", null);
             
             sdfOriginBuilder.add(parseTableGenerationCompletions);
-            
-            requireBuild(parseTableGenerationCompletions);
         }
     }
     
@@ -226,15 +225,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         
         final List<String> paths = srcGenNormalizedSdf3Paths(input);
         
-        BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> normGrammarBuildRequest = PackNormalizedSdf.request(new PackNormalizedSdf.Input(context, sdfNormFile, paths));
+        BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> packNormGrammar = PackNormalizedSdf.request(new PackNormalizedSdf.Input(context, sdfNormFile, paths));
         
-        OutputPersisted<NormGrammar> normGrammar = requireBuild(normGrammarBuildRequest);
-
-        Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, normGrammar.val, tableFile, persistedTableFile, dynamicGeneration, dataDependent, layoutSensitive);
+        Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, packNormGrammar, tableFile, persistedTableFile, dynamicGeneration, dataDependent, layoutSensitive);
         
         return Sdf2Table.request(sdf2TableInput);
     }
 
+    
     private void oldParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder) throws IOException {
         File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
         
@@ -271,8 +269,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             MakePermissiveBuild makePermissiveCompletionsBuild = oldParseTableGenerationMakePermissive(packSdfCompletionsBuild, srcGenSyntaxCompletionsDir, input.sdfCompletionModule);
             
             final Origin sdfCompletionOrigin = oldParseTableGeneration(makePermissiveCompletionsBuild, input.sdfCompletionModule, "sdf-completions.tbl", "completion/");
-            
-            requireBuild(sdfCompletionOrigin);
             
             sdfOriginBuilder.add(sdfCompletionOrigin);
         }

@@ -19,11 +19,11 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final ParseTable parseTable;
+        public final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTable;
         public final String inputModule;
         public final File outputFile;
 
-        public Input(SpoofaxContext context, ParseTable parseTable, String inputModule, File outputFile) {
+        public Input(SpoofaxContext context, BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTable, String inputModule, File outputFile) {
             super(context);
             this.parseTable = parseTable;
             this.inputModule = inputModule;
@@ -57,7 +57,9 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
-        Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, input.parseTable);
+        OutputPersisted<ParseTable> parseTable = requireBuild(input.parseTable);
+        
+        Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, parseTable.val);
 
         provide(input.outputFile);
 

@@ -20,14 +20,14 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<P
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final NormGrammar inputNormGrammar;
+        public final BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> inputNormGrammar;
         public final File outputParseTableFile;
         public final File outputPersistedParseTableFile;
         public final boolean dynamic;
         public final boolean dataDependent;
         public final boolean solveDeepConflicts;
 
-        public Input(SpoofaxContext context, NormGrammar inputNormGrammar, File outputParseTableFile, File outputPersistedParseTableFile, boolean dynamic, boolean dataDependent,
+        public Input(SpoofaxContext context, BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> inputNormGrammar, File outputParseTableFile, File outputPersistedParseTableFile, boolean dynamic, boolean dataDependent,
             boolean layoutSensitive) {
             super(context);
             this.inputNormGrammar = inputNormGrammar;
@@ -65,7 +65,9 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<P
     }
 
     @Override public OutputPersisted<ParseTable> build(Input input) throws Exception {
-        ParseTable parseTable = new ParseTable(input.inputNormGrammar, input.dynamic, input.dataDependent, input.solveDeepConflicts);
+        OutputPersisted<NormGrammar> normGrammar = requireBuild(input.inputNormGrammar);
+        
+        ParseTable parseTable = new ParseTable(normGrammar.val, input.dynamic, input.dataDependent, input.solveDeepConflicts);
         
         IStrategoTerm parseTableATerm = ParseTableIO.generateATerm(parseTable);
         
