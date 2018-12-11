@@ -8,21 +8,11 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.config.IExportConfig;
-import org.metaborg.core.config.IExportVisitor;
-import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.JSGLRVersion;
-import org.metaborg.core.config.LangDirExport;
-import org.metaborg.core.config.LangFileExport;
-import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.config.Sdf2tableVersion;
-import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.sdf2table.grammar.NormGrammar;
 import org.metaborg.sdf2table.parsetable.ParseTable;
-import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
@@ -223,9 +213,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final boolean dataDependent = (input.jsglrVersion == JSGLRVersion.dataDependent);
         final boolean layoutSensitive = (input.jsglrVersion == JSGLRVersion.layoutSensitive);
         
-        final List<String> paths = srcGenNormalizedSdf3Paths(input);
-        
-        BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> packNormGrammar = PackNormalizedSdf.request(new PackNormalizedSdf.Input(context, sdfNormFile, paths));
+        BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> packNormGrammar = PackNormalizedSdf.request(new PackNormalizedSdf.Input(context, sdfNormFile, input.sourceDeps));
         
         Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, packNormGrammar, tableFile, persistedTableFile, dynamicGeneration, dataDependent, layoutSensitive);
         
@@ -468,45 +456,4 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
     }
     
-    private List<String> srcGenNormalizedSdf3Paths(GenerateSourcesBuilder.Input input) {
-        File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
-        
-        final List<String> paths = Lists.newLinkedList();
-        
-        paths.add(srcGenSyntaxDir.getAbsolutePath());
-
-        for(LanguageIdentifier langId : input.sourceDeps) {
-            ILanguageImpl lang = context.languageService().getImpl(langId);
-            for(final ILanguageComponent component : lang.components()) {
-                ILanguageComponentConfig config = component.config();
-                Collection<IExportConfig> exports = config.exports();
-                for(IExportConfig exportConfig : exports) {
-                    exportConfig.accept(new IExportVisitor() {
-                        @Override public void visit(LangDirExport export) {
-                            if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
-                                try {
-                                    paths
-                                        .add(toFileReplicate(component.location().resolveFile(export.directory))
-                                            .getAbsolutePath());
-                                } catch(FileSystemException e) {
-                                    System.out.println("Failed to locate path");
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-
-                        @Override public void visit(LangFileExport export) {
-                            // Ignore file exports
-                        }
-
-                        @Override public void visit(ResourceExport export) {
-                            // Ignore resource exports
-                        }
-                    });
-                }
-            }
-        }
-        
-        return paths;
-    }
 }
