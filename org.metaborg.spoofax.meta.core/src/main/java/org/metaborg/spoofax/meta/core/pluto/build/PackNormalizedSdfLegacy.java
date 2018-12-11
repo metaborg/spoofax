@@ -26,7 +26,7 @@ import build.pluto.dependency.Origin;
 import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.FileExistsStamper;
 
-public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>> {
+public class PackNormalizedSdfLegacy extends SpoofaxBuilder<PackNormalizedSdfLegacy.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = 2058684747897720328L;
 
@@ -51,17 +51,17 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, OutputPersisted<File>
     }
 
 
-    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, PackSdf> factory =
-        SpoofaxBuilderFactoryFactory.of(PackSdf.class, Input.class);
+    public static SpoofaxBuilderFactory<Input, OutputPersisted<File>, PackNormalizedSdfLegacy> factory =
+        SpoofaxBuilderFactoryFactory.of(PackNormalizedSdfLegacy.class, Input.class);
 
 
-    public PackSdf(Input input) {
+    public PackNormalizedSdfLegacy(Input input) {
         super(input);
     }
 
 
     public static
-        BuildRequest<Input, OutputPersisted<File>, PackSdf, SpoofaxBuilderFactory<Input, OutputPersisted<File>, PackSdf>>
+        BuildRequest<Input, OutputPersisted<File>, PackNormalizedSdfLegacy, SpoofaxBuilderFactory<Input, OutputPersisted<File>, PackNormalizedSdfLegacy>>
         request(Input input) {
         return new BuildRequest<>(factory, input);
     }
