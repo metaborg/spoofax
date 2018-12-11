@@ -43,7 +43,7 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
             if(!persistedTable.exists()) {
                 parseTable = new ParseTableReader(new CharacterClassFactory(true, true), new ActionsFactory(true), new StateFactory()).read(parseTableTerm);
             } else {
-                parseTable = new ParseTableReader(new CharacterClassFactory(true, true), new ActionsFactory(true), new StateFactory()).read(parseTableTerm, persistedTable);
+                parseTable = ParseTableReader.read(persistedTable);
             }
 
         } catch(Exception e) {

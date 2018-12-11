@@ -20,6 +20,8 @@ import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.sdf2table.grammar.NormGrammar;
+import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
@@ -30,6 +32,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.MakePermissive;
+import org.metaborg.spoofax.meta.core.pluto.build.PackNormalizedSdf;
 import org.metaborg.spoofax.meta.core.pluto.build.PackNormalizedSdfLegacy;
 import org.metaborg.spoofax.meta.core.pluto.build.Rtg2Sig;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
@@ -187,48 +190,49 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final File srcNormDir = toFile(paths.syntaxNormDir());
         final File sdfNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
         
-        final Sdf2Table.Input sdf2TableJavaInput = newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin", "ctxgrammar.aterm");
-        final Origin sdf2TableJavaOrigin = Sdf2Table.origin(sdf2TableJavaInput);
+        final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGeneration = newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin", "ctxgrammar.aterm");
 
-        requireBuild(sdf2TableJavaOrigin);
+        sdfOriginBuilder.add(parseTableGeneration);
+        
+        OutputPersisted<ParseTable> parseTable = requireBuild(parseTableGeneration);
 
         // Generate parenthesizer
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
-        final File parenthesizerFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
+        final File parenthesizerOutputFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
         
-        final Origin javaParenthesizeOrigin = Sdf2Parenthesize.origin(
-            new Sdf2Parenthesize.Input(context, sdf2TableJavaInput.outputNormGrammarFile, parenthesizerFile, input.sdfModule));
+        final BuildRequest<?, ?, ?, ?> parenthesize = Sdf2Parenthesize.request(new Sdf2Parenthesize.Input(context, parseTable.val, input.sdfModule, parenthesizerOutputFile));
         
-        sdfOriginBuilder.add(javaParenthesizeOrigin);
+        sdfOriginBuilder.add(parenthesize);
 
         // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
-            Sdf2Table.Input sdf2TableJavaInputCompletions = newParseTableGeneration(input, input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", null);
+            final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input, input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", null);
             
-            final Origin sdfCompletionOrigin = Sdf2Table.origin(sdf2TableJavaInputCompletions);
-
-            requireBuild(sdfCompletionOrigin);
+            sdfOriginBuilder.add(parseTableGenerationCompletions);
             
-            sdfOriginBuilder.add(sdfCompletionOrigin);
+            requireBuild(parseTableGenerationCompletions);
         }
     }
     
-    private Sdf2Table.Input newParseTableGeneration(GenerateSourcesBuilder.Input input, File sdfNormFile, String tableFilename, String persistedTableFilename, String contextualGrammarFilename) {
+    private BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> newParseTableGeneration(GenerateSourcesBuilder.Input input, File sdfNormFile, String tableFilename, String persistedTableFilename, String contextualGrammarFilename) throws IOException {
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
+        final File tableFile = FileUtils.getFile(targetMetaborgDir, tableFilename);
+        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, persistedTableFilename);
 
         final boolean dynamicGeneration = (input.sdf2tableVersion == Sdf2tableVersion.dynamic
             || input.sdf2tableVersion == Sdf2tableVersion.incremental);
         final boolean dataDependent = (input.jsglrVersion == JSGLRVersion.dataDependent);
         final boolean layoutSensitive = (input.jsglrVersion == JSGLRVersion.layoutSensitive);
         
-        final File tableFile = FileUtils.getFile(targetMetaborgDir, tableFilename);
-        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, persistedTableFilename);
-        final File contextualGrammarFile = contextualGrammarFilename != null ? FileUtils.getFile(targetMetaborgDir, contextualGrammarFilename) : null;
-
         final List<String> paths = srcGenNormalizedSdf3Paths(input);
+        
+        BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> normGrammarBuildRequest = PackNormalizedSdf.request(new PackNormalizedSdf.Input(context, sdfNormFile, paths));
+        
+        OutputPersisted<NormGrammar> normGrammar = requireBuild(normGrammarBuildRequest);
 
-        return new Sdf2Table.Input(context, sdfNormFile, tableFile, persistedTableFile, contextualGrammarFile, paths,
-            dynamicGeneration, dataDependent, layoutSensitive);
+        Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, normGrammar.val, tableFile, persistedTableFile, dynamicGeneration, dataDependent, layoutSensitive);
+        
+        return Sdf2Table.request(sdf2TableInput);
     }
 
     private void oldParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder) throws IOException {

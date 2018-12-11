@@ -2,9 +2,6 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-
 import org.metaborg.sdf2parenthesize.parenthesizer.Parenthesizer;
 import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
@@ -12,8 +9,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-
-import com.google.common.io.Files;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
@@ -24,17 +19,15 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-
-        public final File inputFile;
-        public final File outputFile;
+        public final ParseTable parseTable;
         public final String inputModule;
+        public final File outputFile;
 
-
-        public Input(SpoofaxContext context, File inputFile, File outputFile, String inputModule) {
+        public Input(SpoofaxContext context, ParseTable parseTable, String inputModule, File outputFile) {
             super(context);
-            this.inputFile = inputFile;
-            this.outputFile = outputFile;
+            this.parseTable = parseTable;
             this.inputModule = inputModule;
+            this.outputFile = outputFile;
         }
     }
 
@@ -55,36 +48,21 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
         return Origin.from(request(input));
     }
 
-
     @Override protected String description(Input input) {
         return "Extract parenthesis structure from grammar using the Java implementation";
     }
 
     @Override public File persistentPath(Input input) {
-        String fileName = input.inputFile.getName();
-        return context.depPath("sdf2parenthesize-java." + fileName + ".dep");
+        return context.depPath("sdf2parenthesize-java." + input.inputModule + ".dep");
     }
 
     @Override public OutputPersisted<File> build(Input input) throws IOException {
-        require(input.inputFile);
-        boolean status = true;
+        Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, input.parseTable);
 
-        try {
-            InputStream out = Files.asByteSource(input.inputFile).openStream();
-            ObjectInputStream ois = new ObjectInputStream(out);
-            // read persisted normalized grammar
-            ParseTable table = (ParseTable) ois.readObject();
-            Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, table);
-            ois.close();
-            out.close();
-        } catch(Exception e) {
-            System.out.println("Failed to generate parenthesizer");
-            e.printStackTrace();
-            status = false;
-        }
         provide(input.outputFile);
 
-        setState(State.finished(status));
+        setState(State.SUCCESS);
+        
         return OutputPersisted.of(input.outputFile);
     }
 }
