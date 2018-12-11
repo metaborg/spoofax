@@ -182,7 +182,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final File srcNormDir = toFile(paths.syntaxNormDir());
         final File sdfNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
         
-        final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGeneration = newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin", "ctxgrammar.aterm");
+        final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGeneration = newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin");
 
         sdfOriginBuilder.add(parseTableGeneration);
 
@@ -197,13 +197,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
-            final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input, input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", null);
+            final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input, input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin");
             
             sdfOriginBuilder.add(parseTableGenerationCompletions);
         }
     }
     
-    private BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> newParseTableGeneration(GenerateSourcesBuilder.Input input, File sdfNormFile, String tableFilename, String persistedTableFilename, String contextualGrammarFilename) throws IOException {
+    private BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> newParseTableGeneration(GenerateSourcesBuilder.Input input, File sdfNormFile, String tableFilename, String persistedTableFilename) throws IOException {
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
         final File tableFile = FileUtils.getFile(targetMetaborgDir, tableFilename);
         final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, persistedTableFilename);
