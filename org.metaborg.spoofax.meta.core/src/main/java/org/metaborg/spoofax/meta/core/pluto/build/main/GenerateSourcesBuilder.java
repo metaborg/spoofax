@@ -157,8 +157,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         buildSdfMeta(input, sdfOriginBuilder); // SDF meta-module for creating a Stratego concrete syntax extension parse table
         
         final Origin sdfOrigin = sdfOriginBuilder.get();
-
-        requireBuild(sdfOrigin);
         
         // Stratego
         buildStratego(input, sdfOrigin);
@@ -185,6 +183,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGeneration = newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin", false);
 
         sdfOriginBuilder.add(parseTableGeneration);
+        requireBuild(parseTableGeneration);
 
         // Generate parenthesizer
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
@@ -194,12 +193,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final BuildRequest<?, ?, ?, ?> parenthesize = Sdf2Parenthesize.request(parenthesizeInput);
         
         sdfOriginBuilder.add(parenthesize);
+        requireBuild(parenthesize);
 
         // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
             final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input, input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", true);
             
             sdfOriginBuilder.add(parseTableGenerationCompletions);
+            requireBuild(parseTableGenerationCompletions);
         }
     }
     
@@ -214,6 +215,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final boolean layoutSensitive = (input.jsglrVersion == JSGLRVersion.layoutSensitive);
         
         BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> packNormGrammar = PackNormalizedSdf.request(new PackNormalizedSdf.Input(context, sdfNormFile, input.sourceDeps, isCompletions));
+        
+        requireBuild(packNormGrammar);
         
         Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, packNormGrammar, tableFile, persistedTableFile, dynamicGeneration, dataDependent, layoutSensitive, isCompletions);
         
@@ -245,7 +248,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             
             final Origin sdfOrigin = oldParseTableGeneration(makePermissiveBuild, input.sdfModule, "sdf.tbl", "");       
             
-            requireBuild(sdfOrigin);     
+            requireBuild(sdfOrigin);
         }
         
         // Again packing, make permissive, and generation for completions parse table
