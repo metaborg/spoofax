@@ -35,11 +35,13 @@ public class PackNormalizedSdf extends SpoofaxBuilder<PackNormalizedSdf.Input, O
 
         public final File inputMainNormSdfFile;
         public final Collection<LanguageIdentifier> sourceDeps;
+        public final boolean isCompletions;
 
-        public Input(SpoofaxContext context, File inputMainNormSdfFile, Collection<LanguageIdentifier> sourceDeps) {
+        public Input(SpoofaxContext context, File inputMainNormSdfFile, Collection<LanguageIdentifier> sourceDeps, boolean isCompletions) {
             super(context);
             this.inputMainNormSdfFile = inputMainNormSdfFile;
             this.sourceDeps = sourceDeps;
+            this.isCompletions = isCompletions;
         }
     }
 
@@ -57,7 +59,7 @@ public class PackNormalizedSdf extends SpoofaxBuilder<PackNormalizedSdf.Input, O
     }
 
     @Override protected String description(Input input) {
-        return "Pack normalized grammar files";
+        return "Pack normalized grammar files" + (input.isCompletions ? " (completions)" : "");
     }
 
     @Override public File persistentPath(Input input) {

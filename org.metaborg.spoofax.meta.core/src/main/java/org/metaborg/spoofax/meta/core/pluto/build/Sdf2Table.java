@@ -26,9 +26,10 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<P
         public final boolean dynamic;
         public final boolean dataDependent;
         public final boolean solveDeepConflicts;
+        public final boolean isCompletions;
 
         public Input(SpoofaxContext context, BuildRequest<?, OutputPersisted<NormGrammar>, ?, ?> inputNormGrammar, File outputParseTableFile, File outputPersistedParseTableFile, boolean dynamic, boolean dataDependent,
-            boolean layoutSensitive) {
+            boolean layoutSensitive, boolean isCompletions) {
             super(context);
             this.inputNormGrammar = inputNormGrammar;
             this.outputParseTableFile = outputParseTableFile;
@@ -36,6 +37,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<P
             this.dynamic = dynamic;
             this.dataDependent = dataDependent;
             this.solveDeepConflicts = !layoutSensitive;
+            this.isCompletions = isCompletions;
         }
     }
 
@@ -57,7 +59,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<P
     }
 
     @Override protected String description(Input input) {
-        return "Compile normalized grammar to parse table using the Java implementation";
+        return "Compile normalized grammar to parse table using the Java implementation" + (input.isCompletions ? " (completions)" : "");
     }
 
     @Override public File persistentPath(Input input) {
