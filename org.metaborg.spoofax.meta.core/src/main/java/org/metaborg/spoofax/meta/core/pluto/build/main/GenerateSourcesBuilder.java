@@ -23,7 +23,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.MakePermissive;
 import org.metaborg.spoofax.meta.core.pluto.build.PackNormalizedSdf;
-import org.metaborg.spoofax.meta.core.pluto.build.PackNormalizedSdfLegacy;
+import org.metaborg.spoofax.meta.core.pluto.build.PackSdfLegacy;
 import org.metaborg.spoofax.meta.core.pluto.build.Rtg2Sig;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Parenthesize;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2ParenthesizeLegacy;
@@ -280,7 +280,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
 
             packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfModule + ".def");
-            packSdfOrigin = PackNormalizedSdfLegacy.origin(new PackNormalizedSdfLegacy.Input(context, sdfModule, sdfFile, packSdfFile,
+            packSdfOrigin = PackSdfLegacy.origin(new PackSdfLegacy.Input(context, sdfModule, sdfFile, packSdfFile,
                 input.packSdfIncludePaths, input.packSdfArgs, null));
         } else {
             packSdfFile = null;
@@ -372,7 +372,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 final File packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + ".def");
 
-                final Origin packSdfOrigin = PackNormalizedSdfLegacy.origin(new PackNormalizedSdfLegacy.Input(context, sdfMetaModule, sdfMetaFile,
+                final Origin packSdfOrigin = PackSdfLegacy.origin(new PackSdfLegacy.Input(context, sdfMetaModule, sdfMetaFile,
                     packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, strategoMixOrigin));
 
                 final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + "-permissive.def");
