@@ -32,15 +32,14 @@ import org.spoofax.terms.ParseError;
 
 import com.google.inject.Inject;
 
+import mb.flowspec.runtime.interpreter.InterpreterBuilder;
 import mb.flowspec.runtime.solver.FixedPoint;
 import mb.flowspec.runtime.solver.ParseException;
-import mb.flowspec.runtime.solver.StaticInfo;
 import mb.nabl2.solver.ISolution;
 import mb.nabl2.spoofax.analysis.IResult;
 import mb.nabl2.spoofax.primitives.AnalysisPrimitive;
 import mb.nabl2.stratego.StrategoTerms;
 import mb.nabl2.terms.ITerm;
-import mb.nabl2.terms.unification.PersistentUnifier;
 
 public class FS_solve extends AbstractPrimitive implements ILanguageCache {
     private static final ILogger logger = LoggerUtils.logger(FS_solve.class);
@@ -51,7 +50,7 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
     private ILanguageImpl currentLanguage;
 
     private static final String FLOWSPEC_STATIC_INFO_DIR = "target/metaborg/flowspec-static-info";
-    private final Map<ILanguageComponent, StaticInfo> flowSpecTransferFunctionCache = new HashMap<>();
+    private final Map<ILanguageComponent, InterpreterBuilder> flowSpecTransferFunctionCache = new HashMap<>();
 
     @Inject public FS_solve(IResourceService resourceService, ITermFactoryService termFactoryService) {
         super(FS_solve.class.getSimpleName(), 0, 2);
@@ -64,9 +63,9 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
                 final Optional<List<String>> propertyNames = M.listElems(M.stringValue()).match(terms.get(0));
                 final ISolution sol = result.solution();
                 final FixedPoint solver = new FixedPoint();
-                final StaticInfo staticInfo = getFlowSpecStaticInfo(currentLanguage);
+                final InterpreterBuilder interpBuilder = getFlowSpecInterpreterBuilder(currentLanguage);
                 if (propertyNames.isPresent()) {
-                        final ISolution solution = solver.entryPoint(sol, staticInfo, propertyNames.get());
+                        final ISolution solution = solver.entryPoint(sol, interpBuilder, propertyNames.get());
                         return Optional.of(B.newBlob(result.withSolution(solution)));
                 }
                 return Optional.empty();
@@ -80,62 +79,59 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
         return prim.call(env, svars, tvars);
     }
 
-    protected Optional<StaticInfo> getFlowSpecStaticInfo(ILanguageComponent component) {
-        Optional<StaticInfo> staticInfo = Optional.ofNullable(flowSpecTransferFunctionCache.get(component));
-        if (staticInfo.isPresent()) {
-            return staticInfo;
+    protected Optional<InterpreterBuilder> getFlowSpecInterpreterBuilder(ILanguageComponent component) {
+        Optional<InterpreterBuilder> optInterpB = Optional.ofNullable(flowSpecTransferFunctionCache.get(component));
+        if (optInterpB.isPresent()) {
+            return optInterpB;
         }
 
-        staticInfo = getFlowSpecStaticInfo(component, resourceService, termFactory, strategoTerms);
+        optInterpB = getFlowSpecInterpreterBuilder(component, resourceService, termFactory, strategoTerms);
 
-        if (!staticInfo.isPresent()) {
-            return staticInfo;
+        if (!optInterpB.isPresent()) {
+            return optInterpB;
         }
 
         logger.debug("Caching FlowSpec static info for language {}", component);
-        flowSpecTransferFunctionCache.put(component, staticInfo.get());
-        return staticInfo;
+        flowSpecTransferFunctionCache.put(component, optInterpB.get());
+        return optInterpB;
     }
 
-    protected StaticInfo getFlowSpecStaticInfo(ILanguageImpl impl) {
-        return getFlowSpecStaticInfo(impl, this::getFlowSpecStaticInfo);
+    protected InterpreterBuilder getFlowSpecInterpreterBuilder(ILanguageImpl impl) {
+        return getFlowSpecInterpreterBuilder(impl, this::getFlowSpecInterpreterBuilder);
     }
 
-    public static StaticInfo getFlowSpecStaticInfo(ILanguageImpl impl, Function<ILanguageComponent, Optional<StaticInfo>> getStaticInfo) {
-        Optional<StaticInfo> result = Optional.empty();
+    public static InterpreterBuilder getFlowSpecInterpreterBuilder(ILanguageImpl impl, Function<ILanguageComponent, Optional<InterpreterBuilder>> getStaticInfo) {
+        Optional<InterpreterBuilder> result = Optional.empty();
         for (ILanguageComponent comp : impl.components()) {
-            Optional<StaticInfo> sfi = getStaticInfo.apply(comp);
-            if (sfi.isPresent()) {
+            Optional<InterpreterBuilder> optInterpB = getStaticInfo.apply(comp);
+            if (optInterpB.isPresent()) {
                 logger.debug("Found FlowSpec static info directory for {}.", comp);
                 if (!result.isPresent()) {
-                    result = sfi;
+                    result = optInterpB;
                 } else {
-                    result = Optional.of(result.get().addAll(sfi.get()));
+                    result = Optional.of(result.get().add(optInterpB.get()));
                 }
             }
         }
         if (!result.isPresent()) {
             logger.error("No FlowSpec static info found for {}", impl);
-            return StaticInfo.of();
+            return new InterpreterBuilder();
         }
         return result.get();
     }
 
-    public static Optional<StaticInfo> getFlowSpecStaticInfo(ILanguageComponent component,
+    public static Optional<InterpreterBuilder> getFlowSpecInterpreterBuilder(ILanguageComponent component,
             IResourceService resourceService, ITermFactory termFactory, StrategoTerms strategoTerms) {
         FileObject staticInfoDir = resourceService.resolve(component.location(), FLOWSPEC_STATIC_INFO_DIR);
         try {
-            StaticInfo result = StaticInfo.of();
+            InterpreterBuilder result = new InterpreterBuilder();
             for(FileObject staticInfoFile : staticInfoDir.getChildren()) {
                 try {
                     String moduleName = FilenameUtils.removeExtension(staticInfoFile.getName().getBaseName().replace('+', '/'));
                     IStrategoTerm sTerm = termFactory
                             .parseFromString(IOUtils.toString(staticInfoFile.getContent().getInputStream(), StandardCharsets.UTF_8));
                     ITerm term = strategoTerms.fromStratego(sTerm);
-                    StaticInfo si = StaticInfo.match(moduleName)
-                            .match(term, PersistentUnifier.Immutable.of())
-                            .orElseThrow(() -> new ParseException("Parse error on reading the transfer function file"));
-                    result = result.addAll(si);
+                    result.add(term, moduleName);
                 } catch (IOException e) {
                     logger.info("Could not read FlowSpec static info file for {}. \n{}", component, e.getMessage());
                 } catch (ParseError | ParseException e) {
