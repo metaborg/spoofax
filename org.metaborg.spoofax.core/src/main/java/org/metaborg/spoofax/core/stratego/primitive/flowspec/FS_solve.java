@@ -96,7 +96,7 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
         return optInterpB;
     }
 
-    protected InterpreterBuilder getFlowSpecInterpreterBuilder(ILanguageImpl impl) {
+    public InterpreterBuilder getFlowSpecInterpreterBuilder(ILanguageImpl impl) {
         return getFlowSpecInterpreterBuilder(impl, this::getFlowSpecInterpreterBuilder);
     }
 
