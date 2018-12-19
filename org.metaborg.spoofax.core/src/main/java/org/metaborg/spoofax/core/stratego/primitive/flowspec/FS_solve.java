@@ -1,10 +1,8 @@
 package org.metaborg.spoofax.core.stratego.primitive.flowspec;
 
-import static mb.nabl2.terms.build.TermBuild.B;
-import static mb.nabl2.terms.matching.TermMatch.M;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,26 +24,26 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.ParseError;
 
 import com.google.inject.Inject;
 
+import mb.flowspec.controlflow.IFlowSpecSolution;
+import mb.flowspec.primitives.AnalysisPrimitive;
 import mb.flowspec.runtime.interpreter.InterpreterBuilder;
 import mb.flowspec.runtime.solver.FixedPoint;
 import mb.flowspec.runtime.solver.ParseException;
-import mb.nabl2.solver.ISolution;
+import mb.flowspec.terms.B;
+import mb.flowspec.terms.M;
 import mb.nabl2.spoofax.analysis.IResult;
-import mb.nabl2.spoofax.primitives.AnalysisPrimitive;
-import mb.nabl2.stratego.StrategoTerms;
-import mb.nabl2.terms.ITerm;
 
 public class FS_solve extends AbstractPrimitive implements ILanguageCache {
     private static final ILogger logger = LoggerUtils.logger(FS_solve.class);
     protected final IResourceService resourceService;
     protected final ITermFactory termFactory;
-    protected final StrategoTerms strategoTerms;
     private final AnalysisPrimitive prim;
     private ILanguageImpl currentLanguage;
 
@@ -56,17 +54,23 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
         super(FS_solve.class.getSimpleName(), 0, 2);
         this.resourceService = resourceService;
         this.termFactory = termFactoryService.getGeneric();
-        this.strategoTerms = new StrategoTerms(termFactory);
         prim = new AnalysisPrimitive(FS_solve.class.getSimpleName(), 1) {
-            @Override protected Optional<? extends ITerm> call(IResult result, ITerm term, List<ITerm> terms)
+            @Override protected Optional<? extends IStrategoTerm> call(IResult result, IStrategoTerm term, List<IStrategoTerm> terms)
                     throws InterpreterException {
-                final Optional<List<String>> propertyNames = M.listElems(M.stringValue()).match(terms.get(0));
-                final ISolution sol = result.solution();
+                final Optional<List<String>> propertyNames = M.maybe(() -> {
+                    IStrategoList list = M.list(terms.get(0));
+                    ArrayList<String> propNames = new ArrayList<>(list.getSubtermCount());
+                    for(IStrategoTerm stringTerm : list) {
+                        propNames.add(M.string(stringTerm));
+                    }
+                    return propNames;
+                });
+                final Optional<IFlowSpecSolution> sol = AnalysisPrimitive.getFSSolution(result);
                 final FixedPoint solver = new FixedPoint();
                 final InterpreterBuilder interpBuilder = getFlowSpecInterpreterBuilder(currentLanguage);
-                if (propertyNames.isPresent()) {
-                        final ISolution solution = solver.entryPoint(sol, interpBuilder, propertyNames.get());
-                        return Optional.of(B.newBlob(result.withSolution(solution)));
+                if (propertyNames.isPresent() && sol.isPresent()) {
+                        final IFlowSpecSolution solution = solver.entryPoint(sol.get(), interpBuilder, propertyNames.get());
+                        return Optional.of(B.blob(result.withSolution(solution)));
                 }
                 return Optional.empty();
             }
@@ -85,7 +89,7 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
             return optInterpB;
         }
 
-        optInterpB = getFlowSpecInterpreterBuilder(component, resourceService, termFactory, strategoTerms);
+        optInterpB = getFlowSpecInterpreterBuilder(component, resourceService, termFactory);
 
         if (!optInterpB.isPresent()) {
             return optInterpB;
@@ -121,16 +125,15 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
     }
 
     public static Optional<InterpreterBuilder> getFlowSpecInterpreterBuilder(ILanguageComponent component,
-            IResourceService resourceService, ITermFactory termFactory, StrategoTerms strategoTerms) {
+            IResourceService resourceService, ITermFactory termFactory) {
         FileObject staticInfoDir = resourceService.resolve(component.location(), FLOWSPEC_STATIC_INFO_DIR);
         try {
             InterpreterBuilder result = new InterpreterBuilder();
             for(FileObject staticInfoFile : staticInfoDir.getChildren()) {
                 try {
                     String moduleName = FilenameUtils.removeExtension(staticInfoFile.getName().getBaseName().replace('+', '/'));
-                    IStrategoTerm sTerm = termFactory
+                    IStrategoTerm term = termFactory
                             .parseFromString(IOUtils.toString(staticInfoFile.getContent().getInputStream(), StandardCharsets.UTF_8));
-                    ITerm term = strategoTerms.fromStratego(sTerm);
                     result.add(term, moduleName);
                 } catch (IOException e) {
                     logger.info("Could not read FlowSpec static info file for {}. \n{}", component, e.getMessage());
