@@ -1,8 +1,8 @@
 package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
-import java.io.IOException;
 import org.metaborg.sdf2parenthesize.parenthesizer.Parenthesizer;
+import org.metaborg.sdf2table.io.ParseTableIO;
 import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
@@ -19,11 +19,11 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTable;
+        public final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTable;
         public final String inputModule;
         public final File outputFile;
 
-        public Input(SpoofaxContext context, BuildRequest<?, OutputPersisted<ParseTable>, ?, ?> parseTable, String inputModule, File outputFile) {
+        public Input(SpoofaxContext context, BuildRequest<?, OutputPersisted<File>, ?, ?> parseTable, String inputModule, File outputFile) {
             super(context);
             this.parseTable = parseTable;
             this.inputModule = inputModule;
@@ -56,10 +56,11 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
         return context.depPath("sdf2parenthesize-java." + input.inputModule + ".dep");
     }
 
-    @Override public OutputPersisted<File> build(Input input) throws IOException {
-        OutputPersisted<ParseTable> parseTable = requireBuild(input.parseTable);
+    @Override public OutputPersisted<File> build(Input input) throws Exception {
+        OutputPersisted<File> parseTableFile = requireBuild(input.parseTable);
+        ParseTable parseTable = new ParseTableIO(parseTableFile.val).getParseTable();
         
-        Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, parseTable.val);
+        Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, parseTable);
 
         provide(input.outputFile);
 
