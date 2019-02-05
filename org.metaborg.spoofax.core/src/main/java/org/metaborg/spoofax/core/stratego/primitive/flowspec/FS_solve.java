@@ -70,7 +70,7 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
                 final InterpreterBuilder interpBuilder = getFlowSpecInterpreterBuilder(currentLanguage);
                 if (propertyNames.isPresent() && sol.isPresent()) {
                         final IFlowSpecSolution solution = solver.entryPoint(getFactory(), sol.get(), interpBuilder, propertyNames.get());
-                        return Optional.of(B.blob(result.withSolution(solution)));
+                        return Optional.of(B.blob(result.withCustomAnalysis(solution)));
                 }
                 return Optional.empty();
             }
