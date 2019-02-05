@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,12 +101,18 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         private static final long serialVersionUID = 3808911543715367986L;
 
         public final String moduleName;
-        public final Map<String, File> generatedFiles;
+        public final Map<String, File> strategyFiles;
+        public final Map<String, Set<File>> strategyConstrFiles;
+        public final Map<String, File> overlayFiles;
         public final List<Import> imports;
 
-        public Output(String moduleName, Map<String, File> generatedFiles, List<Import> imports) {
+
+
+        public Output(String moduleName, Map<String, File> strategyFiles, Map<String, Set<File>> strategyConstrFiles, Map<String, File> overlayFiles, List<Import> imports) {
             this.moduleName = moduleName;
-            this.generatedFiles = generatedFiles;
+            this.strategyFiles = strategyFiles;
+            this.strategyConstrFiles = strategyConstrFiles;
+            this.overlayFiles = overlayFiles;
             this.imports = imports;
         }
 
@@ -116,7 +123,9 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         @Override public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((generatedFiles == null) ? 0 : generatedFiles.hashCode());
+            result = prime * result + ((strategyFiles == null) ? 0 : strategyFiles.hashCode());
+            result = prime * result + ((strategyConstrFiles == null) ? 0 : strategyConstrFiles.hashCode());
+            result = prime * result + ((overlayFiles == null) ? 0 : overlayFiles.hashCode());
             result = prime * result + ((imports == null) ? 0 : imports.hashCode());
             result = prime * result + ((moduleName == null) ? 0 : moduleName.hashCode());
             return result;
@@ -130,10 +139,20 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
             if(getClass() != obj.getClass())
                 return false;
             Output other = (Output) obj;
-            if(generatedFiles == null) {
-                if(other.generatedFiles != null)
+            if(strategyFiles == null) {
+                if(other.strategyFiles != null)
                     return false;
-            } else if(!generatedFiles.equals(other.generatedFiles))
+            } else if(!strategyFiles.equals(other.strategyFiles))
+                return false;
+            if(strategyConstrFiles == null) {
+                if(other.strategyConstrFiles != null)
+                    return false;
+            } else if(!strategyConstrFiles.equals(other.strategyConstrFiles))
+                return false;
+            if(overlayFiles == null) {
+                if(other.overlayFiles != null)
+                    return false;
+            } else if(!overlayFiles.equals(other.overlayFiles))
                 return false;
             if(imports == null) {
                 if(other.imports != null)
@@ -282,12 +301,34 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList strategyList = Tools.listAt(result, 1);
         final IStrategoList importsTerm = Tools.listAt(result, 2);
+        final IStrategoList usedConstrList = Tools.listAt(result, 3);
+        final IStrategoList overlayList = Tools.listAt(result, 4);
 
-        final Map<String, File> generatedFiles = new HashMap<>();
-        for(IStrategoTerm strategyTerm : strategyList) {
-            String strategy = Tools.asJavaString(strategyTerm);
+        final Map<String, File> strategyFiles = new HashMap<>();
+        final Map<String, Set<File>> strategyConstrFiles = new HashMap<>();
+        for(Iterator<IStrategoTerm> strategyIterator = strategyList.iterator(), usedConstrIterator = usedConstrList.iterator(); strategyIterator.hasNext();) {
+            String strategy = Tools.asJavaString(strategyIterator.next());
+
+            assert usedConstrIterator.hasNext() : "Inconsistent compiler: strategy list longer than constructors used per strategy list";
+            IStrategoTerm usedConstrTerms = usedConstrIterator.next();
+            Set<File> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
+            for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
+                final String usedConstr = Tools.asJavaString(usedConstrTerm);
+                File file = context.toFile(paths.strSepCompOverlayFile(input.projectName, moduleName, usedConstr));
+                usedConstrs.add(file);
+            }
+            strategyConstrFiles.put(strategy, usedConstrs);
+
             File file = context.toFile(paths.strSepCompStrategyFile(input.projectName, moduleName, strategy));
-            generatedFiles.put(strategy, file);
+            provide(context.toFile(paths.strSepCompConstrListFile(input.projectName, moduleName, strategy)));
+            strategyFiles.put(strategy, file);
+            provide(file);
+        }
+        final Map<String, File> overlayFiles = new HashMap<>();
+        for(IStrategoTerm overlayTerm : overlayList) {
+            String overlayName = Tools.asJavaString(overlayTerm);
+            File file = context.toFile(paths.strSepCompOverlayFile(input.projectName, moduleName, overlayName));
+            overlayFiles.put(overlayName, file);
             provide(file);
         }
 
@@ -299,7 +340,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         }
 
         setState(State.finished(true));
-        return new Output(moduleName, generatedFiles, imports);
+        return new Output(moduleName, strategyFiles, strategyConstrFiles, overlayFiles, imports);
     }
 
     @Override protected String description(Input input) {
