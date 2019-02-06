@@ -176,7 +176,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         }
 
         final List<Path> overlayPaths = new ArrayList<>(input.constructorsUsed.size());
-        for(File overlayPath : input.strategyContributions) {
+        for(File overlayPath : input.constructorsUsed) {
             require(overlayPath, FileHashStamper.instance);
             if(overlayPath.exists()) {
                 overlayPaths.add(overlayPath.toPath());
@@ -186,7 +186,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         logger.debug("Hashchecks took: {} ns", System.nanoTime() - startTime);
 
         // Pack the directory into a single strategy
-        final Path packedFile = Paths.get(input.strategyDir.toString(), "packed$.aterm");
+        final Path packedFile = Paths.get(input.strategyDir.toString(), "packed$.ctree");
         if(input.isBoilerplate) {
             Packer.packBoilerplate(contributionPaths, packedFile);
         } else {
