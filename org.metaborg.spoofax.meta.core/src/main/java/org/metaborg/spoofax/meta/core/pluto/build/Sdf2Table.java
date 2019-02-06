@@ -1,15 +1,32 @@
 package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
-import org.metaborg.sdf2table.io.ParseTableGenerator;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
+import org.metaborg.core.config.ILanguageComponentConfig;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.sdf2table.grammar.NormGrammar;
+import org.metaborg.sdf2table.io.NormGrammarReader;
+import org.metaborg.sdf2table.io.ParseTableIO;
+import org.metaborg.sdf2table.parsetable.ParseTable;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
+import com.google.common.collect.Lists;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
@@ -20,28 +37,26 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final File inputFile;
-        public final File outputFile;
-        public final File outputContextGrammarFile;
-        public final File outputNormGrammarFile;
-        public final List<String> paths;
+        public final File inputMainNormSdfFile;
+        public final Collection<LanguageIdentifier> sourceDeps;
+        public final File outputParseTableFile;
+        public final File outputPersistedParseTableFile;
         public final boolean dynamic;
         public final boolean dataDependent;
-        public final boolean layoutSensitive;
+        public final boolean solveDeepConflicts;
+        public final boolean isCompletions;
 
-
-        public Input(SpoofaxContext context, File inputFile, File outputFile, File outputNormGrammarFile,
-            File outputContextGrammarFile, List<String> paths, boolean dynamic, boolean dataDependent,
-            boolean layoutSensitive) {
+        public Input(SpoofaxContext context, File inputMainNormSdfFile, Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile, boolean dynamic, boolean dataDependent,
+            boolean layoutSensitive, boolean isCompletions) {
             super(context);
-            this.inputFile = inputFile;
-            this.outputFile = outputFile;
-            this.outputNormGrammarFile = outputNormGrammarFile;
-            this.outputContextGrammarFile = outputContextGrammarFile;
-            this.paths = paths;
+            this.inputMainNormSdfFile = inputMainNormSdfFile;
+            this.sourceDeps = sourceDeps;
+            this.outputParseTableFile = outputParseTableFile;
+            this.outputPersistedParseTableFile = outputPersistedParseTableFile;
             this.dynamic = dynamic;
             this.dataDependent = dataDependent;
-            this.layoutSensitive = layoutSensitive;
+            this.solveDeepConflicts = !layoutSensitive;
+            this.isCompletions = isCompletions;
         }
     }
 
@@ -62,42 +77,77 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         return Origin.from(request(input));
     }
 
-
     @Override protected String description(Input input) {
-        return "Compile grammar to parse table using the Java implementation";
+        return "Compile normalized grammar to parse table using the Java implementation" + (input.isCompletions ? " (completions)" : "");
     }
 
     @Override public File persistentPath(Input input) {
-        String fileName = input.inputFile.getName();
-        return context.depPath("sdf2table-java." + fileName + ".dep");
+        return context.depPath("sdf2table-java." + input.outputParseTableFile.getName() + ".dep");
     }
 
-    @Override public OutputPersisted<File> build(Input input) throws IOException {
-        require(input.inputFile);
-        boolean status = true;
+    @Override public OutputPersisted<File> build(Input input) throws Exception {
+        List<String> paths = srcGenNormalizedSdf3Paths(input.sourceDeps);
+        
+        NormGrammarReader normGrammarReader = new NormGrammarReader(paths);
+        
+        normGrammarReader.accept(this::require);
+        
+        NormGrammar normGrammar = normGrammarReader.readGrammar(input.inputMainNormSdfFile);
+        
+        ParseTable parseTable = new ParseTable(normGrammar, input.dynamic, input.dataDependent, input.solveDeepConflicts);
+        
+        IStrategoTerm parseTableATerm = ParseTableIO.generateATerm(parseTable);
+        
+        ParseTableIO.outputToFile(parseTableATerm.toString(), input.outputParseTableFile);
+        ParseTableIO.persistObjectToFile(parseTable, input.outputPersistedParseTableFile);
 
-        try {
-            ParseTableGenerator pt_gen = new ParseTableGenerator(input.inputFile, input.outputFile,
-                input.outputNormGrammarFile, input.outputContextGrammarFile, input.paths);
-            
-            boolean solveDeepConflicts = true;
-            // TODO add option to generate the contextual grammar in the Yaml file
-            if(input.layoutSensitive) {
-                solveDeepConflicts = false;
+        provide(input.outputParseTableFile);
+        provide(input.outputPersistedParseTableFile);
+
+        setState(State.SUCCESS);
+        
+        return OutputPersisted.of(input.outputPersistedParseTableFile);
+    }
+    
+    private List<String> srcGenNormalizedSdf3Paths(Collection<LanguageIdentifier> sourceDeps) {
+        File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
+        
+        final List<String> paths = Lists.newLinkedList();
+        
+        paths.add(srcGenSyntaxDir.getAbsolutePath());
+
+        for(LanguageIdentifier langId : sourceDeps) {
+            ILanguageImpl lang = context.languageService().getImpl(langId);
+            for(final ILanguageComponent component : lang.components()) {
+                ILanguageComponentConfig config = component.config();
+                Collection<IExportConfig> exports = config.exports();
+                for(IExportConfig exportConfig : exports) {
+                    exportConfig.accept(new IExportVisitor() {
+                        @Override public void visit(LangDirExport export) {
+                            if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
+                                try {
+                                    paths
+                                        .add(toFileReplicate(component.location().resolveFile(export.directory))
+                                            .getAbsolutePath());
+                                } catch(FileSystemException e) {
+                                    System.out.println("Failed to locate path");
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                        @Override public void visit(LangFileExport export) {
+                            // Ignore file exports
+                        }
+
+                        @Override public void visit(ResourceExport export) {
+                            // Ignore resource exports
+                        }
+                    });
+                }
             }
-            
-            pt_gen.outputTable(input.dynamic, input.dataDependent, solveDeepConflicts);
-            for(File required : pt_gen.getParseTable().normalizedGrammar().getFilesRead()) {
-                require(required);
-            }
-        } catch(Exception e) {
-            System.out.println("Failed to generate parse table");
-            e.printStackTrace();
-            status = false;
         }
-        provide(input.outputFile);
-
-        setState(State.finished(status));
-        return OutputPersisted.of(input.outputFile);
+        
+        return paths;
     }
 }

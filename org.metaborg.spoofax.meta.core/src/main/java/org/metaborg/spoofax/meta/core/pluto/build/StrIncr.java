@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
@@ -26,8 +28,8 @@ import org.metaborg.util.log.LoggerUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.dependency.Origin;
+import build.pluto.dependency.Origin.Builder;
 import build.pluto.output.None;
-import io.usethesource.capsule.BinaryRelation;
 
 public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
     private static final ILogger logger = LoggerUtils.logger(StrIncr.class);
@@ -178,8 +180,11 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
 
         final List<File> boilerplateFiles = new ArrayList<>();
         final Origin.Builder allFrontEndTasks = new OutputIgnoreOriginBuilder();
-        final BinaryRelation.Transient<String, File> generatedFiles = BinaryRelation.Transient.of();
+        final Map<String, Set<File>> strategyFiles = new HashMap<>();
+        final Map<String, Set<String>> strategyConstrFiles = new HashMap<>();
+        final Map<String, Set<File>> overlayFiles = new HashMap<>();
         final Map<String, Origin.Builder> strategyOrigins = new HashMap<>();
+        final Map<String, Origin.Builder> overlayOrigins = new HashMap<>();
 
         long frontEndStartTime;
         long frontEndTime = 0;
@@ -200,11 +205,17 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
             allFrontEndTasks.add(request);
             boilerplateFiles
                 .add(context.toFile(paths.strSepCompBoilerplateFile(projectName, frontEndOutput.moduleName)));
-            for(Entry<String, File> gen : frontEndOutput.generatedFiles.entrySet()) {
+            for(Entry<String, File> gen : frontEndOutput.strategyFiles.entrySet()) {
                 String strategyName = gen.getKey();
-                generatedFiles.__insert(strategyName, gen.getValue());
-                strategyOrigins.computeIfAbsent(strategyName, k -> new OutputIgnoreOriginBuilder());
-                strategyOrigins.get(strategyName).add(request);
+                getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
+                getOrInitialize(strategyConstrFiles, strategyName, HashSet::new)
+                    .addAll(frontEndOutput.strategyConstrFiles.get(strategyName));
+                getOrInitialize(strategyOrigins, strategyName, OutputIgnoreOriginBuilder::new).add(request);
+            }
+            for(Entry<String, File> gen : frontEndOutput.overlayFiles.entrySet()) {
+                final String overlayName = gen.getKey();
+                getOrInitialize(overlayFiles, overlayName, HashSet::new).add(gen.getValue());
+                getOrInitialize(overlayOrigins, overlayName, OutputIgnoreOriginBuilder::new).add(request);
             }
 
             // resolving imports
@@ -215,8 +226,7 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
                 seen.addAll(resolvedImport);
             }
 
-            shuffleStartTime = System.nanoTime();
-            shuffleTime += shuffleStartTime - frontEndStartTime;
+            shuffleTime += System.nanoTime() - shuffleStartTime;
         } while(!workList.isEmpty());
 
         long betweenFrontAndBack = System.nanoTime();
@@ -225,19 +235,32 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
         logger.debug("While shuffling information and tracking imports took: {} ns", shuffleTime);
 
         // BACKEND
-        for(String strategyName : generatedFiles.keySet()) {
-            Origin strategyOrigin = strategyOrigins.get(strategyName).get();
+        for(String strategyName : strategyFiles.keySet()) {
+            Origin.Builder backEndOrigin = Origin.Builder();
+            backEndOrigin.add(strategyOrigins.get(strategyName).get());
             File strategyDir = context.toFile(paths.strSepCompStrategyDir(strategyName));
-            StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, strategyOrigin, strategyName,
-                strategyDir, Arrays.asList(generatedFiles.get(strategyName).toArray(new File[0])),
-                input.javaPackageName, input.outputPath, input.cacheDir, input.extraArgs, false);
+            List<File> strategyOverlayFiles = new ArrayList<>();
+            for(String overlayName : strategyConstrFiles.get(strategyName)) {
+                final Set<File> theOverlayFiles = overlayFiles.get(overlayName);
+                if(theOverlayFiles != null) {
+                    strategyOverlayFiles.addAll(theOverlayFiles);
+                }
+                final Builder overlayOriginBuilder = overlayOrigins.get(overlayName);
+                if(overlayOriginBuilder != null) {
+                    backEndOrigin.add(overlayOriginBuilder.get());
+                }
+            }
+            StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, backEndOrigin.get(), strategyName,
+                strategyDir, Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0])),
+                strategyOverlayFiles, input.javaPackageName,
+                input.outputPath, input.cacheDir, input.extraArgs, false);
             requireBuild(StrIncrBackEnd.request(backEndInput));
         }
         // boilerplate task
         File strSrcGenDir = context.toFile(paths.strSepCompSrcGenDir());
-        StrIncrBackEnd.Input backEndInput =
-            new StrIncrBackEnd.Input(context, allFrontEndTasks.get(), null, strSrcGenDir, boilerplateFiles,
-                input.javaPackageName, input.outputPath, input.cacheDir, input.extraArgs, true);
+        StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, allFrontEndTasks.get(), null,
+            strSrcGenDir, boilerplateFiles, Collections.emptyList(), input.javaPackageName, input.outputPath,
+            input.cacheDir, input.extraArgs, true);
         requireBuild(StrIncrBackEnd.request(backEndInput));
 
         long finishTime = System.nanoTime();
@@ -255,6 +278,11 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
         final Path rel = FileCommands.getRelativePath(context.baseDir, input.inputFile);
         final String relname = rel.toString().replace(File.separatorChar, '_');
         return context.depPath("str_incr." + relname + ".dep");
+    }
+
+    public static final <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {
+        map.computeIfAbsent(key, ignore -> initialize.get());
+        return map.get(key);
     }
 
 }

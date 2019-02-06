@@ -41,6 +41,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         public final @Nullable String strategyName;
         public final File strategyDir;
         public final Collection<File> strategyContributions;
+        public final Collection<File> constructorsUsed;
         public final String packageName;
         public final File outputPath;
         public final File cacheDir;
@@ -48,14 +49,15 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         public final boolean isBoilerplate;
 
         public Input(SpoofaxContext context, Origin frontEndTasks, @Nullable String strategyName, File strategyDir,
-            Collection<File> strategyContributions, String packageName, File outputPath, File cacheDir,
-            Arguments extraArgs, boolean isBoilerplate) {
+            Collection<File> strategyContributions, Collection<File> constructorsUsed, String packageName,
+            File outputPath, File cacheDir, Arguments extraArgs, boolean isBoilerplate) {
             super(context);
 
             this.frontEndTasks = frontEndTasks;
             this.strategyName = strategyName;
             this.strategyDir = strategyDir;
             this.strategyContributions = strategyContributions;
+            this.constructorsUsed = constructorsUsed;
             this.packageName = packageName;
             this.outputPath = outputPath;
             this.cacheDir = cacheDir;
@@ -173,6 +175,14 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
             contributionPaths.add(strategyContrib.toPath());
         }
 
+        final List<Path> overlayPaths = new ArrayList<>(input.constructorsUsed.size());
+        for(File overlayFile : input.constructorsUsed) {
+            require(overlayFile, FileHashStamper.instance);
+            if(overlayFile.exists()) {
+                overlayPaths.add(overlayFile.toPath());
+            }
+        }
+
         logger.debug("Hashchecks took: {} ns", System.nanoTime() - startTime);
 
         // Pack the directory into a single strategy
@@ -180,7 +190,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         if(input.isBoilerplate) {
             Packer.packBoilerplate(contributionPaths, packedFile);
         } else {
-            Packer.packStrategy(contributionPaths, packedFile, input.strategyName);
+            Packer.packStrategy(overlayPaths, contributionPaths, packedFile);
         }
 
         // Call Stratego compiler
@@ -212,8 +222,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
                 .withTracker(tracker).withName("strj").setSilent(true).executeCLI(arguments);
 
         Arrays.stream(result.errLog.split(System.lineSeparator()))
-            .filter(line -> line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE))
-            .forEach(line -> {
+            .filter(line -> line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE)).forEach(line -> {
                 String fileName = line.substring(SpoofaxConstants.STRJ_INFO_WRITING_FILE.length());
                 provide(new File(fileName));
             });
