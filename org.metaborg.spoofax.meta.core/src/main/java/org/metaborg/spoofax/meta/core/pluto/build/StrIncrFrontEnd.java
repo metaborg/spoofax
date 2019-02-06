@@ -102,13 +102,13 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         public final String moduleName;
         public final Map<String, File> strategyFiles;
-        public final Map<String, Set<File>> strategyConstrFiles;
+        public final Map<String, Set<String>> strategyConstrFiles;
         public final Map<String, File> overlayFiles;
         public final List<Import> imports;
 
 
 
-        public Output(String moduleName, Map<String, File> strategyFiles, Map<String, Set<File>> strategyConstrFiles, Map<String, File> overlayFiles, List<Import> imports) {
+        public Output(String moduleName, Map<String, File> strategyFiles, Map<String, Set<String>> strategyConstrFiles, Map<String, File> overlayFiles, List<Import> imports) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
             this.strategyConstrFiles = strategyConstrFiles;
@@ -306,16 +306,14 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         assert strategyList.size() == usedConstrList.size() : "Inconsistent compiler: strategy list size (" + strategyList.size() + ") != used constructors list size (" + usedConstrList.size() + ")";
 
         final Map<String, File> strategyFiles = new HashMap<>();
-        final Map<String, Set<File>> strategyConstrFiles = new HashMap<>();
+        final Map<String, Set<String>> strategyConstrFiles = new HashMap<>();
         for(Iterator<IStrategoTerm> strategyIterator = strategyList.iterator(), usedConstrIterator = usedConstrList.iterator(); strategyIterator.hasNext();) {
             String strategy = Tools.asJavaString(strategyIterator.next());
 
             IStrategoTerm usedConstrTerms = usedConstrIterator.next();
-            Set<File> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
+            Set<String> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
             for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
-                final String usedConstr = Tools.asJavaString(usedConstrTerm);
-                File file = context.toFile(paths.strSepCompOverlayFile(input.projectName, moduleName, usedConstr));
-                usedConstrs.add(file);
+                usedConstrs.add(Tools.asJavaString(usedConstrTerm));
             }
             strategyConstrFiles.put(strategy, usedConstrs);
 

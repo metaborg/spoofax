@@ -28,6 +28,7 @@ import org.metaborg.util.log.LoggerUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.dependency.Origin;
+import build.pluto.dependency.Origin.Builder;
 import build.pluto.output.None;
 
 public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
@@ -180,8 +181,10 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
         final List<File> boilerplateFiles = new ArrayList<>();
         final Origin.Builder allFrontEndTasks = new OutputIgnoreOriginBuilder();
         final Map<String, Set<File>> strategyFiles = new HashMap<>();
-        final Map<String, Set<File>> strategyConstrFiles = new HashMap<>();
+        final Map<String, Set<String>> strategyConstrFiles = new HashMap<>();
+        final Map<String, Set<File>> overlayFiles = new HashMap<>();
         final Map<String, Origin.Builder> strategyOrigins = new HashMap<>();
+        final Map<String, Origin.Builder> overlayOrigins = new HashMap<>();
 
         long frontEndStartTime;
         long frontEndTime = 0;
@@ -209,6 +212,11 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
                     .addAll(frontEndOutput.strategyConstrFiles.get(strategyName));
                 getOrInitialize(strategyOrigins, strategyName, OutputIgnoreOriginBuilder::new).add(request);
             }
+            for(Entry<String, File> gen : frontEndOutput.overlayFiles.entrySet()) {
+                final String overlayName = gen.getKey();
+                getOrInitialize(overlayFiles, overlayName, HashSet::new).add(gen.getValue());
+                getOrInitialize(overlayOrigins, overlayName, OutputIgnoreOriginBuilder::new).add(request);
+            }
 
             // resolving imports
             for(Import i : frontEndOutput.imports) {
@@ -228,11 +236,23 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
-            Origin strategyOrigin = strategyOrigins.get(strategyName).get();
+            Origin.Builder backEndOrigin = Origin.Builder();
+            backEndOrigin.add(strategyOrigins.get(strategyName).get());
             File strategyDir = context.toFile(paths.strSepCompStrategyDir(strategyName));
-            StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, strategyOrigin, strategyName,
+            List<File> strategyOverlayFiles = new ArrayList<>();
+            for(String overlayName : strategyConstrFiles.get(strategyName)) {
+                final Set<File> theOverlayFiles = overlayFiles.get(overlayName);
+                if(theOverlayFiles != null) {
+                    strategyOverlayFiles.addAll(theOverlayFiles);
+                }
+                final Builder overlayOriginBuilder = overlayOrigins.get(overlayName);
+                if(overlayOriginBuilder != null) {
+                    backEndOrigin.add(overlayOriginBuilder.get());
+                }
+            }
+            StrIncrBackEnd.Input backEndInput = new StrIncrBackEnd.Input(context, backEndOrigin.get(), strategyName,
                 strategyDir, Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0])),
-                Arrays.asList(strategyConstrFiles.get(strategyName).toArray(new File[0])), input.javaPackageName,
+                strategyOverlayFiles, input.javaPackageName,
                 input.outputPath, input.cacheDir, input.extraArgs, false);
             requireBuild(StrIncrBackEnd.request(backEndInput));
         }

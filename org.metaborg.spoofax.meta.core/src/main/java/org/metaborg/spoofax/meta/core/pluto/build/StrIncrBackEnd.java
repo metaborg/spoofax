@@ -176,10 +176,10 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         }
 
         final List<Path> overlayPaths = new ArrayList<>(input.constructorsUsed.size());
-        for(File overlayPath : input.constructorsUsed) {
-            require(overlayPath, FileHashStamper.instance);
-            if(overlayPath.exists()) {
-                overlayPaths.add(overlayPath.toPath());
+        for(File overlayFile : input.constructorsUsed) {
+            require(overlayFile, FileHashStamper.instance);
+            if(overlayFile.exists()) {
+                overlayPaths.add(overlayFile.toPath());
             }
         }
 
