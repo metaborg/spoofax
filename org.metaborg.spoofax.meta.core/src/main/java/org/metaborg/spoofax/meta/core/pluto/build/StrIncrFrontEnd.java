@@ -360,7 +360,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
             strategoLang = strategoDialect;
             strategoDialect = null;
             if(strategoLang == null) {
-                throw new IOException("Cannot find/load Stratego language, unable to build...");
+                throw new IOException("Cannot find/load Stratego language. Please add source dependency on org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion} in metaborg.yaml");
             }
         }
         if(strategoDialect != null) {
