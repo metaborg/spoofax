@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -39,14 +40,14 @@ public class StrIncr extends SpoofaxBuilder<StrIncr.Input, None> {
 
         public final File inputFile;
         public final String javaPackageName;
-        public final List<File> includeDirs;
+        public final Collection<File> includeDirs;
         public final List<File> includeFiles;
         public final File cacheDir;
         public final Arguments extraArgs;
         public final File outputPath;
         public final Origin origin;
 
-        public Input(SpoofaxContext context, File inputFile, String javaPackageName, List<File> includeDirs,
+        public Input(SpoofaxContext context, File inputFile, String javaPackageName, Collection<File> includeDirs,
             List<File> includeFiles, File cacheDir, Arguments extraArgs, File outputPath, Origin origin) {
             super(context);
 

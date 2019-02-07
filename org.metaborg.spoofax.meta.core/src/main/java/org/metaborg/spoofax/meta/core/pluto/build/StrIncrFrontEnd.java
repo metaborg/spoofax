@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -191,7 +192,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
             return new Import(ImportType.wildcard, importString);
         }
 
-        public Set<File> resolveImport(List<File> includeDirs) throws IOException {
+        public Set<File> resolveImport(Collection<File> includeDirs) throws IOException {
             Set<File> result = new HashSet<>();
             for(File dir : includeDirs) {
                 switch(importType) {
