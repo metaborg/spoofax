@@ -217,6 +217,16 @@ public class MetaBorg implements AutoCloseable {
     }
 
 
+    /**
+     * Sets the 'java.awt.headless' and 'apple.awt.UIElement' properties to true, to prevent an application icon from
+     * appearing on some platforms.
+     */
+    public void configureAsHeadlessApplication() {
+        System.setProperty("java.awt.headless", "true");
+        System.setProperty("apple.awt.UIElement", "true");
+    }
+
+
     protected static MetaborgModule defaultModule() {
         return new MetaborgModule();
     }
