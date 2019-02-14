@@ -302,10 +302,11 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         final IStrategoList strategyList = Tools.listAt(result, 1);
         // cifiedStratNameList (2)
         // usedStrategies (3)
-        final IStrategoList importsTerm = Tools.listAt(result, 4);
-        // defined constructors (5)
-        final IStrategoList usedConstrList = Tools.listAt(result, 6);
-        final IStrategoList overlayList = Tools.listAt(result, 7);
+        // ambiguousStratCalls (4)
+        final IStrategoList importsTerm = Tools.listAt(result, 5);
+        // defined constructors (6)
+        final IStrategoList usedConstrList = Tools.listAt(result, 7);
+        final IStrategoList overlayList = Tools.listAt(result, 8);
         assert strategyList.size() == usedConstrList.size() : "Inconsistent compiler: strategy list size (" + strategyList.size() + ") != used constructors list size (" + usedConstrList.size() + ")";
 
         final Map<String, File> strategyFiles = new HashMap<>();
