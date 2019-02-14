@@ -1,22 +1,14 @@
 package org.metaborg.spoofax.meta.core.pluto.build.misc;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URI;
-
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.spoofax.meta.core.pluto.util.ExecutableCommandStrategy;
-import org.metaborg.spoofax.nativebundle.NativeBundle;
-
 import build.pluto.builder.BuildRequest;
 import build.pluto.output.OutputTransient;
 import build.pluto.stamp.LastModifiedStamper;
+import java.io.*;
+import java.net.URI;
+import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.meta.core.pluto.*;
+import org.metaborg.spoofax.meta.core.pluto.util.ExecutableCommandStrategy;
+import org.metaborg.spoofax.nativebundle.NativeBundle;
 
 public class PrepareNativeBundle
     extends SpoofaxBuilder<PrepareNativeBundle.Input, OutputTransient<PrepareNativeBundle.Output>> {
@@ -33,17 +25,15 @@ public class PrepareNativeBundle
     }
 
     public static class Output implements Serializable {
-        private static final long serialVersionUID = -6018464107000421068L;
+        private static final long serialVersionUID = -5959733716557727757L;
 
         public final transient ExecutableCommandStrategy sdf2table;
         public final transient ExecutableCommandStrategy implodePT;
-        public final transient File strategoMixFile;
 
 
-        public Output(ExecutableCommandStrategy sdf2table, ExecutableCommandStrategy implodePT, File strategoMixFile) {
+        public Output(ExecutableCommandStrategy sdf2table, ExecutableCommandStrategy implodePT) {
             this.sdf2table = sdf2table;
             this.implodePT = implodePT;
-            this.strategoMixFile = strategoMixFile;
         }
     }
 
@@ -82,13 +72,8 @@ public class PrepareNativeBundle
         final File implodePtFile = new File(nativeBundleDir, NativeBundle.getImplodePTName());
         provide(implodePtFile, LastModifiedStamper.instance);
 
-        final URI strategoMixUri = NativeBundle.getStrategoMix();
-        final FileObject strategoMixLocation = context.resourceService().resolve(strategoMixUri);
-        final File strategoMixFile = toFileReplicate(strategoMixLocation);
-        provide(strategoMixFile, LastModifiedStamper.instance);
-
         return OutputTransient.of(new Output(new ExecutableCommandStrategy("sdf2table", sdf2TableFile),
-            new ExecutableCommandStrategy("implodePT", implodePtFile), strategoMixFile));
+            new ExecutableCommandStrategy("implodePT", implodePtFile)));
     }
 
     private static void restoreExecutablePermissions(File directory) {

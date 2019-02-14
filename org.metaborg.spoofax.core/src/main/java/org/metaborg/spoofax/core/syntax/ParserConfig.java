@@ -3,11 +3,13 @@ package org.metaborg.spoofax.core.syntax;
 public class ParserConfig implements IParserConfig {
     private final String startSymbol;
     private final IParseTableProvider parseTableProvider;
+    private final ImploderImplementation imploder;
 
 
-    public ParserConfig(String startSymbol, IParseTableProvider provider) {
+    public ParserConfig(String startSymbol, IParseTableProvider provider, ImploderImplementation imploder) {
         this.startSymbol = startSymbol;
         this.parseTableProvider = provider;
+        this.imploder = imploder;
     }
 
 
@@ -17,5 +19,9 @@ public class ParserConfig implements IParserConfig {
 
     @Override public IParseTableProvider getParseTableProvider() {
         return this.parseTableProvider;
+    }
+
+    @Override public ImploderImplementation getImploderSetting() {
+        return this.imploder;
     }
 }

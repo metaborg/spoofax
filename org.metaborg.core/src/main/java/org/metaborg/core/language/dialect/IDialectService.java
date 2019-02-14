@@ -9,6 +9,16 @@ import org.metaborg.core.language.ILanguageImpl;
 
 public interface IDialectService {
     /**
+     * Returns dialect name for the given dialect.
+     * 
+     * @param dialect
+     *            The dialect.
+     * @return the name of the dialect, null if it isn't a dialect.
+     */
+    @Nullable String dialectName(ILanguageImpl dialect);
+
+
+    /**
      * Returns if dialect with given name exists.
      * 
      * @param name

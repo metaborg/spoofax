@@ -19,6 +19,7 @@ import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
 import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.NullTreeBuilder;
+import org.spoofax.jsglr.client.ParseException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
@@ -28,11 +29,14 @@ import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.attachments.ParentTermFactory;
+import org.strategoxt.lang.Context;
+import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
     private final SGLR parser;
-    
+
     public JSGLR1I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
         @Nullable FileObject resource, String input) throws IOException, InvalidParseTableException {
         super(config, termFactory, language, dialect, resource, input);
@@ -48,8 +52,8 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
         final String fileName = resource != null ? resource.getName().getURI() : null;
 
-        final JSGLRParseErrorHandler errorHandler = new JSGLRParseErrorHandler(this, resource,
-        		getParseTable(config.getParseTableProvider()).hasRecovers());
+        final JSGLRParseErrorHandler errorHandler =
+            new JSGLRParseErrorHandler(this, resource, getParseTable(config.getParseTableProvider()).hasRecovers());
 
         final Timer timer = new Timer(true);
         SGLRParseResult result;
@@ -92,7 +96,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
     public SGLRParseResult actuallyParse(String text, @Nullable String filename,
         @Nullable JSGLRParserConfiguration parserConfig) throws SGLRException, InterruptedException {
-        if(!parserConfig.implode) {
+        if(!parserConfig.implode || config.getImploderSetting() == ImploderImplementation.stratego) {
             // GTODO: copied from existing code. Is this correct? Seems like this should be the tree builder when
             // implode is set to true. Also, there is no else branch.
             parser.setTreeBuilder(new Asfix2TreeBuilder(termFactory));
@@ -112,16 +116,30 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         } else {
             disambiguator.setHeuristicFilters(false);
         }
-        
-        String startSymbol = getOrDefaultStartSymbol(parserConfig);
+
+        SGLRParseResult parseResult = parseAndRecover(text, filename, disambiguator, getOrDefaultStartSymbol(parserConfig));
+        if(config.getImploderSetting() == ImploderImplementation.stratego) {
+            final implode_asfix_0_0 imploder = implode_asfix_0_0.instance;
+            final Context strategoContext = new Context(this.termFactory);
+            final IStrategoTerm syntaxTree = (IStrategoTerm) parseResult.output;
+            return new SGLRParseResult(imploder.invoke(strategoContext, syntaxTree));
+        } else {
+            return parseResult;
+        }
+    }
+
+    public SGLRParseResult parseAndRecover(String text, String filename, final Disambiguator disambiguator,
+        String startSymbol) throws BadTokenException, TokenExpectedException, ParseException, SGLRException,
+        InterruptedException, FilterException, StartSymbolException {
         try {
             return parser.parse(text, filename, startSymbol);
         } catch(FilterException e) {
-            if((e.getCause() == null || e.getCause() instanceof UnsupportedOperationException) && disambiguator.getFilterPriorities()) {
+            if((e.getCause() == null || e.getCause() instanceof UnsupportedOperationException)
+                && disambiguator.getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
                 disambiguator.setFilterAssociativity(false);
                 try {
-                    return parser.parse(text, filename, startSymbol);
+                    return  parser.parse(text, filename, startSymbol);
                 } finally {
                     disambiguator.setFilterPriorities(true);
                 }
@@ -138,7 +156,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
             }
         }
     }
-    
+
     public Set<BadTokenException> getCollectedErrors() {
         return parser.getCollectedErrors();
     }

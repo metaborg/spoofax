@@ -84,6 +84,10 @@ public class LangSpecGenerator extends BaseGenerator {
         return syntaxEnabled() && config.generatorSettings.analysisType() == AnalysisType.NaBL2;
     }
 
+    public boolean analysisStatix() {
+        return syntaxEnabled() && config.generatorSettings.analysisType() == AnalysisType.Statix;
+    }
+
     public boolean syntaxOrAnalysisEnabled() {
         return syntaxEnabled() || analysisEnabled();
     }
@@ -131,6 +135,8 @@ public class LangSpecGenerator extends BaseGenerator {
             writer.writeResolve("langspec/trans/analysis.{{analysisType.id}}.str", "trans/analysis.str", false);
             if(analysisNabl2()) {
                 writer.write("langspec/trans/static-semantics.nabl2", "trans/static-semantics.nabl2", false);
+            } else if(analysisStatix()) {
+                writer.write("langspec/trans/static-semantics.stx", "trans/static-semantics.stx", false);
             }
         }
         if(syntaxEnabled()) {

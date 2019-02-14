@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -16,6 +17,8 @@ import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.BuildUnit.State;
@@ -24,6 +27,8 @@ import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 
 public class Strj extends SpoofaxBuilder<Strj.Input, None> {
+    private static final ILogger logger = LoggerUtils.logger(Strj.class);
+
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -5234502421638344690L;
 
@@ -92,6 +97,9 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
     @Override public None build(Input input) throws IOException {
         requireBuild(input.origin);
 
+        logger.debug("Starting time measurement");
+        long startTime = System.nanoTime();
+
         require(input.inputFile);
 
         final File rtree = FileCommands.replaceExtension(input.outputPath, "rtree");
@@ -137,6 +145,7 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
           , Pattern.quote("[ strj | warning ] Nullary constructor") + ".*"
           , Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*"
           , Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*"
+          , Pattern.quote(SpoofaxConstants.STRJ_INFO_WRITING_FILE) + ".*"
           , Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]")
         );
         
@@ -172,6 +181,8 @@ public class Strj extends SpoofaxBuilder<Strj.Input, None> {
         }
 
         setState(State.finished(result.success));
+        long buildDuration = System.nanoTime() - startTime;
+        logger.debug("Measured: {} ns", buildDuration);
         return None.val;
     }
 

@@ -9,6 +9,14 @@ imports
  
   
 rules
+
+  pp-partial-{{name}}-string(|sort) = fail
+  pp-partial-{{name}}-string = fail
+  parenthesize-{{name}} = fail
+  {{ppName}}-get-indent = fail
+  {{ppName}}-get-leading-ws = fail
+  {{ppName}}-get-separator = fail
+
   
   get-proposals-empty-program-{{name}}                         = ?(sort, _); 
                                                                  get-proposals-empty-program(pp-partial-{{name}}-string(|sort), parenthesize-{{name}}, 

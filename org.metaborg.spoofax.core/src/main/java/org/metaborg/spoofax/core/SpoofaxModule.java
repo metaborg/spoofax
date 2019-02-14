@@ -220,6 +220,7 @@ import mb.nabl2.spoofax.primitives.SG_solve_multi_final_constraint;
 import mb.nabl2.spoofax.primitives.SG_solve_multi_initial_constraint;
 import mb.nabl2.spoofax.primitives.SG_solve_multi_unit_constraint;
 import mb.nabl2.spoofax.primitives.SG_solve_single_constraint;
+import mb.statix.spoofax.STX_compare_patterns;
 import mb.statix.spoofax.STX_solve_constraint;
 
 /**
@@ -454,6 +455,7 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> statixLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));
+        bindPrimitive(statixLibrary, STX_compare_patterns.class);
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
 
         final Multibinder<AbstractPrimitive> spoofaxFlowSpecLibrary =

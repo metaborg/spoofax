@@ -1,0 +1,15 @@
+module Analysis
+
+imports
+
+  statix/Menus
+
+language
+
+  observer : editor-analyze (constraint)
+
+references
+
+  reference _ : editor-resolve
+
+  hover _ : editor-hover

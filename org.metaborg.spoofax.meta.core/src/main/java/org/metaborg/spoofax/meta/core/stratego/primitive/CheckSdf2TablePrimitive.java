@@ -1,10 +1,18 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
+import java.io.File;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
+import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.log.ILogger;
@@ -15,6 +23,7 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -64,21 +73,30 @@ public class CheckSdf2TablePrimitive extends AbstractPrimitive {
         }
 
         boolean metaSDFfile = false;
-//        try {
-//            final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(languageSpec.location());
-//            final Iterable<FileObject> sdfRoots =
-//                languagePathService.sourcePaths(project, SpoofaxConstants.LANG_SDF_NAME);
-//            final String sdfMetaModule = languageSpec.config().metaSdfName();
-//            final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
-//            if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists())
-//                metaSDFfile = true;
-//
-//        } catch(FileSystemException fse) {
-//            metaSDFfile = false;
-//        }
+        try {
+            final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(languageSpec.location());
+            final Iterable<FileObject> sdfRoots =
+                languagePathService.sourcePaths(project, SpoofaxConstants.LANG_SDF_NAME);
 
-        if(!languageSpec.config().sdfEnabled() || metaSDFfile) {
+            List<String> sdfMetaModules = languageSpec.config().sdfMetaFiles();
+
+            for(String sdfMetaModule : sdfMetaModules) {
+                final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
+                if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists()) {
+                    metaSDFfile = true;
+                }
+            }
+        } catch(FileSystemException fse) {
+            metaSDFfile = false;
+        }
+
+        if(!languageSpec.config().sdfEnabled()) {
             env.setCurrent(env.getFactory().makeString("disabled"));
+            return true;
+        }
+
+        if(metaSDFfile) {
+            env.setCurrent(env.getFactory().makeString("mixin-grammar"));
             return true;
         }
 

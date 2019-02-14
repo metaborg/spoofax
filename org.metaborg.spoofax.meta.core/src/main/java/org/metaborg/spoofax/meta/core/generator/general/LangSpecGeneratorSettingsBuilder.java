@@ -103,8 +103,7 @@ public class LangSpecGeneratorSettingsBuilder {
     }
 
     public LangSpecGeneratorSettingsBuilder withDefaultVersion(@Nullable String defaultVersionString) {
-        this.defaultVersion = (defaultVersionString != null && LanguageVersion.valid(defaultVersionString))
-            ? LanguageVersion.parse(defaultVersionString) : null;
+        this.defaultVersion = defaultVersionString != null ? LanguageVersion.parse(defaultVersionString) : null;
         return this;
     }
 
@@ -165,7 +164,7 @@ public class LangSpecGeneratorSettingsBuilder {
             if(versionString.isEmpty()) {
                 version = defaultVersion;
             } else {
-                if(versionString.trim().isEmpty() || !LanguageVersion.valid(versionString.trim())) {
+                if(versionString.trim().isEmpty()) {
                     System.err.println("Please enter a valid version");
                     version = null;
                 } else {
