@@ -58,6 +58,8 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
 
     @Override public OutputPersisted<File> build(Input input) throws Exception {
         OutputPersisted<File> parseTableFile = requireBuild(input.parseTable);
+        require(parseTableFile.val);
+        
         ParseTable parseTable = new ParseTableIO(parseTableFile.val).getParseTable();
         
         Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, parseTable);
