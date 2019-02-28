@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.semantic_provider;
+package org.metaborg.spoofax.core.dynamicclassloading;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,14 +17,14 @@ import com.google.common.collect.Lists;
 /**
  * Represents the Stratego runtime facet of a language.
  */
-public class SemanticProviderFacet implements IFacet {
-    private static final ILogger logger = LoggerUtils.logger(SemanticProviderFacet.class);
+public class DynamicClassLoadingFacet implements IFacet {
+    private static final ILogger logger = LoggerUtils.logger(DynamicClassLoadingFacet.class);
 
-    public final Iterable<FileObject> ctreeFiles;
-    public final Iterable<FileObject> jarFiles;
+    public final Collection<FileObject> ctreeFiles;
+    public final Collection<FileObject> jarFiles;
 
 
-    public SemanticProviderFacet(Iterable<FileObject> ctreeFiles, Iterable<FileObject> jarFiles) {
+    public DynamicClassLoadingFacet(Collection<FileObject> ctreeFiles, Collection<FileObject> jarFiles) {
         this.ctreeFiles = ctreeFiles;
         this.jarFiles = jarFiles;
     }
@@ -37,7 +37,7 @@ public class SemanticProviderFacet implements IFacet {
      * @throws IOException
      *             When a file operation fails.
      */
-    public Iterable<String> available(IResourceService resourceService) throws IOException {
+    public Collection<String> available(IResourceService resourceService) throws IOException {
         final Collection<String> errors = Lists.newLinkedList();
         for(FileObject file : ctreeFiles) {
             if(!file.exists()) {

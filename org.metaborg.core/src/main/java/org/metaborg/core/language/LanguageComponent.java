@@ -3,12 +3,10 @@ package org.metaborg.core.language;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
@@ -31,7 +29,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
         this.contributesTo = contributesTo;
         this.config = config;
         for(IFacet facet : facets) {
-            this.facets.put(facet.getClass(), facet);
+            this.facets.put(facet.getKey(), facet);
         }
     }
 
@@ -81,32 +79,6 @@ public class LanguageComponent implements ILanguageComponentInternal {
             contributions.add(new FacetContribution<>(facet, this));
         }
         return contributions;
-    }
-
-    @Override public <T extends IFacet> T facet(Class<T> type) {
-        // GTODO: code duplication with LanguageComponent, use default interface implementation in Java 8.
-        final Iterable<T> facets = facets(type);
-        final int size = Iterables.size(facets);
-        if(size == 0) {
-            return null;
-        } else if(size > 1) {
-            throw new MetaborgRuntimeException(
-                "Multiple facets of type " + type + " found, while only a single facet is supported");
-        }
-        return Iterables.get(facets, 0);
-    }
-
-    @Override public <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type) {
-        // GTODO: code duplication with LanguageComponent, use default interface implementation in Java 8.
-        final Iterable<FacetContribution<T>> facetContributions = facetContributions(type);
-        final int size = Iterables.size(facetContributions);
-        if(size == 0) {
-            return null;
-        } else if(size > 1) {
-            throw new MetaborgRuntimeException(
-                "Multiple facets of type " + type + " found, while only a single facet is supported");
-        }
-        return Iterables.get(facetContributions, 0);
     }
 
     @Override public Iterable<IFacet> facets() {

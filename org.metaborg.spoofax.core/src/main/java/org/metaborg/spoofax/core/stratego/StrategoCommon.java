@@ -10,8 +10,8 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.spoofax.core.semantic_provider.BuilderInput;
-import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacet;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -53,7 +53,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
         String strategy) throws MetaborgException {
-        if(component.facet(SemanticProviderFacet.class) == null) {
+        if(component.facet(DynamicClassLoadingFacet.class) == null) {
             return null;
         }
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
@@ -64,7 +64,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(SemanticProviderFacet.class) == null) {
+            if(component.facet(DynamicClassLoadingFacet.class) == null) {
                 continue;
             }
 
@@ -84,7 +84,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(SemanticProviderFacet.class) == null) {
+            if(component.facet(DynamicClassLoadingFacet.class) == null) {
                 continue;
             }
 

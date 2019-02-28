@@ -21,13 +21,13 @@ import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.tracing.Resolution;
 import org.metaborg.core.tracing.ResolutionTarget;
-import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
-import org.metaborg.spoofax.core.semantic_provider.SemanticProviderService;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.api.IResolver;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.tracing.TracingCommon.TermWithRegion;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.spoofax.core.user_definable.IResolver;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -47,12 +47,12 @@ public class ResolverService implements ISpoofaxResolverService {
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
     private final TracingCommon common;
-    private final ISemanticProviderService semanticProviderService;
+    private final IDynamicClassLoadingService semanticProviderService;
 
 
     @Inject public ResolverService(IProjectService projectService, IContextService contextService,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService, 
-        TracingCommon common, SemanticProviderService semanticProviderService) {
+        TracingCommon common, DynamicClassLoadingService semanticProviderService) {
         this.projectService = projectService;
         this.contextService = contextService;
         this.strategoRuntimeService = strategoRuntimeService;
@@ -155,7 +155,7 @@ public class ResolverService implements ISpoofaxResolverService {
 
     private Resolution javaResolve(IContext env, ILanguageComponent contributor, String javaClassName,
             Iterable<IStrategoTerm> inRegion) throws MetaborgException {
-        IResolver resolver = semanticProviderService.resolver(contributor, javaClassName);
+        IResolver resolver = semanticProviderService.loadClass(contributor, javaClassName, IResolver.class);
         Iterable<ResolutionTarget> resolutions = null;
         ISourceLocation highlightLocation = null;
         for (IStrategoTerm region : inRegion) {

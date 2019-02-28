@@ -62,6 +62,8 @@ import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
 import org.metaborg.spoofax.core.language.LanguageComponentFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
@@ -82,8 +84,6 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
-import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
-import org.metaborg.spoofax.core.semantic_provider.SemanticProviderService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
@@ -354,9 +354,9 @@ public class SpoofaxModule extends MetaborgModule {
         bind(IAnalysisService.class).to(SpoofaxAnalysisService.class);
 
         // Semantic provider
-        bind(SemanticProviderService.class).in(Singleton.class);
-        bind(ISemanticProviderService.class).to(SemanticProviderService.class);
-        languageCacheBinder.addBinding().to(SemanticProviderService.class);
+        bind(DynamicClassLoadingService.class).in(Singleton.class);
+        bind(IDynamicClassLoadingService.class).to(DynamicClassLoadingService.class);
+        languageCacheBinder.addBinding().to(DynamicClassLoadingService.class);
 
         // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);

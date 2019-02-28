@@ -4,4 +4,8 @@ import org.metaborg.core.language.IFacet;
 
 public interface IOutlineFacet extends IFacet {
     int getExpansionLevel();
+
+    @Override default Class<? extends IFacet> getKey() {
+        return IOutlineFacet.class;
+    }
 }

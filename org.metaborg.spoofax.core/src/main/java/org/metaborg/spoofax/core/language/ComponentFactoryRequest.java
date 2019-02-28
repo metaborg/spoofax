@@ -9,7 +9,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.language.IComponentCreationConfigRequest;
-import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacet;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
@@ -23,7 +23,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
     @Nullable private final ILanguageComponentConfig config;
     @Nullable private final IStrategoAppl esvTerm;
     @Nullable private final SyntaxFacet syntaxFacet;
-    @Nullable private final SemanticProviderFacet semanticProviderFacet;
+    @Nullable private final DynamicClassLoadingFacet semanticProviderFacet;
 
 
     /**
@@ -42,7 +42,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
      */
     public ComponentFactoryRequest(FileObject location, @Nullable ILanguageComponentConfig config,
         @Nullable IStrategoAppl esvTerm, @Nullable SyntaxFacet syntaxFacet,
-        @Nullable SemanticProviderFacet semanticProviderFacet) {
+        @Nullable DynamicClassLoadingFacet semanticProviderFacet) {
         this.available = true;
         this.location = location;
         this.errors = Collections.emptyList();
@@ -169,7 +169,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
      *
      * @return The Stratego runtime facet; or <code>null</code> when there is no Stratego runtime facet.
      */
-    public @Nullable SemanticProviderFacet semanticProviderFacet() {
+    public @Nullable DynamicClassLoadingFacet semanticProviderFacet() {
         return this.semanticProviderFacet;
     }
 

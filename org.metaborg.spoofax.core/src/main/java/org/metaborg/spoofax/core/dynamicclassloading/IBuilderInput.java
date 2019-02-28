@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.semantic_provider;
+package org.metaborg.spoofax.core.dynamicclassloading;
 
 import org.apache.commons.vfs2.FileObject;
 import org.spoofax.interpreter.terms.IStrategoTerm;

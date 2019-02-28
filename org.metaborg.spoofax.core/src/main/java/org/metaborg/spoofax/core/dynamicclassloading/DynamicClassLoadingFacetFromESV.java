@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.semantic_provider;
+package org.metaborg.spoofax.core.dynamicclassloading;
 
 import java.util.Set;
 
@@ -13,11 +13,11 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Sets;
 
-public class SemanticProviderFacetFromESV {
-    private static final ILogger logger = LoggerUtils.logger(SemanticProviderFacetFromESV.class);
+public class DynamicClassLoadingFacetFromESV {
+    private static final ILogger logger = LoggerUtils.logger(DynamicClassLoadingFacetFromESV.class);
 
 
-    public static @Nullable SemanticProviderFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
+    public static @Nullable DynamicClassLoadingFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
         final Set<FileObject> strategoFiles = providerResources(esv, location);
         // Use LinkedHashSet to maintain ordering.
         final Set<FileObject> ctreeFiles = Sets.newLinkedHashSet();
@@ -41,7 +41,7 @@ public class SemanticProviderFacetFromESV {
             return null;
         }
 
-        final SemanticProviderFacet facet = new SemanticProviderFacet(ctreeFiles, jarFiles);
+        final DynamicClassLoadingFacet facet = new DynamicClassLoadingFacet(ctreeFiles, jarFiles);
         return facet;
     }
 

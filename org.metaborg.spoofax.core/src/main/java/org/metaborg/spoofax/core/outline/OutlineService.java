@@ -22,14 +22,14 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.spoofax.core.semantic_provider.IBuilderInput;
-import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
+import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.api.IOutliner;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.spoofax.core.user_definable.IOutliner;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
@@ -50,18 +50,18 @@ public class OutlineService implements ISpoofaxOutlineService {
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
     private final IStrategoCommon common;
-    private final ISemanticProviderService semanticProviderService;
+    private final IDynamicClassLoadingService dynamicClassLoadingService;
 
 
     @Inject public OutlineService(IProjectService projectService, IContextService contextService,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService, IStrategoCommon common,
-        ISemanticProviderService semanticProviderService) {
+        IDynamicClassLoadingService dynamicClassLoadingService) {
         this.projectService = projectService;
         this.contextService = contextService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;
         this.common = common;
-        this.semanticProviderService = semanticProviderService;
+        this.dynamicClassLoadingService = dynamicClassLoadingService;
     }
 
 
@@ -158,7 +158,7 @@ public class OutlineService implements ISpoofaxOutlineService {
 
 
     private IOutline javaOutline(IContext context, ILanguageComponent contributor, JavaOutlineFacet facet, IBuilderInput input) throws MetaborgException {
-        IOutliner outliner = semanticProviderService.outliner(contributor, facet.javaClassName);
+        IOutliner outliner = dynamicClassLoadingService.loadClass(contributor, facet.javaClassName, IOutliner.class);
         Iterable<IOutlineNode> outline = outliner.createOutline(context, input, this::region);
         if (outline == null) {
             return null;
@@ -167,12 +167,8 @@ public class OutlineService implements ISpoofaxOutlineService {
     }
 
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     private FacetContribution<IOutlineFacet> facet(ILanguageImpl language) throws MetaborgException {
-        FacetContribution<IOutlineFacet> facet = (FacetContribution) language.facetContribution(StrategoOutlineFacet.class);
-        if(facet == null) {
-            facet = (FacetContribution) language.facetContribution(JavaOutlineFacet.class);
-        }
+        final FacetContribution<IOutlineFacet> facet = language.facetContribution(IOutlineFacet.class);
         if(facet == null) {
             final String message =
                 logger.format("Cannot create outline for {}, it does not have an outline facet", language);

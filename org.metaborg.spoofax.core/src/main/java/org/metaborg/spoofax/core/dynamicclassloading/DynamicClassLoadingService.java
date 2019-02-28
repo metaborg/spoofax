@@ -1,34 +1,32 @@
-package org.metaborg.spoofax.core.semantic_provider;
+package org.metaborg.spoofax.core.dynamicclassloading;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.stream.StreamSupport;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.user_definable.IHoverText;
-import org.metaborg.spoofax.core.user_definable.IOutliner;
-import org.metaborg.spoofax.core.user_definable.IResolver;
-import org.metaborg.spoofax.core.user_definable.ITransformer;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
-public class SemanticProviderService implements ISemanticProviderService, ILanguageCache {
-    private static final ILogger logger = LoggerUtils.logger(SemanticProviderService.class);
+public class DynamicClassLoadingService implements IDynamicClassLoadingService, ILanguageCache {
+    private static final ILogger logger = LoggerUtils.logger(DynamicClassLoadingService.class);
 
     private final IResourceService resourceService;
     private final Set<ClassLoader> additionalClassLoaders;
@@ -36,32 +34,14 @@ public class SemanticProviderService implements ISemanticProviderService, ILangu
     private final Map<ILanguageComponent, ClassLoader> classLoaderCache = Maps.newHashMap();
     @SuppressWarnings("rawtypes")
     private final Map<ILanguageComponent, Map<Class, ServiceLoader>> serviceLoaderCache = Maps.newHashMap();
+    private final Injector injector;
 
 
-    @Inject public SemanticProviderService(IResourceService resourceService,
-        Set<ClassLoader> additionalClassLoaders) {
+    @Inject public DynamicClassLoadingService(IResourceService resourceService,
+        Set<ClassLoader> additionalClassLoaders, Injector injector) {
         this.resourceService = resourceService;
         this.additionalClassLoaders = additionalClassLoaders;
-    }
-
-    @Override
-    public IOutliner outliner(ILanguageComponent component, String className) throws MetaborgException {
-        return loadClass(component, className, IOutliner.class);
-    }
-
-    @Override
-    public IResolver resolver(ILanguageComponent component, String className) throws MetaborgException {
-        return loadClass(component, className, IResolver.class);
-    }
-
-    @Override
-    public IHoverText hoverer(ILanguageComponent component, String className) throws MetaborgException {
-        return loadClass(component, className, IHoverText.class);
-    }
-
-    @Override
-    public ITransformer transformer(ILanguageComponent component, String className) throws MetaborgException {
-        return loadClass(component, className, ITransformer.class);
+        this.injector = injector;
     }
 
     @SuppressWarnings("unchecked")
@@ -75,10 +55,11 @@ public class SemanticProviderService implements ISemanticProviderService, ILangu
         } catch (ClassNotFoundException e) {
             throw new MetaborgException("Given class was not found: " + className, e);
         }
-        T outliner;
+        T instance;
         try {
             logger.trace("Instantiating outliner class");
-            outliner = (T) theClass.newInstance();
+            instance = (T) theClass.newInstance();
+            injector.injectMembers(instance);
         } catch (InstantiationException e) {
             throw new MetaborgException("Given class was not instantiable", e);
         } catch (IllegalAccessException e) {
@@ -86,11 +67,11 @@ public class SemanticProviderService implements ISemanticProviderService, ILangu
         } catch (ClassCastException e) {
             throw new MetaborgException("Given class does not implement required interface", e);
         }
-        return outliner;
+        return instance;
     }
 
     @Override
-    public <T> Iterator<T> loadClasses(ILanguageComponent component, Class<T> type) throws MetaborgException {
+    public <T> List<T> loadClasses(ILanguageComponent component, Class<T> type) throws MetaborgException {
         @SuppressWarnings("rawtypes")
         final Map<Class, ServiceLoader> serviceLoaderCacheLevel2;
         if(serviceLoaderCache.containsKey(component)) {
@@ -98,7 +79,7 @@ public class SemanticProviderService implements ISemanticProviderService, ILangu
             if(serviceLoaderCacheLevel2.containsKey(type)) {
                 @SuppressWarnings("unchecked")
                 ServiceLoader<T> serviceLoader = (ServiceLoader<T>) serviceLoaderCacheLevel2.get(type);
-                return serviceLoader.iterator();
+                return initializeInjectionFields(serviceLoader.iterator());
             }
         } else {
             serviceLoaderCacheLevel2 = Maps.newHashMap();
@@ -107,29 +88,37 @@ public class SemanticProviderService implements ISemanticProviderService, ILangu
         final ClassLoader classLoader = classLoader(component);
         final ServiceLoader<T> serviceLoader = ServiceLoader.load(type, classLoader);
         serviceLoaderCacheLevel2.put(type, serviceLoader);
-        return serviceLoader.iterator();
+        return initializeInjectionFields(serviceLoader.iterator());
+    }
+    
+    private <T> List<T> initializeInjectionFields(Iterator<T> iterator) {
+        List<T> result = new ArrayList<>();
+        for(; iterator.hasNext();) {
+            T instance = iterator.next();
+            injector.injectMembers(instance);
+            result.add(instance);
+        }
+        return result;
     }
 
     private ClassLoader classLoader(ILanguageComponent component) throws MetaborgException {
         if(classLoaderCache.containsKey(component)) {
             return classLoaderCache.get(component);
         }
-        Iterable<FileObject> jarFiles = component.facet(SemanticProviderFacet.class).jarFiles;
-        URL[] classpath;
+        final Collection<FileObject> jarFiles = component.facet(DynamicClassLoadingFacet.class).jarFiles;
+        final URL[] classpath = new URL[jarFiles.size()];
         try {
-            classpath = StreamSupport.stream(jarFiles.spliterator(), false).map(jar -> {
+            int i = 0;
+            for(FileObject jar : jarFiles) {
                 final File localJar = resourceService.localFile(jar);
-                try {
-                    return localJar.toURI().toURL();
-                } catch (MalformedURLException e) {
-                    throw new MetaborgRuntimeException(e);
-                }
-            }).toArray(i -> new URL[i]);
-        } catch (MetaborgRuntimeException e) {
+                classpath[i] = localJar.toURI().toURL();
+                i++;
+            }
+        } catch (MalformedURLException e) {
             throw new MetaborgException(e);
         }
         logger.trace("Loading jar files {}", (Object) classpath);
-        URLClassLoader classLoader = new URLClassLoader(classpath, new SemanticProviderClassLoader(additionalClassLoaders));
+        URLClassLoader classLoader = new URLClassLoader(classpath, new DynamicClassLoader(additionalClassLoaders));
         classLoaderCache.put(component, classLoader);
         return classLoader;
     }

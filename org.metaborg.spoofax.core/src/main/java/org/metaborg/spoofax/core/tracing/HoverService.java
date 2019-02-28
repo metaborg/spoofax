@@ -18,15 +18,13 @@ import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.tracing.Hover;
-import org.metaborg.spoofax.core.outline.JavaOutlineFacet;
-import org.metaborg.spoofax.core.outline.StrategoOutlineFacet;
-import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
-import org.metaborg.spoofax.core.semantic_provider.SemanticProviderService;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.api.IHoverText;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.tracing.TracingCommon.TermWithRegion;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.spoofax.core.user_definable.IHoverText;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
@@ -43,12 +41,12 @@ public class HoverService implements ISpoofaxHoverService {
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
     private final TracingCommon common;
-    private final ISemanticProviderService semanticProviderService;
+    private final IDynamicClassLoadingService semanticProviderService;
 
 
     @Inject public HoverService(IProjectService projectService, IContextService contextService,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService,
-        TracingCommon common, SemanticProviderService semanticProviderService) {
+        TracingCommon common, DynamicClassLoadingService semanticProviderService) {
         this.projectService = projectService;
         this.contextService = contextService;
         this.strategoRuntimeService = strategoRuntimeService;
@@ -123,10 +121,10 @@ public class HoverService implements ISpoofaxHoverService {
     private Hover hover(FileObject source, IContext context, ILanguageComponent contributor, IFacet facet,
             Iterable<IStrategoTerm> inRegion) throws MetaborgException {
         if(facet instanceof StrategoHoverFacet) {
-            return strategoHover(source, context, contributor, ((StrategoOutlineFacet) facet).strategyName, inRegion);
+            return strategoHover(source, context, contributor, ((StrategoHoverFacet) facet).strategyName, inRegion);
         }
         if(facet instanceof JavaHoverFacet) {
-            return javaHover(context, contributor, ((JavaOutlineFacet) facet).javaClassName, inRegion);
+            return javaHover(context, contributor, ((JavaHoverFacet) facet).javaClassName, inRegion);
         }
         logger.warn("Outlining facet has unexpected type: ", facet.getClass());
         return null;
@@ -149,7 +147,7 @@ public class HoverService implements ISpoofaxHoverService {
 
     private Hover javaHover(IContext env, ILanguageComponent contributor, String javaClassName,
             Iterable<IStrategoTerm> inRegion) throws MetaborgException {
-        IHoverText hoverer = semanticProviderService.hoverer(contributor, javaClassName);
+        IHoverText hoverer = semanticProviderService.loadClass(contributor, javaClassName, IHoverText.class);
         String hoverText = null;
         ISourceLocation highlightLocation = null;
         for (IStrategoTerm region : inRegion) {

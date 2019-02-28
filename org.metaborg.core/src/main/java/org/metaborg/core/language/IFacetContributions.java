@@ -4,6 +4,8 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.MetaborgRuntimeException;
 
+import com.google.common.collect.Iterables;
+
 /**
  * Interface representing language facet contributions. Facets are retrieved by type, multiple facets of the same type
  * are allowed. Clients determine how multiple facets of the same type are handled.
@@ -45,7 +47,18 @@ public interface IFacetContributions {
      * @throws MetaborgRuntimeException
      *             When there are multiple facets of given type.
      */
-    @Nullable <T extends IFacet> T facet(Class<T> type);
+    default @Nullable <T extends IFacet> T facet(Class<T> type) {
+        // GTODO: code duplication with LanguageComponent, use default interface implementation in Java 8.
+        final Iterable<T> facets = facets(type);
+        final int size = Iterables.size(facets);
+        if(size == 0) {
+            return null;
+        } else if(size > 1) {
+            throw new MetaborgRuntimeException(
+                "Multiple facets of type " + type + " found, while only a single facet is supported");
+        }
+        return Iterables.get(facets, 0);
+    }
 
     /**
      * Returns a facet contribution of given type.
@@ -56,7 +69,18 @@ public interface IFacetContributions {
      * @throws MetaborgRuntimeException
      *             When there are multiple facets of given type.
      */
-    @Nullable <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type);
+    default @Nullable <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type) {
+        // GTODO: code duplication with LanguageComponent, use default interface implementation in Java 8.
+        final Iterable<FacetContribution<T>> facetContributions = facetContributions(type);
+        final int size = Iterables.size(facetContributions);
+        if(size == 0) {
+            return null;
+        } else if(size > 1) {
+            throw new MetaborgRuntimeException(
+                "Multiple facets of type " + type + " found, while only a single facet is supported");
+        }
+        return Iterables.get(facetContributions, 0);
+    }
 
     /**
      * @return All facets.

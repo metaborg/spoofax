@@ -1,10 +1,10 @@
-package org.metaborg.spoofax.core.user_definable;
+package org.metaborg.spoofax.core.dynamicclassloading.api;
 
 import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.IContext;
-import org.metaborg.spoofax.core.semantic_provider.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
 import org.metaborg.spoofax.core.unit.TransformOutput;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 

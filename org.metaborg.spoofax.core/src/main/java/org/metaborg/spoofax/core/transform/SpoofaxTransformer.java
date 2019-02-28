@@ -22,8 +22,9 @@ import org.metaborg.core.transform.TransformException;
 import org.metaborg.core.unit.IUnit;
 import org.metaborg.spoofax.core.action.JavaTransformAction;
 import org.metaborg.spoofax.core.action.StrategoTransformAction;
-import org.metaborg.spoofax.core.semantic_provider.IBuilderInput;
-import org.metaborg.spoofax.core.semantic_provider.ISemanticProviderService;
+import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.api.ITransformer;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
@@ -32,7 +33,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.core.unit.TransformContrib;
 import org.metaborg.spoofax.core.unit.TransformOutput;
-import org.metaborg.spoofax.core.user_definable.ITransformer;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -56,7 +56,7 @@ public class SpoofaxTransformer implements ISpoofaxTransformer {
     private final IEditorRegistry editorRegistry;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final IStrategoCommon common;
-    private final ISemanticProviderService semanticProviderService;
+    private final IDynamicClassLoadingService semanticProviderService;
 
 
     private static class TransformResult {
@@ -74,7 +74,7 @@ public class SpoofaxTransformer implements ISpoofaxTransformer {
 
     @Inject public SpoofaxTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
         IEditorRegistry editorRegistry, IStrategoRuntimeService strategoRuntimeService, 
-        IStrategoCommon common, ISemanticProviderService semanticProviderService) {
+        IStrategoCommon common, IDynamicClassLoadingService semanticProviderService) {
         this.resourceService = resourceService;
         this.unitService = unitService;
         this.editorRegistry = editorRegistry;
@@ -258,7 +258,7 @@ public class SpoofaxTransformer implements ISpoofaxTransformer {
             throws TransformException {
         final ITransformer transformer;
         try {
-            transformer = semanticProviderService.transformer(component, action.className);
+            transformer = semanticProviderService.loadClass(component, action.className, ITransformer.class);
         } catch(MetaborgException e) {
             throw new TransformException(e.getMessage(), e.getCause());
         }

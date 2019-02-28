@@ -46,11 +46,11 @@ import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacetFromESV;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.IOutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
-import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacet;
-import org.metaborg.spoofax.core.semantic_provider.SemanticProviderFacetFromESV;
 import org.metaborg.spoofax.core.shell.ShellFacet;
 import org.metaborg.spoofax.core.shell.ShellFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
@@ -217,7 +217,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         }
 
         SyntaxFacet syntaxFacet = null;
-        SemanticProviderFacet semanticProviderFacet = null;
+        DynamicClassLoadingFacet semanticProviderFacet = null;
         if(esvTerm != null) {
             try {
                 syntaxFacet = SyntaxFacetFromESV.create(esvTerm, root);
@@ -229,7 +229,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             }
 
             try {
-                semanticProviderFacet = SemanticProviderFacetFromESV.create(esvTerm, root);
+                semanticProviderFacet = DynamicClassLoadingFacetFromESV.create(esvTerm, root);
                 if(semanticProviderFacet != null) {
                     Iterables.addAll(errors, semanticProviderFacet.available(resourceService));
                 }
@@ -291,7 +291,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             syntaxFacet = null;
         }
 
-        final SemanticProviderFacet semanticProviderFacet = request.semanticProviderFacet();
+        final DynamicClassLoadingFacet semanticProviderFacet = request.semanticProviderFacet();
         if(semanticProviderFacet != null) {
             config.addFacet(semanticProviderFacet);
         }
