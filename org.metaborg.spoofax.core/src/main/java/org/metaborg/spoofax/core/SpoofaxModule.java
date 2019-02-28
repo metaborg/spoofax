@@ -173,6 +173,7 @@ import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
 import mb.flowspec.primitives.FS_build_cfg;
+import mb.flowspec.primitives.FS_create_cfg;
 import mb.flowspec.primitives.FS_get_cfg_node;
 import mb.flowspec.primitives.FS_get_cfg_pred;
 import mb.flowspec.primitives.FS_get_cfg_succ;
@@ -458,10 +459,17 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_compare_patterns.class);
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
 
+        /*
+         * Note that FS_solve first needs to be identified as a Singleton, so that afterwards it
+         * can be used with bindPrimitive and languageCacheBinder without creating multiple
+         * instances. Multiple instances would mess up the language cache invalidation.
+         */
+        bind(FS_solve.class).in(Singleton.class);
         final Multibinder<AbstractPrimitive> spoofaxFlowSpecLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(FlowSpecLibrary.name));
         bindPrimitive(spoofaxFlowSpecLibrary, FS_solve.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_build_cfg.class);
+        bindPrimitive(spoofaxFlowSpecLibrary, FS_create_cfg.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_cfg_node.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_cfg_pred.class);
         bindPrimitive(spoofaxFlowSpecLibrary, FS_get_cfg_succ.class);
