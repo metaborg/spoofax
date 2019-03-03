@@ -1,6 +1,12 @@
 package org.metaborg.spoofax.core.outline;
 
+import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.MetaborgException;
+import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.IFacet;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.outline.IOutline;
+import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
 
 public interface IOutlineFacet extends IFacet {
     int getExpansionLevel();
@@ -8,4 +14,7 @@ public interface IOutlineFacet extends IFacet {
     @Override default Class<? extends IFacet> getKey() {
         return IOutlineFacet.class;
     }
+
+    IOutline createOutline(FileObject source, IContext context, ILanguageComponent contributor, IBuilderInput input)
+        throws MetaborgException;
 }

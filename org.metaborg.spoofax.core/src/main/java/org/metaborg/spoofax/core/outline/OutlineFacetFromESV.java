@@ -35,6 +35,8 @@ public class OutlineFacetFromESV {
         }
 
         switch (Term.tryGetName(outlineTerm.getSubterm(0))) {
+            case "JavaGenerated":
+                return new JavaGeneratedOutlineFacet(expandTo);
             case "Java":
                 return new JavaOutlineFacet(name, expandTo);
             default:
