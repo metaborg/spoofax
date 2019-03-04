@@ -10,6 +10,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.unit.IUnit;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 
 import com.google.inject.Inject;
 
@@ -112,7 +113,7 @@ public class UnitService implements ISpoofaxUnitService {
 
 
     @Override public <I extends IUnit> ISpoofaxTransformUnit<I> transformUnit(I input, TransformContrib contrib,
-        IContext context, TransformActionContrib action) {
+        IContext context, TransformActionContrib<ISpoofaxTransformAction> action) {
         if(!(input instanceof UnitWrapper)) {
             throw new MetaborgRuntimeException(
                 "Input unit is not a SpoofaxUnitWrapper, cannot create a transform unit");
@@ -123,12 +124,12 @@ public class UnitService implements ISpoofaxUnitService {
     }
 
     @Override public ISpoofaxTransformUnit<ISpoofaxParseUnit> emptyTransformUnit(ISpoofaxParseUnit input,
-        IContext context, TransformActionContrib action) {
+        IContext context, TransformActionContrib<ISpoofaxTransformAction> action) {
         return transformUnit(input, new TransformContrib(), context, action);
     }
 
     @Override public ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit> emptyTransformUnit(ISpoofaxAnalyzeUnit input,
-        IContext context, TransformActionContrib action) {
+        IContext context, TransformActionContrib<ISpoofaxTransformAction> action) {
         return transformUnit(input, new TransformContrib(), context, action);
     }
 }

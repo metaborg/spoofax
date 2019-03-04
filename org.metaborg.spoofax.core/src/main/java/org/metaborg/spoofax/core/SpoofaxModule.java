@@ -149,6 +149,7 @@ import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.tracing.ResolverService;
 import org.metaborg.spoofax.core.tracing.TracingCommon;
 import org.metaborg.spoofax.core.tracing.TracingService;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformer;
 import org.metaborg.spoofax.core.transform.SpoofaxTransformService;
@@ -274,9 +275,9 @@ public class SpoofaxModule extends MetaborgModule {
         bind(UnitService.class).in(Singleton.class);
         bind(ISpoofaxUnitService.class).to(UnitService.class);
         bind(
-            new TypeLiteral<IUnitService<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>>() {})
+            new TypeLiteral<IUnitService<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, ISpoofaxTransformAction>>() {})
                 .to(UnitService.class);
-        bind(new TypeLiteral<IUnitService<?, ?, ?, ?, ?, ?>>() {}).to(UnitService.class);
+        bind(new TypeLiteral<IUnitService<?, ?, ?, ?, ?, ?, ?>>() {}).to(UnitService.class);
         bind(IUnitService.class).to(UnitService.class);
 
         bind(ISpoofaxInputUnitService.class).to(UnitService.class);
@@ -532,18 +533,18 @@ public class SpoofaxModule extends MetaborgModule {
         bind(SpoofaxTransformService.class).in(Singleton.class);
         bind(ISpoofaxTransformService.class).to(SpoofaxTransformService.class);
         bind(
-            new TypeLiteral<ITransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>>() {})
+            new TypeLiteral<ITransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, ISpoofaxTransformAction>>() {})
                 .to(SpoofaxTransformService.class);
-        bind(new TypeLiteral<ITransformService<?, ?, ?, ?>>() {}).to(SpoofaxTransformService.class);
+        bind(new TypeLiteral<ITransformService<?, ?, ?, ?, ?>>() {}).to(SpoofaxTransformService.class);
         bind(ITransformService.class).to(SpoofaxTransformService.class);
 
         // Analyzers
         bind(SpoofaxTransformer.class).in(Singleton.class);
         bind(ISpoofaxTransformer.class).to(SpoofaxTransformer.class);
         bind(
-            new TypeLiteral<ITransformer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>>() {})
+            new TypeLiteral<ITransformer<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, ISpoofaxTransformAction>>() {})
                 .to(SpoofaxTransformer.class);
-        bind(new TypeLiteral<ITransformer<?, ?, ?, ?>>() {}).to(SpoofaxTransformer.class);
+        bind(new TypeLiteral<ITransformer<?, ?, ?, ?, ?>>() {}).to(SpoofaxTransformer.class);
         bind(ITransformer.class).to(SpoofaxTransformer.class);
     }
 

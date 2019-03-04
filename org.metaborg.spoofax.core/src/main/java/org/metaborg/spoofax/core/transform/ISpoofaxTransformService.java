@@ -9,6 +9,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
  * Typedef interface for {@link ITransformService} with Spoofax interfaces.
  */
 public interface ISpoofaxTransformService extends
-    ITransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> {
+    ITransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, ISpoofaxTransformAction> {
 
 }

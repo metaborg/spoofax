@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.language.ILanguageImpl;
 
-public interface IActionService {
+public interface IActionService<TA extends ITransformAction> {
     /**
      * Gets transform actions for given goal.
      * 
@@ -14,7 +14,7 @@ public interface IActionService {
      *            Goal to get transform actions for.
      * @return Transform actions.
      */
-    Iterable<ITransformAction> actions(ILanguageImpl language, ITransformGoal goal);
+    Iterable<TA> actions(ILanguageImpl language, ITransformGoal goal);
 
     /**
      * Gets transform action contributions for given transform goal.
@@ -25,7 +25,7 @@ public interface IActionService {
      *            Goal to get transform actions for.
      * @return Transform action contributions.
      */
-    @Nullable Iterable<TransformActionContrib> actionContributions(ILanguageImpl language,
+    @Nullable Iterable<TransformActionContrib<TA>> actionContributions(ILanguageImpl language,
                                                                         ITransformGoal goal);
 
     /**

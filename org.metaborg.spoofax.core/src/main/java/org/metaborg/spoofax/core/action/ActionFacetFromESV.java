@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
-import org.metaborg.core.action.ITransformAction;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.action.NamedGoal;
 import org.metaborg.core.action.TransformActionFlags;
@@ -16,6 +15,7 @@ import org.metaborg.core.menu.Menu;
 import org.metaborg.core.menu.MenuAction;
 import org.metaborg.core.menu.Separator;
 import org.metaborg.spoofax.core.esv.ESVReader;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
@@ -34,7 +34,7 @@ public class ActionFacetFromESV {
     public static @Nullable ActionFacet create(IStrategoAppl esv) {
         final Iterable<IStrategoAppl> menuTerms = ESVReader.collectTerms(esv, "ToolbarMenu");
         final Collection<IMenu> menus = Lists.newLinkedList();
-        final Multimap<ITransformGoal, ITransformAction> actions = HashMultimap.create();
+        final Multimap<ITransformGoal, ISpoofaxTransformAction> actions = HashMultimap.create();
         final ImmutableList<String> nesting = ImmutableList.of();
         for(IStrategoAppl menuTerm : menuTerms) {
             final IMenu submenu = menu(menuTerm, new TransformActionFlags(), nesting, actions);
@@ -48,7 +48,7 @@ public class ActionFacetFromESV {
     }
 
     private static Menu menu(IStrategoTerm menuTerm, TransformActionFlags flags, ImmutableList<String> nesting,
-        Multimap<ITransformGoal, ITransformAction> actions) {
+        Multimap<ITransformGoal, ISpoofaxTransformAction> actions) {
         final String name = name(menuTerm.getSubterm(0));
         final ImmutableList<String> newNesting = ImmutableList.<String>builder().addAll(nesting).add(name).build();
         final TransformActionFlags extraFlags = flags(menuTerm.getSubterm(1));
@@ -72,7 +72,7 @@ public class ActionFacetFromESV {
                     final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
                     final ImmutableList<String> newActionNesting = ImmutableList.<String>builder().addAll(newNesting).add(actionName).build();
                     final NamedGoal goal = new NamedGoal(newActionNesting);
-                    final ITransformAction action = transformAction(actionName, goal, mergedActionFlags, item.getSubterm(1));
+                    final ISpoofaxTransformAction action = transformAction(actionName, goal, mergedActionFlags, item.getSubterm(1));
                     actions.put(goal, action);
                     actions.put(new EndNamedGoal(goal.names.get(goal.names.size() - 1)), action);
                     final MenuAction menuAction = new MenuAction(action);
@@ -90,11 +90,15 @@ public class ActionFacetFromESV {
         return menu;
     }
     
-    private static ITransformAction transformAction(String name, ITransformGoal goal, TransformActionFlags flags, IStrategoTerm callTerm) {
-        if(Tools.constructorName(callTerm) == "Java") {
-            return new JavaTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
+    private static ISpoofaxTransformAction transformAction(String name, ITransformGoal goal, TransformActionFlags flags, IStrategoTerm callTerm) {
+        switch(Tools.constructorName(callTerm)) {
+            case "JavaGenerated":
+                return new JavaGeneratedTransformAction(goal, flags, ESVReader.termContents(callTerm));
+            case "Java":
+                return new JavaTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
+            default:
+                return new StrategoTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
         }
-        return new StrategoTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
     }
 
     private static String name(IStrategoTerm nameTerm) {
@@ -140,14 +144,14 @@ public class ActionFacetFromESV {
         return flags;
     }
 
-    private static void addCompileGoal(IStrategoAppl esv, Multimap<ITransformGoal, ITransformAction> actions) {
+    private static void addCompileGoal(IStrategoAppl esv, Multimap<ITransformGoal, ISpoofaxTransformAction> actions) {
         final List<IStrategoAppl> onSaveHandlers = ESVReader.collectTerms(esv, "OnSave");
         if(onSaveHandlers.isEmpty()) {
             return;
         }
         for(IStrategoAppl onSaveHandler : onSaveHandlers) {
             final ITransformGoal goal = new CompileGoal();
-            final ITransformAction action = transformAction("Compile", goal, new TransformActionFlags(), onSaveHandler.getSubterm(0));
+            final ISpoofaxTransformAction action = transformAction("Compile", goal, new TransformActionFlags(), onSaveHandler.getSubterm(0));
             actions.put(goal, action);
         }
     }

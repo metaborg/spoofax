@@ -19,6 +19,7 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxResolverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
@@ -36,7 +37,7 @@ import com.google.inject.util.Types;
  */
 @SuppressWarnings("hiding")
 public class Spoofax extends
-    MetaBorgGeneric<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, IStrategoTerm> {
+    MetaBorgGeneric<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, ISpoofaxTransformAction, IStrategoTerm> {
     public final ISpoofaxUnitService unitService;
     
     public final ISpoofaxSyntaxService syntaxService;
@@ -82,7 +83,8 @@ public class Spoofax extends
             ISpoofaxAnalyzeUnitUpdate.class,
             Types.newParameterizedType(ISpoofaxTransformUnit.class, Types.subtypeOf(Object.class)),
             Types.newParameterizedType(ISpoofaxTransformUnit.class, ISpoofaxParseUnit.class),
-            Types.newParameterizedType(ISpoofaxTransformUnit.class, ISpoofaxAnalyzeUnit.class), IStrategoTerm.class,
+            Types.newParameterizedType(ISpoofaxTransformUnit.class, ISpoofaxAnalyzeUnit.class), 
+            ISpoofaxTransformAction.class, IStrategoTerm.class,
             loader, module, additionalModules);
         
         this.unitService = injector.getInstance(ISpoofaxUnitService.class);

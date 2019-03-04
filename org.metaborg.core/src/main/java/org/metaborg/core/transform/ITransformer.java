@@ -2,6 +2,7 @@ package org.metaborg.core.transform;
 
 import java.util.Collection;
 
+import org.metaborg.core.action.ITransformAction;
 import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
@@ -14,21 +15,21 @@ import org.metaborg.core.syntax.IParseUnit;
  *            Type of parse units.
  * @param <A>
  *            Type of analyze units.
- * @param <TP>
+ * @param <TUP>
  *            Type of transform units with parse units as input.
- * @param <TA>
+ * @param <TUA>
  *            Type of transform units with analyze units as input.
  */
-public interface ITransformer<P extends IParseUnit, A extends IAnalyzeUnit, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>> {
-    TP transform(P input, IContext context, TransformActionContrib action, ITransformConfig config)
+public interface ITransformer<P extends IParseUnit, A extends IAnalyzeUnit, TUP extends ITransformUnit<P>, TUA extends ITransformUnit<A>, TA extends ITransformAction> {
+    TUP transform(P input, IContext context, TransformActionContrib<TA> action, ITransformConfig config)
         throws TransformException;
 
-    TA transform(A input, IContext context, TransformActionContrib action, ITransformConfig config)
+    TUA transform(A input, IContext context, TransformActionContrib<TA> action, ITransformConfig config)
         throws TransformException;
 
-    Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContrib action,
+    Collection<TUP> transformAllParsed(Iterable<P> inputs, IContext context, TransformActionContrib<TA> action,
         ITransformConfig config) throws TransformException;
 
-    Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib action,
+    Collection<TUA> transformAllAnalyzed(Iterable<A> inputs, IContext context, TransformActionContrib<TA> action,
         ITransformConfig config) throws TransformException;
 }

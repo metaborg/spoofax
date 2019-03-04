@@ -14,9 +14,9 @@ import com.google.inject.Inject;
  * Typedef class for {@link TransformService} with {@link IStrategoTerm}.
  */
 public class SpoofaxTransformService extends
-    TransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
+    TransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, ISpoofaxTransformAction>
     implements ISpoofaxTransformService {
-    @Inject public SpoofaxTransformService(IActionService actionService, ISpoofaxAnalysisService analysisService,
+    @Inject public SpoofaxTransformService(IActionService<ISpoofaxTransformAction> actionService, ISpoofaxAnalysisService analysisService,
             ISpoofaxTransformer transformer) {
         super(actionService, analysisService, transformer);
     }

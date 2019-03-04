@@ -48,7 +48,7 @@ public interface ITransformUnit<I extends IUnit> extends IUnit {
     /**
      * @return The action that was used to execute the transformation.
      */
-    TransformActionContrib action();
+    TransformActionContrib<?> action();
 
 
     /**

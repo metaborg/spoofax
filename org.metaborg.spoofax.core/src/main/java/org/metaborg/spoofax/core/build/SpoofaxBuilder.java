@@ -12,6 +12,7 @@ import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
 import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
@@ -29,7 +30,7 @@ import com.google.inject.Provider;
  * Typedef class for {@link Builder} with Spoofax interfaces.
  */
 public class SpoofaxBuilder extends
-    Builder<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
+    Builder<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, ISpoofaxTransformAction>
     implements ISpoofaxBuilder {
     @Inject public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
         ILanguagePathService languagePathService, ISpoofaxUnitService unitService, ISourceTextService sourceTextService,

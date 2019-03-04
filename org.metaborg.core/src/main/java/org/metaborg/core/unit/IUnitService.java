@@ -1,6 +1,7 @@
 package org.metaborg.core.unit;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.action.ITransformAction;
 import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
@@ -9,7 +10,7 @@ import org.metaborg.core.syntax.IInputUnit;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
 
-public interface IUnitService<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>>
+public interface IUnitService<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, TUP extends ITransformUnit<P>, TUA extends ITransformUnit<A>, TA extends ITransformAction>
     extends IInputUnitService<I> {
     P emptyParseUnit(I input);
 
@@ -19,7 +20,7 @@ public interface IUnitService<I extends IInputUnit, P extends IParseUnit, A exte
     AU emptyAnalyzeUnitUpdate(FileObject source, IContext context);
 
 
-    TP emptyTransformUnit(P input, IContext context, TransformActionContrib action);
+    TUP emptyTransformUnit(P input, IContext context, TransformActionContrib<TA> action);
 
-    TA emptyTransformUnit(A input, IContext context, TransformActionContrib action);
+    TUA emptyTransformUnit(A input, IContext context, TransformActionContrib<TA> action);
 }

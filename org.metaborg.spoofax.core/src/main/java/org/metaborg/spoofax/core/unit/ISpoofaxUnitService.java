@@ -5,13 +5,14 @@ import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.unit.IUnit;
 import org.metaborg.core.unit.IUnitService;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 
 /**
  * Typedef interface for {@link IUnitService} with Spoofax interfaces, extended with methods to create new parse,
  * analyze, and transform units.
  */
 public interface ISpoofaxUnitService extends
-    IUnitService<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>,
+    IUnitService<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>, ISpoofaxTransformAction>,
     ISpoofaxInputUnitService {
     ISpoofaxParseUnit parseUnit(ISpoofaxInputUnit input, ParseContrib contrib);
 
@@ -22,5 +23,5 @@ public interface ISpoofaxUnitService extends
 
 
     <I extends IUnit> ISpoofaxTransformUnit<I> transformUnit(I input, TransformContrib contrib, IContext context,
-        TransformActionContrib action);
+        TransformActionContrib<ISpoofaxTransformAction> action);
 }

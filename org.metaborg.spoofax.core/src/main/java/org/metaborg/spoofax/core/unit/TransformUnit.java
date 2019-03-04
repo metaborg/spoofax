@@ -4,17 +4,18 @@ import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.unit.IUnit;
+import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class TransformUnit<I extends IUnit> extends UnitWrapper implements ISpoofaxTransformUnit<I> {
     private final TransformContrib contrib;
     private final I inputUnit;
     private final IContext context;
-    private final TransformActionContrib action;
+    private final TransformActionContrib<ISpoofaxTransformAction> action;
 
 
     public TransformUnit(Unit unit, TransformContrib contrib, I inputUnit, IContext context,
-        TransformActionContrib action) {
+        TransformActionContrib<ISpoofaxTransformAction> action) {
         super(unit);
         this.contrib = contrib;
         this.inputUnit = inputUnit;
@@ -51,7 +52,7 @@ public class TransformUnit<I extends IUnit> extends UnitWrapper implements ISpoo
         return context;
     }
 
-    @Override public TransformActionContrib action() {
+    @Override public TransformActionContrib<ISpoofaxTransformAction> action() {
         return action;
     }
 

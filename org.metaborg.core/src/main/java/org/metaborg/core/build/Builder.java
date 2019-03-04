@@ -12,6 +12,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.action.ITransformAction;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.IAnalysisService;
@@ -77,24 +78,24 @@ import com.google.inject.Provider;
  *            Type of analyze unit updates.
  * @param <T>
  *            Type of transform units with any input.
- * @param <TP>
+ * @param <TUP>
  *            Type of transform units with parse units as input.
- * @param <TA>
+ * @param <TUA>
  *            Type of transform units with analyze units as input.
  */
-public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>>
+public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>, TUP extends ITransformUnit<P>, TUA extends ITransformUnit<A>, TA extends ITransformAction>
     implements IBuilder<P, A, AU, T> {
     private static final ILogger logger = LoggerUtils.logger(Builder.class);
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
     private final ILanguagePathService languagePathService;
-    private final IUnitService<I, P, A, AU, TP, TA> unitService;
+    private final IUnitService<I, P, A, AU, TUP, TUA, TA> unitService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<I, P> syntaxService;
     private final IContextService contextService;
     private final IAnalysisService<P, A, AU> analysisService;
-    private final ITransformService<P, A, TP, TA> transformService;
+    private final ITransformService<P, A, TUP, TUA, TA> transformService;
 
     private final IParseResultUpdater<P> parseResultUpdater;
     private final IAnalysisResultUpdater<P, A> analysisResultUpdater;
@@ -103,9 +104,9 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ILanguagePathService languagePathService, IUnitService<I, P, A, AU, TP, TA> unitService,
+        ILanguagePathService languagePathService, IUnitService<I, P, A, AU, TUP, TUA, TA> unitService,
         ISourceTextService sourceTextService, ISyntaxService<I, P> syntaxService, IContextService contextService,
-        IAnalysisService<P, A, AU> analysisService, ITransformService<P, A, TP, TA> transformService,
+        IAnalysisService<P, A, AU> analysisService, ITransformService<P, A, TUP, TUA, TA> transformService,
         IParseResultUpdater<P> parseResultUpdater, IAnalysisResultUpdater<P, A> analysisResultUpdater,
         Provider<IBuildOutputInternal<P, A, AU, T>> buildOutputProvider) {
         this.resourceService = resourceService;
@@ -469,8 +470,8 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                             continue;
                         }
                         try {
-                            final Collection<TA> results = transformService.transform(analysisResult, context, goal);
-                            for(TA result : results) {
+                            final Collection<TUA> results = transformService.transform(analysisResult, context, goal);
+                            for(TUA result : results) {
                                 final boolean noErrors =
                                     printMessages(result.messages(), goal + " transformation", input, pardoned);
                                 success.and(noErrors);
