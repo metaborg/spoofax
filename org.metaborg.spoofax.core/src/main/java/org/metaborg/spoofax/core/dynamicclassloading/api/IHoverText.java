@@ -5,4 +5,5 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface IHoverText {
     String createHoverText(IContext env, IStrategoTerm region);
+    interface Generated extends IHoverText {}
 }

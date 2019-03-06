@@ -6,4 +6,5 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface IResolver {
     Iterable<ResolutionTarget> resolve(IContext env, IStrategoTerm region);
+    interface Generated extends IResolver {}
 }

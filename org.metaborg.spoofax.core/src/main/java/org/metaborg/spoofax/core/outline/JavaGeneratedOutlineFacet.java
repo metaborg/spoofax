@@ -11,6 +11,7 @@ import org.metaborg.core.outline.IOutlineNode;
 import org.metaborg.core.outline.Outline;
 import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
 import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.api.IOutliner;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -31,7 +32,7 @@ public class JavaGeneratedOutlineFacet implements IOutlineFacet {
     @Override public IOutline createOutline(FileObject source, IContext context, ILanguageComponent contributor,
         IBuilderInput input) throws MetaborgException {
         try {
-            for (IGeneratedOutliner outliner : semanticProviderService.loadClasses(contributor, IGeneratedOutliner.class)) {
+            for (IOutliner outliner : semanticProviderService.loadClasses(contributor, IOutliner.Generated.class)) {
                 Iterable<IOutlineNode> outline = outliner.createOutline(context, input);
                 if(outline != null) {
                     return new Outline(outline, getExpansionLevel());

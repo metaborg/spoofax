@@ -9,6 +9,6 @@ import org.metaborg.spoofax.core.unit.TransformOutput;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface ITransformer {
-
     IStrategoTerm transform(IContext context, IBuilderInput inputTerm, FileObject location, List<TransformOutput> outputs);
+    interface Generated extends ITransformer {}
 }

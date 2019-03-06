@@ -8,4 +8,5 @@ import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
 
 public interface IOutliner {
     @Nullable Iterable<IOutlineNode> createOutline(IContext env, IBuilderInput input);
+    interface Generated extends IOutliner {}
 }
