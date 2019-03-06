@@ -28,6 +28,8 @@ public class ResolverFacetFromESV {
         }
 
         switch (Term.tryGetName(callTerm)) {
+            case "JavaGenerated":
+                return new JavaGeneratedResolverFacet();
             case "Java":
                 return new JavaResolverFacet(name);
             default:
@@ -48,6 +50,8 @@ public class ResolverFacetFromESV {
         }
 
         switch (Term.tryGetName(callTerm)) {
+            case "JavaGenerated":
+                return new JavaGeneratedHoverFacet();
             case "Java":
                 return new JavaHoverFacet(name);
             default:
