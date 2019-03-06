@@ -19,13 +19,10 @@ public class JavaGeneratedTransformAction implements ISpoofaxTransformAction {
 
     public final ITransformGoal goal;
     public final TransformActionFlags flags;
-    public final String className;
 
-    public JavaGeneratedTransformAction(ITransformGoal goal, TransformActionFlags flags,
-        String className) {
+    public JavaGeneratedTransformAction(ITransformGoal goal, TransformActionFlags flags) {
         this.goal = goal;
         this.flags = flags;
-        this.className = className;
         logger.error("JavaGenerated is not supported in menus. ");
     }
 

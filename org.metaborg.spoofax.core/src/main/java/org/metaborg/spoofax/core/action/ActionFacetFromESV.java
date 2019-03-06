@@ -93,7 +93,7 @@ public class ActionFacetFromESV {
     private static ISpoofaxTransformAction transformAction(String name, ITransformGoal goal, TransformActionFlags flags, IStrategoTerm callTerm) {
         switch(Tools.constructorName(callTerm)) {
             case "JavaGenerated":
-                return new JavaGeneratedTransformAction(goal, flags, ESVReader.termContents(callTerm));
+                return new JavaGeneratedTransformAction(goal, flags);
             case "Java":
                 return new JavaTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
             default:
