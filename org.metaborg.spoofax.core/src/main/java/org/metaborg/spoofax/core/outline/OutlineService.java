@@ -41,11 +41,7 @@ public class OutlineService implements ISpoofaxOutlineService {
 
 
     @Override public boolean available(ILanguageImpl language) {
-        try {
-            return facet(language) != null;
-        } catch(MetaborgException e) {
-            return false;
-        }
+        return language.facetContribution(IOutlineFacet.class) != null;
     }
 
     @Override public IOutline outline(ISpoofaxParseUnit result) throws MetaborgException {
