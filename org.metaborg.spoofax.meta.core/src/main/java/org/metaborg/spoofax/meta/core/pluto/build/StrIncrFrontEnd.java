@@ -1,13 +1,17 @@
 package org.metaborg.spoofax.meta.core.pluto.build;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -191,7 +195,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
             return new Import(ImportType.wildcard, importString);
         }
 
-        public Set<File> resolveImport(List<File> includeDirs) throws IOException {
+        public Set<File> resolveImport(Collection<File> includeDirs) throws IOException {
             Set<File> result = new HashSet<>();
             for(File dir : includeDirs) {
                 switch(importType) {
@@ -274,6 +278,7 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
     }
 
     private static final String COMPILE_STRATEGY_NAME = "clean-and-compile-module";
+    private static final String STRATEGO_LANG_NAME = "Stratego-Sugar";
 
     public static SpoofaxBuilderFactory<Input, Output, StrIncrFrontEnd> factory =
         SpoofaxBuilderFactoryFactory.of(StrIncrFrontEnd.class, Input.class);
@@ -358,45 +363,30 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
     public IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName) throws IOException {
         ILanguageImpl strategoDialect = context.languageIdentifierService().identify(resource);
         ILanguageImpl strategoLang = context.dialectService().getBase(strategoDialect);
+        final IStrategoTerm ast;
         if(strategoLang == null) {
             strategoLang = strategoDialect;
             strategoDialect = null;
-            if(strategoLang == null) {
-                throw new IOException("Cannot find/load Stratego language. Please add source dependency on org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion} in metaborg.yaml");
+        }
+        if(strategoLang == null) {
+            strategoLang = context.languageService().getLanguage(STRATEGO_LANG_NAME).activeImpl();
+            // support *.rtree (StrategoSugar AST)
+            switch(resource.getName().getExtension()) {
+                case "rtree":
+                    ast = context.termFactory().parseFromString(readInputStream(resource.getContent().getInputStream()));
+                    break;
+                default:
+                    throw new IOException("Cannot find/load Stratego language. Please add source dependency on org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion} in metaborg.yaml");
             }
+        } else {
+            // parse *.str file
+            ast = parse(resource, strategoDialect, strategoLang);
         }
-        if(strategoDialect != null) {
-            final SyntaxFacet syntaxFacet = (SyntaxFacet) strategoDialect.facet(SyntaxFacet.class);
-            final String dialectName = context.dialectService().dialectName(strategoDialect);
-            // Get dialect with stratego imploder setting
-            final ILanguageImpl adaptedStrategoDialect = context.dialectService().update(dialectName,
-                syntaxFacet.withImploderSetting(ImploderImplementation.stratego));
-            // Update registered dialect back to old one.
-            context.dialectService().update(dialectName, syntaxFacet);
-            strategoDialect = adaptedStrategoDialect;
-        }
+        return transform(resource, projectName, strategoLang, ast);
+    }
 
-        // PARSE
-        final IStrategoTerm ast;
-        final String text = context.sourceTextService().text(resource);
-        if(resource.getName().getExtension() == "rtree") {
-            ast = context.termFactory().parseFromString(text);
-        } else { // assume extension str
-            final ISpoofaxInputUnit inputUnit =
-                context.unitService().inputUnit(resource, text, strategoLang, strategoDialect);
-            final ISpoofaxParseUnit parseResult;
-            try {
-                parseResult = context.syntaxService().parse(inputUnit);
-            } catch(ParseException e) {
-                throw new IOException("Cannot parse stratego file " + resource, e);
-            }
-            if(!parseResult.valid() || !parseResult.success()) {
-                throw new IOException("Cannot parse stratego file " + resource);
-            }
-            ast = parseResult.ast();
-        }
-
-        // TRANSFORM
+    public IStrategoTerm transform(FileObject resource, String projectName, ILanguageImpl strategoLang,
+        final IStrategoTerm ast) throws IOException {
         if(!context.contextService().available(strategoLang)) {
             throw new IOException("Cannot create stratego transformation context");
         }
@@ -414,5 +404,49 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
         } catch(MetaborgException e) {
             throw new IOException("Transformation failed", e);
         }
+    }
+
+    public IStrategoTerm parse(FileObject resource, ILanguageImpl strategoDialect, ILanguageImpl strategoLang)
+        throws IOException {
+        if(strategoDialect != null) {
+            final SyntaxFacet syntaxFacet = (SyntaxFacet) strategoDialect.facet(SyntaxFacet.class);
+            final String dialectName = context.dialectService().dialectName(strategoDialect);
+            // Get dialect with stratego imploder setting
+            final ILanguageImpl adaptedStrategoDialect = context.dialectService().update(dialectName,
+                syntaxFacet.withImploderSetting(ImploderImplementation.stratego));
+            // Update registered dialect back to old one.
+            context.dialectService().update(dialectName, syntaxFacet);
+            strategoDialect = adaptedStrategoDialect;
+        }
+
+        // PARSE
+        final IStrategoTerm ast;
+        final String text = context.sourceTextService().text(resource);
+        final ISpoofaxInputUnit inputUnit =
+            context.unitService().inputUnit(resource, text, strategoLang, strategoDialect);
+        final ISpoofaxParseUnit parseResult;
+        try {
+            parseResult = context.syntaxService().parse(inputUnit);
+        } catch(ParseException e) {
+            throw new IOException("Cannot parse stratego file " + resource, e);
+        }
+        if(!parseResult.valid() || !parseResult.success()) {
+            throw new IOException("Cannot parse stratego file " + resource);
+        }
+        ast = parseResult.ast();
+        return ast;
+    }
+
+    /**
+     * source: https://stackoverflow.com/a/35446009
+     */
+    public static String readInputStream(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = inputStream.read(buffer)) != -1) {
+            result.write(buffer, 0, length);
+        }
+        return result.toString(StandardCharsets.UTF_8.name());
     }
 }

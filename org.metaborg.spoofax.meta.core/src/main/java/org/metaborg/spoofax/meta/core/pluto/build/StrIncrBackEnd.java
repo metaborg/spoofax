@@ -66,7 +66,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         }
 
         @Override public String toString() {
-            return "StrIncrFrontEnd$Input(" + strategyName + ", ... )";
+            return "StrIncrBackEnd$Input(" + strategyName + ", ... )";
         }
 
         @Override public int hashCode() {

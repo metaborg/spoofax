@@ -19,12 +19,17 @@ public class SpoofaxIgnoresSelector implements FileSelector {
         switch(depth) {
             case 1:
                 switch(base) {
-                    case "bin":
-                    case "include":
-                    case "target":
-                    case ".cache":
-                    case ".settings":
-                    case ".mvn":
+                    case "include": // Spoofax/Stratego
+                    case ".cache": // Spoofax/Stratego
+                    case "bin": // Eclipse
+                    case ".settings": // Eclipse
+                    case "target": // Maven
+                    case ".mvn": // Maven
+                    case "build": // Gradle
+                    case ".gradle": // Gradle
+                    case "out": // IntelliJ
+                    case ".idea": // IntelliJ
+                    case ".git": // Git
                         return false;
                 }
                 break;

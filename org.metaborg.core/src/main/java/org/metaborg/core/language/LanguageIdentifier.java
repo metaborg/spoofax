@@ -50,10 +50,6 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
         if(!matcher.matches()) {
             return false;
         }
-        final String versionString = matcher.group(3);
-        if(!LanguageVersion.valid(versionString)) {
-            return false;
-        }
         return true;
     }
 
@@ -79,14 +75,7 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
 
         final String id = matcher.group(2);
         final String versionString = matcher.group(3);
-        final LanguageVersion version;
-        try {
-            version = LanguageVersion.parse(versionString);
-        } catch(IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                "Invalid version in language identifier " + identifier + ", " + LanguageVersion.errorDescription);
-        }
-
+        final LanguageVersion version = LanguageVersion.parse(versionString);
         return new LanguageIdentifier(groupId, id, version);
     }
 

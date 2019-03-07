@@ -68,9 +68,6 @@ public class GeneratorSettings {
     }
 
     public void setMetaborgVersion(@Nullable String metaborgVersion) throws ProjectException {
-        if(metaborgVersion != null && !LanguageVersion.valid(metaborgVersion)) {
-            throw new ProjectException("Invalid metaborg version: " + metaborgVersion);
-        }
         this.metaborgVersion = metaborgVersion;
     }
 

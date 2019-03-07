@@ -36,6 +36,9 @@ public class OutputIgnoreOriginBuilder extends Origin.Builder {
      * Gives back a new origin where all build requests have their stamper overridden with {@link IgnoreOutputStamper}.
      */
     public static Origin ignoreOutputs(Origin origin) {
+        if(origin == null) {
+            return null;
+        }
         return new OutputIgnoreOriginBuilder().add(origin).get();
     }
 }
