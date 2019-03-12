@@ -9,6 +9,8 @@ import org.metaborg.core.language.LanguageIdentifier;
 import com.google.common.collect.ImmutableSet;
 
 public class SpoofaxConstants {
+    public static final String GROUP_ID = "org.metaborg";
+
     public static final String LANG_ATERM_ID = "org.metaborg.meta.lang.aterm";
     public static final String LANG_ATERM_NAME = "ATerm";
 
@@ -39,6 +41,8 @@ public class SpoofaxConstants {
     public static final String LANG_DYNSEM_ID = "org.metaborg.meta.lang.dynsem";
     public static final String LANG_DYNSEM_NAME = "ds";
 
+    public static final String LANG_SPT_ID = "org.metaborg.meta.lang.spt";
+
     public static final String LIB_ANALYSIS_ID = "org.metaborg.meta.lib.analysis";
     public static final String LIB_ANALYSIS_NAME = "runtime-libraries";
 
@@ -59,6 +63,9 @@ public class SpoofaxConstants {
     public static final String DIR_CLASSES = DIR_OUTPUT + "/classes";
     public static final String DIR_TESTCLASSES = DIR_OUTPUT + "/test-classes";
     public static final String DIR_STR_JAVA_CLASSES = DIR_CLASSES + "/trans";
+
+
+    public static final String STRJ_INFO_WRITING_FILE = "[ strj | info ] Writing file:";
 
 
     public static boolean isMetaLanguage(ILanguageImpl language) {

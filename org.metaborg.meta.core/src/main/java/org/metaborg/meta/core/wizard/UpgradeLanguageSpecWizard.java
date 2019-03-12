@@ -117,8 +117,6 @@ public abstract class UpgradeLanguageSpecWizard {
         if(inputVersionModified()) {
             if(version.isEmpty()) {
                 errors.add("Version must be specified");
-            } else if(!LanguageVersion.valid(version)) {
-                errors.add("Version is invalid; " + LanguageVersion.errorDescription);
             }
         } else if(version.isEmpty()) {
             complete = false;

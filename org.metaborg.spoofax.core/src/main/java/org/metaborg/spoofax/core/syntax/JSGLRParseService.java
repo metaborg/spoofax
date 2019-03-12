@@ -206,7 +206,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
                 }
             }
 
-            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
+            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder);
             parserConfigs.put(lang, config);
 
 
@@ -280,7 +280,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
                 provider = new JSGLR1FileParseTableProvider(completionParseTable, termFactory);
             }
 
-            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
+            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder);
             completionParserConfigs.put(lang, config);
 
 

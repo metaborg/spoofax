@@ -16,6 +16,7 @@ import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
+import org.metaborg.spoofax.core.syntax.ImploderImplementation;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -82,9 +83,10 @@ public class DialectProcessor implements IDialectProcessor {
 
             final String fileName = FilenameUtils.getBaseName(resource.getName().getBaseName());
 
+            // TODO: set imploder setting to ImploderImplementation.stratego by default after it is fixed to preserve origin info
             final SyntaxFacet newFacet =
                 new SyntaxFacet(resource, baseFacet.completionParseTable, baseFacet.startSymbols, baseFacet.singleLineCommentPrefixes,
-                    baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters);
+                    baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters, baseFacet.imploder);
 
             final ResourceChangeKind changeKind = change.kind;
             try {
