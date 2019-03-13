@@ -61,7 +61,7 @@ import build.pluto.dependency.Origin;
 import build.pluto.dependency.database.XodusDatabase;
 import build.pluto.output.Output;
 
-public class LanguageSpecBuilder {
+public class LanguageSpecBuilder implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecBuilder.class);
     private static final String failingRebuildMessage =
         "Previous build failed and no change in the build input has been observed, not rebuilding. Fix the problem, or clean and rebuild the project to force a rebuild";
@@ -93,6 +93,10 @@ public class LanguageSpecBuilder {
         this.componentConfigBuilder = componentConfigBuilder;
         this.componentConfigWriter = componentConfigWriter;
         this.buildSteps = buildSteps;
+    }
+
+    @Override public void close() {
+        deinitPluto();
     }
 
 
@@ -306,6 +310,10 @@ public class LanguageSpecBuilder {
 
     private void initPluto() {
         SpoofaxContext.init(injector);
+    }
+
+    private void deinitPluto() {
+        SpoofaxContext.deinit();
     }
 
     private String path(LanguageSpecBuildInput input) {
@@ -535,5 +543,4 @@ public class LanguageSpecBuilder {
 
         return new ArchiveBuilder.Input(context, origin, exports, languageIdentifier);
     }
-
 }

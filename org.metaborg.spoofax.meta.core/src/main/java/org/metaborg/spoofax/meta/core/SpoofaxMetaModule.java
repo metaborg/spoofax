@@ -37,6 +37,7 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         super.configure();
 
         bind(LanguageSpecBuilder.class).in(Singleton.class);
+        autoClosableBinder.addBinding().to(LanguageSpecBuilder.class);
 
         final Multibinder<IBuildStep> buildStepBinder = Multibinder.newSetBinder(binder(), IBuildStep.class);
         buildStepBinder.addBinding().to(AntBuildStep.class);
