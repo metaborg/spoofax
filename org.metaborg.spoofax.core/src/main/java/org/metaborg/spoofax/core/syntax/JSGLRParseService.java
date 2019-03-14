@@ -25,7 +25,6 @@ import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
-import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -101,19 +100,14 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
             final JSGLRI<?> parser;
 
-            if(version == JSGLRVersion.v2) {
-                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false, false);
-            } else if(version == JSGLRVersion.layoutSensitive) {
-                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false, true);
-            } else if(version == JSGLRVersion.dataDependent) {
-                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, true, false);
-            } else {
+            if(version == JSGLRVersion.v1) {
                 if(base != null) {
                     parser = new JSGLR1I(config, termFactory, base, langImpl, source, text);
                 } else {
                     parser = new JSGLR1I(config, termFactory, langImpl, null, source, text);
                 }
-            }
+            } else
+                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, version);
 
             final ParseContrib contrib = parser.parse(parserConfig);
 
@@ -124,9 +118,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                     logger.info("Invalid JSGLR2 parse");
             }
 
-            final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
-            return unit;
-        } catch(IOException | InvalidParseTableException | ParseTableReadException e) {
+            return unitService.parseUnit(input, contrib);
+        } catch(IOException | InvalidParseTableException e) {
             throw new ParseException(input, e);
         }
     }
@@ -193,10 +186,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
             final IParseTableProvider provider;
             JSGLRVersion version = jsglrVersion(input);
 
-            if(version == JSGLRVersion.v2 || version == JSGLRVersion.dataDependent
-                || version == JSGLRVersion.layoutSensitive) {
-                provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
-            } else {
+            if(version == JSGLRVersion.v1) {
                 final ParseTable referenceParseTable = referenceParseTables.get(lang);
 
                 if(referenceParseTable != null && incrementalPTGen) {
@@ -204,6 +194,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                 } else {
                     provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
                 }
+            } else {
+                provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
             }
 
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder);

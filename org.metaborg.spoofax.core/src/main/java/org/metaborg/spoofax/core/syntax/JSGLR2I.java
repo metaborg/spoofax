@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
@@ -17,26 +18,32 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr2.JSGLR2;
-import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 
 public class JSGLR2I extends JSGLRI<IParseTable> {
     private final JSGLR2<?, IStrategoTerm> parser;
 
 
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
-        @Nullable FileObject resource, String input, boolean dataDependent, boolean layoutSensitive)
-        throws IOException, ParseTableReadException {
+        @Nullable FileObject resource, String input, JSGLRVersion parserType) throws IOException {
         super(config, termFactory, language, dialect, resource, input);
 
         IParseTableProvider parseTableProvider = config.getParseTableProvider();
         IParseTable parseTable = getParseTable(parseTableProvider);
 
-        if(dataDependent) {
-            this.parser = JSGLR2.dataDependent(parseTable);
-        } else if(layoutSensitive) {
-            this.parser = JSGLR2.layoutSensitive(parseTable);
-        } else {
-            this.parser = JSGLR2.standard(parseTable);
+        switch(parserType) {
+            case dataDependent:
+                this.parser = JSGLR2.dataDependent(parseTable);
+                break;
+            case incremental:
+                this.parser = JSGLR2.incremental(parseTable);
+                break;
+            case layoutSensitive:
+                this.parser = JSGLR2.layoutSensitive(parseTable);
+                break;
+            case v2:
+            default:
+                this.parser = JSGLR2.standard(parseTable);
+                break;
         }
     }
 
