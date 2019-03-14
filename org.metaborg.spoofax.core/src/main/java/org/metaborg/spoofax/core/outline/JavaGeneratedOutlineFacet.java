@@ -15,13 +15,16 @@ import org.metaborg.spoofax.core.dynamicclassloading.api.IOutliner;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
+import com.google.inject.assistedinject.Assisted;
+
 public class JavaGeneratedOutlineFacet implements IOutlineFacet {
     private static final ILogger logger = LoggerUtils.logger(JavaGeneratedOutlineFacet.class);
 
     private final int expandTo;
-    private @Inject IDynamicClassLoadingService semanticProviderService;
+    private final IDynamicClassLoadingService semanticProviderService;
 
-    public JavaGeneratedOutlineFacet(int expandTo) {
+    @Inject public JavaGeneratedOutlineFacet(IDynamicClassLoadingService semanticProviderService, @Assisted int expandTo) {
+        this.semanticProviderService = semanticProviderService;
         this.expandTo = expandTo;
     }
 

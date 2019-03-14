@@ -34,8 +34,8 @@ import org.metaborg.core.resource.ResourceUtils;
 import org.metaborg.core.syntax.ParseFacet;
 import org.metaborg.spoofax.core.action.ActionFacet;
 import org.metaborg.spoofax.core.action.ActionFacetFromESV;
-import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.analysis.AnalysisFacetFromESV;
+import org.metaborg.spoofax.core.analysis.IAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.constraint.MultiFileConstraintAnalyzer;
 import org.metaborg.spoofax.core.analysis.constraint.SingleFileConstraintAnalyzer;
@@ -82,18 +82,20 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
     private final Map<String, IContextFactory> contextFactories;
     private final Map<String, IContextStrategy> contextStrategies;
     private final Map<String, ISpoofaxAnalyzer> analyzers;
+    private final IFacetFactory facetFactory;
 
 
     @Inject public LanguageComponentFactory(IResourceService resourceService,
         ILanguageComponentConfigService componentConfigService, ITermFactoryService termFactoryService,
         Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
-        Map<String, ISpoofaxAnalyzer> analyzers) {
+        Map<String, ISpoofaxAnalyzer> analyzers, IFacetFactory facetFactory) {
         this.resourceService = resourceService;
         this.componentConfigService = componentConfigService;
         this.termFactoryService = termFactoryService;
         this.contextFactories = contextFactories;
         this.contextStrategies = contextStrategies;
         this.analyzers = analyzers;
+        this.facetFactory = facetFactory;
     }
 
 
@@ -321,13 +323,13 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
             final IContextFactory contextFactory;
             final ISpoofaxAnalyzer analyzer;
-            final AnalysisFacet analysisFacet;
+            final IAnalysisFacet analysisFacet;
 
             if(hasAnalysis) {
                 final String analysisType = AnalysisFacetFromESV.type(esvTerm);
                 assert analysisType != null : "Analyzer type cannot be null because hasAnalysis is true, no null check is needed.";
                 analyzer = analyzers.get(analysisType);
-                analysisFacet = AnalysisFacetFromESV.create(esvTerm);
+                analysisFacet = AnalysisFacetFromESV.create(facetFactory, esvTerm);
                 final String contextType = hasContext ? ContextFacetFromESV.type(esvTerm) : null;
                 if(hasContext && contextType == null) {
                     contextFactory = null;
@@ -377,7 +379,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             }
 
 
-            final ActionFacet menusFacet = ActionFacetFromESV.create(esvTerm);
+            final ActionFacet menusFacet = ActionFacetFromESV.create(facetFactory, esvTerm);
             if(menusFacet != null) {
                 config.addFacet(menusFacet);
             }
@@ -387,17 +389,17 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                 config.addFacet(stylerFacet);
             }
 
-            final IFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
+            final IFacet resolverFacet = ResolverFacetFromESV.createResolver(facetFactory, esvTerm);
             if(resolverFacet != null) {
                 config.addFacet(resolverFacet);
             }
 
-            final IFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
+            final IFacet hoverFacet = ResolverFacetFromESV.createHover(facetFactory, esvTerm);
             if(hoverFacet != null) {
                 config.addFacet(hoverFacet);
             }
 
-            final IOutlineFacet outlineFacet = OutlineFacetFromESV.create(esvTerm);
+            final IOutlineFacet outlineFacet = OutlineFacetFromESV.create(facetFactory, esvTerm);
             if(outlineFacet != null) {
                 config.addFacet(outlineFacet);
             }

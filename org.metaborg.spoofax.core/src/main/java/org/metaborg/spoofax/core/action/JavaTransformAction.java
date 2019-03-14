@@ -23,6 +23,8 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.inject.assistedinject.Assisted;
+
 public class JavaTransformAction implements ISpoofaxTransformAction {
     private static final ILogger logger = LoggerUtils.logger(JavaTransformAction.class);
 
@@ -31,9 +33,11 @@ public class JavaTransformAction implements ISpoofaxTransformAction {
     public final TransformActionFlags flags;
     public final String className;
 
-    private @Inject IDynamicClassLoadingService semanticProviderService;
+    private final IDynamicClassLoadingService semanticProviderService;
 
-    public JavaTransformAction(String name, ITransformGoal goal, TransformActionFlags flags, String className) {
+    @Inject public JavaTransformAction(IDynamicClassLoadingService semanticProviderService, @Assisted String name,
+        @Assisted ITransformGoal goal, @Assisted TransformActionFlags flags, @Assisted String className) {
+        this.semanticProviderService = semanticProviderService;
         this.name = name;
         this.goal = goal;
         this.flags = flags;

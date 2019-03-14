@@ -10,11 +10,13 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
+import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
+import org.metaborg.spoofax.core.analysis.IAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
@@ -47,17 +49,17 @@ public class SingleFileConstraintAnalyzer extends AbstractConstraintAnalyzer imp
     private static final ILogger logger = LoggerUtils.logger(SingleFileConstraintAnalyzer.class);
 
     @Inject public SingleFileConstraintAnalyzer(final AnalysisCommon analysisCommon,
-            final IResourceService resourceService, final IStrategoRuntimeService runtimeService,
-            final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
-            final ISpoofaxTracingService tracingService, final ISpoofaxUnitService unitService) {
+        final IResourceService resourceService, final IStrategoRuntimeService runtimeService,
+        final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
+        final ISpoofaxTracingService tracingService, final ISpoofaxUnitService unitService) {
         super(analysisCommon, resourceService, runtimeService, strategoCommon, termFactoryService, tracingService,
-                unitService);
+            unitService);
     }
 
     @Override protected ISpoofaxAnalyzeResults analyzeAll(final Map<String, ISpoofaxParseUnit> changed,
-            final Map<String, ISpoofaxParseUnit> removed, final IConstraintContext context,
-            final HybridInterpreter runtime, final String strategy, final IProgress progress, ICancel cancel)
-            throws AnalysisException {
+        final Map<String, ISpoofaxParseUnit> removed, final IConstraintContext context, final HybridInterpreter runtime,
+        final FacetContribution<IAnalysisFacet> facetContribution, final IProgress progress, ICancel cancel)
+        throws AnalysisException {
         final Set<ISpoofaxAnalyzeUnit> results = Sets.newHashSet();
 
         // clear removed files
@@ -81,14 +83,14 @@ public class SingleFileConstraintAnalyzer extends AbstractConstraintAnalyzer imp
 
                 // analyze single unit
                 final IStrategoTerm action = build("AnalyzeUnit", sourceTerm, input.ast());
-                final List<IStrategoTerm> unitResult =
-                        match(strategoCommon.invoke(runtime, action, strategy), "UnitResult", 5);
+                final List<IStrategoTerm> unitResult = match(
+                    facetContribution.facet.analyze(runtime, action, facetContribution.contributor), "UnitResult", 5);
                 if(unitResult == null) {
                     logger.warn("Analysis of " + source + " failed.");
-                    Iterable<IMessage> messages = Iterables2.singleton(
-                            MessageFactory.newAnalysisErrorAtTop(input.source(), "File analysis failed.", null));
+                    Iterable<IMessage> messages = Iterables2
+                        .singleton(MessageFactory.newAnalysisErrorAtTop(input.source(), "File analysis failed.", null));
                     results.add(unitService.analyzeUnit(input,
-                            new AnalyzeContrib(false, false, true, input.ast(), messages, -1), context));
+                        new AnalyzeContrib(false, false, true, input.ast(), messages, -1), context));
                     continue;
                 }
 
@@ -105,13 +107,13 @@ public class SingleFileConstraintAnalyzer extends AbstractConstraintAnalyzer imp
                     context.setUnit(source, new FileResult(analyzedAST, analysis, messages));
                 }
                 results.add(unitService.analyzeUnit(input,
-                        new AnalyzeContrib(true, success(messages), true, analyzedAST, messages, -1), context));
+                    new AnalyzeContrib(true, success(messages), true, analyzedAST, messages, -1), context));
             } catch(MetaborgException e) {
                 logger.warn("Analysis of " + source + " failed.", e);
                 Iterable<IMessage> messages = Iterables2
-                        .singleton(MessageFactory.newAnalysisErrorAtTop(input.source(), "File analysis failed.", e));
+                    .singleton(MessageFactory.newAnalysisErrorAtTop(input.source(), "File analysis failed.", e));
                 results.add(unitService.analyzeUnit(input,
-                        new AnalyzeContrib(false, false, true, input.ast(), messages, -1), context));
+                    new AnalyzeContrib(false, false, true, input.ast(), messages, -1), context));
             }
         }
 

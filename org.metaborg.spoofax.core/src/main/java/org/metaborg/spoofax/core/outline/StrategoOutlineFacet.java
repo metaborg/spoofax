@@ -30,17 +30,23 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
+import com.google.inject.assistedinject.Assisted;
 
 public class StrategoOutlineFacet implements IOutlineFacet {
     private static final ILogger logger = LoggerUtils.logger(StrategoOutlineFacet.class);
 
     public final String strategyName;
     public final int expandTo;
-    private @Inject ISpoofaxTracingService tracingService;
-    private @Inject IStrategoRuntimeService strategoRuntimeService;
-    private @Inject IStrategoCommon common;
+    private final ISpoofaxTracingService tracingService;
+    private final IStrategoRuntimeService strategoRuntimeService;
+    private final IStrategoCommon common;
 
-    public StrategoOutlineFacet(String strategyName, int expandTo) {
+    @Inject public StrategoOutlineFacet(ISpoofaxTracingService tracingService,
+        IStrategoRuntimeService strategoRuntimeService, IStrategoCommon common, @Assisted String strategyName,
+        @Assisted int expandTo) {
+        this.tracingService = tracingService;
+        this.strategoRuntimeService = strategoRuntimeService;
+        this.common = common;
         this.strategyName = strategyName;
         this.expandTo = expandTo;
     }

@@ -12,13 +12,18 @@ import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService
 import org.metaborg.spoofax.core.dynamicclassloading.api.IHoverText;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.inject.assistedinject.Assisted;
+
 public class JavaHoverFacet implements IHoverFacet {
     public final String javaClassName;
 
-    private @Inject IDynamicClassLoadingService semanticProviderService;
-    private @Inject ISpoofaxTracingService tracingService;
+    private final IDynamicClassLoadingService semanticProviderService;
+    private final ISpoofaxTracingService tracingService;
 
-    public JavaHoverFacet(String javaClassName) {
+    @Inject public JavaHoverFacet(IDynamicClassLoadingService semanticProviderService,
+        ISpoofaxTracingService tracingService, @Assisted String javaClassName) {
+        this.semanticProviderService = semanticProviderService;
+        this.tracingService = tracingService;
         this.javaClassName = javaClassName;
     }
 

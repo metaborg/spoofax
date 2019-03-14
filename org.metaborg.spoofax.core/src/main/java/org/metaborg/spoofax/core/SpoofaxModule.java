@@ -64,6 +64,7 @@ import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFa
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingService;
 import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
+import org.metaborg.spoofax.core.language.IFacetFactory;
 import org.metaborg.spoofax.core.language.LanguageComponentFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
@@ -169,6 +170,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
@@ -246,6 +248,8 @@ public class SpoofaxModule extends MetaborgModule {
 
     @Override protected void configure() {
         super.configure();
+
+        install(new FactoryModuleBuilder().build(IFacetFactory.class));
 
         parserBinder = MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {},
             new TypeLiteral<IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>>() {});

@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.test.language;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.metaborg.util.test.Assert2.assertIterableEquals;
 
 import org.apache.commons.vfs2.FileObject;
@@ -11,11 +12,14 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.test.language.LanguageServiceTest;
 import org.metaborg.spoofax.core.SpoofaxModule;
-import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.analysis.IAnalysisFacet;
+import org.metaborg.spoofax.core.analysis.StrategoAnalysisFacet;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 
 import com.google.common.collect.Iterables;
+
+import mb.flowspec.Assert;
 
 public class SpoofaxLanguageTest extends LanguageServiceTest {
     public SpoofaxLanguageTest() {
@@ -56,8 +60,9 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
         assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
         assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));
 
-        final AnalysisFacet analysisFacet = impl.facet(AnalysisFacet.class);
+        final IAnalysisFacet analysisFacet = impl.facet(IAnalysisFacet.class);
+        Assert.assertInstanceOf(analysisFacet, StrategoAnalysisFacet.class);
 
-        assertEquals("editor-analyze", analysisFacet.strategyName);
+        assertEquals("editor-analyze", ((StrategoAnalysisFacet) analysisFacet).strategyName);
     }
 }

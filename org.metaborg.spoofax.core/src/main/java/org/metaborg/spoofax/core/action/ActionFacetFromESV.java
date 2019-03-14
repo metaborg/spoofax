@@ -15,6 +15,7 @@ import org.metaborg.core.menu.Menu;
 import org.metaborg.core.menu.MenuAction;
 import org.metaborg.core.menu.Separator;
 import org.metaborg.spoofax.core.esv.ESVReader;
+import org.metaborg.spoofax.core.language.IFacetFactory;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -31,23 +32,23 @@ public class ActionFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(ActionFacetFromESV.class);
 
 
-    public static @Nullable ActionFacet create(IStrategoAppl esv) {
+    public static @Nullable ActionFacet create(IFacetFactory facetFactory, IStrategoAppl esv) {
         final Iterable<IStrategoAppl> menuTerms = ESVReader.collectTerms(esv, "ToolbarMenu");
         final Collection<IMenu> menus = Lists.newLinkedList();
         final Multimap<ITransformGoal, ISpoofaxTransformAction> actions = HashMultimap.create();
         final ImmutableList<String> nesting = ImmutableList.of();
         for(IStrategoAppl menuTerm : menuTerms) {
-            final IMenu submenu = menu(menuTerm, new TransformActionFlags(), nesting, actions);
+            final IMenu submenu = menu(facetFactory, menuTerm, new TransformActionFlags(), nesting, actions);
             menus.add(submenu);
         }
-        addCompileGoal(esv, actions);
+        addCompileGoal(facetFactory, esv, actions);
         if(menus.isEmpty() && actions.isEmpty()) {
             return null;
         }
         return new ActionFacet(actions, menus);
     }
 
-    private static Menu menu(IStrategoTerm menuTerm, TransformActionFlags flags, ImmutableList<String> nesting,
+    private static Menu menu(IFacetFactory facetFactory, IStrategoTerm menuTerm, TransformActionFlags flags, ImmutableList<String> nesting,
         Multimap<ITransformGoal, ISpoofaxTransformAction> actions) {
         final String name = name(menuTerm.getSubterm(0));
         final ImmutableList<String> newNesting = ImmutableList.<String>builder().addAll(nesting).add(name).build();
@@ -63,7 +64,7 @@ public class ActionFacetFromESV {
             }
             switch(constructor) {
                 case "Submenu":
-                    final Menu submenu = menu(item, mergedFlags, newNesting, actions);
+                    final Menu submenu = menu(facetFactory, item, mergedFlags, newNesting, actions);
                     menu.add(submenu);
                     break;
                 case "Action":
@@ -72,7 +73,7 @@ public class ActionFacetFromESV {
                     final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
                     final ImmutableList<String> newActionNesting = ImmutableList.<String>builder().addAll(newNesting).add(actionName).build();
                     final NamedGoal goal = new NamedGoal(newActionNesting);
-                    final ISpoofaxTransformAction action = transformAction(actionName, goal, mergedActionFlags, item.getSubterm(1));
+                    final ISpoofaxTransformAction action = transformAction(facetFactory, actionName, goal, mergedActionFlags, item.getSubterm(1));
                     actions.put(goal, action);
                     actions.put(new EndNamedGoal(goal.names.get(goal.names.size() - 1)), action);
                     final MenuAction menuAction = new MenuAction(action);
@@ -90,14 +91,14 @@ public class ActionFacetFromESV {
         return menu;
     }
     
-    private static ISpoofaxTransformAction transformAction(String name, ITransformGoal goal, TransformActionFlags flags, IStrategoTerm callTerm) {
+    private static ISpoofaxTransformAction transformAction(IFacetFactory facetFactory, String name, ITransformGoal goal, TransformActionFlags flags, IStrategoTerm callTerm) {
         switch(Tools.constructorName(callTerm)) {
             case "JavaGenerated":
-                return new JavaGeneratedTransformAction(goal, flags);
+                return facetFactory.javaGeneratedTransformAction(goal, flags);
             case "Java":
-                return new JavaTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
+                return facetFactory.javaTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
             default:
-                return new StrategoTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
+                return facetFactory.strategoTransformAction(name, goal, flags, ESVReader.termContents(callTerm));
         }
     }
 
@@ -144,14 +145,14 @@ public class ActionFacetFromESV {
         return flags;
     }
 
-    private static void addCompileGoal(IStrategoAppl esv, Multimap<ITransformGoal, ISpoofaxTransformAction> actions) {
+    private static void addCompileGoal(IFacetFactory facetFactory, IStrategoAppl esv, Multimap<ITransformGoal, ISpoofaxTransformAction> actions) {
         final List<IStrategoAppl> onSaveHandlers = ESVReader.collectTerms(esv, "OnSave");
         if(onSaveHandlers.isEmpty()) {
             return;
         }
         for(IStrategoAppl onSaveHandler : onSaveHandlers) {
             final ITransformGoal goal = new CompileGoal();
-            final ISpoofaxTransformAction action = transformAction("Compile", goal, new TransformActionFlags(), onSaveHandler.getSubterm(0));
+            final ISpoofaxTransformAction action = transformAction(facetFactory, "Compile", goal, new TransformActionFlags(), onSaveHandler.getSubterm(0));
             actions.put(goal, action);
         }
     }

@@ -16,13 +16,12 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
-import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.analysis.IAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
-import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
@@ -62,19 +61,16 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
-    private final IStrategoCommon strategoCommon;
     private final AnalysisCommon analysisCommon;
     private final IStrategoConstructor fileCons;
 
 
     @Inject public TaskEngineAnalyzer(IResourceService resourceService, ISpoofaxUnitService unitService,
-        ITermFactoryService termFactoryService, IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
-        AnalysisCommon analysisCommon) {
+        ITermFactoryService termFactoryService, IStrategoRuntimeService runtimeService, AnalysisCommon analysisCommon) {
         this.resourceService = resourceService;
         this.unitService = unitService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
-        this.strategoCommon = strategoCommon;
         this.analysisCommon = analysisCommon;
 
         this.fileCons = termFactoryService.getGeneric().makeConstructor("File", 3);
@@ -100,12 +96,11 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final ILanguageImpl langImpl = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        final FacetContribution<AnalysisFacet> facetContribution = langImpl.facetContribution(AnalysisFacet.class);
+        final FacetContribution<IAnalysisFacet> facetContribution = langImpl.facetContribution(IAnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", langImpl);
             return new SpoofaxAnalyzeResults(context);
         }
-        final AnalysisFacet facet = facetContribution.facet;
 
         cancel.throwIfCancelled();
         final HybridInterpreter runtime;
@@ -116,12 +111,12 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         }
 
         cancel.throwIfCancelled();
-        return analyzeAll(inputs, context, runtime, facet.strategyName, termFactory);
+        return analyzeAll(inputs, context, runtime, facetContribution, termFactory);
     }
 
 
     private ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context,
-        HybridInterpreter runtime, String strategy, ITermFactory termFactory) throws AnalysisException {
+        HybridInterpreter runtime, FacetContribution<IAnalysisFacet> facetContribution, ITermFactory termFactory) throws AnalysisException {
         final Map<String, ISpoofaxParseUnit> inputsPerSource = Maps.newHashMap();
         int detachedCounter = 0;
         final Collection<IStrategoAppl> analysisInputs = Lists.newArrayList();
@@ -144,10 +139,10 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         }
         final IStrategoTerm inputTerm = termFactory.makeList(analysisInputs);
 
-        logger.trace("Invoking {} strategy", strategy);
+        logger.trace("Invoking {} strategy", facetContribution.facet);
         final IStrategoTerm resultTerm;
         try {
-            resultTerm = strategoCommon.invoke(runtime, inputTerm, strategy);
+            resultTerm = facetContribution.facet.analyze(runtime, inputTerm, facetContribution.contributor);
         } catch(MetaborgException e) {
             final String message = analysisCommon.analysisFailedMessage(runtime);
             throw new AnalysisException(context, message, e);

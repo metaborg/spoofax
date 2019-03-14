@@ -15,13 +15,18 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
+import com.google.inject.assistedinject.Assisted;
+
 public class StrategoHoverFacet implements IHoverFacet {
     public final String strategyName;
 
-    private @Inject IStrategoRuntimeService strategoRuntimeService;
-    private @Inject TracingCommon common;
+    private final IStrategoRuntimeService strategoRuntimeService;
+    private final TracingCommon common;
 
-    public StrategoHoverFacet(String strategyName) {
+    @Inject public StrategoHoverFacet(IStrategoRuntimeService strategoRuntimeService, TracingCommon common,
+        @Assisted String strategyName) {
+        this.strategoRuntimeService = strategoRuntimeService;
+        this.common = common;
         this.strategyName = strategyName;
     }
 
@@ -34,8 +39,7 @@ public class StrategoHoverFacet implements IHoverFacet {
         } else {
             interpreter = strategoRuntimeService.runtime(contributor, context, true);
         }
-        final TermWithRegion tuple =
-            common.outputs(interpreter, context.location(), source, inRegion, strategyName);
+        final TermWithRegion tuple = common.outputs(interpreter, context.location(), source, inRegion, strategyName);
         return hover(tuple);
     }
 

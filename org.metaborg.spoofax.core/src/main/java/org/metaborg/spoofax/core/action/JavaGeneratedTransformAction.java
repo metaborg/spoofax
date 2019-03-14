@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.action;
 
 import java.util.Collections;
 
+import javax.inject.Inject;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.action.TransformActionFlags;
@@ -14,13 +16,15 @@ import org.metaborg.spoofax.core.transform.TransformResult;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
+import com.google.inject.assistedinject.Assisted;
+
 public class JavaGeneratedTransformAction implements ISpoofaxTransformAction {
     private static final ILogger logger = LoggerUtils.logger(JavaGeneratedTransformAction.class);
 
     public final ITransformGoal goal;
     public final TransformActionFlags flags;
 
-    public JavaGeneratedTransformAction(ITransformGoal goal, TransformActionFlags flags) {
+    @Inject public JavaGeneratedTransformAction(@Assisted ITransformGoal goal, @Assisted TransformActionFlags flags) {
         this.goal = goal;
         this.flags = flags;
         logger.error("JavaGenerated is not supported in menus. ");

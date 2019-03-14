@@ -30,6 +30,7 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
+import com.google.inject.assistedinject.Assisted;
 
 public class StrategoTransformAction implements ISpoofaxTransformAction {
     private static final ILogger logger = LoggerUtils.logger(StrategoTransformAction.class);
@@ -39,12 +40,17 @@ public class StrategoTransformAction implements ISpoofaxTransformAction {
     public final TransformActionFlags flags;
     public final String strategy;
 
-    private @Inject IResourceService resourceService;
-    private @Inject IStrategoRuntimeService strategoRuntimeService;
-    private @Inject IStrategoCommon common;
+    private final IResourceService resourceService;
+    private final IStrategoRuntimeService strategoRuntimeService;
+    private final IStrategoCommon common;
 
 
-    public StrategoTransformAction(String name, ITransformGoal goal, TransformActionFlags flags, String strategy) {
+    @Inject public StrategoTransformAction(IResourceService resourceService,
+        IStrategoRuntimeService strategoRuntimeService, IStrategoCommon common, @Assisted String name,
+        @Assisted ITransformGoal goal, @Assisted TransformActionFlags flags, @Assisted String strategy) {
+        this.resourceService = resourceService;
+        this.strategoRuntimeService = strategoRuntimeService;
+        this.common = common;
         this.name = name;
         this.goal = goal;
         this.flags = flags;
@@ -105,7 +111,8 @@ public class StrategoTransformAction implements ISpoofaxTransformAction {
                     resultTerm = contentTerm;
                     outputs = Lists.newArrayList(output(resourceTerm, contentTerm, location));
                 } else if(resourceTerm instanceof IStrategoList) {
-                    if(!(contentTerm instanceof IStrategoList) || resourceTerm.getSubtermCount() != contentTerm.getSubtermCount()) {
+                    if(!(contentTerm instanceof IStrategoList)
+                        || resourceTerm.getSubtermCount() != contentTerm.getSubtermCount()) {
                         logger.error("List of terms does not match list of file names, cannot write to file.");
                         resultTerm = null;
                         outputs = Collections.emptyList();
@@ -117,7 +124,9 @@ public class StrategoTransformAction implements ISpoofaxTransformAction {
                         resultTerm = resourceTerm.getSubtermCount() == 1 ? resourceTerm.getSubterm(0) : null;
                     }
                 } else {
-                    logger.error("First term of result tuple {} is neither a string, nor a list, cannot write output file", resourceTerm);
+                    logger.error(
+                        "First term of result tuple {} is neither a string, nor a list, cannot write output file",
+                        resourceTerm);
                     resultTerm = null;
                     outputs = Collections.emptyList();
                 }
@@ -134,7 +143,7 @@ public class StrategoTransformAction implements ISpoofaxTransformAction {
     }
 
     private TransformOutput output(IStrategoTerm resourceTerm, IStrategoTerm contentTerm, FileObject location)
-            throws MetaborgException {
+        throws MetaborgException {
         if(!(resourceTerm instanceof IStrategoString)) {
             throw new MetaborgException("First term of result tuple {} is not a string, cannot write output file");
         } else {

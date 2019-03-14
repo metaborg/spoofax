@@ -10,11 +10,13 @@ import java.util.stream.Collectors;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
+import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
+import org.metaborg.spoofax.core.analysis.IAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
@@ -52,17 +54,17 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
     private static final ILogger logger = LoggerUtils.logger(MultiFileConstraintAnalyzer.class);
 
     @Inject public MultiFileConstraintAnalyzer(final AnalysisCommon analysisCommon,
-            final IResourceService resourceService, final IStrategoRuntimeService runtimeService,
-            final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
-            final ISpoofaxTracingService tracingService, final ISpoofaxUnitService unitService) {
+        final IResourceService resourceService, final IStrategoRuntimeService runtimeService,
+        final IStrategoCommon strategoCommon, final ITermFactoryService termFactoryService,
+        final ISpoofaxTracingService tracingService, final ISpoofaxUnitService unitService) {
         super(analysisCommon, resourceService, runtimeService, strategoCommon, termFactoryService, tracingService,
-                unitService);
+            unitService);
     }
 
     @Override protected ISpoofaxAnalyzeResults analyzeAll(final Map<String, ISpoofaxParseUnit> changed,
-            final Map<String, ISpoofaxParseUnit> removed, final IConstraintContext context,
-            final HybridInterpreter runtime, final String strategy, final IProgress progress, ICancel cancel)
-            throws AnalysisException {
+        final Map<String, ISpoofaxParseUnit> removed, final IConstraintContext context, final HybridInterpreter runtime,
+        final FacetContribution<IAnalysisFacet> facetContribution, final IProgress progress, ICancel cancel)
+        throws AnalysisException {
         final String project = context.resourceKey(context.location());
         final IStrategoTerm projectTerm = termFactory.makeString(project);
 
@@ -86,7 +88,8 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
             final IStrategoTerm action = build("AnalyzeInitial", projectTerm);
             final List<IStrategoTerm> result;
             try {
-                result = match(strategoCommon.invoke(runtime, action, strategy), "InitialResult", 1);
+                result = match(facetContribution.facet.analyze(runtime, action, facetContribution.contributor),
+                    "InitialResult", 1);
             } catch(MetaborgException ex) {
                 logger.error("Initial analysis of failed.", ex);
                 throw new AnalysisException(context, "Initial project analysis failed.", ex);
@@ -117,14 +120,14 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
 
                 // analyze single unit
                 final IStrategoTerm action = build("AnalyzeUnit", sourceTerm, input.ast(), initialResult.analysis);
-                final List<IStrategoTerm> result =
-                        match(strategoCommon.invoke(runtime, action, strategy), "UnitResult", 2);
+                final List<IStrategoTerm> result = match(
+                    facetContribution.facet.analyze(runtime, action, facetContribution.contributor), "UnitResult", 2);
                 if(result == null) {
                     logger.warn("Analysis of '" + source + "' failed.");
                     List<IMessage> messages = ImmutableList
-                            .of(MessageFactory.newAnalysisErrorAtTop(input.source(), "File analysis failed.", null));
+                        .of(MessageFactory.newAnalysisErrorAtTop(input.source(), "File analysis failed.", null));
                     analysisResults.add(unitService.analyzeUnit(input,
-                            new AnalyzeContrib(false, false, true, input.ast(), messages, -1), context));
+                        new AnalyzeContrib(false, false, true, input.ast(), messages, -1), context));
                     continue;
                 }
 
@@ -140,10 +143,10 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
                 }
             } catch(MetaborgException e) {
                 logger.warn("Analysis of '" + source + "' failed.", e);
-                List<IMessage> messages = ImmutableList
-                        .of(MessageFactory.newAnalysisErrorAtTop(input.source(), "File analysis failed.", e));
+                List<IMessage> messages =
+                    ImmutableList.of(MessageFactory.newAnalysisErrorAtTop(input.source(), "File analysis failed.", e));
                 analysisResults.add(unitService.analyzeUnit(input,
-                        new AnalyzeContrib(false, false, true, input.ast(), messages, -1), context));
+                    new AnalyzeContrib(false, false, true, input.ast(), messages, -1), context));
             }
         }
 
@@ -151,11 +154,12 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
         final Multimap<FileObject, IMessage> messagesByFile = HashMultimap.create();
         {
             final IStrategoList unitAnalyses = termFactory
-                    .makeList(context.entrySet().stream().map(e -> e.getValue().analysis).collect(Collectors.toList()));
+                .makeList(context.entrySet().stream().map(e -> e.getValue().analysis).collect(Collectors.toList()));
             final IStrategoTerm action = build("AnalyzeFinal", projectTerm, initialResult.analysis, unitAnalyses);
             final List<IStrategoTerm> result;
             try {
-                result = match(strategoCommon.invoke(runtime, action, strategy), "FinalResult", 4);
+                result = match(facetContribution.facet.analyze(runtime, action, facetContribution.contributor),
+                    "FinalResult", 4);
             } catch(MetaborgException ex) {
                 logger.error("Final analysis of failed.", ex);
                 throw new AnalysisException(context, "Final project analysis failed.", ex);
@@ -183,9 +187,9 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
             final FileResult unitResult = entry.getValue();
             final ISpoofaxParseUnit input = changed.get(source);
             final Collection<IMessage> messages = ImmutableList.<IMessage>builder().addAll(unitResult.messages)
-                    .addAll(messagesByFile.get(input.source())).build();
+                .addAll(messagesByFile.get(input.source())).build();
             analysisResults.add(unitService.analyzeUnit(input,
-                    new AnalyzeContrib(true, success(messages), true, unitResult.ast, messages, -1), context));
+                new AnalyzeContrib(true, success(messages), true, unitResult.ast, messages, -1), context));
         }
 
         for(Entry<String, FileResult> entry : context.entrySet()) { // all other known files
@@ -196,7 +200,7 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer impl
             final FileResult unitResult = entry.getValue();
             final FileObject resource = context.keyResource(source);
             final Collection<IMessage> messages = ImmutableList.<IMessage>builder().addAll(unitResult.messages)
-                    .addAll(messagesByFile.get(resource)).build();
+                .addAll(messagesByFile.get(resource)).build();
             updateResults.add(unitService.analyzeUnitUpdate(resource, new AnalyzeUpdateData(messages), context));
         }
 

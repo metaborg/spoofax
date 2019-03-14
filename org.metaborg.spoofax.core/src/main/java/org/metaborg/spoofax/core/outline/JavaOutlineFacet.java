@@ -13,13 +13,17 @@ import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
 import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
 import org.metaborg.spoofax.core.dynamicclassloading.api.IOutliner;
 
+import com.google.inject.assistedinject.Assisted;
+
 public class JavaOutlineFacet implements IOutlineFacet {
     public final String javaClassName;
     public final int expandTo;
-    private @Inject IDynamicClassLoadingService dynamicClassLoadingService;
+    private final IDynamicClassLoadingService dynamicClassLoadingService;
 
 
-    public JavaOutlineFacet(String javaClassName, int expandTo) {
+    @Inject public JavaOutlineFacet(IDynamicClassLoadingService dynamicClassLoadingService, 
+        @Assisted String javaClassName, @Assisted int expandTo) {
+        this.dynamicClassLoadingService = dynamicClassLoadingService;
         this.javaClassName = javaClassName;
         this.expandTo = expandTo;
     }

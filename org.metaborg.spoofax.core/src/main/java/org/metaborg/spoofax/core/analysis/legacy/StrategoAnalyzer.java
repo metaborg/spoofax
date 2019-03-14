@@ -12,7 +12,7 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
-import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.analysis.IAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -58,8 +58,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
 
 
     @Inject public StrategoAnalyzer(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService,
-            IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
-        AnalysisCommon analysisCommon) {
+        IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon, AnalysisCommon analysisCommon) {
         this.unitService = unitService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
@@ -71,7 +70,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     @Override public ISpoofaxAnalyzeResult analyze(ISpoofaxParseUnit input, IContext context, IProgress progress,
         ICancel cancel) throws AnalysisException, InterruptedException {
         cancel.throwIfCancelled();
-        
+
         if(!input.valid()) {
             final String message = logger.format("Parse input for {} is invalid, cannot analyze", input.source());
             throw new AnalysisException(context, message);
@@ -80,13 +79,12 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final ILanguageImpl language = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
+        final FacetContribution<IAnalysisFacet> facetContribution = language.facetContribution(IAnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
             final ISpoofaxAnalyzeUnit emptyUnit = unitService.emptyAnalyzeUnit(input, context);
             return new SpoofaxAnalyzeResult(emptyUnit, context);
         }
-        final AnalysisFacet facet = facetContribution.facet;
 
         cancel.throwIfCancelled();
         final HybridInterpreter runtime;
@@ -97,23 +95,22 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         }
 
         cancel.throwIfCancelled();
-        final ISpoofaxAnalyzeUnit result = analyze(input, context, runtime, facet.strategyName, termFactory);
+        final ISpoofaxAnalyzeUnit result = analyze(input, context, runtime, facetContribution, termFactory);
         return new SpoofaxAnalyzeResult(result, context);
     }
 
     @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext context,
         IProgress progress, ICancel cancel) throws AnalysisException, InterruptedException {
         cancel.throwIfCancelled();
-        
+
         final ILanguageImpl language = context.language();
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
+        final FacetContribution<IAnalysisFacet> facetContribution = language.facetContribution(IAnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", language);
             return new SpoofaxAnalyzeResults(context);
         }
-        final AnalysisFacet facet = facetContribution.facet;
 
         cancel.throwIfCancelled();
         final HybridInterpreter runtime;
@@ -134,7 +131,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
                 progress.work(1);
                 continue;
             }
-            final ISpoofaxAnalyzeUnit result = analyze(input, context, runtime, facet.strategyName, termFactory);
+            final ISpoofaxAnalyzeUnit result = analyze(input, context, runtime, facetContribution, termFactory);
             results.add(result);
             progress.work(1);
         }
@@ -142,7 +139,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     }
 
     private ISpoofaxAnalyzeUnit analyze(ISpoofaxParseUnit input, IContext context, HybridInterpreter runtime,
-        String strategy, ITermFactory termFactory) throws AnalysisException {
+        FacetContribution<IAnalysisFacet> facetContribution, ITermFactory termFactory) throws AnalysisException {
         final FileObject source = input.source();
 
         final IStrategoString contextPath = strategoCommon.locationTerm(context.location());
@@ -152,7 +149,8 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         try {
             logger.trace("Analysing {}", source);
             final Timer timer = new Timer(true);
-            final IStrategoTerm resultTerm = strategoCommon.invoke(runtime, inputTerm, strategy);
+            final IStrategoTerm resultTerm =
+                facetContribution.facet.analyze(runtime, inputTerm, facetContribution.contributor);
             final long duration = timer.stop();
             if(resultTerm == null) {
                 logger.trace("Analysis for {} failed", source);

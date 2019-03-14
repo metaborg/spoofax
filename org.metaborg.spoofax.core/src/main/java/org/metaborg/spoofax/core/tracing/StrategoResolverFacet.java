@@ -24,16 +24,20 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
+import com.google.inject.assistedinject.Assisted;
 
 public class StrategoResolverFacet implements IResolverFacet {
     private static final ILogger logger = LoggerUtils.logger(StrategoResolverFacet.class);
     public final String strategyName;
 
-    private @Inject IStrategoRuntimeService strategoRuntimeService;
-    private @Inject TracingCommon common;
+    private final IStrategoRuntimeService strategoRuntimeService;
+    private final TracingCommon common;
 
 
-    public StrategoResolverFacet(String strategyName) {
+    @Inject public StrategoResolverFacet(IStrategoRuntimeService strategoRuntimeService, TracingCommon common,
+        @Assisted String strategyName) {
+        this.strategoRuntimeService = strategoRuntimeService;
+        this.common = common;
         this.strategyName = strategyName;
     }
 

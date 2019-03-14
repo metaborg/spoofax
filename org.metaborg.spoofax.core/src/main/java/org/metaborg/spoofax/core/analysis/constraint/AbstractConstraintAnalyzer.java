@@ -16,7 +16,7 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
-import org.metaborg.spoofax.core.analysis.AnalysisFacet;
+import org.metaborg.spoofax.core.analysis.IAnalysisFacet;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzer;
@@ -92,12 +92,11 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         final ILanguageImpl langImpl = context.language();
 
-        final FacetContribution<AnalysisFacet> facetContribution = langImpl.facetContribution(AnalysisFacet.class);
+        final FacetContribution<IAnalysisFacet> facetContribution = langImpl.facetContribution(IAnalysisFacet.class);
         if(facetContribution == null) {
             logger.debug("No analysis required for {}", langImpl);
             return new SpoofaxAnalyzeResults(context);
         }
-        final AnalysisFacet facet = facetContribution.facet;
 
         final HybridInterpreter runtime;
         try {
@@ -118,7 +117,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             }
         }
 
-        return analyzeAll(changed, removed, context, runtime, facet.strategyName, progress, cancel);
+        return analyzeAll(changed, removed, context, runtime, facetContribution, progress, cancel);
     }
 
     private boolean isEmptyAST(IStrategoTerm ast) {
@@ -127,7 +126,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     protected abstract ISpoofaxAnalyzeResults analyzeAll(Map<String, ISpoofaxParseUnit> changed,
             Map<String, ISpoofaxParseUnit> removed, IConstraintContext context, HybridInterpreter runtime,
-            String strategy, IProgress progress, ICancel cancel) throws AnalysisException;
+            FacetContribution<IAnalysisFacet> facetContribution, IProgress progress, ICancel cancel) throws AnalysisException;
 
     protected boolean success(Collection<IMessage> messages) {
         return messages.stream().noneMatch(m -> m.severity().equals(MessageSeverity.ERROR));

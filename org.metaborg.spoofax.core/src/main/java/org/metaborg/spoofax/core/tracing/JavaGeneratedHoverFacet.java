@@ -20,6 +20,12 @@ public class JavaGeneratedHoverFacet implements IHoverFacet {
     private @Inject IDynamicClassLoadingService semanticProviderService;
     private @Inject ISpoofaxTracingService tracingService;
 
+    @Inject public JavaGeneratedHoverFacet(IDynamicClassLoadingService semanticProviderService,
+        ISpoofaxTracingService tracingService) {
+        this.semanticProviderService = semanticProviderService;
+        this.tracingService = tracingService;
+    }
+
     @Override public Hover hover(FileObject source, IContext context, ILanguageComponent contributor,
         Iterable<IStrategoTerm> inRegion) throws MetaborgException {
         String hoverText = null;

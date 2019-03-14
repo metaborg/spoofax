@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.outline;
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.esv.ESVReader;
+import org.metaborg.spoofax.core.language.IFacetFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -10,7 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.Term;
 
 public class OutlineFacetFromESV {
-    public static @Nullable IOutlineFacet create(IStrategoAppl esv) {
+    public static @Nullable IOutlineFacet create(IFacetFactory facetFactory, IStrategoAppl esv) {
         final IStrategoAppl outlineTerm = ESVReader.findTerm(esv, "OutlineView");
         if(outlineTerm == null) {
             return null;
@@ -36,11 +37,11 @@ public class OutlineFacetFromESV {
 
         switch (Term.tryGetName(outlineTerm.getSubterm(0))) {
             case "JavaGenerated":
-                return new JavaGeneratedOutlineFacet(expandTo);
+                return facetFactory.javaGeneratedOutlineFacet(expandTo);
             case "Java":
-                return new JavaOutlineFacet(name, expandTo);
+                return facetFactory.javaOutlineFacet(name, expandTo);
             default:
-                return new StrategoOutlineFacet(name, expandTo);
+                return facetFactory.strategoOutlineFacet(name, expandTo);
         }
     }
 }

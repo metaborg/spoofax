@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.language.IFacet;
 import org.metaborg.spoofax.core.esv.ESVReader;
+import org.metaborg.spoofax.core.language.IFacetFactory;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -15,7 +16,7 @@ import org.spoofax.terms.Term;
 public class ResolverFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(ResolverFacetFromESV.class);
 
-    public static @Nullable IFacet createResolver(IStrategoAppl esv) {
+    public static @Nullable IFacet createResolver(IFacetFactory facetFactory, IStrategoAppl esv) {
         final IStrategoAppl resolver = ESVReader.findTerm(esv, "ReferenceRule");
         if(resolver == null) {
             return null;
@@ -29,15 +30,15 @@ public class ResolverFacetFromESV {
 
         switch (Term.tryGetName(callTerm)) {
             case "JavaGenerated":
-                return new JavaGeneratedResolverFacet();
+                return facetFactory.javaGeneratedResolverFacet();
             case "Java":
-                return new JavaResolverFacet(name);
+                return facetFactory.javaResolverFacet(name);
             default:
-                return new StrategoResolverFacet(name);
+                return facetFactory.strategoResolverFacet(name);
         }
     }
 
-    public static @Nullable IFacet createHover(IStrategoAppl esv) {
+    public static @Nullable IFacet createHover(IFacetFactory facetFactory, IStrategoAppl esv) {
         final IStrategoAppl hover = ESVReader.findTerm(esv, "HoverRule");
         if(hover == null) {
             return null;
@@ -51,11 +52,11 @@ public class ResolverFacetFromESV {
 
         switch (Term.tryGetName(callTerm)) {
             case "JavaGenerated":
-                return new JavaGeneratedHoverFacet();
+                return facetFactory.javaGeneratedHoverFacet();
             case "Java":
-                return new JavaHoverFacet(name);
+                return facetFactory.javaHoverFacet(name);
             default:
-                return new StrategoHoverFacet(name);
+                return facetFactory.strategoHoverFacet(name);
         }
     }
 }
