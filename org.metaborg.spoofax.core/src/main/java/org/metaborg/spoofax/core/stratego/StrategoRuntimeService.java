@@ -33,7 +33,7 @@ import org.strategoxt.strc.parse_stratego_file_0_0;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
-public class StrategoRuntimeService implements IStrategoRuntimeService {
+public class StrategoRuntimeService implements IStrategoRuntimeService, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeService.class);
 
     private final IResourceService resourceService;
@@ -56,6 +56,14 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         this.projectService = projectService;
         this.additionalClassLoaders = additionalClassLoaders;
     }
+
+    @Override public void close() {
+        for(HybridInterpreter runtime : prototypes.values()) {
+            runtime.uninit();
+        }
+        prototypes.clear();
+    }
+
 
     @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context, boolean typesmart)
         throws MetaborgException {

@@ -23,14 +23,8 @@ import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
 public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
-    private static final ILogger logger = LoggerUtils.logger(LayoutSensitivePrettyPrinterPrimitive.class);
-
-    private final IProjectService projectService;
-
-    @Inject public LayoutSensitivePrettyPrinterPrimitive(IProjectService projectService) {
+    @Inject public LayoutSensitivePrettyPrinterPrimitive() {
         super("SSL_EXT_apply_layout_constraints_pp", 0, 0);
-
-        this.projectService = projectService;
     }
 
     private ITermFactory tf;

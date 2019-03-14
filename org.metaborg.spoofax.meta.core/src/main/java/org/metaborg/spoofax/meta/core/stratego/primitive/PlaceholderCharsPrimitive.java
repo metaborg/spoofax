@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.project.IProject;
@@ -16,10 +18,7 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-
-public class PlaceholderCharsPrimitive extends AbstractPrimitive {
+public class PlaceholderCharsPrimitive extends AbstractPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(PlaceholderCharsPrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
@@ -30,6 +29,10 @@ public class PlaceholderCharsPrimitive extends AbstractPrimitive {
         super("SSL_EXT_placeholder_chars", 0, 0);
 
         this.projectService = projectService;
+    }
+
+    @Override public void close() {
+        languageSpecServiceProvider = null;
     }
 
 
@@ -70,7 +73,7 @@ public class PlaceholderCharsPrimitive extends AbstractPrimitive {
         } else {
             suffix = env.getFactory().makeString("");
         }
-        
+
         env.setCurrent(env.getFactory().makeTuple(prefix, suffix));
         return true;
     }

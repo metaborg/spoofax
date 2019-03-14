@@ -52,9 +52,6 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         requestStaticInjection(LegacyLanguageSpecNamePrimitive.class);
         requestStaticInjection(CheckSdf2TablePrimitive.class);
         requestStaticInjection(PlaceholderCharsPrimitive.class);
-        requestStaticInjection(LayoutSensitivePrettyPrinterPrimitive.class);
-        requestStaticInjection(GetSortNamePrimitive.class);
-        requestStaticInjection(GetContextualGrammarPrimitive.class);
     }
 
     protected void bindAnt() {
