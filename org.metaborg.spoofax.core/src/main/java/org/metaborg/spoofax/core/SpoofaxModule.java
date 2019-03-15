@@ -326,6 +326,7 @@ public class SpoofaxModule extends MetaborgModule {
         bind(TermFactoryService.class).in(Singleton.class);
         bind(ITermFactoryService.class).to(TermFactoryService.class);
         languageCacheBinder.addBinding().to(TermFactoryService.class);
+        autoClosableBinder.addBinding().to(TermFactoryService.class);
     }
 
     protected void bindParsers(MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder,
@@ -334,6 +335,7 @@ public class SpoofaxModule extends MetaborgModule {
         parserBinder.addBinding(JSGLRParseService.name).to(JSGLRParseService.class);
         spoofaxParserBinder.addBinding(JSGLRParseService.name).to(JSGLRParseService.class);
         languageCacheBinder.addBinding().to(JSGLRParseService.class);
+        autoClosableBinder.addBinding().to(JSGLRParseService.class);
 
         bind(JSGLRParserConfiguration.class).toInstance(new JSGLRParserConfiguration());
     }
@@ -355,6 +357,7 @@ public class SpoofaxModule extends MetaborgModule {
         bind(StrategoRuntimeService.class).in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class);
         languageCacheBinder.addBinding().to(StrategoRuntimeService.class);
+        autoClosableBinder.addBinding().to(StrategoRuntimeService.class);
 
 
         // Utilities

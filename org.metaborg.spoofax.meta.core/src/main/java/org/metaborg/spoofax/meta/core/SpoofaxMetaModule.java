@@ -37,6 +37,7 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         super.configure();
 
         bind(LanguageSpecBuilder.class).in(Singleton.class);
+        autoClosableBinder.addBinding().to(LanguageSpecBuilder.class);
 
         final Multibinder<IBuildStep> buildStepBinder = Multibinder.newSetBinder(binder(), IBuildStep.class);
         buildStepBinder.addBinding().to(AntBuildStep.class);
@@ -48,12 +49,10 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         requestStaticInjection(LanguageSpecificationPrimitive.class);
         requestStaticInjection(LanguageSpecSrcGenDirectory.class);
         requestStaticInjection(LanguageSpecPpNamePrimitive.class);
-        requestStaticInjection(LegacyLanguageSpecNamePrimitive.class);
         requestStaticInjection(CheckSdf2TablePrimitive.class);
         requestStaticInjection(PlaceholderCharsPrimitive.class);
-        requestStaticInjection(LayoutSensitivePrettyPrinterPrimitive.class);
-        requestStaticInjection(GetSortNamePrimitive.class);
-        requestStaticInjection(GetContextualGrammarPrimitive.class);
+
+        requestStaticInjection(LegacyLanguageSpecNamePrimitive.class);
     }
 
     protected void bindAnt() {

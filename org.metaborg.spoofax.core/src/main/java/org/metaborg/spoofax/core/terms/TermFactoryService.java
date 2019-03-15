@@ -25,7 +25,7 @@ import org.spoofax.terms.typesmart.TypesmartTermFactory;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-public class TermFactoryService implements ITermFactoryService, ILanguageCache {
+public class TermFactoryService implements ITermFactoryService, ILanguageCache, AutoCloseable {
     private static final ILogger typesmartLogger = LoggerUtils.logger("Typesmart");
 
     private final IDependencyService dependencyService;
@@ -86,6 +86,11 @@ public class TermFactoryService implements ITermFactoryService, ILanguageCache {
 
     @Override public void invalidateCache(ILanguageComponent component) {
         mergedTypesmartContexts.remove(component);
+    }
+
+    @Override public void close() {
+        implMergedTypesmartContexts.clear();
+        mergedTypesmartContexts.clear();
     }
 
     private TypesmartContext getTypesmartContext(ILanguageImpl impl) {
