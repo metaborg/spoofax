@@ -42,6 +42,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.sugarj.common.FileCommands;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+
 import build.pluto.BuildUnit.State;
 import build.pluto.dependency.Origin;
 
@@ -353,7 +356,16 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
     @Override public File persistentPath(Input input) {
         final Path rel = FileCommands.getRelativePath(context.baseDir, input.inputFile);
         final String relname = rel.toString().replace(File.separatorChar, '_');
-        return context.depPath("str_sep_front." + relname + ".dep");
+        final String name;
+        // Making sure depPath doesn't get a string > 255. 14 + 4 characters added at the end. 
+        if(relname.length() > (255 - 14 - 4)) {
+            HashCode hash = Hashing.sha256().hashString(relname, StandardCharsets.UTF_8);
+            // Hex hashcode is 64 characters, + 3 dots. 
+            name = hash + "..." + relname.substring(relname.length() - (255 - 14 - 4 - 64 - 3), relname.length());
+        } else {
+            name = relname;
+        }
+        return context.depPath("str_sep_front." + name + ".dep");
     }
 
     public IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName) throws IOException {
