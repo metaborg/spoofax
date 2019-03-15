@@ -49,9 +49,10 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         requestStaticInjection(LanguageSpecificationPrimitive.class);
         requestStaticInjection(LanguageSpecSrcGenDirectory.class);
         requestStaticInjection(LanguageSpecPpNamePrimitive.class);
-        requestStaticInjection(LegacyLanguageSpecNamePrimitive.class);
         requestStaticInjection(CheckSdf2TablePrimitive.class);
         requestStaticInjection(PlaceholderCharsPrimitive.class);
+
+        requestStaticInjection(LegacyLanguageSpecNamePrimitive.class);
     }
 
     protected void bindAnt() {

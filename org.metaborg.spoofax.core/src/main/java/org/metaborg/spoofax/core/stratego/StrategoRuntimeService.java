@@ -58,10 +58,14 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     }
 
     @Override public void close() {
+        // Uninitialize prototype hybrid interpreters and clear the cache.
         for(HybridInterpreter runtime : prototypes.values()) {
             runtime.uninit();
         }
         prototypes.clear();
+
+        // Set parse Stratego file strategy to default, freeing reference to services held by ParseStrategoFileStrategy.
+        parse_stratego_file_0_0.instance = new parse_stratego_file_0_0();
     }
 
 

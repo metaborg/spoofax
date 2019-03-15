@@ -34,10 +34,10 @@ public class SpoofaxExtensionModule extends AbstractModule {
 
         bindAutoClosableSpoofaxPrimitive(LanguageSpecificationPrimitive.class);
         bindAutoClosableSpoofaxPrimitive(LanguageSpecSrcGenDirectory.class);
+        bindAutoClosableSpoofaxPrimitive(LanguageSpecPpNamePrimitive.class);
         bindAutoClosableSpoofaxPrimitive(CheckSdf2TablePrimitive.class);
         bindAutoClosableSpoofaxPrimitive(PlaceholderCharsPrimitive.class);
         bindSpoofaxPrimitive(LayoutSensitivePrettyPrinterPrimitive.class);
-        bindAutoClosableSpoofaxPrimitive(LanguageSpecPpNamePrimitive.class);
         bindSpoofaxPrimitive(GetContextualGrammarPrimitive.class);
 
         bindAutoClosableLegacySpoofaxPrimitive(LegacyLanguageSpecNamePrimitive.class);
