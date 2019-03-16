@@ -532,7 +532,7 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
     protected void bindAction() {
-        bind(IActionService.class).to(ActionService.class).in(Singleton.class);
+        bind(new TypeLiteral<IActionService<ISpoofaxTransformAction>>() {}).to(ActionService.class).in(Singleton.class);
     }
 
     protected void bindTransformer() {
