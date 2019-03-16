@@ -18,7 +18,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class LegacyLanguageSpecNamePrimitive extends ASpoofaxContextPrimitive {
+public class LegacyLanguageSpecNamePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LegacyLanguageSpecNamePrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
@@ -30,6 +30,10 @@ public class LegacyLanguageSpecNamePrimitive extends ASpoofaxContextPrimitive {
         super("SSL_EXT_language_spec_name", 0, 0);
 
         this.projectService = projectService;
+    }
+
+    @Override public void close()  {
+        languageSpecServiceProvider = null;
     }
 
 

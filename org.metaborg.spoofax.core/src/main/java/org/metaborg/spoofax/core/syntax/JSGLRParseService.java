@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
+public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCloseable {
     public static final String name = "jsglr";
 
     private static final ILogger logger = LoggerUtils.logger(JSGLRParseService.class);
@@ -332,5 +332,12 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache {
 
     @Override public void invalidateCache(ILanguageComponent component) {
 
+    }
+
+    @Override public void close() {
+        parserConfigs.clear();
+        completionParserConfigs.clear();
+        referenceParseTables.clear();
+        referenceCompletionParseTables.clear();
     }
 }

@@ -23,20 +23,12 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 public class GetContextualGrammarPrimitive extends AbstractPrimitive {
-    private static final ILogger logger = LoggerUtils.logger(GetContextualGrammarPrimitive.class);
-
-    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
-
-    private final IProjectService projectService;
-
-    @Inject public GetContextualGrammarPrimitive(IProjectService projectService) {
+    @Inject public GetContextualGrammarPrimitive() {
         super("SSL_EXT_get_contextual_grammar", 0, 1);
-
-        this.projectService = projectService;
     }
 
 
-    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
+    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
         org.metaborg.core.context.IContext context = (org.metaborg.core.context.IContext) env.contextObject();
 
         String path = ((IStrategoString) tvars[0]).stringValue();

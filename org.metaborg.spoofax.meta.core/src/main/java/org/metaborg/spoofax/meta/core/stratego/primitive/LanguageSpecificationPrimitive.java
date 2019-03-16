@@ -18,7 +18,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class LanguageSpecificationPrimitive extends ASpoofaxContextPrimitive {
+public class LanguageSpecificationPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecificationPrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
@@ -26,6 +26,10 @@ public class LanguageSpecificationPrimitive extends ASpoofaxContextPrimitive {
 
     @Inject public LanguageSpecificationPrimitive() {
         super("language_specification", 0, 0);
+    }
+
+    @Override public void close() {
+        languageSpecServiceProvider = null;
     }
 
 
