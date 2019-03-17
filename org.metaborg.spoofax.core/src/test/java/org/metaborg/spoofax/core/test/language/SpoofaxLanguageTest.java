@@ -60,7 +60,7 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
         assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
         assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));
 
-        final IAnalysisFacet analysisFacet = impl.facet(IAnalysisFacet.class);
+        final IAnalysisFacet analysisFacet = impl.facet(StrategoAnalysisFacet.class);
         Assert.assertInstanceOf(analysisFacet, StrategoAnalysisFacet.class);
 
         assertEquals("editor-analyze", ((StrategoAnalysisFacet) analysisFacet).strategyName);
