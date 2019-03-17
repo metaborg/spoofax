@@ -18,6 +18,8 @@ import org.metaborg.spoofax.core.tracing.JavaResolverFacet;
 import org.metaborg.spoofax.core.tracing.StrategoHoverFacet;
 import org.metaborg.spoofax.core.tracing.StrategoResolverFacet;
 
+import com.google.inject.assistedinject.Assisted;
+
 public interface IFacetFactory {
     JavaGeneratedResolverFacet javaGeneratedResolverFacet();
     JavaResolverFacet javaResolverFacet(String javaClassName);
@@ -32,10 +34,10 @@ public interface IFacetFactory {
     StrategoOutlineFacet strategoOutlineFacet(String strategyName, int expandTo);
 
     JavaGeneratedTransformAction javaGeneratedTransformAction(ITransformGoal goal, TransformActionFlags flags);
-    JavaTransformAction javaTransformAction(String name, ITransformGoal goal, TransformActionFlags flags,
-        String termContents);
-    StrategoTransformAction strategoTransformAction(String name, ITransformGoal goal, TransformActionFlags flags,
-        String termContents);
+    JavaTransformAction javaTransformAction(@Assisted("name") String name, ITransformGoal goal,
+        TransformActionFlags flags, @Assisted("className") String className);
+    StrategoTransformAction strategoTransformAction(@Assisted("name") String name, ITransformGoal goal,
+        TransformActionFlags flags, @Assisted("strategy") String strategy);
 
     JavaGeneratedAnalysisFacet javaGeneratedAnalysisFacet();
     JavaAnalysisFacet javaAnalysisFacet(String name);

@@ -35,8 +35,8 @@ public class JavaTransformAction implements ISpoofaxTransformAction {
 
     private final IDynamicClassLoadingService semanticProviderService;
 
-    @Inject public JavaTransformAction(IDynamicClassLoadingService semanticProviderService, @Assisted String name,
-        @Assisted ITransformGoal goal, @Assisted TransformActionFlags flags, @Assisted String className) {
+    @Inject public JavaTransformAction(IDynamicClassLoadingService semanticProviderService, @Assisted("name") String name,
+        @Assisted ITransformGoal goal, @Assisted TransformActionFlags flags, @Assisted("className") String className) {
         this.semanticProviderService = semanticProviderService;
         this.name = name;
         this.goal = goal;

@@ -46,8 +46,8 @@ public class StrategoTransformAction implements ISpoofaxTransformAction {
 
 
     @Inject public StrategoTransformAction(IResourceService resourceService,
-        IStrategoRuntimeService strategoRuntimeService, IStrategoCommon common, @Assisted String name,
-        @Assisted ITransformGoal goal, @Assisted TransformActionFlags flags, @Assisted String strategy) {
+        IStrategoRuntimeService strategoRuntimeService, IStrategoCommon common, @Assisted("name") String name,
+        @Assisted ITransformGoal goal, @Assisted TransformActionFlags flags, @Assisted("strategy") String strategy) {
         this.resourceService = resourceService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.common = common;
