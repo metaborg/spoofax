@@ -1,3 +1,24 @@
-.idea/
-*.iml
+# Java
+*.class
+*.jar
+hs_err_pid*
 
+# Gradle
+**/.gradle
+**/build/
+
+# IntelliJ
+**/.idea
+*.iml
+**/out
+
+# Eclipse
+**/.project
+**/.settings
+**/.classpath
+**/.factorypath
+**/bin
+
+# Spoofax
+**/src-gen
+**/target
