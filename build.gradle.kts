@@ -1,6 +1,6 @@
 plugins {
-  id("org.metaborg.gradle.config.root-project") version "0.3.5"
-  id("org.metaborg.gitonium") version "0.1.0"
+  id("org.metaborg.gradle.config.root-project") version "0.3.6"
+  id("org.metaborg.gitonium") version "0.1.1"
 }
 
 subprojects {
@@ -10,6 +10,8 @@ subprojects {
 }
 
 allprojects {
+  version = "2.6.0-SNAPSHOT" // Override version from Git, as Spoofax Core uses a different versioning scheme.
+  
   repositories {
     maven("https://pluto-build.github.io/mvnrepository/")
     maven("https://sugar-lang.github.io/mvnrepository/")
