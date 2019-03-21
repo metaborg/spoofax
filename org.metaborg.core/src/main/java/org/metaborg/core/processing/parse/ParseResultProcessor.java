@@ -25,7 +25,7 @@ import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
 
 
-public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> implements IParseResultProcessor<I, P> {
+public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> implements IParseResultProcessor<I, P>, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(ParseResultProcessor.class);
 
     private final ISyntaxService<I, P> syntaxService;
@@ -35,6 +35,13 @@ public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> im
 
     @Inject public ParseResultProcessor(ISyntaxService<I, P> syntaxService) {
         this.syntaxService = syntaxService;
+    }
+
+    @Override public void close() {
+        for(BehaviorSubject<ParseChange<P>> updates : updatesPerResource.values()) {
+            updates.onCompleted();
+        }
+        updatesPerResource.clear();
     }
 
 

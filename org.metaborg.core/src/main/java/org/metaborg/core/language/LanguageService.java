@@ -30,7 +30,7 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-public class LanguageService implements ILanguageService {
+public class LanguageService implements ILanguageService, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageService.class);
 
     private final AtomicInteger sequenceIdGenerator = new AtomicInteger(0);
@@ -57,6 +57,22 @@ public class LanguageService implements ILanguageService {
         });
     private final Cache<LanguageIdentifier, ILanguageImplInternal> languageImplCache =
         CacheBuilder.newBuilder().weakValues().build();
+
+
+    @Override public void close() {
+        languageImplCache.invalidateAll();
+        languageImplCache.cleanUp();
+        languageCache.invalidateAll();
+        languageCache.cleanUp();
+        nameToLanguage.clear();
+        implChanges.onCompleted();
+        idToImpl.clear();
+        identifierToImpl.clear();
+        componentChanges.onCompleted();
+        identifierToComponent.clear();
+        locationToComponent.clear();
+    }
+
 
     @Override public @Nullable ILanguageComponent getComponent(LanguageIdentifier identifier) {
         return identifierToComponent.get(identifier);
