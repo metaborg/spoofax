@@ -9,6 +9,10 @@ import org.metaborg.core.tracing.Resolution;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface IResolverFacet extends IFacet {
+    @Override default Class<? extends IResolverFacet> getKey() {
+        return IResolverFacet.class;
+    }
+
     Resolution resolve(FileObject source, IContext context, Iterable<IStrategoTerm> inRegion,
         ILanguageComponent contributor) throws MetaborgException;
 }

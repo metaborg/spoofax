@@ -9,6 +9,10 @@ import org.metaborg.core.tracing.Hover;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface IHoverFacet extends IFacet {
+    @Override default Class<? extends IHoverFacet> getKey() {
+        return IHoverFacet.class;
+    }
+
     Hover hover(FileObject source, IContext context, ILanguageComponent contributor, Iterable<IStrategoTerm> inRegion)
         throws MetaborgException;
 }

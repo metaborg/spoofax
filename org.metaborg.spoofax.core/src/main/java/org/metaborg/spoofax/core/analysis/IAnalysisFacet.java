@@ -7,5 +7,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
 public interface IAnalysisFacet extends IFacet {
+    @Override default Class<? extends IAnalysisFacet> getKey() {
+        return IAnalysisFacet.class;
+    }
+
     IStrategoTerm analyze(HybridInterpreter runtime, IStrategoTerm inputTerm, ILanguageComponent contributor) throws MetaborgException;
 }

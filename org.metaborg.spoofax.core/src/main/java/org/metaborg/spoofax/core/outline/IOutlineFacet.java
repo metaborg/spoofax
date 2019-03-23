@@ -11,7 +11,7 @@ import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
 public interface IOutlineFacet extends IFacet {
     int getExpansionLevel();
 
-    @Override default Class<? extends IFacet> getKey() {
+    @Override default Class<? extends IOutlineFacet> getKey() {
         return IOutlineFacet.class;
     }
 
