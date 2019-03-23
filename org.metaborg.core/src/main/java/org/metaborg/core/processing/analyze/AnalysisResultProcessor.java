@@ -17,6 +17,7 @@ import org.metaborg.core.build.UpdateKind;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.processing.parse.IParseResultRequester;
+import org.metaborg.core.processing.parse.ParseChange;
 import org.metaborg.core.syntax.IInputUnit;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
@@ -33,7 +34,7 @@ import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
 
 public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate>
-    implements IAnalysisResultProcessor<I, P, A> {
+    implements IAnalysisResultProcessor<I, P, A>, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(AnalysisResultProcessor.class);
 
     private final IAnalysisService<P, A, AU> analysisService;
@@ -47,6 +48,13 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
         IParseResultRequester<I, P> parseResultRequester) {
         this.analysisService = analysisService;
         this.parseResultRequester = parseResultRequester;
+    }
+
+    @Override public void close() {
+        for(BehaviorSubject<AnalysisChange<A>> updates : updatesPerResource.values()) {
+            updates.onCompleted();
+        }
+        updatesPerResource.clear();
     }
 
 

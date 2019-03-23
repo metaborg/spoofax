@@ -142,7 +142,10 @@ public class MetaborgModule extends AbstractModule {
     }
 
     protected void bindLanguage() {
-        bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
+        bind(LanguageService.class).in(Singleton.class);
+        bind(ILanguageService.class).to(LanguageService.class);
+        autoClosableBinder.addBinding().to(LanguageService.class);
+
         bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
     }
 
@@ -218,11 +221,13 @@ public class MetaborgModule extends AbstractModule {
         bind(IParseResultRequester.class).to(ParseResultProcessor.class);
         bind(IParseResultUpdater.class).to(ParseResultProcessor.class);
         bind(IParseResultProcessor.class).to(ParseResultProcessor.class);
+        autoClosableBinder.addBinding().to(ParseResultProcessor.class);
 
         bind(AnalysisResultProcessor.class).in(Singleton.class);
         bind(IAnalysisResultRequester.class).to(AnalysisResultProcessor.class);
         bind(IAnalysisResultUpdater.class).to(AnalysisResultProcessor.class);
         bind(IAnalysisResultProcessor.class).to(AnalysisResultProcessor.class);
+        autoClosableBinder.addBinding().to(AnalysisResultProcessor.class);
 
         bind(IBuilder.class).to(Builder.class).in(Singleton.class);
 
