@@ -233,14 +233,11 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
 
     private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input) {
-        JSGLRVersion version = JSGLRVersion.v1;
-
-        for(ILanguageComponent langComp : input.langImpl().components()) {
-            version = langComp.config().jsglrVersion();
-            break;
-        }
-
-        return version;
+        ILanguageComponent langComp = Iterables.getFirst(input.langImpl().components(), null);
+        if(langComp == null)
+            return JSGLRVersion.v1;
+        else
+            return langComp.config().jsglrVersion();
     }
 
     private boolean hasIncrementalPTGen(ILanguageImpl impl) {
