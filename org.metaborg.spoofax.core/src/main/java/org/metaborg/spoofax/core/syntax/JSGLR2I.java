@@ -24,8 +24,8 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
 
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
-        @Nullable FileObject resource, String input, JSGLRVersion parserType) throws IOException {
-        super(config, termFactory, language, dialect, resource, input);
+        JSGLRVersion parserType) throws IOException {
+        super(config, termFactory, language, dialect);
 
         IParseTableProvider parseTableProvider = config.getParseTableProvider();
         IParseTable parseTable = getParseTable(parseTableProvider);
@@ -47,7 +47,8 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         }
     }
 
-    public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException {
+    @Override public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig, @Nullable FileObject resource,
+        String input) {
         if(parserConfig == null) {
             parserConfig = new JSGLRParserConfiguration();
         }

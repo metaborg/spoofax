@@ -24,7 +24,6 @@ import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.InvalidParseTableException;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -45,6 +44,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
     private final Map<ILanguageImpl, ParseTable> referenceParseTables = Maps.newHashMap();
     private final Map<ILanguageImpl, ParseTable> referenceCompletionParseTables = Maps.newHashMap();
+
+    private final Map<ILanguageImpl, JSGLRI<?>> parsers = Maps.newHashMap();
+    private final Map<ILanguageImpl, JSGLRI<?>> completionParsers = Maps.newHashMap();
 
     @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService,
         JSGLRParserConfiguration defaultParserConfig) {
@@ -67,59 +69,24 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel)
         throws ParseException {
         final FileObject source = input.source();
-        final ILanguageImpl langImpl;
-        final ILanguageImpl base;
-
-        if(input.dialect() != null) {
-            langImpl = input.dialect();
-            base = input.langImpl();
-        } else {
-            langImpl = input.langImpl();
-            base = null;
-        }
         final String text = input.text();
 
-        final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
-        final IParserConfig config;
-
-        JSGLRParserConfiguration parserConfig = input.config();
-        if(parserConfig == null) {
+        final JSGLRParserConfiguration parserConfig;
+        if(input.config() == null) {
             parserConfig = defaultParserConfig;
-        }
-
-        if(parserConfig.completion) {
-            config = getCompletionParserConfig(langImpl, input);
         } else {
-            config = getParserConfig(langImpl, input);
+            parserConfig = input.config();
         }
 
         try {
             logger.trace("Parsing {}", source);
 
-            JSGLRVersion version = jsglrVersion(input);
+            final JSGLRI<?> parser = getParser(input, parserConfig);
 
-            final JSGLRI<?> parser;
-
-            if(version == JSGLRVersion.v1) {
-                if(base != null) {
-                    parser = new JSGLR1I(config, termFactory, base, langImpl, source, text);
-                } else {
-                    parser = new JSGLR1I(config, termFactory, langImpl, null, source, text);
-                }
-            } else
-                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, version);
-
-            final ParseContrib contrib = parser.parse(parserConfig);
-
-            if(version == JSGLRVersion.v2) {
-                if(contrib.valid)
-                    logger.info("Valid JSGLR2 parse");
-                else
-                    logger.info("Invalid JSGLR2 parse");
-            }
+            final ParseContrib contrib = parser.parse(parserConfig, source, text);
 
             return unitService.parseUnit(input, contrib);
-        } catch(IOException | InvalidParseTableException e) {
+        } catch(IOException e) {
             throw new ParseException(input, e);
         }
     }
@@ -131,6 +98,47 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
             parseUnits.add(parse(input, progress, cancel));
         }
         return parseUnits;
+    }
+
+    private JSGLRI<?> getParser(ISpoofaxInputUnit input, JSGLRParserConfiguration parserConfig)
+        throws IOException, ParseException {
+
+        final ILanguageImpl langImpl;
+        final ILanguageImpl base;
+        if(input.dialect() != null) {
+            langImpl = input.dialect();
+            base = input.langImpl();
+        } else {
+            langImpl = input.langImpl();
+            base = null;
+        }
+
+        final Map<ILanguageImpl, JSGLRI<?>> parserMap = parserConfig.completion ? completionParsers : parsers;
+
+        if(!parserMap.containsKey(langImpl)) {
+            final IParserConfig config;
+            if(parserConfig.completion) {
+                config = getCompletionParserConfig(langImpl, input);
+            } else {
+                config = getParserConfig(langImpl, input);
+            }
+
+            final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
+            JSGLRVersion version = jsglrVersion(input);
+
+            JSGLRI<?> parser;
+            if(version == JSGLRVersion.v1) {
+                if(base != null) {
+                    parser = new JSGLR1I(config, termFactory, base, langImpl);
+                } else {
+                    parser = new JSGLR1I(config, termFactory, langImpl, null);
+                }
+            } else
+                parser = new JSGLR2I(config, termFactory, langImpl, null, version);
+
+            parserMap.put(langImpl, parser);
+        }
+        return parserMap.get(langImpl);
     }
 
     public IParserConfig getParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input) throws ParseException {
@@ -320,6 +328,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         logger.debug("Removing cached parse table for {}", impl);
         parserConfigs.remove(impl);
         completionParserConfigs.remove(impl);
+        parsers.remove(impl);
+        completionParsers.remove(impl);
     }
 
     @Override public void invalidateCache(ILanguageComponent component) {
