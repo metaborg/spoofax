@@ -36,13 +36,15 @@ import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
     private final SGLR parser;
+    private final Context context;
 
-    public JSGLR1I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
+    public JSGLR1I(IParserConfig config, ITermFactory termFactory, Context context, ILanguageImpl language, ILanguageImpl dialect,
         @Nullable FileObject resource, String input) throws IOException, InvalidParseTableException {
         super(config, termFactory, language, dialect, resource, input);
 
         final TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(termFactory));
         this.parser = new SGLR(new TreeBuilder(factory), getParseTable(config.getParseTableProvider()));
+        this.context = context;
     }
 
     public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig) throws IOException {
@@ -119,10 +121,10 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
         SGLRParseResult parseResult = parseAndRecover(text, filename, disambiguator, getOrDefaultStartSymbol(parserConfig));
         if(config.getImploderSetting() == ImploderImplementation.stratego) {
+            org.strategoxt.stratego_sglr.Main.init(context);
             final implode_asfix_0_0 imploder = implode_asfix_0_0.instance;
-            final Context strategoContext = new Context(this.termFactory);
             final IStrategoTerm syntaxTree = (IStrategoTerm) parseResult.output;
-            return new SGLRParseResult(imploder.invoke(strategoContext, syntaxTree));
+            return new SGLRParseResult(imploder.invoke(context, syntaxTree));
         } else {
             return parseResult;
         }
