@@ -76,7 +76,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
     }
 
-    public Set<BadTokenException> getCollectedErrors() {
+    @Override public Set<BadTokenException> getCollectedErrors() {
         return Collections.emptySet();
     }
 }
