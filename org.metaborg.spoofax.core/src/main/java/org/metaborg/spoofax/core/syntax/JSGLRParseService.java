@@ -107,6 +107,13 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
     }
 
+    @Override public void close() {
+        parserConfigs.clear();
+        completionParserConfigs.clear();
+        referenceParseTables.clear();
+        referenceCompletionParseTables.clear();
+    }
+
 
     private JSGLRI<?> getParser(ISpoofaxInputUnit input, JSGLRParserConfiguration parserConfig)
         throws IOException, ParseException {
@@ -264,12 +271,5 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                 logger.error("Could not save reference " + c + "parse table for incremental parse table generation.");
             }
         }
-    }
-
-    @Override public void close() {
-        parserConfigs.clear();
-        completionParserConfigs.clear();
-        referenceParseTables.clear();
-        referenceCompletionParseTables.clear();
     }
 }
