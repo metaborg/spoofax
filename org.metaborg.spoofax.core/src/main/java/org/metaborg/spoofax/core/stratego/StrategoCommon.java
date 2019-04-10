@@ -193,7 +193,7 @@ public class StrategoCommon implements IStrategoCommon {
         return resourceTerm;
     }
 
-    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location) {
+    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, @Nullable FileObject resource, @Nullable FileObject location) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
         // TODO: support selected node
@@ -201,10 +201,24 @@ public class StrategoCommon implements IStrategoCommon {
         // TODO: support position
         final IStrategoTerm position = termFactory.makeList();
 
-        final String locationURI = location.getName().getURI();
-        final IStrategoString locationTerm = termFactory.makeString(locationURI);
+        final String locationURI;
+        final String resourceURI;
 
-        String resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
+        if(resource != null && location != null) {
+            locationURI = location.getName().getURI();
+            resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
+        } else if (resource != null) {
+            locationURI = "";
+            resourceURI = resource.getName().getURI();
+        } else if(location != null) {
+            locationURI = location.getName().getURI();
+            resourceURI = "";
+        } else {
+            locationURI = "";
+            resourceURI = "";
+        }
+
+        final IStrategoString locationTerm = termFactory.makeString(locationURI);
         final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
 
         return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);

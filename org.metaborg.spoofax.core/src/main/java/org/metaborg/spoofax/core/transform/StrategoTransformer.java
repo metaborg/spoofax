@@ -66,6 +66,9 @@ public class StrategoTransformer implements IStrategoTransformer {
 
     @Override public ISpoofaxTransformUnit<ISpoofaxParseUnit> transform(ISpoofaxParseUnit input, IContext context,
         TransformActionContrib action, ITransformConfig config) throws TransformException {
+        if(!input.valid()) {
+            throw new TransformException("Cannot transform parse unit " + input + ", it is not valid");
+        }
         return transform(input, context, action, input.source(), input.ast(), config);
     }
 
@@ -87,6 +90,9 @@ public class StrategoTransformer implements IStrategoTransformer {
         final Collection<ISpoofaxTransformUnit<ISpoofaxParseUnit>> transformUnits =
             Lists.newArrayListWithCapacity(size);
         for(ISpoofaxParseUnit input : inputs) {
+            if(!input.valid()) {
+                throw new TransformException("Cannot transform parse unit " + input + ", it is not valid");
+            }
             transformUnits.add(transform(input, context, action, input.source(), input.ast(), config));
         }
         return transformUnits;
