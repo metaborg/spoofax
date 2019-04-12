@@ -1,16 +1,11 @@
 package org.metaborg.spoofax.core.context.constraint;
 
-import java.io.Serializable;
-import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.IContextInternal;
-import org.metaborg.core.messages.IMessage;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import com.google.common.collect.ImmutableList;
 
 public interface IConstraintContext extends IContextInternal {
 
@@ -27,6 +22,7 @@ public interface IConstraintContext extends IContextInternal {
 
     boolean isRoot(FileObject resource);
 
+    FileObject root();
 
     default boolean hasAnalysis(String resource) {
         return hasAnalysis(keyResource(resource));
@@ -51,45 +47,25 @@ public interface IConstraintContext extends IContextInternal {
     FileObject keyResource(String resource);
 
 
-    // --- initial ---
-
-    void setInitial(InitialResult value);
-
-    boolean hasInitial();
-
-    InitialResult getInitial();
-
-
-    // --- final ---
-
-    void setFinal(FinalResult value);
-
-    boolean hasFinal();
-
-    FinalResult getFinal();
-
-
-    // --- file ---
-
-    default boolean hasUnit(String resource) {
-        return hasUnit(keyResource(resource));
+    default boolean contains(String resource) {
+        return contains(keyResource(resource));
     }
 
-    boolean hasUnit(FileObject resource);
+    boolean contains(FileObject resource);
 
 
-    default boolean setUnit(String resource, FileResult value) {
-        return setUnit(keyResource(resource), value);
+    default boolean put(String resource, IStrategoTerm value) {
+        return put(keyResource(resource), value);
     }
 
-    boolean setUnit(FileObject resource, FileResult value);
+    boolean put(FileObject resource, IStrategoTerm value);
 
 
-    default FileResult getUnit(String resource) {
-        return getUnit(keyResource(resource));
+    default IStrategoTerm get(String resource) {
+        return get(keyResource(resource));
     }
 
-    FileResult getUnit(FileObject resource);
+    IStrategoTerm get(FileObject resource);
 
 
     default boolean remove(String resource) {
@@ -99,53 +75,8 @@ public interface IConstraintContext extends IContextInternal {
     boolean remove(FileObject resource);
 
 
-    Set<Entry<String, FileResult>> entrySet();
+    Set<Entry<String, IStrategoTerm>> entrySet();
 
     void clear();
 
-    // --- result classes ---
-
-    class InitialResult implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public final IStrategoTerm analysis;
-
-        public InitialResult(IStrategoTerm analysis) {
-            this.analysis = analysis;
-        }
-
-    }
-
-    class FileResult implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public final IStrategoTerm ast;
-        public final IStrategoTerm analysis;
-        public final Collection<IMessage> messages;
-
-        public FileResult(IStrategoTerm ast, IStrategoTerm analysis, Collection<IMessage> messages) {
-            this.ast = ast;
-            this.analysis = analysis;
-            this.messages = ImmutableList.copyOf(messages);
-        }
-
-    }
-
-    class FinalResult implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public final IStrategoTerm analysis;
-        public final Collection<IMessage> messages;
-
-        public FinalResult(IStrategoTerm analysis, Collection<IMessage> messages) {
-            this.analysis = analysis;
-            this.messages = ImmutableList.copyOf(messages);
-        }
-
-    }
-
 }
-

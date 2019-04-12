@@ -12,8 +12,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -52,7 +50,7 @@ public class ConstraintContext implements IConstraintContext {
         this.lock = new ReentrantReadWriteLock(true);
     }
 
-    public Mode mode() {
+    @Override public Mode mode() {
         return mode;
     }
 
@@ -60,12 +58,16 @@ public class ConstraintContext implements IConstraintContext {
         return location().equals(resource);
     }
 
+    @Override public FileObject root() {
+        return location();
+    }
+
     @Override public boolean hasAnalysis(FileObject resource) {
         switch(mode()) {
             case MULTI_FILE:
-                return hasFinal();
+                return contains(root());
             case SINGLE_FILE:
-                return hasUnit(resource);
+                return contains(resource);
             default:
                 return false;
         }
@@ -74,9 +76,9 @@ public class ConstraintContext implements IConstraintContext {
     @Override public IStrategoTerm getAnalysis(FileObject resource) {
         switch(mode()) {
             case MULTI_FILE:
-                return getFinal().analysis;
+                return get(root());
             case SINGLE_FILE:
-                return getUnit(resource).analysis;
+                return get(resource);
             default:
                 throw new IllegalStateException();
         }
@@ -94,58 +96,28 @@ public class ConstraintContext implements IConstraintContext {
         }
     }
 
-    // ----------------------------------------------------------
-
-    public boolean hasInitial() {
-        return state.initialResult != null;
+    @Override public boolean contains(FileObject resource) {
+        return state.analyses.containsKey(resourceKey(resource));
     }
 
-    public InitialResult getInitial() {
-        return state.initialResult;
+    @Override public boolean put(FileObject resource, IStrategoTerm value) {
+        return state.analyses.put(resourceKey(resource), value) != null;
     }
 
-    public void setInitial(InitialResult value) {
-        state.initialResult = value;
-    }
-
-    // ----------------------------------------------------------
-
-    public boolean hasFinal() {
-        return state.finalResult != null;
-    }
-
-    public FinalResult getFinal() {
-        return state.finalResult;
-    }
-
-    public void setFinal(FinalResult value) {
-        state.finalResult = value;
-    }
-
-    // ----------------------------------------------------------
-
-    @Override public boolean hasUnit(FileObject resource) {
-        return state.unitResults.containsKey(resourceKey(resource));
-    }
-
-    @Override public boolean setUnit(FileObject resource, FileResult value) {
-        return state.unitResults.put(resourceKey(resource), value) != null;
-    }
-
-    @Override public FileResult getUnit(FileObject resource) {
-        return state.unitResults.get(resourceKey(resource));
+    @Override public IStrategoTerm get(FileObject resource) {
+        return state.analyses.get(resourceKey(resource));
     }
 
     @Override public boolean remove(FileObject resource) {
-        return state.unitResults.remove(resourceKey(resource)) != null;
+        return state.analyses.remove(resourceKey(resource)) != null;
     }
 
-    @Override public Set<Entry<String, FileResult>> entrySet() {
-        return state.unitResults.entrySet();
+    @Override public Set<Entry<String, IStrategoTerm>> entrySet() {
+        return state.analyses.entrySet();
     }
 
     @Override public void clear() {
-        state.unitResults.clear();
+        state.analyses.clear();
     }
 
     // ----------------------------------------------------------
@@ -356,12 +328,10 @@ public class ConstraintContext implements IConstraintContext {
 
         private static final long serialVersionUID = 1L;
 
-        public @Nullable InitialResult initialResult;
-        public final Map<String, FileResult> unitResults;
-        public @Nullable FinalResult finalResult;
+        public final Map<String, IStrategoTerm> analyses;
 
         public State() {
-            this.unitResults = Maps.newHashMap();
+            this.analyses = Maps.newHashMap();
         }
 
     }
