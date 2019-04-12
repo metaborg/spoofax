@@ -112,6 +112,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         completionParserConfigs.clear();
         referenceParseTables.clear();
         referenceCompletionParseTables.clear();
+        parsers.clear();
+        completionParsers.clear();
     }
 
 
