@@ -228,22 +228,25 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         } catch(MetaborgException ex) {
             throw new AnalysisException(context, ex);
         }
+        if(allResultsTerm == null) {
+            throw new AnalysisException(context, "Analysis strategy failed");
+        }
         final List<IStrategoTerm> allResultTerms;
         if((allResultTerms = match(allResultsTerm, "AnalysisResult", 1)) == null) {
-            throw new AnalysisException(context, "Invalid analysis result");
+            throw new AnalysisException(context, "Invalid analysis result, got " + allResultsTerm);
         }
         final IStrategoTerm resultsTerm = allResultTerms.get(0);
         if(!Tools.isTermList(resultsTerm)) {
-            throw new AnalysisException(context, "Expected list of results");
+            throw new AnalysisException(context, "Expected list of results, got " + resultsTerm);
         }
         for(IStrategoTerm entry : resultsTerm.getAllSubterms()) {
             if(!Tools.isTermTuple(entry) || entry.getSubtermCount() != 2) {
-                throw new AnalysisException(context, "Expected tuple results");
+                throw new AnalysisException(context, "Expected tuple result, got " + entry);
             }
             final IStrategoTerm resourceTerm = entry.getSubterm(0);
             final IStrategoTerm resultTerm = entry.getSubterm(1);
             if(!Tools.isTermString(resourceTerm)) {
-                throw new AnalysisException(context, "Expected resource string as first component");
+                throw new AnalysisException(context, "Expected resource string as first component, got " + resourceTerm);
             }
             final String resource = Tools.asJavaString(resourceTerm);
             results.put(resource, resultTerm);
