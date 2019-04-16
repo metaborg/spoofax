@@ -1,7 +1,8 @@
 module libspoofax/analysis/constraint
 
 // This module defines the interface for a stateful analysis cycle. It supports
-// single and multi file analysis.
+// single and multi file analysis. Analysis strategies return an analysis term,
+// which is cached, and provided in later analysis cycles.
 //
 // Single file mode
 // ~~~~~~~~~~~~~~~~
@@ -11,6 +12,14 @@ module libspoofax/analysis/constraint
 //
 //     observer : ANALYSIS-STRATEGY (constraint)
 //
+// The ANALYSIS-STRATEGY is called with an AnalyzeSingle/1 term. Its argument is
+// a list of resource-change tuples. See below for details on changes.
+//
+// An AnalysisResult/1 term should be returned, with a list of resource-result
+// tuples as argument. The results should contain a full result for all added
+// and changed files, while it may contain updates for cached files. See below
+// for details on results.
+//
 // Multi file mode
 // ~~~~~~~~~~~~~~~
 //
@@ -19,9 +28,38 @@ module libspoofax/analysis/constraint
 //
 //     observer : ANALYSIS-STRATEGY (constraint) (multifile)
 //
-// The result of analysis is stored, and can be used in transformations. It can
-// be retreived by calling the `get-resource-analysis` strategy. The format of
-// the analysis term is completely free.
+// The ANALYSIS-STRATEGY is called with an AnalyzeMulti/2 term. Its arguments
+// are a resource-change tuple for the project, and a list of resource-change
+// tuples. See below for details on changes.
+//
+// An AnalysisResult/1 term should be returned, with a list of resource-result
+// tuples as argument. The results should contain a full result for all added
+// and changed files, while it may contain updates for cached files. Project
+// results are also included in this list.
+//
+// Changes
+// ~~~~~~~
+//
+// There are four different changes on resources:
+// 1. Added/1 for a new file, with the file's AST as the first argument.
+// 2. Removed/1 for a removed file, with the file's last analysis result as its
+//    first argument.
+// 3. Changed/2 for a changed file, with the file's new AST as the first, and
+//    the file's last analysis result as the second argument.
+// 4. Cached/1 for an unchanged file, with the file's last analysis result as
+//    the first argument.
+//
+// Results
+// ~~~~~~~
+//
+// There are three possible results for resources:
+// 1. Full/5 for added and changed files. It takes as arguments (1) the analyzed
+//    AST, (2) the analysis result, and (3-5) error, warning and note messages.
+// 2. Update/4 for cached files. It takes as arguments (1) the analysis result,
+//    and (2-4) error, warning, and note messages.
+// 3. Failed/0 to indicate an internal failure in the analysis. Can be returned
+//    for added, changed, and cached files.
+// Analysis should not return results for removed files. 
 
 signature
 
