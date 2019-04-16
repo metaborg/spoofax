@@ -88,7 +88,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final ISpoofaxAnalyzeResults results =
                 analyzeAll(Iterables2.singleton(input), genericContext, progress, cancel);
         if(results.results().isEmpty()) {
-            throw new AnalysisException(genericContext, "Analysis failed.");
+            throw new AnalysisException(genericContext, "Analysis failed, no result was returned.");
         }
         return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(),
                 results.context());
@@ -120,7 +120,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         final Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
-        final Map<String, ISpoofaxParseUnit> removed = Maps.newHashMap();
+        final Map<String, ISpoofaxAnalyzeUnit> removed = Maps.newHashMap();
         for(ISpoofaxParseUnit input : inputs) {
             if(input.detached() || input.source() == null) {
                 logger.warn("Ignoring detached units");
@@ -129,7 +129,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             if(input.valid() && input.success() && !isEmptyAST(input.ast())) {
                 changed.put(source, input);
             } else {
-                removed.put(source, input);
+                removed.put(source, unitService.emptyAnalyzeUnit(input, context));
             }
         }
 
@@ -141,7 +141,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     private ISpoofaxAnalyzeResults doAnalysis(Map<String, ISpoofaxParseUnit> changed,
-            Map<String, ISpoofaxParseUnit> removed, IConstraintContext context, HybridInterpreter runtime,
+            Map<String, ISpoofaxAnalyzeUnit> removed, IConstraintContext context, HybridInterpreter runtime,
             String strategy, IProgress progress, ICancel cancel) throws AnalysisException {
 
         /*******************************************************************
@@ -174,7 +174,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         // removed files
-        for(Map.Entry<String, ISpoofaxParseUnit> entry : removed.entrySet()) {
+        for(Map.Entry<String, ISpoofaxAnalyzeUnit> entry : removed.entrySet()) {
             final String resource = entry.getKey();
             if(context.contains(entry.getKey())) {
                 final IStrategoTerm analysis = context.get(resource);
@@ -246,7 +246,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             final IStrategoTerm resourceTerm = entry.getSubterm(0);
             final IStrategoTerm resultTerm = entry.getSubterm(1);
             if(!Tools.isTermString(resourceTerm)) {
-                throw new AnalysisException(context, "Expected resource string as first component, got " + resourceTerm);
+                throw new AnalysisException(context,
+                        "Expected resource string as first component, got " + resourceTerm);
             }
             final String resource = Tools.asJavaString(resourceTerm);
             results.put(resource, resultTerm);
@@ -294,6 +295,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         for(Expect expect : expects.values()) {
             expect.result(messages.get(expect.resource()), fullResults, updateResults);
         }
+        fullResults.addAll(removed.values());
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
     }
 
