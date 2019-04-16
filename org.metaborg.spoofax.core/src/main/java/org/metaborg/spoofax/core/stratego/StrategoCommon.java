@@ -135,18 +135,18 @@ public class StrategoCommon implements IStrategoCommon {
             return new MetaborgException(message, e);
         } catch(InterpreterExit e) {
             final String message =
-                logger.format("Invoking Stratego strategy {} failed with exit code {}\n{}\n{}", strategy, e.getValue(), trace, e);
+                logger.format("Invoking Stratego strategy {} failed with exit code {}\n{}\n{}", strategy, e.getValue(), trace, e.getMessage());
             return new MetaborgException(message, e);
         } catch(UndefinedStrategyException e) {
             final String message =
-                logger.format("Invoking Stratego strategy {} failed, strategy is undefined\n{}\n{}", strategy, trace, e);
+                logger.format("Invoking Stratego strategy {} failed, strategy is undefined\n{}\n{}", strategy, trace, e.getMessage());
             return new MetaborgException(message, e);
         } catch(InterpreterException e) {
             final Throwable cause = e.getCause();
             if(cause != null && cause instanceof InterpreterException) {
                 return handleException((InterpreterException) cause, runtime, strategy);
             } else {
-                String message = logger.format("Invoking Stratego strategy {} failed unexpectedly\n{}\n{}", strategy, trace, e);
+                String message = logger.format("Invoking Stratego strategy {} failed unexpectedly\n{}\n{}", strategy, trace, e.getMessage());
                 return new MetaborgException(message, e);
             }
         }
