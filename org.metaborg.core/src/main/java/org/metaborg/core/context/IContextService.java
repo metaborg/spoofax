@@ -9,14 +9,6 @@ import org.metaborg.core.project.IProject;
  * Interface for retrieving or creating {@link IContext} instances.
  */
 public interface IContextService {
-    /**
-     * Checks if contexts are available for given language implementation.
-     * 
-     * @param language
-     *            Language implementation to check.
-     * @return True if contexts are available, false if not.
-     */
-    boolean available(ILanguageImpl language);
 
     /**
      * Retrieves or creates a context for given resource and language.

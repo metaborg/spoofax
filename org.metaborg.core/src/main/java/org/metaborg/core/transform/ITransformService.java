@@ -6,6 +6,7 @@ import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParseUnit;
 
 /**
@@ -30,18 +31,18 @@ public interface ITransformService<P extends IParseUnit, A extends IAnalyzeUnit,
      *            Goal to check transform actions for.
      * @return True if transform actions are available, false if not.
      */
-    boolean available(IContext context, ITransformGoal goal);
+    boolean available(ILanguageImpl language, ITransformGoal goal);
 
     /**
-     * Checks if analysis is required before transformation, for given context and goal.
+     * Checks if analysis is required before transformation, for given language and goal.
      * 
-     * @param context
-     *            Context to check from.
+     * @param language
+     *            Language to check from.
      * @param goal
      *            Goal to check for.
      * @return True if analysis is required, false if not.
      */
-    boolean requiresAnalysis(IContext context, ITransformGoal goal);
+    boolean requiresAnalysis(ILanguageImpl language, ITransformGoal goal);
 
 
     /**
