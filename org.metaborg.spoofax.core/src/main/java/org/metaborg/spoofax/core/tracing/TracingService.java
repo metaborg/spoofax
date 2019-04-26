@@ -83,12 +83,10 @@ public class TracingService implements ISpoofaxTracingService {
             throw new MetaborgRuntimeException(
                 "Cannot get fragments for transform unit " + result + " because it is invalid");
         }
-
         return toTerms(result.ast(), region);
     }
 
-
-    private Iterable<IStrategoTerm> toTerms(IStrategoTerm ast, final ISourceRegion region) {
+    @Override public Iterable<IStrategoTerm> toTerms(IStrategoTerm ast, final ISourceRegion region) {
         if(ast == null || region == null) {
             return Iterables2.empty();
         }
@@ -107,7 +105,34 @@ public class TracingService implements ISpoofaxTracingService {
         return parsed;
     }
 
-    private Iterable<IStrategoTerm> toTermsWithin(IStrategoTerm ast, final ISourceRegion region) {
+
+    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxParseUnit result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for parse unit " + result + " because it is invalid");
+        }
+        return toTermsWithin(result.ast(), region);
+    }
+
+
+    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxAnalyzeUnit result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for analyze unit " + result + " because it is invalid");
+        }
+        return toTermsWithin(result.ast(), region);
+    }
+
+
+    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxTransformUnit<?> result, ISourceRegion region) {
+        if(!result.valid()) {
+            throw new MetaborgRuntimeException(
+                "Cannot get fragments for transform unit " + result + " because it is invalid");
+        }
+        return toTermsWithin(result.ast(), region);
+    }
+
+    @Override public Iterable<IStrategoTerm> toTermsWithin(IStrategoTerm ast, final ISourceRegion region) {
         if(ast == null || region == null) {
             return Iterables2.empty();
         }
@@ -129,34 +154,5 @@ public class TracingService implements ISpoofaxTracingService {
         };
         StrategoTermVisitee.topdown(visitor, ast);
         return parsed;
-    }
-
-    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxParseUnit result, ISourceRegion region) {
-        if(!result.valid()) {
-            throw new MetaborgRuntimeException(
-                "Cannot get fragments for parse unit " + result + " because it is invalid");
-        }
-
-        return toTermsWithin(result.ast(), region);
-    }
-
-
-    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxAnalyzeUnit result, ISourceRegion region) {
-        if(!result.valid()) {
-            throw new MetaborgRuntimeException(
-                "Cannot get fragments for analyze unit " + result + " because it is invalid");
-        }
-
-        return toTermsWithin(result.ast(), region);
-    }
-
-
-    @Override public Iterable<IStrategoTerm> fragmentsWithin(ISpoofaxTransformUnit<?> result, ISourceRegion region) {
-        if(!result.valid()) {
-            throw new MetaborgRuntimeException(
-                "Cannot get fragments for transform unit " + result + " because it is invalid");
-        }
-
-        return toTermsWithin(result.ast(), region);
     }
 }
