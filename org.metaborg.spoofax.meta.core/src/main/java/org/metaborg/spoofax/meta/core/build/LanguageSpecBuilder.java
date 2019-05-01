@@ -1,12 +1,17 @@
 package org.metaborg.spoofax.meta.core.build;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
+import build.pluto.PersistableEntity;
+import build.pluto.builder.BuildManager;
+import build.pluto.builder.BuildRequest;
+import build.pluto.builder.RequiredBuilderFailed;
+import build.pluto.dependency.Origin;
+import build.pluto.dependency.database.XodusDatabase;
+import build.pluto.output.Output;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import jetbrains.exodus.core.execution.JobProcessor;
+import jetbrains.exodus.core.execution.ThreadJobProcessorPool;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -17,12 +22,7 @@ import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.config.IExportConfig;
-import org.metaborg.core.config.ILanguageComponentConfig;
-import org.metaborg.core.config.ILanguageComponentConfigBuilder;
-import org.metaborg.core.config.ILanguageComponentConfigWriter;
-import org.metaborg.core.config.JSGLRVersion;
-import org.metaborg.core.config.Sdf2tableVersion;
+import org.metaborg.core.config.*;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.StreamMessagePrinter;
@@ -50,18 +50,13 @@ import org.metaborg.util.file.IFileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
-import build.pluto.builder.BuildManager;
-import build.pluto.builder.BuildRequest;
-import build.pluto.builder.RequiredBuilderFailed;
-import build.pluto.dependency.Origin;
-import build.pluto.dependency.database.XodusDatabase;
-import build.pluto.output.Output;
-
-public class LanguageSpecBuilder {
+public class LanguageSpecBuilder implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecBuilder.class);
     private static final String failingRebuildMessage =
         "Previous build failed and no change in the build input has been observed, not rebuilding. Fix the problem, or clean and rebuild the project to force a rebuild";
@@ -93,6 +88,10 @@ public class LanguageSpecBuilder {
         this.componentConfigBuilder = componentConfigBuilder;
         this.componentConfigWriter = componentConfigWriter;
         this.buildSteps = buildSteps;
+    }
+
+    @Override public void close() {
+        deinitPluto();
     }
 
 
@@ -161,7 +160,7 @@ public class LanguageSpecBuilder {
             if(mainEsvFile != null && mainEsvFile.exists()) {
                 logger.info("Compiling Main ESV file {}", mainEsvFile);
                 // @formatter:off
-                final BuildInput buildInput = 
+                final BuildInput buildInput =
                     new BuildInputBuilder(input.languageSpec())
                     .addSource(mainEsvFile)
                     .addTransformGoal(new CompileGoal())
@@ -306,6 +305,13 @@ public class LanguageSpecBuilder {
 
     private void initPluto() {
         SpoofaxContext.init(injector);
+    }
+
+    private void deinitPluto() {
+        SpoofaxContext.deinit();
+        PersistableEntity.cleanCache(); // Clean Pluto's in-memory cache.
+        jetbrains.exodus.log.Log.invalidateSharedCache(); // Clear Xodus' shared cache.
+        ThreadJobProcessorPool.getProcessors().forEach(JobProcessor::finish); // Stop Xodus' job processor threads.
     }
 
     private String path(LanguageSpecBuildInput input) {
@@ -535,5 +541,4 @@ public class LanguageSpecBuilder {
 
         return new ArchiveBuilder.Input(context, origin, exports, languageIdentifier);
     }
-
 }

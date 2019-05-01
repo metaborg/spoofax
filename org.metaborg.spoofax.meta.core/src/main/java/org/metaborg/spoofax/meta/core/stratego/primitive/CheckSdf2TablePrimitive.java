@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class CheckSdf2TablePrimitive extends AbstractPrimitive {
+public class CheckSdf2TablePrimitive extends AbstractPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(CheckSdf2TablePrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
@@ -40,6 +40,10 @@ public class CheckSdf2TablePrimitive extends AbstractPrimitive {
 
         this.projectService = projectService;
         this.languagePathService = languagePathService;
+    }
+
+    @Override public void close() {
+        languageSpecServiceProvider = null;
     }
 
 

@@ -44,19 +44,12 @@ public class ResourceService implements IResourceService {
         ResourceFileSystemConfigBuilder.getInstance().setClassLoader(fileSystemOptions, classLoader);
     }
 
-    @Override public void close() throws Exception {
+    @Override public void close() {
         if(fileSystemManager instanceof DefaultFileSystemManager) {
             final DefaultFileSystemManager defaultFileSystemManager = (DefaultFileSystemManager) fileSystemManager;
-            final FileReplicator replicator = defaultFileSystemManager.getReplicator();
-            if(replicator instanceof DefaultFileReplicator) {
-                final DefaultFileReplicator defaultFileReplicator = (DefaultFileReplicator) replicator;
-                defaultFileReplicator.close();
-            } else {
-                logger.warn("File replicator {} does not support cleaning up generated temporary files", replicator);
-            }
+            defaultFileSystemManager.close();
         } else {
-            logger.warn("File system manager {} does not support cleaning up generated temporary files",
-                fileSystemManager);
+            logger.warn("File system manager {} does not support cleaning up", fileSystemManager);
         }
     }
 

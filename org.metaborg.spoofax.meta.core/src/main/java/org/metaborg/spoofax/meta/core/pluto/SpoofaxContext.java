@@ -96,6 +96,24 @@ public class SpoofaxContext implements Serializable {
         dialectService = newInjector.getInstance(IDialectService.class);
     }
 
+    public static void deinit() {
+        injector = null;
+        resourceService = null;
+        languageService = null;
+        languageIdentifierService = null;
+        languagePathService = null;
+        projectService = null;
+        languageSpecService = null;
+        sourceTextService = null;
+        unitService = null;
+        syntaxService = null;
+        termFactoryService = null;
+        strategoCommon = null;
+        transformService = null;
+        contextService = null;
+        dialectService = null;
+    }
+
 
     public SpoofaxContext(FileObject baseDir, FileObject depDir) {
         if(injector == null) {

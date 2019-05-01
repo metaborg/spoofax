@@ -8,6 +8,7 @@ import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -32,12 +33,12 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     }
 
 
-    @Override public boolean available(IContext context, ITransformGoal goal) {
-        return actionService.available(context.language(), goal);
+    @Override public boolean available(ILanguageImpl language, ITransformGoal goal) {
+        return actionService.available(language, goal);
     }
 
-    @Override public boolean requiresAnalysis(IContext context, ITransformGoal goal) {
-        return actionService.requiresAnalysis(context.language(), goal);
+    @Override public boolean requiresAnalysis(ILanguageImpl language, ITransformGoal goal) {
+        return actionService.requiresAnalysis(language, goal);
     }
 
 

@@ -17,7 +17,7 @@ public class AnalysisFacetFromESV {
     public static boolean hasAnalysis(IStrategoAppl esv) {
         return ESVReader.findTerm(esv, "SemanticObserver") != null;
     }
-    
+
     public static @Nullable AnalysisFacet create(IStrategoAppl esv) {
         final String strategyName = strategyName(esv);
         if(strategyName == null) {
@@ -42,10 +42,10 @@ public class AnalysisFacetFromESV {
             return null;
         }
         final IStrategoTerm annotations = strategy.getSubterm(1);
-        boolean multifile  = false;
+        boolean multifile = false;
         boolean constraint = false;
         for(IStrategoTerm annotation : annotations) {
-            multifile  |= Tools.hasConstructor((IStrategoAppl) annotation, "MultiFile", 0);
+            multifile |= Tools.hasConstructor((IStrategoAppl) annotation, "MultiFile", 0);
             constraint |= Tools.hasConstructor((IStrategoAppl) annotation, "Constraint", 0);
         }
         if(constraint) {
