@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -308,26 +307,34 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList strategyList = Tools.listAt(result, 1);
-        // cifiedStratNameList (2)
-        // usedStrategies (3)
-        // ambiguousStratCalls (4)
-        final IStrategoList importsTerm = Tools.listAt(result, 5);
-        // defined constructors (6)
-        final IStrategoList usedConstrList = Tools.listAt(result, 7);
-        final IStrategoList overlayList = Tools.listAt(result, 8);
-        assert strategyList.size() == usedConstrList.size() : "Inconsistent compiler: strategy list size (" + strategyList.size() + ") != used constructors list size (" + usedConstrList.size() + ")";
+        // usedStrategies (2)
+        // ambiguousStratCalls (3)
+        final IStrategoList importsTerm = Tools.listAt(result, 4);
+        // defined constructors (5)
+        final IStrategoList overlayList = Tools.listAt(result, 6);
+        final IStrategoList congrList = Tools.listAt(result, 7);
 
         final Map<String, File> strategyFiles = new HashMap<>();
         final Map<String, Set<String>> strategyConstrFiles = new HashMap<>();
-        for(Iterator<IStrategoTerm> strategyIterator = strategyList.iterator(), usedConstrIterator = usedConstrList.iterator(); strategyIterator.hasNext();) {
-            String strategy = Tools.asJavaString(strategyIterator.next());
+        for(IStrategoTerm strategyTriple : strategyList) {
+            String strategy = Tools.javaStringAt(strategyTriple, 0);
 
-            IStrategoTerm usedConstrTerms = usedConstrIterator.next();
+            IStrategoList usedConstrTerms = Tools.listAt(strategyTriple, 1);
             Set<String> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
             for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
                 usedConstrs.add(Tools.asJavaString(usedConstrTerm));
             }
             strategyConstrFiles.put(strategy, usedConstrs);
+
+            // IStrategoList strategyAnnos = Tools.listAt(strategyPair, 2);
+
+            File file = context.toFile(paths.strSepCompStrategyFile(input.projectName, moduleName, strategy));
+            provide(context.toFile(paths.strSepCompConstrListFile(input.projectName, moduleName, strategy)));
+            strategyFiles.put(strategy, file);
+            provide(file);
+        }
+        for(IStrategoTerm congrPair : congrList) {
+            String strategy = Tools.javaStringAt(congrPair, 0);
 
             File file = context.toFile(paths.strSepCompStrategyFile(input.projectName, moduleName, strategy));
             provide(context.toFile(paths.strSepCompConstrListFile(input.projectName, moduleName, strategy)));
@@ -335,8 +342,8 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
             provide(file);
         }
         final Map<String, File> overlayFiles = new HashMap<>();
-        for(IStrategoTerm overlayTerm : overlayList) {
-            String overlayName = Tools.asJavaString(overlayTerm);
+        for(IStrategoTerm overlayPair : overlayList) {
+            String overlayName = Tools.javaStringAt(overlayPair, 0);
             File file = context.toFile(paths.strSepCompOverlayFile(input.projectName, moduleName, overlayName));
             overlayFiles.put(overlayName, file);
             provide(file);

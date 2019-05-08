@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -190,7 +191,7 @@ public class StrIncrBackEnd extends SpoofaxBuilder<StrIncrBackEnd.Input, None> {
         if(input.isBoilerplate) {
             Packer.packBoilerplate(contributionPaths, packedFile);
         } else {
-            Packer.packStrategy(overlayPaths, contributionPaths, packedFile);
+            Packer.packStrategy(overlayPaths, contributionPaths, Collections.emptyMap(), packedFile);
         }
 
         // Call Stratego compiler
