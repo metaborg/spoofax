@@ -201,13 +201,15 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         // cached files
-        for(Map.Entry<String, IStrategoTerm> entry : context.entrySet()) {
-            final String resource = entry.getKey();
-            final IStrategoTerm analysis = entry.getValue();
-            if(!changed.containsKey(resource)) {
-                final IStrategoTerm change = build("Cached", analysis);
-                expects.put(resource, new Update(resource, context));
-                changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
+        if(multifile()) {
+            for(Map.Entry<String, IStrategoTerm> entry : context.entrySet()) {
+                final String resource = entry.getKey();
+                final IStrategoTerm analysis = entry.getValue();
+                if(!changed.containsKey(resource)) {
+                    final IStrategoTerm change = build("Cached", analysis);
+                    expects.put(resource, new Update(resource, context));
+                    changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
+                }
             }
         }
 
