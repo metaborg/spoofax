@@ -14,7 +14,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import mb.nabl2.config.NaBL2Config;
-import mb.nabl2.config.NaBL2ConfigReaderWriter;
 
 public abstract class ScopeGraphConfigPrimitive extends ASpoofaxPrimitive {
 
