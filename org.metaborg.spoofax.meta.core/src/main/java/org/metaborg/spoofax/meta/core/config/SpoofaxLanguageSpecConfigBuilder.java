@@ -14,6 +14,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
+import org.metaborg.spoofax.core.config.IRuntimeConfig;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
@@ -21,8 +22,6 @@ import org.metaborg.util.cmd.Arguments;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-
-import mb.nabl2.config.NaBL2Config;
 
 /**
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
@@ -148,8 +147,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config) {
-        projectConfigBuilder.withNaBL2Config(config);
+    @Override public ISpoofaxLanguageSpecConfigBuilder withRuntimeConfig(IRuntimeConfig config) {
+        projectConfigBuilder.withRuntimeConfig(config);
         return this;
     }
 

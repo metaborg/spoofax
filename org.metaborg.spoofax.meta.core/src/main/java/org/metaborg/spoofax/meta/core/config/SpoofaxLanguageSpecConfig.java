@@ -8,24 +8,23 @@ import javax.annotation.Nullable;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.Sdf2tableVersion;
-import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.meta.core.config.LanguageSpecConfig;
+import org.metaborg.spoofax.core.config.IRuntimeConfig;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Lists;
-
-import mb.nabl2.config.NaBL2Config;
 
 /**
  * An implementation of the {@link ISpoofaxLanguageSpecConfig} interface that is backed by an
@@ -151,8 +150,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return projectConfig.typesmart();
     }
 
-    @Override public NaBL2Config nabl2Config() {
-        return projectConfig.nabl2Config();
+    @Override public IRuntimeConfig runtimeConfig() {
+        return projectConfig.runtimeConfig();
     }
 
 

@@ -10,9 +10,8 @@ import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
+import org.metaborg.spoofax.core.config.IRuntimeConfig;
 import org.metaborg.util.cmd.Arguments;
-
-import mb.nabl2.config.NaBL2Config;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
@@ -74,9 +73,9 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder withTypesmart(boolean typesmart);
 
     /**
-     * {@see ISpoofaxProjectConfigBuilder#withNaBL2Config(NaBL2Config)}
+     * {@see ISpoofaxProjectConfigBuilder#withRuntimeConfig(IRuntimeConfig)}
      */
-    ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config);
+    ISpoofaxLanguageSpecConfigBuilder withRuntimeConfig(IRuntimeConfig config);
 
 
     /**

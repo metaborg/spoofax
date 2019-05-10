@@ -3,12 +3,9 @@ package org.metaborg.spoofax.core.config;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
-
-import mb.nabl2.config.NaBL2Config;
-
-import org.metaborg.core.config.IExportConfig;
 
 public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
 
@@ -87,12 +84,10 @@ public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
     ISpoofaxProjectConfigBuilder withTypesmart(boolean typesmart);
 
     /**
-     * Sets whether debug output is enabled for the constraint solver.
+     * Sets generic runtime configuration for languages.
      * 
-     * @param incremental
-     *            True to enable, false to disable.
      * @return This builder.
      */
-    ISpoofaxProjectConfigBuilder withNaBL2Config(NaBL2Config config);
+    ISpoofaxProjectConfigBuilder withRuntimeConfig(IRuntimeConfig config);
 
 }

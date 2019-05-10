@@ -13,11 +13,9 @@ import org.metaborg.core.language.LanguageIdentifier;
 
 import com.google.inject.Inject;
 
-import mb.nabl2.config.NaBL2Config;
-
 public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements ISpoofaxProjectConfigBuilder {
     protected @Nullable Boolean typesmart;
-    protected @Nullable NaBL2Config nabl2Config;
+    protected @Nullable IRuntimeConfig runtimeConfig;
 
     @Inject public SpoofaxProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -28,18 +26,18 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
             configuration = configReaderWriter.create(null, rootFolder);
         }
         return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
-                typesmart, nabl2Config);
+                typesmart, runtimeConfig);
     }
 
     public SpoofaxProjectConfig build(HierarchicalConfiguration<ImmutableNode> configuration) {
         return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
-                typesmart, nabl2Config);
+                typesmart, runtimeConfig);
     }
 
     @Override public ISpoofaxProjectConfigBuilder reset() {
         super.reset();
         typesmart = null;
-        nabl2Config = null;
+        runtimeConfig = null;
         return this;
     }
 
@@ -54,7 +52,7 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
     public void copyValuesFrom(ISpoofaxProjectConfig config) {
         super.copyValuesFrom(config);
         withTypesmart(config.typesmart());
-        withNaBL2Config(config.nabl2Config());
+        withRuntimeConfig(config.runtimeConfig());
     }
 
     @Override public ISpoofaxProjectConfigBuilder withMetaborgVersion(String metaborgVersion) {
@@ -109,8 +107,8 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
         return this;
     }
 
-    @Override public ISpoofaxProjectConfigBuilder withNaBL2Config(NaBL2Config config) {
-        this.nabl2Config = config;
+    @Override public ISpoofaxProjectConfigBuilder withRuntimeConfig(IRuntimeConfig config) {
+        this.runtimeConfig = config;
         return this;
     }
 
