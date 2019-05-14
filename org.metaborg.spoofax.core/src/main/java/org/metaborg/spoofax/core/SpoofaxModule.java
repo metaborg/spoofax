@@ -217,13 +217,14 @@ import mb.nabl2.spoofax.primitives.SG_solve_multi_unit_constraint;
 import mb.nabl2.spoofax.primitives.SG_solve_single_constraint;
 import mb.nabl2.terms.stratego.primitives.SG_erase_ast_indices;
 import mb.nabl2.terms.stratego.primitives.SG_get_ast_index;
+import mb.nabl2.terms.stratego.primitives.SG_get_ast_resource;
 import mb.nabl2.terms.stratego.primitives.SG_index_ast;
 import mb.nabl2.terms.stratego.primitives.SG_set_ast_index;
 import mb.statix.spoofax.STX_analysis_has_errors;
 import mb.statix.spoofax.STX_compare_patterns;
 import mb.statix.spoofax.STX_delays_as_errors;
 import mb.statix.spoofax.STX_extract_messages;
-import mb.statix.spoofax.STX_get_term_property;
+import mb.statix.spoofax.STX_get_ast_property;
 import mb.statix.spoofax.STX_solve_constraint;
 import mb.statix.spoofax.STX_solve_multi_file;
 import mb.statix.spoofax.STX_solve_multi_project;
@@ -409,21 +410,27 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(ScopeGraphLibrary.name));
+        // libspoofax
         bindPrimitive(spoofaxScopeGraphLibrary, C_get_resource_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, C_get_resource_partial_analysis.class);
+        // nabl2.terms
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_erase_ast_indices.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_resource.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_index_ast.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
+        // nabl2.solver
         bindPrimitive(spoofaxScopeGraphLibrary, SG_analysis_has_errors.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_name_resolution.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_scope_graph.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_symbolic_constraints.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_unifier.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_erase_ast_indices.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_focus_term.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_decls.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_refs.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_scopes.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_decls.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_property.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_refs.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_resolution.class);
@@ -445,11 +452,9 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_symbolic_facts.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_symbolic_goals.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_visible_decls.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_index_ast.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_collection_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_custom_enabled.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_is_debug_resolution_enabled.class);
-        bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_custom_analysis.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_single_constraint.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_solve_multi_initial_constraint.class);
@@ -462,7 +467,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_compare_patterns.class);
         bindPrimitive(statixLibrary, STX_delays_as_errors.class);
         bindPrimitive(statixLibrary, STX_extract_messages.class);
-        bindPrimitive(statixLibrary, STX_get_term_property.class);
+        bindPrimitive(statixLibrary, STX_get_ast_property.class);
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);
