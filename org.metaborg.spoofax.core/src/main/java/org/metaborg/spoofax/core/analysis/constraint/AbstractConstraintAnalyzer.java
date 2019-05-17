@@ -319,15 +319,25 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         protected void resultMessages(IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes) {
             if(multifile()) {
-                messages.putAll(analysisCommon.messages(MessageSeverity.ERROR, errors));
-                messages.putAll(analysisCommon.messages(MessageSeverity.WARNING, warnings));
-                messages.putAll(analysisCommon.messages(MessageSeverity.NOTE, notes));
+                messages.putAll(messages(resource(), MessageSeverity.ERROR, errors));
+                messages.putAll(messages(resource(), MessageSeverity.WARNING, warnings));
+                messages.putAll(messages(resource(), MessageSeverity.NOTE, notes));
             } else {
                 messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.ERROR, errors));
                 messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.WARNING, warnings));
                 messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.NOTE, notes));
 
             }
+        }
+
+        private Multimap<FileObject, IMessage> messages(FileObject resource, MessageSeverity severity,
+                IStrategoTerm messagesTerm) {
+            final Multimap<FileObject, IMessage> messages =
+                    analysisCommon.messages(MessageSeverity.ERROR, messagesTerm);
+            if(messages.containsKey(null)) {
+                messages.putAll(resource, messages.removeAll(null));
+            }
+            return messages;
         }
 
         protected void failMessage(String message) {
