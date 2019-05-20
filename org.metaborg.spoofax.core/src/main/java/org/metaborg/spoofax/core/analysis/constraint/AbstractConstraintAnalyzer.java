@@ -55,6 +55,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+import mb.nabl2.terms.stratego.StrategoTermIndices;
+import mb.nabl2.terms.stratego.TermIndex;
+import mb.nabl2.terms.stratego.TermOrigin;
+
 public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
@@ -155,7 +159,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final IStrategoTerm projectChange;
         if(multifile()) {
             final String resource = context.resourceKey(context.root());
-            final IStrategoTerm ast = termFactory.makeTuple();
+            final IStrategoTerm ast = projectAST(resource);
             final IStrategoTerm change;
             final Expect expect;
             if(context.contains(resource)) {
@@ -453,6 +457,13 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             updateResults.add(unitService.analyzeUnitUpdate(resource(), new AnalyzeUpdateData(messages), context));
         }
 
+    }
+
+    private IStrategoTerm projectAST(String resource) {
+        IStrategoTerm ast = termFactory.makeTuple();
+        ast = StrategoTermIndices.put(TermIndex.of(resource, 0), ast, termFactory);
+        TermOrigin.of(resource).put(ast);
+        return ast;
     }
 
     protected boolean success(Collection<IMessage> messages) {
