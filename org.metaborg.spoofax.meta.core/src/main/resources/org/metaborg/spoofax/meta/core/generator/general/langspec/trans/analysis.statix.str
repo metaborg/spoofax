@@ -3,12 +3,17 @@ module analysis
 imports
 
   statixruntime
+  statix/api
 
   pp
 
 rules // Analysis
 
+  // single-file analysis
   editor-analyze = stx-editor-analyze(id|"static-semantics", "programOK")
+  
+  // multi-file analysis
+//  editor-analyze = stx-editor-analyze(id|"static-semantics", "projectOk", "fileOk")
 
 rules // Editor Services
 
