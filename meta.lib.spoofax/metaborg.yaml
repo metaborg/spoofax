@@ -1,7 +1,7 @@
 ---
 id: org.metaborg:meta.lib.spoofax:${metaborgVersion}
 name: libspoofax
-metaborgVersion: 2.6.0-SNAPSHOT
+metaborgVersion: 2.5.5
 metaborgBaselineVersion: 2.3.0
 dependencies:
   compile:
