@@ -102,3 +102,27 @@ signature
     : Term      // origin term
     * String    // message
    -> EditorMessage
+
+rules
+
+  /** Get analysis result for the given resource
+   *
+   * Result depends on analysis mode.
+   * - In multifile, it returns the project analysis result
+   * - In singlefile, it returns the file analysis result
+   *
+   * @type resource:String -> analysis:Term
+   */
+  get-resource-constraint-analysis =
+    prim("C_get_resource_analysis")
+
+  /** Get partial analysis result for the given resource
+   *
+   * Returns the analysis result for exactly this resource.
+   * In multifile mode, this returns partial results for files,
+   * and the total result for the project resource.
+   *
+   * @type resource:String -> analysis:Term
+   */
+  get-resource-partial-constraint-analysis =
+    prim("C_get_resource_partial_analysis")
