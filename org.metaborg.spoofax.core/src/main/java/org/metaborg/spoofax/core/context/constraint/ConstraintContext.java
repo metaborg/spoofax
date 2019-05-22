@@ -19,6 +19,8 @@ import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
+import org.metaborg.spoofax.core.analysis.constraint.IResourceKey;
+import org.metaborg.spoofax.core.analysis.constraint.StringResourceKey;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
@@ -84,13 +86,14 @@ public class ConstraintContext implements IConstraintContext {
         }
     }
 
-    @Override public String resourceKey(FileObject resource) {
-        return ResourceUtils.relativeName(resource.getName(), location().getName(), true);
+    @Override public IResourceKey resourceKey(FileObject resource) {
+        final String resourceKey = ResourceUtils.relativeName(resource.getName(), location().getName(), true);
+        return new StringResourceKey(resourceKey);
     }
 
-    @Override public FileObject keyResource(String resource) {
+    @Override public FileObject keyResource(IResourceKey resource) {
         try {
-            return location().resolveFile(resource);
+            return resource.toFileObject(location());
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }
@@ -112,7 +115,7 @@ public class ConstraintContext implements IConstraintContext {
         return state.analyses.remove(resourceKey(resource)) != null;
     }
 
-    @Override public Set<Entry<String, IStrategoTerm>> entrySet() {
+    @Override public Set<Entry<IResourceKey, IStrategoTerm>> entrySet() {
         return state.analyses.entrySet();
     }
 
@@ -328,7 +331,7 @@ public class ConstraintContext implements IConstraintContext {
 
         private static final long serialVersionUID = 1L;
 
-        public final Map<String, IStrategoTerm> analyses;
+        public final Map<IResourceKey, IStrategoTerm> analyses;
 
         public State() {
             this.analyses = Maps.newHashMap();

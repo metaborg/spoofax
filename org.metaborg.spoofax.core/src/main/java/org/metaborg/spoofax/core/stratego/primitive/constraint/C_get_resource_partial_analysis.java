@@ -3,9 +3,10 @@ package org.metaborg.spoofax.core.stratego.primitive.constraint;
 import java.util.List;
 import java.util.Optional;
 
+import org.metaborg.spoofax.core.analysis.constraint.IResourceKey;
+import org.metaborg.spoofax.core.analysis.constraint.StringResourceKey;
 import org.metaborg.spoofax.core.context.constraint.IConstraintContext;
 import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
@@ -17,10 +18,7 @@ public class C_get_resource_partial_analysis extends ConstraintContextPrimitive 
 
     @Override protected Optional<? extends IStrategoTerm> call(IConstraintContext context, IStrategoTerm sterm,
             List<IStrategoTerm> sterms, ITermFactory factory) throws InterpreterException {
-        if(!Tools.isTermString(sterm)) {
-            throw new InterpreterException("Expect a resource path.");
-        }
-        final String resource = Tools.asJavaString(sterm);
+        final IResourceKey resource = StringResourceKey.fromStrategoTerm(sterm);
         final IStrategoTerm analysis = context.contains(resource) ? context.get(resource) : null;
         return Optional.ofNullable(analysis);
     }

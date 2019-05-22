@@ -9,6 +9,7 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.ITemporaryContextInternal;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
+import org.metaborg.spoofax.core.analysis.constraint.IResourceKey;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.concurrent.NullClosableLock;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -46,11 +47,11 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.getAnalysis(resource);
     }
 
-    @Override public String resourceKey(FileObject resource) {
+    @Override public IResourceKey resourceKey(FileObject resource) {
         return context.resourceKey(resource);
     }
 
-    @Override public FileObject keyResource(String resource) {
+    @Override public FileObject keyResource(IResourceKey resource) {
         return context.keyResource(resource);
     }
 
@@ -70,7 +71,7 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.remove(resource);
     }
 
-    @Override public Set<Entry<String, IStrategoTerm>> entrySet() {
+    @Override public Set<Entry<IResourceKey, IStrategoTerm>> entrySet() {
         return context.entrySet();
     }
 
