@@ -70,7 +70,7 @@ public class StrategoCommon implements IStrategoCommon {
             try {
                 final IStrategoTerm result = invoke(runtime, input, strategy);
                 return result;
-            } catch (MetaborgException ex) {
+            } catch(MetaborgException ex) {
                 exceptions.add(ex);
             }
 
@@ -90,7 +90,7 @@ public class StrategoCommon implements IStrategoCommon {
             try {
                 final IStrategoTerm result = invoke(runtime, input, strategy);
                 return result;
-            } catch (MetaborgException ex) {
+            } catch(MetaborgException ex) {
                 exceptions.add(ex);
             }
 
@@ -128,25 +128,28 @@ public class StrategoCommon implements IStrategoCommon {
                 } else {
                     termString = term.toString();
                 }
-                message = logger.format("Invoking Stratego strategy {} failed at term:\n\t{}\n{}\n{}", strategy, termString, innerTrace, e.getMessage());
+                message = logger.format("Invoking Stratego strategy {} failed at term:\n\t{}\n{}\n{}", strategy,
+                    termString, innerTrace, e.getMessage());
             } else {
-                message = logger.format("Invoking Stratego strategy {} failed.\n{}\n{}", strategy, innerTrace, e.getMessage());
+                message = logger.format("Invoking Stratego strategy {} failed.\n{}\n{}", strategy, innerTrace,
+                    e.getMessage());
             }
             return new MetaborgException(message, e);
         } catch(InterpreterExit e) {
-            final String message =
-                logger.format("Invoking Stratego strategy {} failed with exit code {}\n{}\n{}", strategy, e.getValue(), trace, e);
+            final String message = logger.format("Invoking Stratego strategy {} failed with exit code {}\n{}\n{}",
+                strategy, e.getValue(), trace, e);
             return new MetaborgException(message, e);
         } catch(UndefinedStrategyException e) {
-            final String message =
-                logger.format("Invoking Stratego strategy {} failed, strategy is undefined\n{}\n{}", strategy, trace, e);
+            final String message = logger.format("Invoking Stratego strategy {} failed, strategy is undefined\n{}\n{}",
+                strategy, trace, e);
             return new MetaborgException(message, e);
         } catch(InterpreterException e) {
             final Throwable cause = e.getCause();
             if(cause != null && cause instanceof InterpreterException) {
                 return handleException((InterpreterException) cause, runtime, strategy);
             } else {
-                String message = logger.format("Invoking Stratego strategy {} failed unexpectedly\n{}\n{}", strategy, trace, e);
+                String message =
+                    logger.format("Invoking Stratego strategy {} failed unexpectedly\n{}\n{}", strategy, trace, e);
                 return new MetaborgException(message, e);
             }
         }
@@ -162,7 +165,7 @@ public class StrategoCommon implements IStrategoCommon {
         }
         return sb.toString();
     }
-    
+
     private String traceToString(IStrategoList trace) {
         final StringBuilder sb = new StringBuilder();
         sb.append("Stratego trace:");
@@ -193,18 +196,31 @@ public class StrategoCommon implements IStrategoCommon {
         return resourceTerm;
     }
 
-    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location) {
+    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
+        @Nullable FileObject resource, @Nullable FileObject location) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
-        // TODO: support selected node
-        final IStrategoTerm node = ast;
-        // TODO: support position
+        final IStrategoTerm node = selectedTerm != null ? selectedTerm : ast;
         final IStrategoTerm position = termFactory.makeList();
 
-        final String locationURI = location.getName().getURI();
-        final IStrategoString locationTerm = termFactory.makeString(locationURI);
+        final String locationURI;
+        final String resourceURI;
 
-        String resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
+        if(resource != null && location != null) {
+            locationURI = location.getName().getURI();
+            resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
+        } else if(resource != null) {
+            locationURI = "";
+            resourceURI = resource.getName().getURI();
+        } else if(location != null) {
+            locationURI = location.getName().getURI();
+            resourceURI = "";
+        } else {
+            locationURI = "";
+            resourceURI = "";
+        }
+
+        final IStrategoString locationTerm = termFactory.makeString(locationURI);
         final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
 
         return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);

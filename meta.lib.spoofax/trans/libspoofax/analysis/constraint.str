@@ -1,7 +1,8 @@
 module libspoofax/analysis/constraint
 
 // This module defines the interface for a stateful analysis cycle. It supports
-// single and multi file analysis.
+// single and multi file analysis. Analysis strategies return an analysis term,
+// which is cached, and provided in later analysis cycles.
 //
 // Single file mode
 // ~~~~~~~~~~~~~~~~
@@ -11,109 +12,93 @@ module libspoofax/analysis/constraint
 //
 //     observer : ANALYSIS-STRATEGY (constraint)
 //
-// The strategy ANALYSIS-STRATEGY should accept an AnalyzeUnit/2 term as input,
-// and return a UnitResult/5 term as output. The input arguments are a string
-// indicating the resource being analyzed, and the AST. The output arguments are
-// the analyzed AST, a term representing the result of analysis , and three lists
-// of errors, warnings, and notes.
+// The ANALYSIS-STRATEGY is called with an AnalyzeSingle/1 term. Its argument is
+// a list of resource-change tuples. See below for details on changes.
 //
-// The result of analysis is stored, and can be used in transformations. It can
-// be retreived by calling the `get-resource-analysis` strategy. The format of
-// this term is completely free.
+// An AnalysisResult/1 term should be returned, with a list of resource-result
+// tuples as argument. The results should contain a full result for all added
+// and changed files, while it may contain updates for cached files. See below
+// for details on results.
 //
 // Multi file mode
 // ~~~~~~~~~~~~~~~
 //
-// Multi file analysis analyses the files in a project together. It proceeds in
-// three phaes. An initial phase for project-wide setup, a phase where files are
-// analyzed individually, and a final phase where all file results are combined
-// into a project-wide result. To use multi file mode, set the following in your
-// ESV file:
+// Multi file analysis analyses the files in a project together. To use multi
+// file mode, set the following in your ESV file:
 //
 //     observer : ANALYSIS-STRATEGY (constraint) (multifile)
 //
-// The strategy ANALYSIS-STRATEGY should implement three cases for the three
-// phases of analysis:
-// 1. The project-wide setup should accept an AnalyzeInitial/1 term as input and
-//    return a InitialResult/1 term as output. The input argument is a string
-//    representing the project resource, and the output argument a term repre-
-//    senting the initial project analysis.
-// 2. The per-file analysis should accept an AnalyzeUnit/3 term is input, and
-//    return a UnitResult/2 term as output. The input arguments are a string
-//    indicating the file being analyzed, the AST of the file, and the initial
-//    analysis from phase (1). The output arguments are the analyzed AST, and the
-//    (partial) result for this file.
-// 3. The project-wide final analysis should accept an AnalyzeFinal/3 term is
-//    input, and return a FinalResult/4 term as output. The input arguments are
-//    a string representing the project resource, the initial analysis result from
-//    phase (1), and a list of the file results from phase (2). The output arguments
-//    are a term representing the final project-wide analysis result, and three
-//    lists of errors, warnings, and notes.
+// The ANALYSIS-STRATEGY is called with an AnalyzeMulti/2 term. Its arguments
+// are a resource-change tuple for the project, and a list of resource-change
+// tuples. See below for details on changes.
 //
-// The result of analysis is stored, and can be used in transformations. It can
-// be retreived by calling the `get-resource-analysis` strategy. The format of
-// this term is completely free. It is also possible to retreive the results of
-// the initial and unit phases, which can be useful for debugging, by using the
-// strategy `get-partial-resource-analysis`.
+// An AnalysisResult/1 term should be returned, with a list of resource-result
+// tuples as argument. The results should contain a full result for all added
+// and changed files, while it may contain updates for cached files. Project
+// results are also included in this list.
+//
+// Changes
+// ~~~~~~~
+//
+// There are four different changes on resources:
+// 1. Added/1 for a new file, with the file's AST as the first argument.
+// 2. Removed/1 for a removed file, with the file's last analysis result as its
+//    first argument.
+// 3. Changed/2 for a changed file, with the file's new AST as the first, and
+//    the file's last analysis result as the second argument.
+// 4. Cached/1 for an unchanged file, with the file's last analysis result as
+//    the first argument.
+//
+// Results
+// ~~~~~~~
+//
+// There are three possible results for resources:
+// 1. Full/5 for added and changed files. It takes as arguments (1) the analyzed
+//    AST, (2) the analysis result, and (3-5) error, warning and note messages.
+// 2. Update/4 for cached files. It takes as arguments (1) the analysis result,
+//    and (2-4) error, warning, and note messages.
+// 3. Failed/0 to indicate an internal failure in the analysis. Can be returned
+//    for added, changed, and cached files.
+// Analysis should not return results for removed files. 
 
 signature
 
-  constructors // single file analysis
+  constructors // analysis
 
-    AnalyzeUnit : String    // resource
-                * Term      // ast
-               -> AnalysisAction
-    UnitResult  : Term                   // analyzed ast
-                * Term                   // analysis
-                * List(EditorMessage)    // errors
-                * List(EditorMessage)    // warnings
-                * List(EditorMessage)    // notes
-               -> AnalysisResult
+    AnalyzeSingle  : List(String, Change) -> AnalysisAction
+    AnalyzeMulti   : (String, Change) * List(String, Change) -> AnalysisAction
 
+    AnalysisResult : List(String, Result) -> AnalysisResult
 
-  constructors // multi file analysis
+  constructors // changes    
 
-    AnalyzeInitial : String    // project resource
-                  -> AnalysisAction
-    InitialResult  : Term    // initial analysis
-                  -> AnalysisResult
+    Added   : Term     // ast
+           -> Change
+    Removed : Term     // analysis
+           -> Change
+    Changed : Term     // ast
+            * Term     // analysis
+           -> Change
+    Cached  : Term     // analysis
+           -> Change
 
-    AnalyzeUnit : String    // file resource
-                * Term      // ast
-                * Term      // initial analysis
-               -> AnalysisAction
-    UnitResult  : Term    // analyzed ast
-                * Term    // file analysis
-               -> AnalysisResult
+  constructors // results
 
-    AnalyzeFinal : String        // project resource
-                 * Term          // initial analysis
-                 * List(Term)    // file analyses
-                -> AnalysisAction
-    FinalResult  : Term                   // final analysis
-                 * List(EditorMessage)    // errors
-                 * List(EditorMessage)    // warnings
-                 * List(EditorMessage)    // notes
-                -> AnalysisResult
-
+    Full : Term                   // ast
+         * Term                   // analysis
+         * List(EditorMessage)    // errors
+         * List(EditorMessage)    // warnings
+         * List(EditorMessage)    // notes
+        -> Result
+    Update : Term                   // analysis
+           * List(EditorMessage)    // errors
+           * List(EditorMessage)    // warnings
+           * List(EditorMessage)    // notes
+          -> Result
+    Failed : Result
 
   constructors // messages
 
     : Term      // origin term
     * String    // message
    -> EditorMessage
-
-
-rules
-
-  /**
-   * @type resource:String -> analysis:Term
-   */
-  get-resource-constraint-analysis =
-    prim("C_get_resource_analysis")
-
-  /**
-   * @type resource:String -> analysis:Term
-   */
-  get-resource-partial-constraint-analysis =
-    prim("C_get_resource_partial_analysis")

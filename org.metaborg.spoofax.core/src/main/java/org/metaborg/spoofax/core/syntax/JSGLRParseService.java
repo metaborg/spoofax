@@ -25,8 +25,6 @@ import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.InvalidParseTableException;
-import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 import org.strategoxt.lang.Context;
 
 import com.google.common.collect.Iterables;
@@ -50,6 +48,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     private final Map<ILanguageImpl, ParseTable> referenceParseTables = Maps.newHashMap();
     private final Map<ILanguageImpl, ParseTable> referenceCompletionParseTables = Maps.newHashMap();
 
+    private final Map<ILanguageImpl, JSGLRI<?>> parsers = Maps.newHashMap();
+    private final Map<ILanguageImpl, JSGLRI<?>> completionParsers = Maps.newHashMap();
+
     @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService,
         IStrategoRuntimeService strategoRuntimeService, JSGLRParserConfiguration defaultParserConfig) {
         this.unitService = unitService;
@@ -58,80 +59,27 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         this.defaultParserConfig = defaultParserConfig;
     }
 
-    private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input) {
-        JSGLRVersion version = JSGLRVersion.v1;
-
-        for(ILanguageComponent langComp : input.langImpl().components()) {
-            version = langComp.config().jsglrVersion();
-            break;
-        }
-
-        return version;
-    }
-
     @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel)
         throws ParseException {
         final FileObject source = input.source();
-        final ILanguageImpl langImpl;
-        final ILanguageImpl base;
-
-        if(input.dialect() != null) {
-            langImpl = input.dialect();
-            base = input.langImpl();
-        } else {
-            langImpl = input.langImpl();
-            base = null;
-        }
         final String text = input.text();
 
-        final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
-        final IParserConfig config;
-
-        JSGLRParserConfiguration parserConfig = input.config();
-        if(parserConfig == null) {
+        final JSGLRParserConfiguration parserConfig;
+        if(input.config() == null) {
             parserConfig = defaultParserConfig;
-        }
-
-        if(parserConfig.completion) {
-            config = getCompletionParserConfig(langImpl, input);
         } else {
-            config = getParserConfig(langImpl, input);
+            parserConfig = input.config();
         }
 
         try {
             logger.trace("Parsing {}", source);
 
-            JSGLRVersion version = jsglrVersion(input);
+            final JSGLRI<?> parser = getParser(input, parserConfig);
 
-            final JSGLRI<?> parser;
+            final ParseContrib contrib = parser.parse(parserConfig, source, text);
 
-            if(version == JSGLRVersion.v2) {
-                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false, false);
-            } else if(version == JSGLRVersion.layoutSensitive) {
-                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, false, true);
-            } else if(version == JSGLRVersion.dataDependent) {
-                parser = new JSGLR2I(config, termFactory, langImpl, null, source, text, true, false);
-            } else {
-                final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
-                if(base != null) {
-                    parser = new JSGLR1I(config, termFactory, context, base, langImpl, source, text);
-                } else {
-                    parser = new JSGLR1I(config, termFactory, context, langImpl, null, source, text);
-                }
-            }
-
-            final ParseContrib contrib = parser.parse(parserConfig);
-
-            if(version == JSGLRVersion.v2) {
-                if(contrib.valid)
-                    logger.info("Valid JSGLR2 parse");
-                else
-                    logger.info("Invalid JSGLR2 parse");
-            }
-
-            final ISpoofaxParseUnit unit = unitService.parseUnit(input, contrib);
-            return unit;
-        } catch(IOException | InvalidParseTableException | ParseTableReadException e) {
+            return unitService.parseUnit(input, contrib);
+        } catch(IOException e) {
             throw new ParseException(input, e);
         }
     }
@@ -145,194 +93,18 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         return parseUnits;
     }
 
-    public IParserConfig getParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input) throws ParseException {
-        IParserConfig config = parserConfigs.get(lang);
-        if(config == null) {
-            final ITermFactory termFactory =
-                termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
-            final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
-
-            FileObject parseTable = null;
-            boolean incrementalPTGen = false;
-            for(ILanguageComponent component : lang.components()) {
-                if(component.config().sdfEnabled()
-                    && component.config().sdf2tableVersion() == Sdf2tableVersion.incremental) {
-                    incrementalPTGen = true;
-                }
-            }
-
-            if(facet.parseTable == null) {
-                try {
-                    boolean multipleTables = false;
-                    for(ILanguageComponent component : lang.components()) {
-                        if(component.config().sdfEnabled()) {
-                            if(component.config().parseTable() != null) {
-                                if(multipleTables) {
-                                    logger.error("Different components are specifying multiple parse tables.");
-                                    throw new ParseException(input);
-                                }
-
-                                parseTable = component.location().resolveFile(component.config().parseTable());
-                                multipleTables = true;
-                            }
-                        }
-                    }
-                } catch(FileSystemException e) {
-                    logger.error("Parse table not found or sdf is not enabled for this language.");
-                    throw new ParseException(input, e);
-                }
-            } else {
-                parseTable = facet.parseTable;
-            }
-
-            try {
-                if(parseTable == null || !parseTable.exists()) {
-                    logger.error("Parse table not found or sdf is not enabled for this language.");
-                    throw new ParseException(input);
-                }
-            } catch(FileSystemException e) {
-                logger.error("Parse table not found or sdf is not enabled for this language.");
-                throw new ParseException(input, e);
-            }
-
-            final IParseTableProvider provider;
-            JSGLRVersion version = jsglrVersion(input);
-
-            if(version == JSGLRVersion.v2 || version == JSGLRVersion.dataDependent
-                || version == JSGLRVersion.layoutSensitive) {
-                provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
-            } else {
-                final ParseTable referenceParseTable = referenceParseTables.get(lang);
-
-                if(referenceParseTable != null && incrementalPTGen) {
-                    provider = new JSGLR1IncrementalParseTableProvider(parseTable, termFactory, referenceParseTable);
-                } else {
-                    provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
-                }
-            }
-
-            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder);
-            parserConfigs.put(lang, config);
-
-
-        }
-        return config;
-
-    }
-
-    public IParserConfig getCompletionParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input) throws ParseException {
-        IParserConfig config = completionParserConfigs.get(lang);
-        if(config == null) {
-            final ITermFactory termFactory =
-                termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
-            final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
-
-            FileObject completionParseTable = null;
-            boolean incrementalPTGen = false;
-
-            for(ILanguageComponent component : lang.components()) {
-                if(component.config().sdfEnabled()
-                    && component.config().sdf2tableVersion() == Sdf2tableVersion.incremental) {
-                    incrementalPTGen = true;
-                }
-            }
-
-            if(facet.completionParseTable == null) {
-                try {
-                    boolean multipleTables = false;
-
-                    for(ILanguageComponent component : lang.components()) {
-                        if(component.config().sdfEnabled()) {
-                            if(component.config().completionsParseTable() != null) {
-                                if(multipleTables) {
-                                    logger
-                                        .error("Different components are specifying multiple completion parse tables.");
-                                    throw new ParseException(input);
-                                }
-
-                                completionParseTable =
-                                    component.location().resolveFile(component.config().completionsParseTable());
-                                multipleTables = true;
-                            }
-                        }
-
-                    }
-                } catch(FileSystemException e) {
-                    logger.error("Completion parse table not found or sdf is not enabled for this language.");
-                    throw new ParseException(input, e);
-                }
-            } else {
-                completionParseTable = facet.completionParseTable;
-            }
-
-            try {
-                if(completionParseTable == null || !completionParseTable.exists()) {
-                    logger.error("Completion parse table not found or sdf is not enabled for this language.");
-                    throw new ParseException(input);
-                }
-            } catch(FileSystemException e) {
-                logger.error("Completion parse table not found or sdf is not enabled for this language.");
-                throw new ParseException(input, e);
-            }
-
-            final IParseTableProvider provider;
-            final ParseTable referenceParseTable = referenceCompletionParseTables.get(lang);
-
-            if(referenceParseTable != null && incrementalPTGen) {
-                provider =
-                    new JSGLR1IncrementalParseTableProvider(completionParseTable, termFactory, referenceParseTable);
-            } else {
-                provider = new JSGLR1FileParseTableProvider(completionParseTable, termFactory);
-            }
-
-            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder);
-            completionParserConfigs.put(lang, config);
-
-
-        }
-        return config;
-    }
-
-
     @Override public void invalidateCache(ILanguageImpl impl) {
-
-        boolean incrementalPTGen = false;
-        org.spoofax.jsglr.client.ParseTable pt = null;
-
-        for(ILanguageComponent component : impl.components()) {
-            if(component.config().sdfEnabled()
-                && component.config().sdf2tableVersion() == Sdf2tableVersion.incremental) {
-                incrementalPTGen = true;
-            }
-        }
-
-        logger.debug("Storing reference parse table for {}", impl);
-        if(parserConfigs.get(impl) != null && incrementalPTGen) {
-            try {
-                pt = (org.spoofax.jsglr.client.ParseTable) parserConfigs.get(impl).getParseTableProvider().parseTable();
-                if(pt != null && pt.getPTgenerator() != null && pt.getPTgenerator().getParseTable() != null) {
-                    referenceParseTables.put(impl, pt.getPTgenerator().getParseTable());
-                }
-            } catch(IOException e) {
-                logger.error("Could not save reference parse table for incremental parse table generation.");
-            }
-        }
-
-        if(completionParserConfigs.get(impl) != null && incrementalPTGen) {
-            try {
-                pt = (org.spoofax.jsglr.client.ParseTable) completionParserConfigs.get(impl).getParseTableProvider()
-                    .parseTable();
-                if(pt != null && pt.getPTgenerator() != null && pt.getPTgenerator().getParseTable() != null) {
-                    referenceCompletionParseTables.put(impl, pt.getPTgenerator().getParseTable());
-                }
-            } catch(IOException e) {
-                logger.error("Could not save reference completion parse table for incremental parse table generation.");
-            }
+        if(hasIncrementalPTGen(impl)) {
+            logger.debug("Storing reference parse table for {}", impl);
+            updateReferenceParseTables(impl, false, parserConfigs, referenceParseTables);
+            updateReferenceParseTables(impl, true, completionParserConfigs, referenceCompletionParseTables);
         }
 
         logger.debug("Removing cached parse table for {}", impl);
         parserConfigs.remove(impl);
         completionParserConfigs.remove(impl);
+        parsers.remove(impl);
+        completionParsers.remove(impl);
     }
 
     @Override public void invalidateCache(ILanguageComponent component) {
@@ -344,5 +116,167 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         completionParserConfigs.clear();
         referenceParseTables.clear();
         referenceCompletionParseTables.clear();
+        parsers.clear();
+        completionParsers.clear();
+    }
+
+
+    private JSGLRI<?> getParser(ISpoofaxInputUnit input, JSGLRParserConfiguration parserConfig)
+        throws IOException, ParseException {
+
+        final ILanguageImpl langImpl;
+        final ILanguageImpl base;
+        if(input.dialect() != null) {
+            langImpl = input.dialect();
+            base = input.langImpl();
+        } else {
+            langImpl = input.langImpl();
+            base = null;
+        }
+
+        final Map<ILanguageImpl, JSGLRI<?>> parserMap = parserConfig.completion ? completionParsers : parsers;
+
+        if(!parserMap.containsKey(langImpl)) {
+            final IParserConfig config = getParserConfig(langImpl, input, parserConfig.completion);
+            final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
+            final JSGLRVersion version = jsglrVersion(input);
+
+            final JSGLRI<?> parser;
+            if(version == JSGLRVersion.v1) {
+                final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
+                if(base != null) {
+                    parser = new JSGLR1I(config, termFactory, context, base, langImpl);
+                } else {
+                    parser = new JSGLR1I(config, termFactory, context, langImpl, null);
+                }
+            } else
+                parser = new JSGLR2I(config, termFactory, langImpl, null, version);
+
+            parserMap.put(langImpl, parser);
+        }
+        return parserMap.get(langImpl);
+    }
+
+    private IParserConfig getParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input, boolean completion)
+        throws ParseException {
+        final Map<ILanguageImpl, IParserConfig> parserConfigMap;
+        if(completion) {
+            parserConfigMap = this.completionParserConfigs;
+        } else {
+            parserConfigMap = this.parserConfigs;
+        }
+
+        if(!parserConfigMap.containsKey(lang)) {
+            final ITermFactory termFactory =
+                termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
+            final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
+
+            final String errorNotFound;
+            final String errorMultiple;
+            final FileObject parseTableFile;
+            if(completion) {
+                errorNotFound = "Completion parse table not found or sdf is not enabled for this language.";
+                errorMultiple = "Different components are specifying multiple completion parse tables.";
+                parseTableFile = facet.completionParseTable;
+            } else {
+                errorNotFound = "Parse table not found or sdf is not enabled for this language.";
+                errorMultiple = "Different components are specifying multiple parse tables.";
+                parseTableFile = facet.parseTable;
+            }
+
+            FileObject parseTable = null;
+            if(parseTableFile == null) {
+                try {
+                    boolean multipleTables = false;
+                    for(ILanguageComponent component : lang.components()) {
+                        if(component.config().sdfEnabled()) {
+                            String parseTableLocation;
+                            if(completion) {
+                                parseTableLocation = component.config().completionsParseTable();
+                            } else {
+                                parseTableLocation = component.config().parseTable();
+                            }
+                            if(parseTableLocation != null) {
+                                if(multipleTables) {
+                                    logger.error(errorMultiple);
+                                    throw new ParseException(input);
+                                }
+
+                                parseTable = component.location().resolveFile(parseTableLocation);
+                                multipleTables = true;
+                            }
+                        }
+                    }
+                } catch(FileSystemException e) {
+                    logger.error(errorNotFound);
+                    throw new ParseException(input, e);
+                }
+            } else {
+                parseTable = parseTableFile;
+            }
+
+            try {
+                if(parseTable == null || !parseTable.exists()) {
+                    logger.error(errorNotFound);
+                    throw new ParseException(input);
+                }
+            } catch(FileSystemException e) {
+                logger.error(errorNotFound);
+                throw new ParseException(input, e);
+            }
+
+            final IParseTableProvider provider;
+            final JSGLRVersion version = jsglrVersion(input);
+
+            if(version == JSGLRVersion.v1) {
+                final ParseTable referenceParseTable = referenceParseTables.get(lang);
+
+                if(referenceParseTable != null && hasIncrementalPTGen(lang)) {
+                    provider = new JSGLR1IncrementalParseTableProvider(parseTable, termFactory, referenceParseTable);
+                } else {
+                    provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
+                }
+            } else {
+                provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
+            }
+
+            parserConfigMap.put(lang, new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder));
+        }
+        return parserConfigMap.get(lang);
+    }
+
+
+    private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input) {
+        ILanguageComponent langComp = Iterables.getFirst(input.langImpl().components(), null);
+        if(langComp == null)
+            return JSGLRVersion.v1;
+        else
+            return langComp.config().jsglrVersion();
+    }
+
+    private boolean hasIncrementalPTGen(ILanguageImpl impl) {
+        for(ILanguageComponent component : impl.components()) {
+            if(component.config().sdfEnabled()
+                && component.config().sdf2tableVersion() == Sdf2tableVersion.incremental) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void updateReferenceParseTables(ILanguageImpl impl, boolean completion,
+        Map<ILanguageImpl, IParserConfig> parserConfigs, Map<ILanguageImpl, ParseTable> referenceParseTables) {
+        if(parserConfigs.get(impl) != null) {
+            try {
+                org.spoofax.jsglr.client.ParseTable pt;
+                pt = (org.spoofax.jsglr.client.ParseTable) parserConfigs.get(impl).getParseTableProvider().parseTable();
+                if(pt != null && pt.getPTgenerator() != null && pt.getPTgenerator().getParseTable() != null) {
+                    referenceParseTables.put(impl, pt.getPTgenerator().getParseTable());
+                }
+            } catch(IOException e) {
+                String c = completion ? "completion " : "";
+                logger.error("Could not save reference " + c + "parse table for incremental parse table generation.");
+            }
+        }
     }
 }

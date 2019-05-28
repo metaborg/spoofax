@@ -19,6 +19,6 @@ public interface ISpoofaxTransformUnit<I extends IUnit> extends ITransformUnit<I
      */
     @Nullable IStrategoTerm ast();
     
-    Iterable<? extends ISpoofaxTransformOutput> outputs();
+    @Override Iterable<? extends ISpoofaxTransformOutput> outputs();
 
 }
