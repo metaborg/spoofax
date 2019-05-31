@@ -5,8 +5,18 @@ signature
   constructors
     Empty : Start
 
-rules
+rules // single-file entry point
 
   programOK : Start
 
   programOK(Empty()).
+
+rules // multi-file entry point
+
+//  projectOk : scope
+//
+//  projectOk(s).
+//  
+//  fileOk : scope * Start
+//  
+//  fileOk(s, Empty()).

@@ -395,9 +395,6 @@ public class StrIncrFrontEnd extends SpoofaxBuilder<StrIncrFrontEnd.Input, StrIn
 
     public IStrategoTerm transform(FileObject resource, String projectName, ILanguageImpl strategoLang,
         final IStrategoTerm ast) throws IOException {
-        if(!context.contextService().available(strategoLang)) {
-            throw new IOException("Cannot create stratego transformation context");
-        }
         final IContext transformContext;
         try {
             transformContext = context.contextService().get(resource, context.project(), strategoLang);

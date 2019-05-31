@@ -247,29 +247,27 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             removedResources, extraMessages, success, progress.subProgress(5), cancel);
         final Iterable<P> allParseResults = Iterables.concat(sourceParseUnits, includeParseUnits);
 
+        // Segregate by context
+        final Multimap<IContext, P> parseUnitsPerContext = ArrayListMultimap.create();
+        for(P parseResult : sourceParseUnits) {
+            cancel.throwIfCancelled();
+            final FileObject resource = parseResult.source();
+            final ILanguageImpl langImpl = parseResult.input().langImpl();
+            try {
+                final IContext context = contextService.get(resource, input.project, langImpl);
+                parseUnitsPerContext.put(context, parseResult);
+            } catch(ContextException e) {
+                final String message = String.format("Failed to retrieve context for parse result of %s", resource);
+                printMessage(resource, message, e, input, pardoned);
+                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
+            }
+        }
+
         // Analyze
         cancel.throwIfCancelled();
         final Multimap<IContext, A> allAnalyzeUnits;
         final Collection<AU> allAnalyzeUpdates = Lists.newArrayList();
         if(analyze) {
-            // Segregate by context
-            final Multimap<IContext, P> parseUnitsPerContext = ArrayListMultimap.create();
-            for(P parseResult : sourceParseUnits) {
-                cancel.throwIfCancelled();
-                final FileObject resource = parseResult.source();
-                final ILanguageImpl langImpl = parseResult.input().langImpl();
-                try {
-                    if(contextService.available(langImpl)) {
-                        final IContext context = contextService.get(resource, input.project, langImpl);
-                        parseUnitsPerContext.put(context, parseResult);
-                    }
-                } catch(ContextException e) {
-                    final String message = String.format("Failed to retrieve context for parse result of %s", resource);
-                    printMessage(resource, message, e, input, pardoned);
-                    extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
-                }
-            }
-
             // Run analysis
             cancel.throwIfCancelled();
             allAnalyzeUnits = analyze(input, language, location, parseUnitsPerContext, includeParseUnits, pardoned,
@@ -282,7 +280,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         cancel.throwIfCancelled();
         final Collection<T> allTransformUnits;
         if(transform) {
-            allTransformUnits = transform(input, language, location, allAnalyzeUnits, includes, pardoned,
+            allTransformUnits = transform(input, language, location, parseUnitsPerContext, allAnalyzeUnits, includes, pardoned,
                 removedResources, extraMessages, success, progress.subProgress(45), cancel);
         } else {
             allTransformUnits = Lists.newLinkedList();
@@ -424,61 +422,137 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     }
 
     private Collection<T> transform(BuildInput input, ILanguageImpl langImpl, FileObject location,
-        Multimap<IContext, A> allAnalysisUnits, Set<FileName> includeFiles, boolean pardoned,
+        Multimap<IContext, P> parseUnits, Multimap<IContext, A> allAnalysisUnits, Set<FileName> includeFiles, boolean pardoned,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, IProgress progress,
         ICancel cancel) throws InterruptedException {
-        final int size = allAnalysisUnits.size();
-        progress.setWorkRemaining(size);
-        final Collection<T> allTransformUnits = Lists.newArrayListWithCapacity(size);
-        if(size == 0) {
+        final Collection<T> allTransformUnits = Lists.newArrayList();
+
+        final int numberOfGoals = Iterables.size(input.transformGoals);
+        progress.setWorkRemaining(numberOfGoals);
+        if(numberOfGoals == 0) {
             return allTransformUnits;
         }
+        progress.setDescription("Running " + numberOfGoals + " transformations of " + langImpl.belongsTo().name());
+        logger.debug("Running {} transformations", numberOfGoals);
 
-        progress.setDescription("Compiling " + size + " file(s) of " + langImpl.belongsTo().name());
-        logger.debug("Compiling {} analysis results", size);
 
-        for(Entry<IContext, Collection<A>> entry : allAnalysisUnits.asMap().entrySet()) {
+        for(ITransformGoal goal : input.transformGoals) {
             cancel.throwIfCancelled();
-            final IContext context = entry.getKey();
-            final Iterable<A> analysisResults = entry.getValue();
-            try(IClosableLock lock = context.read()) {
-                for(A analysisResult : analysisResults) {
+            // The two branches of this `if` are almost completely the same,
+            // except one works on parse units, the other in analysis units.
+            // They should be kept in sync!
+            if(transformService.requiresAnalysis(langImpl, goal)) {
+                final int size = allAnalysisUnits.size();
+                if(size == 0) {
+                    continue;
+                }
+                final IProgress transformProgress = progress.subProgress(1);
+                transformProgress.setDescription("Compiling " + size + " file(s) with " + goal);
+                logger.debug("Compiling {} analysis results", size);
+
+                for(Entry<IContext, Collection<A>> entry : allAnalysisUnits.asMap().entrySet()) {
                     cancel.throwIfCancelled();
+                    final IContext context = entry.getKey();
+                    final Collection<A> analysisResults = entry.getValue();
 
-                    final FileObject source = analysisResult.source();
-                    final FileName name = source.getName();
-
-                    if(removedResources.contains(name) || includeFiles.contains(name)) {
-                        // Don't compile removed resources, which the analysis results contain for legacy reasons.
-                        // Don't transform included resources, they should just be parsed and analyzed.
-                        progress.work(1);
+                    if(!transformService.available(context.language(), goal)) {
+                        logger.trace("No {} transformation required for {}", goal, context.language());
+                        transformProgress.work(analysisResults.size());
                         continue;
                     }
 
-                    if(!analysisResult.valid()) {
-                        logger.warn("Input result for {} is invalid, cannot transform it",
-                            source != null ? source.getName().getPath() : "detached source");
-                        progress.work(1);
+                    try(IClosableLock lock = context.read()) {
+                        for(A analysisResult : analysisResults) {
+                            cancel.throwIfCancelled();
+
+                            final FileObject source = analysisResult.source();
+                            final FileName name = source.getName();
+
+                            if(removedResources.contains(name) || includeFiles.contains(name)) {
+                                // Don't compile removed resources, which the analysis results contain for legacy reasons.
+                                // Don't transform included resources, they should just be parsed and analyzed.
+                                transformProgress.work(1);
+                                continue;
+                            }
+
+                            if(!analysisResult.valid()) {
+                                logger.warn("Input result for {} is invalid, cannot transform it",
+                                    source != null ? source.getName().getPath() : "detached source");
+                                transformProgress.work(1);
+                                continue;
+                            }
+
+                            try {
+                                final Collection<TUA> results = transformService.transform(analysisResult, context, goal);
+                                for(TUA result : results) {
+                                    final boolean noErrors =
+                                        printMessages(result.messages(), goal + " transformation", input, pardoned);
+                                    success.and(noErrors);
+                                    @SuppressWarnings("unchecked") final T genericResult = (T) result;
+                                    allTransformUnits.add(genericResult);
+                                }
+                                transformProgress.work(1);
+                            } catch(TransformException e) {
+                                final String message = String.format("Transformation failed unexpectedly for %s", name);
+                                logger.error(message, e);
+                                final boolean noErrors = printMessage(source, message, e, input, pardoned);
+                                success.and(noErrors);
+                                extraMessages.add(
+                                    MessageFactory.newBuilderErrorAtTop(location, "Transformation failed unexpectedly", e));
+                            }
+                        }
+                    }
+                }
+            } else {
+                final int size = parseUnits.size();
+                final IProgress transformProgress = progress.subProgress(1);
+                if(size == 0) {
+                    continue;
+                }
+                transformProgress.setDescription("Compiling " + size + " file(s) with " + goal);
+                logger.debug("Compiling {} parse results", size);
+
+                for(Entry<IContext, Collection<P>> entry : parseUnits.asMap().entrySet()) {
+                    cancel.throwIfCancelled();
+                    final IContext context = entry.getKey();
+                    final Collection<P> parseResults = entry.getValue();
+
+                    if(!transformService.available(context.language(), goal)) {
+                        logger.trace("No {} transformation required for {}", goal, context.language());
+                        transformProgress.work(parseResults.size());
                         continue;
                     }
 
-                    for(ITransformGoal goal : input.transformGoals) {
+                    for(P parseResult : parseResults) {
                         cancel.throwIfCancelled();
-                        if(!transformService.available(context, goal)) {
-                            logger.trace("No {} transformation required for {}", goal, context.language());
-                            progress.work(1);
+
+                        final FileObject source = parseResult.source();
+                        final FileName name = source.getName();
+
+                        if(removedResources.contains(name) || includeFiles.contains(name)) {
+                            // Don't compile removed resources, which the parse results contain for legacy reasons.
+                            // Don't transform included resources, they should just be parsed and analyzed.
+                            transformProgress.work(1);
                             continue;
                         }
+
+                        if(!parseResult.valid()) {
+                            logger.warn("Input result for {} is invalid, cannot transform it",
+                                source != null ? source.getName().getPath() : "detached source");
+                            transformProgress.work(1);
+                            continue;
+                        }
+
                         try {
-                            final Collection<TUA> results = transformService.transform(analysisResult, context, goal);
-                            for(TUA result : results) {
+                            final Collection<TUP> results = transformService.transform(parseResult, context, goal);
+                            for(TUP result : results) {
                                 final boolean noErrors =
                                     printMessages(result.messages(), goal + " transformation", input, pardoned);
                                 success.and(noErrors);
                                 @SuppressWarnings("unchecked") final T genericResult = (T) result;
                                 allTransformUnits.add(genericResult);
                             }
-                            progress.work(1);
+                            transformProgress.work(1);
                         } catch(TransformException e) {
                             final String message = String.format("Transformation failed unexpectedly for %s", name);
                             logger.error(message, e);
@@ -492,6 +566,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 // GTODO: also compile any affected sources
             }
         }
+
         return allTransformUnits;
     }
 

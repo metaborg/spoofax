@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.dynamicclassloading;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
@@ -11,7 +13,7 @@ public interface IBuilderInput extends IStrategoTuple {
 
     IStrategoTerm getAst();
 
-    String getResource();
+    @Nullable FileObject getResource();
 
-    FileObject getLocation();
+    @Nullable FileObject getLocation();
 }

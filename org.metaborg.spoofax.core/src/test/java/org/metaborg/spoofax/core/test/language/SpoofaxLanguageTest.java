@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.test.language;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.metaborg.util.test.Assert2.assertIterableEquals;
+import static org.metaborg.core.test.Assert2.assertIterableEquals;
 
 import org.apache.commons.vfs2.FileObject;
 import org.junit.Test;
