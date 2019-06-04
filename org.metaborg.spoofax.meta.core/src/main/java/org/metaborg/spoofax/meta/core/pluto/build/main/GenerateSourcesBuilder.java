@@ -1,17 +1,27 @@
 package org.metaborg.spoofax.meta.core.pluto.build.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
+import build.pluto.builder.BuildRequest;
+import build.pluto.dependency.Origin;
+import build.pluto.output.None;
+import build.pluto.output.OutputPersisted;
+import build.pluto.stamp.FileExistsStamper;
+import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
+import mb.pie.api.Pie;
+import mb.pie.api.PieBuilder;
+import mb.pie.api.PieSession;
+import mb.pie.runtime.PieBuilderImpl;
+import mb.pie.taskdefs.guice.GuiceTaskDefs;
+import mb.resource.ResourceKey;
+import mb.resource.fs.FSPath;
+import mb.stratego.build.StrIncr;
 
-import javax.annotation.Nullable;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
@@ -28,21 +38,48 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2ParenthesizeLegacy;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableLegacy;
-import org.metaborg.spoofax.meta.core.pluto.build.StrIncr;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
 import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.GetStrategoMix;
 import org.metaborg.util.cmd.Arguments;
-
-import com.google.common.collect.Lists;
-
-import build.pluto.builder.BuildRequest;
-import build.pluto.dependency.Origin;
-import build.pluto.output.None;
-import build.pluto.output.OutputPersisted;
-import build.pluto.stamp.FileExistsStamper;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
+    private static final Set<String> BUILTIN_LIBS = new HashSet<>(Arrays
+        .asList("stratego-lib", "stratego-sglr", "stratego-gpp", "stratego-xtc", "stratego-aterm", "stratego-sdf",
+            "strc", "java-front"));
+    private static final ILogger logger = LoggerUtils.logger(StrIncr.class);
+    private static final WatchEvent.Kind[] STANDARD_WATCH_EVENT_KINDS =
+        new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE,
+            StandardWatchEventKinds.ENTRY_MODIFY };
+    private static final Set<WatchEvent.Kind> STANDARD_WATCH_EVENT_KINDS_SET =
+        new HashSet<>(Arrays.asList(STANDARD_WATCH_EVENT_KINDS));
+
+    private static WatchService filewatcher;
+    private static Pie pie;
+
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
@@ -147,7 +184,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
 
-    @Override public None build(GenerateSourcesBuilder.Input input) throws IOException {
+    @Override public None build(GenerateSourcesBuilder.Input input) throws IOException, MetaborgException {
         // SDF
         Origin.Builder sdfOriginBuilder = Origin.Builder();
         
@@ -385,8 +422,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
         }
     }
-    
-    private void buildStratego(GenerateSourcesBuilder.Input input, Origin sdfOrigin) throws IOException {
+
+    private void buildStratego(GenerateSourcesBuilder.Input input, Origin sdfOrigin)
+        throws IOException, MetaborgException {
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
         
         final File strFile = input.strFile;
@@ -430,12 +468,23 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final File cacheDir = toFile(paths.strCacheDir());
 
             if(input.strBuildSetting == StrategoBuildSetting.incremental) {
-                final StrIncr.Input strIncrInput = new StrIncr.Input(context, strFile, input.strJavaPackage,
-                    input.strjIncludeDirs, input.strjIncludeFiles, cacheDir, extraArgs, depPath, sdfOrigin);
-                requireBuild(StrIncr.request(strIncrInput));
+                final File projectLocation = context.resourceService().localPath(paths.root());
+
+                initPie(input.context, projectLocation);
+
+                assert projectLocation != null;
+                final Arguments newArgs = new Arguments();
+                final List<String> builtinLibs = extractBuiltinLibs(extraArgs, newArgs);
+                final StrIncr.Input strIncrInput =
+                    new StrIncr.Input(strFile, input.strJavaPackage, input.strjIncludeDirs, builtinLibs, cacheDir,
+                        Collections.emptyList(), newArgs, depPath, Collections.emptyList(), projectLocation);
+                try(final PieSession pieSession = pie.newSession()) {
+                    pieSession.requireBottomUp(getChangedFiles());
+                } catch(ExecException e) {
+                    throw new MetaborgException("Incremental Stratego build failed", e);
+                }
             } else {
                 final Strj.Input strjInput =
-
                     new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage, true, true,
                         input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir, extraArgs,
                         sdfOrigin);
@@ -452,5 +501,100 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             requireBuild(typesmartOrigin);
         }
     }
-    
+
+    private static Set<ResourceKey> getChangedFiles() throws IOException {
+        final Set<ResourceKey> result = new HashSet<>();
+        WatchKey key = filewatcher.poll();
+        while(key != null) {
+            if(key.isValid()) {
+                for(WatchEvent<?> watchEvent : key.pollEvents()) {
+                    final WatchEvent.Kind<?> kind = watchEvent.kind();
+                    if(STANDARD_WATCH_EVENT_KINDS_SET.contains(kind)) {
+                        Path path = (Path) watchEvent.context();
+                        result.add(new FSPath(path));
+
+                        // If a new directory is created, watch that directory for changes too
+                        if(kind.equals(StandardWatchEventKinds.ENTRY_CREATE) && Files.isDirectory(path)) {
+                            path.register(filewatcher, STANDARD_WATCH_EVENT_KINDS);
+                        }
+                    }
+                }
+            }
+
+            key = filewatcher.poll();
+        }
+        return result;
+    }
+
+    private static List<String> extractBuiltinLibs(Arguments oldArgs, Arguments newArgs) {
+        final List<String> builtinLibs = new ArrayList<>();
+        for(Iterator<Object> iterator = oldArgs.iterator(); iterator.hasNext(); ) {
+            Object oldArg = iterator.next();
+            if(oldArg.equals("-la")) {
+                final Object nextOldArg = iterator.next();
+                //noinspection SuspiciousMethodCalls
+                if(BUILTIN_LIBS.contains(nextOldArg)) {
+                    builtinLibs.add((String) nextOldArg);
+                } else {
+                    newArgs.add(oldArg, nextOldArg);
+                }
+            } else {
+                newArgs.add(oldArg);
+            }
+        }
+        return builtinLibs;
+    }
+
+    private static void initPie(SpoofaxContext context, File projectLocation) throws IOException {
+        if(pie == null) {
+            final GuiceTaskDefs guiceTaskDefs = context.guiceTaskDefs();
+            final PieBuilder pieBuilder = new PieBuilderImpl();
+            pieBuilder.withTaskDefs(guiceTaskDefs);
+            pieBuilder.withLogger(new Logger() {
+                @Override public void error(String s, Throwable throwable) {
+                    logger.error(s, throwable);
+                }
+
+                @Override public void warn(String s, Throwable throwable) {
+                    logger.warn(s, throwable);
+                }
+
+                @Override public void info(String s) {
+                    logger.info(s);
+                }
+
+                @Override public void debug(String s) {
+                    logger.debug(s);
+                }
+
+                @Override public void trace(String s) {
+                    logger.trace(s);
+                }
+            });
+            pie = pieBuilder.build();
+
+            filewatcher = FileSystems.getDefault().newWatchService();
+            // Watch all directories in the projectLocation
+            Files.walkFileTree(projectLocation.toPath(), new SimpleFileVisitor<Path>() {
+                @Override public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                    throws IOException {
+                    dir.register(filewatcher, STANDARD_WATCH_EVENT_KINDS);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+    }
+
+    public static void clean() throws MetaborgException {
+        if(GenerateSourcesBuilder.pie != null) {
+            try {
+                GenerateSourcesBuilder.pie.close();
+                GenerateSourcesBuilder.pie = null;
+                filewatcher.close();
+                filewatcher = null;
+            } catch(Exception e) {
+                throw new MetaborgException("Cleaning Pie object failed", e);
+            }
+        }
+    }
 }

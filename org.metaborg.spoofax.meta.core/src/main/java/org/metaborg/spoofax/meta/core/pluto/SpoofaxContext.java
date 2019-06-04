@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
+import mb.pie.taskdefs.guice.GuiceTaskDefs;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -64,6 +66,7 @@ public class SpoofaxContext implements Serializable {
     private static ISpoofaxTransformService transformService;
     private static IContextService contextService;
     private static IDialectService dialectService;
+    private static GuiceTaskDefs taskDefs;
 
     public final File baseDir;
     public final URI baseURI;
@@ -94,6 +97,7 @@ public class SpoofaxContext implements Serializable {
         transformService = newInjector.getInstance(ISpoofaxTransformService.class);
         contextService = newInjector.getInstance(IContextService.class);
         dialectService = newInjector.getInstance(IDialectService.class);
+        taskDefs = newInjector.getInstance(GuiceTaskDefs.class);
     }
 
     public static void deinit() {
@@ -170,6 +174,10 @@ public class SpoofaxContext implements Serializable {
         agent.setAbsoluteWorkingDir(base);
         agent.setAbsoluteDefinitionDir(base);
         return tracker;
+    }
+
+    public GuiceTaskDefs guiceTaskDefs() {
+        return taskDefs;
     }
 
     public @Nullable IStrategoTerm parse(File file) throws IOException, ParseException {
