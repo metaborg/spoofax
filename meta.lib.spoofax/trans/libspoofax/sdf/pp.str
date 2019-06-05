@@ -8,6 +8,8 @@ rules
 
   ia-get-sort = prim("SSL_EXT_get_sort_imploder_attachment", <id>)
 
+  explicate-injections = prim("SSL_EXT_explicate_injections")
+
 signature constructors
 
   Parenthetical : Unknown -> Unknown
