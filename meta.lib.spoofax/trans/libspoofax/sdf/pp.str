@@ -8,7 +8,9 @@ rules
 
   ia-get-sort = prim("SSL_EXT_get_sort_imploder_attachment", <id>)
 
-  explicate-injections = prim("SSL_EXT_explicate_injections")
+  explicate-injections(mangle) = prim("SSL_EXT_explicate_injections",mangle|)
+
+  explicate-injections = explicate-injections(id)
 
 signature constructors
 
