@@ -1,6 +1,8 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
+import mb.pie.api.Task;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
+import mb.stratego.build.StrIncr;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,6 +69,7 @@ public class SpoofaxContext implements Serializable {
     private static IContextService contextService;
     private static IDialectService dialectService;
     private static GuiceTaskDefs taskDefs;
+    private static StrIncr strIncr;
 
     public final File baseDir;
     public final URI baseURI;
@@ -98,6 +101,7 @@ public class SpoofaxContext implements Serializable {
         contextService = newInjector.getInstance(IContextService.class);
         dialectService = newInjector.getInstance(IDialectService.class);
         taskDefs = newInjector.getInstance(GuiceTaskDefs.class);
+        strIncr = newInjector.getInstance(StrIncr.class);
     }
 
     public static void deinit() {
@@ -253,5 +257,9 @@ public class SpoofaxContext implements Serializable {
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
         in.defaultReadObject();
         init();
+    }
+
+    public StrIncr getStrIncrTask() {
+        return strIncr;
     }
 }
