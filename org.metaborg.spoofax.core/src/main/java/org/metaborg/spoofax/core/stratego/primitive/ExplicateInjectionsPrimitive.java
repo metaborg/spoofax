@@ -1,12 +1,14 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
-import org.metaborg.util.functions.Function1;
+import org.metaborg.util.functions.Function2;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.jsglr.client.imploder.Injections;
 
 public class ExplicateInjectionsPrimitive extends AbstractPrimitive {
@@ -16,22 +18,26 @@ public class ExplicateInjectionsPrimitive extends AbstractPrimitive {
     }
 
     @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
-        final Strategy smangle = svars[0];
-        final Function1<String, String> mangle = (name) -> {
+        final Strategy sInjName = svars[0];
+        final Function2<String, String, String> injName = (sort, intoSort) -> {
             final IStrategoTerm originalTerm = env.current();
             try {
-                env.setCurrent(env.getFactory().makeString(name));
-                if(smangle.evaluate(env)) {
-                    name = Tools.asJavaString(env.current());
+                final IStrategoString sortTerm = env.getFactory().makeString(sort);
+                final IStrategoString intoSortTerm = env.getFactory().makeString(intoSort);
+                final IStrategoTuple input = env.getFactory().makeTuple(sortTerm, intoSortTerm);
+                env.setCurrent(input);
+                if(sInjName.evaluate(env)) {
+                    return Tools.asJavaString(env.current());
+                } else {
+                    throw new InterpreterRuntimeException(new InterpreterException("Strategy to construct injection name failed."));
                 }
-                return name;
             } catch(InterpreterException ex) {
                 throw new InterpreterRuntimeException(ex);
             } finally {
                 env.setCurrent(originalTerm);
             }
         };
-        final Injections injections = new Injections(env.getFactory(), mangle);
+        final Injections injections = new Injections(env.getFactory(), injName);
         final IStrategoTerm result;
         try {
             result = injections.explicate(env.current());
