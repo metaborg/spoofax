@@ -1,6 +1,8 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
-import org.metaborg.util.functions.Function2;
+import java.util.Optional;
+
+import org.metaborg.util.functions.PartialFunction2;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
@@ -19,17 +21,17 @@ public class ExplicateInjectionsPrimitive extends AbstractPrimitive {
 
     @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
         final Strategy sInjName = svars[0];
-        final Function2<String, String, String> injName = (sort, intoSort) -> {
+        final PartialFunction2<String, String, String> injName = (sort, intoSort) -> {
             final IStrategoTerm originalTerm = env.current();
+            final IStrategoString sortTerm = env.getFactory().makeString(sort);
+            final IStrategoString intoSortTerm = env.getFactory().makeString(intoSort);
+            final IStrategoTuple input = env.getFactory().makeTuple(sortTerm, intoSortTerm);
             try {
-                final IStrategoString sortTerm = env.getFactory().makeString(sort);
-                final IStrategoString intoSortTerm = env.getFactory().makeString(intoSort);
-                final IStrategoTuple input = env.getFactory().makeTuple(sortTerm, intoSortTerm);
                 env.setCurrent(input);
                 if(sInjName.evaluate(env)) {
-                    return Tools.asJavaString(env.current());
+                    return Optional.of(Tools.asJavaString(env.current()));
                 } else {
-                    throw new InterpreterRuntimeException(new InterpreterException("Strategy to construct injection name failed."));
+                    return Optional.empty();
                 }
             } catch(InterpreterException ex) {
                 throw new InterpreterRuntimeException(ex);
