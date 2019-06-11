@@ -481,6 +481,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final File cacheDir = toFile(paths.strCacheDir());
 
             if(input.strBuildSetting == StrategoBuildSetting.incremental) {
+                /* Make sure to require all the sdf stuff before running the stratego compiler which will search for
+                 *  the generated stratego files.
+                 */
+                requireBuild(sdfOrigin);
                 logger.info("> Compile Stratego code using the separate compiler");
                 final File projectLocation = context.resourceService().localPath(paths.root());
                 assert projectLocation != null;

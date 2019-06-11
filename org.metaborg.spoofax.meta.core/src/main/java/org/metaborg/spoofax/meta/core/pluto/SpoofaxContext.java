@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
-import mb.pie.api.Task;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.stratego.build.StrIncr;
 
