@@ -3,7 +3,9 @@ plugins {
 }
 
 dependencies {
-  compile(project(":org.metaborg.core"))
+  api(platform("org.metaborg:parent:$version"))
 
-  compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+  api(project(":org.metaborg.core"))
+
+  compileOnly("com.google.code.findbugs:jsr305")
 }

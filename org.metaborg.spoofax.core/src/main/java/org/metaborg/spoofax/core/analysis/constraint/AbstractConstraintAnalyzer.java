@@ -55,6 +55,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+import mb.nabl2.terms.stratego.StrategoTermIndices;
+import mb.nabl2.terms.stratego.TermIndex;
+import mb.nabl2.terms.stratego.TermOrigin;
+
 public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
@@ -155,7 +159,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final IStrategoTerm projectChange;
         if(multifile()) {
             final String resource = context.resourceKey(context.root());
-            final IStrategoTerm ast = termFactory.makeTuple();
+            final IStrategoTerm ast = projectAST(resource);
             final IStrategoTerm change;
             final Expect expect;
             if(context.contains(resource)) {
@@ -201,13 +205,15 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         // cached files
-        for(Map.Entry<String, IStrategoTerm> entry : context.entrySet()) {
-            final String resource = entry.getKey();
-            final IStrategoTerm analysis = entry.getValue();
-            if(!changed.containsKey(resource)) {
-                final IStrategoTerm change = build("Cached", analysis);
-                expects.put(resource, new Update(resource, context));
-                changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
+        if(multifile()) {
+            for(Map.Entry<String, IStrategoTerm> entry : context.entrySet()) {
+                final String resource = entry.getKey();
+                final IStrategoTerm analysis = entry.getValue();
+                if(!changed.containsKey(resource)) {
+                    final IStrategoTerm change = build("Cached", analysis);
+                    expects.put(resource, new Update(resource, context));
+                    changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
+                }
             }
         }
 
@@ -317,15 +323,25 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         protected void resultMessages(IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes) {
             if(multifile()) {
-                messages.putAll(analysisCommon.messages(MessageSeverity.ERROR, errors));
-                messages.putAll(analysisCommon.messages(MessageSeverity.WARNING, warnings));
-                messages.putAll(analysisCommon.messages(MessageSeverity.NOTE, notes));
+                messages.putAll(messages(resource(), MessageSeverity.ERROR, errors));
+                messages.putAll(messages(resource(), MessageSeverity.WARNING, warnings));
+                messages.putAll(messages(resource(), MessageSeverity.NOTE, notes));
             } else {
                 messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.ERROR, errors));
                 messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.WARNING, warnings));
                 messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.NOTE, notes));
 
             }
+        }
+
+        private Multimap<FileObject, IMessage> messages(FileObject resource, MessageSeverity severity,
+                IStrategoTerm messagesTerm) {
+            final Multimap<FileObject, IMessage> messages =
+                    analysisCommon.messages(MessageSeverity.ERROR, messagesTerm);
+            if(messages.containsKey(null)) {
+                messages.putAll(resource, messages.removeAll(null));
+            }
+            return messages;
         }
 
         protected void failMessage(String message) {
@@ -441,6 +457,13 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             updateResults.add(unitService.analyzeUnitUpdate(resource(), new AnalyzeUpdateData(messages), context));
         }
 
+    }
+
+    private IStrategoTerm projectAST(String resource) {
+        IStrategoTerm ast = termFactory.makeTuple();
+        ast = StrategoTermIndices.put(TermIndex.of(resource, 0), ast, termFactory);
+        TermOrigin.of(resource).put(ast);
+        return ast;
     }
 
     protected boolean success(Collection<IMessage> messages) {
