@@ -117,34 +117,32 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         paths.add(srcGenSyntaxDir.getAbsolutePath());
 
         for(LanguageIdentifier langId : sourceDeps) {
-            ILanguageImpl lang = context.languageService().getImpl(langId);
-            for(final ILanguageComponent component : lang.components()) {
-                ILanguageComponentConfig config = component.config();
-                Collection<IExportConfig> exports = config.exports();
-                for(IExportConfig exportConfig : exports) {
-                    exportConfig.accept(new IExportVisitor() {
-                        @Override public void visit(LangDirExport export) {
-                            if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
-                                try {
-                                    paths
-                                        .add(toFileReplicate(component.location().resolveFile(export.directory))
-                                            .getAbsolutePath());
-                                } catch(FileSystemException e) {
-                                    System.out.println("Failed to locate path");
-                                    e.printStackTrace();
-                                }
+            ILanguageComponent component = context.languageService().getComponent(langId);
+            ILanguageComponentConfig config = component.config();
+            Collection<IExportConfig> exports = config.exports();
+            for(IExportConfig exportConfig : exports) {
+                exportConfig.accept(new IExportVisitor() {
+                    @Override public void visit(LangDirExport export) {
+                        if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
+                            try {
+                                paths
+                                    .add(toFileReplicate(component.location().resolveFile(export.directory))
+                                        .getAbsolutePath());
+                            } catch(FileSystemException e) {
+                                System.out.println("Failed to locate path");
+                                e.printStackTrace();
                             }
                         }
+                    }
 
-                        @Override public void visit(LangFileExport export) {
-                            // Ignore file exports
-                        }
+                    @Override public void visit(LangFileExport export) {
+                        // Ignore file exports
+                    }
 
-                        @Override public void visit(ResourceExport export) {
-                            // Ignore resource exports
-                        }
-                    });
-                }
+                    @Override public void visit(ResourceExport export) {
+                        // Ignore resource exports
+                    }
+                });
             }
         }
         
