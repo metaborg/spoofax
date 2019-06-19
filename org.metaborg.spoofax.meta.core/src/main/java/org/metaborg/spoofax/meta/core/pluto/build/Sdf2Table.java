@@ -33,6 +33,8 @@ import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.OutputPersisted;
 
+import javax.annotation.Nullable;
+
 public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<File>> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
@@ -117,9 +119,13 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         paths.add(srcGenSyntaxDir.getAbsolutePath());
 
         for(LanguageIdentifier langId : sourceDeps) {
-            ILanguageComponent component = context.languageService().getComponent(langId);
-            ILanguageComponentConfig config = component.config();
-            Collection<IExportConfig> exports = config.exports();
+            final @Nullable ILanguageComponent component = context.languageService().getComponent(langId);
+            if(component == null) {
+                report("Cannot get normalized SDF3 exports for language component with ID " + langId + ", it does not exist. Skipping");
+                continue;
+            }
+            final ILanguageComponentConfig config = component.config();
+            final Collection<IExportConfig> exports = config.exports();
             for(IExportConfig exportConfig : exports) {
                 exportConfig.accept(new IExportVisitor() {
                     @Override public void visit(LangDirExport export) {
