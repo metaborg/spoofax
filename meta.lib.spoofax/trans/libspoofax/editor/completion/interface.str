@@ -9,3 +9,4 @@ rules
     is-SDF-placeholder                   = fail
     is-left-recursive                    = fail
     is-right-recursive                   = fail
+    is-lexical-completion-sort           = fail

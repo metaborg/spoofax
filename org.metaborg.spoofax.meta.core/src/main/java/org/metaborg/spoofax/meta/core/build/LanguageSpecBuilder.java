@@ -288,6 +288,8 @@ public class LanguageSpecBuilder implements AutoCloseable {
             throw new MetaborgException("Cleaning Pluto file attributes failed", e);
         }
 
+        GenerateSourcesBuilder.clean();
+
         for(IBuildStep buildStep : buildSteps) {
             buildStep.execute(LanguageSpecBuildPhase.clean, input);
         }

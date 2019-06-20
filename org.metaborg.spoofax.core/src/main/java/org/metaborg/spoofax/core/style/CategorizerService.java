@@ -12,7 +12,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
@@ -42,7 +41,8 @@ public class CategorizerService implements ISpoofaxCategorizerService {
 
         final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.ast());
         if(rootImploderAttachment == null) {
-            logger.error("Cannot categorize input {} of {}, it does not have an imploder attachment", parseResult, language);
+            logger.error("Cannot categorize input {} of {}, it does not have an imploder attachment", parseResult,
+                language);
             // GTODO: throw exception instead
             return regionCategories;
         }
@@ -56,7 +56,7 @@ public class CategorizerService implements ISpoofaxCategorizerService {
         int offset = -1;
         for(int i = 0; i < tokenCount; ++i) {
             final IToken token = tokenizer.getTokenAt(i);
-            if(tokenizer.isAmbigous() && token.getStartOffset() < offset) {
+            if(tokenizer.isAmbiguous() && token.getStartOffset() < offset) {
                 // In case of ambiguities, tokens inside the ambiguity are duplicated, ignore.
                 continue;
             }
