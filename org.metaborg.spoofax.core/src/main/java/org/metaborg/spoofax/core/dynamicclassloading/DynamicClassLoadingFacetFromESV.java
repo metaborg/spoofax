@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.stratego;
+package org.metaborg.spoofax.core.dynamicclassloading;
 
 import java.util.Set;
 
@@ -13,11 +13,11 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Sets;
 
-public class StrategoRuntimeFacetFromESV {
-    private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeFacetFromESV.class);
+public class DynamicClassLoadingFacetFromESV {
+    private static final ILogger logger = LoggerUtils.logger(DynamicClassLoadingFacetFromESV.class);
 
 
-    public static @Nullable StrategoRuntimeFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
+    public static @Nullable DynamicClassLoadingFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
         final Set<FileObject> strategoFiles = providerResources(esv, location);
         // Use LinkedHashSet to maintain ordering.
         final Set<FileObject> ctreeFiles = Sets.newLinkedHashSet();
@@ -40,8 +40,8 @@ public class StrategoRuntimeFacetFromESV {
         if(ctreeFiles.isEmpty() && jarFiles.isEmpty()) {
             return null;
         }
-        
-        final StrategoRuntimeFacet facet = new StrategoRuntimeFacet(ctreeFiles, jarFiles);
+
+        final DynamicClassLoadingFacet facet = new DynamicClassLoadingFacet(ctreeFiles, jarFiles);
         return facet;
     }
 

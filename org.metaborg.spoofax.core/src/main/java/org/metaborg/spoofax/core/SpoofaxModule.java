@@ -62,6 +62,8 @@ import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingService;
+import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
 import org.metaborg.spoofax.core.language.LanguageComponentFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectIdentifier;
@@ -360,6 +362,11 @@ public class SpoofaxModule extends MetaborgModule {
             .to(SpoofaxAnalysisService.class);
         bind(new TypeLiteral<IAnalysisService<?, ?, ?>>() {}).to(SpoofaxAnalysisService.class);
         bind(IAnalysisService.class).to(SpoofaxAnalysisService.class);
+
+        // Semantic provider
+        bind(DynamicClassLoadingService.class).in(Singleton.class);
+        bind(IDynamicClassLoadingService.class).to(DynamicClassLoadingService.class);
+        languageCacheBinder.addBinding().to(DynamicClassLoadingService.class);
 
         // Stratego runtime
         bind(StrategoRuntimeService.class).in(Singleton.class);
