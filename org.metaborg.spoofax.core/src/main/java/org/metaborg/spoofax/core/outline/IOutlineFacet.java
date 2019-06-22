@@ -6,7 +6,7 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.outline.IOutline;
-import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 
 public interface IOutlineFacet extends IFacet {
     int getExpansionLevel();
@@ -15,6 +15,6 @@ public interface IOutlineFacet extends IFacet {
         return IOutlineFacet.class;
     }
 
-    IOutline createOutline(FileObject source, IContext context, ILanguageComponent contributor, IBuilderInput input)
+    IOutline createOutline(FileObject source, IContext context, ILanguageComponent contributor, BuilderInput input)
         throws MetaborgException;
 }

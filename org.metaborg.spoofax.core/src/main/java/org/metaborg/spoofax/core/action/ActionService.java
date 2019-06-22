@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.core.action;
 
-import java.util.Collection;
-
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.action.TransformActionContrib;
@@ -10,8 +10,7 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import java.util.Collection;
 
 public class ActionService implements IActionService<ISpoofaxTransformAction> {
     @Override public Collection<ISpoofaxTransformAction> actions(ILanguageImpl language, ITransformGoal goal) {

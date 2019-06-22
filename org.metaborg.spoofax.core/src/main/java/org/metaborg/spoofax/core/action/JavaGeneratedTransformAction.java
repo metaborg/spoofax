@@ -1,22 +1,20 @@
 package org.metaborg.spoofax.core.action;
 
-import java.util.Collections;
-
-import javax.inject.Inject;
-
+import com.google.inject.assistedinject.Assisted;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.action.TransformActionFlags;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.transform.TransformException;
-import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformAction;
 import org.metaborg.spoofax.core.transform.TransformResult;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.inject.assistedinject.Assisted;
+import javax.inject.Inject;
+import java.util.Collections;
 
 public class JavaGeneratedTransformAction implements ISpoofaxTransformAction {
     private static final ILogger logger = LoggerUtils.logger(JavaGeneratedTransformAction.class);
@@ -48,7 +46,7 @@ public class JavaGeneratedTransformAction implements ISpoofaxTransformAction {
 
 
     @Override public TransformResult transform(IContext context, FileObject source, FileObject location,
-        ILanguageComponent component, IBuilderInput inputTerm) throws TransformException {
+        ILanguageComponent component, BuilderInput inputTerm) throws TransformException {
         logger.error("JavaGenerated is not supported in menus. Returning input term. ");
         return new TransformResult(0L, Collections.emptyList(), inputTerm);
     }

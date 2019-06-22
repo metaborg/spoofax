@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.outline;
 
-import javax.annotation.Nullable;
-
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.language.IFacetFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -9,6 +7,8 @@ import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.Term;
+
+import javax.annotation.Nullable;
 
 public class OutlineFacetFromESV {
     public static @Nullable IOutlineFacet create(IFacetFactory facetFactory, IStrategoAppl esv) {

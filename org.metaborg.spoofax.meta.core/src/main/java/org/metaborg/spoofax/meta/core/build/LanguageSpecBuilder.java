@@ -519,10 +519,6 @@ public class LanguageSpecBuilder implements AutoCloseable {
             strJavaStratFile = null;
         }
 
-//        final File javaStratClassesDir =
-//            resourceService.localPath(paths.strTargetClassesJavaStratDir(config.identifier().id));
-//        final File dsGeneratedClassesDir = resourceService.localPath(paths.dsTargetClassesGenerateDir());
-//        final File dsManualClassesDir = resourceService.localPath(paths.dsTargetClassesManualDir());
         final List<File> strJavaStratIncludeDirs =
             Lists.newArrayList(resourceService.localPath(paths.targetClassesDir()));
 

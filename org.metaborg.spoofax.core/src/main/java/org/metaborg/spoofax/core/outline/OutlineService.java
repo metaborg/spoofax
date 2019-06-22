@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.outline;
 
-import javax.annotation.Nullable;
-
+import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -14,7 +13,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.outline.IOutline;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
-import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -22,7 +21,7 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.inject.Inject;
+import javax.annotation.Nullable;
 
 public class OutlineService implements ISpoofaxOutlineService {
     private static final ILogger logger = LoggerUtils.logger(OutlineService.class);
@@ -98,7 +97,7 @@ public class OutlineService implements ISpoofaxOutlineService {
 
     private IOutline outline(FileObject source, IContext context, IOutlineFacet facet, ILanguageComponent contributor,
         IStrategoTerm ast, FileObject location) throws MetaborgException {
-        final IBuilderInput input = common.builderInputTerm(ast, source, location);
+        final BuilderInput input = common.builderInputTerm(ast, source, location);
         return facet.createOutline(source, context, contributor, input);
     }
 

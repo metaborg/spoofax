@@ -1,14 +1,14 @@
 package org.metaborg.spoofax.core.dynamicclassloading.api;
 
-import java.util.List;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.IContext;
-import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.metaborg.spoofax.core.unit.TransformOutput;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import java.util.List;
+
 public interface ITransformer {
-    IStrategoTerm transform(IContext context, IBuilderInput inputTerm, FileObject location, List<TransformOutput> outputs);
+    IStrategoTerm transform(IContext context, BuilderInput inputTerm, FileObject location, List<TransformOutput> outputs);
     interface Generated extends ITransformer {}
 }

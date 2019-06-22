@@ -6,12 +6,12 @@ import org.apache.commons.vfs2.FileObject;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 
-public interface IBuilderInput extends IStrategoTuple {
-    IStrategoTerm getSelection();
+public interface IBuilderInput<Term, AST> {
+    Term getSelection();
 
-    IStrategoTerm getPosition();
+    Term getPosition();
 
-    IStrategoTerm getAst();
+    AST getAst();
 
     @Nullable FileObject getResource();
 

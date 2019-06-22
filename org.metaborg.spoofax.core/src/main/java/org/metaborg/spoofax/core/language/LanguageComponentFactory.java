@@ -219,7 +219,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         }
 
         SyntaxFacet syntaxFacet = null;
-        DynamicClassLoadingFacet semanticProviderFacet = null;
+        DynamicClassLoadingFacet dynamicClassLoadingFacet = null;
         if(esvTerm != null) {
             try {
                 syntaxFacet = SyntaxFacetFromESV.create(esvTerm, root);
@@ -231,9 +231,9 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             }
 
             try {
-                semanticProviderFacet = DynamicClassLoadingFacetFromESV.create(esvTerm, root);
-                if(semanticProviderFacet != null) {
-                    Iterables.addAll(errors, semanticProviderFacet.available(resourceService));
+                dynamicClassLoadingFacet = DynamicClassLoadingFacetFromESV.create(esvTerm, root);
+                if(dynamicClassLoadingFacet != null) {
+                    Iterables.addAll(errors, dynamicClassLoadingFacet.available(resourceService));
                 }
             } catch(IOException e) {
                 exceptions.add(e);
@@ -242,7 +242,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
         final ComponentFactoryRequest request;
         if(errors.isEmpty() && exceptions.isEmpty()) {
-            request = new ComponentFactoryRequest(root, config, esvTerm, syntaxFacet, semanticProviderFacet);
+            request = new ComponentFactoryRequest(root, config, esvTerm, syntaxFacet, dynamicClassLoadingFacet);
         } else {
             request = new ComponentFactoryRequest(root, errors, exceptions);
         }
@@ -293,9 +293,9 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             syntaxFacet = null;
         }
 
-        final DynamicClassLoadingFacet semanticProviderFacet = request.semanticProviderFacet();
-        if(semanticProviderFacet != null) {
-            config.addFacet(semanticProviderFacet);
+        final DynamicClassLoadingFacet dynamicClassLoadingFacet = request.dynamicClassLoadingFacet();
+        if(dynamicClassLoadingFacet != null) {
+            config.addFacet(dynamicClassLoadingFacet);
         }
 
         final IStrategoAppl esvTerm = request.esvTerm();

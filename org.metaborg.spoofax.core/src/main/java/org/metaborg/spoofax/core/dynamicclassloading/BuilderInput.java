@@ -9,7 +9,7 @@ import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.StrategoTuple;
 import org.spoofax.terms.TermFactory;
 
-public class BuilderInput extends StrategoTuple implements IBuilderInput {
+public class BuilderInput extends StrategoTuple implements IBuilderInput<IStrategoTerm, IStrategoTerm> {
     private final IStrategoTerm selection;
     private final IStrategoTerm position;
     private final IStrategoTerm ast;
@@ -47,7 +47,7 @@ public class BuilderInput extends StrategoTuple implements IBuilderInput {
     }
 
     /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.semantic_provider.IBuilderInput#getSelection()
+     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getSelection()
      */
     @Override
     public IStrategoTerm getSelection() {
@@ -55,7 +55,7 @@ public class BuilderInput extends StrategoTuple implements IBuilderInput {
     }
 
     /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.semantic_provider.IBuilderInput#getPosition()
+     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getPosition()
      */
     @Override
     public IStrategoTerm getPosition() {
@@ -63,7 +63,7 @@ public class BuilderInput extends StrategoTuple implements IBuilderInput {
     }
 
     /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.semantic_provider.IBuilderInput#getAst()
+     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getAst()
      */
     @Override
     public IStrategoTerm getAst() {
@@ -71,7 +71,7 @@ public class BuilderInput extends StrategoTuple implements IBuilderInput {
     }
 
     /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.semantic_provider.IBuilderInput#getResource()
+     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getResource()
      */
     @Override
     public @Nullable FileObject getResource() {
@@ -79,7 +79,7 @@ public class BuilderInput extends StrategoTuple implements IBuilderInput {
     }
 
     /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.semantic_provider.IBuilderInput#getLocation()
+     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getLocation()
      */
     @Override
     public @Nullable FileObject getLocation() {

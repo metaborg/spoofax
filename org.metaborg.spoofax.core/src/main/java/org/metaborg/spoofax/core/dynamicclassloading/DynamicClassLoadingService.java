@@ -90,7 +90,7 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
         serviceLoaderCacheLevel2.put(type, serviceLoader);
         return initializeInjectionFields(serviceLoader.iterator());
     }
-    
+
     private <T> List<T> initializeInjectionFields(Iterator<T> iterator) {
         List<T> result = new ArrayList<>();
         for(; iterator.hasNext();) {

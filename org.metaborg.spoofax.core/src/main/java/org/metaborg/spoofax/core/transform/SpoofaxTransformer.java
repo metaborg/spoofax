@@ -1,11 +1,8 @@
 package org.metaborg.spoofax.core.transform;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.List;
-
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.action.TransformActionContrib;
@@ -16,22 +13,19 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.transform.ITransformConfig;
 import org.metaborg.core.transform.TransformException;
 import org.metaborg.core.unit.IUnit;
-import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
-import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.metaborg.spoofax.core.unit.TransformContrib;
-import org.metaborg.spoofax.core.unit.TransformOutput;
+import org.metaborg.spoofax.core.unit.*;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.List;
 
 public class SpoofaxTransformer implements ISpoofaxTransformer {
     private static final ILogger logger = LoggerUtils.logger(SpoofaxTransformer.class);
@@ -104,7 +98,7 @@ public class SpoofaxTransformer implements ISpoofaxTransformer {
         final ISpoofaxTransformAction action = actionContribution.action;
 
         // Get input term
-        final IBuilderInput inputTerm = common.builderInputTerm(term, source, location);
+        final BuilderInput inputTerm = common.builderInputTerm(term, source, location);
 
         // Transform
         TransformResult transformResult = action.transform(context, source, location, component, inputTerm);

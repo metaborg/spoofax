@@ -1,10 +1,7 @@
 package org.metaborg.spoofax.core.outline;
 
-import java.util.Collection;
-
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-
+import com.google.common.collect.Lists;
+import com.google.inject.assistedinject.Assisted;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
@@ -16,7 +13,7 @@ import org.metaborg.core.outline.Outline;
 import org.metaborg.core.outline.OutlineNode;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
-import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
@@ -29,8 +26,9 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Lists;
-import com.google.inject.assistedinject.Assisted;
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+import java.util.Collection;
 
 public class StrategoOutlineFacet implements IOutlineFacet {
     private static final ILogger logger = LoggerUtils.logger(StrategoOutlineFacet.class);
@@ -57,7 +55,7 @@ public class StrategoOutlineFacet implements IOutlineFacet {
     }
 
     @Override public IOutline createOutline(FileObject source, IContext context, ILanguageComponent contributor,
-        IBuilderInput input) throws MetaborgException {
+        BuilderInput input) throws MetaborgException {
         final String strategy = this.strategyName;
         final HybridInterpreter interpreter;
         if(context == null) {

@@ -7,7 +7,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
@@ -94,7 +94,7 @@ public interface IStrategoCommon {
     /**
      * Converts a location into a Stratego string.
      * 
-     * @param localLocation
+     * @param location
      *            Location to convert.
      * @return Stratego string with location.
      */
@@ -103,9 +103,9 @@ public interface IStrategoCommon {
     /**
      * Converts a resource relative to a location into a Stratego string.
      * 
-     * @param localResource
+     * @param resource
      *            Resource to convert.
-     * @param localLocation
+     * @param location
      *            Location to convert relative to.
      * @return Stratego string with resource.
      */
@@ -124,8 +124,8 @@ public interface IStrategoCommon {
      *            Location of the input context.
      * @return A 5-tuple input term (selected, position, ast, path, project-path).
      */
-    IBuilderInput builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
-        @Nullable FileObject resource, @Nullable FileObject location);
+    BuilderInput builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
+                                  @Nullable FileObject resource, @Nullable FileObject location);
 
     /**
      * Creates an input term for a builder.
@@ -138,7 +138,7 @@ public interface IStrategoCommon {
      *            Location of the input context.
      * @return A 5-tuple input term (selected, position, ast, path, project-path).
      */
-    default IBuilderInput builderInputTerm(IStrategoTerm ast, @Nullable FileObject resource,
+    default BuilderInput builderInputTerm(IStrategoTerm ast, @Nullable FileObject resource,
         @Nullable FileObject location) {
         return builderInputTerm(ast, null, resource, location);
     }
