@@ -337,7 +337,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         private Multimap<FileObject, IMessage> messages(FileObject resource, MessageSeverity severity,
                 IStrategoTerm messagesTerm) {
             final Multimap<FileObject, IMessage> messages =
-                    analysisCommon.messages(MessageSeverity.ERROR, messagesTerm);
+                    analysisCommon.messages(severity, messagesTerm);
             if(messages.containsKey(null)) {
                 messages.putAll(resource, messages.removeAll(null));
             }
