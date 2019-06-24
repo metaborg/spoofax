@@ -56,16 +56,17 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
         }
         T instance;
         try {
-            logger.trace("Instantiating outliner class");
+            logger.trace("Instantiating class " + className);
             instance = (T) theClass.newInstance();
             injector.injectMembers(instance);
         } catch (InstantiationException e) {
-            throw new MetaborgException("Given class was not instantiable", e);
+            throw new MetaborgException("Given class was not instantiable: " + className, e);
         } catch (IllegalAccessException e) {
-            throw new MetaborgException("Given class was not accessible", e);
+            throw new MetaborgException("Given class was not accessible: " + className, e);
         } catch (ClassCastException e) {
-            throw new MetaborgException("Given class does not implement required interface", e);
+            throw new MetaborgException("Given class does not implement required interface: " + className, e);
         }
+        logger.trace("Successfully loaded and instantiated class " + className);
         return instance;
     }
 
