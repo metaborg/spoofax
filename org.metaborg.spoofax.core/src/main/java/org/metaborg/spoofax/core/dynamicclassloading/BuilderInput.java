@@ -46,41 +46,26 @@ public class BuilderInput extends StrategoTuple implements IBuilderInput<IStrate
         return location == null ? "" : location.getName().getURI();
     }
 
-    /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getSelection()
-     */
     @Override
     public IStrategoTerm getSelection() {
         return selection;
     }
 
-    /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getPosition()
-     */
     @Override
     public IStrategoTerm getPosition() {
         return position;
     }
 
-    /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getAst()
-     */
     @Override
     public IStrategoTerm getAst() {
         return ast;
     }
 
-    /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getResource()
-     */
     @Override
     public @Nullable FileObject getResource() {
         return resource;
     }
 
-    /* (non-Javadoc)
-     * @see org.metaborg.spoofax.core.dynamicclassloading.IBuilderInput#getLocation()
-     */
     @Override
     public @Nullable FileObject getLocation() {
         return location;

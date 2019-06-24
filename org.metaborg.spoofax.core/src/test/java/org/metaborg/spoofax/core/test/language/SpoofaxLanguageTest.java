@@ -55,10 +55,10 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
 
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
-        final DynamicClassLoadingFacet strategoFacet = impl.facet(DynamicClassLoadingFacet.class);
+        final DynamicClassLoadingFacet dynamicClassLoadingFacet = impl.facet(DynamicClassLoadingFacet.class);
 
-        assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
-        assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));
+        assertIterableEquals(dynamicClassLoadingFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
+        assertIterableEquals(dynamicClassLoadingFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));
 
         final IAnalysisFacet analysisFacet = impl.facet(IAnalysisFacet.class);
         Assert.assertInstanceOf(analysisFacet, StrategoAnalysisFacet.class);
