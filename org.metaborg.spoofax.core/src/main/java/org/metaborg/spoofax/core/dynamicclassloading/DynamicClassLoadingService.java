@@ -32,8 +32,7 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
     private final Set<ClassLoader> additionalClassLoaders;
 
     private final Map<ILanguageComponent, ClassLoader> classLoaderCache = Maps.newHashMap();
-    @SuppressWarnings("rawtypes")
-    private final Map<ILanguageComponent, Map<Class, ServiceLoader>> serviceLoaderCache = Maps.newHashMap();
+    private final Map<ILanguageComponent, Map<Class<?>, ServiceLoader<?>>> serviceLoaderCache = Maps.newHashMap();
     private final Injector injector;
 
 
@@ -72,8 +71,7 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
 
     @Override
     public <T> List<T> loadClasses(ILanguageComponent component, Class<T> type) throws MetaborgException {
-        @SuppressWarnings("rawtypes")
-        final Map<Class, ServiceLoader> serviceLoaderCacheLevel2;
+        final Map<Class<?>, ServiceLoader<?>> serviceLoaderCacheLevel2;
         if(serviceLoaderCache.containsKey(component)) {
             serviceLoaderCacheLevel2 = serviceLoaderCache.get(component);
             if(serviceLoaderCacheLevel2.containsKey(type)) {
