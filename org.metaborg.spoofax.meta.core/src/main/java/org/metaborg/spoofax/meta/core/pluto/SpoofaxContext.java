@@ -1,13 +1,9 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.net.URI;
+import mb.pie.taskdefs.guice.GuiceTaskDefs;
+import mb.stratego.build.StrIncr;
 
-import javax.annotation.Nullable;
-
+import com.google.inject.Injector;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -37,7 +33,12 @@ import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Injector;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.net.URI;
 
 public class SpoofaxContext implements Serializable {
     private static final long serialVersionUID = -1973461199459693455L;
@@ -48,22 +49,23 @@ public class SpoofaxContext implements Serializable {
     // If non-transient fields are required, they must be Serializable,
     // (so FileObject is out of the question).
 
-    private static Injector injector;
-    private static IResourceService resourceService;
-    private static ILanguageService languageService;
-    private static ILanguageIdentifierService languageIdentifierService;
-    private static ILanguagePathService languagePathService;
-    private static IProjectService projectService;
-    private static ISpoofaxLanguageSpecService languageSpecService;
-    private static ISourceTextService sourceTextService;
-    private static ISpoofaxUnitService unitService;
-    private static ISpoofaxSyntaxService syntaxService;
-    private static ITermFactoryService termFactoryService;
-
-    private static IStrategoCommon strategoCommon;
-    private static ISpoofaxTransformService transformService;
-    private static IContextService contextService;
-    private static IDialectService dialectService;
+    private static final ThreadLocal<Injector> injector = new ThreadLocal<>();
+    private static final ThreadLocal<IResourceService> resourceService = new ThreadLocal<>();
+    private static final ThreadLocal<ILanguageService> languageService = new ThreadLocal<>();
+    private static final ThreadLocal<ILanguageIdentifierService> languageIdentifierService = new ThreadLocal<>();
+    private static final ThreadLocal<ILanguagePathService> languagePathService = new ThreadLocal<>();
+    private static final ThreadLocal<IProjectService> projectService = new ThreadLocal<>();
+    private static final ThreadLocal<ISpoofaxLanguageSpecService> languageSpecService = new ThreadLocal<>();
+    private static final ThreadLocal<ISourceTextService> sourceTextService = new ThreadLocal<>();
+    private static final ThreadLocal<ISpoofaxUnitService> unitService = new ThreadLocal<>();
+    private static final ThreadLocal<ISpoofaxSyntaxService> syntaxService = new ThreadLocal<>();
+    private static final ThreadLocal<ITermFactoryService> termFactoryService = new ThreadLocal<>();
+    private static final ThreadLocal<IStrategoCommon> strategoCommon = new ThreadLocal<>();
+    private static final ThreadLocal<ISpoofaxTransformService> transformService = new ThreadLocal<>();
+    private static final ThreadLocal<IContextService> contextService = new ThreadLocal<>();
+    private static final ThreadLocal<IDialectService> dialectService = new ThreadLocal<>();
+    private static final ThreadLocal<GuiceTaskDefs> taskDefs = new ThreadLocal<>();
+    private static final ThreadLocal<StrIncr> strIncr = new ThreadLocal<>();
 
     public final File baseDir;
     public final URI baseURI;
@@ -75,43 +77,47 @@ public class SpoofaxContext implements Serializable {
 
 
     public static void init(Injector newInjector) {
-        if(injector != null) {
+        if(injector.get() != null) {
             return;
         }
 
-        injector = newInjector;
-        resourceService = newInjector.getInstance(IResourceService.class);
-        languageService = newInjector.getInstance(ILanguageService.class);
-        languageIdentifierService = newInjector.getInstance(ILanguageIdentifierService.class);
-        languagePathService = newInjector.getInstance(ILanguagePathService.class);
-        projectService = newInjector.getInstance(IProjectService.class);
-        languageSpecService = newInjector.getInstance(ISpoofaxLanguageSpecService.class);
-        sourceTextService = newInjector.getInstance(ISourceTextService.class);
-        unitService = newInjector.getInstance(ISpoofaxUnitService.class);
-        syntaxService = newInjector.getInstance(ISpoofaxSyntaxService.class);
-        termFactoryService = newInjector.getInstance(ITermFactoryService.class);
-        strategoCommon = newInjector.getInstance(IStrategoCommon.class);
-        transformService = newInjector.getInstance(ISpoofaxTransformService.class);
-        contextService = newInjector.getInstance(IContextService.class);
-        dialectService = newInjector.getInstance(IDialectService.class);
+        injector.set(newInjector);
+        resourceService.set(newInjector.getInstance(IResourceService.class));
+        languageService.set(newInjector.getInstance(ILanguageService.class));
+        languageIdentifierService.set(newInjector.getInstance(ILanguageIdentifierService.class));
+        languagePathService.set(newInjector.getInstance(ILanguagePathService.class));
+        projectService.set(newInjector.getInstance(IProjectService.class));
+        languageSpecService.set(newInjector.getInstance(ISpoofaxLanguageSpecService.class));
+        sourceTextService.set(newInjector.getInstance(ISourceTextService.class));
+        unitService.set(newInjector.getInstance(ISpoofaxUnitService.class));
+        syntaxService.set(newInjector.getInstance(ISpoofaxSyntaxService.class));
+        termFactoryService.set(newInjector.getInstance(ITermFactoryService.class));
+        strategoCommon.set(newInjector.getInstance(IStrategoCommon.class));
+        transformService.set(newInjector.getInstance(ISpoofaxTransformService.class));
+        contextService.set(newInjector.getInstance(IContextService.class));
+        dialectService.set(newInjector.getInstance(IDialectService.class));
+        taskDefs.set(newInjector.getInstance(GuiceTaskDefs.class));
+        strIncr.set(newInjector.getInstance(StrIncr.class));
     }
 
     public static void deinit() {
-        injector = null;
-        resourceService = null;
-        languageService = null;
-        languageIdentifierService = null;
-        languagePathService = null;
-        projectService = null;
-        languageSpecService = null;
-        sourceTextService = null;
-        unitService = null;
-        syntaxService = null;
-        termFactoryService = null;
-        strategoCommon = null;
-        transformService = null;
-        contextService = null;
-        dialectService = null;
+        injector.set(null);
+        resourceService.set(null);
+        languageService.set(null);
+        languageIdentifierService.set(null);
+        languagePathService.set(null);
+        projectService.set(null);
+        languageSpecService.set(null);
+        sourceTextService.set(null);
+        unitService.set(null);
+        syntaxService.set(null);
+        termFactoryService.set(null);
+        strategoCommon.set(null);
+        transformService.set(null);
+        contextService.set(null);
+        dialectService.set(null);
+        taskDefs.set(null);
+        strIncr.set(null);
     }
 
 
@@ -129,14 +135,14 @@ public class SpoofaxContext implements Serializable {
 
     public void init() {
         this.base = this.resourceService().resolve(baseURI);
-        this.project = projectService.get(base);
+        this.project = projectService.get().get(base);
         if(this.project == null) {
             this.languageSpec = null;
             return;
         }
 
         try {
-            this.languageSpec = languageSpecService.get(project);
+            this.languageSpec = languageSpecService.get().get(project);
         } catch(ConfigException e) {
             throw new MetaborgRuntimeException(
                 "Cannot convert project " + project + " into a language specification project", e);
@@ -145,15 +151,15 @@ public class SpoofaxContext implements Serializable {
 
 
     public IResourceService resourceService() {
-        return resourceService;
+        return resourceService.get();
     }
 
     public File toFile(FileObject fileObject) {
-        return resourceService.localPath(fileObject);
+        return resourceService.get().localPath(fileObject);
     }
 
     public File toFileReplicate(FileObject fileObject) {
-        return resourceService.localFile(fileObject);
+        return resourceService.get().localFile(fileObject);
     }
 
     public File basePath(String relative) {
@@ -165,22 +171,26 @@ public class SpoofaxContext implements Serializable {
     }
 
     public ResourceAgentTracker newResourceTracker(String... excludePatterns) {
-        final ResourceAgentTracker tracker = new ResourceAgentTracker(resourceService, base, excludePatterns);
+        final ResourceAgentTracker tracker = new ResourceAgentTracker(resourceService.get(), base, excludePatterns);
         final ResourceAgent agent = tracker.agent();
         agent.setAbsoluteWorkingDir(base);
         agent.setAbsoluteDefinitionDir(base);
         return tracker;
     }
 
+    public GuiceTaskDefs guiceTaskDefs() {
+        return taskDefs.get();
+    }
+
     public @Nullable IStrategoTerm parse(File file) throws IOException, ParseException {
-        final FileObject resource = resourceService.resolve(file);
-        final ILanguageImpl language = languageIdentifierService.identify(resource);
+        final FileObject resource = resourceService.get().resolve(file);
+        final ILanguageImpl language = languageIdentifierService.get().identify(resource);
         if(language == null) {
             return null;
         }
-        final String text = sourceTextService.text(resource);
-        final ISpoofaxInputUnit inputUnit = unitService.inputUnit(resource, text, language, null);
-        final ISpoofaxParseUnit result = syntaxService.parse(inputUnit);
+        final String text = sourceTextService.get().text(resource);
+        final ISpoofaxInputUnit inputUnit = unitService.get().inputUnit(resource, text, language, null);
+        final ISpoofaxParseUnit result = syntaxService.get().parse(inputUnit);
         if(!result.valid() || !result.success()) {
             return null;
         }
@@ -189,52 +199,52 @@ public class SpoofaxContext implements Serializable {
     }
 
     public ILanguageService languageService() {
-        return languageService;
+        return languageService.get();
     }
 
     public ILanguageIdentifierService languageIdentifierService() {
-        return languageIdentifierService;
+        return languageIdentifierService.get();
     }
 
     public ILanguagePathService languagePathService() {
-        return languagePathService;
+        return languagePathService.get();
     }
 
     public ISourceTextService sourceTextService() {
-        return sourceTextService;
+        return sourceTextService.get();
     }
 
     public ISpoofaxUnitService unitService() {
-        return unitService;
+        return unitService.get();
     }
 
     public ISpoofaxSyntaxService syntaxService() {
-        return syntaxService;
+        return syntaxService.get();
     }
 
     public ITermFactoryService termFactoryService() {
-        return termFactoryService;
+        return termFactoryService.get();
     }
 
     public ITermFactory termFactory() {
-        return termFactoryService.getGeneric();
+        return termFactoryService.get().getGeneric();
     }
 
 
     public IStrategoCommon strategoCommon() {
-        return strategoCommon;
+        return strategoCommon.get();
     }
 
     public ISpoofaxTransformService transformService() {
-        return transformService;
+        return transformService.get();
     }
 
     public IContextService contextService() {
-        return contextService;
+        return contextService.get();
     }
-    
+
     public IDialectService dialectService() {
-        return dialectService;
+        return dialectService.get();
     }
 
     public IProject project() {
@@ -245,5 +255,9 @@ public class SpoofaxContext implements Serializable {
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
         in.defaultReadObject();
         init();
+    }
+
+    public StrIncr getStrIncrTask() {
+        return strIncr.get();
     }
 }
