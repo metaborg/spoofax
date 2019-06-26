@@ -75,12 +75,25 @@
       <version>${metaborg-version}</version>
     </dependency>
 		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>stratego.build</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
 			<groupId>build.pluto</groupId>
 			<artifactId>pluto</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>build.pluto</groupId>
 			<artifactId>build-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>pie.runtime</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>pie.taskdefs.guice</artifactId>
 		</dependency>
 
 		<dependency>

@@ -20,7 +20,7 @@ import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr2.JSGLR2;
 
 public class JSGLR2I extends JSGLRI<IParseTable> {
-    private final JSGLR2<?, IStrategoTerm> parser;
+    private final JSGLR2<IStrategoTerm> parser;
 
 
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,

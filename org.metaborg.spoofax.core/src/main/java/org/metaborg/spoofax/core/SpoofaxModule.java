@@ -89,6 +89,7 @@ import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitive.AbsolutePathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.CallStrategyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.DigestPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ExplicateInjectionsPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.GetSortNamePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.IsLanguageActivePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageComponentsPrimitive;
@@ -413,6 +414,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, CallStrategyPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, IsLanguageActivePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, GetSortNamePrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ExplicateInjectionsPrimitive.class);
 
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
