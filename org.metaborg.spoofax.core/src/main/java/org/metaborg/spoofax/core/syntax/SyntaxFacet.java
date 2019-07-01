@@ -13,13 +13,15 @@ import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Lists;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents the syntax (or parsing) facet of a language.
  */
 public class SyntaxFacet implements IFacet {
     private static final ILogger logger = LoggerUtils.logger(SyntaxFacet.class);
 
-    public final FileObject parseTable;
+    public final @Nullable FileObject parseTable;
     public final FileObject completionParseTable;
     public final Iterable<String> startSymbols;
     public final Iterable<String> singleLineCommentPrefixes;
@@ -36,7 +38,7 @@ public class SyntaxFacet implements IFacet {
      * @param startSymbols
      *            Set of start symbols.
      */
-    public SyntaxFacet(FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols) {
+    public SyntaxFacet(@Nullable FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols) {
         this(parseTable, completionParseTable, startSymbols, Iterables2.<String>empty(),
             Iterables2.<MultiLineCommentCharacters>empty(), Iterables2.<FenceCharacters>empty(), 
             ImploderImplementation.java);
@@ -56,7 +58,7 @@ public class SyntaxFacet implements IFacet {
      * @param fenceCharacters
      *            Fence characters.
      */
-    public SyntaxFacet(FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols,
+    public SyntaxFacet(@Nullable FileObject parseTable, FileObject completionParseTable, Iterable<String> startSymbols,
         Iterable<String> singleLineCommentPrefixes, Iterable<MultiLineCommentCharacters> multiLineCommentCharacters,
         Iterable<FenceCharacters> fenceCharacters, ImploderImplementation imploder) {
         this.parseTable = parseTable;
