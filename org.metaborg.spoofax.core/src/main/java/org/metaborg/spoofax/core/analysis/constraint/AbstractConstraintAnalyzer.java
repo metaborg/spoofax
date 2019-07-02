@@ -128,6 +128,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         for(ISpoofaxParseUnit input : inputs) {
             if(input.detached() || input.source() == null) {
                 logger.warn("Ignoring detached units");
+                continue;
             }
             final String source = context.resourceKey(input.source());
             if(input.valid() && input.success() && !isEmptyAST(input.ast())) {
