@@ -41,7 +41,7 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
        
             FileObject persistedTable = resource.getParent().resolveFile("table.bin");
             if(!persistedTable.exists()) {
-                parseTable = new ParseTableReader(new CharacterClassFactory(true, true), new ActionsFactory(true), new StateFactory()).read(parseTableTerm);
+                parseTable = new ParseTableReader().read(parseTableTerm);
             } else {
                 parseTable = ParseTableReader.read(persistedTable);
             }
