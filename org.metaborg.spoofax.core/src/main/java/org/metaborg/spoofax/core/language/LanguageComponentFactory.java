@@ -53,6 +53,8 @@ import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
 import org.metaborg.spoofax.core.shell.ShellFacet;
 import org.metaborg.spoofax.core.shell.ShellFacetFromESV;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.ParseFacetFromESV;
@@ -218,6 +220,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
         SyntaxFacet syntaxFacet = null;
         DynamicClassLoadingFacet dynamicClassLoadingFacet = null;
+        StrategoRuntimeFacet strategoRuntimeFacet = null;
         if(esvTerm != null) {
             try {
                 syntaxFacet = SyntaxFacetFromESV.create(esvTerm, root);
@@ -232,6 +235,15 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                 dynamicClassLoadingFacet = DynamicClassLoadingFacetFromESV.create(esvTerm, root);
                 if(dynamicClassLoadingFacet != null) {
                     Iterables.addAll(errors, dynamicClassLoadingFacet.available(resourceService));
+                }
+            } catch(IOException e) {
+                exceptions.add(e);
+            }
+
+            try {
+                strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, root);
+                if(strategoRuntimeFacet != null) {
+                    Iterables.addAll(errors, strategoRuntimeFacet.available(resourceService));
                 }
             } catch(IOException e) {
                 exceptions.add(e);
@@ -294,6 +306,11 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         final DynamicClassLoadingFacet dynamicClassLoadingFacet = request.dynamicClassLoadingFacet();
         if(dynamicClassLoadingFacet != null) {
             config.addFacet(dynamicClassLoadingFacet);
+        }
+
+        final StrategoRuntimeFacet strategoRuntimeFacet = request.strategoRuntimeFacet();
+        if(strategoRuntimeFacet != null) {
+            config.addFacet(strategoRuntimeFacet);
         }
 
         final IStrategoAppl esvTerm = request.esvTerm();

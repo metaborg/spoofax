@@ -8,6 +8,7 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
@@ -161,4 +162,13 @@ public interface IStrategoCommon {
      * @return Pretty printed ATerm as a Stratego string.
      */
     IStrategoString prettyPrint(IStrategoTerm term);
+
+    /**
+     * @param component
+     *            Component to check
+     * @return if the component has a facet that refers to Stratego code
+     */
+    static boolean hasStrategoFacets(ILanguageComponent component) {
+        return component.facet(DynamicClassLoadingFacet.class) != null || component.facet(StrategoRuntimeFacet.class) != null;
+    }
 }

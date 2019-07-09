@@ -53,7 +53,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
         String strategy) throws MetaborgException {
-        if(component.facet(DynamicClassLoadingFacet.class) == null) {
+        if(!IStrategoCommon.hasStrategoFacets(component)) {
             return null;
         }
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
@@ -64,7 +64,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(DynamicClassLoadingFacet.class) == null) {
+            if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;
             }
 
@@ -84,7 +84,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(DynamicClassLoadingFacet.class) == null) {
+            if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;
             }
 
@@ -99,6 +99,7 @@ public class StrategoCommon implements IStrategoCommon {
         }
         throw new AggregateMetaborgException(exceptions);
     }
+
 
     @Override public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
         throws MetaborgException {

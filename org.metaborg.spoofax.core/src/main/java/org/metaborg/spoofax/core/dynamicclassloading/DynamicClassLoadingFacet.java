@@ -15,17 +15,15 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Lists;
 
 /**
- * Represents the Stratego runtime facet of a language.
+ * Represents the DynamicClassLoading facet of a language.
  */
 public class DynamicClassLoadingFacet implements IFacet {
     private static final ILogger logger = LoggerUtils.logger(DynamicClassLoadingFacet.class);
 
-    public final Collection<FileObject> ctreeFiles;
     public final Collection<FileObject> jarFiles;
 
 
-    public DynamicClassLoadingFacet(Collection<FileObject> ctreeFiles, Collection<FileObject> jarFiles) {
-        this.ctreeFiles = ctreeFiles;
+    public DynamicClassLoadingFacet(Collection<FileObject> jarFiles) {
         this.jarFiles = jarFiles;
     }
 
@@ -39,12 +37,6 @@ public class DynamicClassLoadingFacet implements IFacet {
      */
     public Collection<String> available(IResourceService resourceService) throws IOException {
         final Collection<String> errors = Lists.newLinkedList();
-        for(FileObject file : ctreeFiles) {
-            if(!file.exists()) {
-                final String message = logger.format("Stratego CTree file {} does not exist", file);
-                errors.add(message);
-            }
-        }
         for(FileObject file : jarFiles) {
             if(!file.exists()) {
                 final String message = logger.format("JAR file {} does not exist", file);
