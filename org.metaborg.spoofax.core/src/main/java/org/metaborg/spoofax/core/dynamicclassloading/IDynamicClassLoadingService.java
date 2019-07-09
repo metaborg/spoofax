@@ -16,7 +16,7 @@ public interface IDynamicClassLoadingService {
      * @param expectedType
      *            the (super)type the class, which it's cast to
      * @return the class instance, instantiated with its zero-argument constructor
-     * @throws MetaborgException
+     * @throws MetaborgRuntimeException
      *             on failure to find, instantiate, access, or cast the class
      */
     <T> T loadClass(ILanguageComponent component, String className, Class<T> expectedType) throws MetaborgException;
@@ -29,7 +29,7 @@ public interface IDynamicClassLoadingService {
      * @param type
      *            the (super)type the class, which it's cast to
      * @return a lazy iterator of class instances, instantiated with their zero-argument constructor
-     * @throws MetaborgException
+     * @throws MetaborgRuntimeException
      *             on failure to find, instantiate, access, or cast the class
      */
     <T> List<T> loadClasses(ILanguageComponent component, Class<T> type) throws MetaborgException;

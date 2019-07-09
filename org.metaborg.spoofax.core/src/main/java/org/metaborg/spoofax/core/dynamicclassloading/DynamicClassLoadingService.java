@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
@@ -45,14 +46,14 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T loadClass(ILanguageComponent component, String className, Class<T> expectedType) throws MetaborgException {
+    public <T> T loadClass(ILanguageComponent component, String className, Class<T> expectedType) {
         final ClassLoader classLoader = classLoader(component);
         Class<?> theClass;
         try {
             logger.trace("Loading outliner class");
             theClass = classLoader.loadClass(className);
         } catch (ClassNotFoundException e) {
-            throw new MetaborgException("Given class was not found: " + className, e);
+            throw new MetaborgRuntimeException("Given class was not found: " + className, e);
         }
         T instance;
         try {
@@ -60,11 +61,11 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
             instance = (T) theClass.newInstance();
             injector.injectMembers(instance);
         } catch (InstantiationException e) {
-            throw new MetaborgException("Given class was not instantiable: " + className, e);
+            throw new MetaborgRuntimeException("Given class was not instantiable: " + className, e);
         } catch (IllegalAccessException e) {
-            throw new MetaborgException("Given class was not accessible: " + className, e);
+            throw new MetaborgRuntimeException("Given class was not accessible: " + className, e);
         } catch (ClassCastException e) {
-            throw new MetaborgException("Given class does not implement required interface: " + className, e);
+            throw new MetaborgRuntimeException("Given class does not implement required interface: " + className, e);
         }
         logger.trace("Successfully loaded and instantiated class " + className);
         return instance;
@@ -100,7 +101,7 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
         return result;
     }
 
-    private ClassLoader classLoader(ILanguageComponent component) throws MetaborgException {
+    private ClassLoader classLoader(ILanguageComponent component) {
         if(classLoaderCache.containsKey(component)) {
             return classLoaderCache.get(component);
         }
@@ -114,7 +115,7 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
                 i++;
             }
         } catch (MalformedURLException e) {
-            throw new MetaborgException(e);
+            throw new MetaborgRuntimeException(e);
         }
         logger.trace("Loading jar files {}", (Object) classpath);
         URLClassLoader classLoader = new URLClassLoader(classpath, new DynamicClassLoader(additionalClassLoaders));
