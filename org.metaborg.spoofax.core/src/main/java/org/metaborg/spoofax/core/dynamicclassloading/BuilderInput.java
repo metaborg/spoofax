@@ -5,9 +5,9 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.StrategoTuple;
-import org.spoofax.terms.TermFactory;
 
 public class BuilderInput extends StrategoTuple implements IBuilderInput<IStrategoTerm, IStrategoTerm> {
     private final IStrategoTerm selection;
@@ -16,13 +16,12 @@ public class BuilderInput extends StrategoTuple implements IBuilderInput<IStrate
     private final @Nullable FileObject resource;
     private final @Nullable FileObject location;
 
-    @SuppressWarnings("deprecation")
-    public BuilderInput(IStrategoTerm selection, IStrategoTerm position, IStrategoTerm ast, @Nullable FileObject resource,
+    public BuilderInput(ITermFactory termFactory, IStrategoTerm selection, IStrategoTerm position, IStrategoTerm ast, @Nullable FileObject resource,
         @Nullable FileObject location) {
         super(new IStrategoTerm[] { selection, position, ast,
-                    new StrategoString(resourceString(resource, location), TermFactory.EMPTY_LIST, IStrategoTerm.IMMUTABLE),
-                    new StrategoString(locationString(location), TermFactory.EMPTY_LIST, IStrategoTerm.IMMUTABLE) }, 
-                TermFactory.EMPTY_LIST,
+                    new StrategoString(resourceString(resource, location), termFactory.makeList(), IStrategoTerm.IMMUTABLE),
+                    new StrategoString(locationString(location), termFactory.makeList(), IStrategoTerm.IMMUTABLE) }, 
+                termFactory.makeList(),
                 IStrategoTerm.IMMUTABLE);
 
         this.selection = selection;

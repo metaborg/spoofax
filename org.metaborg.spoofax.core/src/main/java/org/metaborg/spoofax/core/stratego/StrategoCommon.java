@@ -206,7 +206,7 @@ public class StrategoCommon implements IStrategoCommon {
         final IStrategoTerm node = selectedTerm != null ? selectedTerm : ast;
         final IStrategoTerm position = termFactory.makeList();
 
-        return new BuilderInput(node, position, ast, resource, location);
+        return new BuilderInput(termFactory, node, position, ast, resource, location);
     }
 
     @Override public String toString(IStrategoTerm term) {
