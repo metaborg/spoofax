@@ -1,16 +1,16 @@
 package org.metaborg.spoofax.core.syntax;
 
-import org.metaborg.sdf2table.parsetable.ParseTable;
+import org.metaborg.parsetable.IParseTable;
 
 public class IncrementalParserConfig implements IParserConfig {
     private final String startSymbol;
     private final IParseTableProvider parseTableProvider;
     private final ImploderImplementation imploder;
 
-    private final ParseTable referenceParseTable;
+    private final IParseTable referenceParseTable;
 
 
-    public IncrementalParserConfig(String startSymbol, IParseTableProvider provider, ParseTable pt,
+    public IncrementalParserConfig(String startSymbol, IParseTableProvider provider, IParseTable pt,
         ImploderImplementation imploder) {
         this.startSymbol = startSymbol;
         this.parseTableProvider = provider;
@@ -31,7 +31,7 @@ public class IncrementalParserConfig implements IParserConfig {
         return this.imploder;
     }
 
-    public ParseTable getReferenceParseTable() {
+    public IParseTable getReferenceParseTable() {
         return this.referenceParseTable;
     }
 }
