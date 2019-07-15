@@ -5,9 +5,10 @@ import java.io.InputStream;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.parsetable.IParseTable;
+import org.metaborg.sdf2table.io.ParseTableIO;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr2.parsetable.ParseTableReader;
+import org.metaborg.parsetable.ParseTableReader;
 import org.spoofax.terms.io.binary.TermReader;
 
 public class JSGLR2FileParseTableProvider implements IParseTableProvider {
@@ -40,7 +41,13 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
             if(!persistedTable.exists()) {
                 parseTable = new ParseTableReader().read(parseTableTerm);
             } else {
-                parseTable = ParseTableReader.read(persistedTable);
+                ParseTableIO ptg = new ParseTableIO(persistedTable);
+
+                org.metaborg.sdf2table.parsetable.ParseTable parseTableFromSerializable = ptg.getParseTable();
+
+                // TODO: markRejectableStates(states);
+
+                return parseTableFromSerializable;
             }
 
         } catch(Exception e) {
