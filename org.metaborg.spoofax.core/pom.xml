@@ -120,12 +120,6 @@
 
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>characterclasses</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.core.test</artifactId>
       <version>${metaborg-version}</version>
       <scope>test</scope>

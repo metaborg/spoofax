@@ -15,7 +15,6 @@ dependencies {
   api("org.metaborg:make-permissive:$version")
   api("org.metaborg:sdf2table:$version")
   api("org.metaborg:sdf2parenthesize:$version")
-  api("org.metaborg:characterclasses:$version")
   api("org.metaborg:tableinterfaces:$version")
   api("org.metaborg:stratego.compiler.pack:$version")
 
