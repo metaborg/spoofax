@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.sdf2table.io.IncrementalParseTableGenerator;
+import org.metaborg.sdf2table.io.ParseTableIO;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.ParseTable;
@@ -42,9 +44,13 @@ public class JSGLR1IncrementalParseTableProvider implements IParseTableProvider 
             FileObject persistedTable = resource.getParent().resolveFile("table.bin");
             if(persistedTable.exists()) {
                 if(referenceTable != null) {
-                    parseTable = new ParseTable(parseTableTerm, termFactory, persistedTable, referenceTable);
+                    IncrementalParseTableGenerator ptGenerator =
+                        new IncrementalParseTableGenerator(persistedTable, referenceTable);
+                    parseTable = new ParseTable(parseTableTerm, termFactory, persistedTable, referenceTable,
+                        ptGenerator, ParseTableIO.generateATerm(ptGenerator.getParseTable()));
                 } else {
-                    parseTable = new ParseTable(parseTableTerm, termFactory, persistedTable);
+                    parseTable =
+                        new ParseTable(parseTableTerm, termFactory, persistedTable, new ParseTableIO(persistedTable));
                 }
             } else {
                 parseTable = new ParseTable(parseTableTerm, termFactory);
