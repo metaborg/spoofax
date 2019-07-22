@@ -271,7 +271,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                 org.spoofax.jsglr.client.ParseTable pt;
                 pt = (org.spoofax.jsglr.client.ParseTable) parserConfigs.get(impl).getParseTableProvider().parseTable();
                 if(pt != null && pt.getPTgenerator() != null && pt.getPTgenerator().getParseTable() != null) {
-                    referenceParseTables.put(impl, pt.getPTgenerator().getParseTable());
+                    referenceParseTables.put(impl, (ParseTable) pt.getPTgenerator().getParseTable());
                 }
             } catch(IOException e) {
                 String c = completion ? "completion " : "";

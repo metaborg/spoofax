@@ -60,20 +60,15 @@
 			<version>${metaborg-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.metaborg</groupId>
-			<artifactId>characterclasses</artifactId>
-			<version>${metaborg-version}</version>
-		</dependency>
-		<dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>tableinterfaces</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>stratego.compiler.pack</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
+      		<groupId>org.metaborg</groupId>
+      		<artifactId>org.metaborg.parsetable</artifactId>
+      		<version>${metaborg-version}</version>
+    	</dependency>
+    	<dependency>
+      		<groupId>org.metaborg</groupId>
+      		<artifactId>stratego.compiler.pack</artifactId>
+      		<version>${metaborg-version}</version>
+    	</dependency>
 		<dependency>
 			<groupId>org.metaborg</groupId>
 			<artifactId>stratego.build</artifactId>
