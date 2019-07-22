@@ -12,6 +12,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.commons.io.input.ClassLoaderObjectInputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -251,7 +252,7 @@ public class ConstraintContext implements IConstraintContext {
     }
 
     private State readContext(FileObject file) throws IOException, ClassNotFoundException, ClassCastException {
-        try(ObjectInputStream ois = new ObjectInputStream(file.getContent().getInputStream())) {
+        try(ObjectInputStream ois = new ClassLoaderObjectInputStream(getClass().getClassLoader(), file.getContent().getInputStream())) {
             State fileState;
             try {
                 fileState = (State) ois.readObject();
