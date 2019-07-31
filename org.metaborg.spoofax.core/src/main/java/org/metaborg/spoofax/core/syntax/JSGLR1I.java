@@ -1,20 +1,23 @@
 package org.metaborg.spoofax.core.syntax;
 
-import java.io.IOException;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.*;
+import org.spoofax.jsglr.client.Asfix2TreeBuilder;
+import org.spoofax.jsglr.client.Disambiguator;
+import org.spoofax.jsglr.client.FilterException;
+import org.spoofax.jsglr.client.NullTreeBuilder;
+import org.spoofax.jsglr.client.ParseException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.SGLRParseResult;
+import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -25,14 +28,19 @@ import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
     private final ParseTable parseTable;
     private final SGLR parser;
     private final Context context;
 
-    public JSGLR1I(IParserConfig config, ITermFactory termFactory, Context context, ILanguageImpl language, ILanguageImpl dialect)
-        throws IOException {
+    public JSGLR1I(IParserConfig config, ITermFactory termFactory, Context context, ILanguageImpl language,
+        ILanguageImpl dialect) throws IOException {
         super(config, termFactory, language, dialect);
 
         final TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(termFactory));
@@ -86,7 +94,16 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         }
 
         final boolean hasAst = ast != null;
-        final Iterable<IMessage> messages = errorHandler.messages();
+        final List<IMessage> messages = new ArrayList<>();
+        for(IMessage message : errorHandler.messages()) {
+            messages.add(message);
+        }
+        if(config.getImploderSetting() == ImploderImplementation.stratego) {
+            for(BadTokenException badTokenException : parser.getCollectedErrors()) {
+                final String message = badTokenException.getMessage();
+                messages.add(MessageFactory.newParseErrorAtTop(resource, message, null));
+            }
+        }
         final boolean hasErrors = MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
         return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
     }
