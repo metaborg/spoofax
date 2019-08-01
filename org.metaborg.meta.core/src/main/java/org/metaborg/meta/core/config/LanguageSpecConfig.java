@@ -35,13 +35,13 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
 
     protected LanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
         @Nullable LanguageIdentifier id, @Nullable String name, @Nullable Boolean sdfEnabled,
-        @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable Boolean dataDependent, @Nullable String parseTable,
-        @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
-        @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities,
+        @Nullable Boolean dataDependent, @Nullable String parseTable, @Nullable String completionsParseTable,
+        @Nullable JSGLRVersion jsglrVersion, @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
         super(config, projectConfig, id, name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion,
-            dataDependent, jsglrVersion, langContribs, generates, exports);
+            checkOverlap, checkPriorities, dataDependent, jsglrVersion, langContribs, generates, exports);
 
         if(pardonedLanguages != null) {
             config.setProperty(PROP_PARDONED_LANGUAGES, pardonedLanguages);
