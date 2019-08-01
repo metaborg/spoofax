@@ -31,6 +31,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
     private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
     private static final String PROP_SDF2TABLE_VERSION = "language.sdf.sdf2table";
+    private static final String PROP_SDF2TABLE_CHECKOVERLAP = "language.sdf.check-overlap";
+    private static final String PROP_SDF2TABLE_CHECKPRIORITIES = "language.sdf.check-priorities";
     private static final String PROP_SDF_JSGLR_VERSION = "language.sdf.jsglr-version";
 
     private final ProjectConfig projectConfig;
@@ -42,7 +44,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
         @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
-        @Nullable String parseTable, @Nullable String completionParseTable, @Nullable Sdf2tableVersion sdf2tableVersion,
+        @Nullable String parseTable, @Nullable String completionParseTable, @Nullable Sdf2tableVersion sdf2tableVersion, 
+        @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities,
         @Nullable Boolean dataDependent, @Nullable JSGLRVersion jsglrVersion,
         @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
@@ -57,6 +60,12 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         }
         if(parseTable != null) {
             config.setProperty(PROP_SDF_PARSE_TABLE, parseTable);
+        }
+        if(checkOverlap != null) {
+            config.setProperty(PROP_SDF2TABLE_CHECKOVERLAP, checkOverlap);
+        }
+        if(checkPriorities != null) {
+            config.setProperty(PROP_SDF2TABLE_CHECKPRIORITIES, checkPriorities);
         }
         if(completionParseTable != null) {
             config.setProperty(PROP_SDF_COMPLETION_PARSE_TABLE, completionParseTable);
@@ -214,6 +223,14 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     @Override public String parseTable() {
         final String value = this.config.getString(PROP_SDF_PARSE_TABLE);
         return value != null ? value : "target/metaborg/sdf.tbl";
+    }
+    
+    @Override public Boolean checkPriorities() {
+        return this.config.getBoolean(PROP_SDF2TABLE_CHECKPRIORITIES, false);
+    }
+    
+    @Override public Boolean checkOverlap() {
+        return this.config.getBoolean(PROP_SDF2TABLE_CHECKOVERLAP, false);
     }
 
     @Override public String completionsParseTable() {

@@ -19,6 +19,7 @@ import org.metaborg.sdf2table.grammar.NormGrammar;
 import org.metaborg.sdf2table.io.NormGrammarReader;
 import org.metaborg.sdf2table.io.ParseTableIO;
 import org.metaborg.sdf2table.parsetable.ParseTable;
+import org.metaborg.sdf2table.parsetable.ParseTableConfiguration;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
@@ -42,21 +43,16 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         public final Collection<LanguageIdentifier> sourceDeps;
         public final File outputParseTableFile;
         public final File outputPersistedParseTableFile;
-        public final boolean dynamic;
-        public final boolean dataDependent;
-        public final boolean solveDeepConflicts;
+        public final ParseTableConfiguration tableConfig;
         public final boolean isCompletions;
 
-        public Input(SpoofaxContext context, File inputMainNormSdfFile, Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile, boolean dynamic, boolean dataDependent,
-            boolean layoutSensitive, boolean isCompletions) {
+        public Input(SpoofaxContext context, File inputMainNormSdfFile, Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile, ParseTableConfiguration tableConfig, boolean isCompletions) {
             super(context);
             this.inputMainNormSdfFile = inputMainNormSdfFile;
             this.sourceDeps = sourceDeps;
             this.outputParseTableFile = outputParseTableFile;
             this.outputPersistedParseTableFile = outputPersistedParseTableFile;
-            this.dynamic = dynamic;
-            this.dataDependent = dataDependent;
-            this.solveDeepConflicts = !layoutSensitive;
+            this.tableConfig = tableConfig;
             this.isCompletions = isCompletions;
         }
     }
@@ -95,7 +91,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         
         NormGrammar normGrammar = normGrammarReader.readGrammar(input.inputMainNormSdfFile);
         
-        ParseTable parseTable = new ParseTable(normGrammar, input.dynamic, input.dataDependent, input.solveDeepConflicts);
+        ParseTable parseTable = new ParseTable(normGrammar, input.tableConfig);
         
         IStrategoTerm parseTableATerm = ParseTableIO.generateATerm(parseTable);
         
