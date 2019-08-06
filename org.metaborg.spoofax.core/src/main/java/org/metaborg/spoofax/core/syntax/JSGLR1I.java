@@ -1,13 +1,23 @@
 package org.metaborg.spoofax.core.syntax;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
+import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.time.Timer;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
@@ -18,6 +28,7 @@ import org.spoofax.jsglr.client.ParseException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -28,11 +39,8 @@ import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+
+import com.google.common.collect.Lists;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
     private final ParseTable parseTable;
@@ -98,6 +106,10 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         for(IMessage message : errorHandler.messages()) {
             messages.add(message);
         }
+
+        // add non-assoc warnings to messages
+        messages.addAll(addDisambiguationWarnings(ast, resource));
+
         if(config.getImploderSetting() == ImploderImplementation.stratego) {
             for(BadTokenException badTokenException : parser.getCollectedErrors()) {
                 final String message = badTokenException.getMessage();
@@ -174,5 +186,38 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
     @Override public Set<BadTokenException> getCollectedErrors() {
         return parser.getCollectedErrors();
+    }
+
+    private Collection<? extends IMessage> addDisambiguationWarnings(IStrategoTerm ast, @Nullable FileObject resource) {
+        List<IMessage> result = Lists.newArrayList();
+
+        boolean addedMessage = false;
+
+        // non-associative operators should be flagged with warnings
+        if(ast instanceof IStrategoAppl) {
+            String sortConsParent =
+                ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
+            if(ast.getAllSubterms().length > 1 && ast.getSubterm(0) instanceof IStrategoAppl) {
+                IStrategoAppl leftMostChild = (IStrategoAppl) ast.getSubterm(0);
+                ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
+                String sortConsChild =
+                    ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) leftMostChild).getConstructor().getName();
+                if(!leftMostChildAttachment.isBracket()
+                    && parseTable.getNonAssocPriorities().containsEntry(sortConsParent, sortConsChild)) {
+                    ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
+                        ImploderAttachment.getRightToken(ast));
+                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-associative", null));
+                    addedMessage = true;
+                }
+            }
+        }
+
+        if(ast != null && !addedMessage) {
+            for(IStrategoTerm child : ast.getAllSubterms()) {
+                result.addAll(addDisambiguationWarnings(child, resource));
+            }
+        }
+
+        return result;
     }
 }

@@ -71,8 +71,8 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
 
         final List<IMessage> messages = Lists.newArrayList();
-        // TODO add non-assoc warnings as error messages
-        // traverse the ast collecting trees that match the invalid patterns
+
+        // add non-assoc warnings to messages
         messages.addAll(addDisambiguationWarnings(ast, resource));
 
         final long duration = timer.stop();
@@ -99,7 +99,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         if(ast instanceof IStrategoAppl) {
             String sortConsParent =
                 ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
-            if(ast.getSubterm(0) instanceof IStrategoAppl) {
+            if(ast.getAllSubterms().length > 1 && ast.getSubterm(0) instanceof IStrategoAppl) {
                 IStrategoAppl leftMostChild = (IStrategoAppl) ast.getSubterm(0);
                 ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
                 String sortConsChild =
