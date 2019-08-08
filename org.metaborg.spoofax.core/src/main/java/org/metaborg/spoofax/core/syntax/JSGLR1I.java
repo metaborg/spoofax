@@ -193,20 +193,37 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
         boolean addedMessage = false;
 
-        // non-associative operators should be flagged with warnings
-        if(ast instanceof IStrategoAppl) {
+        // non-associative and non-nested operators should be flagged with warnings
+        if(ast instanceof IStrategoAppl && ast.getAllSubterms().length >= 1) {
             String sortConsParent =
                 ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
-            if(ast.getAllSubterms().length > 1 && ast.getSubterm(0) instanceof IStrategoAppl) {
-                IStrategoAppl leftMostChild = (IStrategoAppl) ast.getSubterm(0);
+
+            IStrategoTerm firstChild = ast.getSubterm(0);
+            IStrategoTerm lastChild = ast.getSubterm(ast.getSubtermCount() - 1);
+
+            if(firstChild instanceof IStrategoAppl) {
+                IStrategoAppl leftMostChild = (IStrategoAppl) firstChild;
                 ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
-                String sortConsChild =
-                    ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) leftMostChild).getConstructor().getName();
-                if(!leftMostChildAttachment.isBracket()
+                String sortConsChild = ImploderAttachment.getSort(ast) + "." + leftMostChild.getConstructor().getName();
+                if(!leftMostChildAttachment.isBracket() && parseTable instanceof ParseTable
                     && parseTable.getNonAssocPriorities().containsEntry(sortConsParent, sortConsChild)) {
                     ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
                         ImploderAttachment.getRightToken(ast));
                     result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-associative", null));
+                    addedMessage = true;
+                }
+            }
+
+            if(lastChild instanceof IStrategoAppl) {
+                IStrategoAppl rightMostChild = (IStrategoAppl) lastChild;
+                ImploderAttachment rightMostChildAttachment = ImploderAttachment.get(rightMostChild);
+                String sortConsChild =
+                    ImploderAttachment.getSort(ast) + "." + rightMostChild.getConstructor().getName();
+                if(!rightMostChildAttachment.isBracket() && parseTable instanceof ParseTable
+                    && parseTable.getNonNestedPriorities().containsEntry(sortConsParent, sortConsChild)) {
+                    ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
+                        ImploderAttachment.getRightToken(ast));
+                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-nested", null));
                     addedMessage = true;
                 }
             }
