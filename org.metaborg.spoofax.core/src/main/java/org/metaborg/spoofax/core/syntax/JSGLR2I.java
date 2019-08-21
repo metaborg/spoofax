@@ -105,10 +105,11 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
             if(firstChild instanceof IStrategoAppl) {
                 IStrategoAppl leftMostChild = (IStrategoAppl) firstChild;
-                ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
+                @Nullable ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
                 String sortConsChild = ImploderAttachment.getSort(ast) + "." + leftMostChild.getConstructor().getName();
-                if(!leftMostChildAttachment.isBracket() && parseTable instanceof ParseTable && ((ParseTable) parseTable)
-                    .normalizedGrammar().getNonAssocPriorities().containsEntry(sortConsParent, sortConsChild)) {
+                if(leftMostChildAttachment != null && !leftMostChildAttachment.isBracket()
+                    && parseTable instanceof ParseTable && ((ParseTable) parseTable).normalizedGrammar()
+                        .getNonAssocPriorities().containsEntry(sortConsParent, sortConsChild)) {
                     ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
                         ImploderAttachment.getRightToken(ast));
                     result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-associative", null));
@@ -118,12 +119,12 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
             if(lastChild instanceof IStrategoAppl) {
                 IStrategoAppl rightMostChild = (IStrategoAppl) lastChild;
-                ImploderAttachment rightMostChildAttachment = ImploderAttachment.get(rightMostChild);
+                @Nullable ImploderAttachment rightMostChildAttachment = ImploderAttachment.get(rightMostChild);
                 String sortConsChild =
                     ImploderAttachment.getSort(ast) + "." + rightMostChild.getConstructor().getName();
-                if(!rightMostChildAttachment.isBracket() && parseTable instanceof ParseTable
-                    && ((ParseTable) parseTable).normalizedGrammar().getNonNestedPriorities()
-                        .containsEntry(sortConsParent, sortConsChild)) {
+                if(rightMostChildAttachment != null && !rightMostChildAttachment.isBracket()
+                    && parseTable instanceof ParseTable && ((ParseTable) parseTable).normalizedGrammar()
+                        .getNonNestedPriorities().containsEntry(sortConsParent, sortConsChild)) {
                     ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
                         ImploderAttachment.getRightToken(ast));
                     result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-nested", null));
