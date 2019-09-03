@@ -24,35 +24,40 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr2.JSGLR2;
+import org.spoofax.jsglr2.JSGLR2Variants;
 
 import com.google.common.collect.Lists;
 
 public class JSGLR2I extends JSGLRI<IParseTable> {
-    private final JSGLR2<IStrategoTerm> parser;
-    private final IParseTable parseTable;
 
+    private final IParseTable parseTable;
+    private final JSGLR2<IStrategoTerm> parser;
 
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
         JSGLRVersion parserType) throws IOException {
         super(config, termFactory, language, dialect);
 
-        IParseTableProvider parseTableProvider = config.getParseTableProvider();
-        parseTable = getParseTable(parseTableProvider);
+        this.parseTable = getParseTable(config.getParseTableProvider());
+        this.parser = JSGLR2Variants.getJSGLR2(parseTable, jsglrVersionToVariant(parserType));
+    }
 
-        switch(parserType) {
+    // TODO the two enums JSGLRVersion and JSGLR2Variants should be linked together,
+    // but JSGLR2 cannot depend on org.metaborg.core and the other way around.
+    // org.metaborg.spoofax.core depends on both, that's why the linking now happens here.
+    // To fix this properly, JSGLRVersion should move to org.metaborg.spoofax.core,
+    // because org.metaborg.core should be tool-agnositic and should not need to know the specifics of JSGLR(2).
+    // JSGLRVersion can then have a JSGLR2Variants.Variant as field.
+    private JSGLR2Variants.Variant jsglrVersionToVariant(JSGLRVersion jsglrVersion) {
+        switch(jsglrVersion) {
             case dataDependent:
-                this.parser = JSGLR2.dataDependent(parseTable);
-                break;
+                return JSGLR2Variants.dataDependent.variant;
             case incremental:
-                this.parser = JSGLR2.incremental(parseTable);
-                break;
+                return JSGLR2Variants.incremental.variant;
             case layoutSensitive:
-                this.parser = JSGLR2.layoutSensitive(parseTable);
-                break;
+                return JSGLR2Variants.layoutSensitive.variant;
             case v2:
             default:
-                this.parser = JSGLR2.standard(parseTable);
-                break;
+                return JSGLR2Variants.standard.variant;
         }
     }
 
