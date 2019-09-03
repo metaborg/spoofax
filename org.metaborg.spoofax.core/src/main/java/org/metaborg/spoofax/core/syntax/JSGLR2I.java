@@ -38,7 +38,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         super(config, termFactory, language, dialect);
 
         this.parseTable = getParseTable(config.getParseTableProvider());
-        this.parser = JSGLR2Variants.getJSGLR2(parseTable, jsglrVersionToVariant(parserType));
+        this.parser = jsglrVersionToVariant(parserType).getJSGLR2(parseTable);
     }
 
     // TODO the two enums JSGLRVersion and JSGLR2Variants should be linked together,
