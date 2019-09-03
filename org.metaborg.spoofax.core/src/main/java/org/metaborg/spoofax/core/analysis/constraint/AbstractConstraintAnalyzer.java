@@ -100,6 +100,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     @Override public ISpoofaxAnalyzeResults analyzeAll(Iterable<ISpoofaxParseUnit> inputs, IContext genericContext,
             IProgress progress, ICancel cancel) throws AnalysisException {
+
         IConstraintContext context;
         try {
             context = (IConstraintContext) genericContext;
@@ -128,10 +129,11 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         for(ISpoofaxParseUnit input : inputs) {
             if(input.detached() || input.source() == null) {
                 logger.warn("Ignoring detached units");
+                continue;
             }
             final String source = context.resourceKey(input.source());
             if (!input.valid() || !input.success()) continue;
-            
+
             if(!isEmptyAST(input.ast())) {
                 changed.put(source, input);
             } else {
