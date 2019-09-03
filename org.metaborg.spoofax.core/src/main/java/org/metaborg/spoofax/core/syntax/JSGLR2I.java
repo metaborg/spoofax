@@ -24,7 +24,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr2.JSGLR2;
-import org.spoofax.jsglr2.JSGLR2Variants;
+import org.spoofax.jsglr2.JSGLR2Variant;
 
 import com.google.common.collect.Lists;
 
@@ -38,7 +38,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         super(config, termFactory, language, dialect);
 
         this.parseTable = getParseTable(config.getParseTableProvider());
-        this.parser = jsglrVersionToVariant(parserType).getJSGLR2(parseTable);
+        this.parser = jsglrVersionToJSGLR2Preset(parserType).getJSGLR2(parseTable);
     }
 
     // TODO the two enums JSGLRVersion and JSGLR2Variants should be linked together,
@@ -46,18 +46,18 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
     // org.metaborg.spoofax.core depends on both, that's why the linking now happens here.
     // To fix this properly, JSGLRVersion should move to org.metaborg.spoofax.core,
     // because org.metaborg.core should be tool-agnositic and should not need to know the specifics of JSGLR(2).
-    // JSGLRVersion can then have a JSGLR2Variants.Variant as field.
-    private JSGLR2Variants.Variant jsglrVersionToVariant(JSGLRVersion jsglrVersion) {
+    // The configuration of metaborg.yaml can then directly use the enum from JSGLR2.
+    private JSGLR2Variant.Preset jsglrVersionToJSGLR2Preset(JSGLRVersion jsglrVersion) {
         switch(jsglrVersion) {
             case dataDependent:
-                return JSGLR2Variants.dataDependent.variant;
+                return JSGLR2Variant.Preset.dataDependent;
             case incremental:
-                return JSGLR2Variants.incremental.variant;
+                return JSGLR2Variant.Preset.incremental;
             case layoutSensitive:
-                return JSGLR2Variants.layoutSensitive.variant;
+                return JSGLR2Variant.Preset.layoutSensitive;
             case v2:
             default:
-                return JSGLR2Variants.standard.variant;
+                return JSGLR2Variant.Preset.standard;
         }
     }
 
