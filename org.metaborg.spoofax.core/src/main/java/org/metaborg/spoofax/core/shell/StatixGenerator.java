@@ -50,6 +50,7 @@ public class StatixGenerator implements Iterable<SearchState> {
     private final ILanguageImpl statixLang;
     private final IContext context;
     private final SearchLogger log;
+    private final Spec spec;
     private final RandomTermGenerator rtg;
 
     public StatixGenerator(Spoofax spoofax, IContext context, FileObject spec,
@@ -65,6 +66,7 @@ public class StatixGenerator implements Iterable<SearchState> {
         this.context = context;
         final Tuple2<Spec, IConstraint> specAndConstraint = loadSpec(spec);
         this.log = log;
+        this.spec = specAndConstraint._1();
         this.rtg = new RandomTermGenerator(specAndConstraint._1(), specAndConstraint._2(), strategy, log);
     }
 
@@ -103,6 +105,10 @@ public class StatixGenerator implements Iterable<SearchState> {
         final Spec spec = StatixTerms.spec().match(strategoTerms.fromStratego(evalPair.getSubterm(1)))
                 .orElseThrow(() -> new MetaborgException("Expected spec"));
         return ImmutableTuple2.of(spec, constraint);
+    }
+
+    public Spec spec() {
+        return spec;
     }
 
     public Stream<SearchState> apply() {
