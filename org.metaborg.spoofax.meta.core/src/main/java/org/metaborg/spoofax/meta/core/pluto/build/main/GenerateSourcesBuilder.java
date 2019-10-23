@@ -54,6 +54,7 @@ import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.FileExistsStamper;
+import build.pluto.stamp.FileHashStamper;
 import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.Pie;
@@ -525,6 +526,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final File projectLocation = context.resourceService().localPath(paths.root());
                 assert projectLocation != null;
 
+                /*
+                 * Make sure Pluto also understands which files Pie will require.
+                 */
+                final Set<Path> changedFiles = getChangedFiles(projectLocation);
+                final Set<ResourceKey> changedResources = new HashSet<>(changedFiles.size()*2);
+                for (Path changedFile : changedFiles) {
+					require(changedFile.toFile(), FileHashStamper.instance);
+					changedResources.add(new FSPath(changedFile));
+				}
+
                 final Arguments newArgs = new Arguments();
                 final List<String> builtinLibs = extractBuiltinLibs(extraArgs, newArgs);
                 final StrIncr.Input strIncrInput =
@@ -534,7 +545,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 initPie(input.context, strIncrInput);
 
                 try(final PieSession pieSession = pie.newSession()) {
-                    pieSession.requireBottomUp(getChangedFiles(projectLocation));
+                    pieSession.requireBottomUp(changedResources);
                 } catch(ExecException e) {
                     throw new MetaborgException("Incremental Stratego build failed", e);
                 }
@@ -556,12 +567,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
     }
 
-    private static Set<ResourceKey> getChangedFiles(File projectLocation) throws IOException {
-        final Set<ResourceKey> result = new HashSet<>();
+    private static Set<Path> getChangedFiles(File projectLocation) throws IOException {
+        final Set<Path> result = new HashSet<>();
         Files.walkFileTree(projectLocation.toPath(), new SimpleFileVisitor<Path>() {
-            @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if(file.endsWith(".str") || file.endsWith(".rtree") || file.endsWith(".ctree")) {
-                    result.add(new FSPath(file));
+            @Override public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                String pathString = path.toString().toLowerCase();
+                if(pathString.endsWith(".str") || pathString.endsWith(".rtree") || pathString.endsWith(".ctree")) {
+                    result.add(path);
                 }
                 return FileVisitResult.CONTINUE;
             }
