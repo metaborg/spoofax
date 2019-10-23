@@ -12,7 +12,6 @@ dependencies {
   api("org.metaborg:org.spoofax.terms:$version")
   api("org.metaborg:nabl2.solver:$version")
   api("org.metaborg:statix.solver:$version")
-  api("org.metaborg:statix.generator:$version")
   api("org.metaborg:flowspec.runtime:$version")
   api("org.metaborg:org.spoofax.interpreter.core:$version")
   api("org.metaborg:org.spoofax.jsglr2:$version")

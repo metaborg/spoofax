@@ -4,8 +4,6 @@ import static mb.nabl2.terms.build.TermBuild.B;
 import static mb.nabl2.terms.matching.TermMatch.M;
 
 import java.io.OutputStream;
-import java.util.Iterator;
-import java.util.stream.Stream;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -18,7 +16,6 @@ import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.util.functions.Function1;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -31,16 +28,13 @@ import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.matching.Transform.T;
 import mb.nabl2.terms.stratego.StrategoTerms;
 import mb.nabl2.util.ImmutableTuple2;
+import mb.nabl2.util.TermFormatter;
 import mb.nabl2.util.Tuple2;
-import mb.statix.generator.RandomTermGenerator;
-import mb.statix.generator.SearchLogger;
-import mb.statix.generator.SearchState;
-import mb.statix.generator.SearchStrategy;
 import mb.statix.solver.IConstraint;
 import mb.statix.spec.Spec;
 import mb.statix.spoofax.StatixTerms;
 
-public class StatixGenerator implements Iterable<SearchState> {
+public class StatixGenerator {
 
     private static final String LANG_STX_NAME = "StatixLang";
     private static final OutputStream MSG_OUT = System.out;
@@ -49,25 +43,17 @@ public class StatixGenerator implements Iterable<SearchState> {
     private final CLIUtils CLI;
     private final ILanguageImpl statixLang;
     private final IContext context;
-    private final SearchLogger log;
     private final Spec spec;
-    private final RandomTermGenerator rtg;
+    private final IConstraint constraint;
 
-    public StatixGenerator(Spoofax spoofax, IContext context, FileObject spec,
-            SearchStrategy<SearchState, SearchState> strategy) throws MetaborgException {
-        this(spoofax, context, spec, strategy, SearchLogger.NOOP);
-    }
-
-    public StatixGenerator(Spoofax spoofax, IContext context, FileObject spec,
-            SearchStrategy<SearchState, SearchState> strategy, SearchLogger log) throws MetaborgException {
+    public StatixGenerator(Spoofax spoofax, IContext context, FileObject spec) throws MetaborgException {
         this.S = spoofax;
         this.CLI = new CLIUtils(S);
         this.statixLang = CLI.getLanguage(LANG_STX_NAME);
         this.context = context;
         final Tuple2<Spec, IConstraint> specAndConstraint = loadSpec(spec);
-        this.log = log;
         this.spec = specAndConstraint._1();
-        this.rtg = new RandomTermGenerator(specAndConstraint._1(), specAndConstraint._2(), strategy, log);
+        this.constraint = specAndConstraint._2();
     }
 
     private Tuple2<Spec, IConstraint> loadSpec(FileObject resource) throws MetaborgException {
@@ -111,31 +97,13 @@ public class StatixGenerator implements Iterable<SearchState> {
         return spec;
     }
 
-    public Stream<SearchState> apply() {
-        return rtg.apply().nodes().map(sn -> {
-            log.success(sn);
-            return sn.output();
-        });
+    public IConstraint constraint() {
+        return constraint;
     }
 
-    @Override public Iterator<SearchState> iterator() {
-        return apply().iterator();
-    }
-
-    public static <R> Function1<SearchState, R> project(String var, Function1<ITerm, R> f) {
-        return s -> {
-            final ITerm v = s.existentials().get(B.newVar("", var));
-            if(v == null) {
-                throw new IllegalArgumentException(var + " not a top-level existential.");
-            }
-            final ITerm t = s.state().unifier().findRecursive(v);
-            return f.apply(t);
-        };
-    }
-
-    public static Function1<SearchState, String> pretty(Spoofax S, IContext context, String var, String strategy) {
+    public static TermFormatter pretty(Spoofax S, IContext context, String strategy) {
         final ILanguageImpl lang = context.language();
-        final Function1<ITerm, String> pp;
+        final TermFormatter pp;
         if(!Iterables.isEmpty(lang.components())) {
             final ILanguageComponent lc = Iterables.getOnlyElement(lang.components());
             final ITermFactory tf;
@@ -159,7 +127,7 @@ public class StatixGenerator implements Iterable<SearchState> {
         } else {
             pp = ITerm::toString;
         }
-        return project(var, pp::apply);
+        return pp;
     }
 
     private static ITerm explicate(ITerm t) {
