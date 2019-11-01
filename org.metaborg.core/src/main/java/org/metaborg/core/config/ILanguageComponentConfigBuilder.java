@@ -97,13 +97,13 @@ public interface ILanguageComponentConfigBuilder {
     ILanguageComponentConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs);
 
     /**
-     * Sets the whether SDF is enabled in the project
+     * Sets whether SDF is enabled in the project
      *
      * @param sdfEnabled
      *            If SDF is enabled or not.
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder withSdfEnabled(Boolean sdfEnabled);
+    ILanguageComponentConfigBuilder withCheckPriorities(Boolean checkPriorities);
 
     /**
      * Sets the parse table (relative) path.
@@ -113,7 +113,25 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withSdfTable(String parseTable);
-
+    
+    /**
+     * Sets whether SDF is enabled in the project
+     *
+     * @param sdfEnabled
+     *            If SDF is enabled or not.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withSdfEnabled(Boolean sdfEnabled);
+    
+    /**
+     * Sets whether SDF is enabled in the project
+     *
+     * @param sdfEnabled
+     *            If SDF is enabled or not.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withCheckOverlap(Boolean checkOverlap);
+    
     /**
      * Sets the completion parse table (relative) path.
      *

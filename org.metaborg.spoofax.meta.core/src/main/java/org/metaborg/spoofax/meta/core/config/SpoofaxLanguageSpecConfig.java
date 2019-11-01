@@ -48,7 +48,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     private static final String PROP_PLACEHOLDER_PREFIX = PROP_SDF + ".placeholder.prefix";
     private static final String PROP_PLACEHOLDER_SUFFIX = PROP_SDF + ".placeholder.suffix";
-    
+
     private static final String PROP_SDF_META = PROP_SDF + ".sdf-meta";
 
     private static final String PROP_STR = "language.stratego";
@@ -77,15 +77,16 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec,
         @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
-        @Nullable Boolean dataDependent, @Nullable String parseTable, @Nullable String completionsParseTable,
-        @Nullable JSGLRVersion jsglrVersion, @Nullable String sdfMainFile,
-        @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint, @Nullable List<String> sdfMetaFile, 
-        @Nullable String externalDef, @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoFormat format,
+        @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
+        @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
+        @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters,
+        @Nullable String prettyPrint, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
+        @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoFormat format,
         @Nullable String externalJar, @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
         @Nullable Collection<IBuildStepConfig> buildSteps) {
-        super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, dataDependent, parseTable,
-            completionsParseTable, jsglrVersion, langContribs, generates, exports, pardonedLanguages,
-            useBuildSystemSpec);
+        super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
+            dataDependent, parseTable, completionsParseTable, jsglrVersion, langContribs, generates, exports,
+            pardonedLanguages, useBuildSystemSpec);
         this.projectConfig = projectConfig;
 
         if(sdfVersion != null) {
@@ -313,9 +314,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     @Override public List<String> sdfMetaFiles() {
         final List<String> values = config.getList(String.class, PROP_SDF_META);
-        if (values == null) {
+        if(values == null) {
             return Lists.newArrayList("Stratego-" + sdfName());
-        }        
+        }
         return values;
     }
 }
