@@ -223,6 +223,7 @@ import mb.nabl2.terms.stratego.primitives.SG_index_ast;
 import mb.nabl2.terms.stratego.primitives.SG_set_ast_index;
 import mb.statix.spoofax.STX_analysis_has_errors;
 import mb.statix.spoofax.STX_compare_patterns;
+import mb.statix.spoofax.STX_debug_scopegraph;
 import mb.statix.spoofax.STX_delays_as_errors;
 import mb.statix.spoofax.STX_extract_messages;
 import mb.statix.spoofax.STX_get_ast_property;
@@ -470,6 +471,7 @@ public class SpoofaxModule extends MetaborgModule {
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));
         bindPrimitive(statixLibrary, STX_analysis_has_errors.class);
         bindPrimitive(statixLibrary, STX_compare_patterns.class);
+        bindPrimitive(statixLibrary, STX_debug_scopegraph.class);
         bindPrimitive(statixLibrary, STX_delays_as_errors.class);
         bindPrimitive(statixLibrary, STX_extract_messages.class);
         bindPrimitive(statixLibrary, STX_get_ast_property.class);
