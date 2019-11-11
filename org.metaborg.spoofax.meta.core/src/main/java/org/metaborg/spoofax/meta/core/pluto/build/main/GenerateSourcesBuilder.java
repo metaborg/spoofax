@@ -153,6 +153,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     private static final Set<String> BUILTIN_LIBS = new HashSet<>(Arrays.asList("stratego-lib", "stratego-sglr",
         "stratego-gpp", "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc", "java-front"));
     private static final ILogger logger = LoggerUtils.logger(StrIncr.class);
+    private static boolean logInfoAndBelow = false;
     private static final Logger pieLogger = new Logger() {
         @Override public void error(String s, Throwable throwable) {
             logger.error(s, throwable);
@@ -163,15 +164,21 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
 
         @Override public void info(String s) {
-            logger.info(s);
+            if(logInfoAndBelow) {
+                logger.info(s);
+            }
         }
 
         @Override public void debug(String s) {
-            logger.debug(s);
+            if(logInfoAndBelow) {
+                logger.debug(s);
+            }
         }
 
         @Override public void trace(String s) {
-            logger.trace(s);
+            if(logInfoAndBelow) {
+                logger.trace(s);
+            }
         }
     };
 
@@ -531,10 +538,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                  */
                 final Set<Path> changedFiles = getChangedFiles(projectLocation);
                 final Set<ResourceKey> changedResources = new HashSet<>(changedFiles.size()*2);
-                for (Path changedFile : changedFiles) {
-					require(changedFile.toFile(), FileHashStamper.instance);
-					changedResources.add(new FSPath(changedFile));
-				}
+                for(Path changedFile : changedFiles) {
+                    require(changedFile.toFile(), FileHashStamper.instance);
+                    changedResources.add(new FSPath(changedFile));
+                }
 
                 final Arguments newArgs = new Arguments();
                 final List<String> builtinLibs = extractBuiltinLibs(extraArgs, newArgs);
@@ -605,12 +612,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         if(pie == null) {
             final GuiceTaskDefs guiceTaskDefs = context.guiceTaskDefs();
             final PieBuilder pieBuilder = new PieBuilderImpl();
-            pieBuilder.withTaskDefs(guiceTaskDefs);
+            pieBuilder.withTaskDefs(guiceTaskDefs); 
             pieBuilder.withLogger(pieLogger);
             pie = pieBuilder.build();
+            GenerateSourcesBuilder.logInfoAndBelow = false;
             try(final PieSession session = pie.newSession()) {
                 session.requireTopDown(context.getStrIncrTask().createTask(strIncrInput));
             }
+            GenerateSourcesBuilder.logInfoAndBelow = true;
         }
     }
 
