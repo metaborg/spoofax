@@ -229,6 +229,7 @@ import mb.statix.spoofax.STX_extract_messages;
 import mb.statix.spoofax.STX_get_ast_property;
 import mb.statix.spoofax.STX_get_scopegraph_data;
 import mb.statix.spoofax.STX_get_scopegraph_edges;
+import mb.statix.spoofax.STX_is_analysis;
 import mb.statix.spoofax.STX_solve_constraint;
 import mb.statix.spoofax.STX_solve_multi_file;
 import mb.statix.spoofax.STX_solve_multi_project;
@@ -477,6 +478,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_get_ast_property.class);
         bindPrimitive(statixLibrary, STX_get_scopegraph_data.class);
         bindPrimitive(statixLibrary, STX_get_scopegraph_edges.class);
+        bindPrimitive(statixLibrary, STX_is_analysis.class);
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);
