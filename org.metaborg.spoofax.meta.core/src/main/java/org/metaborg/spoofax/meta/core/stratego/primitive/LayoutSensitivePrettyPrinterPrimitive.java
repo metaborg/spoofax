@@ -3,9 +3,6 @@ package org.metaborg.spoofax.meta.core.stratego.primitive;
 import java.util.Collection;
 import java.util.List;
 
-import org.metaborg.core.project.IProjectService;
-import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
@@ -513,11 +510,11 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             IStrategoTerm posTarg = getPosition(termTarg);
             assert (posTarg != null);
             int targCol = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
-            int targLine = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
+//            int targLine = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
 
             posTarg = getPosition(termTarg);
             targCol = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
-            targLine = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
+//            targLine = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
 
             if(targCol > refCol) {
                 // wrap in Z box to jump to next line and wrap into H box to indent X spaces
