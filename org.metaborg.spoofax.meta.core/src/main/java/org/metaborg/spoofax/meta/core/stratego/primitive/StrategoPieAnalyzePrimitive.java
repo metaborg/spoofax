@@ -22,7 +22,6 @@ import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
@@ -59,14 +58,15 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
     @Inject private static Provider<IPieProvider> pieProviderProvider;
 
-    private final StrIncrAnalysis strIncrAnalysis;
+    // Using provider to break cycle between StrIncrAnalysis -> Stratego runtime -> all primitives -> this primitive
+    private final Provider<StrIncrAnalysis> strIncrAnalysisProvider;
     private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
 
-    @Inject public StrategoPieAnalyzePrimitive(StrIncrAnalysis strIncrAnalysis,
+    @Inject public StrategoPieAnalyzePrimitive(Provider<StrIncrAnalysis> strIncrAnalysisProvider,
         ILanguagePathService languagePathService, IResourceService resourceService) {
         super("stratego_pie_analyze", 0, 0);
-        this.strIncrAnalysis = strIncrAnalysis;
+        this.strIncrAnalysisProvider = strIncrAnalysisProvider;
         this.languagePathService = languagePathService;
         this.resourceService = resourceService;
     }
@@ -99,8 +99,6 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = languageSpec.location();
         final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc);
-        final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
-        final SpoofaxContext spoofaxContext = new SpoofaxContext(baseLoc, buildInfoLoc);
 
         final String strModule = config.strategoName();
 
@@ -163,10 +161,10 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         Collection<STask> originTasks = sdfTasks;
         Analysis.Input strIncrAnalysisInput =
             new Analysis.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation);
-        final Task<Output> strIncrAnalysisTask = strIncrAnalysis.createTask(strIncrAnalysisInput);
+        final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
         try {
-            GenerateSourcesBuilder.initCompiler(spoofaxContext.pieProvider(), strIncrAnalysisTask);
+            GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
         } catch(ExecException e) {
             throw new MetaborgException("Initial Stratego build failed", e);
         }
