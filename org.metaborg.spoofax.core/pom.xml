@@ -17,6 +17,10 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.metaborg</groupId>
+			<artifactId>pie.api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
 			<artifactId>org.metaborg.util</artifactId>
 			<version>${metaborg-version}</version>
 		</dependency>

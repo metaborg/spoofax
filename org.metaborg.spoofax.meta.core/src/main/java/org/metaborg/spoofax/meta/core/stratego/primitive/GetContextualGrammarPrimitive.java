@@ -6,13 +6,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.ResourceService;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
-import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.IContext;
-import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -20,7 +15,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 public class GetContextualGrammarPrimitive extends AbstractPrimitive {
     @Inject public GetContextualGrammarPrimitive() {

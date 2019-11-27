@@ -1,15 +1,27 @@
 package org.metaborg.spoofax.meta.core;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
-import com.google.inject.multibindings.Multibinder;
-import com.google.inject.name.Names;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacySpoofaxPrimitiveLibrary;
-import org.metaborg.spoofax.meta.core.stratego.primitive.*;
+import org.metaborg.spoofax.meta.core.stratego.primitive.CheckSdf2TablePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.GetContextualGrammarPrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecPpNamePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecSrcGenDirectory;
+import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecificationPrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.LayoutSensitivePrettyPrinterPrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.LegacyLanguageSpecNamePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.PlaceholderCharsPrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.StrategoPieAnalyzePrimitive;
 import org.spoofax.interpreter.library.AbstractPrimitive;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
+
+import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
+import mb.stratego.build.strincr.StrIncrModule;
 
 /**
  * Module for extending {@link Spoofax}.
@@ -37,10 +49,14 @@ public class SpoofaxExtensionModule extends AbstractModule {
         bindAutoClosableSpoofaxPrimitive(LanguageSpecPpNamePrimitive.class);
         bindAutoClosableSpoofaxPrimitive(CheckSdf2TablePrimitive.class);
         bindAutoClosableSpoofaxPrimitive(PlaceholderCharsPrimitive.class);
+        bindAutoClosableSpoofaxPrimitive(StrategoPieAnalyzePrimitive.class);
         bindSpoofaxPrimitive(LayoutSensitivePrettyPrinterPrimitive.class);
         bindSpoofaxPrimitive(GetContextualGrammarPrimitive.class);
 
         bindAutoClosableLegacySpoofaxPrimitive(LegacyLanguageSpecNamePrimitive.class);
+        
+        install(new StrIncrModule());
+        install(new GuiceTaskDefsModule());
     }
 
 

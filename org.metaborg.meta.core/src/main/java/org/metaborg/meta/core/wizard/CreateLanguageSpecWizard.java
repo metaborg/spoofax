@@ -88,16 +88,16 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
 
     /**
      * Converts a project name to a language name.
-     * 
-     * @param name
-     *            Project name.
+     *
+     * @param name Project name.
      * @return Language name.
      */
     public static String toName(String name) {
+        // Replace ' ' by '-'.
         final char[] input = name.replace(' ', '-').toCharArray();
         final StringBuilder output = new StringBuilder();
-
         int i = 0;
+        // Copy 1 character that is a letter, '-', or '_', removing invalid characters from the start.
         while(i < input.length) {
             final char c = input[i++];
             if(Character.isLetter(c) || c == '-' || c == '_') {
@@ -105,28 +105,28 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
                 break;
             }
         }
+        // Copy anything that is a letter, digit, '-', or '_', removing invalid characters.
         while(i < input.length) {
             final char c = input[i++];
             if(Character.isLetterOrDigit(c) || c == '-' || c == '_') {
                 output.append(c);
             }
         }
-
         return output.toString();
     }
 
     /**
      * Converts a project name to a language identifier.
-     * 
-     * @param name
-     *            Project name.
+     *
+     * @param name Project name.
      * @return Language identifier.
      */
     public static String toId(String name) {
+        // Replace ' ' by '-'.
         final char[] input = name.replace(' ', '-').toCharArray();
         final StringBuilder output = new StringBuilder();
-
         int i = 0;
+        // Copy 1 character that is a letter, '.', or '_', removing invalid characters from the start.
         while(i < input.length) {
             final char c = input[i++];
             if(Character.isLetter(c) || c == '.' || c == '_') {
@@ -134,31 +134,37 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
                 break;
             }
         }
+        // Copy anything that is a letter, digit, '.', or '_', removing invalid characters.
         while(i < input.length) {
             final char c = input[i++];
             if(Character.isLetterOrDigit(c) || c == '.' || c == '_')
                 output.append(c);
         }
-
-        final String result = output.toString().replaceAll("\\.(?=\\.|[0-9]|\\Z)", "");
-        return result;
+        // Remove '.' at the end of the name, '..', and '.' followed by a number.
+        return output.toString().replaceAll("\\.(?=\\.|[0-9]|\\Z)", "");
     }
 
     /**
      * Converts a language name to an extension.
-     * 
-     * @param name
-     *            Language name.
+     *
+     * @param name Language name.
      * @return Extension.
      */
     public static String toExtension(String name) {
-        final String input = name.toLowerCase().replace("-", "").replace(".", "").replace(" ", "").replace(":", "");
+        final String input = name
+            .toLowerCase() // Convert to lowercase.
+            // Remove '-', '.', ' ', and ':'.
+            .replace("-", "")
+            .replace(".", "")
+            .replace(" ", "")
+            .replace(":", "");
+        // Create a prefix from the first three characters of the input.
         final String prefix = input.substring(0, Math.min(input.length(), 3));
         if(input.length() == 0) {
             return "";
         }
-
-        for(int i = input.length() - 1;; i--) {
+        // Add numbers from the end of the input?
+        for(int i = input.length() - 1; ; i--) {
             if(!Character.isDigit(input.charAt(i)) && input.charAt(i) != '.') {
                 return prefix + input.substring(Math.max(prefix.length(), Math.min(input.length(), i + 1)));
             } else if(i == prefix.length()) {
@@ -169,8 +175,8 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
 
     public static Collection<String> splitExtensions(final String extensions) {
         return Splitter.on(',')
-                .trimResults()
-                .omitEmptyStrings()
-                .splitToList(extensions);
+            .trimResults()
+            .omitEmptyStrings()
+            .splitToList(extensions);
     }
 }

@@ -1,9 +1,13 @@
 package org.metaborg.spoofax.meta.core.pluto;
 
-import mb.pie.taskdefs.guice.GuiceTaskDefs;
-import mb.stratego.build.StrIncr;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.net.URI;
 
-import com.google.inject.Injector;
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -26,6 +30,7 @@ import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
@@ -33,12 +38,9 @@ import org.metaborg.util.file.FileUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.net.URI;
+import com.google.inject.Injector;
+
+import mb.stratego.build.strincr.StrIncr;
 
 public class SpoofaxContext implements Serializable {
     private static final long serialVersionUID = -1973461199459693455L;
@@ -64,7 +66,7 @@ public class SpoofaxContext implements Serializable {
     private static final ThreadLocal<ISpoofaxTransformService> transformService = new ThreadLocal<>();
     private static final ThreadLocal<IContextService> contextService = new ThreadLocal<>();
     private static final ThreadLocal<IDialectService> dialectService = new ThreadLocal<>();
-    private static final ThreadLocal<GuiceTaskDefs> taskDefs = new ThreadLocal<>();
+    private static final ThreadLocal<IPieProvider> pieProvider = new ThreadLocal<>();
     private static final ThreadLocal<StrIncr> strIncr = new ThreadLocal<>();
 
     public final File baseDir;
@@ -96,7 +98,7 @@ public class SpoofaxContext implements Serializable {
         transformService.set(newInjector.getInstance(ISpoofaxTransformService.class));
         contextService.set(newInjector.getInstance(IContextService.class));
         dialectService.set(newInjector.getInstance(IDialectService.class));
-        taskDefs.set(newInjector.getInstance(GuiceTaskDefs.class));
+        pieProvider.set(newInjector.getInstance(IPieProvider.class));
         strIncr.set(newInjector.getInstance(StrIncr.class));
     }
 
@@ -116,7 +118,7 @@ public class SpoofaxContext implements Serializable {
         transformService.set(null);
         contextService.set(null);
         dialectService.set(null);
-        taskDefs.set(null);
+        pieProvider.set(null);
         strIncr.set(null);
     }
 
@@ -178,8 +180,8 @@ public class SpoofaxContext implements Serializable {
         return tracker;
     }
 
-    public GuiceTaskDefs guiceTaskDefs() {
-        return taskDefs.get();
+    public IPieProvider pieProvider() {
+        return pieProvider.get();
     }
 
     public @Nullable IStrategoTerm parse(File file) throws IOException, ParseException {

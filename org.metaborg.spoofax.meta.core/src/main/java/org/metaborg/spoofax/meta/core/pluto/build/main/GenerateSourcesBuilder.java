@@ -56,15 +56,12 @@ import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.FileExistsStamper;
 import build.pluto.stamp.FileHashStamper;
 import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
 import mb.pie.api.Pie;
-import mb.pie.api.PieBuilder;
 import mb.pie.api.PieSession;
-import mb.pie.runtime.PieBuilderImpl;
-import mb.pie.taskdefs.guice.GuiceTaskDefs;
+import mb.pie.api.Task;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
-import mb.stratego.build.StrIncr;
+import mb.stratego.build.strincr.StrIncr;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
@@ -152,28 +149,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     private static final Set<String> BUILTIN_LIBS = new HashSet<>(Arrays.asList("stratego-lib", "stratego-sglr",
         "stratego-gpp", "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc", "java-front"));
-    private static final ILogger logger = LoggerUtils.logger(StrIncr.class);
-    private static final Logger pieLogger = new Logger() {
-        @Override public void error(String s, Throwable throwable) {
-            logger.error(s, throwable);
-        }
-
-        @Override public void warn(String s, Throwable throwable) {
-            logger.warn(s, throwable);
-        }
-
-        @Override public void info(String s) {
-            logger.info(s);
-        }
-
-        @Override public void debug(String s) {
-            logger.debug(s);
-        }
-
-        @Override public void trace(String s) {
-            logger.trace(s);
-        }
-    };
+    private static final ILogger logger = LoggerUtils.logger(GenerateSourcesBuilder.class);
 
     private static Pie pie;
 
@@ -522,7 +498,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                  * generated stratego files.
                  */
                 requireBuild(sdfOrigin);
-                logger.info("> Compile Stratego code using the separate compiler");
+                logger.info("> Compile Stratego code using the incremental compiler");
                 final File projectLocation = context.resourceService().localPath(paths.root());
                 assert projectLocation != null;
 
@@ -530,22 +506,22 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                  * Make sure Pluto also understands which files Pie will require.
                  */
                 final Set<Path> changedFiles = getChangedFiles(projectLocation);
-                final Set<ResourceKey> changedResources = new HashSet<>(changedFiles.size()*2);
-                for (Path changedFile : changedFiles) {
-					require(changedFile.toFile(), FileHashStamper.instance);
-					changedResources.add(new FSPath(changedFile));
-				}
+                final Set<ResourceKey> changedResources = new HashSet<>(changedFiles.size() * 2);
+                for(Path changedFile : changedFiles) {
+                    require(changedFile.toFile(), FileHashStamper.instance);
+                    changedResources.add(new FSPath(changedFile));
+                }
 
                 final Arguments newArgs = new Arguments();
-                final List<String> builtinLibs = extractBuiltinLibs(extraArgs, newArgs);
+                final List<String> builtinLibs = splitOffBuiltinLibs(extraArgs, newArgs);
                 final StrIncr.Input strIncrInput =
                     new StrIncr.Input(strFile, input.strJavaPackage, input.strjIncludeDirs, builtinLibs, cacheDir,
                         Collections.emptyList(), newArgs, depPath, Collections.emptyList(), projectLocation);
 
-                initPie(input.context, strIncrInput);
+                Pie pie = initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput));
 
                 try(final PieSession pieSession = pie.newSession()) {
-                    pieSession.requireBottomUp(changedResources);
+                    pieSession.updateAffectedBy(changedResources);
                 } catch(ExecException e) {
                     throw new MetaborgException("Incremental Stratego build failed", e);
                 }
@@ -567,7 +543,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         }
     }
 
-    private static Set<Path> getChangedFiles(File projectLocation) throws IOException {
+    public static Set<Path> getChangedFiles(File projectLocation) throws IOException {
         final Set<Path> result = new HashSet<>();
         Files.walkFileTree(projectLocation.toPath(), new SimpleFileVisitor<Path>() {
             @Override public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
@@ -581,7 +557,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return result;
     }
 
-    private static List<String> extractBuiltinLibs(Arguments oldArgs, Arguments newArgs) {
+    /**
+     * Copy oldArgs to newArgs, except for built-in libraries, which are split off and their names returned.
+     */
+    public static List<String> splitOffBuiltinLibs(Arguments oldArgs, Arguments newArgs) {
         final List<String> builtinLibs = new ArrayList<>();
         for(Iterator<Object> iterator = oldArgs.iterator(); iterator.hasNext();) {
             Object oldArg = iterator.next();
@@ -600,28 +579,23 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return builtinLibs;
     }
 
-    private static void initPie(SpoofaxContext context, mb.stratego.build.StrIncr.Input strIncrInput)
-        throws IOException, ExecException {
-        if(pie == null) {
-            final GuiceTaskDefs guiceTaskDefs = context.guiceTaskDefs();
-            final PieBuilder pieBuilder = new PieBuilderImpl();
-            pieBuilder.withTaskDefs(guiceTaskDefs);
-            pieBuilder.withLogger(pieLogger);
-            pie = pieBuilder.build();
+    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask) throws IOException, ExecException {
+        pie = pieProvider.pie();
+        if(!pie.hasBeenExecuted(strIncrTask)) {
+            logger.info("> Clean build required by PIE");
+            pieProvider.setLogLevelWarn();
             try(final PieSession session = pie.newSession()) {
-                session.requireTopDown(context.getStrIncrTask().createTask(strIncrInput));
+                session.require(strIncrTask);
             }
+            pieProvider.setLogLevelTrace();
         }
+        return pie;
     }
 
     public static void clean() throws MetaborgException {
-        if(GenerateSourcesBuilder.pie != null) {
-            try {
-                GenerateSourcesBuilder.pie.close();
-                GenerateSourcesBuilder.pie = null;
-            } catch(Exception e) {
-                throw new MetaborgException("Cleaning Pie object failed", e);
-            }
+        if(pie != null) {
+            pie.dropStore();
+            pie = null;
         }
     }
 }
