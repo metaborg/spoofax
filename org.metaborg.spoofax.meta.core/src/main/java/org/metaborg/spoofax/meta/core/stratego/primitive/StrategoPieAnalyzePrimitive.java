@@ -176,7 +176,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         try(final PieSession pieSession = pieProviderProvider.get().pie().newSession()) {
             Analysis.Output analysisInformation = pieSession.require(strIncrAnalysisTask);
 
-            for(Message message : analysisInformation.staticCheckOutput.messages) {
+            for(Message message : analysisInformation.messages) {
                 if(message.moduleFilePath.equals(path)) {
                     final ImploderAttachment imploderAttachment = ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.name));
                     if(imploderAttachment == null) {
