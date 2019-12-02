@@ -125,14 +125,18 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         final Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
         final Map<String, ISpoofaxAnalyzeUnit> removed = Maps.newHashMap();
+        final Map<String, ISpoofaxAnalyzeUnit> invalid = Maps.newHashMap();
         for(ISpoofaxParseUnit input : inputs) {
             if(input.detached() || input.source() == null) {
                 logger.warn("Ignoring detached units");
                 continue;
             }
             final String source = context.resourceKey(input.source());
-            if (!input.valid() || !input.success()) continue;
-            
+            if(!input.valid() || !input.success()) {
+                invalid.put(source, unitService.emptyAnalyzeUnit(input, context));
+                continue;
+            }
+
             if(!isEmptyAST(input.ast())) {
                 changed.put(source, input);
             } else {
@@ -140,7 +144,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             }
         }
 
-        return doAnalysis(changed, removed, context, runtime, facet.strategyName, progress, cancel);
+        return doAnalysis(changed, removed, invalid, context, runtime, facet.strategyName, progress, cancel);
     }
 
     private boolean isEmptyAST(IStrategoTerm ast) {
@@ -148,8 +152,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     private ISpoofaxAnalyzeResults doAnalysis(Map<String, ISpoofaxParseUnit> changed,
-            Map<String, ISpoofaxAnalyzeUnit> removed, IConstraintContext context, HybridInterpreter runtime,
-            String strategy, IProgress progress, ICancel cancel) throws AnalysisException {
+            Map<String, ISpoofaxAnalyzeUnit> removed, Map<String, ISpoofaxAnalyzeUnit> invalid,
+            IConstraintContext context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
+            throws AnalysisException {
 
         /*******************************************************************
          * 1. Compute changeset, and remove invalidated units from context *
@@ -305,6 +310,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             expect.result(messages.get(expect.resource()), fullResults, updateResults);
         }
         fullResults.addAll(removed.values());
+        fullResults.addAll(invalid.values());
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
     }
 
@@ -339,8 +345,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         private Multimap<FileObject, IMessage> messages(FileObject resource, MessageSeverity severity,
                 IStrategoTerm messagesTerm) {
-            final Multimap<FileObject, IMessage> messages =
-                    analysisCommon.messages(severity, messagesTerm);
+            final Multimap<FileObject, IMessage> messages = analysisCommon.messages(severity, messagesTerm);
             if(messages.containsKey(null)) {
                 messages.putAll(resource, messages.removeAll(null));
             }
