@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
@@ -307,7 +309,14 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
         final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
         for(Expect expect : expects.values()) {
-            expect.result(messages.get(expect.resource()), fullResults, updateResults);
+            // messages.get(expect.resource()) does not work correctly, FileObjects
+            // that I expect to be equal are not. Therefore, we do explicit iteration
+            // and compare FileName's instead of FileObjects instead.
+            final FileName resource = expect.resource().getName();
+            Collection<IMessage> fileMessages =
+                    messages.asMap().entrySet().stream().filter(e -> e.getKey().getName().equals(resource))
+                            .flatMap(e -> e.getValue().stream()).collect(Collectors.toList());
+            expect.result(fileMessages, fullResults, updateResults);
         }
         fullResults.addAll(removed.values());
         fullResults.addAll(invalid.values());
