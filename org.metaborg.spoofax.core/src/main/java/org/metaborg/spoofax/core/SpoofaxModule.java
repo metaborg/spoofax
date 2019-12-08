@@ -97,12 +97,14 @@ import org.metaborg.spoofax.core.stratego.primitive.LanguageImplementationPrimit
 import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeDirectoriesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeFilesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguagePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageResourcesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceDirectoriesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceFilesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LocalPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LocalReplicatePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ProjectPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ProjectResourcesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.RelativeSourceOrIncludePath;
 import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
@@ -399,9 +401,11 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageImplementationPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguagePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ProjectResourcesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalPathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalReplicatePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, AbsolutePathPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageResourcesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceDirectoriesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceFilesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeDirectoriesPrimitive.class);

@@ -110,3 +110,15 @@ rules // Source and include directories and files
    * Returns a list of source and include files (strings) for the current language.
    */
   current-language-source-and-include-files = language; Dupl; (language-source-files, language-include-files); conc
+
+  /**
+   * Load ATerm resources and their imports from the current project.
+   * Takes as input a list of (relative) paths, and a strategy that returns the list of imported resources.
+   * Returns a list of path and resource pairs. Fails if any of the resources or their imports does not exist.
+   *
+   * @param path : name:Term -> String
+   * @param imports : resource:Term -> names:List(Term)
+   * @type names:List(Term) -> List(name:Term * resource:Term)
+   */
+  project-resources(path, imports) = prim("project_resources", path, imports|)
+
