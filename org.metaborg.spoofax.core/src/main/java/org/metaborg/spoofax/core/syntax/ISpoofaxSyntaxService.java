@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
@@ -25,7 +26,7 @@ public interface ISpoofaxSyntaxService extends ISyntaxService<ISpoofaxInputUnit,
      *            Progress reporter.
      * @param cancel
      *            Cancellation token.
-     * @param overrideImploder
+     * @param overrideJSGLRVersion
      *            override the imploder implementation used in the parser.
      * @return Parse unit.
      * @throws ParseException
@@ -34,7 +35,7 @@ public interface ISpoofaxSyntaxService extends ISyntaxService<ISpoofaxInputUnit,
      *             When parsing is cancelled.
      */
     ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel,
-        @Nullable ImploderImplementation overrideImploder)
+        @Nullable JSGLRVersion overrideJSGLRVersion)
         throws ParseException, InterruptedException;
 
     /**
@@ -47,9 +48,9 @@ public interface ISpoofaxSyntaxService extends ISyntaxService<ISpoofaxInputUnit,
      *             When parsing fails unexpectedly.
      */
     default ISpoofaxParseUnit parse(ISpoofaxInputUnit input,
-        @Nullable ImploderImplementation overrideImploder) throws ParseException {
+        @Nullable JSGLRVersion overrideJSGLRVersion) throws ParseException {
         try {
-            return parse(input, new NullProgress(), new NullCancel(), overrideImploder);
+            return parse(input, new NullProgress(), new NullCancel(), overrideJSGLRVersion);
         } catch(InterruptedException e) {
             // This cannot happen, since we pass a null cancellation token, but we need to handle the exception.
             throw new MetaborgRuntimeException("Interrupted", e);

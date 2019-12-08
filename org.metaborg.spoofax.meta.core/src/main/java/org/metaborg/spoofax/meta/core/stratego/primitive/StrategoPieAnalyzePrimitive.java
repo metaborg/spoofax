@@ -33,6 +33,7 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
@@ -176,13 +177,24 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         try(final PieSession pieSession = pieProviderProvider.get().pie().newSession()) {
             Analysis.Output analysisInformation = pieSession.require(strIncrAnalysisTask);
 
-            for(Message message : analysisInformation.messages) {
+            for(Message<?> message : analysisInformation.messages) {
                 if(message.moduleFilePath.equals(path)) {
-                    final ImploderAttachment imploderAttachment = ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.name));
+                    final ImploderAttachment imploderAttachment = ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
                     if(imploderAttachment == null) {
                         logger.debug("No origins for message: " + message);
                     }
-                    errors.add(B.tuple(message.name, B.string(message.getMessage())));
+                    final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
+                    switch(message.severity) {
+                        case ERROR:
+                            errors.add(messageTuple);
+                            break;
+                        case NOTE:
+                            notes.add(messageTuple);
+                            break;
+                        case WARNING:
+                            warnings.add(messageTuple);
+                            break;
+                    }
                 }
             }
         } catch(ExecException e) {
