@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -296,7 +295,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          * 4. Globally collect error messages *
          **************************************/
 
-        final Multimap<FileObject, IMessage> messages = HashMultimap.create();
+        final Multimap<FileName, IMessage> messages = HashMultimap.create();
         for(Map.Entry<String, Expect> entry : expects.entrySet()) {
             final Expect expect = entry.getValue();
             messages.putAll(expect.messages);
@@ -309,13 +308,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
         final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
         for(Expect expect : expects.values()) {
-            // messages.get(expect.resource()) does not work correctly, FileObjects
-            // that I expect to be equal are not. Therefore, we do explicit iteration
-            // and compare FileName's instead of FileObjects instead.
-            final FileName resource = expect.resource().getName();
-            Collection<IMessage> fileMessages =
-                    messages.asMap().entrySet().stream().filter(e -> e.getKey().getName().equals(resource))
-                            .flatMap(e -> e.getValue().stream()).collect(Collectors.toList());
+            Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
             expect.result(fileMessages, fullResults, updateResults);
         }
         fullResults.addAll(removed.values());
@@ -327,7 +320,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         protected final String resource;
         protected final IConstraintContext context;
-        protected final Multimap<FileObject, IMessage> messages;
+        protected final Multimap<FileName, IMessage> messages;
 
         protected Expect(String resource, IConstraintContext context) {
             this.resource = resource;
@@ -340,29 +333,26 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         protected void resultMessages(IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes) {
+            final FileName resource = resource().getName();
             if(multifile()) {
-                messages.putAll(messages(resource(), MessageSeverity.ERROR, errors));
-                messages.putAll(messages(resource(), MessageSeverity.WARNING, warnings));
-                messages.putAll(messages(resource(), MessageSeverity.NOTE, notes));
+                analysisCommon.messages(MessageSeverity.ERROR, errors)
+                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
+                analysisCommon.messages(MessageSeverity.WARNING, warnings)
+                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
+                analysisCommon.messages(MessageSeverity.NOTE, notes)
+                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
             } else {
-                messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.ERROR, errors));
-                messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.WARNING, warnings));
-                messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.NOTE, notes));
-
+                analysisCommon.messages(resource(), MessageSeverity.ERROR, errors)
+                        .forEach(m -> messages.put(resource, m));
+                analysisCommon.messages(resource(), MessageSeverity.WARNING, warnings)
+                        .forEach(m -> messages.put(resource, m));
+                analysisCommon.messages(resource(), MessageSeverity.NOTE, notes)
+                        .forEach(m -> messages.put(resource, m));
             }
-        }
-
-        private Multimap<FileObject, IMessage> messages(FileObject resource, MessageSeverity severity,
-                IStrategoTerm messagesTerm) {
-            final Multimap<FileObject, IMessage> messages = analysisCommon.messages(severity, messagesTerm);
-            if(messages.containsKey(null)) {
-                messages.putAll(resource, messages.removeAll(null));
-            }
-            return messages;
         }
 
         protected void failMessage(String message) {
-            messages.put(resource(), MessageFactory.newAnalysisErrorAtTop(resource(), message, null));
+            messages.put(resource().getName(), MessageFactory.newAnalysisErrorAtTop(resource(), message, null));
         }
 
         abstract void accept(IStrategoTerm result);
