@@ -100,6 +100,7 @@ import org.metaborg.spoofax.core.stratego.primitive.LanguagePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageResourcesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceDirectoriesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceFilesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ProjectSrcGenDirectory;
 import org.metaborg.spoofax.core.stratego.primitive.LocalPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.LocalReplicatePrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
@@ -402,6 +403,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, LanguagePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ProjectResourcesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ProjectSrcGenDirectory.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalPathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LocalReplicatePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, AbsolutePathPrimitive.class);

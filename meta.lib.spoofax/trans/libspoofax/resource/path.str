@@ -122,3 +122,8 @@ rules // Source and include directories and files
    */
   project-resources(path, imports) = prim("project_resources", path, imports|)
 
+  /**
+   * Returns a relative path to a src-gen directory for the given name.
+   */
+  project-srcgen-dir = prim("project_srcgen_dir")
+
