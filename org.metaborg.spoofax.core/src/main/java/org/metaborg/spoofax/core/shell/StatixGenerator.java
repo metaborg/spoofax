@@ -8,14 +8,19 @@ import java.io.OutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.TransformActionContrib;
+import org.metaborg.core.build.BuildInput;
+import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.LanguageFileSelector;
+import org.metaborg.core.messages.WithLocationStreamMessagePrinter;
+import org.metaborg.core.processing.ITask;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -23,6 +28,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.matching.Transform.T;
@@ -57,19 +63,38 @@ public class StatixGenerator {
     }
 
     private Tuple2<Spec, IConstraint> loadSpec(FileObject resource) throws MetaborgException {
-        final ISpoofaxInputUnit inputUnit = CLI.read(resource, statixLang);
-
-        final ISpoofaxParseUnit parseUnit = CLI.parse(inputUnit, statixLang);
-        if(!parseUnit.success()) {
-            CLI.printMessages(MSG_OUT, parseUnit.messages());
-            throw new MetaborgException(resource + " has parse errors.");
+        // build all Statix files in the project
+        final ITask<ISpoofaxBuildOutput> task;
+        try {
+            final BuildInputBuilder inputBuilder = new BuildInputBuilder(context.project());
+            // @formatter:off
+            final BuildInput input = inputBuilder
+                .withDefaultIncludePaths(true)
+                .withSourcesFromDefaultSourceLocations(true)
+                .withSelector(new LanguageFileSelector(S.languageIdentifierService, statixLang))
+                .withMessagePrinter(new WithLocationStreamMessagePrinter(S.sourceTextService, S.projectService, MSG_OUT))
+                .withThrowOnErrors(true)
+                .addTransformGoal(new CompileGoal())
+                .build(S.dependencyService, S.languagePathService);
+            // @formatter:on
+            task = S.processorRunner.build(input, null, null).schedule().block();
+        } catch(MetaborgException | InterruptedException e) {
+            throw new MetaborgException("Building Statix files failed unexpectedly", e);
+        } catch(MetaborgRuntimeException e) {
+            throw new MetaborgException("Building Statix files failed", e);
         }
 
-        final IContext context = S.contextService.get(resource, this.context.project(), statixLang);
+        final ISpoofaxBuildOutput output = task.result();
+        if(!output.success()) {
+            throw new MetaborgException("Failed to build Statix files in " + context.project());
+        }
 
-        final ISpoofaxAnalyzeUnit analyzeUnit = CLI.analyze(parseUnit, context);
+        ISpoofaxAnalyzeUnit analyzeUnit;
+        if((analyzeUnit = Streams.stream(output.analysisResults().iterator())
+                .filter(r -> r.source().getName().equals(resource.getName())).findFirst().orElse(null)) == null) {
+            throw new MetaborgException("Cannot find " + resource);
+        }
         if(!analyzeUnit.success()) {
-            CLI.printMessages(MSG_OUT, analyzeUnit.messages());
             throw new MetaborgException(resource + " has analysis errors.");
         }
 
