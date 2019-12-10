@@ -4,6 +4,7 @@ import static mb.nabl2.terms.build.TermBuild.B;
 import static mb.nabl2.terms.matching.TermMatch.M;
 
 import java.io.OutputStream;
+import java.util.Arrays;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -69,6 +70,8 @@ public class StatixGenerator {
             final BuildInputBuilder inputBuilder = new BuildInputBuilder(context.project());
             // @formatter:off
             final BuildInput input = inputBuilder
+                .withCompileDependencyLanguages(false)
+                .withLanguages(Arrays.asList(statixLang))
                 .withDefaultIncludePaths(true)
                 .withSourcesFromDefaultSourceLocations(true)
                 .withSelector(new LanguageFileSelector(S.languageIdentifierService, statixLang))
