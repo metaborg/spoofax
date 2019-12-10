@@ -33,7 +33,7 @@ import com.google.common.collect.Maps;
 import mb.nabl2.util.ImmutableTuple2;
 import mb.nabl2.util.Tuple2;
 
-public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive {
+public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
 
     private static final ILogger log = LoggerUtils.logger(AResourcesPrimitive.class);
 
@@ -44,6 +44,11 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive {
         super(name, 2, 0);
         this.resourceService = resourceService;
         this.fileCache = CacheBuilder.newBuilder().maximumSize(32).build();
+    }
+
+    @Override public void close() {
+        fileCache.invalidateAll();
+        fileCache.cleanUp();
     }
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
