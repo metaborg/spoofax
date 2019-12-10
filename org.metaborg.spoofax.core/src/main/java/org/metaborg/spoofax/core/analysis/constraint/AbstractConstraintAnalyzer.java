@@ -49,11 +49,11 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import mb.nabl2.terms.stratego.StrategoTermIndices;
@@ -295,7 +295,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          * 4. Globally collect error messages *
          **************************************/
 
-        final Multimap<FileName, IMessage> messages = HashMultimap.create();
+        final ListMultimap<FileName, IMessage> messages = ArrayListMultimap.create();
         for(Map.Entry<String, Expect> entry : expects.entrySet()) {
             final Expect expect = entry.getValue();
             messages.putAll(expect.messages);
@@ -320,12 +320,12 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         protected final String resource;
         protected final IConstraintContext context;
-        protected final Multimap<FileName, IMessage> messages;
+        protected final ListMultimap<FileName, IMessage> messages;
 
         protected Expect(String resource, IConstraintContext context) {
             this.resource = resource;
             this.context = context;
-            this.messages = HashMultimap.create();
+            this.messages = ArrayListMultimap.create();
         }
 
         protected FileObject resource() {
