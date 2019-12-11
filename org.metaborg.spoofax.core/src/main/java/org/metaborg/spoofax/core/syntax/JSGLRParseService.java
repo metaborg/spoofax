@@ -144,14 +144,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         final Map<ILanguageImpl, JSGLRI<?>> parserMap = parserConfig.completion ? completionParsers : parsers;
 
         if(!parserMap.containsKey(langImpl)) {
-            final IParserConfig config = getParserConfig(langImpl, input, parserConfig.completion);
+            final IParserConfig config = getParserConfig(langImpl, input, parserConfig.completion, overrideJSGLRVersion);
             final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
-            final JSGLRVersion version;
-            if(overrideJSGLRVersion == null) {
-                version = jsglrVersion(input);
-            } else {
-                version = overrideJSGLRVersion;
-            }
+            final JSGLRVersion version = jsglrVersion(input, overrideJSGLRVersion);
 
             final JSGLRI<?> parser;
             if(version == JSGLRVersion.v1) {
@@ -169,7 +164,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         return parserMap.get(langImpl);
     }
 
-    private IParserConfig getParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input, boolean completion) throws ParseException {
+    private IParserConfig getParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input, boolean completion, @Nullable JSGLRVersion overrideJSGLRVersion) throws ParseException {
         final Map<ILanguageImpl, IParserConfig> parserConfigMap;
         if(completion) {
             parserConfigMap = this.completionParserConfigs;
@@ -237,7 +232,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
             }
 
             final IParseTableProvider provider;
-            final JSGLRVersion version = jsglrVersion(input);
+            final JSGLRVersion version = jsglrVersion(input, overrideJSGLRVersion);
 
             if(version == JSGLRVersion.v1) {
                 final ParseTable referenceParseTable = referenceParseTables.get(lang);
@@ -258,7 +253,10 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     }
 
 
-    private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input) {
+    private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input, @Nullable JSGLRVersion overrideJSGLRVersion) {
+        if(overrideJSGLRVersion != null) {
+            return overrideJSGLRVersion;
+        }
         ILanguageComponent langComp = Iterables.getFirst(input.langImpl().components(), null);
         if(langComp == null)
             return JSGLRVersion.v1;
