@@ -21,12 +21,13 @@ public interface ISpoofaxParser extends IParser<ISpoofaxInputUnit, ISpoofaxParse
      *            Input unit to parse.
      * @param overrideJSGLRVersion
      *            override the imploder implementation used in the parser.
+     * @param overrideImploder
      * @return Parse unit.
      * @throws ParseException
      *             When parsing fails unexpectedly.
      */
     ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel,
-        @Nullable JSGLRVersion overrideJSGLRVersion)
+        @Nullable JSGLRVersion overrideJSGLRVersion, @Nullable ImploderImplementation overrideImploder)
         throws ParseException;
 
 }

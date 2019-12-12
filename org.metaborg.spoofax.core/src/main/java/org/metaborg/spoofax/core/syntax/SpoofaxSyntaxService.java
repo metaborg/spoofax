@@ -60,14 +60,14 @@ public class SpoofaxSyntaxService extends SyntaxService<ISpoofaxInputUnit, ISpoo
     }
 
     @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel,
-        @Nullable JSGLRVersion overrideJSGLRVersion) throws ParseException, InterruptedException {
+        @Nullable JSGLRVersion overrideJSGLRVersion, @Nullable ImploderImplementation overrideImploder) throws ParseException, InterruptedException {
         final ILanguageImpl langImpl = input.langImpl();
         final ISpoofaxParser parser = parser(langImpl);
         if(parser == null) {
             final String message = logger.format("Cannot get a parser for {}", langImpl);
             throw new ParseException(input, message);
         }
-        return parser.parse(input, progress, cancel, overrideJSGLRVersion);
+        return parser.parse(input, progress, cancel, overrideJSGLRVersion, overrideImploder);
     }
 
 
