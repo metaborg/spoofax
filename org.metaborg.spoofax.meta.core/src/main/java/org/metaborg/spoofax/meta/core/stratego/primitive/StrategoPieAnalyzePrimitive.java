@@ -33,7 +33,9 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 
 import com.google.inject.Inject;
@@ -73,14 +75,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext context) throws MetaborgException, IOException {
-        final IStrategoAppl ast = Tools.applAt(current, 0);
-        @SuppressWarnings("unused") final String path = Tools.javaStringAt(current, 1);
+        @SuppressWarnings("unused") final IStrategoAppl ast = Tools.applAt(current, 0);
+        final String path = Tools.javaStringAt(current, 1);
         @SuppressWarnings("unused") final String projectPath = Tools.javaStringAt(current, 2);
 
-        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
-            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");
-        }
-        final String moduleName = Tools.javaStringAt(ast, 0);
+//        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
+//            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");
+//        }
+//        final String moduleName = Tools.javaStringAt(ast, 0);
 
         final IProject project = context.project();
         if(project == null) {
@@ -175,10 +177,24 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         try(final PieSession pieSession = pieProviderProvider.get().pie().newSession()) {
             Analysis.Output analysisInformation = pieSession.require(strIncrAnalysisTask);
 
-            for(Message message : analysisInformation.staticCheckOutput.messages) {
-                if(message.module.equals(moduleName)) {
-                    logger.debug("Origins: " + message.name.getAttachment(OriginAttachment.TYPE));
-                    errors.add(B.tuple(message.name, B.string(message.getMessage())));
+            for(Message<?> message : analysisInformation.messages) {
+                if(message.moduleFilePath.equals(path)) {
+                    final ImploderAttachment imploderAttachment = ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
+                    if(imploderAttachment == null) {
+                        logger.debug("No origins for message: " + message);
+                    }
+                    final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
+                    switch(message.severity) {
+                        case ERROR:
+                            errors.add(messageTuple);
+                            break;
+                        case NOTE:
+                            notes.add(messageTuple);
+                            break;
+                        case WARNING:
+                            warnings.add(messageTuple);
+                            break;
+                    }
                 }
             }
         } catch(ExecException e) {

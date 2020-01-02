@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
@@ -25,7 +26,7 @@ public interface ISpoofaxSyntaxService extends ISyntaxService<ISpoofaxInputUnit,
      *            Progress reporter.
      * @param cancel
      *            Cancellation token.
-     * @param overrideImploder
+     * @param overrideJSGLRVersion
      *            override the imploder implementation used in the parser.
      * @return Parse unit.
      * @throws ParseException
@@ -34,11 +35,30 @@ public interface ISpoofaxSyntaxService extends ISyntaxService<ISpoofaxInputUnit,
      *             When parsing is cancelled.
      */
     ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel,
-        @Nullable ImploderImplementation overrideImploder)
+        @Nullable JSGLRVersion overrideJSGLRVersion, @Nullable ImploderImplementation overrideImploder)
         throws ParseException, InterruptedException;
 
     /**
-     * Parses given input unit into a parse unit.
+     * Parses given input unit into a parse unit. Allows overriding the used parser.
+     *
+     * @param input
+     *            Input unit to parse.
+     * @return Parse unit.
+     * @throws ParseException
+     *             When parsing fails unexpectedly.
+     */
+    default ISpoofaxParseUnit parse(ISpoofaxInputUnit input,
+        @Nullable JSGLRVersion overrideJSGLRVersion) throws ParseException {
+        try {
+            return parse(input, new NullProgress(), new NullCancel(), overrideJSGLRVersion, null);
+        } catch(InterruptedException e) {
+            // This cannot happen, since we pass a null cancellation token, but we need to handle the exception.
+            throw new MetaborgRuntimeException("Interrupted", e);
+        }
+    }
+
+    /**
+     * Parses given input unit into a parse unit. Allows overriding the used imploder in the parser.
      *
      * @param input
      *            Input unit to parse.
@@ -49,7 +69,7 @@ public interface ISpoofaxSyntaxService extends ISyntaxService<ISpoofaxInputUnit,
     default ISpoofaxParseUnit parse(ISpoofaxInputUnit input,
         @Nullable ImploderImplementation overrideImploder) throws ParseException {
         try {
-            return parse(input, new NullProgress(), new NullCancel(), overrideImploder);
+            return parse(input, new NullProgress(), new NullCancel(), null, overrideImploder);
         } catch(InterruptedException e) {
             // This cannot happen, since we pass a null cancellation token, but we need to handle the exception.
             throw new MetaborgRuntimeException("Interrupted", e);

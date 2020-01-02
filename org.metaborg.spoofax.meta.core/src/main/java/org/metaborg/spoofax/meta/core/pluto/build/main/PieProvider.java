@@ -29,19 +29,17 @@ public class PieProvider implements IPieProvider {
         @Override public void info(String s) {
             if(logInfoAndBelow) {
                 logger.info(s);
+            } else {
+                logger.debug("(INFO) " + s);
             }
         }
 
         @Override public void debug(String s) {
-            if(logInfoAndBelow) {
-                logger.debug(s);
-            }
+            logger.debug(s);
         }
 
         @Override public void trace(String s) {
-            if(logInfoAndBelow) {
-                logger.trace(s);
-            }
+            logger.trace(s);
         }
     };
 

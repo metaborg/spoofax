@@ -60,11 +60,11 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
     @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel)
         throws ParseException {
-        return parse(input, progress, cancel, null);
+        return parse(input, progress, cancel, null, null);
     }
 
     @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel,
-        @Nullable ImploderImplementation overrideImploder) throws ParseException {
+        @Nullable JSGLRVersion overrideJSGLRVersion, @Nullable ImploderImplementation overrideImploder) throws ParseException {
         final FileObject source = input.source();
         final String text = input.text();
 
@@ -78,7 +78,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         try {
             logger.trace("Parsing {}", source);
 
-            final JSGLRI<?> parser = getParser(input, parserConfig, overrideImploder);
+            final JSGLRI<?> parser = getParser(input, parserConfig, overrideJSGLRVersion, overrideImploder);
 
             final ParseContrib contrib = parser.parse(parserConfig, source, text);
 
@@ -126,7 +126,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
 
     private JSGLRI<?> getParser(ISpoofaxInputUnit input, JSGLRParserConfiguration parserConfig,
-        @Nullable ImploderImplementation overrideImploder) throws IOException, ParseException {
+        @Nullable JSGLRVersion overrideJSGLRVersion, @Nullable ImploderImplementation overrideImploder) throws IOException, ParseException {
 
         final ILanguageImpl langImpl;
         final ILanguageImpl base;
@@ -141,9 +141,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         final Map<ILanguageImpl, JSGLRI<?>> parserMap = parserConfig.completion ? completionParsers : parsers;
 
         if(!parserMap.containsKey(langImpl)) {
-            final IParserConfig config = getParserConfig(langImpl, input, parserConfig.completion, overrideImploder);
+            final IParserConfig config = getParserConfig(langImpl, input, parserConfig.completion, overrideJSGLRVersion, overrideImploder);
             final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
-            final JSGLRVersion version = jsglrVersion(input);
+            final JSGLRVersion version = jsglrVersion(input, overrideJSGLRVersion);
 
             final JSGLRI<?> parser;
             if(version == JSGLRVersion.v1) {
@@ -162,7 +162,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     }
 
     private IParserConfig getParserConfig(ILanguageImpl lang, ISpoofaxInputUnit input, boolean completion,
-        @Nullable ImploderImplementation overrideImploder) throws ParseException {
+        @Nullable JSGLRVersion overrideJSGLRVersion, @Nullable ImploderImplementation overrideImploder) throws ParseException {
         final Map<ILanguageImpl, IParserConfig> parserConfigMap;
         if(completion) {
             parserConfigMap = this.completionParserConfigs;
@@ -230,7 +230,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
             }
 
             final IParseTableProvider provider;
-            final JSGLRVersion version = jsglrVersion(input);
+            final JSGLRVersion version = jsglrVersion(input, overrideJSGLRVersion);
 
             if(version == JSGLRVersion.v1) {
                 final ParseTable referenceParseTable = referenceParseTables.get(lang);
@@ -245,20 +245,19 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
             }
 
             parserConfigMap.put(lang, new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder));
-            if(overrideImploder != null) {
-                return new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, overrideImploder);
-            }
         }
         IParserConfig parserConfig = parserConfigMap.get(lang);
         if(overrideImploder != null) {
-            parserConfig =
-                new ParserConfig(parserConfig.getStartSymbol(), parserConfig.getParseTableProvider(), overrideImploder);
+            parserConfig = new ParserConfig(parserConfig.getStartSymbol(), parserConfig.getParseTableProvider(), overrideImploder);
         }
         return parserConfig;
     }
 
 
-    private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input) {
+    private JSGLRVersion jsglrVersion(ISpoofaxInputUnit input, @Nullable JSGLRVersion overrideJSGLRVersion) {
+        if(overrideJSGLRVersion != null) {
+            return overrideJSGLRVersion;
+        }
         ILanguageComponent langComp = Iterables.getFirst(input.langImpl().components(), null);
         if(langComp == null)
             return JSGLRVersion.v1;

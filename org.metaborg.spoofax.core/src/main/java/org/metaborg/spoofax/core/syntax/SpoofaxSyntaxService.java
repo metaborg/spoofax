@@ -3,9 +3,11 @@ package org.metaborg.spoofax.core.syntax;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.FenceCharacters;
-import org.metaborg.core.syntax.IParser;
 import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.core.syntax.ParseFacet;
@@ -20,7 +22,6 @@ import org.metaborg.util.task.IProgress;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import javax.annotation.Nullable;
 
 public class SpoofaxSyntaxService extends SyntaxService<ISpoofaxInputUnit, ISpoofaxParseUnit>
     implements ISpoofaxSyntaxService {
@@ -59,14 +60,14 @@ public class SpoofaxSyntaxService extends SyntaxService<ISpoofaxInputUnit, ISpoo
     }
 
     @Override public ISpoofaxParseUnit parse(ISpoofaxInputUnit input, IProgress progress, ICancel cancel,
-        @Nullable ImploderImplementation overrideImploder) throws ParseException, InterruptedException {
+        @Nullable JSGLRVersion overrideJSGLRVersion, @Nullable ImploderImplementation overrideImploder) throws ParseException, InterruptedException {
         final ILanguageImpl langImpl = input.langImpl();
         final ISpoofaxParser parser = parser(langImpl);
         if(parser == null) {
             final String message = logger.format("Cannot get a parser for {}", langImpl);
             throw new ParseException(input, message);
         }
-        return parser.parse(input, progress, cancel, overrideImploder);
+        return parser.parse(input, progress, cancel, overrideJSGLRVersion, overrideImploder);
     }
 
 

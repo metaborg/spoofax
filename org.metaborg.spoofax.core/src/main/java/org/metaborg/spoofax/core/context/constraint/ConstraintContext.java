@@ -56,7 +56,7 @@ public class ConstraintContext implements IConstraintContext {
     }
 
     @Override public boolean isRoot(FileObject resource) {
-        return location().equals(resource);
+        return location().getName().equals(resource.getName());
     }
 
     @Override public FileObject root() {
