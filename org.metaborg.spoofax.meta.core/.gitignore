@@ -1,2 +1,5 @@
 # Generated META-INF
 /META-INF
+
+# Gradle
+/build

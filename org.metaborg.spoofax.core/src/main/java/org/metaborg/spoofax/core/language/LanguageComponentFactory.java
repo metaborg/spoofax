@@ -312,8 +312,15 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             }
 
             if(ParseFacetFromESV.hasParser(esvTerm)) {
-                config.addFacet(ParseFacetFromESV.create(esvTerm));
+                final @Nullable ParseFacet parseFacet = ParseFacetFromESV.create(esvTerm);
+                if(parseFacet != null) {
+                    config.addFacet(parseFacet);
+                }
+                // If parser is set to 'none' in ESV, ParseFacetFromESV.create returns `null` and we create no
+                // ParserFacet, which is used to in language extension to select which language component contributes
+                // the parser, since multiple language components contributing a parser is not supported.
             } else if(syntaxFacet != null) {
+                // Default to JSGLR when there is a syntax facet, but no parser was explicitly set in ESV.
                 config.addFacet(new ParseFacet("jsglr"));
             }
 

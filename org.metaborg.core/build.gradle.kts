@@ -4,32 +4,33 @@ plugins {
 }
 
 dependencies {
-  dependencies {
-    compile("org.metaborg:org.metaborg.util:2.6.0-SNAPSHOT")
+  api(platform("org.metaborg:parent:$version"))
 
-    compile("org.slf4j:slf4j-api:1.7.25")
-    compile("com.google.inject:guice:4.2.0")
-    compile("com.google.inject.extensions:guice-multibindings:4.2.0")
-    compile("commons-io:commons-io:2.6")
-    compile("org.apache.commons:commons-vfs2:2.2")
-    compile("org.apache.commons:commons-lang3:3.4")
-    compile("org.apache.commons:commons-configuration2:2.2")
-    compile("com.virtlink.commons:commons-configuration2-jackson:0.7.0")
-    compile("com.fasterxml.jackson.core:jackson-core:2.9.5")
-    compile("com.fasterxml.jackson.core:jackson-databind:2.9.5")
-    compile("com.fasterxml.jackson.core:jackson-annotations:2.9.5")
-    compile("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5")
-    compile("com.google.guava:guava:26.0-jre")
-    compile("com.netflix.rxjava:rxjava-core:0.20.7")
+  api("org.metaborg:org.metaborg.util:$version")
 
-    compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+  api("org.slf4j:slf4j-api")
+  api("com.google.inject:guice")
+  api("com.google.inject.extensions:guice-multibindings")
+  api("commons-io:commons-io")
+  api("org.apache.commons:commons-vfs2")
+  api("org.apache.commons:commons-lang3")
+  api("org.apache.commons:commons-configuration2")
+  api("com.virtlink.commons:commons-configuration2-jackson")
+  api("com.fasterxml.jackson.core:jackson-core")
+  api("com.fasterxml.jackson.core:jackson-databind")
+  api("com.fasterxml.jackson.core:jackson-annotations")
+  api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  api("com.google.guava:guava")
+  api("com.netflix.rxjava:rxjava-core")
 
-    testCompileOnly("junit:junit:4.12")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.1.0")
-    testCompile("ch.qos.logback:logback-core:1.1.2")
-    testCompile("ch.qos.logback:logback-classic:1.1.2")
-    testCompile("org.slf4j:jcl-over-slf4j:1.7.25")
-  }
+  compileOnly("com.google.code.findbugs:jsr305")
+
+  testCompileOnly("junit:junit")
+  testCompileOnly("com.google.code.findbugs:jsr305")
+  testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.1.0")
+  testImplementation("ch.qos.logback:logback-core")
+  testImplementation("ch.qos.logback:logback-classic")
+  testImplementation("org.slf4j:jcl-over-slf4j")
 }
 
 // Copy test resources into classes directory, to make them accessible as classloader resources at runtime.

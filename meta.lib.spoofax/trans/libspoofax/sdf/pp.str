@@ -8,6 +8,15 @@ rules
 
   ia-get-sort = prim("SSL_EXT_get_sort_imploder_attachment", <id>)
 
+  /** Create explicit constructors for sort injections.
+   *
+   *
+   *
+   * @param inj-name: String * String -> String
+   * @type Term -> Term
+   */
+  explicate-injections(inj-name) = prim("SSL_EXT_explicate_injections",inj-name|)
+
 signature constructors
 
   Parenthetical : Unknown -> Unknown

@@ -21,22 +21,7 @@ public class C_get_resource_partial_analysis extends ConstraintContextPrimitive 
             throw new InterpreterException("Expect a resource path.");
         }
         final String resource = Tools.asJavaString(sterm);
-        final IStrategoTerm analysis;
-        switch(context.mode()) {
-            case MULTI_FILE:
-                if(context.isRoot(resource)) {
-                    analysis = context.hasInitial() ? context.getInitial().analysis : null;
-                } else {
-                    analysis = context.hasUnit(resource) ? context.getUnit(resource).analysis : null;
-                }
-                break;
-            case SINGLE_FILE:
-                analysis = context.hasUnit(resource) ? context.getUnit(resource).analysis : null;
-                break;
-            default:
-                analysis = null;
-                break;
-        }
+        final IStrategoTerm analysis = context.contains(resource) ? context.get(resource) : null;
         return Optional.ofNullable(analysis);
     }
 

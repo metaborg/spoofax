@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IExportVisitor;
@@ -12,12 +14,12 @@ import org.metaborg.core.config.LangDirExport;
 import org.metaborg.core.config.LangFileExport;
 import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.sdf2table.grammar.NormGrammar;
 import org.metaborg.sdf2table.io.NormGrammarReader;
 import org.metaborg.sdf2table.io.ParseTableIO;
 import org.metaborg.sdf2table.parsetable.ParseTable;
+import org.metaborg.sdf2table.parsetable.ParseTableConfiguration;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
@@ -41,21 +43,16 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         public final Collection<LanguageIdentifier> sourceDeps;
         public final File outputParseTableFile;
         public final File outputPersistedParseTableFile;
-        public final boolean dynamic;
-        public final boolean dataDependent;
-        public final boolean solveDeepConflicts;
+        public final ParseTableConfiguration tableConfig;
         public final boolean isCompletions;
 
-        public Input(SpoofaxContext context, File inputMainNormSdfFile, Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile, boolean dynamic, boolean dataDependent,
-            boolean layoutSensitive, boolean isCompletions) {
+        public Input(SpoofaxContext context, File inputMainNormSdfFile, Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile, ParseTableConfiguration tableConfig, boolean isCompletions) {
             super(context);
             this.inputMainNormSdfFile = inputMainNormSdfFile;
             this.sourceDeps = sourceDeps;
             this.outputParseTableFile = outputParseTableFile;
             this.outputPersistedParseTableFile = outputPersistedParseTableFile;
-            this.dynamic = dynamic;
-            this.dataDependent = dataDependent;
-            this.solveDeepConflicts = !layoutSensitive;
+            this.tableConfig = tableConfig;
             this.isCompletions = isCompletions;
         }
     }
@@ -94,7 +91,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         
         NormGrammar normGrammar = normGrammarReader.readGrammar(input.inputMainNormSdfFile);
         
-        ParseTable parseTable = new ParseTable(normGrammar, input.dynamic, input.dataDependent, input.solveDeepConflicts);
+        ParseTable parseTable = new ParseTable(normGrammar, input.tableConfig);
         
         IStrategoTerm parseTableATerm = ParseTableIO.generateATerm(parseTable);
         
@@ -117,34 +114,36 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         paths.add(srcGenSyntaxDir.getAbsolutePath());
 
         for(LanguageIdentifier langId : sourceDeps) {
-            ILanguageImpl lang = context.languageService().getImpl(langId);
-            for(final ILanguageComponent component : lang.components()) {
-                ILanguageComponentConfig config = component.config();
-                Collection<IExportConfig> exports = config.exports();
-                for(IExportConfig exportConfig : exports) {
-                    exportConfig.accept(new IExportVisitor() {
-                        @Override public void visit(LangDirExport export) {
-                            if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
-                                try {
-                                    paths
-                                        .add(toFileReplicate(component.location().resolveFile(export.directory))
-                                            .getAbsolutePath());
-                                } catch(FileSystemException e) {
-                                    System.out.println("Failed to locate path");
-                                    e.printStackTrace();
-                                }
+            final @Nullable ILanguageComponent component = context.languageService().getComponent(langId);
+            if(component == null) {
+                report("Cannot get normalized SDF3 exports for language component with ID " + langId + ", it does not exist. Skipping");
+                continue;
+            }
+            final ILanguageComponentConfig config = component.config();
+            final Collection<IExportConfig> exports = config.exports();
+            for(IExportConfig exportConfig : exports) {
+                exportConfig.accept(new IExportVisitor() {
+                    @Override public void visit(LangDirExport export) {
+                        if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
+                            try {
+                                paths
+                                    .add(toFileReplicate(component.location().resolveFile(export.directory))
+                                        .getAbsolutePath());
+                            } catch(FileSystemException e) {
+                                System.out.println("Failed to locate path");
+                                e.printStackTrace();
                             }
                         }
+                    }
 
-                        @Override public void visit(LangFileExport export) {
-                            // Ignore file exports
-                        }
+                    @Override public void visit(LangFileExport export) {
+                        // Ignore file exports
+                    }
 
-                        @Override public void visit(ResourceExport export) {
-                            // Ignore resource exports
-                        }
-                    });
-                }
+                    @Override public void visit(ResourceExport export) {
+                        // Ignore resource exports
+                    }
+                });
             }
         }
         

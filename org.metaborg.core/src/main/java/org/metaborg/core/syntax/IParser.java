@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import javax.annotation.Nullable;
 
 /**
  * Interface for a context-free parser implementation.
@@ -16,7 +17,7 @@ import org.metaborg.util.task.IProgress;
 public interface IParser<I extends IInputUnit, P extends IParseUnit> {
     /**
      * Parses given input unit into a parse unit.
-     * 
+     *
      * @param input
      *            Input unit to parse.
      * @return Parse unit.

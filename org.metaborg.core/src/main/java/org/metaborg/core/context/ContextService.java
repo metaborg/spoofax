@@ -11,38 +11,49 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class ContextService implements IContextService, IContextProcessor {
     private static final ILogger logger = LoggerUtils.logger(ContextService.class);
 
+    private final Injector injector;
+
     private final ConcurrentMap<ContextIdentifier, IContextInternal> idToContext = Maps.newConcurrentMap();
     private final ConcurrentMap<ILanguageImpl, ContextIdentifier> langToContextId = Maps.newConcurrentMap();
 
-
-    @Override public boolean available(ILanguageImpl language) {
-        final ContextFacet facet = language.facet(ContextFacet.class);
-        return facet != null;
+    @Inject public ContextService(Injector injector) {
+        this.injector = injector;
     }
+
 
     @Override public IContext get(FileObject resource, IProject project, ILanguageImpl language)
         throws ContextException {
-        final ContextFacet facet = getFacet(resource, language);
-        final ContextIdentifier identifier = facet.strategy.get(resource, project, language);
-        return getOrCreate(facet.factory, identifier);
+        if(available(language)) {
+            final ContextFacet facet = getFacet(resource, language);
+            final ContextIdentifier identifier = facet.strategy.get(resource, project, language);
+            return getOrCreate(facet.factory, identifier);
+        } else {
+            return createNullContext(project, language);
+        }
     }
 
     @Override public ITemporaryContext getTemporary(FileObject resource, IProject project, ILanguageImpl language)
         throws ContextException {
-        final ContextFacet facet = getFacet(resource, language);
-        ContextIdentifier identifier;
-        try {
-            identifier = facet.strategy.get(resource, project, language);
-        } catch(ContextException e) {
-            logger.debug("Could not create a context via context strategy of language {} (see exception)"
-                + ", creating context with given resource {} instead", e, language, resource);
-            identifier = new ContextIdentifier(resource, project, language);
+        if(available(language)) {
+            final ContextFacet facet = getFacet(resource, language);
+            ContextIdentifier identifier;
+            try {
+                identifier = facet.strategy.get(resource, project, language);
+            } catch(ContextException e) {
+                logger.debug("Could not create a context via context strategy of language {} (see exception)"
+                    + ", creating context with given resource {} instead", e, language, resource);
+                identifier = new ContextIdentifier(resource, project, language);
+            }
+            return createTemporary(facet.factory, identifier);
+        } else {
+            return createNullContext(project, language);
         }
-        return createTemporary(facet.factory, identifier);
     }
 
     @Override public void unload(IContext context) {
@@ -71,6 +82,11 @@ public class ContextService implements IContextService, IContextProcessor {
         }
     }
 
+
+    private boolean available(ILanguageImpl language) {
+        final ContextFacet facet = language.facet(ContextFacet.class);
+        return facet != null;
+    }
 
     private ContextFacet getFacet(FileObject resource, ILanguageImpl language) throws ContextException {
         final ContextFacet facet = language.facet(ContextFacet.class);
@@ -113,4 +129,9 @@ public class ContextService implements IContextService, IContextProcessor {
     private ITemporaryContextInternal createTemporary(IContextFactory factory, ContextIdentifier identifier) {
         return factory.createTemporary(identifier);
     }
+
+    private NullContext createNullContext(IProject project, ILanguageImpl language) {
+        return new NullContext(project.location(), project, language, injector);
+    }
+
 }

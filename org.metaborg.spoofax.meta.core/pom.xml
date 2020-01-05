@@ -60,20 +60,20 @@
 			<version>${metaborg-version}</version>
 		</dependency>
 		<dependency>
+      		<groupId>org.metaborg</groupId>
+      		<artifactId>org.metaborg.parsetable</artifactId>
+      		<version>${metaborg-version}</version>
+    	</dependency>
+    	<dependency>
+      		<groupId>org.metaborg</groupId>
+      		<artifactId>stratego.compiler.pack</artifactId>
+      		<version>${metaborg-version}</version>
+    	</dependency>
+		<dependency>
 			<groupId>org.metaborg</groupId>
-			<artifactId>characterclasses</artifactId>
+			<artifactId>stratego.build</artifactId>
 			<version>${metaborg-version}</version>
 		</dependency>
-		<dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>tableinterfaces</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>stratego.compiler.pack</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
 		<dependency>
 			<groupId>build.pluto</groupId>
 			<artifactId>pluto</artifactId>
@@ -81,6 +81,14 @@
 		<dependency>
 			<groupId>build.pluto</groupId>
 			<artifactId>build-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>pie.runtime</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>pie.taskdefs.guice</artifactId>
 		</dependency>
 
 		<dependency>

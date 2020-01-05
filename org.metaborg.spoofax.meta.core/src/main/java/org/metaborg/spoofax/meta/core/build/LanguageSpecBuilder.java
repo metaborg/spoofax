@@ -288,6 +288,8 @@ public class LanguageSpecBuilder implements AutoCloseable {
             throw new MetaborgException("Cleaning Pluto file attributes failed", e);
         }
 
+        GenerateSourcesBuilder.clean();
+
         for(IBuildStep buildStep : buildSteps) {
             buildStep.execute(LanguageSpecBuildPhase.clean, input);
         }
@@ -347,6 +349,8 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final Boolean sdfEnabled = config.sdfEnabled();
         final String sdfModule = config.sdfName();
         final JSGLRVersion jsglrVersion = config.jsglrVersion();
+        final Boolean checkOverlap = config.checkOverlap();
+        final Boolean checkPriorities = config.checkPriorities();
 
         final FileObject sdfFileCandidate;
         final SdfVersion sdfVersion = config.sdfVersion();
@@ -491,10 +495,10 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
-            sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
-            packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles, strFile, strStratPkg,
-            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
-            strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting());
+            sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
+            sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
+            sdfMetaFiles, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
+            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting());
 
     }
 

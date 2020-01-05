@@ -3,27 +3,28 @@ plugins {
 }
 
 dependencies {
-  compile(project(":org.metaborg.core"))
-  compile(project(":org.metaborg.meta.core"))
-  compile(project(":org.metaborg.spoofax.core"))
+  api(platform("org.metaborg:parent:$version"))
 
-  compile("org.metaborg:org.metaborg.spoofax.nativebundle:2.6.0-SNAPSHOT")
-  compile("org.metaborg:org.metaborg.util:2.6.0-SNAPSHOT")
-  compile("org.metaborg:strategoxt-min-jar:2.6.0-SNAPSHOT")
-  compile("org.metaborg:make-permissive:2.6.0-SNAPSHOT")
-  compile("org.metaborg:sdf2table:2.6.0-SNAPSHOT")
-  compile("org.metaborg:sdf2parenthesize:2.6.0-SNAPSHOT")
-  compile("org.metaborg:characterclasses:2.6.0-SNAPSHOT")
-  compile("org.metaborg:tableinterfaces:2.6.0-SNAPSHOT")
-  compile("org.metaborg:stratego.compiler.pack:2.6.0-SNAPSHOT")
+  api(project(":org.metaborg.core"))
+  api(project(":org.metaborg.meta.core"))
+  api(project(":org.metaborg.spoofax.core"))
 
-  compile("build.pluto:pluto:1.11.0")
-  compile("build.pluto:build-java:1.7.0")
-  compile("com.google.inject:guice:4.2.0")
-  compile("com.google.inject.extensions:guice-multibindings:4.2.0")
-  compile("com.github.spullara.mustache.java:compiler:0.9.2")
-  compile("org.apache.ant:ant:1.9.6")
-  compile("ant-contrib:ant-contrib:1.0b3")
+  api("org.metaborg:org.metaborg.spoofax.nativebundle:$version") // TODO: project dependency
+  api("org.metaborg:org.metaborg.util:$version")
+  api("org.metaborg:strategoxt-min-jar:$version")
+  api("org.metaborg:make-permissive:$version")
+  api("org.metaborg:sdf2table:$version")
+  api("org.metaborg:sdf2parenthesize:$version")
+  api("org.metaborg:org.metaborg.parsetable:$version")
+  api("org.metaborg:stratego.compiler.pack:$version")
 
-  compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+  api("build.pluto:pluto")
+  api("build.pluto:build-java")
+  api("com.google.inject:guice")
+  api("com.google.inject.extensions:guice-multibindings")
+  api("com.github.spullara.mustache.java:compiler")
+  api("org.apache.ant:ant:1.9.6")
+  api("ant-contrib:ant-contrib:1.0b3")
+
+  compileOnly("com.google.code.findbugs:jsr305")
 }

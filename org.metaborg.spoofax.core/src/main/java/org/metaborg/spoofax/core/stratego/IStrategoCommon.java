@@ -115,13 +115,32 @@ public interface IStrategoCommon {
      * 
      * @param ast
      *            Term to use as the AST.
+     * @param selectedTerm
+     *            Optional selected term.
      * @param resource
      *            Location of the input resource.
      * @param location
      *            Location of the input context.
      * @return A 5-tuple input term (selected, position, ast, path, project-path).
      */
-    IStrategoTerm builderInputTerm(IStrategoTerm ast, FileObject resource, FileObject location);
+    IStrategoTerm builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
+        @Nullable FileObject resource, @Nullable FileObject location);
+
+    /**
+     * Creates an input term for a builder.
+     * 
+     * @param ast
+     *            Term to use as the AST.
+     * @param resource
+     *            Location of the input resource.
+     * @param location
+     *            Location of the input context.
+     * @return A 5-tuple input term (selected, position, ast, path, project-path).
+     */
+    default IStrategoTerm builderInputTerm(IStrategoTerm ast, @Nullable FileObject resource,
+        @Nullable FileObject location) {
+        return builderInputTerm(ast, null, resource, location);
+    }
 
     /**
      * Turns given term into a string. If the term is a string, return the string. Otherwise, return a pretty-printed

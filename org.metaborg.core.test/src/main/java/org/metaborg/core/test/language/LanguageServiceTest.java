@@ -1,7 +1,7 @@
 package org.metaborg.core.test.language;
 
 import static org.junit.Assert.*;
-import static org.metaborg.util.test.Assert2.*;
+import static org.metaborg.core.test.Assert2.*;
 
 import org.apache.commons.vfs2.FileObject;
 import org.junit.Test;

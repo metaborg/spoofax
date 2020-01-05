@@ -1,6 +1,9 @@
 package org.metaborg.spoofax.core.syntax;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -8,13 +11,24 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
+import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
+import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.time.Timer;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.*;
+import org.spoofax.jsglr.client.Asfix2TreeBuilder;
+import org.spoofax.jsglr.client.Disambiguator;
+import org.spoofax.jsglr.client.FilterException;
+import org.spoofax.jsglr.client.NullTreeBuilder;
+import org.spoofax.jsglr.client.ParseException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.SGLRParseResult;
+import org.spoofax.jsglr.client.StartSymbolException;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -26,17 +40,21 @@ import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 
+import com.google.common.collect.Lists;
+
 public class JSGLR1I extends JSGLRI<ParseTable> {
     private final ParseTable parseTable;
     private final SGLR parser;
+    private final Context context;
 
-    public JSGLR1I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect)
-        throws IOException {
+    public JSGLR1I(IParserConfig config, ITermFactory termFactory, Context context, ILanguageImpl language,
+        ILanguageImpl dialect) throws IOException {
         super(config, termFactory, language, dialect);
 
         final TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(termFactory));
         this.parseTable = getParseTable(config.getParseTableProvider());
         this.parser = new SGLR(new TreeBuilder(factory), parseTable);
+        this.context = context;
     }
 
     @Override public ParseContrib parse(@Nullable JSGLRParserConfiguration parserConfig, @Nullable FileObject resource,
@@ -84,7 +102,20 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         }
 
         final boolean hasAst = ast != null;
-        final Iterable<IMessage> messages = errorHandler.messages();
+        final List<IMessage> messages = new ArrayList<>();
+        for(IMessage message : errorHandler.messages()) {
+            messages.add(message);
+        }
+
+        // add non-assoc warnings to messages
+        messages.addAll(addDisambiguationWarnings(ast, resource));
+
+        if(config.getImploderSetting() == ImploderImplementation.stratego) {
+            for(BadTokenException badTokenException : parser.getCollectedErrors()) {
+                final String message = badTokenException.getMessage();
+                messages.add(MessageFactory.newParseErrorAtTop(resource, message, null));
+            }
+        }
         final boolean hasErrors = MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
         return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
     }
@@ -115,10 +146,10 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         SGLRParseResult parseResult =
             parseAndRecover(text, filename, disambiguator, getOrDefaultStartSymbol(parserConfig));
         if(config.getImploderSetting() == ImploderImplementation.stratego) {
+            org.strategoxt.stratego_sglr.Main.init(context);
             final implode_asfix_0_0 imploder = implode_asfix_0_0.instance;
-            final Context strategoContext = new Context(this.termFactory);
             final IStrategoTerm syntaxTree = (IStrategoTerm) parseResult.output;
-            return new SGLRParseResult(imploder.invoke(strategoContext, syntaxTree));
+            return new SGLRParseResult(imploder.invoke(context, syntaxTree));
         } else {
             return parseResult;
         }
@@ -155,5 +186,55 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
     @Override public Set<BadTokenException> getCollectedErrors() {
         return parser.getCollectedErrors();
+    }
+
+    private Collection<? extends IMessage> addDisambiguationWarnings(IStrategoTerm ast, @Nullable FileObject resource) {
+        List<IMessage> result = Lists.newArrayList();
+
+        boolean addedMessage = false;
+
+        // non-associative and non-nested operators should be flagged with warnings
+        if(ast instanceof IStrategoAppl && ast.getAllSubterms().length >= 1) {
+            String sortConsParent =
+                ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
+
+            IStrategoTerm firstChild = ast.getSubterm(0);
+            IStrategoTerm lastChild = ast.getSubterm(ast.getSubtermCount() - 1);
+
+            if(firstChild instanceof IStrategoAppl) {
+                IStrategoAppl leftMostChild = (IStrategoAppl) firstChild;
+                @Nullable ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
+                String sortConsChild = ImploderAttachment.getSort(ast) + "." + leftMostChild.getConstructor().getName();
+                if(leftMostChildAttachment != null && !leftMostChildAttachment.isBracket() && parseTable instanceof ParseTable
+                    && parseTable.getNonAssocPriorities().containsEntry(sortConsParent, sortConsChild)) {
+                    ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
+                        ImploderAttachment.getRightToken(ast));
+                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-associative", null));
+                    addedMessage = true;
+                }
+            }
+
+            if(lastChild instanceof IStrategoAppl) {
+                IStrategoAppl rightMostChild = (IStrategoAppl) lastChild;
+                @Nullable ImploderAttachment rightMostChildAttachment = ImploderAttachment.get(rightMostChild);
+                String sortConsChild =
+                    ImploderAttachment.getSort(ast) + "." + rightMostChild.getConstructor().getName();
+                if(rightMostChildAttachment != null && !rightMostChildAttachment.isBracket() && parseTable instanceof ParseTable
+                    && parseTable.getNonNestedPriorities().containsEntry(sortConsParent, sortConsChild)) {
+                    ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
+                        ImploderAttachment.getRightToken(ast));
+                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-nested", null));
+                    addedMessage = true;
+                }
+            }
+        }
+
+        if(ast != null && !addedMessage) {
+            for(IStrategoTerm child : ast.getAllSubterms()) {
+                result.addAll(addDisambiguationWarnings(child, resource));
+            }
+        }
+
+        return result;
     }
 }
