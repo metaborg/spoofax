@@ -137,11 +137,11 @@ public class StrategoCommon implements IStrategoCommon {
             return new MetaborgException(message, e);
         } catch(InterpreterExit e) {
             final String message = logger.format("Invoking Stratego strategy {} failed with exit code {}\n{}\n{}",
-                strategy, e.getValue(), trace, e);
+                strategy, e.getValue(), trace, e.getMessage());
             return new MetaborgException(message, e);
         } catch(UndefinedStrategyException e) {
             final String message = logger.format("Invoking Stratego strategy {} failed, strategy is undefined\n{}\n{}",
-                strategy, trace, e);
+                strategy, trace, e.getMessage());
             return new MetaborgException(message, e);
         } catch(InterpreterException e) {
             final Throwable cause = e.getCause();
@@ -149,7 +149,8 @@ public class StrategoCommon implements IStrategoCommon {
                 return handleException((InterpreterException) cause, runtime, strategy);
             } else {
                 String message =
-                    logger.format("Invoking Stratego strategy {} failed unexpectedly\n{}\n{}", strategy, trace, e);
+                    logger.format("Invoking Stratego strategy {} failed unexpectedly\n{}\n{}", strategy, trace,
+                        e.getMessage());
                 return new MetaborgException(message, e);
             }
         }
