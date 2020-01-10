@@ -13,6 +13,8 @@ import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
+import org.metaborg.core.messages.MessageSeverity;
+import org.metaborg.core.messages.MessageUtils;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.parsetable.IParseTable;
 import org.metaborg.sdf2table.parsetable.ParseTable;
@@ -24,6 +26,8 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr2.JSGLR2;
+import org.spoofax.jsglr2.JSGLR2Result;
+import org.spoofax.jsglr2.JSGLR2Success;
 import org.spoofax.jsglr2.JSGLR2Variant;
 
 import com.google.common.collect.Lists;
@@ -67,15 +71,13 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
             parserConfig = new JSGLRParserConfiguration();
         }
 
-        final String fileName = resource != null ? resource.getName().getURI() : null;
         String startSymbol = getOrDefaultStartSymbol(parserConfig);
 
         final Timer timer = new Timer(true);
 
-        final IStrategoTerm ast = parser.parse(input, fileName, startSymbol);
-
-
-        final List<IMessage> messages = Lists.newArrayList();
+        final JSGLR2Result<IStrategoTerm> result = parser.parseResult(input, resource, startSymbol);
+        IStrategoTerm ast = result.isSuccess() ? ((JSGLR2Success<IStrategoTerm>) result).ast : null;
+        final Collection<IMessage> messages = result.messages;
 
         // add non-assoc warnings to messages
         messages.addAll(addDisambiguationWarnings(ast, resource));
@@ -83,10 +85,10 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         final long duration = timer.stop();
 
         final boolean hasAst = ast != null;
-        final boolean hasErrors = ast == null;
+        final boolean hasErrors = MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
 
-        if(hasErrors)
-            messages.add(MessageFactory.newParseErrorAtTop(resource, "Invalid syntax", null));
+        if(hasAst && resource != null)
+            SourceAttachment.putSource(ast, resource);
 
         return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
     }
