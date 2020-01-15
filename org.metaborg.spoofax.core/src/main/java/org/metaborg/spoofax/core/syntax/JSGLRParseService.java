@@ -171,8 +171,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         }
 
         if(!parserConfigMap.containsKey(lang)) {
-            final ITermFactory termFactory =
-                termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
+            final ITermFactory termFactory = termFactoryService.getGeneric();
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
 
             final String errorNotFound;
