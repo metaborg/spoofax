@@ -240,7 +240,8 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         try {
             source = resourceService.resolve(sourceString);
         } catch(MetaborgRuntimeException e) {
-            logger.error("Cannot find original source for {}, skipping update result", e, sourceString);
+            // TODO: remove source from index and task engine?
+            logger.debug("Cannot find original source for {}, skipping update result", e, sourceString);
             return null;
         }
 
