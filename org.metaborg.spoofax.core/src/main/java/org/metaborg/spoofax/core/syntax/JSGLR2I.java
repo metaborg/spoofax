@@ -78,11 +78,12 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
             parserConfig = new JSGLRParserConfiguration();
         }
 
+        final String fileName = resource != null ? resource.getName().getURI() : "";
         String startSymbol = getOrDefaultStartSymbol(parserConfig);
 
         final Timer timer = new Timer(true);
 
-        final JSGLR2Result<IStrategoTerm> result = parser.parseResult(input, resource, startSymbol);
+        final JSGLR2Result<IStrategoTerm> result = parser.parseResult(input, fileName, startSymbol);
         IStrategoTerm ast = result.isSuccess() ? ((JSGLR2Success<IStrategoTerm>) result).ast : null;
         final Collection<IMessage> messages = mapMessages(resource, result.messages);
 
