@@ -59,6 +59,10 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
                 return JSGLR2Variant.Preset.incremental;
             case layoutSensitive:
                 return JSGLR2Variant.Preset.layoutSensitive;
+            case recovery:
+                return JSGLR2Variant.Preset.recovery;
+            case recoveryIncremental:
+                return JSGLR2Variant.Preset.recoveryIncremental;
             case v2:
             default:
                 return JSGLR2Variant.Preset.standard;
