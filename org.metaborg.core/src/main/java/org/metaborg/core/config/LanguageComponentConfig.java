@@ -251,6 +251,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         if(value != null && value.equals("layout-sensitive")) {
             return JSGLRVersion.layoutSensitive;
         }
+        if(value != null && value.equals("recovery-incremental")) {
+            return JSGLRVersion.recoveryIncremental;
+        }
         return value != null ? JSGLRVersion.valueOf(value) : JSGLRVersion.v1;
     }
 }
