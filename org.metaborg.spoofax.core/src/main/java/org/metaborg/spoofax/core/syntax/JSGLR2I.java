@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -16,6 +17,7 @@ import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
 import org.metaborg.core.source.ISourceRegion;
+import org.metaborg.core.source.SourceRegion;
 import org.metaborg.parsetable.IParseTable;
 import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.core.unit.ParseContrib;
@@ -29,6 +31,7 @@ import org.spoofax.jsglr2.JSGLR2;
 import org.spoofax.jsglr2.JSGLR2Result;
 import org.spoofax.jsglr2.JSGLR2Success;
 import org.spoofax.jsglr2.JSGLR2Variant;
+import org.spoofax.jsglr2.messages.Message;
 
 import com.google.common.collect.Lists;
 
@@ -81,7 +84,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
         final JSGLR2Result<IStrategoTerm> result = parser.parseResult(input, resource, startSymbol);
         IStrategoTerm ast = result.isSuccess() ? ((JSGLR2Success<IStrategoTerm>) result).ast : null;
-        final Collection<IMessage> messages = result.messages;
+        final Collection<IMessage> messages = mapMessages(resource, result.messages);
 
         // add non-assoc warnings to messages
         messages.addAll(addDisambiguationWarnings(ast, resource));
@@ -95,6 +98,26 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
             SourceAttachment.putSource(ast, resource);
 
         return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
+    }
+
+    private Collection<IMessage> mapMessages(FileObject resource, Collection<Message> messages) {
+        return messages.stream().map(message -> {
+            ISourceRegion region = new SourceRegion(message.region.startOffset, message.region.startRow,
+                message.region.startColumn, message.region.endOffset, message.region.endRow, message.region.endColumn);
+            MessageSeverity severity;
+
+            switch(message.severity) {
+                case WARNING:
+                    severity = MessageSeverity.WARNING;
+                    break;
+                case ERROR:
+                default:
+                    severity = MessageSeverity.ERROR;
+                    break;
+            }
+
+            return MessageFactory.newParseMessage(resource, region, message.message, severity, null);
+        }).collect(Collectors.toList());
     }
 
     @Override public Set<BadTokenException> getCollectedErrors() {
