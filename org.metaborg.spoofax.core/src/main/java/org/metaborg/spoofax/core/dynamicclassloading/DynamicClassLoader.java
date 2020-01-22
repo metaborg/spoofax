@@ -1,14 +1,14 @@
-package org.metaborg.spoofax.core.stratego;
+package org.metaborg.spoofax.core.dynamicclassloading;
 
 import org.strategoxt.HybridInterpreter;
 
-public class StrategoRuntimeClassLoader extends ClassLoader {
+public class DynamicClassLoader extends ClassLoader {
     private final ClassLoader strategoClassLoader = HybridInterpreter.class.getClassLoader();
     private final Iterable<ClassLoader> additionalClassLoaders;
 
 
-    public StrategoRuntimeClassLoader(Iterable<ClassLoader> additionalClassLoaders) {
-        super(StrategoRuntimeClassLoader.class.getClassLoader());
+    public DynamicClassLoader(Iterable<ClassLoader> additionalClassLoaders) {
+        super(DynamicClassLoader.class.getClassLoader());
         this.additionalClassLoaders = additionalClassLoaders;
     }
 
