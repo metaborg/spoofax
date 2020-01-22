@@ -233,7 +233,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
             try {
                 dynamicClassLoadingFacet = DynamicClassLoadingFacetFromESV.create(esvTerm, root);
-                if(dynamicClassLoadingFacet != null) {
+                if(!dynamicClassLoadingFacet.jarFiles.isEmpty()) {
                     Iterables.addAll(errors, dynamicClassLoadingFacet.available(resourceService));
                 }
             } catch(IOException e) {
@@ -242,7 +242,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
             try {
                 strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, root);
-                if(strategoRuntimeFacet != null) {
+                if(!strategoRuntimeFacet.ctreeFiles.isEmpty() || (dynamicClassLoadingFacet != null && !dynamicClassLoadingFacet.jarFiles.isEmpty())) {
                     Iterables.addAll(errors, strategoRuntimeFacet.available(resourceService));
                 }
             } catch(IOException e) {

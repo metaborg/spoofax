@@ -17,7 +17,7 @@ public class DynamicClassLoadingFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(DynamicClassLoadingFacetFromESV.class);
 
 
-    public static @Nullable DynamicClassLoadingFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
+    public static DynamicClassLoadingFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
         final Set<FileObject> strategoFiles = providerResources(esv, location);
         // Use LinkedHashSet to maintain ordering.
         final Set<FileObject> jarFiles = Sets.newLinkedHashSet();
@@ -35,12 +35,7 @@ public class DynamicClassLoadingFacetFromESV {
             }
         }
 
-        if(jarFiles.isEmpty()) {
-            return null;
-        }
-
-        final DynamicClassLoadingFacet facet = new DynamicClassLoadingFacet(jarFiles);
-        return facet;
+        return new DynamicClassLoadingFacet(jarFiles);
     }
 
 

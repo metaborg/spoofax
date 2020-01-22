@@ -17,7 +17,7 @@ public class StrategoRuntimeFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeFacetFromESV.class);
 
 
-    public static @Nullable StrategoRuntimeFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
+    public static StrategoRuntimeFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
         final Set<FileObject> strategoFiles = providerResources(esv, location);
         // Use LinkedHashSet to maintain ordering.
         final Set<FileObject> ctreeFiles = Sets.newLinkedHashSet();
@@ -35,12 +35,7 @@ public class StrategoRuntimeFacetFromESV {
             }
         }
 
-        if(ctreeFiles.isEmpty()) {
-            return null;
-        }
-
-        final StrategoRuntimeFacet facet = new StrategoRuntimeFacet(ctreeFiles);
-        return facet;
+        return new StrategoRuntimeFacet(ctreeFiles);
     }
 
 
