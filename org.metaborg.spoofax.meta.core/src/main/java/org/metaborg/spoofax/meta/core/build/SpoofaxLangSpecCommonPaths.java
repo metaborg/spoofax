@@ -39,7 +39,7 @@ public class SpoofaxLangSpecCommonPaths extends SpoofaxCommonPaths {
     public FileObject strSrcGenJavaTransDir(String languageId) {
         final String pkg = strJavaTransPkg(languageId);
         final String pkgPath = pkg.replace('.', '/');
-        return resolve(srcGenDir(), "java", pkgPath);
+        return resolve(srcGenDir(), "stratego-java", pkgPath);
     }
 
     /**

@@ -1,8 +1,7 @@
 package org.metaborg.spoofax.core.test.language;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.metaborg.core.test.Assert2.assertIterableEquals;
+import static org.junit.Assert.*;
+import static org.metaborg.core.test.Assert2.*;
 
 import org.apache.commons.vfs2.FileObject;
 import org.junit.Test;
@@ -13,7 +12,6 @@ import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.test.language.LanguageServiceTest;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
-import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 
@@ -53,11 +51,10 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
 
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
-        final DynamicClassLoadingFacet dynamicClassLoadingFacet = impl.facet(DynamicClassLoadingFacet.class);
-        final StrategoRuntimeFacet strategoRuntimeFacet = impl.facet(StrategoRuntimeFacet.class);
+        final StrategoRuntimeFacet strategoFacet = impl.facet(StrategoRuntimeFacet.class);
 
-        assertIterableEquals(strategoRuntimeFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
-        assertIterableEquals(dynamicClassLoadingFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));
+        assertIterableEquals(strategoFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
+        assertIterableEquals(strategoFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));
 
         final AnalysisFacet analysisFacet = impl.facet(AnalysisFacet.class);
 

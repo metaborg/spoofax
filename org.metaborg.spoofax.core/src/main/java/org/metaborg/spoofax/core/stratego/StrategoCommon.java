@@ -10,8 +10,6 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
-import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -53,7 +51,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
         String strategy) throws MetaborgException {
-        if(!IStrategoCommon.hasStrategoFacets(component)) {
+        if(component.facet(StrategoRuntimeFacet.class) == null) {
             return null;
         }
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
@@ -64,7 +62,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(!IStrategoCommon.hasStrategoFacets(component)) {
+            if(component.facet(StrategoRuntimeFacet.class) == null) {
                 continue;
             }
 
@@ -84,7 +82,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(!IStrategoCommon.hasStrategoFacets(component)) {
+            if(component.facet(StrategoRuntimeFacet.class) == null) {
                 continue;
             }
 
@@ -99,7 +97,6 @@ public class StrategoCommon implements IStrategoCommon {
         }
         throw new AggregateMetaborgException(exceptions);
     }
-
 
     @Override public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
         throws MetaborgException {
@@ -200,14 +197,34 @@ public class StrategoCommon implements IStrategoCommon {
         return resourceTerm;
     }
 
-    @Override public BuilderInput builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
+    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
         @Nullable FileObject resource, @Nullable FileObject location) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
         final IStrategoTerm node = selectedTerm != null ? selectedTerm : ast;
         final IStrategoTerm position = termFactory.makeList();
 
-        return new BuilderInput(termFactory, node, position, ast, resource, location);
+        final String locationURI;
+        final String resourceURI;
+
+        if(resource != null && location != null) {
+            locationURI = location.getName().getURI();
+            resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
+        } else if(resource != null) {
+            locationURI = "";
+            resourceURI = resource.getName().getURI();
+        } else if(location != null) {
+            locationURI = location.getName().getURI();
+            resourceURI = "";
+        } else {
+            locationURI = "";
+            resourceURI = "";
+        }
+
+        final IStrategoString locationTerm = termFactory.makeString(locationURI);
+        final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
+
+        return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);
     }
 
     @Override public String toString(IStrategoTerm term) {

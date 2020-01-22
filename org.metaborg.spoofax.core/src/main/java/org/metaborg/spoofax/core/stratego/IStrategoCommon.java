@@ -7,8 +7,6 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
-import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;
@@ -95,7 +93,7 @@ public interface IStrategoCommon {
     /**
      * Converts a location into a Stratego string.
      * 
-     * @param location
+     * @param localLocation
      *            Location to convert.
      * @return Stratego string with location.
      */
@@ -104,9 +102,9 @@ public interface IStrategoCommon {
     /**
      * Converts a resource relative to a location into a Stratego string.
      * 
-     * @param resource
+     * @param localResource
      *            Resource to convert.
-     * @param location
+     * @param localLocation
      *            Location to convert relative to.
      * @return Stratego string with resource.
      */
@@ -125,8 +123,8 @@ public interface IStrategoCommon {
      *            Location of the input context.
      * @return A 5-tuple input term (selected, position, ast, path, project-path).
      */
-    BuilderInput builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
-                                  @Nullable FileObject resource, @Nullable FileObject location);
+    IStrategoTerm builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
+        @Nullable FileObject resource, @Nullable FileObject location);
 
     /**
      * Creates an input term for a builder.
@@ -139,7 +137,7 @@ public interface IStrategoCommon {
      *            Location of the input context.
      * @return A 5-tuple input term (selected, position, ast, path, project-path).
      */
-    default BuilderInput builderInputTerm(IStrategoTerm ast, @Nullable FileObject resource,
+    default IStrategoTerm builderInputTerm(IStrategoTerm ast, @Nullable FileObject resource,
         @Nullable FileObject location) {
         return builderInputTerm(ast, null, resource, location);
     }
@@ -162,13 +160,4 @@ public interface IStrategoCommon {
      * @return Pretty printed ATerm as a Stratego string.
      */
     IStrategoString prettyPrint(IStrategoTerm term);
-
-    /**
-     * @param component
-     *            Component to check
-     * @return if the component has a facet that refers to Stratego code
-     */
-    static boolean hasStrategoFacets(ILanguageComponent component) {
-        return component.facet(DynamicClassLoadingFacet.class) != null || component.facet(StrategoRuntimeFacet.class) != null;
-    }
 }
