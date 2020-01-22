@@ -252,7 +252,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
         final ComponentFactoryRequest request;
         if(errors.isEmpty() && exceptions.isEmpty()) {
-            request = new ComponentFactoryRequest(root, config, esvTerm, syntaxFacet, dynamicClassLoadingFacet);
+            request = new ComponentFactoryRequest(root, config, esvTerm, syntaxFacet, dynamicClassLoadingFacet, strategoRuntimeFacet);
         } else {
             request = new ComponentFactoryRequest(root, errors, exceptions);
         }

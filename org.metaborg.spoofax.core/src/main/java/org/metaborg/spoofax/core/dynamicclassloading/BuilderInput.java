@@ -19,10 +19,9 @@ public class BuilderInput extends StrategoTuple implements IBuilderInput<IStrate
     public BuilderInput(ITermFactory termFactory, IStrategoTerm selection, IStrategoTerm position, IStrategoTerm ast, @Nullable FileObject resource,
         @Nullable FileObject location) {
         super(new IStrategoTerm[] { selection, position, ast,
-                    new StrategoString(resourceString(resource, location), termFactory.makeList(), IStrategoTerm.IMMUTABLE),
-                    new StrategoString(locationString(location), termFactory.makeList(), IStrategoTerm.IMMUTABLE) }, 
-                termFactory.makeList(),
-                IStrategoTerm.IMMUTABLE);
+                    new StrategoString(resourceString(resource, location), termFactory.makeList()),
+                    new StrategoString(locationString(location), termFactory.makeList()) }, 
+                termFactory.makeList());
 
         this.selection = selection;
         this.position = position;
