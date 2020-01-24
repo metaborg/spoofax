@@ -9,6 +9,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.language.IComponentCreationConfigRequest;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -23,6 +24,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
     @Nullable private final ILanguageComponentConfig config;
     @Nullable private final IStrategoAppl esvTerm;
     @Nullable private final SyntaxFacet syntaxFacet;
+    @Nullable private final DynamicClassLoadingFacet dynamicClassLoadingFacet;
     @Nullable private final StrategoRuntimeFacet strategoRuntimeFacet;
 
 
@@ -37,11 +39,12 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
      *            The ESV term.
      * @param syntaxFacet
      *            The syntax facet.
-     * @param strategoRuntimeFacet
+     * @param dynamicClassLoadingFacet
      *            The Stratego runtime facet.
      */
     public ComponentFactoryRequest(FileObject location, @Nullable ILanguageComponentConfig config,
         @Nullable IStrategoAppl esvTerm, @Nullable SyntaxFacet syntaxFacet,
+        @Nullable DynamicClassLoadingFacet dynamicClassLoadingFacet,
         @Nullable StrategoRuntimeFacet strategoRuntimeFacet) {
         this.available = true;
         this.location = location;
@@ -50,6 +53,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
         this.esvTerm = esvTerm;
         this.config = config;
         this.syntaxFacet = syntaxFacet;
+        this.dynamicClassLoadingFacet = dynamicClassLoadingFacet;
         this.strategoRuntimeFacet = strategoRuntimeFacet;
     }
 
@@ -71,6 +75,7 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
         this.esvTerm = null;
         this.config = null;
         this.syntaxFacet = null;
+        this.dynamicClassLoadingFacet = null;
         this.strategoRuntimeFacet = null;
     }
 
@@ -165,9 +170,18 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
     }
 
     /**
-     * Gets the Stratego runtime facet.
+     * Gets the DynamicClassLoading facet.
      *
-     * @return The Stratego runtime facet; or <code>null</code> when there is no Stratego runtime facet.
+     * @return The DynamicClassLoading facet; or <code>null</code> when there is no DynamicClassLoading facet.
+     */
+    public @Nullable DynamicClassLoadingFacet dynamicClassLoadingFacet() {
+        return this.dynamicClassLoadingFacet;
+    }
+
+    /**
+     * Gets the DynamicClassLoading facet.
+     *
+     * @return The DynamicClassLoading facet; or <code>null</code> when there is no DynamicClassLoading facet.
      */
     public @Nullable StrategoRuntimeFacet strategoRuntimeFacet() {
         return this.strategoRuntimeFacet;

@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.stratego;
+package org.metaborg.spoofax.core.dynamicclassloading;
 
 import java.util.Set;
 
@@ -13,21 +13,21 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Sets;
 
-public class StrategoRuntimeFacetFromESV {
-    private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeFacetFromESV.class);
+public class DynamicClassLoadingFacetFromESV {
+    private static final ILogger logger = LoggerUtils.logger(DynamicClassLoadingFacetFromESV.class);
 
 
-    public static StrategoRuntimeFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
+    public static DynamicClassLoadingFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
         final Set<FileObject> strategoFiles = providerResources(esv, location);
         // Use LinkedHashSet to maintain ordering.
-        final Set<FileObject> ctreeFiles = Sets.newLinkedHashSet();
+        final Set<FileObject> jarFiles = Sets.newLinkedHashSet();
         for(FileObject strategoFile : strategoFiles) {
             final String extension = strategoFile.getName().getExtension();
             switch (extension) {
-                case "ctree":
-                    ctreeFiles.add(strategoFile);
-                    break;
                 case "jar":
+                    jarFiles.add(strategoFile);
+                    break;
+                case "ctree":
                     break;
                 default:
                     logger.warn("Stratego provider file {} has unknown extension {}, ignoring", strategoFile, extension);
@@ -35,7 +35,7 @@ public class StrategoRuntimeFacetFromESV {
             }
         }
 
-        return new StrategoRuntimeFacet(ctreeFiles);
+        return new DynamicClassLoadingFacet(jarFiles);
     }
 
 

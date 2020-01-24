@@ -233,11 +233,11 @@ public class ConstraintContext implements IConstraintContext {
                     return readContext(contextFile);
                 }
             } catch(IOException | ClassNotFoundException e) {
-                logger.warn("Load context {} failed.", e, contextFile);
+                logger.warn("Load context {} failed: {}", contextFile, e.getMessage());
                 deleteContextFile(contextFile);
             }
         } catch(IOException e) {
-            logger.warn("Failed to locate context.", e);
+            logger.warn("Failed to locate context: {}", e.getMessage());
         }
         return initState();
     }
@@ -252,19 +252,20 @@ public class ConstraintContext implements IConstraintContext {
     }
 
     private State readContext(FileObject file) throws IOException, ClassNotFoundException, ClassCastException {
-        try(ObjectInputStream ois = new ClassLoaderObjectInputStream(getClass().getClassLoader(), file.getContent().getInputStream())) {
+        try(ObjectInputStream ois =
+                new ClassLoaderObjectInputStream(getClass().getClassLoader(), file.getContent().getInputStream())) {
             State fileState;
             try {
                 fileState = (State) ois.readObject();
             } catch(NotSerializableException ex) {
-                logger.error("Context could not be persisted.", ex);
+                logger.warn("Context could not be read: {}", ex.getMessage());
                 fileState = initState();
             } catch(Exception ex) {
                 final String msg = logger.format("Context file could not be read: {}", ex.getMessage());
                 throw new IOException(msg);
             }
             if(fileState == null) {
-                throw new IOException("Context file contains null.");
+                throw new IOException("Context file is empty.");
             }
             return fileState;
         }
@@ -276,10 +277,10 @@ public class ConstraintContext implements IConstraintContext {
             try {
                 writeContext(contextFile);
             } catch(IOException e) {
-                logger.warn("Store context {} failed.", e, contextFile);
+                logger.warn("Store context {} failed: {}", contextFile, e.getMessage());
             }
         } catch(IOException e) {
-            logger.warn("Failed to locate context.", e);
+            logger.warn("Failed to locate context: {}", e.getMessage());
         }
     }
 
@@ -287,7 +288,7 @@ public class ConstraintContext implements IConstraintContext {
         try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
             oos.writeObject(state);
         } catch(NotSerializableException ex) {
-            logger.warn("Constraint context persistence not serializable", ex);
+            logger.warn("Constraint context persistence not serializable: {}", ex.getMessage());
         } catch(Exception ex) {
             throw new IOException("Context file could not be written.", ex);
         }
@@ -297,7 +298,7 @@ public class ConstraintContext implements IConstraintContext {
         try {
             file.delete();
         } catch(FileSystemException e) {
-            logger.warn("Deleting context {} failed.", file, e);
+            logger.warn("Deleting context {} failed: {}", file, e.getMessage());
         }
     }
 
