@@ -221,6 +221,15 @@ import mb.nabl2.terms.stratego.primitives.SG_get_ast_index;
 import mb.nabl2.terms.stratego.primitives.SG_get_ast_resource;
 import mb.nabl2.terms.stratego.primitives.SG_index_ast;
 import mb.nabl2.terms.stratego.primitives.SG_set_ast_index;
+import mb.statix.spoofax.MSTX_end_phase;
+import mb.statix.spoofax.MSTX_end_run;
+import mb.statix.spoofax.MSTX_fix_run;
+import mb.statix.spoofax.MSTX_scope_graph;
+import mb.statix.spoofax.MSTX_solve_constraint;
+import mb.statix.spoofax.MSTX_solve_multi_file;
+import mb.statix.spoofax.MSTX_solve_multi_project;
+import mb.statix.spoofax.MSTX_start_phase;
+import mb.statix.spoofax.MSTX_start_run;
 import mb.statix.spoofax.STX_analysis_has_errors;
 import mb.statix.spoofax.STX_compare_patterns;
 import mb.statix.spoofax.STX_delays_as_errors;
@@ -473,6 +482,15 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);
+        bindPrimitive(statixLibrary, MSTX_end_phase.class);
+        bindPrimitive(statixLibrary, MSTX_end_run.class);
+        bindPrimitive(statixLibrary, MSTX_fix_run.class);
+        bindPrimitive(statixLibrary, MSTX_scope_graph.class);
+        bindPrimitive(statixLibrary, MSTX_solve_constraint.class);
+        bindPrimitive(statixLibrary, MSTX_solve_multi_file.class);
+        bindPrimitive(statixLibrary, MSTX_solve_multi_project.class);
+        bindPrimitive(statixLibrary, MSTX_start_phase.class);
+        bindPrimitive(statixLibrary, MSTX_start_run.class);
 
         /*
          * Note that FS_solve first needs to be identified as a Singleton, so that afterwards it
