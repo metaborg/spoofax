@@ -316,10 +316,9 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
         } else if(kind.equals("Sort") && sortName.equals("Option")) {
             SortType t = extractSortType(sort.getSubterm(1).getSubterm(0));
             return t == null ? null : new TOption(t);
-        } else if(kind.equals("SortVar")) {
-            return null;
         } else {
-            throw new IllegalArgumentException("Found type in unexpected format " + sort);
+            logger.error("Unsupported Stratego signature: " + sort);
+            return TAny.instance;
         }
     }
 }
