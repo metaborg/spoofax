@@ -23,7 +23,6 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
 import javax.annotation.Nullable;
@@ -140,7 +139,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
         final Map<ILanguageImpl, JSGLRI<?>> parserMap = parserConfig.completion ? completionParsers : parsers;
 
-        if(!parserMap.containsKey(langImpl)) {
+        if(!parserMap.containsKey(langImpl) || overrideImploder != null || overrideJSGLRVersion != null) {
             final IParserConfig config = getParserConfig(langImpl, input, parserConfig.completion, overrideJSGLRVersion, overrideImploder);
             final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
             final JSGLRVersion version = jsglrVersion(input, overrideJSGLRVersion);
@@ -153,9 +152,14 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                 } else {
                     parser = new JSGLR1I(config, termFactory, context, langImpl, null);
                 }
-            } else
+            } else {
                 parser = new JSGLR2I(config, termFactory, langImpl, null, version);
+            }
 
+            // Don't cache an overridden configuration
+            if(overrideImploder != null || overrideJSGLRVersion != null) {
+                return parser;
+            }
             parserMap.put(langImpl, parser);
         }
         return parserMap.get(langImpl);
@@ -170,7 +174,8 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
             parserConfigMap = this.parserConfigs;
         }
 
-        if(!parserConfigMap.containsKey(lang)) {
+        IParserConfig parserConfig = null;
+        if(!parserConfigMap.containsKey(lang) || overrideJSGLRVersion != null) {
             final ITermFactory termFactory = termFactoryService.getGeneric();
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
 
@@ -243,9 +248,14 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                 provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
             }
 
-            parserConfigMap.put(lang, new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder));
+            parserConfig = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder);
+            if(overrideJSGLRVersion == null) {
+                parserConfigMap.put(lang, parserConfig);
+            }
         }
-        IParserConfig parserConfig = parserConfigMap.get(lang);
+        if(parserConfig == null) {
+            parserConfig = parserConfigMap.get(lang);
+        }
         if(overrideImploder != null) {
             parserConfig = new ParserConfig(parserConfig.getStartSymbol(), parserConfig.getParseTableProvider(), overrideImploder);
         }
