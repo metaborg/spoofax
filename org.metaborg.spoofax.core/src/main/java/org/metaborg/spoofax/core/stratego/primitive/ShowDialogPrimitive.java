@@ -10,7 +10,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,8 @@ public final class ShowDialogPrimitive extends ASpoofaxContextPrimitive {
         final String message           = Tools.isTermString(current) ? Tools.asJavaString(current) : "<empty>"; // TODO: Term to string
         @Nullable final String caption = (0 < tvars.length && Tools.isTermString(tvars[0])) ? Tools.asJavaString(tvars[0]) : null;
         @Nullable final String kind    = (1 < tvars.length && Tools.isTermString(tvars[1])) ? Tools.asJavaString(tvars[1]) : null;
-        @Nullable final String options = (2 < tvars.length && Tools.isTermString(tvars[2])) ? Tools.asJavaString(tvars[2]) : null;
+        @Nullable List<String> options = (2 < tvars.length && Tools.isTermList(tvars[2]))   ? Tools.asJavaList(tvars[3]).stream()
+                .map(o -> Tools.isTermString(o) ? Tools.asJavaString(o) : null).collect(Collectors.toList()) : null;
         final int defaultOption        = (3 < tvars.length && Tools.isTermInt(tvars[3]))    ? Tools.asJavaInt(tvars[3])    : 0;
         // @formatter:on
 
@@ -51,14 +51,14 @@ public final class ShowDialogPrimitive extends ASpoofaxContextPrimitive {
      * @param message the message to display
      * @param caption the caption of the message; or {@code null} (default)
      * @param kind the kind of message, one of: "Error", "Warning", "Info", "Question", {@code null} (default)
-     * @param options the options given to the user, one of: "Ok" (default), "Ok+Cancel", "Yes+No", "Yes+No+Cancel", "Retry+Cancel", "Abort+Retry+Ignore", {@code null} (default)
+     * @param options the options given to the user, a list of "Ok", "Cancel", "Yes", "No", "Retry", "Abort", "Ignore"; or {@code null} (default)
      * @param defaultOption the index of the default option to use
      * @return the name of the option chosen by the user; or {@code null} when the user dismissed the dialog or it could not be shown
      */
     @Nullable
-    protected String invoke(String message, @Nullable String caption, @Nullable String kind, @Nullable String options, int defaultOption) {
+    protected String invoke(String message, @Nullable String caption, @Nullable String kind, @Nullable List<String> options, int defaultOption) {
         @Nullable ISpoofaxDialogService.DialogKind dialogKind = safeEnumValueOf(ISpoofaxDialogService.DialogKind.class, kind);
-        List<ISpoofaxDialogService.DialogOption> dialogOptions = Arrays.stream(options.split("\\+")).map(ISpoofaxDialogService.DialogOption::new).collect(Collectors.toList());
+        List<ISpoofaxDialogService.DialogOption> dialogOptions = options != null ? options.stream().map(ISpoofaxDialogService.DialogOption::new).collect(Collectors.toList()) : null;
 
         @Nullable ISpoofaxDialogService.DialogOption resultOption = dialogService.showDialog(
                 message, caption, dialogKind, dialogOptions, defaultOption);
