@@ -62,6 +62,7 @@ import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
+import org.metaborg.spoofax.core.dialogs.NullSpoofaxDialogService;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingService;
 import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
 import org.metaborg.spoofax.core.language.LanguageComponentFactory;
@@ -88,30 +89,7 @@ import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.primitive.AbsolutePathPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.CallStrategyPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.DigestPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.ExplicateInjectionsPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.GetSortNamePrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.IsLanguageActivePrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LanguageComponentsPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LanguageImplementationPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeDirectoriesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeFilesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LanguagePrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LanguageResourcesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceDirectoriesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceFilesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.ProjectSrcGenDirectory;
-import org.metaborg.spoofax.core.stratego.primitive.LocalPathPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.LocalReplicatePrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.ProjectPathPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.ProjectResourcesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitive.RelativeSourceOrIncludePath;
-import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
-import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
-import org.metaborg.spoofax.core.stratego.primitive.StatixLibrary;
+import org.metaborg.spoofax.core.stratego.primitive.*;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_partial_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.flowspec.FS_solve;
@@ -157,6 +135,7 @@ import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.transform.IStrategoTransformer;
 import org.metaborg.spoofax.core.transform.SpoofaxTransformService;
 import org.metaborg.spoofax.core.transform.StrategoTransformer;
+import org.metaborg.spoofax.core.dialogs.ISpoofaxDialogService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
@@ -282,6 +261,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindTracing();
         bindOutline();
         bindMenu();
+        bindDialog();
     }
 
 
@@ -404,28 +384,29 @@ public class SpoofaxModule extends MetaborgModule {
 
         final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(SpoofaxPrimitiveLibrary.name));
+        bindPrimitive(spoofaxPrimitiveLibrary, AbsolutePathPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, CallStrategyPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, DigestPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ExplicateInjectionsPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, GetSortNamePrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, IsLanguageActivePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageComponentsPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageImplementationPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeDirectoriesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeFilesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguagePrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, ProjectResourcesPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, ProjectSrcGenDirectory.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LocalPathPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LocalReplicatePrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, AbsolutePathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageResourcesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceDirectoriesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourceFilesPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeDirectoriesPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludeFilesPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourcePath.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourceOrIncludePath.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LocalPathPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LocalReplicatePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ParsePrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, CallStrategyPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, IsLanguageActivePrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, GetSortNamePrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, ExplicateInjectionsPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ProjectResourcesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ProjectSrcGenDirectory.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourceOrIncludePath.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourcePath.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ShowDialogPrimitive.class);
 
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =
@@ -726,6 +707,9 @@ public class SpoofaxModule extends MetaborgModule {
         bind(IMenuService.class).to(MenuService.class).in(Singleton.class);
     }
 
+    protected void bindDialog() {
+        bind(ISpoofaxDialogService.class).to(NullSpoofaxDialogService.class).in(Singleton.class);
+    }
 
     protected static void bindPrimitive(Multibinder<AbstractPrimitive> binder, AbstractPrimitive primitive) {
         binder.addBinding().toInstance(primitive);
