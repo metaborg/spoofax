@@ -9,11 +9,13 @@ imports
 
 rules // Analysis
 
+  // see README.md for details on how to switch to multi-file analysis
+
   // single-file analysis
-  editor-analyze = stx-editor-analyze(id|"static-semantics", "programOK")
+  editor-analyze = stx-editor-analyze(id|"statics", "programOK")
   
   // multi-file analysis
-//  editor-analyze = stx-editor-analyze(id|"static-semantics", "projectOk", "fileOk")
+//  editor-analyze = stx-editor-analyze(id|"statics", "projectOk", "fileOk")
 
 rules // Editor Services
 
