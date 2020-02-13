@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
 /**
  * Displays a message or question to the user.
  */
-public final class ShowDialogPrimitive extends ASpoofaxContextPrimitive {
+public final class SLShowDialogPrimitive extends ASpoofaxContextPrimitive {
 
     private final ISpoofaxDialogService dialogService;
 
-    @Inject public ShowDialogPrimitive(ISpoofaxDialogService dialogService) {
-        super("show_dialog", 0, 4);
+    @Inject public SLShowDialogPrimitive(ISpoofaxDialogService dialogService) {
+        super("SL_show_dialog", 0, 4);
         this.dialogService = dialogService;
     }
 
@@ -51,7 +51,7 @@ public final class ShowDialogPrimitive extends ASpoofaxContextPrimitive {
      * @param message the message to display
      * @param caption the caption of the message; or {@code null} (default)
      * @param kind the kind of message, one of: "Error", "Warning", "Info", "Question", {@code null} (default)
-     * @param options the options given to the user, a list of "Ok", "Cancel", "Yes", "No", "Retry", "Abort", "Ignore"; or {@code null} (default)
+     * @param options the options given to the user, a list of "OK", "Cancel", "Yes", "No", "Retry", "Abort", "Ignore"; or {@code null} (default)
      * @param defaultOption the index of the default option to use
      * @return the name of the option chosen by the user; or {@code null} when the user dismissed the dialog or it could not be shown
      */

@@ -1,0 +1,23 @@
+module libspoofax/ui/dialogs
+
+rules
+
+  /**
+   * Shows a dialog to the user with the current String term as its message.
+   *
+   * This strategy fails when the user dismisses the dialog.
+   *
+   * @param caption the caption to display; or ""
+   * @param kind the kind of dialog, one of: "Error", "Warning", "Info", "Question", ""
+   * @param options a list of options to show to the user, one of:
+   *        ["OK"], ["OK", "Cancel"], ["Yes", "No"], ["Yes", "No", "Cancel"], ["Retry", "Cancel"], ["Abort", "Retry", "Ignore"].
+   * @param defaultOption the zero-based index of the default option
+   * @return the name of the chosen option
+   */
+  show-dialog(|caption, kind, options, defaultOption) = prim("SL_show_dialog", caption, kind, options, defaultOption)
+
+  show-dialog(|caption, kind, options) = show-dialog(|caption, kind, options, 0)
+  show-dialog(|caption, kind) = show-dialog(|caption, kind, ["OK"], 0)
+  show-dialog(|caption) = show-dialog(|caption, "", ["OK"], 0)
+  show-dialog = show-dialog(|"", "", ["OK"], 0)
+
