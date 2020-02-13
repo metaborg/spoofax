@@ -165,11 +165,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             new Analysis.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation);
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
-        try {
-            GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
-        } catch(ExecException e) {
-            throw new MetaborgException("Initial Stratego build failed", e);
-        }
+        GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
 
         final ArrayList<IStrategoTerm> errors = new ArrayList<>();
         final ArrayList<IStrategoTerm> warnings = new ArrayList<>();
