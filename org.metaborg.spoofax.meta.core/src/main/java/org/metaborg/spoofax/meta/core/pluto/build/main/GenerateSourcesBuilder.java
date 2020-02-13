@@ -180,7 +180,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
 
     @Override public None build(GenerateSourcesBuilder.Input input)
-        throws IOException, MetaborgException, ExecException {
+        throws IOException, MetaborgException {
         // SDF
         Origin.Builder sdfOriginBuilder = Origin.Builder();
 
@@ -449,7 +449,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     private void buildStratego(GenerateSourcesBuilder.Input input, Origin sdfOrigin)
-        throws IOException, MetaborgException, ExecException {
+        throws IOException, MetaborgException {
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
 
         final File strFile = input.strFile;
@@ -579,13 +579,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return builtinLibs;
     }
 
-    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask) throws IOException, ExecException {
+    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask)
+        throws MetaborgException {
         pie = pieProvider.pie();
         if(!pie.hasBeenExecuted(strIncrTask)) {
             logger.info("> Clean build required by PIE");
             pieProvider.setLogLevelWarn();
             try(final PieSession session = pie.newSession()) {
                 session.require(strIncrTask);
+            } catch(ExecException e) {
+                throw new MetaborgException("Incremental Stratego build failed", e);
             }
             pieProvider.setLogLevelTrace();
         }
