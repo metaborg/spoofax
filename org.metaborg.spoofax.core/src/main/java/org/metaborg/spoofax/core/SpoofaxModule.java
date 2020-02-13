@@ -403,7 +403,6 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, ParsePrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, ProjectResourcesPrimitive.class);
-        bindPrimitive(spoofaxPrimitiveLibrary, ProjectSrcGenDirectory.class);
         bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourceOrIncludePath.class);
         bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourcePath.class);
         bindPrimitive(spoofaxPrimitiveLibrary, SLShowDialogPrimitive.class);

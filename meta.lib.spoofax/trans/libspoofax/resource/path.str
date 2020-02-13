@@ -125,5 +125,6 @@ rules // Source and include directories and files
   /**
    * Returns a relative path to a src-gen directory for the given name.
    */
-  project-srcgen-dir = prim("project_srcgen_dir")
+  // This must match org.metaborg.core.build.CommonPaths::srcGenDir()
+  project-srcgen-dir: name -> $[src-gen/[name]]
 
