@@ -35,7 +35,7 @@ public final class SLShowDialogPrimitive extends ASpoofaxContextPrimitive {
         final String message           = Tools.isTermString(current) ? Tools.asJavaString(current) : "<empty>"; // TODO: Term to string
         @Nullable final String caption = (0 < tvars.length && Tools.isTermString(tvars[0])) ? Tools.asJavaString(tvars[0]) : null;
         @Nullable final String kind    = (1 < tvars.length && Tools.isTermString(tvars[1])) ? Tools.asJavaString(tvars[1]) : null;
-        @Nullable List<String> options = (2 < tvars.length && Tools.isTermList(tvars[2]))   ? Tools.asJavaList(tvars[3]).stream()
+        @Nullable List<String> options = (2 < tvars.length && Tools.isTermList(tvars[2]))   ? Tools.asJavaList(tvars[2]).stream()
                 .map(o -> Tools.isTermString(o) ? Tools.asJavaString(o) : null).collect(Collectors.toList()) : null;
         final int defaultOption        = (3 < tvars.length && Tools.isTermInt(tvars[3]))    ? Tools.asJavaInt(tvars[3])    : 0;
         // @formatter:on
