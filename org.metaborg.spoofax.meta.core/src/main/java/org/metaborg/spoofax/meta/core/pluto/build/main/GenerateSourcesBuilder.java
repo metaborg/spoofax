@@ -61,6 +61,8 @@ import mb.pie.api.PieSession;
 import mb.pie.api.Task;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
+import mb.resource.hierarchical.HierarchicalResource;
+import mb.stratego.build.strincr.Backend;
 import mb.stratego.build.strincr.StrIncr;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
@@ -518,12 +520,19 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     new StrIncr.Input(strFile, input.strJavaPackage, input.strjIncludeDirs, builtinLibs, cacheDir,
                         Collections.emptyList(), newArgs, depPath, Collections.emptyList(), projectLocation);
 
-                Pie pie = initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput));
+                Pie pie = initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
 
                 try(final PieSession pieSession = pie.newSession()) {
                     pieSession.updateAffectedBy(changedResources);
+                    pieSession.deleteUnobservedTasks(t -> t.getId() == Backend.id, (t, r) -> {
+                        if(r instanceof HierarchicalResource && ((HierarchicalResource) r).getLeafExtension().equals("java")) {
+                            logger.debug("Deleting garbage from previous build: " + r);
+                            return true;
+                        }
+                        return false;
+                    });
                 } catch(ExecException e) {
-                    throw new MetaborgException("Incremental Stratego build failed", e);
+                    throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
                 }
             } else {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
@@ -579,23 +588,31 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return builtinLibs;
     }
 
-    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask)
+    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask, File outputPath)
         throws MetaborgException {
         pie = pieProvider.pie();
         if(!pie.hasBeenExecuted(strIncrTask)) {
             logger.info("> Clean build required by PIE");
+            if(outputPath.exists()) {
+                try {
+                    FileUtils.deleteDirectory(outputPath);
+                    Files.createDirectories(outputPath.toPath());
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
             pieProvider.setLogLevelWarn();
             try(final PieSession session = pie.newSession()) {
                 session.require(strIncrTask);
             } catch(ExecException e) {
-                throw new MetaborgException("Incremental Stratego build failed", e);
+                throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
             }
             pieProvider.setLogLevelTrace();
         }
         return pie;
     }
 
-    public static void clean() throws MetaborgException {
+    public static void clean() {
         if(pie != null) {
             pie.dropStore();
             pie = null;
