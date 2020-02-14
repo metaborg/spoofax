@@ -588,12 +588,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return builtinLibs;
     }
 
-    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask, File outputPath)
+    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask)
+        throws MetaborgException {
+        return initCompiler(pieProvider, strIncrTask, null);
+    }
+
+    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask, @Nullable File outputPath)
         throws MetaborgException {
         pie = pieProvider.pie();
         if(!pie.hasBeenExecuted(strIncrTask)) {
             logger.info("> Clean build required by PIE");
-            if(outputPath.exists()) {
+            if(outputPath != null && outputPath.exists()) {
                 try {
                     FileUtils.deleteDirectory(outputPath);
                     Files.createDirectories(outputPath.toPath());
