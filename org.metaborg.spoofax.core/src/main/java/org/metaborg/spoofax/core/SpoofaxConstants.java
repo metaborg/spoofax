@@ -68,7 +68,7 @@ public class SpoofaxConstants {
     public static final String DIR_STR_JAVA_CLASSES = DIR_CLASSES + "/trans";
 
 
-    public static final String STRJ_INFO_WRITING_FILE = "[ strj | info ] Writing file:";
+    public static final String STRJ_INFO_WRITING_FILE = "| info ] Writing file:";
 
 
     public static boolean isMetaLanguage(ILanguageImpl language) {
