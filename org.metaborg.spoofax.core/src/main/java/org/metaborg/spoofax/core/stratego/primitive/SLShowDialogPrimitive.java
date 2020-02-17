@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 
 /**
- * Displays a message or question to the user.
+ * Displays a message or question dialog to the user.
  */
 public final class SLShowDialogPrimitive extends ASpoofaxContextPrimitive {
 

@@ -406,6 +406,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourceOrIncludePath.class);
         bindPrimitive(spoofaxPrimitiveLibrary, RelativeSourcePath.class);
         bindPrimitive(spoofaxPrimitiveLibrary, SLShowDialogPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, SLShowInputDialogPrimitive.class);
 
 
         final Multibinder<AbstractPrimitive> spoofaxScopeGraphLibrary =

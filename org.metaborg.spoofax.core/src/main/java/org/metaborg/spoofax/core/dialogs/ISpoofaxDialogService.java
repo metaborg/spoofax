@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.dialogs;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 
 /**
@@ -96,14 +97,25 @@ public interface ISpoofaxDialogService {
     /**
      * Shows a dialog to the user.
      *
-     * @param message the text of the message
-     * @param caption the caption of the message; or {@code null} to use the default
-     * @param kind the kind of message; or {@code null} to use the default
-     * @param options a list of options for the message; or {@code null} to use the default
-     * @param defaultOption the index of the default option for the message
+     * @param message the text of the dialog
+     * @param caption the caption of the dialog; or {@code null} to use the default
+     * @param kind the kind of dialog; or {@code null} to use the default
+     * @param options a list of options for the dialog; or {@code null} to use the default
+     * @param defaultOption the index of the default option for the dialog
      * @return the option picked by the user; or {@code null} when the user dismissed the dialog
      * or when the dialog could not be displayed
      */
     @Nullable DialogOption showDialog(String message, @Nullable String caption, @Nullable DialogKind kind, @Nullable List<DialogOption> options, int defaultOption);
 
+    /**
+     * Shows an input dialog to the user.
+     *
+     * @param message the text of the dialog
+     * @param caption the caption of the dialog; or {@code null} to use the default
+     * @param initialValue the initial value; or {@code null} to use the default
+     * @param validator the validator function, which either returns {@code null} on success or an error message on failure; or {@code null} to use no validator
+     * @return the string input by the user; or {@code null} when the user cancelled or dismissed the dialog;
+     * or when the dialog could not be displayed
+     */
+    @Nullable String showInputDialog(String message, @Nullable String caption, @Nullable String initialValue, @Nullable Function<String, String> validator);
 }
