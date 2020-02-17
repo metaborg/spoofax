@@ -78,10 +78,11 @@ public final class SLShowDialogPrimitive extends ASpoofaxContextPrimitive {
     @Nullable
     private static <T extends Enum<T>> T safeEnumValueOf(Class<T> cls, String name) {
         if (name == null) return null;
-        try {
-            return Enum.valueOf(cls, name);
-        } catch (IllegalArgumentException e) {
-            return null;
+        for (T member : cls.getEnumConstants()) {
+            if (member.name().compareToIgnoreCase(name) == 0) {
+                return member;
+            }
         }
+        return null;
     }
 }
