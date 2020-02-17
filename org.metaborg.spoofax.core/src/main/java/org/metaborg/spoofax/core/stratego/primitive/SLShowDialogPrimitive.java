@@ -42,7 +42,7 @@ public final class SLShowDialogPrimitive extends ASpoofaxContextPrimitive {
 
         @Nullable String result = invoke(message, caption, kind, options, defaultOption);
 
-        return result != null ? factory.replaceTerm(current, factory.makeString(result)) : null;
+        return result != null ? factory.replaceTerm(factory.makeString(result), current) : null;
     }
 
     /**
