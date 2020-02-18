@@ -23,7 +23,7 @@ public final class SLShowInputDialogPrimitive extends ASpoofaxContextPrimitive {
     private final ISpoofaxDialogService dialogService;
 
     @Inject public SLShowInputDialogPrimitive(ISpoofaxDialogService dialogService) {
-        super("SL_show_input_dialog", 0, 4);
+        super("SL_show_input_dialog", 0, 2);
         this.dialogService = dialogService;
     }
 
