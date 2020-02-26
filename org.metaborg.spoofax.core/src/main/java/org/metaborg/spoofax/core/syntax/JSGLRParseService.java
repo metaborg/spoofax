@@ -248,7 +248,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                 provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
             }
 
-            parserConfig = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, facet.imploder);
+            parserConfig = new ParserConfig(facet.startSymbols != null ? Iterables.get(facet.startSymbols, 0) : null, provider, facet.imploder);
             if(overrideJSGLRVersion == null) {
                 parserConfigMap.put(lang, parserConfig);
             }
