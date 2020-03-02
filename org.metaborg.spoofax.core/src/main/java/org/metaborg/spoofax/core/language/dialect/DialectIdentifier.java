@@ -117,7 +117,7 @@ public class DialectIdentifier implements IDialectIdentifier {
         for(IStrategoTerm entry : entries.getAllSubterms()) {
             final String cons = ((IStrategoAppl) entry).getConstructor().getName();
             if(cons.equals("Syntax")) {
-                return TermUtils.toJavaString(entry.getSubterm(0));
+                return TermUtils.toJavaStringAt(entry, 0);
             }
         }
         return null;

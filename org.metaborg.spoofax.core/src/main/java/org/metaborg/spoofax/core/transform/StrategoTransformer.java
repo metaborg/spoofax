@@ -174,15 +174,15 @@ public class StrategoTransformer implements IStrategoTransformer {
         // Get the result and, if allowed and required, write to file
         List<TransformOutput> outputs;
         IStrategoTerm resultTerm;
-        if(outputTerm.getSubtermCount() == 2 && (outputTerm instanceof IStrategoTuple)) {
+        if(outputTerm.getSubtermCount() == 2 && TermUtils.isTuple(outputTerm)) {
             final IStrategoTerm resourceTerm = outputTerm.getSubterm(0);
             final IStrategoTerm contentTerm = outputTerm.getSubterm(1);
             try {
-                if(resourceTerm instanceof IStrategoString) {
+                if(TermUtils.isString(resourceTerm)) {
                     resultTerm = contentTerm;
                     outputs = Lists.newArrayList(output(resourceTerm, contentTerm, location, config));
-                } else if(resourceTerm instanceof IStrategoList) {
-                    if(!(contentTerm instanceof IStrategoList)
+                } else if(TermUtils.isList(resourceTerm)) {
+                    if(!TermUtils.isList(contentTerm)
                         || resourceTerm.getSubtermCount() != contentTerm.getSubtermCount()) {
                         logger.error("List of terms does not match list of file names, cannot write to file.");
                         resultTerm = null;

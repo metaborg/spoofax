@@ -63,7 +63,7 @@ public class ESVReader {
         } else if(TermUtils.isAppl(t, "Values", 1)) {
             return concatTermStrings(TermUtils.toListAt(t, 0));
         } else if(TermUtils.isAppl(t, null, 1) && TermUtils.isStringAt(t, 0)) {
-            result = TermUtils.toJavaString(t.getSubterm(0));
+            result = TermUtils.toJavaStringAt(t, 0);
         } else if(TermUtils.isAppl(t, null, 1)) {
             return termContents(t.getSubterm(0));
         } else {

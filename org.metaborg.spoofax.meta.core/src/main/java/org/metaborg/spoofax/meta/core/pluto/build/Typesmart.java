@@ -44,6 +44,7 @@ import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
 import build.pluto.output.Out;
+import org.spoofax.terms.util.TermUtils;
 
 public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
     private static final ILogger logger = LoggerUtils.logger("Typesmart");
@@ -179,7 +180,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
 
         List<String> imports = new ArrayList<>();
 
-        IStrategoList decls = (IStrategoList) module.getSubterm(1);
+        IStrategoList decls = TermUtils.toListAt(module, 1);
         for(IStrategoTerm decl : decls) {
             String declName = ((IStrategoAppl) decl).getName();
             if(declName.equals("Imports")) {
@@ -194,9 +195,9 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
 
     private void extractImports(IStrategoTerm importDecls, List<String> imports) {
         for(IStrategoTerm importDecl : importDecls) {
-            String importName = ((IStrategoString) importDecl.getSubterm(0)).stringValue();
+            String importName = TermUtils.toJavaStringAt(importDecl, 0);
 
-            String importDeclName = ((IStrategoAppl) importDecl).getName();
+            String importDeclName = TermUtils.toAppl(importDecl).getName();
             if(importDeclName.equals("Import")) {
                 imports.add(importName);
             } else {
@@ -208,22 +209,22 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
 
     private void processSignature(IStrategoTerm sigDecls) {
         for(IStrategoTerm decl : sigDecls) {
-            String declName = ((IStrategoAppl) decl).getName();
+            String declName = TermUtils.toAppl(decl).getName();
             if(!declName.equals("Constructors")) {
                 continue;
             }
 
             next_constr: for(IStrategoTerm constr : decl.getSubterm(0)) {
-                String kind = ((IStrategoAppl) constr).getName();
+                String kind = TermUtils.toAppl(constr).getName();
 
                 String cname;
                 IStrategoAppl typeTerm;
                 if(kind.equals("OpDeclInj") || kind.equals("ExtOpDeclInj")) {
                     cname = "";
-                    typeTerm = (IStrategoAppl) constr.getSubterm(0);
+                    typeTerm = TermUtils.toApplAt(constr, 0);
                 } else {
-                    cname = ((IStrategoString) constr.getSubterm(0)).stringValue();
-                    typeTerm = (IStrategoAppl) constr.getSubterm(1);
+                    cname = TermUtils.toJavaStringAt(constr, 0);
+                    typeTerm = TermUtils.toApplAt(constr, 1);
                 }
 
                 List<SortType> sortTypes;
@@ -299,11 +300,11 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
             return new TTuple(sorts);
         }
         
-        if(sort.getSubterm(0).getTermType() != IStrategoTerm.STRING) {
+        if(!TermUtils.isStringAt(sort, 0)) {
             throw new IllegalArgumentException("Found type in unexpected format " + sort);
         }
         
-        String sortName = ((IStrategoString) sort.getSubterm(0)).stringValue();
+        String sortName = TermUtils.toJavaStringAt(sort, 0);
         if(kind.equals("SortNoArgs") && sortName.equals(SortType.LEXICAL_SORT)) {
             return TLexical.instance;
         } else if(kind.equals("SortNoArgs") && sortName.equals(SortType.ANY_SORT)) {

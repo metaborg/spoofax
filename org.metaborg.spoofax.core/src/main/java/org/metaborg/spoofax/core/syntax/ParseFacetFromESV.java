@@ -17,7 +17,7 @@ public class ParseFacetFromESV {
     	if (parserTerm == null) {
     		return null;
     	}
-    	final IStrategoAppl parserType = (IStrategoAppl) parserTerm.getSubterm(0);
+    	final IStrategoAppl parserType = TermUtils.toApplAt(parserTerm, 0);
     	if(TermUtils.isAppl(parserType, "Named", 1)) {
             return new ParseFacet(ESVReader.termContents(parserType.getSubterm(0)));
         }

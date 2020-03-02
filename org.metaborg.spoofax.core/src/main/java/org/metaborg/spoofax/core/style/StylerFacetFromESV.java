@@ -27,7 +27,7 @@ public class StylerFacetFromESV {
         final Iterable<IStrategoAppl> styleDefs = ESVReader.collectTerms(esv, "ColorDef");
         final Map<String, IStyle> namedStyles = Maps.newHashMap();
         for(IStrategoAppl styleDef : styleDefs) {
-            final IStrategoAppl styleTerm = (IStrategoAppl) styleDef.getSubterm(1);
+            final IStrategoAppl styleTerm = TermUtils.toApplAt(styleDef, 1);
             final IStrategoConstructor styleCons = styleTerm.getConstructor();
             final IStyle style;
             if(styleCons.getName().equals("Attribute")) {
@@ -52,7 +52,7 @@ public class StylerFacetFromESV {
             return null;
         }
         for(IStrategoAppl styleRule : styleRules) {
-            final IStrategoAppl styleTerm = (IStrategoAppl) styleRule.getSubterm(1);
+            final IStrategoAppl styleTerm = TermUtils.toApplAt(styleRule, 1);
             final IStrategoConstructor styleCons = styleTerm.getConstructor();
             final IStyle style;
             if(styleCons.getName().equals("Attribute")) {
@@ -69,7 +69,7 @@ public class StylerFacetFromESV {
                 continue;
             }
 
-            final IStrategoAppl node = (IStrategoAppl) styleRule.getSubterm(0);
+            final IStrategoAppl node = TermUtils.toApplAt(styleRule, 0);
             final IStrategoConstructor nodeCons = node.getConstructor();
             if(nodeCons.getName().equals("SortAndConstructor")) {
                 final String sort = TermUtils.toJavaStringAt(node.getSubterm(0), 0);
@@ -95,13 +95,13 @@ public class StylerFacetFromESV {
     }
 
     private static IStyle style(IStrategoAppl attribute) {
-        final Color color = color((IStrategoAppl) attribute.getSubterm(0));
-        final Color backgroundColor = color((IStrategoAppl) attribute.getSubterm(1));
+        final Color color = color(TermUtils.toApplAt(attribute, 0));
+        final Color backgroundColor = color(TermUtils.toApplAt(attribute, 1));
         final boolean bold;
         final boolean italic;
         final boolean underline = false;
         final boolean strikeout = false;
-        final IStrategoAppl fontSetting = (IStrategoAppl) attribute.getSubterm(2);
+        final IStrategoAppl fontSetting = TermUtils.toApplAt(attribute, 2);
         final String fontSettingCons = fontSetting.getConstructor().getName();
         switch (fontSettingCons) {
             case "BOLD":

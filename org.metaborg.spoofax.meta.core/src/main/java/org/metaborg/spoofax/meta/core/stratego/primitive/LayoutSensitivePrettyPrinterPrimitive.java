@@ -18,6 +18,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
+
+import javax.annotation.Nullable;
 
 public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     @Inject public LayoutSensitivePrettyPrinterPrimitive() {
@@ -70,7 +73,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
                 IStrategoTerm position = getPosition(t);
                 if(position != null) {
-                    int line = ((IStrategoInt) position.getSubterm(0)).intValue();
+                    int line = TermUtils.toJavaIntAt(position, 0);
                     line2Box.put(line, t);
                 }
 
@@ -82,7 +85,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             if(constructorName.equals("S")) {
                 IStrategoTerm position = getPosition(t);
                 if(position != null) {
-                    int line = ((IStrategoInt) position.getSubterm(0)).intValue();
+                    int line = TermUtils.toJavaIntAt(position, 0);
                     line2Box.put(line, t);
                 }
             }
@@ -99,7 +102,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         if(t instanceof IStrategoAppl) {
             String constructorName = ((IStrategoAppl) t).getConstructor().getName();
             if(constructorName.equals("S") && foundOffside) {
-                String value = ((IStrategoString) t.getSubterm(0)).stringValue();
+                String value = TermUtils.toJavaStringAt(t, 0);
                 if(!value.trim().isEmpty()) {
                     foundOffside = false;
                     return tf.makeAppl(tf.makeConstructor("Z", 2), tf.makeList(),
@@ -169,12 +172,13 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             return false;
         }
 
-        int line = ((IStrategoInt) pos.getSubterm(0)).intValue();
-        int col = ((IStrategoInt) pos.getSubterm(1)).intValue();
+        int line = TermUtils.toJavaIntAt(pos, 0);
+        int col = TermUtils.toJavaIntAt(pos, 1);
 
         for(IStrategoTerm box : line2Box.get(line)) {
-            IStrategoTerm posBox = getPosition(box);
-            int boxCol = ((IStrategoInt) posBox.getSubterm(1)).intValue();
+            @Nullable IStrategoTerm posBox = getPosition(box);
+            if (posBox == null) continue;
+            int boxCol = TermUtils.toJavaIntAt(posBox, 1);
             if(boxCol > col) {
                 return true;
             }
@@ -251,7 +255,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                             && ((IStrategoAppl) t).getConstructor().getName().equals("NewLineIndentBy")) {
 //                            System.out.println("Applying constraint " + t);
                             result =
-                                applyNewLineIndentConstraint(result, t, ((IStrategoInt) t.getSubterm(0)).intValue());
+                                applyNewLineIndentConstraint(result, t, TermUtils.toJavaIntAt(t, 0));
                             result = updateColumnBoxes(result, getPositionWithLayout(result));
                             newBoxes = result.getSubterm(1);
                         }
@@ -270,7 +274,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                             && ((IStrategoAppl) t).getConstructor().getName().equals("NewLineBy")) {
 //                            System.out.println("Applying constraint " + t);
                             result =
-                                applyNewLineConstraint(result, t, ((IStrategoInt) t.getSubterm(0)).intValue());
+                                applyNewLineConstraint(result, t, TermUtils.toJavaIntAt(t, 0));
                             result = updateColumnBoxes(result, getPositionWithLayout(result));
                             newBoxes = result.getSubterm(1);
                         }
@@ -379,8 +383,8 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         // if not in a column further already, align it with a column higher than posRef
         IStrategoTerm posTarg = getPosition(termTarg);
 
-        int colRef = ((IStrategoInt) posRef.getSubterm(1)).intValue();
-        int colTarg = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
+        int colRef = TermUtils.toJavaIntAt(posRef, 1);
+        int colTarg = TermUtils.toJavaIntAt(posTarg, 1);
 
         if(colTarg <= colRef) {
             return applyAlignConstraintToSelector(t, shiftColumn(posRef, 1), termTarg);
@@ -405,8 +409,8 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
         IStrategoTerm posTarg = getPosition(termTarg);
 
-        int lineRef = ((IStrategoInt) posRef.getSubterm(0)).intValue();
-        int lineTarg = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
+        int lineRef = TermUtils.toJavaIntAt(posRef, 0);
+        int lineTarg = TermUtils.toJavaIntAt(posTarg, 0);
 
         // if target term is not in a line greater than the reference term
         if(lineRef >= lineTarg) {
@@ -417,8 +421,8 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         }
 
         // if not in a column further already, align it with a column higher than posRef
-        int colRef = ((IStrategoInt) posRef.getSubterm(1)).intValue();
-        int colTarg = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
+        int colRef = TermUtils.toJavaIntAt(posRef, 1);
+        int colTarg = TermUtils.toJavaIntAt(posTarg, 1);
 
         if(colTarg <= colRef) {
             return applyAlignConstraintToSelector(t, shiftColumn(posRef, size), termTarg);
@@ -440,7 +444,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         IStrategoTerm termTarg = getTermFromSelector(t.getSubterm(1), targ, true);
         IStrategoTerm posTarg = getPosition(termTarg);
         
-        int colTarg = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
+        int colTarg = TermUtils.toJavaIntAt(posTarg, 1);
         
         if(colTarg != 1) {
             t = moveToNextLine(t, termTarg);
@@ -505,16 +509,14 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
         if(t.equals(termTarg)) {
             // Pos(_, <id>)
-            int refCol = ((IStrategoInt) posRef.getSubterm(1)).intValue();
+            int refCol = TermUtils.toJavaIntAt(posRef, 1);
 
             IStrategoTerm posTarg = getPosition(termTarg);
             assert (posTarg != null);
-            int targCol = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
-//            int targLine = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
+            int targCol = TermUtils.toJavaIntAt(posTarg, 1);
 
             posTarg = getPosition(termTarg);
-            targCol = ((IStrategoInt) posTarg.getSubterm(1)).intValue();
-//            targLine = ((IStrategoInt) posTarg.getSubterm(0)).intValue();
+            targCol = TermUtils.toJavaIntAt(posTarg, 1);
 
             if(targCol > refCol) {
                 // wrap in Z box to jump to next line and wrap into H box to indent X spaces
@@ -668,8 +670,8 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         IStrategoTerm pos = getPosition(boxes.getSubterm(i));
 
                         if(pos != null) {
-                            int currCol = ((IStrategoInt) pos.getSubterm(1)).intValue();
-                            int refCol = ((IStrategoInt) posRef.getSubterm(1)).intValue();
+                            int currCol = TermUtils.toJavaIntAt(pos, 1);
+                            int refCol = TermUtils.toJavaIntAt(posRef, 1);
                             if(currCol <= refCol) {
                                 // Make box H([SOpt(HS(), refcol - currCol + 1)], [S(""), boxes_i])
                                 IStrategoTerm hopt =
@@ -786,7 +788,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     }
 
 
-    private IStrategoTerm getPosition(IStrategoTerm t) {
+    private @Nullable IStrategoTerm getPosition(IStrategoTerm t) {
         if(t.getAnnotations() != null) {
             for(IStrategoTerm anno : t.getAnnotations()) {
                 if(anno instanceof IStrategoAppl
@@ -860,7 +862,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         if(t instanceof IStrategoAppl) {
             // S(_)
             if(((IStrategoAppl) t).getConstructor().getName().equals("S")) {
-                IStrategoString string = (IStrategoString) t.getSubterm(0);
+                IStrategoString string = TermUtils.toStringAt(t, 0);
                 if(!string.stringValue().equals("") || getPosition(t) != null) {
                     return annotateBoxPosition(t, position, t.getAnnotations());
                 } else {
@@ -1002,7 +1004,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private IStrategoTerm shiftColumn(IStrategoTerm position, int hs) {
         return tf.makeAppl(((IStrategoAppl) position).getConstructor(), position.getSubterm(0),
-            tf.makeInt(((IStrategoInt) position.getSubterm(1)).intValue() + hs));
+            tf.makeInt(TermUtils.toJavaIntAt (position, 1) + hs));
     }
 
 
@@ -1011,13 +1013,13 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             return position;
         } else {
             return tf.makeAppl(tf.makeConstructor("Position", 2),
-                tf.makeInt(((IStrategoInt) position.getSubterm(0)).intValue() + vs), tf.makeInt(1));
+                tf.makeInt(TermUtils.toJavaIntAt(position, 0) + vs), tf.makeInt(1));
         }
     }
 
     private IStrategoTerm shiftLine(IStrategoTerm position, int vs, IStrategoTerm column) {
         return tf.makeAppl(tf.makeConstructor("Position", 2),
-            tf.makeInt(((IStrategoInt) position.getSubterm(0)).intValue() + vs), column);
+            tf.makeInt(TermUtils.toJavaIntAt(position, 0) + vs), column);
     }
 
 
@@ -1025,9 +1027,9 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         if(t instanceof IStrategoAppl) {
             // S box
             if(((IStrategoAppl) t).getConstructor().getName().equals("S")) {
-                IStrategoString text = (IStrategoString) t.getSubterm(0);
+                IStrategoString text = TermUtils.toStringAt(t, 0);
 
-                int column = ((IStrategoInt) position.getSubterm(1)).intValue();
+                int column = TermUtils.toJavaIntAt(position, 1);
 
                 return tf.makeAppl(tf.makeConstructor("Position", 2), position.getSubterm(0),
                     tf.makeInt(column + text.stringValue().length()));
@@ -1093,9 +1095,9 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         }
 
         IStrategoTerm column = position.getSubterm(1);
-        IStrategoTerm endPosition = getEndPosition(((IStrategoList) t).head(), position);
+        IStrategoTerm endPosition = getEndPosition(TermUtils.toList(t).head(), position);
 
-        return getEndPositionVList(((IStrategoList) t).tail(), shiftLine(endPosition, vs, column), vs);
+        return getEndPositionVList(TermUtils.toList(t).tail(), shiftLine(endPosition, vs, column), vs);
 
     }
 

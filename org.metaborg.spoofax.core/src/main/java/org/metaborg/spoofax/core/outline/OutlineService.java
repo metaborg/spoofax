@@ -215,9 +215,7 @@ public class OutlineService implements ISpoofaxOutlineService {
             return null;
         }
         final IStrategoTerm iconTerm = annos.getSubterm(0);
-        if(!(iconTerm instanceof IStrategoString)) {
-            return null;
-        }
+        if(!TermUtils.isString(iconTerm)) return null;
         final IStrategoString iconTermString = (IStrategoString) iconTerm;
         final String iconLocation = iconTermString.stringValue();
         try {
