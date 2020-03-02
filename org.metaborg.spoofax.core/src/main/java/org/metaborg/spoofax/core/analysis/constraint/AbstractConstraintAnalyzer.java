@@ -43,7 +43,6 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
@@ -149,7 +148,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     private boolean isEmptyAST(IStrategoTerm ast) {
-        return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
+        return TermUtils.isTuple(ast, 0);
     }
 
     private ISpoofaxAnalyzeResults doAnalysis(Map<String, ISpoofaxParseUnit> changed,
@@ -255,7 +254,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Expected list of results, got " + resultsTerm);
         }
         for(IStrategoTerm entry : resultsTerm.getAllSubterms()) {
-            if(!Tools.isTermTuple(entry) || entry.getSubtermCount() != 2) {
+            if(!TermUtils.isTuple(entry, 2)) {
                 throw new AnalysisException(context, "Expected tuple result, got " + entry);
             }
             final IStrategoTerm resourceTerm = entry.getSubterm(0);

@@ -15,8 +15,8 @@ import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.Term;
 import org.spoofax.terms.TermVisitor;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
@@ -102,7 +102,7 @@ public class AnalysisCommon {
             private IStrategoTerm ambStart;
 
             @Override public void preVisit(IStrategoTerm term) {
-                if(ambStart == null && "amb".equals(Term.tryGetName(term))) {
+                if(ambStart == null && "amb".equals(TermUtils.asAppl(term).map(a -> a.getConstructor().getName()).orElse(null))) {
                     final String text = "Fragment is ambiguous: " + ambToString(term);
                     final ISourceLocation location = tracingService.location(term);
                     if(location != null) {

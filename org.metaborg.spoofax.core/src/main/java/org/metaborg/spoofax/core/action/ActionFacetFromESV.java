@@ -69,7 +69,7 @@ public class ActionFacetFromESV {
                     break;
                 case "Action":
                     final String actionName = name(item.getSubterm(0));
-                    final String strategy = TermUtils.toJavaString(item.getSubterm(1).getSubterm(0));
+                    final String strategy = TermUtils.toJavaStringAt(item.getSubterm(1), 0);
                     final TransformActionFlags actionFlags = flags(item.getSubterm(2));
                     final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
                     final ImmutableList<String> newActionNesting = ImmutableList.<String>builder().addAll(newNesting).add(actionName).build();
@@ -141,7 +141,7 @@ public class ActionFacetFromESV {
             return;
         }
         for(IStrategoAppl onSaveHandler : onSaveHandlers) {
-            final String strategyName = TermUtils.toJavaString(onSaveHandler.getSubterm(0).getSubterm(0));
+            final String strategyName = TermUtils.toJavaStringAt(onSaveHandler.getSubterm(0), 0);
             final ITransformGoal goal = new CompileGoal();
             final ITransformAction action = new TransformAction("Compile", goal, new TransformActionFlags(), strategyName);
             actions.put(goal, action);

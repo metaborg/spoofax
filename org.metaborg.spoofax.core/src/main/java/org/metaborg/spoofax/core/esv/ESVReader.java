@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.core.esv;
 
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
-import static org.spoofax.terms.Term.*;
+//import static org.spoofax.terms.Term.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,13 +58,13 @@ public class ESVReader {
 
         String result;
 
-        if(t.getTermType() == STRING) {
-            result = asJavaString(t);
-        } else if(t.getSubtermCount() == 1 && "Values".equals(tryGetName(t))) {
+        if(TermUtils.isString(t)) {
+            result = TermUtils.toJavaString(t);
+        } else if(TermUtils.isAppl(t, "Values", 1)) {
             return concatTermStrings(TermUtils.toListAt(t, 0));
-        } else if(t.getTermType() == APPL && t.getSubtermCount() == 1 && t.getSubterm(0).getTermType() == STRING) {
-            result = asJavaString(t.getSubterm(0));
-        } else if(t.getTermType() == APPL && t.getSubtermCount() == 1) {
+        } else if(TermUtils.isAppl(t, null, 1) && TermUtils.isStringAt(t, 0)) {
+            result = TermUtils.toJavaString(t.getSubterm(0));
+        } else if(TermUtils.isAppl(t, null, 1)) {
             return termContents(t.getSubterm(0));
         } else {
             return null;
@@ -83,7 +83,7 @@ public class ESVReader {
 
         List<String> results = Lists.newArrayList();
 
-        if(t.getSubtermCount() == 1 && "Values".equals(tryGetName(t))) {
+        if(TermUtils.isAppl(t, "Values", 1)) {
             IStrategoList values = TermUtils.toListAt(t, 0);
             for(int i = 0; i < values.getSubtermCount(); i++) {
                 results.add(termContents(values.getSubterm(i)));

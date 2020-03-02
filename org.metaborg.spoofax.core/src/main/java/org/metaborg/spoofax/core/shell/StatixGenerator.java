@@ -22,8 +22,6 @@ import org.metaborg.core.processing.ITask;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
-import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
@@ -108,7 +106,7 @@ public class StatixGenerator {
             throw new MetaborgException("Not a correct spec.");
         }
         final IStrategoTerm evalPair = CLI.transform(analyzeUnit, evalAction, context);
-        if(!Tools.isTermTuple(evalPair) || evalPair.getSubtermCount() != 2) {
+        if(!TermUtils.isTuple(evalPair, 2)) {
             throw new MetaborgException("Expected tuple of constraint and spec, but got " + evalPair);
         }
 
