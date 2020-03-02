@@ -29,11 +29,11 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
@@ -175,7 +175,7 @@ public class OutlineService implements ISpoofaxOutlineService {
             return null;
         }
         final IStrategoAppl appl = (IStrategoAppl) term;
-        if(!Tools.hasConstructor(appl, "Node", 2)) {
+        if(!TermUtils.isAppl(appl, "Node", 2)) {
             return null;
         }
 

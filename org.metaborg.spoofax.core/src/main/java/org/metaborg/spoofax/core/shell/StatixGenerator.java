@@ -26,6 +26,7 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
@@ -103,7 +104,7 @@ public class StatixGenerator {
 
         final TransformActionContrib evalAction = CLI.getNamedTransformAction("Evaluation Pair", statixLang);
         final IStrategoTerm ast = analyzeUnit.ast();
-        if(ast == null || !Tools.isTermAppl(ast) || !Tools.hasConstructor((IStrategoAppl) ast, "Test")) {
+        if(ast == null || !TermUtils.isAppl(ast) || !TermUtils.isAppl(ast, "Test")) {
             throw new MetaborgException("Not a correct spec.");
         }
         final IStrategoTerm evalPair = CLI.transform(analyzeUnit, evalAction, context);
@@ -147,7 +148,7 @@ public class StatixGenerator {
                 final IStrategoTerm st = strategoTerms.toStratego(explicate(t));
                 try {
                     final IStrategoTerm r = S.strategoCommon.invoke(runtime, st, strategy);
-                    return r != null ? Tools.asJavaString(r) : t.toString();
+                    return r != null ? TermUtils.toJavaString(r) : t.toString();
                 } catch(MetaborgException e) {
                     return t.toString();
                 }

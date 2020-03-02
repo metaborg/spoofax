@@ -29,7 +29,6 @@ import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -53,6 +52,7 @@ import mb.stratego.build.strincr.Analysis;
 import mb.stratego.build.strincr.Analysis.Output;
 import mb.stratego.build.strincr.Message;
 import mb.stratego.build.strincr.StrIncrAnalysis;
+import org.spoofax.terms.util.TermUtils;
 
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
@@ -75,9 +75,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext context) throws MetaborgException, IOException {
-        @SuppressWarnings("unused") final IStrategoAppl ast = Tools.applAt(current, 0);
-        final String path = Tools.javaStringAt(current, 1);
-        @SuppressWarnings("unused") final String projectPath = Tools.javaStringAt(current, 2);
+        @SuppressWarnings("unused") final IStrategoAppl ast = TermUtils.toApplAt(current, 0);
+        final String path = TermUtils.toJavaStringAt(current, 1);
+        @SuppressWarnings("unused") final String projectPath = TermUtils.toJavaStringAt(current, 2);
 
 //        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
 //            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");

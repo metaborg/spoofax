@@ -11,7 +11,6 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
-import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -19,12 +18,12 @@ import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
@@ -177,7 +176,7 @@ public class StrategoCommon implements IStrategoCommon {
         for(int i = 0; i < depth; i++) {
             final IStrategoTerm t = trace.getSubterm(depth - i - 1);
             sb.append("\n\t");
-            sb.append(t.getTermType() == IStrategoTerm.STRING ? Tools.asJavaString(t) : t);
+            sb.append(t.getTermType() == IStrategoTerm.STRING ? TermUtils.toJavaString(t) : t);
         }
         return sb.toString();
     }

@@ -32,7 +32,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
@@ -49,6 +48,7 @@ import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.StrategoConstructor;
 import org.spoofax.terms.StrategoTerm;
 import org.spoofax.terms.attachments.ParentAttachment;
+import org.spoofax.terms.util.TermUtils;
 import org.spoofax.terms.visitor.AStrategoTermVisitor;
 import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
@@ -172,9 +172,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                         continue;
                     }
 
-                    final String name = Tools.asJavaString(tuple.getSubterm(0));
-                    final String text = Tools.asJavaString(tuple.getSubterm(1));
-                    final String additionalInfo = Tools.asJavaString(tuple.getSubterm(1));
+                    final String name = TermUtils.toJavaString(tuple.getSubterm(0));
+                    final String text = TermUtils.toJavaString(tuple.getSubterm(1));
+                    final String additionalInfo = TermUtils.toJavaString(tuple.getSubterm(1));
 
                     completions.add(new Completion(name, startSymbol, text, additionalInfo, 0, endOffset,
                         CompletionKind.expansion));
@@ -298,11 +298,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
 
-                final String name = Tools.asJavaString(tuple.getSubterm(0));
-                final String text = Tools.asJavaString(tuple.getSubterm(1));
-                final String additionalInfo = Tools.asJavaString(tuple.getSubterm(2));
-                final StrategoAppl change = (StrategoAppl) tuple.getSubterm(3);
-                final String prefix = Tools.asJavaString(tuple.getSubterm(4));
+                final String name = TermUtils.toJavaStringAt(tuple, 0);
+                final String text = TermUtils.toJavaStringAt(tuple, 1);
+                final String additionalInfo = TermUtils.toJavaStringAt(tuple, 2);
+                final IStrategoAppl change = TermUtils.toApplAt(tuple, 3);
+                final String prefix = TermUtils.toJavaStringAt(tuple, 4);
 
                 if(change.getConstructor().getName().contains("REPLACE_TERM")) {
                     final ICompletion completion =
@@ -347,11 +347,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
 
-                final String name = Tools.asJavaString(tuple.getSubterm(0));
-                final String text = Tools.asJavaString(tuple.getSubterm(1));
-                final String additionalInfo = Tools.asJavaString(tuple.getSubterm(2));
-                final StrategoAppl change = (StrategoAppl) tuple.getSubterm(3);
-                final String suffix = Tools.asJavaString(tuple.getSubterm(4));
+                final String name = TermUtils.toJavaStringAt(tuple, 0);
+                final String text = TermUtils.toJavaStringAt(tuple, 1);
+                final String additionalInfo = TermUtils.toJavaStringAt(tuple, 2);
+                final IStrategoAppl change = TermUtils.toApplAt(tuple, 3);
+                final String suffix = TermUtils.toJavaStringAt(tuple, 4);
 
                 if(change.getConstructor().getName().contains("REPLACE_TERM")) {
                     final ICompletion completion =
@@ -416,10 +416,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 continue;
             }
 
-            final String name = Tools.asJavaString(tuple.getSubterm(0));
-            final String text = Tools.asJavaString(tuple.getSubterm(1));
-            final String additionalInfo = Tools.asJavaString(tuple.getSubterm(2));
-            final StrategoAppl change = (StrategoAppl) tuple.getSubterm(3);
+            final String name = TermUtils.toJavaStringAt(tuple, 0);
+            final String text = TermUtils.toJavaStringAt(tuple, 1);
+            final String additionalInfo = TermUtils.toJavaStringAt(tuple, 2);
+            final IStrategoAppl change = TermUtils.toApplAt(tuple, 3);
 
             if(change.getConstructor().getName().contains("REPLACE_TERM")) {
                 final ICompletion completion =
@@ -477,10 +477,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
 
-                final String name = Tools.asJavaString(tuple.getSubterm(0));
-                final String text = Tools.asJavaString(tuple.getSubterm(1));
-                final String additionalInfo = Tools.asJavaString(tuple.getSubterm(2));
-                final StrategoAppl change = (StrategoAppl) tuple.getSubterm(3);
+                final String name = TermUtils.toJavaStringAt(tuple, 0);
+                final String text = TermUtils.toJavaStringAt(tuple, 1);
+                final String additionalInfo = TermUtils.toJavaStringAt(tuple, 2);
+                final IStrategoAppl change = TermUtils.toApplAt(tuple, 3);
 
                 if(change.getConstructor().getName().contains("REPLACE_TERM")) {
 
@@ -536,10 +536,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
 
-                final String name = Tools.asJavaString(tuple.getSubterm(0));
-                final String text = Tools.asJavaString(tuple.getSubterm(1));
-                final String additionalInfo = Tools.asJavaString(tuple.getSubterm(2));
-                final StrategoAppl change = (StrategoAppl) tuple.getSubterm(3);
+                final String name = TermUtils.toJavaStringAt(tuple, 0);
+                final String text = TermUtils.toJavaStringAt(tuple, 1);
+                final String additionalInfo = TermUtils.toJavaStringAt(tuple, 2);
+                final IStrategoAppl change = TermUtils.toApplAt(tuple, 3);
 
 
                 // if the change is inserting at the end of a list
@@ -572,7 +572,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     private ICompletion createCompletionReplaceTerm(String name, String text, String additionalInfo,
-        StrategoAppl change, boolean blankLineCompletion, String prefix, String suffix) {
+                                                    IStrategoAppl change, boolean blankLineCompletion, String prefix, String suffix) {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -646,7 +646,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     private ICompletion createCompletionInsertBefore(String name, String text, String additionalInfo,
-        StrategoAppl change) {
+        IStrategoAppl change) {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -724,7 +724,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
     private ICompletion createCompletionInsertAtEnd(String name, String text, String additionalInfo,
-        StrategoAppl change, boolean blankLineCompletion) {
+        IStrategoAppl change, boolean blankLineCompletion) {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -866,12 +866,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
-                final String name = Tools.asJavaString(tuple.getSubterm(0));
-                String text = Tools.asJavaString(tuple.getSubterm(1));
-                String additionalInfo = Tools.asJavaString(tuple.getSubterm(2));
-                final StrategoAppl change = (StrategoAppl) tuple.getSubterm(3);
-                final StrategoTerm completionTerm = (StrategoTerm) tuple.getSubterm(4);
-                final String completionKind = Tools.asJavaString(tuple.getSubterm(5));
+                final String name = TermUtils.toJavaStringAt(tuple, 0);
+                String text = TermUtils.toJavaStringAt(tuple, 1);
+                String additionalInfo = TermUtils.toJavaStringAt(tuple, 2);
+                final IStrategoAppl change = TermUtils.toApplAt(tuple, 3);
+                final IStrategoTerm completionTerm = tuple.getSubterm(4);
+                final String completionKind = TermUtils.toJavaStringAt(tuple, 5);
                 String prefix = calculatePrefix(cursorPosition, completionTerm);
                 String suffix = calculateSuffix(cursorPosition, completionTerm);
 
@@ -970,7 +970,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     private ICompletion createCompletionInsertionTermFixing(String name, String text, String additionalInfo,
-        String prefix, String suffix, StrategoAppl change, String completionKind) {
+        String prefix, String suffix, IStrategoAppl change, String completionKind) {
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(0);
 
 
@@ -1025,7 +1025,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
     private ICompletion createCompletionInsertBeforeFixing(String name, String text, String additionalInfo,
-        String prefix, String suffix, StrategoAppl change, String completionKind) {
+        String prefix, String suffix, IStrategoAppl change, String completionKind) {
 
         // expect two terms and 1st should be an element of a list
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
@@ -1088,7 +1088,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
     private ICompletion createCompletionInsertAtEndFixing(String name, String text, String additionalInfo,
-        String prefix, String suffix, StrategoAppl change, String completionKind) {
+        String prefix, String suffix, IStrategoAppl change, String completionKind) {
 
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
@@ -1191,11 +1191,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                         continue;
                     }
 
-                    final String name = Tools.asJavaString(proposalTermNested.getSubterm(0));
-                    final String text = Tools.asJavaString(proposalTermNested.getSubterm(1));
-                    final String additionalInfo = Tools.asJavaString(proposalTermNested.getSubterm(2));
-                    final StrategoAppl change = (StrategoAppl) proposalTermNested.getSubterm(3);
-                    final StrategoTerm completionTerm = (StrategoTerm) proposalTermNested.getSubterm(4);
+                    final String name = TermUtils.toJavaStringAt(proposalTermNested, 0);
+                    final String text = TermUtils.toJavaStringAt(proposalTermNested, 1);
+                    final String additionalInfo = TermUtils.toJavaStringAt(proposalTermNested, 2);
+                    final IStrategoAppl change = TermUtils.toApplAt(proposalTermNested, 3);
+                    final IStrategoTerm completionTerm = proposalTermNested.getSubterm(4);
                     String prefix = calculatePrefix(cursorPosition, completionTerm);
                     String suffix = calculateSuffix(cursorPosition, completionTerm);
                     String completionKind = "recovery";
@@ -1364,7 +1364,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
     private ICompletion createCompletionReplaceTermFixing(String name, String text, String additionalInfo,
-        String prefix, String suffix, StrategoAppl change, String completionKind) {
+        String prefix, String suffix, IStrategoAppl change, String completionKind) {
         final StrategoTerm oldNode = (StrategoTerm) change.getSubterm(0);
         final StrategoTerm newNode = (StrategoTerm) change.getSubterm(1);
 

@@ -36,11 +36,11 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.time.Timer;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
@@ -241,7 +241,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         if(!(resourceTerm instanceof IStrategoString)) {
             throw new MetaborgException("First term of result tuple {} is not a string, cannot write output file");
         } else {
-            final String resourceString = Tools.asJavaString(resourceTerm);
+            final String resourceString = TermUtils.toJavaString(resourceTerm);
             final String resultContents = common.toString(contentTerm);
             // writing to output file is allowed
             FileObject output;

@@ -5,13 +5,13 @@ import java.util.Optional;
 import org.metaborg.util.functions.PartialFunction2;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.jsglr.client.imploder.Injections;
+import org.spoofax.terms.util.TermUtils;
 
 public class ExplicateInjectionsPrimitive extends AbstractPrimitive {
 
@@ -29,7 +29,7 @@ public class ExplicateInjectionsPrimitive extends AbstractPrimitive {
             try {
                 env.setCurrent(input);
                 if(sInjName.evaluate(env)) {
-                    return Optional.of(Tools.asJavaString(env.current()));
+                    return Optional.of(TermUtils.toJavaString(env.current()));
                 } else {
                     return Optional.empty();
                 }

@@ -36,13 +36,13 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoReal;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
@@ -199,7 +199,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
     private @Nullable ISpoofaxAnalyzeUnit result(IStrategoTerm result, Map<String, ISpoofaxParseUnit> inputsPerSource,
         IContext context, long duration) {
-        final String sourceString = Tools.asJavaString(result.getSubterm(0));
+        final String sourceString = TermUtils.toJavaStringAt(result, 0);
         final FileObject source;
         try {
             source = resourceService.resolve(sourceString);
@@ -235,7 +235,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     }
 
     private ISpoofaxAnalyzeUnitUpdate updateResult(IStrategoTerm result, IContext context) {
-        final String sourceString = Tools.asJavaString(result.getSubterm(0));
+        final String sourceString = TermUtils.toJavaStringAt(result, 0);
         final FileObject source;
         try {
             source = resourceService.resolve(sourceString);

@@ -19,7 +19,6 @@ import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimi
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -32,6 +31,7 @@ import com.google.common.collect.Maps;
 
 import mb.nabl2.util.ImmutableTuple2;
 import mb.nabl2.util.Tuple2;
+import org.spoofax.terms.util.TermUtils;
 
 public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
 
@@ -127,10 +127,10 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
             throw new MetaborgException(e);
         }
         IStrategoTerm current = strategoContext.current();
-        if(!Tools.isTermString(current)) {
+        if(!TermUtils.isString(current)) {
             throw new MetaborgException("Expected path string, got " + current);
         }
-        return Tools.asJavaString(current);
+        return TermUtils.toJavaString(current);
 
     }
 
@@ -148,7 +148,7 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
     }
 
     private List<IStrategoTerm> parseNames(IStrategoTerm current) throws MetaborgException {
-        if(!Tools.isTermList(current)) {
+        if(!TermUtils.isList(current)) {
             throw new MetaborgException("Expected list of names, got " + current);
         }
         return Lists.newArrayList(current.getAllSubterms());

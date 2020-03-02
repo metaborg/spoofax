@@ -4,13 +4,14 @@ import com.google.inject.Inject;
 import org.metaborg.core.context.IContext;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.core.dialogs.ISpoofaxDialogService;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -32,12 +33,13 @@ public final class SLShowDialogPrimitive extends ASpoofaxContextPrimitive {
             ITermFactory factory, IContext context) {
 
         // @formatter:off
-        final String message           = Tools.isTermString(current) ? Tools.asJavaString(current) : "<empty>"; // TODO: Term to string
-        @Nullable final String caption = (0 < tvars.length && Tools.isTermString(tvars[0])) ? Tools.asJavaString(tvars[0]) : null;
-        @Nullable final String kind    = (1 < tvars.length && Tools.isTermString(tvars[1])) ? Tools.asJavaString(tvars[1]) : null;
-        @Nullable List<String> options = (2 < tvars.length && Tools.isTermList(tvars[2]))   ? Tools.asJavaList(tvars[2]).stream()
-                .map(o -> Tools.isTermString(o) ? Tools.asJavaString(o) : null).collect(Collectors.toList()) : null;
-        final int defaultOption        = (3 < tvars.length && Tools.isTermInt(tvars[3]))    ? Tools.asJavaInt(tvars[3])    : 0;
+        final String message           = TermUtils.asJavaString(current).orElse("<empty>" /* TODO: Term to string */);
+        @Nullable final String caption = TermUtils.asJavaString(tvars[0]).orElse(null);
+        @Nullable final String kind    = TermUtils.asJavaString(tvars[1]).orElse(null);
+        @Nullable List<String> options = TermUtils.asJavaList(tvars[2])
+                .map(l -> l.stream().map(TermUtils::asJavaString).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList()))
+                .orElse(null);
+        final int defaultOption        = TermUtils.asJavaInt(tvars[3]).orElse(0);
         // @formatter:on
 
         @Nullable String result = invoke(message, caption, kind, options, defaultOption);

@@ -8,12 +8,12 @@ import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.util.resource.ResourceUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class RelativeSourceOrIncludePath extends ASpoofaxContextPrimitive {
     private final ILanguagePathService languagePathService;
@@ -32,21 +32,17 @@ public class RelativeSourceOrIncludePath extends ASpoofaxContextPrimitive {
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
             ITermFactory factory, IContext context) {
-        if(!Tools.isTermString(tvars[0])) {
-            return null;
-        }
-        if(!Tools.isTermString(current)) {
-            return null;
-        }
+        if(!TermUtils.isString(tvars[0])) return null;
+        if(!TermUtils.isString(current)) return null;
 
-        final String path = Tools.asJavaString(current);
+        final String path = TermUtils.toJavaString(current);
         final FileObject resource = resourceService.resolve(context.project().location(), path);
 
         FileObject base = context.location();
         final IProject project = projectService.get(context.location());
         if(project != null) {
             // GTODO: require language identifier instead of language name
-            final String languageName = Tools.asJavaString(tvars[0]);
+            final String languageName = TermUtils.toJavaString(tvars[0]);
             final Iterable<FileObject> sourceLocations = languagePathService.sourceAndIncludePaths(project, languageName);
             for(FileObject sourceLocation : sourceLocations) {
                 if(sourceLocation.getName().isDescendent(resource.getName())) {

@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.action;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -18,7 +19,6 @@ import org.metaborg.core.menu.Separator;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -26,6 +26,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import org.spoofax.terms.util.TermUtils;
 
 public class ActionFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(ActionFacetFromESV.class);
@@ -56,7 +57,7 @@ public class ActionFacetFromESV {
         final Iterable<IStrategoTerm> items = menuTerm.getSubterm(2);
         final Menu menu = new Menu(name);
         for(IStrategoTerm item : items) {
-            final String constructor = Tools.constructorName(item);
+            @Nullable final String constructor = TermUtils.asAppl(item).map(t -> t.getConstructor().getName()).orElse(null);
             if(constructor == null) {
                 logger.error("Could not interpret menu item from term {}", item);
                 continue;
@@ -68,7 +69,7 @@ public class ActionFacetFromESV {
                     break;
                 case "Action":
                     final String actionName = name(item.getSubterm(0));
-                    final String strategy = Tools.asJavaString(item.getSubterm(1).getSubterm(0));
+                    final String strategy = TermUtils.toJavaString(item.getSubterm(1).getSubterm(0));
                     final TransformActionFlags actionFlags = flags(item.getSubterm(2));
                     final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
                     final ImmutableList<String> newActionNesting = ImmutableList.<String>builder().addAll(newNesting).add(actionName).build();
@@ -97,7 +98,7 @@ public class ActionFacetFromESV {
         // * Submenu: String("\"Name\"")
         // * Action: String("\"Name\"")
         final IStrategoTerm term;
-        if(Tools.hasConstructor((IStrategoAppl) nameTerm, "Label")) {
+        if(TermUtils.isAppl(nameTerm, "Label")) {
             term = nameTerm.getSubterm(0);
         } else {
             term = nameTerm;
@@ -108,7 +109,7 @@ public class ActionFacetFromESV {
     private static TransformActionFlags flags(Iterable<IStrategoTerm> flagTerms) {
         final TransformActionFlags flags = new TransformActionFlags();
         for(IStrategoTerm flagTerm : flagTerms) {
-            final String constructor = Tools.constructorName(flagTerm);
+            @Nullable final String constructor =  TermUtils.asAppl(flagTerm).map(t -> t.getConstructor().getName()).orElse(null);
             if(constructor == null) {
                 logger.error("Could not interpret flag from term {}", flagTerm);
                 continue;
@@ -140,7 +141,7 @@ public class ActionFacetFromESV {
             return;
         }
         for(IStrategoAppl onSaveHandler : onSaveHandlers) {
-            final String strategyName = Tools.asJavaString(onSaveHandler.getSubterm(0).getSubterm(0));
+            final String strategyName = TermUtils.toJavaString(onSaveHandler.getSubterm(0).getSubterm(0));
             final ITransformGoal goal = new CompileGoal();
             final ITransformAction action = new TransformAction("Compile", goal, new TransformActionFlags(), strategyName);
             actions.put(goal, action);

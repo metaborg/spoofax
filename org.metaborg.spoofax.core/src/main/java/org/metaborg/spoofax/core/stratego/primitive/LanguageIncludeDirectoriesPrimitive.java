@@ -10,13 +10,13 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class LanguageIncludeDirectoriesPrimitive extends ASpoofaxContextPrimitive {
     private final ILanguagePathService languagePathService;
@@ -33,9 +33,7 @@ public class LanguageIncludeDirectoriesPrimitive extends ASpoofaxContextPrimitiv
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext context) throws MetaborgException, IOException {
-        if(!Tools.isTermString(tvars[0])) {
-            return null;
-        }
+        if(!TermUtils.isString(tvars[0])) return null;
 
         final IProject project = projectService.get(context.location());
         if(project == null) {
@@ -43,7 +41,7 @@ public class LanguageIncludeDirectoriesPrimitive extends ASpoofaxContextPrimitiv
         }
 
         // GTODO: require language identifier instead of language name
-        final String languageName = Tools.asJavaString(tvars[0]);
+        final String languageName = TermUtils.toJavaString(tvars[0]);
         final Iterable<FileObject> includeLocations = languagePathService.includePaths(project, languageName);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject includeLocation : includeLocations) {

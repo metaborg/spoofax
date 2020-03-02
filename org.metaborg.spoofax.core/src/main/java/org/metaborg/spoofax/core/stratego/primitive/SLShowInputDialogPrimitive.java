@@ -4,15 +4,13 @@ import com.google.inject.Inject;
 import org.metaborg.core.context.IContext;
 import org.metaborg.spoofax.core.dialogs.ISpoofaxDialogService;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 /**
@@ -33,9 +31,9 @@ public final class SLShowInputDialogPrimitive extends ASpoofaxContextPrimitive {
             ITermFactory factory, IContext context) {
 
         // @formatter:off
-        final String message                    = Tools.isTermString(current) ? Tools.asJavaString(current) : "<empty>"; // TODO: Term to string
-        @Nullable final String caption          = (0 < tvars.length && Tools.isTermString(tvars[0])) ? Tools.asJavaString(tvars[0]) : null;
-        @Nullable final String initialValue     = (1 < tvars.length && Tools.isTermString(tvars[1])) ? Tools.asJavaString(tvars[1]) : null;
+        final String message                    = TermUtils.asJavaString(current).orElse("<empty>" /* TODO: Term to string */);
+        @Nullable final String caption          = TermUtils.asJavaString(tvars[0]).orElse(null);
+        @Nullable final String initialValue     = TermUtils.asJavaString(tvars[1]).orElse(null);
         // @formatter:on
 
         // TODO: Support strategy as validator

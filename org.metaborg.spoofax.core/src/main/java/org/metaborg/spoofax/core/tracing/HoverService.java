@@ -24,9 +24,9 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.inject.Inject;
@@ -150,7 +150,7 @@ public class HoverService implements ISpoofaxHoverService {
 
         final String text;
         if(output.getTermType() == IStrategoTerm.STRING) {
-            text = Tools.asJavaString(output);
+            text = TermUtils.toJavaString(output);
         } else {
             text = output.toString();
         }

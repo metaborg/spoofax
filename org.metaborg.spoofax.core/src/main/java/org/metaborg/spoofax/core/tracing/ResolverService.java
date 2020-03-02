@@ -28,10 +28,9 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
@@ -185,11 +184,11 @@ public class ResolverService implements ISpoofaxResolverService {
 
     private @Nullable String getHyperlinkText(IStrategoTerm subterm) {
         for (IStrategoTerm annoterm : subterm.getAnnotations()) {
-            if(Tools.isTermAppl(annoterm)
-                    && Tools.hasConstructor((IStrategoAppl) annoterm, "HyperlinkText", 1)) {
-                IStrategoTerm hyperlinkTextTerm = Tools.termAt(annoterm, 0);
-                if(Tools.isTermString(hyperlinkTextTerm))
-                    return Tools.asJavaString(hyperlinkTextTerm);
+            if(TermUtils.isAppl(annoterm)
+                    && TermUtils.isAppl(annoterm, "HyperlinkText", 1)) {
+                IStrategoTerm hyperlinkTextTerm = annoterm.getSubterm(0);
+                if(TermUtils.isString(hyperlinkTextTerm))
+                    return TermUtils.toJavaString(hyperlinkTextTerm);
                 else
                     return hyperlinkTextTerm.toString();
             }

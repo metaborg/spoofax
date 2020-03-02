@@ -18,13 +18,13 @@ import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class DialectIdentifier implements IDialectIdentifier {
     private static final ILogger logger = LoggerUtils.logger(DialectIdentifier.class);
@@ -117,7 +117,7 @@ public class DialectIdentifier implements IDialectIdentifier {
         for(IStrategoTerm entry : entries.getAllSubterms()) {
             final String cons = ((IStrategoAppl) entry).getConstructor().getName();
             if(cons.equals("Syntax")) {
-                return Tools.asJavaString(entry.getSubterm(0));
+                return TermUtils.toJavaString(entry.getSubterm(0));
             }
         }
         return null;

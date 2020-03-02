@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.esv;
 
-import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import static org.spoofax.terms.Term.*;
 
@@ -9,12 +8,12 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
+import org.spoofax.terms.util.TermUtils;
 
 /**
  * Term reading utility class for ESV abstract syntax.
@@ -48,7 +47,7 @@ public class ESVReader {
 
         // TODO: optimize: use TermVisitor, avoid indexed access to long lists
         for(int i = 0; i < term.getSubtermCount(); i++) {
-            collectTerms(termAt(term, i), constructor, results);
+            collectTerms(term.getSubterm(i), constructor, results);
         }
     }
 
@@ -62,11 +61,11 @@ public class ESVReader {
         if(t.getTermType() == STRING) {
             result = asJavaString(t);
         } else if(t.getSubtermCount() == 1 && "Values".equals(tryGetName(t))) {
-            return concatTermStrings(Tools.listAt(t, 0));
-        } else if(t.getTermType() == APPL && t.getSubtermCount() == 1 && termAt(t, 0).getTermType() == STRING) {
-            result = asJavaString(termAt(t, 0));
+            return concatTermStrings(TermUtils.toListAt(t, 0));
+        } else if(t.getTermType() == APPL && t.getSubtermCount() == 1 && t.getSubterm(0).getTermType() == STRING) {
+            result = asJavaString(t.getSubterm(0));
         } else if(t.getTermType() == APPL && t.getSubtermCount() == 1) {
-            return termContents(termAt(t, 0));
+            return termContents(t.getSubterm(0));
         } else {
             return null;
         }
@@ -85,9 +84,9 @@ public class ESVReader {
         List<String> results = Lists.newArrayList();
 
         if(t.getSubtermCount() == 1 && "Values".equals(tryGetName(t))) {
-            IStrategoList values = Tools.listAt(t, 0);
+            IStrategoList values = TermUtils.toListAt(t, 0);
             for(int i = 0; i < values.getSubtermCount(); i++) {
-                results.add(termContents(termAt(values, i)));
+                results.add(termContents(values.getSubterm(i)));
             }
         } else {
             return null;
@@ -112,11 +111,11 @@ public class ESVReader {
         StringBuilder results = new StringBuilder();
 
         if(values.getSubtermCount() > 0)
-            results.append(termContents(termAt(values, 0)));
+            results.append(termContents(values.getSubterm(0)));
 
         for(int i = 1; i < values.getSubtermCount(); i++) {
             results.append(',');
-            results.append(termContents(termAt(values, i)));
+            results.append(termContents(values.getSubterm(i)));
         }
         return results.toString();
     }

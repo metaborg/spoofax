@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.tracing;
 
-import static org.spoofax.interpreter.core.Tools.termAt;
-
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.esv.ESVReader;
@@ -17,7 +15,7 @@ public class ResolverFacetFromESV {
         if(resolver == null) {
             return null;
         }
-        final String strategyName = ESVReader.termContents(termAt(resolver, 1));
+        final String strategyName = ESVReader.termContents(resolver.getSubterm(1));
         if(strategyName == null) {
             logger.error("Could not get contents of ESV ReferenceRule {}, cannot create resolver facet", resolver);
             return null;
@@ -30,7 +28,7 @@ public class ResolverFacetFromESV {
         if(hover == null) {
             return null;
         }
-        final String strategyName = ESVReader.termContents(termAt(hover, 1));
+        final String strategyName = ESVReader.termContents(hover.getSubterm(1));
         if(strategyName == null) {
             logger.error("Could not get contents of ESV HoverRule {}, cannot create hover facet", hover);
             return null;

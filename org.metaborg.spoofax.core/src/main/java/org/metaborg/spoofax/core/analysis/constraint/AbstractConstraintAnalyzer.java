@@ -44,9 +44,9 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -251,7 +251,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Invalid analysis result, got " + allResultsTerm);
         }
         final IStrategoTerm resultsTerm = allResultTerms.get(0);
-        if(!Tools.isTermList(resultsTerm)) {
+        if(!TermUtils.isList(resultsTerm)) {
             throw new AnalysisException(context, "Expected list of results, got " + resultsTerm);
         }
         for(IStrategoTerm entry : resultsTerm.getAllSubterms()) {
@@ -260,11 +260,11 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             }
             final IStrategoTerm resourceTerm = entry.getSubterm(0);
             final IStrategoTerm resultTerm = entry.getSubterm(1);
-            if(!Tools.isTermString(resourceTerm)) {
+            if(!TermUtils.isString(resourceTerm)) {
                 throw new AnalysisException(context,
                         "Expected resource string as first component, got " + resourceTerm);
             }
-            final String resource = Tools.asJavaString(resourceTerm);
+            final String resource = TermUtils.toJavaString(resourceTerm);
             results.put(resource, resultTerm);
         }
 
@@ -482,7 +482,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     protected @Nullable List<IStrategoTerm> match(IStrategoTerm term, String op, int n) {
-        if(term == null || !Tools.isTermAppl(term) || !Tools.hasConstructor((IStrategoAppl) term, op, n)) {
+        if(term == null || !TermUtils.isAppl(term) || !TermUtils.isAppl(term, op, n)) {
             return null;
         }
         return ImmutableList.copyOf(term.getAllSubterms());
