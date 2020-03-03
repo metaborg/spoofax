@@ -24,13 +24,13 @@ public class AbsolutePathPrimitive extends ASpoofaxPrimitive {
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext context) {
-        if(!(current instanceof IStrategoString)) {
+        if(!(TermUtils.isString(current))) {
             return null;
         }
         String path = TermUtils.toJavaString(current);
 
         IStrategoTerm basePathTerm = tvars[0];
-        if(!(basePathTerm instanceof IStrategoString)) {
+        if(!(TermUtils.isString(basePathTerm))) {
             return null;
         }
         String basePath = TermUtils.toJavaString(basePathTerm);

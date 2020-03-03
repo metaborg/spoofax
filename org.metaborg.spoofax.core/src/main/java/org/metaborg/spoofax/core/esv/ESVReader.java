@@ -20,7 +20,7 @@ import org.spoofax.terms.util.TermUtils;
  */
 public class ESVReader {
     public static IStrategoAppl findTerm(IStrategoTerm term, String constructor) {
-        if(term.getTermType() == IStrategoTerm.APPL && cons(term).equals(constructor))
+        if(TermUtils.isAppl(term) && cons(term).equals(constructor))
             return (IStrategoAppl) term;
 
         IStrategoTerm[] subterms = term.getAllSubterms();
@@ -42,7 +42,7 @@ public class ESVReader {
     }
 
     private static void collectTerms(IStrategoTerm term, String constructor, ArrayList<IStrategoAppl> results) {
-        if(term.getTermType() == IStrategoTerm.APPL && cons(term).equals(constructor))
+        if(TermUtils.isAppl(term) && cons(term).equals(constructor))
             results.add((IStrategoAppl) term);
 
         // TODO: optimize: use TermVisitor, avoid indexed access to long lists
@@ -121,7 +121,7 @@ public class ESVReader {
     }
 
     public static String cons(IStrategoTerm t) {
-        if(t == null || t.getTermType() != APPL)
+        if(!TermUtils.isAppl(t))
             return null;
         return ((IStrategoAppl) t).getConstructor().getName();
     }

@@ -18,6 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
+import org.spoofax.terms.util.TermUtils;
 import org.spoofax.terms.visitor.AStrategoTermVisitor;
 import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
@@ -139,7 +140,7 @@ public class TracingService implements ISpoofaxTracingService {
         final Collection<IStrategoTerm> parsed = Lists.newLinkedList();
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
             @Override public boolean visit(IStrategoTerm term) {
-                if(term.isList() && term.getSubtermCount() == 1) {
+                if(TermUtils.isList(term, 1)) {
                     // try element instead of singleton list
                     return true;
                 }

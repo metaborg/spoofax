@@ -149,7 +149,7 @@ public class HoverService implements ISpoofaxHoverService {
         final ISourceRegion offsetRegion = tuple.region;
 
         final String text;
-        if(output.getTermType() == IStrategoTerm.STRING) {
+        if(TermUtils.isString(output)) {
             text = TermUtils.toJavaString(output);
         } else {
             text = output.toString();

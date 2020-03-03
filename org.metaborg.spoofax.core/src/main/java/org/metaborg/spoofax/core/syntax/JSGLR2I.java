@@ -34,6 +34,7 @@ import org.spoofax.jsglr2.JSGLR2Variant;
 import org.spoofax.jsglr2.messages.Message;
 
 import com.google.common.collect.Lists;
+import org.spoofax.terms.util.TermUtils;
 
 public class JSGLR2I extends JSGLRI<IParseTable> {
 
@@ -131,14 +132,14 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         boolean addedMessage = false;
 
         // non-associative and non-nested operators should be flagged with warnings
-        if(ast instanceof IStrategoAppl && ast.getAllSubterms().length >= 1) {
+        if(TermUtils.isAppl(ast) && ast.getAllSubterms().length >= 1) {
             String sortConsParent =
                 ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
 
             IStrategoTerm firstChild = ast.getSubterm(0);
             IStrategoTerm lastChild = ast.getSubterm(ast.getSubtermCount() - 1);
 
-            if(firstChild instanceof IStrategoAppl) {
+            if(TermUtils.isAppl(firstChild)) {
                 IStrategoAppl leftMostChild = (IStrategoAppl) firstChild;
                 @Nullable ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
                 String sortConsChild = ImploderAttachment.getSort(ast) + "." + leftMostChild.getConstructor().getName();
@@ -152,7 +153,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
                 }
             }
 
-            if(lastChild instanceof IStrategoAppl) {
+            if(TermUtils.isAppl(lastChild)) {
                 IStrategoAppl rightMostChild = (IStrategoAppl) lastChild;
                 @Nullable ImploderAttachment rightMostChildAttachment = ImploderAttachment.get(rightMostChild);
                 String sortConsChild =

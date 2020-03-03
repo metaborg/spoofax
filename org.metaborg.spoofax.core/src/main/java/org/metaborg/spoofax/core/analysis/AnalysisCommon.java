@@ -133,13 +133,13 @@ public class AnalysisCommon {
 
 
     private String toString(IStrategoTerm term) {
-        if(term instanceof IStrategoString) {
+        if(TermUtils.isString(term)) {
             final IStrategoString messageStringTerm = (IStrategoString) term;
             return messageStringTerm.stringValue();
-        } else if(term instanceof IStrategoList) {
+        } else if(TermUtils.isList(term)) {
             final StringBuilder sb = new StringBuilder();
             boolean first = true;
-            for(IStrategoTerm subterm : term) {
+            for(IStrategoTerm subterm : term.getSubterms()) {
                 if(!first) {
                     sb.append(' ');
                 }

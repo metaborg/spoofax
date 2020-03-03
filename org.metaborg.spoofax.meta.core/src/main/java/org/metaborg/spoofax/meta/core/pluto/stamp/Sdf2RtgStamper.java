@@ -9,6 +9,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermTransformer;
+import org.spoofax.terms.util.TermUtils;
 import org.sugarj.common.FileCommands;
 
 import build.pluto.stamp.LastModifiedStamper;
@@ -60,7 +61,7 @@ public class Sdf2RtgStamper implements Stamper {
 
 
         @Override public IStrategoTerm preTransform(IStrategoTerm term) {
-            if(term instanceof IStrategoAppl && ((IStrategoAppl) term).getConstructor().getName().equals("lit"))
+            if(TermUtils.isAppl(term) && ((IStrategoAppl) term).getConstructor().getName().equals("lit"))
                 return factory.makeAppl(factory.makeConstructor("lit", 1), factory.makeString(""));
             return term;
         }

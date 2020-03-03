@@ -20,7 +20,7 @@ public class DigestPrimitive extends ASpoofaxPrimitive {
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext context) {
-        if(!(current instanceof IStrategoString)) {
+        if(!(TermUtils.isString(current))) {
             return null;
         }
         final String str = TermUtils.toJavaString(current);

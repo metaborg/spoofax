@@ -74,6 +74,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
     private static final ILogger logger = LoggerUtils.logger(LanguageComponentFactory.class);
@@ -264,7 +265,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         final TermReader reader =
             new TermReader(termFactoryService.getGeneric());
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
-        if(term.getTermType() != IStrategoTerm.APPL) {
+        if(!TermUtils.isAppl(term)) {
             final String message = logger.format(
                 "Cannot discover language at {}, ESV file at {} does not contain a valid ESV term", location, esvFile);
             throw new MetaborgException(message);

@@ -37,6 +37,7 @@ import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.attachments.ParentTermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 
@@ -194,14 +195,14 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         boolean addedMessage = false;
 
         // non-associative and non-nested operators should be flagged with warnings
-        if(ast instanceof IStrategoAppl && ast.getAllSubterms().length >= 1) {
+        if(TermUtils.isAppl(ast) && ast.getAllSubterms().length >= 1) {
             String sortConsParent =
                 ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
 
             IStrategoTerm firstChild = ast.getSubterm(0);
             IStrategoTerm lastChild = ast.getSubterm(ast.getSubtermCount() - 1);
 
-            if(firstChild instanceof IStrategoAppl) {
+            if(TermUtils.isAppl(firstChild)) {
                 IStrategoAppl leftMostChild = (IStrategoAppl) firstChild;
                 @Nullable ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
                 String sortConsChild = ImploderAttachment.getSort(ast) + "." + leftMostChild.getConstructor().getName();
@@ -214,7 +215,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
                 }
             }
 
-            if(lastChild instanceof IStrategoAppl) {
+            if(TermUtils.isAppl(lastChild)) {
                 IStrategoAppl rightMostChild = (IStrategoAppl) lastChild;
                 @Nullable ImploderAttachment rightMostChildAttachment = ImploderAttachment.get(rightMostChild);
                 String sortConsChild =

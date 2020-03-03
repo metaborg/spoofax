@@ -156,7 +156,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
             final String message = analysisCommon.analysisFailedMessage(runtime);
             throw new AnalysisException(context, message);
         }
-        if(!(resultTerm instanceof IStrategoAppl) || resultTerm.getSubtermCount() != 5) {
+        if(!(TermUtils.isAppl(resultTerm)) || resultTerm.getSubtermCount() != 5) {
             final String message = logger.format("Unexpected results from analysis {}, expected 5-tuple", resultTerm);
             throw new AnalysisException(context, message);
         }
@@ -166,7 +166,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
         final Collection<ISpoofaxAnalyzeUnit> fileResults =
             Lists.newArrayListWithCapacity(resultsTerm.getSubtermCount());
-        for(IStrategoTerm result : resultsTerm) {
+        for(IStrategoTerm result : resultsTerm.getSubterms()) {
             // HACK: analysis duration per parse unit is unknown, pass -1 as duration.
             final ISpoofaxAnalyzeUnit fileResult = result(result, inputsPerSource, context, -1);
             if(fileResult == null) {
@@ -177,7 +177,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults =
             Lists.newArrayListWithCapacity(updateResultsTerm.getSubtermCount());
-        for(IStrategoTerm result : updateResultsTerm) {
+        for(IStrategoTerm result : updateResultsTerm.getSubterms()) {
             final ISpoofaxAnalyzeUnitUpdate updateResult = updateResult(result, context);
             if(updateResult == null) {
                 continue;

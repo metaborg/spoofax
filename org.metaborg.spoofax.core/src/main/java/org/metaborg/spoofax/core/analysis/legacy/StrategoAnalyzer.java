@@ -35,6 +35,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
@@ -157,7 +158,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
             if(resultTerm == null) {
                 logger.trace("Analysis for {} failed", source);
                 return result(analysisCommon.analysisFailedMessage(runtime), input, context, null, duration);
-            } else if(!(resultTerm instanceof IStrategoTuple)) {
+            } else if(!(TermUtils.isTuple(resultTerm))) {
                 logger.trace("Analysis for {} has unexpected result, not a tuple", source);
                 final String message = logger.format("Unexpected results from analysis {}", resultTerm);
                 return result(message, input, context, null, duration);

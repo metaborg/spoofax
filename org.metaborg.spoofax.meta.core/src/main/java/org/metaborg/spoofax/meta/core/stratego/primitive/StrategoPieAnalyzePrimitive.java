@@ -82,7 +82,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 //        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
 //            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");
 //        }
-//        final String moduleName = Tools.javaStringAt(ast, 0);
+//        final String moduleName = TermUtils.toJavaStringAt(ast, 0);
 
         final IProject project = context.project();
         if(project == null) {

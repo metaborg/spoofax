@@ -238,7 +238,7 @@ public class StrategoTransformer implements IStrategoTransformer {
 
     private TransformOutput output(IStrategoTerm resourceTerm, IStrategoTerm contentTerm, FileObject location,
         ITransformConfig config) throws MetaborgException {
-        if(!(resourceTerm instanceof IStrategoString)) {
+        if(!(TermUtils.isString(resourceTerm))) {
             throw new MetaborgException("First term of result tuple {} is not a string, cannot write output file");
         } else {
             final String resourceString = TermUtils.toJavaString(resourceTerm);

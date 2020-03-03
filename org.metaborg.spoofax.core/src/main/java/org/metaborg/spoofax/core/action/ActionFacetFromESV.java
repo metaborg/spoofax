@@ -52,9 +52,9 @@ public class ActionFacetFromESV {
         Multimap<ITransformGoal, ITransformAction> actions) {
         final String name = name(menuTerm.getSubterm(0));
         final ImmutableList<String> newNesting = ImmutableList.<String>builder().addAll(nesting).add(name).build();
-        final TransformActionFlags extraFlags = flags(menuTerm.getSubterm(1));
+        final TransformActionFlags extraFlags = flags(menuTerm.getSubterm(1).getSubterms());
         final TransformActionFlags mergedFlags = TransformActionFlags.merge(flags, extraFlags);
-        final Iterable<IStrategoTerm> items = menuTerm.getSubterm(2);
+        final Iterable<IStrategoTerm> items = menuTerm.getSubterm(2).getSubterms();
         final Menu menu = new Menu(name);
         for(IStrategoTerm item : items) {
             @Nullable final String constructor = TermUtils.asAppl(item).map(t -> t.getConstructor().getName()).orElse(null);
@@ -70,7 +70,7 @@ public class ActionFacetFromESV {
                 case "Action":
                     final String actionName = name(item.getSubterm(0));
                     final String strategy = TermUtils.toJavaStringAt(item.getSubterm(1), 0);
-                    final TransformActionFlags actionFlags = flags(item.getSubterm(2));
+                    final TransformActionFlags actionFlags = flags(item.getSubterm(2).getSubterms());
                     final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
                     final ImmutableList<String> newActionNesting = ImmutableList.<String>builder().addAll(newNesting).add(actionName).build();
                     final NamedGoal goal = new NamedGoal(newActionNesting);

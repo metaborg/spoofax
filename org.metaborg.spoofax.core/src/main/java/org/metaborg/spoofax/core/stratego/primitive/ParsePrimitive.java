@@ -31,6 +31,7 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class ParsePrimitive extends ASpoofaxPrimitive {
     private final IResourceService resourceService;
@@ -60,7 +61,7 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
         ITermFactory factory, org.spoofax.interpreter.core.IContext strategoContext)
         throws MetaborgException, IOException {
         // Determine what to parse.
-        if(!(current instanceof IStrategoString)) {
+        if(!(TermUtils.isString(current))) {
             throw new MetaborgException("Cannot parse, input string or file " + current + " is not a string");
         }
         final String stringOrFile = ((IStrategoString) current).stringValue();
@@ -68,7 +69,7 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
         final String text;
         final @Nullable FileObject file;
         final IStrategoTerm isFileTerm = tvars[0];
-        if(!(isFileTerm instanceof IStrategoInt)) {
+        if(!(TermUtils.isInt(isFileTerm))) {
             throw new MetaborgException("Cannot parse, input kind " + isFileTerm + " is not an integer");
         }
         if(((IStrategoInt) isFileTerm).intValue() == 1) {
@@ -88,7 +89,7 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
         final IStrategoTerm idTerm = tvars[2];
         final IStrategoTerm versionTerm = tvars[3];
 
-        if(nameOrGroupIdTerm instanceof IStrategoTuple) {
+        if(TermUtils.isTuple(nameOrGroupIdTerm)) {
             // No name, groupId, id, and version was set, auto detect language to parse with.
             if(file == null) {
                 throw new MetaborgException("Cannot parse a string, no language to parse it with was given");
@@ -103,9 +104,9 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
             if(langImpl == null) {
                 throw new MetaborgException("Cannot parse, language for " + file + " could not be identified");
             }
-        } else if(idTerm instanceof IStrategoTuple) {
+        } else if(TermUtils.isTuple(idTerm)) {
             // No id was set, name is set.
-            if(!(nameOrGroupIdTerm instanceof IStrategoString)) {
+            if(!(TermUtils.isString(nameOrGroupIdTerm))) {
                 throw new MetaborgException("Cannot parse, language name " + nameOrGroupIdTerm + " is not a string");
             }
             final String name = ((IStrategoString) nameOrGroupIdTerm).stringValue();
@@ -120,15 +121,15 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
             }
         } else {
             // A groupId, id, and version is set.
-            if(!(nameOrGroupIdTerm instanceof IStrategoString)) {
+            if(!(TermUtils.isString(nameOrGroupIdTerm))) {
                 throw new MetaborgException("Cannot parse, language groupId " + nameOrGroupIdTerm + " is not a string");
             }
             final String groupId = ((IStrategoString) nameOrGroupIdTerm).stringValue();
-            if(!(idTerm instanceof IStrategoString)) {
+            if(!(TermUtils.isString(idTerm))) {
                 throw new MetaborgException("Cannot parse, language id " + idTerm + " is not a string");
             }
             final String id = ((IStrategoString) idTerm).stringValue();
-            if(!(versionTerm instanceof IStrategoString)) {
+            if(!(TermUtils.isString(versionTerm))) {
                 throw new MetaborgException("Cannot parse, language version " + versionTerm + " is not a string");
             }
             final String versionStr = ((IStrategoString) versionTerm).stringValue();

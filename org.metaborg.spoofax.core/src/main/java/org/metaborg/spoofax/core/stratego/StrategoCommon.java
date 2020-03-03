@@ -176,7 +176,7 @@ public class StrategoCommon implements IStrategoCommon {
         for(int i = 0; i < depth; i++) {
             final IStrategoTerm t = trace.getSubterm(depth - i - 1);
             sb.append("\n\t");
-            sb.append(t.getTermType() == IStrategoTerm.STRING ? TermUtils.toJavaString(t) : t);
+            sb.append(TermUtils.isString(t) ? TermUtils.toJavaString(t) : t);
         }
         return sb.toString();
     }
@@ -210,7 +210,7 @@ public class StrategoCommon implements IStrategoCommon {
     }
 
     @Override public String toString(IStrategoTerm term) {
-        if(term instanceof IStrategoString) {
+        if(TermUtils.isString(term)) {
             return ((IStrategoString) term).stringValue();
         } else {
             final IStrategoString pp = prettyPrint(term);

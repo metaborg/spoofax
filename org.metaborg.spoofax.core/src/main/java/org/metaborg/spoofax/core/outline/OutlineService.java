@@ -149,9 +149,9 @@ public class OutlineService implements ISpoofaxOutlineService {
 
     private @Nullable IOutline toOutline(IStrategoTerm term, int expandTo, FileObject location) {
         final Collection<IOutlineNode> roots = Lists.newLinkedList();
-        if(term instanceof IStrategoList) {
+        if(TermUtils.isList(term)) {
             final IStrategoList termList = (IStrategoList) term;
-            for(IStrategoTerm rootTerm : termList) {
+            for(IStrategoTerm rootTerm : termList.getSubterms()) {
                 final IOutlineNode node = toOutlineNode(rootTerm, null, location);
                 if(node != null) {
                     roots.add(node);
@@ -171,7 +171,7 @@ public class OutlineService implements ISpoofaxOutlineService {
 
     private @Nullable IOutlineNode toOutlineNode(IStrategoTerm term, @Nullable IOutlineNode parent,
         FileObject location) {
-        if(!(term instanceof IStrategoAppl)) {
+        if(!(TermUtils.isAppl(term))) {
             return null;
         }
         final IStrategoAppl appl = (IStrategoAppl) term;
@@ -187,7 +187,7 @@ public class OutlineService implements ISpoofaxOutlineService {
         final OutlineNode node = new OutlineNode(label, icon, region, parent);
 
         final IStrategoTerm nodesTerm = appl.getSubterm(1);
-        for(IStrategoTerm nodeTerm : nodesTerm) {
+        for(IStrategoTerm nodeTerm : nodesTerm.getSubterms()) {
             final IOutlineNode childNode = toOutlineNode(nodeTerm, node, location);
             if(childNode != null) {
                 node.addChild(childNode);
@@ -198,7 +198,7 @@ public class OutlineService implements ISpoofaxOutlineService {
     }
 
     private String label(IStrategoTerm term) {
-        if(term instanceof IStrategoString) {
+        if(TermUtils.isString(term)) {
             final IStrategoString stringTerm = (IStrategoString) term;
             return stringTerm.stringValue();
         } else {

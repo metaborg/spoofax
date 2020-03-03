@@ -159,8 +159,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
 
-                for(IStrategoTerm proposalTerm : proposalsPlaceholder) {
-                    if(!(proposalTerm instanceof IStrategoTuple)) {
+                for(IStrategoTerm proposalTerm : proposalsPlaceholder.getSubterms()) {
+                    if(!(TermUtils.isTuple(proposalTerm))) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                         continue;
                     }
@@ -286,7 +286,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 logger.error("Getting proposals for {} failed", term);
                 continue;
             }
-            for(IStrategoTerm proposalTerm : proposals) {
+            for(IStrategoTerm proposalTerm : proposals.getSubterms()) {
 
                 final IStrategoTuple tuple = TermUtils.toTuple(proposalTerm);
                 if(tuple.getSubtermCount() != 5
@@ -336,14 +336,14 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 logger.error("Getting proposals for {} failed", term);
                 continue;
             }
-            for(IStrategoTerm proposalTerm : proposals) {
+            for(IStrategoTerm proposalTerm : proposals.getSubterms()) {
 
                 final IStrategoTuple tuple = (IStrategoTuple) proposalTerm;
-                if(tuple.getSubtermCount() != 5 || !(tuple.getSubterm(0) instanceof IStrategoString)
-                    || !(tuple.getSubterm(1) instanceof IStrategoString)
-                    || !(tuple.getSubterm(2) instanceof IStrategoString)
-                    || !(tuple.getSubterm(3) instanceof IStrategoAppl)
-                    || !(tuple.getSubterm(4) instanceof IStrategoString)) {
+                if(tuple.getSubtermCount() != 5 || !(TermUtils.isString(tuple.getSubterm(0)))
+                    || !(TermUtils.isString(tuple.getSubterm(1)))
+                    || !(TermUtils.isString(tuple.getSubterm(2)))
+                    || !(TermUtils.isAppl(tuple.getSubterm(3)))
+                    || !(TermUtils.isString(tuple.getSubterm(4)))) {
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -403,8 +403,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             logger.error("Getting proposals for {} failed", placeholder);
             return completions;
         }
-        for(IStrategoTerm proposalTerm : proposalsPlaceholder) {
-            if(!(proposalTerm instanceof IStrategoTuple)) {
+        for(IStrategoTerm proposalTerm : proposalsPlaceholder.getSubterms()) {
+            if(!(TermUtils.isTuple(proposalTerm))) {
                 logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                 continue;
             }
@@ -465,8 +465,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 continue;
             }
 
-            for(IStrategoTerm proposalTerm : proposalsOptional) {
-                if(!(proposalTerm instanceof IStrategoTuple)) {
+            for(IStrategoTerm proposalTerm : proposalsOptional.getSubterms()) {
+                if(!(TermUtils.isTuple(proposalTerm))) {
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -525,8 +525,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 logger.error("Getting proposals for {} failed", strategoInput);
                 continue;
             }
-            for(IStrategoTerm proposalTerm : proposalsLists) {
-                if(!(proposalTerm instanceof IStrategoTuple)) {
+            for(IStrategoTerm proposalTerm : proposalsLists.getSubterms()) {
+                if(!(TermUtils.isTuple(proposalTerm))) {
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -581,8 +581,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm oldNode = change.getSubterm(0);
         final IStrategoTerm newNode = change.getSubterm(1);
 
-        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl)
-            || !(oldNode instanceof IStrategoAppl)) {
+        if(change.getSubtermCount() != 2 || !(TermUtils.isAppl(newNode))
+            || !(TermUtils.isAppl(oldNode))) {
             return null;
         }
 
@@ -659,8 +659,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // expect two terms and 1st should be an element of a list
         final IStrategoTerm oldList = ParentAttachment.getParent(oldNode);
 
-        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoAppl) || !(newNode instanceof IStrategoList)
-            || !(oldList instanceof IStrategoList)) {
+        if(change.getSubtermCount() != 2 || !(TermUtils.isAppl(oldNode)) || !(TermUtils.isList(newNode))
+            || !(TermUtils.isList(oldList))) {
             return null;
         }
 
@@ -828,12 +828,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, false);
                     final IStrategoTerm proposalTerm = strategoCommon.invoke(runtime, inputStratego,
                         "get-proposals-incorrect-programs-single-placeholder-" + languageName);
-                    if(proposalTerm == null || !(proposalTerm instanceof IStrategoList)) {
+                    if(proposalTerm == null || !(TermUtils.isList(proposalTerm))) {
                         logger.error("Getting proposals for {} failed", completionTerm);
                         continue;
                     }
 
-                    for(IStrategoTerm proposalPlaceholder : proposalTerm) {
+                    for(IStrategoTerm proposalPlaceholder : proposalTerm.getSubterms()) {
                         proposalsTerm.add(proposalPlaceholder);
                     }
 
@@ -857,7 +857,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             }
 
             for(IStrategoTerm proposalTerm : proposalsTerm) {
-                if(!(proposalTerm instanceof IStrategoTuple)) {
+                if(!(TermUtils.isTuple(proposalTerm))) {
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -980,7 +980,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm newNode = change.getSubterm(0);
 
 
-        if(change.getSubtermCount() != 1 || !(newNode instanceof IStrategoAppl)) {
+        if(change.getSubtermCount() != 1 || !(TermUtils.isAppl(newNode))) {
             return null;
         }
 
@@ -1038,8 +1038,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm newNode = change.getSubterm(1);
         final IStrategoTerm oldList = ParentAttachment.getParent(oldNode);
 
-        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoAppl) || !(newNode instanceof IStrategoAppl)
-            || !(oldList instanceof IStrategoList)) {
+        if(change.getSubtermCount() != 2 || !(TermUtils.isAppl(oldNode)) || !(TermUtils.isAppl(newNode))
+            || !(TermUtils.isList(oldList))) {
             return null;
         }
 
@@ -1102,8 +1102,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm oldNodeTopMostAmb = findTopMostAmbNode(oldNode);
 
 
-        if(change.getSubtermCount() != 2 || !(oldNode instanceof IStrategoList)
-            || !(newNode instanceof IStrategoAppl)) {
+        if(change.getSubtermCount() != 2 || !(TermUtils.isList(oldNode))
+            || !(TermUtils.isAppl(newNode))) {
             return null;
         }
 
@@ -1375,8 +1375,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm newNode = change.getSubterm(1);
 
 
-        if(change.getSubtermCount() != 2 || !(newNode instanceof IStrategoAppl)
-            || !(oldNode instanceof IStrategoAppl)) {
+        if(change.getSubtermCount() != 2 || !(TermUtils.isAppl(newNode))
+            || !(TermUtils.isAppl(oldNode))) {
             return null;
         }
 
@@ -1430,7 +1430,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     private @Nullable IStrategoAppl getPlaceholder(int position, final Iterable<IStrategoTerm> terms) {
         for(IStrategoTerm term : terms) {
-            if(term instanceof IStrategoAppl) {
+            if(TermUtils.isAppl(term)) {
                 IToken left = ImploderAttachment.getLeftToken(term);
                 IToken right = ImploderAttachment.getRightToken(term);
 
@@ -1450,7 +1450,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         Collection<IStrategoList> lists = Lists.newLinkedList();
         for(IStrategoTerm term : terms) {
-            if(term instanceof IStrategoList) {
+            if(TermUtils.isList(term)) {
                 final IStrategoList list = (IStrategoList) term;
                 lists.add(list);
             } else {
@@ -1477,9 +1477,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         for(IStrategoTerm term : terms) {
             IToken left = ImploderAttachment.getLeftToken(term);
             IToken right = ImploderAttachment.getRightToken(term);
-            if(!(term instanceof IStrategoList) && left.getStartOffset() > right.getEndOffset()) {
+            if(!(TermUtils.isList(term)) && left.getStartOffset() > right.getEndOffset()) {
                 optionals.add(term);
-            } else if(term instanceof IStrategoList) {
+            } else if(TermUtils.isList(term)) {
                 continue;
                 // if term is not nullable, nor a list nor left or right recursive stop the search
             } else {
@@ -1506,7 +1506,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
             if(isRightRecursive && position <= left.getStartOffset()) {
                 rightRecursive.add(term);
-            } else if(term instanceof IStrategoList || left.getStartOffset() > right.getEndOffset()) {
+            } else if(TermUtils.isList(term) || left.getStartOffset() > right.getEndOffset()) {
                 continue;
             } else {
                 break;
@@ -1527,7 +1527,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
             if(isLeftRecursive && position > right.getEndOffset()) {
                 leftRecursive.add(term);
-            } else if(term instanceof IStrategoList || left.getStartOffset() > right.getEndOffset()) {
+            } else if(TermUtils.isList(term) || left.getStartOffset() > right.getEndOffset()) {
                 continue;
             } else {
                 break;
@@ -1605,13 +1605,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         ITokens tokenizer = ImploderAttachment.getTokenizer(fragment);
         IToken leftmostValid = left;
         IToken rightmostValid = right;
-        boolean isList = (fragment instanceof IStrategoList) ? true : false;
+        boolean isList = (TermUtils.isList(fragment)) ? true : false;
         boolean isOptional = false;
         String sort = ImploderAttachment.getSort(fragment);
         IStrategoTerm input = termFactory.makeString(sort);
         boolean isLeftRecursive = false;
 
-        if(fragment instanceof IStrategoAppl && position > right.getEndOffset()) {
+        if(TermUtils.isAppl(fragment) && position > right.getEndOffset()) {
             try {
                 isLeftRecursive = strategoCommon.invoke(runtime, input, "is-left-recursive") != null;
             } catch(MetaborgException e) {
@@ -1622,7 +1622,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         }
         boolean isRightRecursive = false;
 
-        if(fragment instanceof IStrategoAppl && position <= left.getStartOffset()) {
+        if(TermUtils.isAppl(fragment) && position <= left.getStartOffset()) {
             try {
                 isRightRecursive = strategoCommon.invoke(runtime, input, "is-right-recursive") != null;
             } catch(MetaborgException e) {
@@ -1769,7 +1769,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
 
             @Override public boolean visit(IStrategoTerm term) {
-                if(term instanceof IStrategoAppl) {
+                if(TermUtils.isAppl(term)) {
                     IStrategoAppl appl = (IStrategoAppl) term;
                     if(appl.getConstructor().getName().contains("-Plhdr") && appl.getSubtermCount() > 0) {
                         placeholderTerms.add(appl);

@@ -60,7 +60,7 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
                 final Optional<List<String>> propertyNames = M.maybe(() -> {
                     IStrategoList list = M.list(terms.get(0));
                     ArrayList<String> propNames = new ArrayList<>(list.getSubtermCount());
-                    for(IStrategoTerm stringTerm : list) {
+                    for(IStrategoTerm stringTerm : list.getSubterms()) {
                         propNames.add(M.string(stringTerm));
                     }
                     return propNames;
