@@ -139,7 +139,7 @@ public class AnalysisCommon {
         } else if(TermUtils.isList(term)) {
             final StringBuilder sb = new StringBuilder();
             boolean first = true;
-            for(IStrategoTerm subterm : term.getSubterms()) {
+            for(IStrategoTerm subterm : term) {
                 if(!first) {
                     sb.append(' ');
                 }

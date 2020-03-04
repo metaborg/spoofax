@@ -42,7 +42,7 @@ public class AnalysisFacetFromESV {
         final IStrategoTerm annotations = strategy.getSubterm(1);
         boolean multifile = false;
         boolean constraint = false;
-        for(IStrategoTerm annotation : annotations.getSubterms()) {
+        for(IStrategoTerm annotation : annotations) {
             multifile |= TermUtils.isAppl(annotation, "MultiFile", 0);
             constraint |= TermUtils.isAppl(annotation, "Constraint", 0);
         }

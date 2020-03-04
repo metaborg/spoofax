@@ -159,7 +159,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
 
-                for(IStrategoTerm proposalTerm : proposalsPlaceholder.getSubterms()) {
+                for(IStrategoTerm proposalTerm : proposalsPlaceholder) {
                     if(!(TermUtils.isTuple(proposalTerm))) {
                         logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                         continue;
@@ -286,7 +286,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 logger.error("Getting proposals for {} failed", term);
                 continue;
             }
-            for(IStrategoTerm proposalTerm : proposals.getSubterms()) {
+            for(IStrategoTerm proposalTerm : proposals) {
 
                 final IStrategoTuple tuple = TermUtils.toTuple(proposalTerm);
                 if(tuple.getSubtermCount() != 5
@@ -336,7 +336,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 logger.error("Getting proposals for {} failed", term);
                 continue;
             }
-            for(IStrategoTerm proposalTerm : proposals.getSubterms()) {
+            for(IStrategoTerm proposalTerm : proposals) {
 
                 final IStrategoTuple tuple = (IStrategoTuple) proposalTerm;
                 if(tuple.getSubtermCount() != 5 || !(TermUtils.isString(tuple.getSubterm(0)))
@@ -403,7 +403,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             logger.error("Getting proposals for {} failed", placeholder);
             return completions;
         }
-        for(IStrategoTerm proposalTerm : proposalsPlaceholder.getSubterms()) {
+        for(IStrategoTerm proposalTerm : proposalsPlaceholder) {
             if(!(TermUtils.isTuple(proposalTerm))) {
                 logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                 continue;
@@ -465,7 +465,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 continue;
             }
 
-            for(IStrategoTerm proposalTerm : proposalsOptional.getSubterms()) {
+            for(IStrategoTerm proposalTerm : proposalsOptional) {
                 if(!(TermUtils.isTuple(proposalTerm))) {
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
@@ -525,7 +525,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 logger.error("Getting proposals for {} failed", strategoInput);
                 continue;
             }
-            for(IStrategoTerm proposalTerm : proposalsLists.getSubterms()) {
+            for(IStrategoTerm proposalTerm : proposalsLists) {
                 if(!(TermUtils.isTuple(proposalTerm))) {
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
@@ -833,7 +833,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                         continue;
                     }
 
-                    for(IStrategoTerm proposalPlaceholder : proposalTerm.getSubterms()) {
+                    for(IStrategoTerm proposalPlaceholder : proposalTerm) {
                         proposalsTerm.add(proposalPlaceholder);
                     }
 

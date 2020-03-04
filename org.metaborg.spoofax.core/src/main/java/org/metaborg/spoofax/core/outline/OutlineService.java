@@ -151,7 +151,7 @@ public class OutlineService implements ISpoofaxOutlineService {
         final Collection<IOutlineNode> roots = Lists.newLinkedList();
         if(TermUtils.isList(term)) {
             final IStrategoList termList = (IStrategoList) term;
-            for(IStrategoTerm rootTerm : termList.getSubterms()) {
+            for(IStrategoTerm rootTerm : termList) {
                 final IOutlineNode node = toOutlineNode(rootTerm, null, location);
                 if(node != null) {
                     roots.add(node);
@@ -187,7 +187,7 @@ public class OutlineService implements ISpoofaxOutlineService {
         final OutlineNode node = new OutlineNode(label, icon, region, parent);
 
         final IStrategoTerm nodesTerm = appl.getSubterm(1);
-        for(IStrategoTerm nodeTerm : nodesTerm.getSubterms()) {
+        for(IStrategoTerm nodeTerm : nodesTerm) {
             final IOutlineNode childNode = toOutlineNode(nodeTerm, node, location);
             if(childNode != null) {
                 node.addChild(childNode);

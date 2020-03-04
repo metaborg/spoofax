@@ -166,7 +166,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
         final Collection<ISpoofaxAnalyzeUnit> fileResults =
             Lists.newArrayListWithCapacity(resultsTerm.getSubtermCount());
-        for(IStrategoTerm result : resultsTerm.getSubterms()) {
+        for(IStrategoTerm result : resultsTerm) {
             // HACK: analysis duration per parse unit is unknown, pass -1 as duration.
             final ISpoofaxAnalyzeUnit fileResult = result(result, inputsPerSource, context, -1);
             if(fileResult == null) {
@@ -177,7 +177,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults =
             Lists.newArrayListWithCapacity(updateResultsTerm.getSubtermCount());
-        for(IStrategoTerm result : updateResultsTerm.getSubterms()) {
+        for(IStrategoTerm result : updateResultsTerm) {
             final ISpoofaxAnalyzeUnitUpdate updateResult = updateResult(result, context);
             if(updateResult == null) {
                 continue;

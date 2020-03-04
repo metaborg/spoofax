@@ -524,7 +524,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 try(final PieSession pieSession = pie.newSession()) {
                     pieSession.updateAffectedBy(changedResources);
-                    pieSession.deleteUnobservedTasks(t -> t.getId() == Backend.id, (t, r) -> {
+                    pieSession.deleteUnobservedTasks(t -> Backend.id.equals(t.getId()), (t, r) -> {
                         if(r instanceof HierarchicalResource && ((HierarchicalResource) r).getLeafExtension().equals("java")) {
                             logger.debug("Deleting garbage from previous build: " + r);
                             return true;

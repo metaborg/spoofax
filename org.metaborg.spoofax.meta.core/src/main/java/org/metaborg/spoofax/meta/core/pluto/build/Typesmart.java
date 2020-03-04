@@ -181,7 +181,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
         List<String> imports = new ArrayList<>();
 
         IStrategoList decls = TermUtils.toListAt(module, 1);
-        for(IStrategoTerm decl : decls.getSubterms()) {
+        for(IStrategoTerm decl : decls) {
             String declName = ((IStrategoAppl) decl).getName();
             if(declName.equals("Imports")) {
                 extractImports(decl.getSubterm(0), imports);
@@ -194,7 +194,7 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
     }
 
     private void extractImports(IStrategoTerm importDecls, List<String> imports) {
-        for(IStrategoTerm importDecl : importDecls.getSubterms()) {
+        for(IStrategoTerm importDecl : importDecls) {
             String importName = TermUtils.toJavaStringAt(importDecl, 0);
 
             String importDeclName = TermUtils.toAppl(importDecl).getName();
@@ -208,13 +208,13 @@ public class Typesmart extends SpoofaxBuilder<Typesmart.Input, None> {
     }
 
     private void processSignature(IStrategoTerm sigDecls) {
-        for(IStrategoTerm decl : sigDecls.getSubterms()) {
+        for(IStrategoTerm decl : sigDecls) {
             String declName = TermUtils.toAppl(decl).getName();
             if(!declName.equals("Constructors")) {
                 continue;
             }
 
-            next_constr: for(IStrategoTerm constr : decl.getSubterm(0).getSubterms()) {
+            next_constr: for(IStrategoTerm constr : decl.getSubterm(0)) {
                 String kind = TermUtils.toAppl(constr).getName();
 
                 String cname;

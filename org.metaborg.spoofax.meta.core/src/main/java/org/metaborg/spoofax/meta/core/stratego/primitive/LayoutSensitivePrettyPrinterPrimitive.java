@@ -77,7 +77,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                     line2Box.put(line, t);
                 }
 
-                for(IStrategoTerm subBox : t.getSubterm(1).getSubterms()) {
+                for(IStrategoTerm subBox : t.getSubterm(1)) {
                     createMappingLine2Box(subBox, line2Box);
                 }
             }
@@ -129,7 +129,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                 IStrategoTerm boxes = result.getSubterm(1);
 
                 if(boxes.getAnnotations() != null) {
-                    for(IStrategoTerm anno : boxes.getAnnotations().getSubterms()) {
+                    for(IStrategoTerm anno : boxes.getAnnotations()) {
                         // Offside(_, [_ | _])
                         if(TermUtils.isAppl(anno)
                             && ((IStrategoAppl) anno).getConstructor().getName().equals("Offside")
@@ -142,7 +142,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                     }
                 }
 
-                for(IStrategoTerm anno : t.getAnnotations().getSubterms()) {
+                for(IStrategoTerm anno : t.getAnnotations()) {
                     // Offside(_, [])
                     if(TermUtils.isAppl(anno)
                         && ((IStrategoAppl) anno).getConstructor().getName().equals("Offside")
@@ -201,7 +201,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                 IStrategoTerm newBoxes = boxes;
 
                 if(boxes.getAnnotations() != null) {
-                    for(IStrategoTerm t : boxes.getAnnotations().getSubterms()) {
+                    for(IStrategoTerm t : boxes.getAnnotations()) {
                         // Offside(_, [_ | _])
                         if(TermUtils.isAppl(t)
                             && ((IStrategoAppl) t).getConstructor().getName().equals("Offside")
@@ -280,7 +280,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                         }
                     }
                     
-                    for(IStrategoTerm t : term.getAnnotations().getSubterms()) {
+                    for(IStrategoTerm t : term.getAnnotations()) {
                         // Offside(_, [])
                         if(TermUtils.isAppl(t)
                             && ((IStrategoAppl) t).getConstructor().getName().equals("Offside")
@@ -295,7 +295,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             }
             
             if(constructorName.equals("V")) {
-                for(IStrategoTerm t : term.getAnnotations().getSubterms()) {
+                for(IStrategoTerm t : term.getAnnotations()) {
                     // Align(_)
                     if(TermUtils.isAppl(t) && ((IStrategoAppl) t).getConstructor().getName().equals("Align")
                         && t.getSubtermCount() == 1) {
@@ -582,7 +582,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             if(constructorName.equals("H") || constructorName.equals("V")) {
                 List<IStrategoTerm> newBoxes = Lists.newArrayList();
                 IStrategoTerm boxes = t.getSubterm(1);
-                for(IStrategoTerm subTerm : boxes.getSubterms()) {
+                for(IStrategoTerm subTerm : boxes) {
                     newBoxes.add(indentZboxes(subTerm, hBoxConfig));
                 }
                 return annotateTerm(
@@ -651,7 +651,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             if(constructorName.equals("H") || constructorName.equals("V")) {
                 List<IStrategoTerm> newBoxes = Lists.newArrayList();
                 IStrategoTerm boxes = t.getSubterm(1);
-                for(IStrategoTerm subTerm : boxes.getSubterms()) {
+                for(IStrategoTerm subTerm : boxes) {
                     newBoxes.add(applyOffsideConstraintToZBoxes(subTerm, posRef));
                 }
                 return annotateTerm(
@@ -760,7 +760,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     private IStrategoTerm getTermFromSelector(IStrategoTerm t, IStrategoTerm selector, boolean topmost) {
         if(t.getAnnotations() != null) {
             boolean foundAnotherConstraint = false;
-            for(IStrategoTerm anno : t.getAnnotations().getSubterms()) {
+            for(IStrategoTerm anno : t.getAnnotations()) {
                 if(anno.equals(selector)) {
                     return t;
                 }
@@ -790,7 +790,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private @Nullable IStrategoTerm getPosition(IStrategoTerm t) {
         if(t.getAnnotations() != null) {
-            for(IStrategoTerm anno : t.getAnnotations().getSubterms()) {
+            for(IStrategoTerm anno : t.getAnnotations()) {
                 if(TermUtils.isAppl(anno)
                     && ((IStrategoAppl) anno).getConstructor().getName().equals("Position")) {
                     return anno;
@@ -803,7 +803,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private IStrategoTerm getPositionWithLayout(IStrategoTerm t) {
         if(t.getAnnotations() != null) {
-            for(IStrategoTerm anno : t.getAnnotations().getSubterms()) {
+            for(IStrategoTerm anno : t.getAnnotations()) {
                 if(TermUtils.isAppl(anno)
                     && ((IStrategoAppl) anno).getConstructor().getName().equals("PositionWithLayout")) {
                     return tf.makeAppl(tf.makeConstructor("Position", 2), anno.getSubterm(0), anno.getSubterm(1));
@@ -820,7 +820,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             IStrategoTerm pos = null;
             boolean foundRef = false;
             boolean foundAnotherConstraint = false;
-            for(IStrategoTerm anno : t.getAnnotations().getSubterms()) {
+            for(IStrategoTerm anno : t.getAnnotations()) {
                 if(anno.equals(ref)) {
                     if(pos != null) {
                         return pos;
@@ -1123,7 +1123,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     private IStrategoTerm annotateBoxPosition(IStrategoTerm t, IStrategoTerm position, IStrategoList oldAnnotations) {
         List<IStrategoTerm> newAnnotations = Lists.newArrayList();
 
-        for(IStrategoTerm anno : oldAnnotations.getSubterms()) {
+        for(IStrategoTerm anno : oldAnnotations) {
             if(TermUtils.isAppl(anno) && ((IStrategoAppl) anno).getConstructor().getName().equals("Position")) {
                 continue;
             }
@@ -1137,7 +1137,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         IStrategoList oldAnnotations) {
         List<IStrategoTerm> newAnnotations = Lists.newArrayList();
 
-        for(IStrategoTerm anno : oldAnnotations.getSubterms()) {
+        for(IStrategoTerm anno : oldAnnotations) {
             if(TermUtils.isAppl(anno)
                 && ((IStrategoAppl) anno).getConstructor().getName().equals("PositionWithLayout")) {
                 continue;
@@ -1214,7 +1214,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private IStrategoTerm findFirstPosition(IStrategoTerm t) {
         if(t.getAnnotations() != null) {
-            for(IStrategoTerm anno : t.getAnnotations().getSubterms()) {
+            for(IStrategoTerm anno : t.getAnnotations()) {
                 if(TermUtils.isAppl(anno)
                     && ((IStrategoAppl) anno).getConstructor().getName().equals("Position")) {
                     return anno;

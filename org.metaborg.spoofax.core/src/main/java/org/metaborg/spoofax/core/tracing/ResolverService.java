@@ -155,7 +155,7 @@ public class ResolverService implements ISpoofaxResolverService {
 
         final Collection<ResolutionTarget> targets = Lists.newLinkedList();
         if(TermUtils.isList(output)) {
-            for(IStrategoTerm subterm : output.getSubterms()) {
+            for(IStrategoTerm subterm : output) {
                 final String hyperlinkText = getHyperlinkText(subterm);
                 final ISourceLocation targetLocation = common.getTargetLocation(subterm);
                 if(targetLocation == null) {
@@ -183,7 +183,7 @@ public class ResolverService implements ISpoofaxResolverService {
 
 
     private @Nullable String getHyperlinkText(IStrategoTerm subterm) {
-        for (IStrategoTerm annoterm : subterm.getAnnotations().getSubterms()) {
+        for (IStrategoTerm annoterm : subterm.getAnnotations()) {
             if(TermUtils.isAppl(annoterm, "HyperlinkText", 1)) {
                 IStrategoTerm hyperlinkTextTerm = annoterm.getSubterm(0);
                 if(TermUtils.isString(hyperlinkTextTerm))
