@@ -40,7 +40,7 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-import mb.flowspec.terms.B;
+import org.spoofax.terms.util.B;
 import org.spoofax.terms.StrategoArrayList;
 import mb.pie.api.ExecException;
 import mb.pie.api.PieSession;
