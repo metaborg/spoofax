@@ -41,7 +41,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import mb.flowspec.terms.B;
-import mb.flowspec.terms.StrategoArrayList;
+import org.spoofax.terms.StrategoArrayList;
 import mb.pie.api.ExecException;
 import mb.pie.api.PieSession;
 import mb.pie.api.STask;
