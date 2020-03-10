@@ -97,9 +97,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         
         ParseTableIO.outputToFile(parseTableATerm, input.outputParseTableFile);
         
-        if(input.tableConfig.isDynamic()) {
-            ParseTableIO.persistObjectToFile(parseTable, input.outputPersistedParseTableFile);
-        }
+        ParseTableIO.persistObjectToFile(parseTable, input.outputPersistedParseTableFile);
         
         provide(input.outputParseTableFile);
         provide(input.outputPersistedParseTableFile);

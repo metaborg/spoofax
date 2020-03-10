@@ -38,9 +38,9 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
             IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
        
             FileObject persistedTable = resource.getParent().resolveFile("table.bin");
-            if(!persistedTable.exists()) {
-                parseTable = new ParseTableReader().read(parseTableTerm);
-            } else {
+            parseTable = new ParseTableReader().read(parseTableTerm);
+            // only read serialized table when table generation is dynamic (#states = 0)
+            if(parseTable.totalStates() == 0 && persistedTable.exists()) {
                 ParseTableIO ptg = new ParseTableIO(persistedTable);
 
                 org.metaborg.sdf2table.parsetable.ParseTable parseTableFromSerializable = ptg.getParseTable();
