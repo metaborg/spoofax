@@ -31,17 +31,18 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
+import org.spoofax.terms.util.B;
+import org.spoofax.terms.util.TermUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-import org.spoofax.terms.util.B;
-import org.spoofax.terms.StrategoArrayList;
 import mb.pie.api.ExecException;
 import mb.pie.api.PieSession;
 import mb.pie.api.STask;
@@ -52,7 +53,6 @@ import mb.stratego.build.strincr.Analysis;
 import mb.stratego.build.strincr.Analysis.Output;
 import mb.stratego.build.strincr.Message;
 import mb.stratego.build.strincr.StrIncrAnalysis;
-import org.spoofax.terms.util.TermUtils;
 
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
@@ -167,9 +167,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
 
-        final ArrayList<IStrategoTerm> errors = new ArrayList<>();
-        final ArrayList<IStrategoTerm> warnings = new ArrayList<>();
-        final ArrayList<IStrategoTerm> notes = new ArrayList<>();
+        final IStrategoList.Builder errors = B.listBuilder();
+        final IStrategoList.Builder warnings = B.listBuilder();
+        final IStrategoList.Builder notes = B.listBuilder();
         try(final PieSession pieSession = pieProviderProvider.get().pie().newSession()) {
             Analysis.Output analysisInformation = pieSession.require(strIncrAnalysisTask);
 
@@ -197,8 +197,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             throw new MetaborgException("Incremental Stratego build failed", e);
         }
 
-        return B.tuple(StrategoArrayList.fromList(errors), StrategoArrayList.fromList(warnings),
-            StrategoArrayList.fromList(notes));
+        return B.tuple(B.list(errors), B.list(warnings), B.list(notes));
     }
 
     private ISpoofaxLanguageSpec getLanguageSpecification(IProject project) throws MetaborgException {
