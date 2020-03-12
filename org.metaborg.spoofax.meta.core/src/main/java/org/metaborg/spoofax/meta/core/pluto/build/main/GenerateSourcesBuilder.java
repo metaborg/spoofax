@@ -63,6 +63,7 @@ import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.stratego.build.strincr.Backend;
+import mb.stratego.build.strincr.BuildStats;
 import mb.stratego.build.strincr.StrIncr;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
@@ -522,6 +523,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 Pie pie = initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
 
+                BuildStats.reset();
+                long totalTime = System.nanoTime();
                 try(final PieSession pieSession = pie.newSession()) {
                     pieSession.updateAffectedBy(changedResources);
                     pieSession.deleteUnobservedTasks(t -> Backend.id.equals(t.getId()), (t, r) -> {
@@ -534,6 +537,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 } catch(ExecException e) {
                     throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
                 }
+                totalTime = totalTime - System.nanoTime();
+                logger.debug(BuildStats.CSV_HEADER2);
+                logger.debug(BuildStats.csv2(totalTime));
             } else {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
                     true, true, input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir,
@@ -597,6 +603,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         throws MetaborgException {
         pie = pieProvider.pie();
         if(!pie.hasBeenExecuted(strIncrTask)) {
+            BuildStats.reset();
             logger.info("> Clean build required by PIE");
             if(outputPath != null && outputPath.exists()) {
                 try {
@@ -607,12 +614,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
             }
             pieProvider.setLogLevelWarn();
+            long totalTime = System.nanoTime();
             try(final PieSession session = pie.newSession()) {
                 session.require(strIncrTask);
             } catch(ExecException e) {
                 throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
             }
+            totalTime = System.nanoTime() - totalTime;
             pieProvider.setLogLevelTrace();
+            logger.debug(BuildStats.CSV_HEADER2);
+            logger.debug(BuildStats.csv2(totalTime));
         }
         return pie;
     }
