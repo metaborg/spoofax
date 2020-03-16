@@ -232,7 +232,7 @@ rules
   build-description-simple-replace(pp, parenthesize, indent, leading-ws, separator):
     REPLACE_TERM(old-term, completion-term) -> text
     where
-      old-indent := <origin-indent <+ ""> old-term; 
+      old-indent := <origin-indent <+ ?""> old-term; 
       reconstructed-text := <pp> completion-term;
       text := <replace-indentation(|old-indent, "")> reconstructed-text
        

@@ -37,7 +37,7 @@ rules
       (before, after) := <explode-string; split-at(|index); ?(b, a); !(<implode-string> b, <implode-string> a)> dummy1;
       whitespace-at-start := <
           !(<id>, elem-text); split-before-last-occurrence; ?(<id>, _);
-          string-as-chars(reverse; take-while(is-whitespace + test('\n')); reverse)
+          string-as-chars(reverse; take-while(is-whitespace + test(?'\n')); reverse)
         > before;
       sep := <conc-strings> (
         <split-after-last-occurrence; ?(_, <id>)> (before, elem-text),
