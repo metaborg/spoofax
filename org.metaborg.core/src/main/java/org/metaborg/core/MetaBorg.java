@@ -7,6 +7,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.google.inject.name.Names;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -47,6 +48,7 @@ public class MetaBorg implements AutoCloseable {
     public final Injector injector;
 
     public final Set<AutoCloseable> autoCloseables;
+    public final Set<AutoCloseable> lateAutoCloseables;
 
     public final IResourceService resourceService;
 
@@ -88,6 +90,7 @@ public class MetaBorg implements AutoCloseable {
         this.injector = InjectorFactory.create(modules);
 
         this.autoCloseables = (Set<AutoCloseable>) injector.getInstance(Key.get(Types.setOf(AutoCloseable.class)));
+        this.lateAutoCloseables = (Set<AutoCloseable>) injector.getInstance(Key.get(Types.setOf(AutoCloseable.class), Names.named("late")));
 
         this.resourceService = injector.getInstance(IResourceService.class);
         this.languageService = injector.getInstance(ILanguageService.class);
@@ -158,6 +161,13 @@ public class MetaBorg implements AutoCloseable {
                 autoCloseable.close();
             } catch(Exception e) {
                 logger.error("Error while closing {}", e, autoCloseable);
+            }
+        }
+        for(AutoCloseable autoCloseable : lateAutoCloseables) {
+            try {
+                autoCloseable.close();
+            } catch(Exception e) {
+                logger.error("Error while closing (late) {}", e, autoCloseable);
             }
         }
     }

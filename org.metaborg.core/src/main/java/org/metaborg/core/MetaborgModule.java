@@ -1,5 +1,6 @@
 package org.metaborg.core;
 
+import com.google.inject.name.Named;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.core.analysis.AnalysisService;
 import org.metaborg.core.analysis.IAnalysisService;
@@ -85,6 +86,7 @@ public class MetaborgModule extends AbstractModule {
     private final ClassLoader resourceClassLoader;
 
     protected Multibinder<AutoCloseable> autoClosableBinder;
+    protected Multibinder<AutoCloseable> lateAutoClosableBinder;
     protected Multibinder<ILanguageCache> languageCacheBinder;
     protected MapBinder<String, IContextFactory> contextFactoryBinder;
     protected MapBinder<String, IContextStrategy> contextStrategyBinder;
@@ -102,6 +104,7 @@ public class MetaborgModule extends AbstractModule {
 
     @Override protected void configure() {
         autoClosableBinder = Multibinder.newSetBinder(binder(), AutoCloseable.class);
+        lateAutoClosableBinder = Multibinder.newSetBinder(binder(), AutoCloseable.class, Names.named("late"));
         languageCacheBinder = Multibinder.newSetBinder(binder(), ILanguageCache.class);
 
         contextFactoryBinder = MapBinder.newMapBinder(binder(), String.class, IContextFactory.class);
@@ -136,7 +139,8 @@ public class MetaborgModule extends AbstractModule {
     protected void bindResource() {
         bind(ResourceService.class).in(Singleton.class);
         bind(IResourceService.class).to(ResourceService.class);
-        autoClosableBinder.addBinding().to(ResourceService.class);
+        // Close the resource service late, so that other services can first close their resource handles.
+        lateAutoClosableBinder.addBinding().to(ResourceService.class);
 
         bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
     }
