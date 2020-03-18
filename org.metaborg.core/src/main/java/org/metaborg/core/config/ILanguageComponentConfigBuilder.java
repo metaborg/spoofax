@@ -96,13 +96,6 @@ public interface ILanguageComponentConfigBuilder {
      */
     ILanguageComponentConfigBuilder withLangContribs(Iterable<LanguageContributionIdentifier> contribs);
 
-    /**
-     * Sets whether SDF is enabled in the project
-     *
-     * @param sdfEnabled
-     *            If SDF is enabled or not.
-     * @return This builder.
-     */
     ILanguageComponentConfigBuilder withCheckPriorities(Boolean checkPriorities);
 
     /**
@@ -123,13 +116,6 @@ public interface ILanguageComponentConfigBuilder {
      */
     ILanguageComponentConfigBuilder withSdfEnabled(Boolean sdfEnabled);
     
-    /**
-     * Sets whether SDF is enabled in the project
-     *
-     * @param sdfEnabled
-     *            If SDF is enabled or not.
-     * @return This builder.
-     */
     ILanguageComponentConfigBuilder withCheckOverlap(Boolean checkOverlap);
     
     /**
