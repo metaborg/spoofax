@@ -34,6 +34,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable Boolean checkPriorities;
     protected @Nullable Boolean dataDependent;
     protected @Nullable JSGLRVersion jsglrVersion;
+    protected @Nullable JSGLR2Logging jsglr2Logging;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -48,7 +49,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
             name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, checkOverlap, checkPriorities,
-            dataDependent, jsglrVersion, langContribs, generates, exports);
+            dataDependent, jsglrVersion, jsglr2Logging, langContribs, generates, exports);
         return config;
     }
 
@@ -66,6 +67,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         checkOverlap = null;
         checkPriorities = null;
         jsglrVersion = null;
+        jsglr2Logging = null;
         sdfEnabled = null;
         return this;
     }
@@ -84,6 +86,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withSdfCompletionsTable(config.completionsParseTable());
             withSdf2tableVersion(config.sdf2tableVersion());
             withJSGLRVersion(config.jsglrVersion());
+            withJSGLR2Logging(config.jsglr2Logging());
             withCheckOverlap(config.checkOverlap());
             withCheckPriorities(config.checkPriorities());
             withSdfEnabled(config.sdfEnabled());
@@ -173,6 +176,11 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
 
     @Override public ILanguageComponentConfigBuilder withJSGLRVersion(JSGLRVersion jsglrVersion) {
         this.jsglrVersion = jsglrVersion;
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withJSGLR2Logging(JSGLR2Logging jsglr2Logging) {
+        this.jsglr2Logging = jsglr2Logging;
         return this;
     }
 

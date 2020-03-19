@@ -87,6 +87,13 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      * @return the parser version.
      */
     JSGLRVersion jsglrVersion();
+
+    /**
+     * Gets the scope of logging (only applicable to JSGLR2).
+     *
+     * @return the logging scope.
+     */
+    JSGLR2Logging jsglr2Logging();
     
     /**
      * Gets the file exports.

@@ -3,13 +3,13 @@ package org.metaborg.spoofax.core.syntax;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.JSGLR2Logging;
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
@@ -22,31 +22,28 @@ import org.metaborg.parsetable.IParseTable;
 import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.time.Timer;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.shared.BadTokenException;
-import org.spoofax.jsglr2.JSGLR2;
-import org.spoofax.jsglr2.JSGLR2Result;
-import org.spoofax.jsglr2.JSGLR2Success;
-import org.spoofax.jsglr2.JSGLR2Variant;
+import org.spoofax.jsglr2.*;
 import org.spoofax.jsglr2.messages.Message;
 
-import com.google.common.collect.Lists;
-import org.spoofax.terms.util.TermUtils;
+import com.google.common.collect.SetMultimap;
 
 public class JSGLR2I extends JSGLRI<IParseTable> {
 
-    private final IParseTable parseTable;
     private final JSGLR2<IStrategoTerm> parser;
 
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
-        JSGLRVersion parserType) throws IOException {
+        JSGLRVersion jsglrVersion, JSGLR2Logging jsglr2Logging) throws IOException {
         super(config, termFactory, language, dialect);
 
         this.parseTable = getParseTable(config.getParseTableProvider());
-        this.parser = jsglrVersionToJSGLR2Preset(parserType).getJSGLR2(parseTable);
+        this.parser = getJSGLR2Spec(jsglrVersion, jsglr2Logging).getJSGLR2(parseTable);
+    }
+
+    private JSGLR2Spec getJSGLR2Spec(JSGLRVersion jsglrVersion, JSGLR2Logging jsglr2Logging) {
+        return new JSGLR2Spec(jsglrVersionToJSGLR2Preset(jsglrVersion), getJSGLR2Logging(jsglr2Logging));
     }
 
     // TODO the two enums JSGLRVersion and JSGLR2Variants should be linked together,
@@ -70,6 +67,22 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
             case v2:
             default:
                 return JSGLR2Variant.Preset.standard;
+        }
+    }
+
+    private org.spoofax.jsglr2.JSGLR2Logging getJSGLR2Logging(JSGLR2Logging jsglr2Logging) {
+        switch (jsglr2Logging) {
+            case all:
+                return org.spoofax.jsglr2.JSGLR2Logging.All;
+            case minimal:
+                return org.spoofax.jsglr2.JSGLR2Logging.Minimal;
+            case parsing:
+                return org.spoofax.jsglr2.JSGLR2Logging.Parsing;
+            case recovery:
+                return org.spoofax.jsglr2.JSGLR2Logging.Recovery;
+            case none:
+            default:
+                return org.spoofax.jsglr2.JSGLR2Logging.None;
         }
     }
 
@@ -126,55 +139,12 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         return Collections.emptySet();
     }
 
-    private Collection<? extends IMessage> addDisambiguationWarnings(IStrategoTerm ast, @Nullable FileObject resource) {
-        List<IMessage> result = Lists.newArrayList();
-
-        boolean addedMessage = false;
-
-        // non-associative and non-nested operators should be flagged with warnings
-        if(TermUtils.isAppl(ast) && ast.getAllSubterms().length >= 1) {
-            String sortConsParent =
-                ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
-
-            IStrategoTerm firstChild = ast.getSubterm(0);
-            IStrategoTerm lastChild = ast.getSubterm(ast.getSubtermCount() - 1);
-
-            if(TermUtils.isAppl(firstChild)) {
-                IStrategoAppl leftMostChild = (IStrategoAppl) firstChild;
-                @Nullable ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
-                String sortConsChild = ImploderAttachment.getSort(ast) + "." + leftMostChild.getConstructor().getName();
-                if(leftMostChildAttachment != null && !leftMostChildAttachment.isBracket()
-                    && parseTable instanceof ParseTable && ((ParseTable) parseTable).normalizedGrammar()
-                        .getNonAssocPriorities().containsEntry(sortConsParent, sortConsChild)) {
-                    ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
-                        ImploderAttachment.getRightToken(ast));
-                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-associative", null));
-                    addedMessage = true;
-                }
-            }
-
-            if(TermUtils.isAppl(lastChild)) {
-                IStrategoAppl rightMostChild = (IStrategoAppl) lastChild;
-                @Nullable ImploderAttachment rightMostChildAttachment = ImploderAttachment.get(rightMostChild);
-                String sortConsChild =
-                    ImploderAttachment.getSort(ast) + "." + rightMostChild.getConstructor().getName();
-                if(rightMostChildAttachment != null && !rightMostChildAttachment.isBracket()
-                    && parseTable instanceof ParseTable && ((ParseTable) parseTable).normalizedGrammar()
-                        .getNonNestedPriorities().containsEntry(sortConsParent, sortConsChild)) {
-                    ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
-                        ImploderAttachment.getRightToken(ast));
-                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-nested", null));
-                    addedMessage = true;
-                }
-            }
-        }
-
-        if(ast != null && !addedMessage) {
-            for(IStrategoTerm child : ast.getAllSubterms()) {
-                result.addAll(addDisambiguationWarnings(child, resource));
-            }
-        }
-
-        return result;
+    @Override public SetMultimap<String, String> getNonAssocPriorities() {
+        return ((ParseTable) parseTable).normalizedGrammar().getNonAssocPriorities();
     }
+
+    @Override public SetMultimap<String, String> getNonNestedPriorities() {
+        return ((ParseTable) parseTable).normalizedGrammar().getNonNestedPriorities();
+    }
+
 }
