@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.config.JSGLR2Logging;
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.ILanguageCache;
@@ -24,6 +25,7 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr2.JSGLR2;
 import org.strategoxt.lang.Context;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -153,7 +155,9 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                     parser = new JSGLR1I(config, termFactory, context, langImpl, null);
                 }
             } else {
-                parser = new JSGLR2I(config, termFactory, langImpl, null, version);
+                final JSGLR2Logging jsglr2Logging = jsglr2Logging(input);
+
+                parser = new JSGLR2I(config, termFactory, langImpl, null, version, jsglr2Logging);
             }
 
             // Don't cache an overridden configuration
@@ -272,6 +276,14 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
             return JSGLRVersion.v1;
         else
             return langComp.config().jsglrVersion();
+    }
+
+    private JSGLR2Logging jsglr2Logging(ISpoofaxInputUnit input) {
+        ILanguageComponent langComp = Iterables.getFirst(input.langImpl().components(), null);
+        if(langComp == null)
+            return JSGLR2Logging.none;
+        else
+            return langComp.config().jsglr2Logging();
     }
 
     private boolean hasIncrementalPTGen(ILanguageImpl impl) {

@@ -146,6 +146,15 @@ public interface ILanguageComponentConfigBuilder {
     ILanguageComponentConfigBuilder withJSGLRVersion(JSGLRVersion jsglrVersion);
 
     /**
+     * Sets the JSGLR2 parsing scope.
+     *
+     * @param jsglr2Logging
+     *            The JSGLR2 logging scope.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withJSGLR2Logging(JSGLR2Logging jsglr2Logging);
+
+    /**
      * Adds language contributions.
      *
      * @param contribs

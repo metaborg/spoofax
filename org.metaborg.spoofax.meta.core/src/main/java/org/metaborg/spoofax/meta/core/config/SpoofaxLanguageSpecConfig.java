@@ -8,10 +8,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.metaborg.core.config.IGenerateConfig;
-import org.metaborg.core.config.JSGLRVersion;
-import org.metaborg.core.config.Sdf2tableVersion;
-import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.*;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
@@ -79,14 +76,15 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
         @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
         @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
-        @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters,
-        @Nullable String prettyPrint, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
-        @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoFormat format,
-        @Nullable String externalJar, @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
+        @Nullable JSGLR2Logging jsglr2Logging, @Nullable String sdfMainFile,
+        @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
+        @Nullable List<String> sdfMetaFile, @Nullable String externalDef, @Nullable Arguments sdfArgs,
+        @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoFormat format, @Nullable String externalJar,
+        @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
         @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
-            dataDependent, parseTable, completionsParseTable, jsglrVersion, langContribs, generates, exports,
-            pardonedLanguages, useBuildSystemSpec);
+            dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, langContribs, generates,
+            exports, pardonedLanguages, useBuildSystemSpec);
         this.projectConfig = projectConfig;
 
         if(sdfVersion != null) {

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.JSGLR2Logging;
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
@@ -24,10 +25,7 @@ import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.shared.BadTokenException;
-import org.spoofax.jsglr2.JSGLR2;
-import org.spoofax.jsglr2.JSGLR2Result;
-import org.spoofax.jsglr2.JSGLR2Success;
-import org.spoofax.jsglr2.JSGLR2Variant;
+import org.spoofax.jsglr2.*;
 import org.spoofax.jsglr2.messages.Message;
 
 import com.google.common.collect.SetMultimap;
@@ -37,11 +35,15 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
     private final JSGLR2<IStrategoTerm> parser;
 
     public JSGLR2I(IParserConfig config, ITermFactory termFactory, ILanguageImpl language, ILanguageImpl dialect,
-        JSGLRVersion parserType) throws IOException {
+        JSGLRVersion jsglrVersion, JSGLR2Logging jsglr2Logging) throws IOException {
         super(config, termFactory, language, dialect);
 
         this.parseTable = getParseTable(config.getParseTableProvider());
-        this.parser = jsglrVersionToJSGLR2Preset(parserType).getJSGLR2(parseTable);
+        this.parser = getJSGLR2Spec(jsglrVersion, jsglr2Logging).getJSGLR2(parseTable);
+    }
+
+    private JSGLR2Spec getJSGLR2Spec(JSGLRVersion jsglrVersion, JSGLR2Logging jsglr2Logging) {
+        return new JSGLR2Spec(jsglrVersionToJSGLR2Preset(jsglrVersion), getJSGLR2Logging(jsglr2Logging));
     }
 
     // TODO the two enums JSGLRVersion and JSGLR2Variants should be linked together,
@@ -65,6 +67,22 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
             case v2:
             default:
                 return JSGLR2Variant.Preset.standard;
+        }
+    }
+
+    private org.spoofax.jsglr2.JSGLR2Logging getJSGLR2Logging(JSGLR2Logging jsglr2Logging) {
+        switch (jsglr2Logging) {
+            case all:
+                return org.spoofax.jsglr2.JSGLR2Logging.All;
+            case minimal:
+                return org.spoofax.jsglr2.JSGLR2Logging.Minimal;
+            case parsing:
+                return org.spoofax.jsglr2.JSGLR2Logging.Parsing;
+            case recovery:
+                return org.spoofax.jsglr2.JSGLR2Logging.Recovery;
+            case none:
+            default:
+                return org.spoofax.jsglr2.JSGLR2Logging.None;
         }
     }
 
