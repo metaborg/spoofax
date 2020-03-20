@@ -39,10 +39,9 @@ public class ExplicateInjectionsPrimitive extends AbstractPrimitive {
                 env.setCurrent(originalTerm);
             }
         };
-        final Injections injections = new Injections(env.getFactory(), injName);
         final IStrategoTerm result;
         try {
-            result = injections.explicate(env.current());
+            result = Injections.explicate(env.current(), injName, env.getFactory());
         } catch(InterpreterRuntimeException ex) {
             throw ex.getCause();
         }
