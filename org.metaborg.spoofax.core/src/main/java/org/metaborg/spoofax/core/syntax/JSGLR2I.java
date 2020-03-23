@@ -97,7 +97,9 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
         final Timer timer = new Timer(true);
 
-        final JSGLR2Result<IStrategoTerm> result = parser.parseResult(input, fileName, startSymbol);
+        JSGLR2Request request = new JSGLR2Request(input, fileName, startSymbol);
+
+        final JSGLR2Result<IStrategoTerm> result = parser.parseResult(request);
         IStrategoTerm ast = result.isSuccess() ? ((JSGLR2Success<IStrategoTerm>) result).ast : null;
         final Collection<IMessage> messages = mapMessages(resource, result.messages);
 
