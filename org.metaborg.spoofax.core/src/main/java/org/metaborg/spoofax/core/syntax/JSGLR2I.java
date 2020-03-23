@@ -99,6 +99,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         final Timer timer = new Timer(true);
 
         JSGLR2Request request = new JSGLR2Request(input, fileName, startSymbol,
+            JSGLR2Request.DEFAULT_RECOVERY_ITERATIONS_QUOTA, JSGLR2Request.DEFAULT_SUCCEEDING_RECOVERY_OFFSET,
             parserConfig.completion ? Optional.of(parserConfig.cursorPosition) : Optional.empty());
 
         final JSGLR2Result<IStrategoTerm> result = parser.parseResult(request);
