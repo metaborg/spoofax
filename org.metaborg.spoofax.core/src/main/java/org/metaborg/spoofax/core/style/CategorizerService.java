@@ -53,10 +53,8 @@ public class CategorizerService implements ISpoofaxCategorizerService {
             // GTODO: throw exception instead
             return regionCategories;
         }
-        final int tokenCount = tokenizer.getTokenCount();
         int offset = -1;
-        for(int i = 0; i < tokenCount; ++i) {
-            final IToken token = tokenizer.getTokenAt(i);
+        for (IToken token : tokenizer) {
             if(tokenizer.isAmbiguous() && token.getStartOffset() < offset) {
                 // In case of ambiguities, tokens inside the ambiguity are duplicated, ignore.
                 continue;
