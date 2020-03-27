@@ -51,6 +51,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
+import static org.spoofax.jsglr.client.imploder.IToken.Kind.*;
+
 public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private static final Logger logger = LoggerFactory.getLogger(JSGLRCompletionService.class);
 
@@ -580,8 +582,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // get the last non-layout token before the new node
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while(tokenPosition > 0 && (tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR))
+            while(tokenPosition > 0 && (tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == TK_ERROR))
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
 
@@ -590,8 +592,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 tokenPosition = oldNodeIA.getLeftToken().getIndex() + 1 < tokenizer.getTokenCount()
                     ? oldNodeIA.getLeftToken().getIndex() + 1 : tokenizer.getTokenCount() - 1;
                 while(tokenPosition < tokenizer.getTokenCount()
-                    && (tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                        || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR))
+                    && (tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT
+                        || tokenizer.getTokenAt(tokenPosition).getKind() == TK_ERROR))
                     tokenPosition++;
                 suffixPoint = tokenizer.getTokenAt(tokenPosition).getStartOffset();
             } else { // if completion spams multiple lines keep the lines
@@ -666,8 +668,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
 
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
@@ -732,8 +734,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // node
         if(oldNode.getSubtermCount() == 0) {
             tokenPosition = oldListIA.getLeftToken().getIndex() - 1 > 0 ? oldListIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
         } else {
@@ -743,7 +745,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             IStrategoTerm elementBefore = oldNode.getSubterm(oldNode.getAllSubterms().length - 1);
             int leftIdx = elementBefore.getAttachment(ImploderAttachment.TYPE).getLeftToken().getIndex();
             int rightIdx = elementBefore.getAttachment(ImploderAttachment.TYPE).getRightToken().getIndex();
-            while((tokenizer.getTokenAt(rightIdx).getKind() == IToken.TK_LAYOUT
+            while((tokenizer.getTokenAt(rightIdx).getKind() == TK_LAYOUT
                 || tokenizer.getTokenAt(rightIdx).getLength() == 0) && rightIdx > leftIdx) {
                 rightIdx--;
             }
@@ -976,8 +978,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // get the last non-layout token before the topmost ambiguity
         int tokenPosition =
             topMostAmbIA.getLeftToken().getIndex() - 1 > 0 ? topMostAmbIA.getLeftToken().getIndex() - 1 : 0;
-        while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-            || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
+        while((tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT
+            || tokenizer.getTokenAt(tokenPosition).getKind() == TK_ERROR) && tokenPosition > 0)
             tokenPosition--;
 
         insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
@@ -988,7 +990,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             tokenPosition = topMostAmbIA.getRightToken().getIndex();
             while(tokenPosition > 0
                 && (tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition)
-                    .getStartOffset() || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT))
+                    .getStartOffset() || tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT))
                 tokenPosition--;
             suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
 
@@ -1045,8 +1047,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             int tokenPosition =
                 oldListIA.getLeftToken().getIndex() - 1 > 0 ? oldListIA.getLeftToken().getIndex() - 1 : 0;
             while((checkEmptyOffset(tokenizer.getTokenAt(tokenPosition))
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
+                || tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
 
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
@@ -1098,8 +1100,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
             while(tokenPosition > 0 && (checkEmptyOffset(tokenizer.getTokenAt(tokenPosition))
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR))
+                || tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == TK_ERROR))
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
         } else {
@@ -1112,7 +1114,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // keep all the characters after the last non-layout token
         int tokenPosition = oldNodeIA.getRightToken().getIndex();
         while(tokenizer.getTokenAt(tokenPosition).getEndOffset() < tokenizer.getTokenAt(tokenPosition).getStartOffset()
-            || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT && tokenPosition > 0)
+            || tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT && tokenPosition > 0)
             tokenPosition--;
         suffixPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset() + 1;
 
@@ -1368,8 +1370,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // get the last non-layout token before the new node
             int tokenPosition =
                 oldNodeIA.getLeftToken().getIndex() - 1 > 0 ? oldNodeIA.getLeftToken().getIndex() - 1 : 0;
-            while((tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_LAYOUT
-                || tokenizer.getTokenAt(tokenPosition).getKind() == IToken.TK_ERROR) && tokenPosition > 0)
+            while((tokenizer.getTokenAt(tokenPosition).getKind() == TK_LAYOUT
+                || tokenizer.getTokenAt(tokenPosition).getKind() == TK_ERROR) && tokenPosition > 0)
                 tokenPosition--;
             insertionPoint = tokenizer.getTokenAt(tokenPosition).getEndOffset();
         } else { // if not, do a regular replacement
@@ -1381,8 +1383,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         int tokenPositionEnd = oldNodeIA.getRightToken().getIndex();
 
         while((tokenizer.getTokenAt(tokenPositionEnd).getEndOffset() < tokenizer.getTokenAt(tokenPositionEnd)
-            .getStartOffset() || tokenizer.getTokenAt(tokenPositionEnd).getKind() == IToken.TK_LAYOUT
-            || tokenizer.getTokenAt(tokenPositionEnd).getKind() == IToken.TK_ERROR) && tokenPositionEnd > 0)
+            .getStartOffset() || tokenizer.getTokenAt(tokenPositionEnd).getKind() == TK_LAYOUT
+            || tokenizer.getTokenAt(tokenPositionEnd).getKind() == TK_ERROR) && tokenPositionEnd > 0)
             tokenPositionEnd--;
 
         suffixPoint = tokenizer.getTokenAt(tokenPositionEnd).getEndOffset() + 1;
@@ -1628,8 +1630,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         if(left.getStartOffset() > right.getEndOffset() || isList || isOptional
             || (isLeftRecursive && isRightRecursive)) {
             for(int i = left.getIndex() - 1; i >= 0; i--) {
-                if(tokenizer.getTokenAt(i).getKind() == IToken.TK_LAYOUT
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_ERROR) {
+                if(tokenizer.getTokenAt(i).getKind() == TK_LAYOUT
+                    || tokenizer.getTokenAt(i).getKind() == TK_ERROR) {
                     leftmostValid = tokenizer.getTokenAt(i);
                 } else {
                     break;
@@ -1637,9 +1639,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             }
 
             for(int i = right.getIndex() + 1; i < tokenizer.getTokenCount(); i++) {
-                if(tokenizer.getTokenAt(i).getKind() == IToken.TK_LAYOUT
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_EOF
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_ERROR) {
+                if(tokenizer.getTokenAt(i).getKind() == TK_LAYOUT
+                    || tokenizer.getTokenAt(i).getKind() == TK_EOF
+                    || tokenizer.getTokenAt(i).getKind() == TK_ERROR) {
                     rightmostValid = tokenizer.getTokenAt(i);
                 } else {
                     break;
@@ -1648,8 +1650,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // if it is left recursive include the layout only on the right
         } else if(isLeftRecursive) {
             for(int i = left.getIndex(); i < right.getIndex(); i++) {
-                if(tokenizer.getTokenAt(i).getKind() == IToken.TK_LAYOUT
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_ERROR) {
+                if(tokenizer.getTokenAt(i).getKind() == TK_LAYOUT
+                    || tokenizer.getTokenAt(i).getKind() == TK_ERROR) {
                     leftmostValid = tokenizer.getTokenAt(i + 1);
                 } else {
                     break;
@@ -1657,9 +1659,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             }
 
             for(int i = right.getIndex() + 1; i < tokenizer.getTokenCount(); i++) {
-                if(tokenizer.getTokenAt(i).getKind() == IToken.TK_LAYOUT
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_EOF
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_ERROR) {
+                if(tokenizer.getTokenAt(i).getKind() == TK_LAYOUT
+                    || tokenizer.getTokenAt(i).getKind() == TK_EOF
+                    || tokenizer.getTokenAt(i).getKind() == TK_ERROR) {
                     rightmostValid = tokenizer.getTokenAt(i);
                 } else {
                     break;
@@ -1669,8 +1671,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             // if it is right recursive include the layout only on the left
         } else if(isRightRecursive) {
             for(int i = left.getIndex() - 1; i >= 0; i--) {
-                if(tokenizer.getTokenAt(i).getKind() == IToken.TK_LAYOUT
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_ERROR) {
+                if(tokenizer.getTokenAt(i).getKind() == TK_LAYOUT
+                    || tokenizer.getTokenAt(i).getKind() == TK_ERROR) {
                     leftmostValid = tokenizer.getTokenAt(i);
                 } else {
                     break;
@@ -1678,9 +1680,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             }
 
             for(int i = right.getIndex(); i > left.getIndex(); i--) {
-                if(tokenizer.getTokenAt(i).getKind() == IToken.TK_LAYOUT
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_EOF
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_ERROR) {
+                if(tokenizer.getTokenAt(i).getKind() == TK_LAYOUT
+                    || tokenizer.getTokenAt(i).getKind() == TK_EOF
+                    || tokenizer.getTokenAt(i).getKind() == TK_ERROR) {
                     rightmostValid = tokenizer.getTokenAt(i - 1);
                 } else {
                     break;
@@ -1691,8 +1693,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // if not make it stripes the surrounding layout tokens
         else {
             for(int i = left.getIndex(); i < right.getIndex(); i++) {
-                if(tokenizer.getTokenAt(i).getKind() == IToken.TK_LAYOUT
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_ERROR) {
+                if(tokenizer.getTokenAt(i).getKind() == TK_LAYOUT
+                    || tokenizer.getTokenAt(i).getKind() == TK_ERROR) {
                     leftmostValid = tokenizer.getTokenAt(i + 1);
                 } else {
                     break;
@@ -1700,9 +1702,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             }
 
             for(int i = right.getIndex(); i > left.getIndex(); i--) {
-                if(tokenizer.getTokenAt(i).getKind() == IToken.TK_LAYOUT
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_EOF
-                    || tokenizer.getTokenAt(i).getKind() == IToken.TK_ERROR) {
+                if(tokenizer.getTokenAt(i).getKind() == TK_LAYOUT
+                    || tokenizer.getTokenAt(i).getKind() == TK_EOF
+                    || tokenizer.getTokenAt(i).getKind() == TK_ERROR) {
                     rightmostValid = tokenizer.getTokenAt(i - 1);
                 } else {
                     break;
