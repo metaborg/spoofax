@@ -31,16 +31,9 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spoofax.interpreter.terms.ISimpleTerm;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoInt;
-import org.spoofax.interpreter.terms.IStrategoList;
-import org.spoofax.interpreter.terms.IStrategoString;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.IStrategoTuple;
-import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.interpreter.terms.*;
 import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokens;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.ListImploderAttachment;
 import org.spoofax.terms.StrategoAppl;
@@ -102,7 +95,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             final FileObject location = parseInput.source();
             final Iterable<String> startSymbols = language.facet(SyntaxFacet.class).startSymbols;
             completions.addAll(completionEmptyProgram(startSymbols, inputText.length(), language, location));
-            
+
             return completions;
         }
 
@@ -283,12 +276,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             for(IStrategoTerm proposalTerm : proposals) {
 
                 final IStrategoTuple tuple = TermUtils.toTuple(proposalTerm);
-                if(tuple.getSubtermCount() != 5
+                if(tuple.getSubtermCount() != 5 // @formatter:off
                     || !TermUtils.isStringAt(tuple, 0)
                     || !TermUtils.isStringAt(tuple, 1)
                     || !TermUtils.isStringAt(tuple, 2)
                     || !TermUtils.isApplAt(tuple, 3)
-                    || !TermUtils.isStringAt(tuple, 4)) {
+                    || !TermUtils.isStringAt(tuple, 4)) { // @formatter:on
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -333,11 +326,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             for(IStrategoTerm proposalTerm : proposals) {
 
                 final IStrategoTuple tuple = (IStrategoTuple) proposalTerm;
-                if(tuple.getSubtermCount() != 5 || !(TermUtils.isString(tuple.getSubterm(0)))
+                if(tuple.getSubtermCount() != 5 // @formatter:off
+                    || !(TermUtils.isString(tuple.getSubterm(0)))
                     || !(TermUtils.isString(tuple.getSubterm(1)))
                     || !(TermUtils.isString(tuple.getSubterm(2)))
                     || !(TermUtils.isAppl(tuple.getSubterm(3)))
-                    || !(TermUtils.isString(tuple.getSubterm(4)))) {
+                    || !(TermUtils.isString(tuple.getSubterm(4)))) { // @formatter:on
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -402,11 +396,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 continue;
             }
             final IStrategoTuple tuple = TermUtils.toTuple(proposalTerm);
-            if(tuple.getSubtermCount() != 4
+            if(tuple.getSubtermCount() != 4 // @formatter:off
                 || !TermUtils.isStringAt(tuple, 0)
                 || !TermUtils.isStringAt(tuple, 1)
                 || !TermUtils.isStringAt(tuple, 2)
-                || !TermUtils.isApplAt(tuple, 3)) {
+                || !TermUtils.isApplAt(tuple, 3)) { // @formatter:on
                 logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                 continue;
             }
@@ -462,11 +456,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
                 final IStrategoTuple tuple = TermUtils.toTuple(proposalTerm);
-                if(tuple.getSubtermCount() != 4
+                if(tuple.getSubtermCount() != 4 // @formatter:off
                     || !TermUtils.isStringAt(tuple, 0)
                     || !TermUtils.isStringAt(tuple, 1)
                     || !TermUtils.isStringAt(tuple, 2)
-                    || !TermUtils.isApplAt(tuple, 2)) {
+                    || !TermUtils.isApplAt(tuple, 2)) { // @formatter:on
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -520,11 +514,11 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
                 final IStrategoTuple tuple = TermUtils.toTuple(proposalTerm);
-                if(tuple.getSubtermCount() != 4
+                if(tuple.getSubtermCount() != 4 // @formatter:off
                     || !TermUtils.isStringAt(tuple, 0)
                     || !TermUtils.isStringAt(tuple, 1)
                     || !TermUtils.isStringAt(tuple, 2)
-                    || !TermUtils.isApplAt(tuple, 3)) {
+                    || !TermUtils.isApplAt(tuple, 3)) { // @formatter:on
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -565,13 +559,12 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     private ICompletion createCompletionReplaceTerm(String name, String text, String additionalInfo,
-                                                    IStrategoAppl change, boolean blankLineCompletion, String prefix, String suffix) {
+        IStrategoAppl change, boolean blankLineCompletion, String prefix, String suffix) {
 
         final IStrategoTerm oldNode = change.getSubterm(0);
         final IStrategoTerm newNode = change.getSubterm(1);
 
-        if(change.getSubtermCount() != 2 || !(TermUtils.isAppl(newNode))
-            || !(TermUtils.isAppl(oldNode))) {
+        if(change.getSubtermCount() != 2 || !(TermUtils.isAppl(newNode)) || !(TermUtils.isAppl(oldNode))) {
             return null;
         }
 
@@ -580,7 +573,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         int insertionPoint, suffixPoint;
 
         final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
-        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        ITokenizer tokenizer = (ITokenizer) ImploderAttachment.getTokenizer(oldNode);
 
         // check if it's an empty node
         if(oldNodeIA.getLeftToken().getStartOffset() > oldNodeIA.getRightToken().getEndOffset()) {
@@ -657,7 +650,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         int insertionPoint, suffixPoint;
 
-        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        ITokenizer tokenizer = (ITokenizer) ImploderAttachment.getTokenizer(oldNode);
 
         IStrategoTerm[] subterms = oldList.getAllSubterms();
         int indexOfElement;
@@ -723,8 +716,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm newNode = change.getSubterm(1);
 
         // expected two lists
-        if(change.getSubtermCount() != 2 || !TermUtils.isList(oldNode)
-            || !TermUtils.isList(newNode)) {
+        if(change.getSubtermCount() != 2 || !TermUtils.isList(oldNode) || !TermUtils.isList(newNode)) {
             return null;
         }
 
@@ -732,7 +724,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         int insertionPoint, suffixPoint;
 
-        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        ITokenizer tokenizer = (ITokenizer) ImploderAttachment.getTokenizer(oldNode);
         final ImploderAttachment oldListIA = oldNode.getAttachment(ImploderAttachment.TYPE);
         int tokenPosition;
         // if list is empty
@@ -850,13 +842,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                     continue;
                 }
                 final IStrategoTuple tuple = TermUtils.toTuple(proposalTerm);
-                if(tuple.getSubtermCount() != 6
+                if(tuple.getSubtermCount() != 6 // @formatter:off
                     || !TermUtils.isStringAt(tuple, 0)
                     || !TermUtils.isStringAt(tuple, 1)
                     || !TermUtils.isStringAt(tuple, 2)
                     || !TermUtils.isApplAt(tuple, 3)
                     || (tuple.getSubterm(4) == null)
-                    || !TermUtils.isStringAt(tuple, 5)) {
+                    || !TermUtils.isStringAt(tuple, 5)) { // @formatter:on
                     logger.error("Unexpected proposal term {}, skipping", proposalTerm);
                     continue;
                 }
@@ -927,9 +919,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private String calculatePrefix(int cursorPosition, IStrategoTerm proposalTerm) {
 
         String prefix = "";
-        ITokens tokenizer = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken().getTokenizer();
         IToken leftToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken();
         IToken rightToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getRightToken();
+        ITokenizer tokenizer = (ITokenizer) leftToken.getTokenizer();
         IToken current = leftToken;
         int endOffsetPrefix = Integer.MIN_VALUE;
         while(current.getEndOffset() < cursorPosition && current != rightToken) {
@@ -947,9 +939,9 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private String calculateSuffix(int cursorPosition, IStrategoTerm proposalTerm) {
 
         String suffix = "";
-        ITokens tokenizer = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken().getTokenizer();
         IToken leftToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getLeftToken();
         IToken rightToken = proposalTerm.getAttachment(ImploderAttachment.TYPE).getRightToken();
+        ITokenizer tokenizer = (ITokenizer) leftToken.getTokenizer();
         IToken current = rightToken;
         int startOffsetSuffix = Integer.MAX_VALUE;
         while(current.getStartOffset() >= cursorPosition && current != leftToken) {
@@ -976,7 +968,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         int insertionPoint, suffixPoint;
 
-        ITokens tokenizer = ImploderAttachment.getTokenizer(newNode);
+        ITokenizer tokenizer = (ITokenizer) ImploderAttachment.getTokenizer(newNode);
 
         final IStrategoTerm topMostAmb = findTopMostAmbNode(newNode);
         final ImploderAttachment topMostAmbIA = topMostAmb.getAttachment(ImploderAttachment.TYPE);
@@ -1044,7 +1036,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         // if inserted element is first (only two elements)
         if(indexOfCompletion == 1) {
             // insert after the first non-layout token before the leftmost token of the list
-            ITokens tokenizer = ImploderAttachment.getTokenizer(oldList);
+            ITokenizer tokenizer = (ITokenizer) ImploderAttachment.getTokenizer(oldList);
 
             // to avoid keeping duplicate tokens due to ambiguity
             IStrategoTerm topMostAmbOldList = findTopMostAmbNode(oldList);
@@ -1090,15 +1082,14 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm oldNodeTopMostAmb = findTopMostAmbNode(oldNode);
 
 
-        if(change.getSubtermCount() != 2 || !(TermUtils.isList(oldNode))
-            || !(TermUtils.isAppl(newNode))) {
+        if(change.getSubtermCount() != 2 || !(TermUtils.isList(oldNode)) || !(TermUtils.isAppl(newNode))) {
             return null;
         }
 
         final String sort = ImploderAttachment.getElementSort(oldNode);
 
         int insertionPoint, suffixPoint;
-        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNodeTopMostAmb);
+        ITokenizer tokenizer = (ITokenizer) ImploderAttachment.getTokenizer(oldNodeTopMostAmb);
         final ImploderAttachment oldNodeIA = oldNodeTopMostAmb.getAttachment(ImploderAttachment.TYPE);
 
         // if list is empty
@@ -1255,8 +1246,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         HybridInterpreter runtime) throws MetaborgException {
         Collection<IStrategoTerm> inputsStratego = Lists.newLinkedList();
 
-        Collection<IStrategoTerm> nestedCompletionTerms =
-            findNestedCompletionTerm(nestedCompletionTerm, true);
+        Collection<IStrategoTerm> nestedCompletionTerms = findNestedCompletionTerm(nestedCompletionTerm, true);
 
         for(IStrategoTerm innerNestedCompletionTerm : nestedCompletionTerms) {
             Collection<IStrategoTerm> inputsStrategoInnerNested = calculateNestedCompletionProposals(
@@ -1362,8 +1352,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final IStrategoTerm newNode = change.getSubterm(1);
 
 
-        if(change.getSubtermCount() != 2 || !(TermUtils.isAppl(newNode))
-            || !(TermUtils.isAppl(oldNode))) {
+        if(change.getSubtermCount() != 2 || !(TermUtils.isAppl(newNode)) || !(TermUtils.isAppl(oldNode))) {
             return null;
         }
 
@@ -1372,7 +1361,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         int insertionPoint, suffixPoint;
 
         final ImploderAttachment oldNodeIA = oldNode.getAttachment(ImploderAttachment.TYPE);
-        ITokens tokenizer = ImploderAttachment.getTokenizer(oldNode);
+        ITokenizer tokenizer = (ITokenizer) ImploderAttachment.getTokenizer(oldNode);
 
         // check if it's an empty node
         if(oldNodeIA.getLeftToken().getStartOffset() > oldNodeIA.getRightToken().getEndOffset()) {
@@ -1589,10 +1578,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final FileObject resource = SourceAttachment.getResource(fragment, resourceService);
         final IToken left = ImploderAttachment.getLeftToken(fragment);
         final IToken right = ImploderAttachment.getRightToken(fragment);
-        ITokens tokenizer = ImploderAttachment.getTokenizer(fragment);
+        ITokenizer tokenizer = (ITokenizer) ImploderAttachment.getTokenizer(fragment);
         IToken leftmostValid = left;
         IToken rightmostValid = right;
-        boolean isList = (TermUtils.isList(fragment)) ? true : false;
+        boolean isList = TermUtils.isList(fragment);
         boolean isOptional = false;
         String sort = ImploderAttachment.getSort(fragment);
         IStrategoTerm input = termFactory.makeString(sort);
