@@ -19,6 +19,7 @@ import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -78,6 +79,26 @@ public class StrategoCommon implements IStrategoCommon {
         }
         throw new AggregateMetaborgException(exceptions);
     }
+    
+    @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input,
+            String strategy, List<IStrategoTerm> termArguments) throws MetaborgException {
+            List<MetaborgException> exceptions = Lists.newArrayList();
+            for(ILanguageComponent component : impl.components()) {
+                if(!IStrategoCommon.hasStrategoFacets(component)) {
+                    continue;
+                }
+
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
+                try {
+                    final IStrategoTerm result = invoke(runtime, input, strategy, termArguments);
+                    return result;
+                } catch(MetaborgException ex) {
+                    exceptions.add(ex);
+                }
+
+            }
+            throw new AggregateMetaborgException(exceptions);
+        }
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
         String strategy) throws MetaborgException {
@@ -98,6 +119,26 @@ public class StrategoCommon implements IStrategoCommon {
         }
         throw new AggregateMetaborgException(exceptions);
     }
+    
+    @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
+            String strategy, List<IStrategoTerm> termArguments) throws MetaborgException {
+            List<MetaborgException> exceptions = Lists.newArrayList();
+            for(ILanguageComponent component : impl.components()) {
+                if(!IStrategoCommon.hasStrategoFacets(component)) {
+                    continue;
+                }
+
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
+                try {
+                    final IStrategoTerm result = invoke(runtime, input, strategy, termArguments);
+                    return result;
+                } catch(MetaborgException ex) {
+                    exceptions.add(ex);
+                }
+
+            }
+            throw new AggregateMetaborgException(exceptions);
+        }
 
 
     @Override public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
@@ -113,6 +154,28 @@ public class StrategoCommon implements IStrategoCommon {
             throw handleException(e, runtime, strategy);
         }
     }
+    
+	@Override
+	public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
+			List<IStrategoTerm> termArguments) throws MetaborgException {
+		runtime.setCurrent(input);
+		final ITermFactory termFactory = termFactoryService.getGeneric();
+		final String strategyName = strategy + "_0_" + termArguments.size();
+		final IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
+		final IStrategoAppl strategyTerm = termFactory.makeAppl("SVar", strategyNameTerm);
+		
+		termArguments.add(0, strategyTerm);
+		IStrategoTerm[] termArgumentArray = termArguments.toArray(new IStrategoTerm[termArguments.size()]);
+		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", termArgumentArray);
+		try {
+			if(runtime.evaluate(strategyCallTerm)) {
+				return runtime.current();
+			}
+		} catch (InterpreterException e) {
+            throw handleException(e, runtime, strategy);
+		}
+		return null;
+	}
 
     private MetaborgException handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) {
         final String trace = traceToString(runtime.getCompiledContext().getTrace());
