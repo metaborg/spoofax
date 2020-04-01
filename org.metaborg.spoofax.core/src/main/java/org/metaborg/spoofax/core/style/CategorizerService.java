@@ -18,9 +18,9 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokens;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
+import org.spoofax.terms.util.TermUtils;
 
 import com.google.common.collect.Lists;
-import org.spoofax.terms.util.TermUtils;
 
 public class CategorizerService implements ISpoofaxCategorizerService {
     private static final ILogger logger = LoggerUtils.logger(CategorizerService.class);
@@ -53,22 +53,7 @@ public class CategorizerService implements ISpoofaxCategorizerService {
             // GTODO: throw exception instead
             return regionCategories;
         }
-        int offset = -1;
-        for (IToken token : tokenizer) {
-            if(tokenizer.isAmbiguous() && token.getStartOffset() < offset) {
-                // In case of ambiguities, tokens inside the ambiguity are duplicated, ignore.
-                continue;
-            }
-            if(token.getStartOffset() > token.getEndOffset()) {
-                // Indicates an invalid region. Empty lists have regions like this.
-                continue;
-            }
-            if(offset >= token.getStartOffset()) {
-                // Duplicate region, skip.
-                continue;
-            }
-            offset = token.getEndOffset();
-
+        for(IToken token : tokenizer) {
             final ICategory category = category(facet, token);
             if(category != null) {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromToken(token);
