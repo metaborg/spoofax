@@ -62,7 +62,7 @@ public class JSGLRParseErrorHandler {
         final ITokenizer tokenizer = (ITokenizer) getTokenizer(top);
         if(tokenizer != null) {
             for(int i = 0, max = tokenizer.getTokenCount(); i < max; i++) {
-                final IToken token = tokenizer.getTokenAt(i);
+                final Token token = tokenizer.getTokenAt(i);
                 final String error = token.getError();
                 if(error != null) {
                     if(Objects.equals(error, ITokenizer.ERROR_SKIPPED_REGION)) {
@@ -85,7 +85,7 @@ public class JSGLRParseErrorHandler {
         }
     }
 
-    private static int findRightMostWithSameError(IToken token, String prefix) {
+    private static int findRightMostWithSameError(Token token, String prefix) {
         final String expectedError = token.getError();
         final ITokenizer tokenizer = (ITokenizer) token.getTokenizer();
         int i = token.getIndex();
