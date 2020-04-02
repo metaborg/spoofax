@@ -49,8 +49,8 @@ import mb.pie.api.STask;
 import mb.pie.api.Task;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
-import mb.stratego.build.strincr.Analysis;
-import mb.stratego.build.strincr.Analysis.Output;
+import mb.stratego.build.strincr.Frontends;
+import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.strincr.Message;
 import mb.stratego.build.strincr.StrIncrAnalysis;
 
@@ -161,8 +161,8 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final Arguments newArgs = new Arguments();
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
         Collection<STask> originTasks = sdfTasks;
-        Analysis.Input strIncrAnalysisInput =
-            new Analysis.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation);
+        Frontends.Input strIncrAnalysisInput =
+            new Frontends.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation);
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
         GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
@@ -171,7 +171,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
         try(final PieSession pieSession = pieProviderProvider.get().pie().newSession()) {
-            Analysis.Output analysisInformation = pieSession.require(strIncrAnalysisTask);
+            Frontends.Output analysisInformation = pieSession.require(strIncrAnalysisTask);
 
             for(Message<?> message : analysisInformation.messages) {
                 if(message.moduleFilePath.equals(path)) {
