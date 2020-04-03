@@ -34,8 +34,9 @@ public interface ILanguagePathService {
     Iterable<FileObject> includePaths(IProject project, String languageName);
 
     /**
-     * Gets source and include paths in given project, for given language. Paths
-     * are ordered from most to least specific.
+     * Gets source and include paths in given project, for given language. Source
+     * paths come before include paths. Within sources and includes, paths are
+     * ordered from most to least specific.
      * 
      * @param project
      *            Project to get source and include paths relative to.

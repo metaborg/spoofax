@@ -14,6 +14,7 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -61,7 +62,8 @@ public class LanguagePathService implements ILanguagePathService {
     }
 
     @Override public Iterable<FileObject> sourceAndIncludePaths(IProject project, String languageName) {
-        final ImmutableSortedSet.Builder<FileObject> paths = ImmutableSortedSet.reverseOrder();
+        final ImmutableList.Builder<FileObject> paths = ImmutableList.builder();
+        // make sure source paths come before include paths
         paths.addAll(sourcePaths(project, languageName));
         paths.addAll(includePaths(project, languageName));
         return paths.build();
