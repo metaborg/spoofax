@@ -14,9 +14,8 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguagePathService implements ILanguagePathService {
@@ -34,38 +33,38 @@ public class LanguagePathService implements ILanguagePathService {
 
 
     @Override public Set<FileObject> sourcePaths(IProject project, String languageName) {
-        final Set<FileObject> sources = Sets.newLinkedHashSet();
+        final ImmutableSortedSet.Builder<FileObject> sources = ImmutableSortedSet.reverseOrder();
         for(ILanguagePathProvider provider : providers) {
             try {
                 final Iterable<FileObject> providedSources = provider.sourcePaths(project, languageName);
-                Iterables.addAll(sources, providedSources);
+                sources.addAll(providedSources);
             } catch(MetaborgException e) {
                 logger.error("Getting source paths from provider {} failed unexpectedly, skipping this provider", e,
                     provider);
             }
         }
-        return sources;
+        return sources.build();
     }
 
     @Override public Set<FileObject> includePaths(IProject project, String languageName) {
-        final Set<FileObject> includes = Sets.newLinkedHashSet();
+        final ImmutableSortedSet.Builder<FileObject> includes = ImmutableSortedSet.reverseOrder();
         for(ILanguagePathProvider provider : providers) {
             try {
                 final Iterable<FileObject> providedIncludes = provider.includePaths(project, languageName);
-                Iterables.addAll(includes, providedIncludes);
+                includes.addAll(providedIncludes);
             } catch(MetaborgException e) {
                 logger.error("Getting include paths from provider {} failed unexpectedly, skipping this provider", e,
                     provider);
             }
         }
-        return includes;
+        return includes.build();
     }
 
     @Override public Iterable<FileObject> sourceAndIncludePaths(IProject project, String languageName) {
-        final Set<FileObject> paths = Sets.newLinkedHashSet();
+        final ImmutableSortedSet.Builder<FileObject> paths = ImmutableSortedSet.reverseOrder();
         paths.addAll(sourcePaths(project, languageName));
         paths.addAll(includePaths(project, languageName));
-        return paths;
+        return paths.build();
     }
 
 
