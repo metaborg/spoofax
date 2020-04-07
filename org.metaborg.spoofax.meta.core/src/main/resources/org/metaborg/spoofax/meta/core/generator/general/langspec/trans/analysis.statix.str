@@ -12,7 +12,7 @@ rules // Analysis
   // see README.md for details on how to switch to multi-file analysis
 
   // single-file analysis
-  editor-analyze = stx-editor-analyze(id|"statics", "programOK")
+  editor-analyze = stx-editor-analyze(id|"statics", "programOk")
   
   // multi-file analysis
 //  editor-analyze = stx-editor-analyze(id|"statics", "projectOk", "fileOk")
