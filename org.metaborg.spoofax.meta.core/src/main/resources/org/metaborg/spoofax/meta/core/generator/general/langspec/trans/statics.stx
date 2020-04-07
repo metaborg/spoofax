@@ -4,9 +4,9 @@ module statics
 
 rules // single-file entry point
 
-  programOK : Start
+  programOk : Start
 
-  programOK(Empty()).
+  programOk(Empty()).
 
 rules // multi-file entry point
 
