@@ -104,13 +104,19 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
 
     @Override public void invalidateCache(ILanguageComponent component) {
         logger.debug("Removing cached stratego runtime for {}", component);
-        prototypes.remove(component);
+        final @Nullable HybridInterpreter runtime = prototypes.remove(component);
+        if(runtime != null) {
+            runtime.uninit();
+        }
     }
 
     @Override public void invalidateCache(ILanguageImpl impl) {
         logger.debug("Removing cached stratego runtime for {}", impl);
         for(ILanguageComponent component : impl.components()) {
-            prototypes.remove(component);
+            final @Nullable HybridInterpreter runtime = prototypes.remove(component);
+            if(runtime != null) {
+                runtime.uninit();
+            }
         }
     }
 
