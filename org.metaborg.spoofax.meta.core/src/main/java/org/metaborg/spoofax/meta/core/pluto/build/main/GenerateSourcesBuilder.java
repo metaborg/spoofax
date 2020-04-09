@@ -62,7 +62,6 @@ import mb.pie.api.Task;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.HierarchicalResource;
-import mb.stratego.build.strincr.Backend;
 import mb.stratego.build.strincr.BuildStats;
 import mb.stratego.build.strincr.StrIncr;
 
@@ -527,7 +526,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 long totalTime = System.nanoTime();
                 try(final PieSession pieSession = pie.newSession()) {
                     pieSession.updateAffectedBy(changedResources);
-                    pieSession.deleteUnobservedTasks(t -> Backend.id.equals(t.getId()), (t, r) -> {
+                    pieSession.deleteUnobservedTasks(t -> true, (t, r) -> {
                         if(r instanceof HierarchicalResource && ((HierarchicalResource) r).getLeafExtension().equals("java")) {
                             logger.debug("Deleting garbage from previous build: " + r);
                             return true;
@@ -538,8 +537,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
                 }
                 totalTime = totalTime - System.nanoTime();
-                logger.debug(BuildStats.CSV_HEADER2);
-                logger.debug(BuildStats.csv2(totalTime));
             } else {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
                     true, true, input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir,
@@ -622,8 +619,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
             totalTime = System.nanoTime() - totalTime;
             pieProvider.setLogLevelTrace();
-            logger.debug(BuildStats.CSV_HEADER2);
-            logger.debug(BuildStats.csv2(totalTime));
         }
         return pie;
     }
