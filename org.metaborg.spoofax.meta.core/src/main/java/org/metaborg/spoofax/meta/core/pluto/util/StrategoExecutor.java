@@ -2,9 +2,12 @@ package org.metaborg.spoofax.meta.core.pluto.util;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
@@ -137,9 +140,12 @@ public class StrategoExecutor {
             }
             return new ExecutionResult(false, tracker.stdout(), tracker.stderr());
         } finally {
-            SSLLibrary op = (SSLLibrary) context.getOperatorRegistry(SSLLibrary.REGISTRY_NAME);
-            op.getDynamicRuleTable().clear();
-            op.getTableTable().clear();
+            final @Nullable IOperatorRegistry registry = context.getOperatorRegistry(SSLLibrary.REGISTRY_NAME);
+            if(registry != null) {
+                final SSLLibrary sslLibrary = (SSLLibrary) registry;
+                sslLibrary.getDynamicRuleTable().clear();
+                sslLibrary.getTableTable().clear();
+            }
         }
     }
 
