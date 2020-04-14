@@ -538,8 +538,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
                 }
                 totalTime = totalTime - System.nanoTime();
-                logger.debug(BuildStats.CSV_HEADER2);
-                logger.debug(BuildStats.csv2(totalTime));
             } else {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
                     true, true, input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir,
@@ -622,8 +620,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
             totalTime = System.nanoTime() - totalTime;
             pieProvider.setLogLevelTrace();
-            logger.debug(BuildStats.CSV_HEADER2);
-            logger.debug(BuildStats.csv2(totalTime));
         }
         return pie;
     }
