@@ -36,11 +36,11 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.time.Timer;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
@@ -174,15 +174,15 @@ public class StrategoTransformer implements IStrategoTransformer {
         // Get the result and, if allowed and required, write to file
         List<TransformOutput> outputs;
         IStrategoTerm resultTerm;
-        if(outputTerm.getSubtermCount() == 2 && (outputTerm instanceof IStrategoTuple)) {
+        if(outputTerm.getSubtermCount() == 2 && TermUtils.isTuple(outputTerm)) {
             final IStrategoTerm resourceTerm = outputTerm.getSubterm(0);
             final IStrategoTerm contentTerm = outputTerm.getSubterm(1);
             try {
-                if(resourceTerm instanceof IStrategoString) {
+                if(TermUtils.isString(resourceTerm)) {
                     resultTerm = contentTerm;
                     outputs = Lists.newArrayList(output(resourceTerm, contentTerm, location, config));
-                } else if(resourceTerm instanceof IStrategoList) {
-                    if(!(contentTerm instanceof IStrategoList)
+                } else if(TermUtils.isList(resourceTerm)) {
+                    if(!TermUtils.isList(contentTerm)
                         || resourceTerm.getSubtermCount() != contentTerm.getSubtermCount()) {
                         logger.error("List of terms does not match list of file names, cannot write to file.");
                         resultTerm = null;
@@ -238,10 +238,10 @@ public class StrategoTransformer implements IStrategoTransformer {
 
     private TransformOutput output(IStrategoTerm resourceTerm, IStrategoTerm contentTerm, FileObject location,
         ITransformConfig config) throws MetaborgException {
-        if(!(resourceTerm instanceof IStrategoString)) {
+        if(!(TermUtils.isString(resourceTerm))) {
             throw new MetaborgException("First term of result tuple {} is not a string, cannot write output file");
         } else {
-            final String resourceString = Tools.asJavaString(resourceTerm);
+            final String resourceString = TermUtils.toJavaString(resourceTerm);
             final String resultContents = common.toString(contentTerm);
             // writing to output file is allowed
             FileObject output;

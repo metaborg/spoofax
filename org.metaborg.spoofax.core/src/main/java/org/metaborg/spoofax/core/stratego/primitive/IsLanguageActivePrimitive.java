@@ -6,12 +6,12 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class IsLanguageActivePrimitive extends ASpoofaxContextPrimitive {
     private final IDependencyService dependencyService;
@@ -26,7 +26,7 @@ public class IsLanguageActivePrimitive extends ASpoofaxContextPrimitive {
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext currentContext) throws MetaborgException {
-        final String languageName = Tools.asJavaString(current);
+        final String languageName = TermUtils.toJavaString(current);
 
         // GTODO: require language identifier instead of language name
         for(ILanguageComponent component : dependencyService.compileDeps(currentContext.project())) {

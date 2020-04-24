@@ -37,7 +37,7 @@ import mb.flowspec.runtime.interpreter.InterpreterBuilder;
 import mb.flowspec.runtime.solver.FixedPoint;
 import mb.flowspec.runtime.solver.ParseException;
 import mb.flowspec.terms.B;
-import mb.flowspec.terms.M;
+import org.spoofax.terms.util.M;
 import mb.nabl2.spoofax.analysis.IResult;
 
 public class FS_solve extends AbstractPrimitive implements ILanguageCache {

@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.syntax;
 
-import static org.spoofax.interpreter.core.Tools.termAt;
-
 import java.util.Collection;
 
 import javax.annotation.Nullable;
@@ -12,10 +10,10 @@ import org.metaborg.core.syntax.FenceCharacters;
 import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.iterators.Iterables2;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Lists;
+import org.spoofax.terms.util.TermUtils;
 
 public class SyntaxFacetFromESV {
     public static @Nullable SyntaxFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
@@ -44,7 +42,7 @@ public class SyntaxFacetFromESV {
         if(imploder == null) {
             return ImploderImplementation.java;
         }
-        final IStrategoAppl imploderImpl = Tools.applAt(imploder, 0);
+        final IStrategoAppl imploderImpl = TermUtils.toApplAt(imploder, 0);
         switch(imploderImpl.getName()) {
             case "Stratego":
                 return ImploderImplementation.stratego;
@@ -72,7 +70,7 @@ public class SyntaxFacetFromESV {
             return null;
         }
 
-        final String contents = ESVReader.termContents(termAt(termAt(result, 0), 0));
+        final String contents = ESVReader.termContents(result.getSubterm(0).getSubterm(0));
         return Iterables2.singleton(contents);
     }
 

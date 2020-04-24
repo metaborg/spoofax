@@ -86,7 +86,7 @@ strategies // comments
     concat-strings
   
   documentation-comment-chars:
-    ['*' | c*] -> <ltrim(' ' + '\t' + '\n' + '\r')> c*
+    ['*' | c*] -> <ltrim(?' ' + ?'\t' + ?'\n' + ?'\r')> c*
     
   origin-surrounding-comments = prim("SSL_EXT_origin_surrounding_comments", <origin-language>, <id>)
   origin-comments-after       = origin-support-sublist(prim("SSL_EXT_origin_comments_after", <id>))

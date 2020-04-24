@@ -5,9 +5,9 @@ import java.util.Optional;
 
 import org.metaborg.spoofax.core.context.constraint.IConstraintContext;
 import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 
 public class C_get_resource_analysis extends ConstraintContextPrimitive {
 
@@ -17,10 +17,9 @@ public class C_get_resource_analysis extends ConstraintContextPrimitive {
 
     @Override protected Optional<? extends IStrategoTerm> call(IConstraintContext context, IStrategoTerm sterm,
             List<IStrategoTerm> sterms, ITermFactory factory) throws InterpreterException {
-        if(!Tools.isTermString(sterm)) {
-            throw new InterpreterException("Expect a resource path.");
-        }
-        final String resource = Tools.asJavaString(sterm);
+        if(!TermUtils.isString(sterm)) throw new InterpreterException("Expect a resource path.");
+
+        final String resource = TermUtils.toJavaString(sterm);
         final IStrategoTerm analysis;
         if(context.hasAnalysis(resource)) {
             analysis = context.getAnalysis(resource);

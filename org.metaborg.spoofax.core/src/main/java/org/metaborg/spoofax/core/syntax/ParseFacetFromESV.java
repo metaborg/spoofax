@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import org.metaborg.core.syntax.ParseFacet;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.terms.util.TermUtils;
 
 public class ParseFacetFromESV {
     public static boolean hasParser(IStrategoAppl esv) {
@@ -16,6 +17,10 @@ public class ParseFacetFromESV {
     	if (parserTerm == null) {
     		return null;
     	}
-    	return new ParseFacet(ESVReader.termContents(parserTerm.getSubterm(0)));
+    	final IStrategoAppl parserType = TermUtils.toApplAt(parserTerm, 0);
+    	if(TermUtils.isAppl(parserType, "Named", 1)) {
+            return new ParseFacet(ESVReader.termContents(parserType.getSubterm(0)));
+        }
+        return null;
     }
 }

@@ -19,7 +19,6 @@ dependencies {
   api("org.metaborg:org.spoofax.interpreter.library.index:$version")
   api("org.metaborg:org.metaborg.runtime.task:$version")
   api("org.metaborg:org.spoofax.terms.typesmart:$version")
-  api("org.metaborg:characterclasses:$version")
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")

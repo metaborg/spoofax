@@ -349,6 +349,8 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final Boolean sdfEnabled = config.sdfEnabled();
         final String sdfModule = config.sdfName();
         final JSGLRVersion jsglrVersion = config.jsglrVersion();
+        final Boolean checkOverlap = config.checkOverlap();
+        final Boolean checkPriorities = config.checkPriorities();
 
         final FileObject sdfFileCandidate;
         final SdfVersion sdfVersion = config.sdfVersion();
@@ -493,10 +495,10 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final Arguments strjArgs = config.strArgs();
 
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
-            sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, sdfExternalDef, packSdfIncludePaths,
-            packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles, strFile, strStratPkg,
-            strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar, strExternalJarFlags, strjIncludeDirs,
-            strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting());
+            sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
+            sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
+            sdfMetaFiles, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
+            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting());
 
     }
 
@@ -519,12 +521,8 @@ public class LanguageSpecBuilder implements AutoCloseable {
             strJavaStratFile = null;
         }
 
-        final File javaStratClassesDir =
-            resourceService.localPath(paths.strTargetClassesJavaStratDir(config.identifier().id));
-        final File dsGeneratedClassesDir = resourceService.localPath(paths.dsTargetClassesGenerateDir());
-        final File dsManualClassesDir = resourceService.localPath(paths.dsTargetClassesManualDir());
         final List<File> strJavaStratIncludeDirs =
-            Lists.newArrayList(javaStratClassesDir, dsGeneratedClassesDir, dsManualClassesDir);
+            Lists.newArrayList(resourceService.localPath(paths.targetClassesDir()));
 
         return new PackageBuilder.Input(context, config.identifier().id, origin, strFormat, strJavaStratFile,
             strJavaStratIncludeDirs);

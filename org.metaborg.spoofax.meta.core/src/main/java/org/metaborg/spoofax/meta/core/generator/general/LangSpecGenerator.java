@@ -94,9 +94,15 @@ public class LangSpecGenerator extends BaseGenerator {
 
 
     public void generateAll() throws IOException {
+        generateREADME();
         generateAllSpoofax();
         generateAllMaven();
     }
+
+    public void generateREADME() throws IOException {
+        writer.write("langspec/README.md", "README.md", false);
+    }
+
 
     public void generateAllSpoofax() throws IOException {
         generateConfig();
@@ -134,9 +140,9 @@ public class LangSpecGenerator extends BaseGenerator {
         if(analysisEnabled()) {
             writer.writeResolve("langspec/trans/analysis.{{analysisType.id}}.str", "trans/analysis.str", false);
             if(analysisNabl2()) {
-                writer.write("langspec/trans/static-semantics.nabl2", "trans/static-semantics.nabl2", false);
+                writer.write("langspec/trans/statics.nabl2", "trans/statics.nabl2", false);
             } else if(analysisStatix()) {
-                writer.write("langspec/trans/static-semantics.stx", "trans/static-semantics.stx", false);
+                writer.write("langspec/trans/statics.stx", "trans/statics.stx", false);
             }
         }
         if(syntaxEnabled()) {

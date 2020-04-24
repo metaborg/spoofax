@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.analysis;
 
-import static org.spoofax.interpreter.core.Tools.termAt;
-
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.analysis.constraint.MultiFileConstraintAnalyzer;
@@ -9,9 +7,9 @@ import org.metaborg.spoofax.core.analysis.constraint.SingleFileConstraintAnalyze
 import org.metaborg.spoofax.core.analysis.legacy.StrategoAnalyzer;
 import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 
 public class AnalysisFacetFromESV {
     public static boolean hasAnalysis(IStrategoAppl esv) {
@@ -31,7 +29,7 @@ public class AnalysisFacetFromESV {
         if(strategy == null) {
             return null;
         }
-        final String observerFunction = ESVReader.termContents(termAt(strategy, 0));
+        final String observerFunction = ESVReader.termContents(strategy.getSubterm(0));
         return observerFunction;
     }
 
@@ -45,8 +43,8 @@ public class AnalysisFacetFromESV {
         boolean multifile = false;
         boolean constraint = false;
         for(IStrategoTerm annotation : annotations) {
-            multifile |= Tools.hasConstructor((IStrategoAppl) annotation, "MultiFile", 0);
-            constraint |= Tools.hasConstructor((IStrategoAppl) annotation, "Constraint", 0);
+            multifile |= TermUtils.isAppl(annotation, "MultiFile", 0);
+            constraint |= TermUtils.isAppl(annotation, "Constraint", 0);
         }
         if(constraint) {
             return multifile ? MultiFileConstraintAnalyzer.name : SingleFileConstraintAnalyzer.name;

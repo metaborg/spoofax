@@ -13,7 +13,6 @@ import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -21,6 +20,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
     private static final ILogger logger = LoggerUtils.logger(CallStrategyPrimitive.class);
@@ -42,8 +42,8 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext currentContext) throws MetaborgException {
-        final String languageName = Tools.asJavaString(tvars[0]);
-        final String strategyName = Tools.asJavaString(tvars[1]);
+        final String languageName = TermUtils.toJavaString(tvars[0]);
+        final String strategyName = TermUtils.toJavaString(tvars[1]);
 
         final Iterable<ILanguageComponent> compileDeps = dependencyService.compileDeps(currentContext.project());
         final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(compileDeps);

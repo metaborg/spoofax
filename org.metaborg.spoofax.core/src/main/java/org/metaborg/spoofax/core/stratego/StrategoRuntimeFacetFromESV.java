@@ -17,19 +17,17 @@ public class StrategoRuntimeFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeFacetFromESV.class);
 
 
-    public static @Nullable StrategoRuntimeFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
+    public static StrategoRuntimeFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
         final Set<FileObject> strategoFiles = providerResources(esv, location);
         // Use LinkedHashSet to maintain ordering.
         final Set<FileObject> ctreeFiles = Sets.newLinkedHashSet();
-        final Set<FileObject> jarFiles = Sets.newLinkedHashSet();
         for(FileObject strategoFile : strategoFiles) {
             final String extension = strategoFile.getName().getExtension();
             switch (extension) {
-                case "jar":
-                    jarFiles.add(strategoFile);
-                    break;
                 case "ctree":
                     ctreeFiles.add(strategoFile);
+                    break;
+                case "jar":
                     break;
                 default:
                     logger.warn("Stratego provider file {} has unknown extension {}, ignoring", strategoFile, extension);
@@ -37,12 +35,7 @@ public class StrategoRuntimeFacetFromESV {
             }
         }
 
-        if(ctreeFiles.isEmpty() && jarFiles.isEmpty()) {
-            return null;
-        }
-        
-        final StrategoRuntimeFacet facet = new StrategoRuntimeFacet(ctreeFiles, jarFiles);
-        return facet;
+        return new StrategoRuntimeFacet(ctreeFiles);
     }
 
 

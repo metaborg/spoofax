@@ -11,6 +11,7 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.lang.compat.SSL_EXT_call;
@@ -39,7 +40,7 @@ public class ExecutableCommandStrategy extends xtc_command_1_0 {
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy commandStrat) {
         final IStrategoTerm commandTerm = commandStrat.invoke(context, current);
-        if(commandTerm instanceof IStrategoString && current instanceof IStrategoList) {
+        if(TermUtils.isString(commandTerm) && TermUtils.isList(current)) {
             final String command = ((IStrategoString) commandTerm).stringValue();
             if(this.command.equals(command)) {
                 final ExecutionResult result = run(current.getAllSubterms());

@@ -6,6 +6,7 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -67,7 +68,7 @@ public class JSGLRParseErrorHandler {
                 final IToken token = tokenizer.getTokenAt(i);
                 final String error = token.getError();
                 if(error != null) {
-                    if(error == ITokens.ERROR_SKIPPED_REGION) {
+                    if(Objects.equals(error, ITokens.ERROR_SKIPPED_REGION)) {
                         i = findRightMostWithSameError(token, null);
                         reportSkippedRegion(token, tokenizer.getTokenAt(i));
                     } else if(error.startsWith(ITokens.ERROR_WARNING_PREFIX)) {
@@ -93,7 +94,7 @@ public class JSGLRParseErrorHandler {
         int i = token.getIndex();
         for(int max = tokenizer.getTokenCount(); i + 1 < max; i++) {
             String error = tokenizer.getTokenAt(i + 1).getError();
-            if(error != expectedError && (error == null || prefix == null || !error.startsWith(prefix)))
+            if(!Objects.equals(error, expectedError) && (error == null || prefix == null || !error.startsWith(prefix)))
                 break;
         }
         return i;

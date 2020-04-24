@@ -59,8 +59,9 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         SpoofaxProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, projectConfig, identifier,
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
-            sdf2tableVersion, dataDependent, sdfMainFile,  parseTable, jsglrVersion, completionsParseTable, placeholderCharacters,
-            prettyPrint, sdfMetaFile, sdfExternalDef, sdfArgs, strBuildSetting, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            sdf2tableVersion, checkOverlap, checkPriorities, dataDependent, sdfMainFile, parseTable, jsglrVersion,
+            jsglr2Logging, completionsParseTable, placeholderCharacters, prettyPrint, sdfMetaFile, sdfExternalDef,
+            sdfArgs, strBuildSetting, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -221,7 +222,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         this.sdfMainFile = sdfMainFile;
         return this;
     }
-    
+
     @Override public ISpoofaxLanguageSpecConfigBuilder withSdfMetaFiles(List<String> sdfMetaFile) {
         this.sdfMetaFile = sdfMetaFile;
         return this;

@@ -10,13 +10,13 @@ import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.spoofax.terms.util.TermUtils;
 
 public class LanguageSpecSrcGenDirectory extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecSrcGenDirectory.class);
@@ -48,10 +48,10 @@ public class LanguageSpecSrcGenDirectory extends ASpoofaxContextPrimitive implem
             return null;
         }
 
-        if(!Tools.isTermString(current)) {
+        if(!TermUtils.isString(current)) {
             throw new MetaborgException("Expect a string as argument term, got " + current);
         }
-        String name = Tools.asJavaString(current);
+        String name = TermUtils.toJavaString(current);
 
         final String srcGenDir;
         try {

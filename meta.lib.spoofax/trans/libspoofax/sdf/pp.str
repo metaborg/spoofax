@@ -4,18 +4,28 @@ imports
 	
   libstratego-gpp
 
+  libspoofax/term/annotation
+
+signature constructors
+
+  inj : String * String -> Anno
+
 rules
 
   ia-get-sort = prim("SSL_EXT_get_sort_imploder_attachment", <id>)
 
   /** Create explicit constructors for sort injections.
    *
-   *
-   *
    * @param inj-name: String * String -> String
    * @type Term -> Term
    */
   explicate-injections(inj-name) = prim("SSL_EXT_explicate_injections",inj-name|)
+
+  /** Remove explicit constructors for sort injections.
+   *
+   * @type Term -> Term
+   */
+  remove-injections = bottomup(try(\ c#([t]) -> t where get-annotation(?inj(_, _)) \))
 
 signature constructors
 

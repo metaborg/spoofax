@@ -12,6 +12,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class LocalReplicatePrimitive extends ASpoofaxPrimitive {
     private final IResourceService resourceService;
@@ -25,7 +26,7 @@ public class LocalReplicatePrimitive extends ASpoofaxPrimitive {
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext context) {
-        if(!(current instanceof IStrategoString)) {
+        if(!(TermUtils.isString(current))) {
             return null;
         }
         final IStrategoString currentStr = (IStrategoString) current;

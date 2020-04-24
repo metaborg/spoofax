@@ -30,8 +30,11 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable String parseTable;
     protected @Nullable String completionsParseTable;
     protected @Nullable Sdf2tableVersion sdf2tableVersion;
+    protected @Nullable Boolean checkOverlap;
+    protected @Nullable Boolean checkPriorities;
     protected @Nullable Boolean dataDependent;
     protected @Nullable JSGLRVersion jsglrVersion;
+    protected @Nullable JSGLR2Logging jsglr2Logging;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -45,7 +48,8 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         }
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
-            name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, dataDependent, jsglrVersion, langContribs, generates, exports);
+            name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, checkOverlap, checkPriorities,
+            dataDependent, jsglrVersion, jsglr2Logging, langContribs, generates, exports);
         return config;
     }
 
@@ -60,7 +64,10 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         parseTable = null;
         completionsParseTable = null;
         sdf2tableVersion = null;
+        checkOverlap = null;
+        checkPriorities = null;
         jsglrVersion = null;
+        jsglr2Logging = null;
         sdfEnabled = null;
         return this;
     }
@@ -78,7 +85,10 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withSdfTable(config.parseTable());
             withSdfCompletionsTable(config.completionsParseTable());
             withSdf2tableVersion(config.sdf2tableVersion());
-			withJSGLRVersion(config.jsglrVersion());
+            withJSGLRVersion(config.jsglrVersion());
+            withJSGLR2Logging(config.jsglr2Logging());
+            withCheckOverlap(config.checkOverlap());
+            withCheckPriorities(config.checkPriorities());
             withSdfEnabled(config.sdfEnabled());
             projectConfigBuilder.copyValuesFrom(config);
         }
@@ -152,13 +162,30 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         return this;
     }
 
+    @Override public ILanguageComponentConfigBuilder withCheckPriorities(Boolean checkPriorities) {
+        this.checkPriorities = checkPriorities;
+        return this;
+    }
+
+
+    @Override public ILanguageComponentConfigBuilder withCheckOverlap(Boolean checkOverlap) {
+        this.checkOverlap = checkOverlap;
+        return this;
+    }
+
+
     @Override public ILanguageComponentConfigBuilder withJSGLRVersion(JSGLRVersion jsglrVersion) {
         this.jsglrVersion = jsglrVersion;
         return this;
     }
 
+    @Override public ILanguageComponentConfigBuilder withJSGLR2Logging(JSGLR2Logging jsglr2Logging) {
+        this.jsglr2Logging = jsglr2Logging;
+        return this;
+    }
+
     @Override public ILanguageComponentConfigBuilder
-            withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
+        withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
         if(this.langContribs != null) {
             this.langContribs.clear();
         }
@@ -168,7 +195,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     }
 
     @Override public ILanguageComponentConfigBuilder
-            addLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
+        addLangContribs(Iterable<LanguageContributionIdentifier> contribs) {
         if(this.langContribs == null) {
             this.langContribs = Sets.newHashSet();
         }

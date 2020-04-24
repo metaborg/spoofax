@@ -10,6 +10,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -17,12 +18,12 @@ import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
@@ -51,7 +52,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input,
         String strategy) throws MetaborgException {
-        if(component.facet(StrategoRuntimeFacet.class) == null) {
+        if(!IStrategoCommon.hasStrategoFacets(component)) {
             return null;
         }
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
@@ -62,7 +63,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(StrategoRuntimeFacet.class) == null) {
+            if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;
             }
 
@@ -82,7 +83,7 @@ public class StrategoCommon implements IStrategoCommon {
         String strategy) throws MetaborgException {
         List<MetaborgException> exceptions = Lists.newArrayList();
         for(ILanguageComponent component : impl.components()) {
-            if(component.facet(StrategoRuntimeFacet.class) == null) {
+            if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;
             }
 
@@ -97,6 +98,7 @@ public class StrategoCommon implements IStrategoCommon {
         }
         throw new AggregateMetaborgException(exceptions);
     }
+
 
     @Override public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
         throws MetaborgException {
@@ -137,11 +139,11 @@ public class StrategoCommon implements IStrategoCommon {
             return new MetaborgException(message, e);
         } catch(InterpreterExit e) {
             final String message = logger.format("Invoking Stratego strategy {} failed with exit code {}\n{}\n{}",
-                strategy, e.getValue(), trace, e);
+                strategy, e.getValue(), trace, e.getMessage());
             return new MetaborgException(message, e);
         } catch(UndefinedStrategyException e) {
             final String message = logger.format("Invoking Stratego strategy {} failed, strategy is undefined\n{}\n{}",
-                strategy, trace, e);
+                strategy, trace, e.getMessage());
             return new MetaborgException(message, e);
         } catch(InterpreterException e) {
             final Throwable cause = e.getCause();
@@ -149,7 +151,8 @@ public class StrategoCommon implements IStrategoCommon {
                 return handleException((InterpreterException) cause, runtime, strategy);
             } else {
                 String message =
-                    logger.format("Invoking Stratego strategy {} failed unexpectedly\n{}\n{}", strategy, trace, e);
+                    logger.format("Invoking Stratego strategy {} failed unexpectedly\n{}\n{}", strategy, trace,
+                        e.getMessage());
                 return new MetaborgException(message, e);
             }
         }
@@ -173,7 +176,7 @@ public class StrategoCommon implements IStrategoCommon {
         for(int i = 0; i < depth; i++) {
             final IStrategoTerm t = trace.getSubterm(depth - i - 1);
             sb.append("\n\t");
-            sb.append(t.getTermType() == IStrategoTerm.STRING ? Tools.asJavaString(t) : t);
+            sb.append(TermUtils.isString(t) ? TermUtils.toJavaString(t) : t);
         }
         return sb.toString();
     }
@@ -196,38 +199,18 @@ public class StrategoCommon implements IStrategoCommon {
         return resourceTerm;
     }
 
-    @Override public IStrategoTerm builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
+    @Override public BuilderInput builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
         @Nullable FileObject resource, @Nullable FileObject location) {
         final ITermFactory termFactory = termFactoryService.getGeneric();
 
         final IStrategoTerm node = selectedTerm != null ? selectedTerm : ast;
         final IStrategoTerm position = termFactory.makeList();
 
-        final String locationURI;
-        final String resourceURI;
-
-        if(resource != null && location != null) {
-            locationURI = location.getName().getURI();
-            resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
-        } else if(resource != null) {
-            locationURI = "";
-            resourceURI = resource.getName().getURI();
-        } else if(location != null) {
-            locationURI = location.getName().getURI();
-            resourceURI = "";
-        } else {
-            locationURI = "";
-            resourceURI = "";
-        }
-
-        final IStrategoString locationTerm = termFactory.makeString(locationURI);
-        final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
-
-        return termFactory.makeTuple(node, position, ast, resourceTerm, locationTerm);
+        return new BuilderInput(termFactory, node, position, ast, resource, location);
     }
 
     @Override public String toString(IStrategoTerm term) {
-        if(term instanceof IStrategoString) {
+        if(TermUtils.isString(term)) {
             return ((IStrategoString) term).stringValue();
         } else {
             final IStrategoString pp = prettyPrint(term);

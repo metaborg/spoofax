@@ -1,0 +1,13 @@
+module statics
+
+imports
+
+  signatures/-
+
+rules
+
+  init ^ (s) := new s.
+
+  [[ Empty() ^ (s) ]] :=
+    false | note "Specify name binding and typing rules in statics.nabl2".
+

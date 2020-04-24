@@ -49,3 +49,7 @@ language:
     - stratego-sdf
     - -la
     - strc
+exports:
+{{#analysisStatix}}- language: ATerm
+  directory: src-gen/statix
+{{/analysisStatix}}

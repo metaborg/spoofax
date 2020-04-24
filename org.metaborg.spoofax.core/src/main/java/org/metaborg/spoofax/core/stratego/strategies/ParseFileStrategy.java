@@ -13,8 +13,8 @@ import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.Strategy;
@@ -41,11 +41,10 @@ public class ParseFileStrategy extends Strategy {
 
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-        if(!Tools.isTermString(current))
-            return null;
+        if(!TermUtils.isString(current)) return null;
 
         try {
-            final String path = Tools.asJavaString(current);
+            final String path = TermUtils.toJavaString(current);
             final FileObject resource = resourceService.resolve(path);
             if(resource.getType() != FileType.FILE) {
                 return null;

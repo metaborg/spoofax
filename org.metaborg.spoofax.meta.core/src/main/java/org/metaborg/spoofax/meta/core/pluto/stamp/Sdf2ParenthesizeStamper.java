@@ -13,6 +13,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermVisitor;
+import org.spoofax.terms.util.TermUtils;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.util.Pair;
 
@@ -74,7 +75,7 @@ public class Sdf2ParenthesizeStamper implements Stamper {
 
 
         @Override public void preVisit(IStrategoTerm term) {
-            if(term instanceof IStrategoAppl)
+            if(TermUtils.isAppl(term))
                 switch(((IStrategoAppl) term).getConstructor().getName()) {
                     case "context-free-priorities":
                     case "priorities":
@@ -99,7 +100,7 @@ public class Sdf2ParenthesizeStamper implements Stamper {
         }
 
         @Override public void postVisit(IStrategoTerm term) {
-            if(term instanceof IStrategoAppl)
+            if(TermUtils.isAppl(term))
                 switch(((IStrategoAppl) term).getConstructor().getName()) {
                     case "context-free-priorities":
                     case "priorities":

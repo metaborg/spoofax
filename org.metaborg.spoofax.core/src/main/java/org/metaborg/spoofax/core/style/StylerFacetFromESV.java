@@ -10,12 +10,12 @@ import org.metaborg.core.style.Style;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import org.spoofax.terms.util.TermUtils;
 
 public class StylerFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(StylerFacetFromESV.class);
@@ -27,13 +27,13 @@ public class StylerFacetFromESV {
         final Iterable<IStrategoAppl> styleDefs = ESVReader.collectTerms(esv, "ColorDef");
         final Map<String, IStyle> namedStyles = Maps.newHashMap();
         for(IStrategoAppl styleDef : styleDefs) {
-            final IStrategoAppl styleTerm = (IStrategoAppl) styleDef.getSubterm(1);
+            final IStrategoAppl styleTerm = TermUtils.toApplAt(styleDef, 1);
             final IStrategoConstructor styleCons = styleTerm.getConstructor();
             final IStyle style;
             if(styleCons.getName().equals("Attribute")) {
                 style = style(styleTerm);
             } else if(styleCons.getName().equals("AttributeRef")) {
-                final String name = Tools.asJavaString(styleTerm.getSubterm(0));
+                final String name = TermUtils.toJavaStringAt(styleTerm, 0);
                 style = namedStyles.get(name);
                 if(style == null) {
                     logger.error("Cannot resolve style definition " + name + " in style definition " + styleDef);
@@ -44,7 +44,7 @@ public class StylerFacetFromESV {
                 continue;
             }
 
-            namedStyles.put(Tools.asJavaString(styleDef.getSubterm(0)), style);
+            namedStyles.put(TermUtils.toJavaStringAt(styleDef, 0), style);
         }
 
         final Iterable<IStrategoAppl> styleRules = ESVReader.collectTerms(esv, "ColorRule");
@@ -52,13 +52,13 @@ public class StylerFacetFromESV {
             return null;
         }
         for(IStrategoAppl styleRule : styleRules) {
-            final IStrategoAppl styleTerm = (IStrategoAppl) styleRule.getSubterm(1);
+            final IStrategoAppl styleTerm = TermUtils.toApplAt(styleRule, 1);
             final IStrategoConstructor styleCons = styleTerm.getConstructor();
             final IStyle style;
             if(styleCons.getName().equals("Attribute")) {
                 style = style(styleTerm);
             } else if(styleCons.getName().equals("AttributeRef")) {
-                final String name = Tools.asJavaString(styleTerm.getSubterm(0));
+                final String name = TermUtils.toJavaStringAt(styleTerm, 0);
                 style = namedStyles.get(name);
                 if(style == null) {
                     logger.error("Cannot resolve style definition " + name + " in style rule " + styleRule);
@@ -69,20 +69,20 @@ public class StylerFacetFromESV {
                 continue;
             }
 
-            final IStrategoAppl node = (IStrategoAppl) styleRule.getSubterm(0);
+            final IStrategoAppl node = TermUtils.toApplAt(styleRule, 0);
             final IStrategoConstructor nodeCons = node.getConstructor();
             if(nodeCons.getName().equals("SortAndConstructor")) {
-                final String sort = Tools.asJavaString(node.getSubterm(0).getSubterm(0));
-                final String cons = Tools.asJavaString(node.getSubterm(1).getSubterm(0));
+                final String sort = TermUtils.toJavaStringAt(node.getSubterm(0), 0);
+                final String cons = TermUtils.toJavaStringAt(node.getSubterm(1), 0);
                 facet.mapSortConsToStyle(sort, cons, style);
             } else if(nodeCons.getName().equals("ConstructorOnly")) {
-                final String cons = Tools.asJavaString(node.getSubterm(0).getSubterm(0));
+                final String cons = TermUtils.toJavaStringAt(node.getSubterm(0), 0);
                 facet.mapConsToStyle(cons, style);
             } else if(nodeCons.getName().equals("Sort")) {
-                final String sort = Tools.asJavaString(node.getSubterm(0));
+                final String sort = TermUtils.toJavaStringAt(node, 0);
                 facet.mapSortToStyle(sort, style);
             } else if(nodeCons.getName().equals("Token")) {
-                final IStrategoAppl tokenAppl = (IStrategoAppl) node.getSubterm(0);
+                final IStrategoAppl tokenAppl = TermUtils.toApplAt(node, 0);
                 final String token = tokenAppl.getConstructor().getName();
                 facet.mapTokenToStyle(token, style);
             } else {
@@ -95,13 +95,13 @@ public class StylerFacetFromESV {
     }
 
     private static IStyle style(IStrategoAppl attribute) {
-        final Color color = color((IStrategoAppl) attribute.getSubterm(0));
-        final Color backgroundColor = color((IStrategoAppl) attribute.getSubterm(1));
+        final Color color = color(TermUtils.toApplAt(attribute, 0));
+        final Color backgroundColor = color(TermUtils.toApplAt(attribute, 1));
         final boolean bold;
         final boolean italic;
         final boolean underline = false;
         final boolean strikeout = false;
-        final IStrategoAppl fontSetting = (IStrategoAppl) attribute.getSubterm(2);
+        final IStrategoAppl fontSetting = TermUtils.toApplAt(attribute, 2);
         final String fontSettingCons = fontSetting.getConstructor().getName();
         switch (fontSettingCons) {
             case "BOLD":
@@ -128,9 +128,9 @@ public class StylerFacetFromESV {
         final String colorCons = color.getConstructor().getName();
         switch (colorCons) {
             case "ColorRGB":
-                final int r = Integer.parseInt(Tools.asJavaString(color.getSubterm(0)));
-                final int g = Integer.parseInt(Tools.asJavaString(color.getSubterm(1)));
-                final int b = Integer.parseInt(Tools.asJavaString(color.getSubterm(2)));
+                final int r = Integer.parseInt(TermUtils.toJavaStringAt(color, 0));
+                final int g = Integer.parseInt(TermUtils.toJavaStringAt(color, 1));
+                final int b = Integer.parseInt(TermUtils.toJavaStringAt(color, 2));
                 return new Color(r, g, b);
             case "ColorDefault":
                 return new Color(0, 0, 0);

@@ -16,12 +16,12 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class LegacyParseFilePrimitive extends AbstractPrimitive {
     private final IResourceService resourceService;
@@ -53,14 +53,12 @@ public class LegacyParseFilePrimitive extends AbstractPrimitive {
 
     @Override public boolean call(IContext env, Strategy[] strategies, IStrategoTerm[] terms)
         throws InterpreterException {
-        if(!Tools.isTermString(terms[0]))
-            return false;
-        if(!Tools.isTermString(terms[3]))
-            return false;
+        if(!TermUtils.isString(terms[0])) return false;
+        if(!TermUtils.isString(terms[3])) return false;
 
         try {
-            final String pathOrInput = Tools.asJavaString(terms[0]);
-            final String pathOrInput2 = Tools.asJavaString(terms[3]);
+            final String pathOrInput = TermUtils.toJavaString(terms[0]);
+            final String pathOrInput2 = TermUtils.toJavaString(terms[3]);
             FileObject resource;
             String text;
             try {

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.sdf2table.io.ParseTableIO;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.ParseTable;
@@ -26,7 +27,7 @@ public class JSGLR1FileParseTableProvider implements IParseTableProvider {
         }
 
         resource.refresh();
-        
+
         if(!resource.exists()) {
             throw new IOException("Could not load parse table from " + resource + ", file does not exist");
         }
@@ -42,11 +43,13 @@ public class JSGLR1FileParseTableProvider implements IParseTableProvider {
             } else {
                 persistedTable = resource.getParent().resolveFile("table.bin");
             }
-            
-            if(persistedTable.exists()) {
-                parseTable = new ParseTable(parseTableTerm, termFactory, persistedTable);
-            } else {
-                parseTable = new ParseTable(parseTableTerm, termFactory);
+
+            parseTable = new ParseTable(parseTableTerm, termFactory);
+
+            // only read serialized table when table generation is dynamic (#states = 0)
+            if(persistedTable.exists() && parseTable.getStateCount() == 0) {
+                parseTable =
+                    new ParseTable(parseTableTerm, termFactory, persistedTable, new ParseTableIO(persistedTable));
             }
         } catch(Exception e) {
             throw new IOException("Could not load parse table from " + resource, e);

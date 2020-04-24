@@ -9,6 +9,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
@@ -42,17 +43,16 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
-import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import mb.nabl2.terms.stratego.StrategoTermIndices;
@@ -125,28 +125,36 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         final Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
         final Map<String, ISpoofaxAnalyzeUnit> removed = Maps.newHashMap();
+        final Map<String, ISpoofaxAnalyzeUnit> invalid = Maps.newHashMap();
         for(ISpoofaxParseUnit input : inputs) {
             if(input.detached() || input.source() == null) {
                 logger.warn("Ignoring detached units");
+                continue;
             }
             final String source = context.resourceKey(input.source());
-            if(input.valid() && input.success() && !isEmptyAST(input.ast())) {
+            if(!input.valid() || !input.success()) {
+                invalid.put(source, unitService.emptyAnalyzeUnit(input, context));
+                continue;
+            }
+
+            if(!isEmptyAST(input.ast())) {
                 changed.put(source, input);
             } else {
                 removed.put(source, unitService.emptyAnalyzeUnit(input, context));
             }
         }
 
-        return doAnalysis(changed, removed, context, runtime, facet.strategyName, progress, cancel);
+        return doAnalysis(changed, removed, invalid, context, runtime, facet.strategyName, progress, cancel);
     }
 
     private boolean isEmptyAST(IStrategoTerm ast) {
-        return Tools.isTermTuple(ast) && ast.getSubtermCount() == 0;
+        return TermUtils.isTuple(ast, 0);
     }
 
     private ISpoofaxAnalyzeResults doAnalysis(Map<String, ISpoofaxParseUnit> changed,
-            Map<String, ISpoofaxAnalyzeUnit> removed, IConstraintContext context, HybridInterpreter runtime,
-            String strategy, IProgress progress, ICancel cancel) throws AnalysisException {
+            Map<String, ISpoofaxAnalyzeUnit> removed, Map<String, ISpoofaxAnalyzeUnit> invalid,
+            IConstraintContext context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
+            throws AnalysisException {
 
         /*******************************************************************
          * 1. Compute changeset, and remove invalidated units from context *
@@ -242,20 +250,20 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Invalid analysis result, got " + allResultsTerm);
         }
         final IStrategoTerm resultsTerm = allResultTerms.get(0);
-        if(!Tools.isTermList(resultsTerm)) {
+        if(!TermUtils.isList(resultsTerm)) {
             throw new AnalysisException(context, "Expected list of results, got " + resultsTerm);
         }
         for(IStrategoTerm entry : resultsTerm.getAllSubterms()) {
-            if(!Tools.isTermTuple(entry) || entry.getSubtermCount() != 2) {
+            if(!TermUtils.isTuple(entry, 2)) {
                 throw new AnalysisException(context, "Expected tuple result, got " + entry);
             }
             final IStrategoTerm resourceTerm = entry.getSubterm(0);
             final IStrategoTerm resultTerm = entry.getSubterm(1);
-            if(!Tools.isTermString(resourceTerm)) {
+            if(!TermUtils.isString(resourceTerm)) {
                 throw new AnalysisException(context,
                         "Expected resource string as first component, got " + resourceTerm);
             }
-            final String resource = Tools.asJavaString(resourceTerm);
+            final String resource = TermUtils.toJavaString(resourceTerm);
             results.put(resource, resultTerm);
         }
 
@@ -286,7 +294,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          * 4. Globally collect error messages *
          **************************************/
 
-        final Multimap<FileObject, IMessage> messages = HashMultimap.create();
+        final ListMultimap<FileName, IMessage> messages = ArrayListMultimap.create();
         for(Map.Entry<String, Expect> entry : expects.entrySet()) {
             final Expect expect = entry.getValue();
             messages.putAll(expect.messages);
@@ -299,9 +307,11 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
         final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
         for(Expect expect : expects.values()) {
-            expect.result(messages.get(expect.resource()), fullResults, updateResults);
+            Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
+            expect.result(fileMessages, fullResults, updateResults);
         }
         fullResults.addAll(removed.values());
+        fullResults.addAll(invalid.values());
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
     }
 
@@ -309,12 +319,12 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         protected final String resource;
         protected final IConstraintContext context;
-        protected final Multimap<FileObject, IMessage> messages;
+        protected final ListMultimap<FileName, IMessage> messages;
 
         protected Expect(String resource, IConstraintContext context) {
             this.resource = resource;
             this.context = context;
-            this.messages = HashMultimap.create();
+            this.messages = ArrayListMultimap.create();
         }
 
         protected FileObject resource() {
@@ -322,30 +332,26 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         protected void resultMessages(IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes) {
+            final FileName resource = resource().getName();
             if(multifile()) {
-                messages.putAll(messages(resource(), MessageSeverity.ERROR, errors));
-                messages.putAll(messages(resource(), MessageSeverity.WARNING, warnings));
-                messages.putAll(messages(resource(), MessageSeverity.NOTE, notes));
+                analysisCommon.messages(MessageSeverity.ERROR, errors)
+                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
+                analysisCommon.messages(MessageSeverity.WARNING, warnings)
+                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
+                analysisCommon.messages(MessageSeverity.NOTE, notes)
+                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
             } else {
-                messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.ERROR, errors));
-                messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.WARNING, warnings));
-                messages.putAll(resource(), analysisCommon.messages(resource(), MessageSeverity.NOTE, notes));
-
+                analysisCommon.messages(resource(), MessageSeverity.ERROR, errors)
+                        .forEach(m -> messages.put(resource, m));
+                analysisCommon.messages(resource(), MessageSeverity.WARNING, warnings)
+                        .forEach(m -> messages.put(resource, m));
+                analysisCommon.messages(resource(), MessageSeverity.NOTE, notes)
+                        .forEach(m -> messages.put(resource, m));
             }
-        }
-
-        private Multimap<FileObject, IMessage> messages(FileObject resource, MessageSeverity severity,
-                IStrategoTerm messagesTerm) {
-            final Multimap<FileObject, IMessage> messages =
-                    analysisCommon.messages(severity, messagesTerm);
-            if(messages.containsKey(null)) {
-                messages.putAll(resource, messages.removeAll(null));
-            }
-            return messages;
         }
 
         protected void failMessage(String message) {
-            messages.put(resource(), MessageFactory.newAnalysisErrorAtTop(resource(), message, null));
+            messages.put(resource().getName(), MessageFactory.newAnalysisErrorAtTop(resource(), message, null));
         }
 
         abstract void accept(IStrategoTerm result);
@@ -475,7 +481,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
     }
 
     protected @Nullable List<IStrategoTerm> match(IStrategoTerm term, String op, int n) {
-        if(term == null || !Tools.isTermAppl(term) || !Tools.hasConstructor((IStrategoAppl) term, op, n)) {
+        if(term == null || !TermUtils.isAppl(term) || !TermUtils.isAppl(term, op, n)) {
             return null;
         }
         return ImmutableList.copyOf(term.getAllSubterms());

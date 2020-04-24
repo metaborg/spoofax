@@ -21,6 +21,7 @@ import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.language.ComponentCreationConfig;
 import org.metaborg.core.language.IComponentCreationConfigRequest;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageComponentFactory;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageContributionIdentifier;
@@ -45,6 +46,8 @@ import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
 import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
 import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacetFromESV;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.outline.OutlineFacet;
 import org.metaborg.spoofax.core.outline.OutlineFacetFromESV;
@@ -58,8 +61,6 @@ import org.metaborg.spoofax.core.syntax.ParseFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.tracing.HoverFacet;
-import org.metaborg.spoofax.core.tracing.ResolverFacet;
 import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
@@ -73,6 +74,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
     private static final ILogger logger = LoggerUtils.logger(LanguageComponentFactory.class);
@@ -218,6 +220,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         }
 
         SyntaxFacet syntaxFacet = null;
+        DynamicClassLoadingFacet dynamicClassLoadingFacet = null;
         StrategoRuntimeFacet strategoRuntimeFacet = null;
         if(esvTerm != null) {
             try {
@@ -230,8 +233,17 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             }
 
             try {
+                dynamicClassLoadingFacet = DynamicClassLoadingFacetFromESV.create(esvTerm, root);
+                if(!dynamicClassLoadingFacet.jarFiles.isEmpty()) {
+                    Iterables.addAll(errors, dynamicClassLoadingFacet.available(resourceService));
+                }
+            } catch(IOException e) {
+                exceptions.add(e);
+            }
+
+            try {
                 strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, root);
-                if(strategoRuntimeFacet != null) {
+                if(!strategoRuntimeFacet.ctreeFiles.isEmpty() || (dynamicClassLoadingFacet != null && !dynamicClassLoadingFacet.jarFiles.isEmpty())) {
                     Iterables.addAll(errors, strategoRuntimeFacet.available(resourceService));
                 }
             } catch(IOException e) {
@@ -241,7 +253,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
         final ComponentFactoryRequest request;
         if(errors.isEmpty() && exceptions.isEmpty()) {
-            request = new ComponentFactoryRequest(root, config, esvTerm, syntaxFacet, strategoRuntimeFacet);
+            request = new ComponentFactoryRequest(root, config, esvTerm, syntaxFacet, dynamicClassLoadingFacet, strategoRuntimeFacet);
         } else {
             request = new ComponentFactoryRequest(root, errors, exceptions);
         }
@@ -251,9 +263,9 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
     private IStrategoAppl esvTerm(FileObject location, FileObject esvFile)
         throws ParseError, IOException, MetaborgException {
         final TermReader reader =
-            new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
+            new TermReader(termFactoryService.getGeneric());
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
-        if(term.getTermType() != IStrategoTerm.APPL) {
+        if(!TermUtils.isAppl(term)) {
             final String message = logger.format(
                 "Cannot discover language at {}, ESV file at {} does not contain a valid ESV term", location, esvFile);
             throw new MetaborgException(message);
@@ -292,6 +304,11 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             syntaxFacet = null;
         }
 
+        final DynamicClassLoadingFacet dynamicClassLoadingFacet = request.dynamicClassLoadingFacet();
+        if(dynamicClassLoadingFacet != null) {
+            config.addFacet(dynamicClassLoadingFacet);
+        }
+
         final StrategoRuntimeFacet strategoRuntimeFacet = request.strategoRuntimeFacet();
         if(strategoRuntimeFacet != null) {
             config.addFacet(strategoRuntimeFacet);
@@ -312,8 +329,15 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             }
 
             if(ParseFacetFromESV.hasParser(esvTerm)) {
-                config.addFacet(ParseFacetFromESV.create(esvTerm));
+                final @Nullable ParseFacet parseFacet = ParseFacetFromESV.create(esvTerm);
+                if(parseFacet != null) {
+                    config.addFacet(parseFacet);
+                }
+                // If parser is set to 'none' in ESV, ParseFacetFromESV.create returns `null` and we create no
+                // ParserFacet, which is used to in language extension to select which language component contributes
+                // the parser, since multiple language components contributing a parser is not supported.
             } else if(syntaxFacet != null) {
+                // Default to JSGLR when there is a syntax facet, but no parser was explicitly set in ESV.
                 config.addFacet(new ParseFacet("jsglr"));
             }
 
@@ -388,12 +412,12 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                 config.addFacet(stylerFacet);
             }
 
-            final ResolverFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
+            final IFacet resolverFacet = ResolverFacetFromESV.createResolver(esvTerm);
             if(resolverFacet != null) {
                 config.addFacet(resolverFacet);
             }
 
-            final HoverFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
+            final IFacet hoverFacet = ResolverFacetFromESV.createHover(esvTerm);
             if(hoverFacet != null) {
                 config.addFacet(hoverFacet);
             }

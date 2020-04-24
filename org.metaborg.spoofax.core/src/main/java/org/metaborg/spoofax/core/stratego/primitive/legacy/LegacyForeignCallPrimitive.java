@@ -10,12 +10,12 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
+import org.spoofax.terms.util.TermUtils;
 
 public class LegacyForeignCallPrimitive extends ASpoofaxContextPrimitive {
     private final ILanguageService languageService;
@@ -38,8 +38,8 @@ public class LegacyForeignCallPrimitive extends ASpoofaxContextPrimitive {
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext currentContext) throws MetaborgException {
-        final String languageName = Tools.asJavaString(tvars[0]);
-        final String strategyName = Tools.asJavaString(tvars[1]);
+        final String languageName = TermUtils.toJavaString(tvars[0]);
+        final String strategyName = TermUtils.toJavaString(tvars[1]);
 
         // GTODO: require language identifier instead of language name
         final ILanguage language = languageService.getLanguage(languageName);

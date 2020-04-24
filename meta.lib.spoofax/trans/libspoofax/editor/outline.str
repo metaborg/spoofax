@@ -113,7 +113,7 @@ rules
       offset-diff := <subt> (offset2, offset1);
       if (0 := offset-diff)
       then result' := <Hd; origin-text; guarantee-one-space-separation> args
-      else result := <origin-text; explode-string; take(!offset-diff); rtrim(is-whitespace + test('\n')); implode-string> term;
+      else result := <origin-text; explode-string; take(!offset-diff); rtrim(is-whitespace + test(?'\n')); implode-string> term;
         result' := <guarantee-one-space-separation> result;
         (a, b, c, d, e) := <origin-location-offset> term;
         <origin-location-offset-set(|(a, b, c, d, <add> (d, <string-length; dec> result)))> result'
@@ -123,7 +123,7 @@ rules
   * @internal
   */
   guarantee-one-space-separation = string-as-chars(
-      map(try(test('\n' + ' '); !' '));
+      map(try(test(?'\n' + ?' '); !' '));
       foldr(![], rm-double-space <+ MkCons)
     )
   rm-double-space: (' ', l@[' '|xs]) -> l

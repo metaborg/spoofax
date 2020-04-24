@@ -68,11 +68,32 @@ public interface ILanguageComponentConfig extends IProjectConfig {
     Sdf2tableVersion sdf2tableVersion();
     
     /**
+     * Gets whether to check for missing priorities in expression grammars or not.
+     *
+     * @return true if checking for priorities and false otherwise.
+     */
+    Boolean checkPriorities();
+    
+    /**
+     * Gets whether to check for harmful overlap in productions that cause inherent ambiguities.
+     *
+     * @return true if checking for harmful overlap and false otherwise.
+     */
+    Boolean checkOverlap();
+
+    /**
      * Gets the parser version.
      *
      * @return the parser version.
      */
     JSGLRVersion jsglrVersion();
+
+    /**
+     * Gets the scope of logging (only applicable to JSGLR2).
+     *
+     * @return the logging scope.
+     */
+    JSGLR2Logging jsglr2Logging();
     
     /**
      * Gets the file exports.
@@ -80,4 +101,6 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      * @return The file exports.
      */
     Collection<IExportConfig> exports();
+
+    
 }

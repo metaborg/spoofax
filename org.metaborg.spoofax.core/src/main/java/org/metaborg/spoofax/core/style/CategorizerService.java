@@ -20,6 +20,7 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 
 import com.google.common.collect.Lists;
+import org.spoofax.terms.util.TermUtils;
 
 public class CategorizerService implements ISpoofaxCategorizerService {
     private static final ILogger logger = LoggerUtils.logger(CategorizerService.class);
@@ -93,8 +94,7 @@ public class CategorizerService implements ISpoofaxCategorizerService {
             return tokenCategory(token);
         }
 
-        final int termType = term.getTermType();
-        if(termType != IStrategoTerm.APPL && termType != IStrategoTerm.TUPLE && termType != IStrategoTerm.LIST) {
+        if(!TermUtils.isAppl(term) && !TermUtils.isTuple(term) && !TermUtils.isList(term)) {
             // Try to use the parent of terminal nodes, mimicking behavior of old Spoofax/IMP runtime.
             final IStrategoTerm parentTerm = ParentAttachment.getParent(term);
             if(parentTerm != null) {
@@ -121,7 +121,7 @@ public class CategorizerService implements ISpoofaxCategorizerService {
         }
         // LEGACY: for some reason, when using concrete syntax extensions, all sorts are appended with _sort.
         final String massagedSort = sort.replace("_sort", "");
-        if(term.getTermType() == IStrategoTerm.APPL) {
+        if(TermUtils.isAppl(term)) {
             final String cons = ((IStrategoAppl) term).getConstructor().getName();
             if(facet.hasSortConsStyle(massagedSort, cons)) {
                 return new SortConsCategory(massagedSort, cons);

@@ -29,11 +29,11 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
@@ -149,7 +149,7 @@ public class OutlineService implements ISpoofaxOutlineService {
 
     private @Nullable IOutline toOutline(IStrategoTerm term, int expandTo, FileObject location) {
         final Collection<IOutlineNode> roots = Lists.newLinkedList();
-        if(term instanceof IStrategoList) {
+        if(TermUtils.isList(term)) {
             final IStrategoList termList = (IStrategoList) term;
             for(IStrategoTerm rootTerm : termList) {
                 final IOutlineNode node = toOutlineNode(rootTerm, null, location);
@@ -171,11 +171,11 @@ public class OutlineService implements ISpoofaxOutlineService {
 
     private @Nullable IOutlineNode toOutlineNode(IStrategoTerm term, @Nullable IOutlineNode parent,
         FileObject location) {
-        if(!(term instanceof IStrategoAppl)) {
+        if(!(TermUtils.isAppl(term))) {
             return null;
         }
         final IStrategoAppl appl = (IStrategoAppl) term;
-        if(!Tools.hasConstructor(appl, "Node", 2)) {
+        if(!TermUtils.isAppl(appl, "Node", 2)) {
             return null;
         }
 
@@ -198,7 +198,7 @@ public class OutlineService implements ISpoofaxOutlineService {
     }
 
     private String label(IStrategoTerm term) {
-        if(term instanceof IStrategoString) {
+        if(TermUtils.isString(term)) {
             final IStrategoString stringTerm = (IStrategoString) term;
             return stringTerm.stringValue();
         } else {
@@ -215,9 +215,7 @@ public class OutlineService implements ISpoofaxOutlineService {
             return null;
         }
         final IStrategoTerm iconTerm = annos.getSubterm(0);
-        if(!(iconTerm instanceof IStrategoString)) {
-            return null;
-        }
+        if(!TermUtils.isString(iconTerm)) return null;
         final IStrategoString iconTermString = (IStrategoString) iconTerm;
         final String iconLocation = iconTermString.stringValue();
         try {

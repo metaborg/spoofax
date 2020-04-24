@@ -19,6 +19,8 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoader;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
@@ -102,13 +104,19 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
 
     @Override public void invalidateCache(ILanguageComponent component) {
         logger.debug("Removing cached stratego runtime for {}", component);
-        prototypes.remove(component);
+        final @Nullable HybridInterpreter runtime = prototypes.remove(component);
+        if(runtime != null) {
+            runtime.uninit();
+        }
     }
 
     @Override public void invalidateCache(ILanguageImpl impl) {
         logger.debug("Removing cached stratego runtime for {}", impl);
         for(ILanguageComponent component : impl.components()) {
-            prototypes.remove(component);
+            final @Nullable HybridInterpreter runtime = prototypes.remove(component);
+            if(runtime != null) {
+                runtime.uninit();
+            }
         }
     }
 
@@ -165,8 +173,15 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     }
 
     private void loadFiles(HybridInterpreter runtime, ILanguageComponent component) throws MetaborgException {
-        final StrategoRuntimeFacet facet = component.facet(StrategoRuntimeFacet.class);
-        if(facet == null) {
+        final StrategoRuntimeFacet strategoRuntimeFacet = component.facet(StrategoRuntimeFacet.class);
+        if(strategoRuntimeFacet == null) {
+            final String message =
+                String.format("Cannot get Stratego runtime for %s, it does not have a Stratego facet", component);
+            logger.error(message);
+            throw new MetaborgException(message);
+        }
+        final DynamicClassLoadingFacet dynamicClassLoadingFacet = component.facet(DynamicClassLoadingFacet.class);
+        if(dynamicClassLoadingFacet == null) {
             final String message =
                 String.format("Cannot get Stratego runtime for %s, it does not have a Stratego facet", component);
             logger.error(message);
@@ -174,11 +189,11 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
         }
 
         // Order is important, load CTrees first.
-        final Iterable<FileObject> ctrees = facet.ctreeFiles;
+        final Iterable<FileObject> ctrees = strategoRuntimeFacet.ctreeFiles;
         if(Iterables.size(ctrees) > 0) {
             loadCtrees(runtime, ctrees);
         }
-        final Iterable<FileObject> jars = facet.jarFiles;
+        final Iterable<FileObject> jars = dynamicClassLoadingFacet.jarFiles;
         if(Iterables.size(jars) > 0) {
             loadJars(runtime, jars);
         }
@@ -194,7 +209,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
-            final ClassLoader classLoader = new StrategoRuntimeClassLoader(additionalClassLoaders);
+            final ClassLoader classLoader = new DynamicClassLoader(additionalClassLoaders);
             runtime.loadJars(classLoader, classpath);
         } catch(IncompatibleJarException | IOException | MetaborgRuntimeException e) {
             throw new MetaborgException("Failed to load JAR", e);

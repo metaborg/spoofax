@@ -1,9 +1,5 @@
 package org.metaborg.spoofax.meta.core;
 
-import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
-import mb.stratego.build.StrIncrModule;
-
-import com.google.inject.Module;
 import org.metaborg.core.MetaBorg;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.plugin.IModulePluginLoader;
@@ -13,7 +9,8 @@ import org.metaborg.spoofax.meta.core.build.LanguageSpecBuilder;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigBuilder;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
-import java.util.Arrays;
+
+import com.google.inject.Module;
 
 /**
  * Facade for instantiating and accessing the MetaBorg meta API, as an extension of the {@link MetaBorg} API,
@@ -45,20 +42,13 @@ public class SpoofaxMeta extends MetaBorgMeta {
      */
     public SpoofaxMeta(Spoofax spoofax, IModulePluginLoader loader, SpoofaxMetaModule module,
         Module... additionalModules) throws MetaborgException {
-        super(spoofax, loader, module, addPieModules(additionalModules));
+        super(spoofax, loader, module, additionalModules);
         this.parent = spoofax;
 
         this.languageSpecService = injector.getInstance(ISpoofaxLanguageSpecService.class);
         this.languageSpecConfigService = injector.getInstance(ISpoofaxLanguageSpecConfigService.class);
 
         this.metaBuilder = injector.getInstance(LanguageSpecBuilder.class);
-    }
-
-    private static Module[] addPieModules(Module[] additionalModules) {
-        final Module[] result = Arrays.copyOf(additionalModules, additionalModules.length + 2);
-        result[result.length - 2] = new StrIncrModule();
-        result[result.length - 1] = new GuiceTaskDefsModule();
-        return result;
     }
 
     /**

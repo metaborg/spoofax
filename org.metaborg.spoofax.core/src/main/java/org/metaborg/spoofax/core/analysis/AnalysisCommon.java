@@ -15,13 +15,11 @@ import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.Term;
 import org.spoofax.terms.TermVisitor;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
 public class AnalysisCommon {
@@ -68,8 +66,8 @@ public class AnalysisCommon {
         return messages;
     }
 
-    public Multimap<FileObject, IMessage> messages(MessageSeverity severity, IStrategoTerm messagesTerm) {
-        final Multimap<FileObject, IMessage> messages = HashMultimap.create();
+    public Collection<IMessage> messages(MessageSeverity severity, IStrategoTerm messagesTerm) {
+        final Collection<IMessage> messages = Lists.newArrayListWithExpectedSize(messagesTerm.getSubtermCount());
 
         for(IStrategoTerm term : messagesTerm.getAllSubterms()) {
             final IStrategoTerm originTerm;
@@ -86,12 +84,12 @@ public class AnalysisCommon {
                 final ISourceLocation location = tracingService.location(originTerm);
                 if(location != null) {
                     final ISourceRegion region = location.region();
-                    messages.put(location.resource(), message(location.resource(), region, message, severity));
+                    messages.add(message(location.resource(), region, message, severity));
                 } else {
-                    messages.put(null, message(null, message, severity));
+                    messages.add(message(null, message, severity));
                 }
             } else {
-                messages.put(null, message(null, message, severity));
+                messages.add(message(null, message, severity));
             }
         }
 
@@ -104,7 +102,7 @@ public class AnalysisCommon {
             private IStrategoTerm ambStart;
 
             @Override public void preVisit(IStrategoTerm term) {
-                if(ambStart == null && "amb".equals(Term.tryGetName(term))) {
+                if(ambStart == null && "amb".equals(TermUtils.asAppl(term).map(a -> a.getConstructor().getName()).orElse(null))) {
                     final String text = "Fragment is ambiguous: " + ambToString(term);
                     final ISourceLocation location = tracingService.location(term);
                     if(location != null) {
@@ -135,10 +133,10 @@ public class AnalysisCommon {
 
 
     private String toString(IStrategoTerm term) {
-        if(term instanceof IStrategoString) {
+        if(TermUtils.isString(term)) {
             final IStrategoString messageStringTerm = (IStrategoString) term;
             return messageStringTerm.stringValue();
-        } else if(term instanceof IStrategoList) {
+        } else if(TermUtils.isList(term)) {
             final StringBuilder sb = new StringBuilder();
             boolean first = true;
             for(IStrategoTerm subterm : term) {

@@ -15,7 +15,7 @@ import com.google.inject.Inject;
 public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> implements ISyntaxService<I, P> {
     private static final ILogger logger = LoggerUtils.logger(SyntaxService.class);
 
-    private final Map<String, ? extends IParser<I, P>> parsers;
+    protected final Map<String, ? extends IParser<I, P>> parsers;
 
 
     @Inject public SyntaxService(Map<String, ? extends IParser<I, P>> parsers) {

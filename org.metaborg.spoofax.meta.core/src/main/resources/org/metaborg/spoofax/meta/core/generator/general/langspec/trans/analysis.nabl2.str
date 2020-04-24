@@ -5,7 +5,7 @@ imports
   nabl2/api
   nabl2/runtime
 
-  static-semantics
+  statics
 
   pp
 

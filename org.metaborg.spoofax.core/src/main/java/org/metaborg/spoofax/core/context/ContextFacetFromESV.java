@@ -6,6 +6,7 @@ import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.terms.util.TermUtils;
 
 public class ContextFacetFromESV {
 
@@ -20,7 +21,7 @@ public class ContextFacetFromESV {
         if(contextTerm == null) {
             return null;
         }
-        final IStrategoAppl typeTerm = (IStrategoAppl) contextTerm.getSubterm(0); 
+        final IStrategoAppl typeTerm = TermUtils.toApplAt(contextTerm, 0);
 
         final String name = typeTerm.getConstructor().getName();
         switch(name) {

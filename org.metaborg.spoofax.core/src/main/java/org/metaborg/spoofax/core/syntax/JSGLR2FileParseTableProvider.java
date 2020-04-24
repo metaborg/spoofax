@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.characterclasses.CharacterClassFactory;
 import org.metaborg.parsetable.IParseTable;
+import org.metaborg.sdf2table.io.ParseTableIO;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr2.actions.ActionsFactory;
-import org.spoofax.jsglr2.parsetable.ParseTableReader;
-import org.spoofax.jsglr2.states.StateFactory;
+import org.metaborg.parsetable.ParseTableReader;
 import org.spoofax.terms.io.binary.TermReader;
 
 public class JSGLR2FileParseTableProvider implements IParseTableProvider {
@@ -40,10 +38,16 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
             IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
        
             FileObject persistedTable = resource.getParent().resolveFile("table.bin");
-            if(!persistedTable.exists()) {
-                parseTable = new ParseTableReader(new CharacterClassFactory(true, true), new ActionsFactory(true), new StateFactory()).read(parseTableTerm);
-            } else {
-                parseTable = ParseTableReader.read(persistedTable);
+            parseTable = new ParseTableReader().read(parseTableTerm);
+            // only read serialized table when table generation is dynamic (#states = 0)
+            if(parseTable.totalStates() == 0 && persistedTable.exists()) {
+                ParseTableIO ptg = new ParseTableIO(persistedTable);
+
+                org.metaborg.sdf2table.parsetable.ParseTable parseTableFromSerializable = ptg.getParseTable();
+
+                // TODO: markRejectableStates(states);
+
+                return parseTableFromSerializable;
             }
 
         } catch(Exception e) {
