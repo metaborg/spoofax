@@ -244,7 +244,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Sdf2tableVersion sdf2tableVersion() {
         final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
-        return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.c;
+        return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.java;
     }
 
     @Override public JSGLRVersion jsglrVersion() {
