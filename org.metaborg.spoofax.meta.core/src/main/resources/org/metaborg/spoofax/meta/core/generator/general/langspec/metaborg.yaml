@@ -26,7 +26,7 @@ debug:
 language:
   sdf:
     pretty-print: {{name}}
-    sdf2table: c
+    sdf2table: java
     placeholder:
       prefix: "$"
 {{#syntaxSdf2}}  
