@@ -15,6 +15,8 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 
 import com.google.common.collect.Lists;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 /**
  * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
@@ -37,6 +39,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_JSGLR2_LOGGING = "language.sdf.jsglr2-logging";
 
     private final ProjectConfig projectConfig;
+
+    private static final ILogger logger = LoggerUtils.logger(LanguageComponentConfig.class);
 
     public LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig) {
         super(config);
@@ -244,7 +248,15 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Sdf2tableVersion sdf2tableVersion() {
         final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
-        return value != null ? Sdf2tableVersion.valueOf(value) : Sdf2tableVersion.java;
+
+        if (value != null)
+            return Sdf2tableVersion.valueOf(value);
+        else {
+            if (sdfEnabled())
+                logger.warn("No {} config found; defaulting to java", PROP_SDF2TABLE_VERSION);
+
+            return Sdf2tableVersion.java;
+        }
     }
 
     @Override public JSGLRVersion jsglrVersion() {
