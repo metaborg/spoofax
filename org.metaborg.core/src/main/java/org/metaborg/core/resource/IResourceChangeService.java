@@ -1,6 +1,6 @@
 package org.metaborg.core.resource;
 
-import rx.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 /**
  * Interface for subscribing to resource changes.

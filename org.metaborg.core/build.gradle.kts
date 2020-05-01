@@ -21,7 +21,7 @@ dependencies {
   api("com.fasterxml.jackson.core:jackson-annotations")
   api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   api("com.google.guava:guava")
-  api("com.netflix.rxjava:rxjava-core")
+  api("io.reactivex.rxjava3:rxjava")
 
   compileOnly("com.google.code.findbugs:jsr305")
 
