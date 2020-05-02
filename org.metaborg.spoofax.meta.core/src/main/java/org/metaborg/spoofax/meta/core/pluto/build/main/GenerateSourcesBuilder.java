@@ -103,6 +103,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final Arguments strjArgs;
         public final StrategoBuildSetting strBuildSetting;
 
+        public final @Nullable Boolean generateTypesmart;
+
 
         public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
             @Nullable Boolean sdfEnabled, @Nullable String sdfModule, @Nullable File sdfFile, JSGLRVersion jsglrVersion,
@@ -113,7 +115,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
             StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
             List<File> strjIncludeDirs, List<File> strjIncludeFiles, Arguments strjArgs,
-            StrategoBuildSetting strBuildSetting) {
+            StrategoBuildSetting strBuildSetting, @Nullable Boolean generateTypesmart) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -143,6 +145,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strjIncludeFiles = strjIncludeFiles;
             this.strjArgs = strjArgs;
             this.strBuildSetting = strBuildSetting;
+            this.generateTypesmart = generateTypesmart;
         }
     }
 
@@ -547,11 +550,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
 
             // Typesmart
-            final File typesmartExportedFile = toFile(paths.strTypesmartExportedFile());
-            final Typesmart.Input typesmartInput =
-                new Typesmart.Input(context, input.strFile, input.strjIncludeDirs, typesmartExportedFile, sdfOrigin);
-            final Origin typesmartOrigin = Typesmart.origin(typesmartInput);
-            requireBuild(typesmartOrigin);
+            if (input.generateTypesmart != null && input.generateTypesmart) {
+                final File typesmartExportedFile = toFile(paths.strTypesmartExportedFile());
+                final Typesmart.Input typesmartInput =
+                        new Typesmart.Input(context, input.strFile, input.strjIncludeDirs, typesmartExportedFile, sdfOrigin);
+                final Origin typesmartOrigin = Typesmart.origin(typesmartInput);
+                requireBuild(typesmartOrigin);
+            }
         }
     }
 
