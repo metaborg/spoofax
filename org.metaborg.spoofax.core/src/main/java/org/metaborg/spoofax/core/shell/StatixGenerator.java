@@ -33,7 +33,7 @@ import com.google.common.collect.Streams;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.matching.Transform.T;
 import mb.nabl2.terms.stratego.StrategoTerms;
-import mb.nabl2.util.ImmutableTuple2;
+import mb.nabl2.util.Tuple2;
 import mb.nabl2.util.TermFormatter;
 import mb.nabl2.util.Tuple2;
 import mb.statix.solver.IConstraint;
@@ -117,7 +117,7 @@ public class StatixGenerator {
                         .orElseThrow(() -> new MetaborgException("Expected constraint"));
         final Spec spec = StatixTerms.spec().match(strategoTerms.fromStratego(evalPair.getSubterm(1)))
                 .orElseThrow(() -> new MetaborgException("Expected spec"));
-        return ImmutableTuple2.of(spec, constraint);
+        return Tuple2.of(spec, constraint);
     }
 
     public Spec spec() {
