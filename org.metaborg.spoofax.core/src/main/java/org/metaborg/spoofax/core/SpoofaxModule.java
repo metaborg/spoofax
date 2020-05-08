@@ -168,6 +168,7 @@ import mb.nabl2.spoofax.primitives.SG_debug_constraints;
 import mb.nabl2.spoofax.primitives.SG_debug_name_resolution;
 import mb.nabl2.spoofax.primitives.SG_debug_scope_graph;
 import mb.nabl2.spoofax.primitives.SG_debug_symbolic_constraints;
+import mb.nabl2.spoofax.primitives.SG_debug_ast_properties;
 import mb.nabl2.spoofax.primitives.SG_debug_unifier;
 import mb.nabl2.spoofax.primitives.SG_focus_term;
 import mb.nabl2.spoofax.primitives.SG_get_all_decls;
@@ -426,6 +427,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_name_resolution.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_scope_graph.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_symbolic_constraints.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_ast_properties.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_unifier.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_focus_term.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_decls.class);

@@ -80,6 +80,11 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TA> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
+        	if (!context.project().config().compileDeps().contains(action.contributor.id())) {
+        		// The action is contributed by a language component that is not a compile dependency of this project,
+        		// so we skip it.
+        		continue;
+        	}
             final TA result = transformer.transform(input, context, action, config);
             results.add(result);
         }

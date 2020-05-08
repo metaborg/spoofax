@@ -1,7 +1,6 @@
 package org.metaborg.core.processing;
 
-import javax.annotation.Nullable;
-
+import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
@@ -20,9 +19,7 @@ import org.metaborg.util.task.IProgress;
 import org.metaborg.util.task.NullCancel;
 import org.metaborg.util.task.NullProgress;
 
-import com.google.inject.Inject;
-
-import rx.functions.Func0;
+import javax.annotation.Nullable;
 
 /**
  * Processor implementation that uses {@link BlockingTask} as task implementation. Tasks execute and block when
@@ -45,60 +42,50 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU 
 
     @Override public ITask<? extends IBuildOutput<P, A, AU, T>> build(final BuildInput input,
         final @Nullable IProgress progressReporter, final @Nullable ICancel cancellationToken) {
-        return new BlockingTask<>(new Func0<IBuildOutput<P, A, AU, T>>() {
-            @Override public IBuildOutput<P, A, AU, T> call() {
-                final IProgress pr = progressReporter != null ? progressReporter : new NullProgress();
-                final ICancel ct = cancellationToken != null ? cancellationToken : new NullCancel();
-                try {
-                    return builder.build(input, pr, ct);
-                } catch(InterruptedException e) {
-                }
-                return null;
+        return new BlockingTask<>(() -> {
+            final IProgress pr = progressReporter != null ? progressReporter : new NullProgress();
+            final ICancel ct = cancellationToken != null ? cancellationToken : new NullCancel();
+            try {
+                return builder.build(input, pr, ct);
+            } catch(InterruptedException e) {
             }
+            return null;
         });
     }
 
     @Override public ITask<?> clean(final CleanInput input, final @Nullable IProgress progressReporter,
         final @Nullable ICancel cancellationToken) {
-        return new BlockingTask<>(new Func0<Object>() {
-            @Override public Object call() {
-                final IProgress pr = progressReporter != null ? progressReporter : new NullProgress();
-                final ICancel ct = cancellationToken != null ? cancellationToken : new NullCancel();
-                try {
-                    builder.clean(input, pr, ct);
-                } catch(InterruptedException e) {
-                }
-                return null;
+        return new BlockingTask<>(() -> {
+            final IProgress pr = progressReporter != null ? progressReporter : new NullProgress();
+            final ICancel ct = cancellationToken != null ? cancellationToken : new NullCancel();
+            try {
+                builder.clean(input, pr, ct);
+            } catch(InterruptedException e) {
             }
+            return null;
         });
     }
 
 
     @Override public ITask<?> updateDialects(final FileObject location, final Iterable<ResourceChange> changes) {
-        return new BlockingTask<>(new Func0<Object>() {
-            @Override public Object call() {
-                dialectProcessor.update(location, changes);
-                return null;
-            }
+        return new BlockingTask<>(() -> {
+            dialectProcessor.update(location, changes);
+            return null;
         });
     }
 
 
     @Override public ITask<?> languageChange(final LanguageComponentChange change) {
-        return new BlockingTask<>(new Func0<Object>() {
-            @Override public Object call() {
-                languageChangeProcessor.processComponentChange(change);
-                return null;
-            }
+        return new BlockingTask<>(() -> {
+            languageChangeProcessor.processComponentChange(change);
+            return null;
         });
     }
 
     @Override public ITask<?> languageChange(final LanguageImplChange change) {
-        return new BlockingTask<>(new Func0<Object>() {
-            @Override public Object call() {
-                languageChangeProcessor.processImplChange(change);
-                return null;
-            }
+        return new BlockingTask<>(() -> {
+            languageChangeProcessor.processImplChange(change);
+            return null;
         });
     }
 }

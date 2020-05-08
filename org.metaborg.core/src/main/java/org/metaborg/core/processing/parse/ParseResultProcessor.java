@@ -18,14 +18,11 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-import rx.Observable;
-import rx.Observable.OnSubscribe;
-import rx.Subscriber;
-import rx.functions.Func1;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
-
-public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> implements IParseResultProcessor<I, P>, AutoCloseable {
+public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit>
+    implements IParseResultProcessor<I, P>, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(ParseResultProcessor.class);
 
     private final ISyntaxService<I, P> syntaxService;
@@ -39,7 +36,7 @@ public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> im
 
     @Override public void close() {
         for(BehaviorSubject<ParseChange<P>> updates : updatesPerResource.values()) {
-            updates.onCompleted();
+            updates.onComplete();
         }
         updatesPerResource.clear();
     }
@@ -47,49 +44,48 @@ public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> im
 
     @Override public Observable<P> request(final I input) {
         final FileObject resource = input.source();
-        return Observable.create(new OnSubscribe<P>() {
-            @Override public void call(Subscriber<? super P> observer) {
-                if(observer.isUnsubscribed()) {
-                    logger.trace("Unsubscribed from parse result request for {}", input);
-                    return;
+        return Observable.create(observer -> {
+            if(observer.isDisposed()) {
+                logger.trace("Unsubscribed from parse result request for {}", input);
+                return;
+            }
+
+            final BehaviorSubject<ParseChange<P>> updates = getUpdates(input);
+            final ParseChange<P> update = updates.blockingStream().filter(updateToFilter -> {
+                final UpdateKind kind = updateToFilter.kind;
+                return kind != UpdateKind.Invalidate;
+            }).findFirst().orElse(null);
+            if(update == null) {
+                return;
+            }
+
+            if(observer.isDisposed()) {
+                logger.trace("Unsubscribed from parse result request for {}", resource);
+                return;
+            }
+
+            switch(update.kind) {
+                case Update:
+                    logger.trace("Returning cached parse result for {}", resource);
+                    observer.onNext(update.unit);
+                    observer.onComplete();
+                    break;
+                case Error:
+                    logger.trace("Returning parse error for {}", resource);
+                    observer.onError(update.exception);
+                    break;
+                case Remove: {
+                    final String message = logger.format("Parse result for {} was removed unexpectedly", resource);
+                    logger.error(message);
+                    observer.onError(new ParseException(input, message));
+                    break;
                 }
-
-                final BehaviorSubject<ParseChange<P>> updates = getUpdates(input);
-                final ParseChange<P> update = updates.toBlocking().first(new Func1<ParseChange<P>, Boolean>() {
-                    @Override public Boolean call(ParseChange<P> updateToFilter) {
-                        final UpdateKind kind = updateToFilter.kind;
-                        return kind != UpdateKind.Invalidate;
-                    }
-                });
-
-                if(observer.isUnsubscribed()) {
-                    logger.trace("Unsubscribed from parse result request for {}", resource);
-                    return;
-                }
-
-                switch(update.kind) {
-                    case Update:
-                        logger.trace("Returning cached parse result for {}", resource);
-                        observer.onNext(update.unit);
-                        observer.onCompleted();
-                        break;
-                    case Error:
-                        logger.trace("Returning parse error for {}", resource);
-                        observer.onError(update.exception);
-                        break;
-                    case Remove: {
-                        final String message = logger.format("Parse result for {} was removed unexpectedly", resource);
-                        logger.error(message);
-                        observer.onError(new ParseException(input, message));
-                        break;
-                    }
-                    default: {
-                        final String message =
-                            logger.format("Unexpected parse update kind {} for {}", update.kind, resource);
-                        logger.error(message);
-                        observer.onError(new ParseException(input, message));
-                        break;
-                    }
+                default: {
+                    final String message =
+                        logger.format("Unexpected parse update kind {} for {}", update.kind, resource);
+                    logger.error(message);
+                    observer.onError(new ParseException(input, message));
+                    break;
                 }
             }
         });
@@ -104,7 +100,7 @@ public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> im
         if(subject == null) {
             return null;
         }
-        final ParseChange<P> change = subject.toBlocking().firstOrDefault(null);
+        final @Nullable ParseChange<P> change = subject.blockingStream().findFirst().orElse(null);
         if(change == null) {
             return null;
         }
@@ -120,7 +116,7 @@ public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit> im
 
     @Override public void invalidate(ILanguageImpl impl) {
         for(BehaviorSubject<ParseChange<P>> changes : updatesPerResource.values()) {
-            final ParseChange<P> change = changes.toBlocking().firstOrDefault(null);
+            final @Nullable ParseChange<P> change = changes.blockingStream().findFirst().orElse(null);
             if(change != null && change.unit != null && impl.equals(change.unit.input().langImpl())) {
                 changes.onNext(ParseChange.<P>invalidate(change.resource));
             }
