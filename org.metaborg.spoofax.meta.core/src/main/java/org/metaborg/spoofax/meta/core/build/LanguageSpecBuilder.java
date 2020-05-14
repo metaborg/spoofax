@@ -498,7 +498,8 @@ public class LanguageSpecBuilder implements AutoCloseable {
             sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
             sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
             sdfMetaFiles, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
-            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting());
+            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting(),
+            languageSpec.config().strGradualSetting());
 
     }
 

@@ -50,6 +50,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     private static final String PROP_STR = "language.stratego";
     private static final String PROP_STR_BUILD_SETTING = PROP_STR + ".build";
+    private static final String PROP_STR_GRADUAL_SETTING = PROP_STR + ".gradual";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
     private static final String PROP_STR_EXTERNAL_JAR_FLAGS = PROP_STR + ".externalJar.flags";
@@ -79,7 +80,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable JSGLR2Logging jsglr2Logging, @Nullable String sdfMainFile,
         @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
         @Nullable List<String> sdfMetaFile, @Nullable String externalDef, @Nullable Arguments sdfArgs,
-        @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoFormat format, @Nullable String externalJar,
+        @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoGradualSetting gradualSetting, 
+        @Nullable StrategoFormat format, @Nullable String externalJar,
         @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
         @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
@@ -115,6 +117,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
         if(buildSetting != null) {
             config.setProperty(PROP_STR_BUILD_SETTING, buildSetting);
+        }
+        if(gradualSetting != null) {
+            config.setProperty(PROP_STR_GRADUAL_SETTING, gradualSetting);
         }
         if(format != null) {
             config.setProperty(PROP_STR_FORMAT, format);
@@ -190,6 +195,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     @Override public StrategoBuildSetting strBuildSetting() {
         final String value = this.config.getString(PROP_STR_BUILD_SETTING);
         return value != null ? StrategoBuildSetting.valueOf(value) : StrategoBuildSetting.batch;
+    }
+
+    @Override public StrategoGradualSetting strGradualSetting() {
+        final String value = this.config.getString(PROP_STR_GRADUAL_SETTING);
+        return value != null ? StrategoGradualSetting.valueOf(value) : StrategoGradualSetting.off;
     }
 
     @Override public StrategoFormat strFormat() {

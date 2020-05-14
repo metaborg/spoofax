@@ -209,13 +209,22 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder withPrettyPrintLanguage(String prettyPrintLanguage);
 
     /**
-     * Sets the project artifact format.
+     * Sets the project artifact Stratego build setting.
      *
-     * @param format
+     * @param buildSetting
      *            A member of the {@link StrategoBuildSetting} enumeration.
      * @return This builder.
      */
-    ISpoofaxLanguageSpecConfigBuilder withStrBuildSetting(StrategoBuildSetting format);
+    ISpoofaxLanguageSpecConfigBuilder withStrBuildSetting(StrategoBuildSetting buildSetting);
+
+    /**
+     * Sets the project artifact Stratego gradual type checking setting.
+     *
+     * @param gradualSetting
+     *            A member of the {@link StrategoGradualSetting} enumeration.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withStrGradualSetting(StrategoGradualSetting gradualSetting);
 
     /**
      * Sets the project artifact format.

@@ -39,6 +39,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
     protected @Nullable StrategoBuildSetting strBuildSetting;
+    protected @Nullable StrategoGradualSetting strGradualSetting;
     protected @Nullable StrategoFormat strFormat;
     protected @Nullable String strExternalJar;
     protected @Nullable String strExternalJarFlags;
@@ -61,7 +62,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
             sdf2tableVersion, checkOverlap, checkPriorities, dataDependent, sdfMainFile, parseTable, jsglrVersion,
             jsglr2Logging, completionsParseTable, placeholderCharacters, prettyPrint, sdfMetaFile, sdfExternalDef,
-            sdfArgs, strBuildSetting, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            sdfArgs, strBuildSetting, strGradualSetting, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -255,6 +256,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withStrBuildSetting(StrategoBuildSetting buildSetting) {
         this.strBuildSetting = buildSetting;
+        return this;
+    }
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withStrGradualSetting(StrategoGradualSetting gradualSetting) {
+        this.strGradualSetting = gradualSetting;
         return this;
     }
 

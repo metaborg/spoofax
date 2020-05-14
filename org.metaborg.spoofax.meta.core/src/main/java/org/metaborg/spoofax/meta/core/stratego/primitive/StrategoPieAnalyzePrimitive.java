@@ -44,6 +44,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import mb.pie.api.ExecException;
+import mb.pie.api.Pie;
 import mb.pie.api.PieSession;
 import mb.pie.api.STask;
 import mb.pie.api.Task;
@@ -165,12 +166,12 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             new Frontends.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation);
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
-        GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
+        final Pie pie = GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
 
         final IStrategoList.Builder errors = B.listBuilder();
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
-        try(final PieSession pieSession = pieProviderProvider.get().pie().newSession()) {
+        try(final PieSession pieSession = pie.newSession()) {
             Frontends.Output analysisInformation = pieSession.require(strIncrAnalysisTask);
 
             for(Message<?> message : analysisInformation.messages) {

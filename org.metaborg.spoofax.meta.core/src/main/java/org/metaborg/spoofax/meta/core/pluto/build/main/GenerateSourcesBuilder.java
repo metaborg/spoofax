@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -27,6 +28,7 @@ import org.metaborg.sdf2table.parsetable.ParseTableConfiguration;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
+import org.metaborg.spoofax.meta.core.config.StrategoGradualSetting;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -103,6 +105,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final List<File> strjIncludeFiles;
         public final Arguments strjArgs;
         public final StrategoBuildSetting strBuildSetting;
+        public final StrategoGradualSetting strGradualSetting;
 
 
         public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
@@ -114,7 +117,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
             StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
             List<File> strjIncludeDirs, List<File> strjIncludeFiles, Arguments strjArgs,
-            StrategoBuildSetting strBuildSetting) {
+            StrategoBuildSetting strBuildSetting, StrategoGradualSetting strGradualSetting) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -144,6 +147,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strjIncludeFiles = strjIncludeFiles;
             this.strjArgs = strjArgs;
             this.strBuildSetting = strBuildSetting;
+            this.strGradualSetting = strGradualSetting;
         }
     }
 
@@ -519,16 +523,18 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final List<String> builtinLibs = splitOffBuiltinLibs(extraArgs, newArgs);
                 final StrIncr.Input strIncrInput =
                     new StrIncr.Input(strFile, input.strJavaPackage, input.strjIncludeDirs, builtinLibs, cacheDir,
-                        Collections.emptyList(), newArgs, depPath, Collections.emptyList(), projectLocation);
+                        Collections.emptyList(), newArgs, depPath, Collections.emptyList(), projectLocation, input.strGradualSetting == StrategoGradualSetting.on);
 
-                Pie pie = initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
+                final Pie pie =
+                    initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
 
                 BuildStats.reset();
                 long totalTime = System.nanoTime();
                 try(final PieSession pieSession = pie.newSession()) {
                     pieSession.updateAffectedBy(changedResources);
                     pieSession.deleteUnobservedTasks(t -> Backend.id.equals(t.getId()), (t, r) -> {
-                        if(r instanceof HierarchicalResource && ((HierarchicalResource) r).getLeafExtension().equals("java")) {
+                        if(r instanceof HierarchicalResource
+                            && Objects.equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
                             logger.debug("Deleting garbage from previous build: " + r);
                             return true;
                         }
@@ -612,13 +618,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
             }
             pieProvider.setLogLevelWarn();
-            long totalTime = System.nanoTime();
             try(final PieSession session = pie.newSession()) {
                 session.require(strIncrTask);
             } catch(ExecException e) {
                 throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
             }
-            totalTime = System.nanoTime() - totalTime;
             pieProvider.setLogLevelTrace();
         }
         return pie;
