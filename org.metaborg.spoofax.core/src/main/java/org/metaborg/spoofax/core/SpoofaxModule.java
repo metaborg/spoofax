@@ -324,8 +324,6 @@ public class SpoofaxModule extends MetaborgModule {
 
         bind(TermFactoryService.class).in(Singleton.class);
         bind(ITermFactoryService.class).to(TermFactoryService.class);
-        languageCacheBinder.addBinding().to(TermFactoryService.class);
-        autoClosableBinder.addBinding().to(TermFactoryService.class);
     }
 
     protected void bindParsers(MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder,

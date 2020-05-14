@@ -56,7 +56,7 @@ public class StrategoCommon implements IStrategoCommon {
         if(!IStrategoCommon.hasStrategoFacets(component)) {
             return null;
         }
-        final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
+        final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
         return invoke(runtime, input, strategy);
     }
 
@@ -68,7 +68,7 @@ public class StrategoCommon implements IStrategoCommon {
                 continue;
             }
 
-            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
+            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
             try {
                 final IStrategoTerm result = invoke(runtime, input, strategy);
                 return result;
@@ -108,7 +108,7 @@ public class StrategoCommon implements IStrategoCommon {
                 continue;
             }
 
-            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
+            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
             try {
                 final IStrategoTerm result = invoke(runtime, input, strategy);
                 return result;

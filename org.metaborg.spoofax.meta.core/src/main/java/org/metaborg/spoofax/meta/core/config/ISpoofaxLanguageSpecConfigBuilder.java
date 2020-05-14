@@ -69,11 +69,6 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     @Override ISpoofaxLanguageSpecConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> dependencies);
 
     /**
-     * {@see ISpoofaxProjectConfigBuilder#withTypesmart(boolean)}
-     */
-    ISpoofaxLanguageSpecConfigBuilder withTypesmart(boolean typesmart);
-
-    /**
      * {@see ISpoofaxProjectConfigBuilder#withNaBL2Config(NaBL2Config)}
      */
     ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config);
@@ -243,15 +238,6 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withStrExternalJarFlags(String flags);
-
-    /**
-     * Sets the Stratego typesmart property.
-     *
-     * @param args
-     *            The Stratego typesmart property.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withStrTypesmart(boolean typesmart);
 
     /**
      * Sets the Stratego arguments.
