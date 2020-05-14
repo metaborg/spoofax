@@ -41,7 +41,6 @@ import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Rtg;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2Table;
 import org.metaborg.spoofax.meta.core.pluto.build.Sdf2TableLegacy;
 import org.metaborg.spoofax.meta.core.pluto.build.Strj;
-import org.metaborg.spoofax.meta.core.pluto.build.Typesmart;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.GetStrategoMix;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
@@ -545,13 +544,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final Origin strjOrigin = Strj.origin(strjInput);
                 requireBuild(strjOrigin);
             }
-
-            // Typesmart
-            final File typesmartExportedFile = toFile(paths.strTypesmartExportedFile());
-            final Typesmart.Input typesmartInput =
-                new Typesmart.Input(context, input.strFile, input.strjIncludeDirs, typesmartExportedFile, sdfOrigin);
-            final Origin typesmartOrigin = Typesmart.origin(typesmartInput);
-            requireBuild(typesmartOrigin);
         }
     }
 

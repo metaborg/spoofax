@@ -22,8 +22,6 @@ pardonedLanguages:
 - EditorService
 - Stratego-Sugar
 - SDF
-debug:
-  typesmart: false
 language:
   sdf:
     pretty-print: {{name}}

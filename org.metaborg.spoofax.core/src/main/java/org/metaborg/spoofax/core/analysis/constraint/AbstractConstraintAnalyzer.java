@@ -118,7 +118,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         final HybridInterpreter runtime;
         try {
-            runtime = runtimeService.runtime(facetContribution.contributor, context, false);
+            runtime = runtimeService.runtime(facetContribution.contributor, context);
         } catch(MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }

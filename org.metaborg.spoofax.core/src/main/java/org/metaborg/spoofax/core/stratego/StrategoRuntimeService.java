@@ -71,20 +71,20 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     }
 
 
-    @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context, boolean typesmart)
+    @Override public HybridInterpreter runtime(ILanguageComponent component, IContext context)
         throws MetaborgException {
         HybridInterpreter prototype = prototypes.get(component);
         if(prototype == null) {
             prototype = createPrototype(component);
         }
 
-        final HybridInterpreter runtime = clone(prototype, context.location(), component, context.project(), typesmart);
+        final HybridInterpreter runtime = clone(prototype, context.location(), component, context.project());
         runtime.getContext().setContextObject(context);
         runtime.getCompiledContext().setContextObject(context);
         return runtime;
     }
 
-    @Override public HybridInterpreter runtime(ILanguageComponent component, FileObject location, boolean typesmart)
+    @Override public HybridInterpreter runtime(ILanguageComponent component, FileObject location)
         throws MetaborgException {
         HybridInterpreter prototype = prototypes.get(component);
         if(prototype == null) {
@@ -92,7 +92,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
         }
 
         final IProject project = projectService.get(location);
-        final HybridInterpreter runtime = clone(prototype, location, component, project, typesmart);
+        final HybridInterpreter runtime = clone(prototype, location, component, project);
         return runtime;
     }
 
@@ -122,7 +122,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
 
 
     private HybridInterpreter clone(HybridInterpreter prototype, FileObject workingLocation,
-        ILanguageComponent component, @Nullable IProject project, boolean typesmart) {
+        ILanguageComponent component, @Nullable IProject project) {
         // TODO: this seems to copy operator registries, but they should be recreated to isolate interpreters?
         final HybridInterpreter runtime = new HybridInterpreter(prototype);
 
@@ -138,7 +138,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
             runtime.getCompiledContext().addOperatorRegistry(library);
         }
 
-        final ITermFactory termFactory = termFactoryService.get(component, project, typesmart);
+        final ITermFactory termFactory = termFactoryService.get(component, project);
         runtime.getContext().setFactory(termFactory);
         runtime.getCompiledContext().setFactory(termFactory);
 
@@ -165,7 +165,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
 
     private HybridInterpreter createPrototype(ILanguageComponent component) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", component);
-        final ITermFactory termFactory = termFactoryService.get(component, null, false);
+        final ITermFactory termFactory = termFactoryService.get(component, null);
         final HybridInterpreter runtime = createNew(termFactory);
         loadFiles(runtime, component);
         prototypes.put(component, runtime);
