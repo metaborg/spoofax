@@ -146,10 +146,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
 
-    @Override public boolean typesmart() {
-        return projectConfig.typesmart();
-    }
-
     @Override public NaBL2Config nabl2Config() {
         return projectConfig.nabl2Config();
     }

@@ -84,12 +84,12 @@ public class HoverService implements ISpoofaxHoverService {
         final String strategy = facet.strategyName;
 
         try {
-            final ITermFactory termFactory = termFactoryService.get(contributor, project, true);
+            final ITermFactory termFactory = termFactoryService.get(contributor, project);
             final HybridInterpreter interpreter;
             if(context == null) {
-                interpreter = strategoRuntimeService.runtime(contributor, source, true);
+                interpreter = strategoRuntimeService.runtime(contributor, source);
             } else {
-                interpreter = strategoRuntimeService.runtime(contributor, context, true);
+                interpreter = strategoRuntimeService.runtime(contributor, context);
             }
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple =
@@ -115,9 +115,9 @@ public class HoverService implements ISpoofaxHoverService {
 
         try {
             final IProject project = context.project();
-            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor, project, true);
+            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor, project);
             final HybridInterpreter interpreter =
-                strategoRuntimeService.runtime(facetContrib.contributor, context, true);
+                strategoRuntimeService.runtime(facetContrib.contributor, context);
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple;
             try(IClosableLock lock = context.read()) {
