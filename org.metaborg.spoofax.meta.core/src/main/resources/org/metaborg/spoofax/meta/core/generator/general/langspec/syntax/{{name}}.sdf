@@ -9,6 +9,10 @@ exports
   context-free start-symbols
     
     {{startSymbol}}
+
+  sorts
+
+   {{startSymbol}}
   
   context-free syntax
     
