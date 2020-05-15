@@ -84,7 +84,7 @@ public class HoverService implements ISpoofaxHoverService {
         final String strategy = facet.strategyName;
 
         try {
-            final ITermFactory termFactory = termFactoryService.get(contributor, project);
+            final ITermFactory termFactory = termFactoryService.getGeneric();
             final HybridInterpreter interpreter;
             if(context == null) {
                 interpreter = strategoRuntimeService.runtime(contributor, source);
@@ -115,7 +115,7 @@ public class HoverService implements ISpoofaxHoverService {
 
         try {
             final IProject project = context.project();
-            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor, project);
+            final ITermFactory termFactory = termFactoryService.getGeneric();
             final HybridInterpreter interpreter =
                 strategoRuntimeService.runtime(facetContrib.contributor, context);
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));

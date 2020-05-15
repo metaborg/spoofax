@@ -21,14 +21,6 @@ public class TermFactoryService implements ITermFactoryService {
 
     private final ITermFactory genericFactory = new ImploderOriginTermFactory(new TermFactory());
 
-    @Override public ITermFactory get(ILanguageImpl impl, @Nullable IProject project) {
-        return genericFactory;
-    }
-
-    @Override public ITermFactory get(ILanguageComponent component, @Nullable IProject project) {
-        return genericFactory;
-    }
-
     @Override public ITermFactory getGeneric() {
         return genericFactory;
     }

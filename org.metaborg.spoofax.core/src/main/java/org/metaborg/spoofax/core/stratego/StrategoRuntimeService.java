@@ -42,7 +42,6 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     private final ITermFactoryService termFactoryService;
     private final Set<IOperatorRegistry> strategoLibraries;
     private final ParseStrategoFileStrategy parseStrategoFileStrategy;
-    private final IProjectService projectService;
     private final Set<ClassLoader> additionalClassLoaders;
 
     private final Map<ILanguageComponent, HybridInterpreter> prototypes = new HashMap<>();
@@ -50,12 +49,11 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
 
     @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
         Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy,
-        IProjectService projectService, Set<ClassLoader> additionalClassLoaders) {
+        Set<ClassLoader> additionalClassLoaders) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.strategoLibraries = strategoLibraries;
         this.parseStrategoFileStrategy = parseStrategoFileStrategy;
-        this.projectService = projectService;
         this.additionalClassLoaders = additionalClassLoaders;
     }
 
@@ -78,7 +76,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
             prototype = createPrototype(component);
         }
 
-        final HybridInterpreter runtime = clone(prototype, context.location(), component, context.project());
+        final HybridInterpreter runtime = clone(prototype, context.location(), component);
         runtime.getContext().setContextObject(context);
         runtime.getCompiledContext().setContextObject(context);
         return runtime;
@@ -91,8 +89,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
             prototype = createPrototype(component);
         }
 
-        final IProject project = projectService.get(location);
-        final HybridInterpreter runtime = clone(prototype, location, component, project);
+        final HybridInterpreter runtime = clone(prototype, location, component);
         return runtime;
     }
 
@@ -122,7 +119,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
 
 
     private HybridInterpreter clone(HybridInterpreter prototype, FileObject workingLocation,
-        ILanguageComponent component, @Nullable IProject project) {
+        ILanguageComponent component) {
         // TODO: this seems to copy operator registries, but they should be recreated to isolate interpreters?
         final HybridInterpreter runtime = new HybridInterpreter(prototype);
 
@@ -138,7 +135,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
             runtime.getCompiledContext().addOperatorRegistry(library);
         }
 
-        final ITermFactory termFactory = termFactoryService.get(component, project);
+        final ITermFactory termFactory = termFactoryService.getGeneric();
         runtime.getContext().setFactory(termFactory);
         runtime.getCompiledContext().setFactory(termFactory);
 
@@ -165,7 +162,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
 
     private HybridInterpreter createPrototype(ILanguageComponent component) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", component);
-        final ITermFactory termFactory = termFactoryService.get(component, null);
+        final ITermFactory termFactory = termFactoryService.getGeneric();
         final HybridInterpreter runtime = createNew(termFactory);
         loadFiles(runtime, component);
         prototypes.put(component, runtime);

@@ -111,7 +111,7 @@ public class StatixGenerator {
         }
 
         final StrategoTerms strategoTerms =
-                new StrategoTerms(S.termFactoryService.get(statixLang, context.project()));
+                new StrategoTerms(S.termFactoryService.getGeneric());
         final IConstraint constraint =
                 StatixTerms.constraint().match(strategoTerms.fromStratego(evalPair.getSubterm(0)))
                         .orElseThrow(() -> new MetaborgException("Expected constraint"));
@@ -136,7 +136,7 @@ public class StatixGenerator {
             final ITermFactory tf;
             final HybridInterpreter runtime;
             try {
-                tf = S.termFactoryService.get(lc, context.project());
+                tf = S.termFactoryService.getGeneric();
                 runtime = S.strategoRuntimeService.runtime(lc, context);
             } catch(MetaborgException e) {
                 throw new MetaborgRuntimeException(e);
