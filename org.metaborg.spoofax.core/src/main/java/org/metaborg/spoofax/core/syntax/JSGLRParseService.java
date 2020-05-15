@@ -143,7 +143,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
         if(!parserMap.containsKey(langImpl) || overrideImploder != null || overrideJSGLRVersion != null) {
             final IParserConfig config = getParserConfig(langImpl, input, parserConfig.completion, overrideJSGLRVersion, overrideImploder);
-            final ITermFactory termFactory = termFactoryService.get(langImpl, null);
+            final ITermFactory termFactory = termFactoryService.getGeneric();
             final JSGLRVersion version = jsglrVersion(input, overrideJSGLRVersion);
 
             final JSGLRI<?> parser;
