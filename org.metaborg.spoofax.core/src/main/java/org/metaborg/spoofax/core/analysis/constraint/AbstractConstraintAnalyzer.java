@@ -30,7 +30,6 @@ import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.context.constraint.IConstraintContext;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.AnalyzeUpdateData;
@@ -74,7 +73,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
             final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
-            final ITermFactoryService termFactoryService, final ISpoofaxTracingService tracingService,
+            final ITermFactory termFactory, final ISpoofaxTracingService tracingService,
             final ISpoofaxUnitService unitService) {
         this.analysisCommon = analysisCommon;
         this.resourceService = resourceService;
@@ -82,7 +81,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         this.strategoCommon = strategoCommon;
         this.tracingService = tracingService;
         this.unitService = unitService;
-        this.termFactory = termFactoryService.getGeneric();
+        this.termFactory = termFactory;
     }
 
     protected abstract boolean multifile();

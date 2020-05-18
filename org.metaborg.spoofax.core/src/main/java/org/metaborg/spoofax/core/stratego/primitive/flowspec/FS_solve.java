@@ -18,7 +18,6 @@ import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -50,10 +49,10 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
     private static final String FLOWSPEC_STATIC_INFO_DIR = "target/metaborg/flowspec-static-info";
     private final Map<ILanguageComponent, InterpreterBuilder> flowSpecTransferFunctionCache = new HashMap<>();
 
-    @Inject public FS_solve(IResourceService resourceService, ITermFactoryService termFactoryService) {
+    @Inject public FS_solve(IResourceService resourceService, ITermFactory termFactory) {
         super(FS_solve.class.getSimpleName(), 0, 2);
         this.resourceService = resourceService;
-        this.termFactory = termFactoryService.getGeneric();
+        this.termFactory = termFactory;
         prim = new AnalysisPrimitive(FS_solve.class.getSimpleName(), 1) {
             @Override protected Optional<? extends IStrategoTerm> call(IResult result, IStrategoTerm term, List<IStrategoTerm> terms)
                     throws InterpreterException {

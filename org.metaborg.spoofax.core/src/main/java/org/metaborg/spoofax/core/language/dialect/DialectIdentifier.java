@@ -15,11 +15,11 @@ import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
@@ -31,14 +31,14 @@ public class DialectIdentifier implements IDialectIdentifier {
 
     private final ILanguageService languageService;
     private final IDialectService dialectService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
 
 
     @Inject public DialectIdentifier(ILanguageService languageService, IDialectService dialectService,
-        ITermFactoryService termFactoryService) {
+        ITermFactory termFactory) {
         this.languageService = languageService;
         this.dialectService = dialectService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
     }
 
 
@@ -66,7 +66,7 @@ public class DialectIdentifier implements IDialectIdentifier {
             if(metaResource == null) {
                 return null;
             }
-            final TermReader termReader = new TermReader(termFactoryService.getGeneric());
+            final TermReader termReader = new TermReader(termFactory);
             final IStrategoTerm term = termReader.parseFromStream(metaResource.getContent().getInputStream());
             final String name = getSyntaxName(term.getSubterm(0));
             if(name == null) {

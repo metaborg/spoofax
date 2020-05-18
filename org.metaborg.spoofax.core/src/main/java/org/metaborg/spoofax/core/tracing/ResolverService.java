@@ -21,7 +21,6 @@ import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.tracing.Resolution;
 import org.metaborg.core.tracing.ResolutionTarget;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.TracingCommon.TermWithRegion;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -41,18 +40,18 @@ public class ResolverService implements ISpoofaxResolverService {
 
     private final IProjectService projectService;
     private final IContextService contextService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
     private final TracingCommon common;
 
 
     @Inject public ResolverService(IProjectService projectService, IContextService contextService,
-        ITermFactoryService termFactoryService, IStrategoRuntimeService strategoRuntimeService,
+        ITermFactory termFactory, IStrategoRuntimeService strategoRuntimeService,
         ISpoofaxTracingService tracingService, TracingCommon common) {
         this.projectService = projectService;
         this.contextService = contextService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;
         this.common = common;
@@ -89,7 +88,6 @@ public class ResolverService implements ISpoofaxResolverService {
         final String strategy = facet.strategyName;
 
         try {
-            final ITermFactory termFactory = termFactoryService.getGeneric();
             final HybridInterpreter interpreter;
             if(context == null) {
                 interpreter = strategoRuntimeService.runtime(contributor, source);
@@ -112,7 +110,6 @@ public class ResolverService implements ISpoofaxResolverService {
 
         final FileObject source = result.source();
         final IContext context = result.context();
-        final IProject project = context.project();
         final ILanguageImpl language = context.language();
 
         final FacetContribution<ResolverFacet> facetContrib = facet(language);
@@ -120,12 +117,11 @@ public class ResolverService implements ISpoofaxResolverService {
         final String strategy = facet.strategyName;
 
         try {
-            final ITermFactory termFactory = termFactoryService.getGeneric();
             final HybridInterpreter interpreter =
                 strategoRuntimeService.runtime(facetContrib.contributor, context);
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple;
-            try(IClosableLock lock = context.read()) {
+            try(IClosableLock _lock = context.read()) {
                 tuple = common.outputs(termFactory, interpreter, source, source, result.ast(), inRegion, strategy);
             }
             return resolve(tuple);

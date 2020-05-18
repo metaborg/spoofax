@@ -24,7 +24,6 @@ import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.AnalyzeUpdateData;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
@@ -59,7 +58,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
     private final IResourceService resourceService;
     private final ISpoofaxUnitService unitService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final IStrategoRuntimeService runtimeService;
 
     private final IStrategoCommon strategoCommon;
@@ -68,16 +67,16 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
 
 
     @Inject public TaskEngineAnalyzer(IResourceService resourceService, ISpoofaxUnitService unitService,
-        ITermFactoryService termFactoryService, IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
+        ITermFactory termFactory, IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
         AnalysisCommon analysisCommon) {
         this.resourceService = resourceService;
         this.unitService = unitService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.runtimeService = runtimeService;
         this.strategoCommon = strategoCommon;
         this.analysisCommon = analysisCommon;
 
-        this.fileCons = termFactoryService.getGeneric().makeConstructor("File", 3);
+        this.fileCons = termFactory.makeConstructor("File", 3);
     }
 
 
@@ -98,7 +97,6 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         cancel.throwIfCancelled();
 
         final ILanguageImpl langImpl = context.language();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         final FacetContribution<AnalysisFacet> facetContribution = langImpl.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
