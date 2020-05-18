@@ -60,13 +60,13 @@ import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.ParseFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ResolverFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
@@ -81,19 +81,19 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
     private final IResourceService resourceService;
     private final ILanguageComponentConfigService componentConfigService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final Map<String, IContextFactory> contextFactories;
     private final Map<String, IContextStrategy> contextStrategies;
     private final Map<String, ISpoofaxAnalyzer> analyzers;
 
 
     @Inject public LanguageComponentFactory(IResourceService resourceService,
-        ILanguageComponentConfigService componentConfigService, ITermFactoryService termFactoryService,
+        ILanguageComponentConfigService componentConfigService, ITermFactory termFactory,
         Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
         Map<String, ISpoofaxAnalyzer> analyzers) {
         this.resourceService = resourceService;
         this.componentConfigService = componentConfigService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.contextFactories = contextFactories;
         this.contextStrategies = contextStrategies;
         this.analyzers = analyzers;
@@ -263,7 +263,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
     private IStrategoAppl esvTerm(FileObject location, FileObject esvFile)
         throws ParseError, IOException, MetaborgException {
         final TermReader reader =
-            new TermReader(termFactoryService.getGeneric());
+            new TermReader(termFactory);
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
         if(!TermUtils.isAppl(term)) {
             final String message = logger.format(
