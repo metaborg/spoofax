@@ -22,6 +22,7 @@ import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.config.StrategoGradualSetting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
@@ -163,7 +164,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
         Collection<STask> originTasks = sdfTasks;
         Frontends.Input strIncrAnalysisInput =
-            new Frontends.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation);
+            new Frontends.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation, config.strGradualSetting() == StrategoGradualSetting.on);
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
         final Pie pie = GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
