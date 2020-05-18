@@ -16,13 +16,10 @@ import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoader;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -39,7 +36,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeService.class);
 
     private final IResourceService resourceService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final Set<IOperatorRegistry> strategoLibraries;
     private final ParseStrategoFileStrategy parseStrategoFileStrategy;
     private final Set<ClassLoader> additionalClassLoaders;
@@ -47,11 +44,11 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     private final Map<ILanguageComponent, HybridInterpreter> prototypes = new HashMap<>();
 
 
-    @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
+    @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactory termFactory,
         Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy,
         Set<ClassLoader> additionalClassLoaders) {
         this.resourceService = resourceService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.strategoLibraries = strategoLibraries;
         this.parseStrategoFileStrategy = parseStrategoFileStrategy;
         this.additionalClassLoaders = additionalClassLoaders;
@@ -94,7 +91,6 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     }
 
     @Override public HybridInterpreter genericRuntime() {
-        final ITermFactory termFactory = termFactoryService.getGeneric();
         return createNew(termFactory);
     }
 
@@ -135,7 +131,6 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
             runtime.getCompiledContext().addOperatorRegistry(library);
         }
 
-        final ITermFactory termFactory = termFactoryService.getGeneric();
         runtime.getContext().setFactory(termFactory);
         runtime.getCompiledContext().setFactory(termFactory);
 
@@ -162,7 +157,6 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
 
     private HybridInterpreter createPrototype(ILanguageComponent component) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", component);
-        final ITermFactory termFactory = termFactoryService.getGeneric();
         final HybridInterpreter runtime = createNew(termFactory);
         loadFiles(runtime, component);
         prototypes.put(component, runtime);

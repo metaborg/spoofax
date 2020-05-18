@@ -25,7 +25,6 @@ import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
 import org.metaborg.spoofax.core.syntax.SourceAttachment;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
@@ -62,7 +61,7 @@ import com.google.inject.Inject;
 public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private static final Logger logger = LoggerFactory.getLogger(JSGLRCompletionService.class);
 
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final IStrategoCommon strategoCommon;
     private final IResourceService resourceService;
@@ -71,10 +70,10 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
 
-    @Inject public JSGLRCompletionService(ITermFactoryService termFactoryService,
+    @Inject public JSGLRCompletionService(ITermFactory termFactory,
         IStrategoRuntimeService strategoRuntimeService, IStrategoCommon strategoCommon,
         IResourceService resourceService, ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService) {
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.strategoRuntimeService = strategoRuntimeService;
         this.strategoCommon = strategoCommon;
         this.resourceService = resourceService;
@@ -140,7 +139,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Collection<ICompletion> completions = Lists.newLinkedList();
 
         final String languageName = language.belongsTo().name();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         for(ILanguageComponent component : language.components()) {
             // call Stratego part of the framework to compute change
@@ -219,7 +217,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final FileObject location = parseResult.source();
         final ILanguageImpl language = parseResult.input().langImpl();
         final String languageName = language.belongsTo().name();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         for(ILanguageComponent component : language.components()) {
             final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
@@ -266,7 +263,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         // call Stratego part of the framework to compute change
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         for(IStrategoTerm term : leftRecursive) {
             IStrategoTerm sort = termFactory.makeString(ImploderAttachment.getSort(term));
@@ -375,7 +371,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         // call Stratego part of the framework to compute change
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         IStrategoTerm placeholderParent = ParentAttachment.getParent(placeholder);
         if(placeholderParent == null) {
@@ -442,8 +437,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
         Collection<ICompletion> completions = Lists.newLinkedList();
 
-        final ITermFactory termFactory = termFactoryService.getGeneric();
-
         for(IStrategoTerm optional : optionals) {
 
             ImploderAttachment attachment = optional.getAttachment(ImploderAttachment.TYPE);
@@ -506,8 +499,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         throws MetaborgException {
 
         Collection<ICompletion> completions = Lists.newLinkedList();
-
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         for(IStrategoList list : lists) {
             ListImploderAttachment attachment = list.getAttachment(null);
@@ -798,7 +789,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final String languageName = language.belongsTo().name();
         final Collection<ICompletion> completions = Lists.newLinkedList();
         final Collection<IStrategoTerm> proposalsTerm = Lists.newLinkedList();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         for(ILanguageComponent component : language.components()) {
             for(IStrategoTerm completionTerm : completionTerms) {
@@ -1166,7 +1156,6 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final String languageName = language.belongsTo().name();
         final Collection<ICompletion> completions = Lists.newLinkedList();
         IStrategoTerm completionAst = completionParseResult.ast();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         for(ILanguageComponent component : language.components()) {
             for(IStrategoTerm nestedCompletionTerm : nestedCompletionTerms) {
