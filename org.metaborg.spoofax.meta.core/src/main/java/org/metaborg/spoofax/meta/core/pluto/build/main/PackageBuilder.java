@@ -81,12 +81,17 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         final File strJavaTransDir = toFile(paths.strSrcGenJavaTransDir(input.languageId));
         final File strClassesTransDir = toFile(paths.strTargetClassesTransDir(input.languageId));
 
-        // Copy .pp.af and .tbl to JAR target directory, so that they get included in the JAR file.
-        // Required for being able to import-term those files from Stratego code.
-        final CopyPattern.Input copyPatternInput = new CopyPattern.Input(strJavaTransDir, strClassesTransDir,
-            ".+\\.(?:tbl|pp\\.af)", input.origin, context.baseDir, context.depDir);
-        final Origin copyPatternOrigin = CopyPattern.origin(copyPatternInput);
-        requireBuild(copyPatternOrigin);
+        final Origin copyPatternOrigin;
+        if(strJavaTransDir.exists()) {
+            // Copy .pp.af and .tbl to JAR target directory, so that they get included in the JAR file.
+            // Required for being able to import-term those files from Stratego code.
+            final CopyPattern.Input copyPatternInput =
+                new CopyPattern.Input(strJavaTransDir, strClassesTransDir, ".+\\.(?:tbl|pp\\.af)", input.origin, context.baseDir, context.depDir);
+            copyPatternOrigin = CopyPattern.origin(copyPatternInput);
+            requireBuild(copyPatternOrigin);
+        } else {
+            copyPatternOrigin = null;
+        }
 
         final String jarName = "stratego.jar";
         final File jarFile = FileUtils.getFile(targetMetaborgDir, jarName);
