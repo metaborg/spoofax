@@ -122,8 +122,6 @@ import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.syntax.JSGLRParseService;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.metaborg.spoofax.core.syntax.SpoofaxSyntaxService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.tracing.HoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxResolverService;
@@ -148,6 +146,9 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.library.index.primitives.legacy.LegacyIndexLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
+import org.spoofax.terms.TermFactory;
 
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
@@ -168,6 +169,7 @@ import mb.nabl2.spoofax.primitives.SG_debug_constraints;
 import mb.nabl2.spoofax.primitives.SG_debug_name_resolution;
 import mb.nabl2.spoofax.primitives.SG_debug_scope_graph;
 import mb.nabl2.spoofax.primitives.SG_debug_symbolic_constraints;
+import mb.nabl2.spoofax.primitives.SG_debug_ast_properties;
 import mb.nabl2.spoofax.primitives.SG_debug_unifier;
 import mb.nabl2.spoofax.primitives.SG_focus_term;
 import mb.nabl2.spoofax.primitives.SG_get_all_decls;
@@ -322,10 +324,7 @@ public class SpoofaxModule extends MetaborgModule {
         bind(new TypeLiteral<ISyntaxService<?, ?>>() {}).to(SpoofaxSyntaxService.class);
         bind(ISyntaxService.class).to(SpoofaxSyntaxService.class);
 
-        bind(TermFactoryService.class).in(Singleton.class);
-        bind(ITermFactoryService.class).to(TermFactoryService.class);
-        languageCacheBinder.addBinding().to(TermFactoryService.class);
-        autoClosableBinder.addBinding().to(TermFactoryService.class);
+        bind(ITermFactory.class).toInstance(new ImploderOriginTermFactory(new TermFactory()));
     }
 
     protected void bindParsers(MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder,
@@ -427,6 +426,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_name_resolution.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_scope_graph.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_symbolic_constraints.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_ast_properties.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_debug_unifier.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_focus_term.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_all_decls.class);

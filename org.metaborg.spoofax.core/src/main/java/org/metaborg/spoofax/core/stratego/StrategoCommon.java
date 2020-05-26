@@ -11,7 +11,6 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
@@ -40,13 +39,13 @@ public class StrategoCommon implements IStrategoCommon {
     private static final ILogger logger = LoggerUtils.logger(StrategoCommon.class);
 
     private final IStrategoRuntimeService strategoRuntimeService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
 
 
     @Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
-        ITermFactoryService termFactoryService) {
+        ITermFactory termFactory) {
         this.strategoRuntimeService = strategoRuntimeService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
     }
 
 
@@ -55,7 +54,7 @@ public class StrategoCommon implements IStrategoCommon {
         if(!IStrategoCommon.hasStrategoFacets(component)) {
             return null;
         }
-        final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
+        final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
         return invoke(runtime, input, strategy);
     }
 
@@ -67,7 +66,7 @@ public class StrategoCommon implements IStrategoCommon {
                 continue;
             }
 
-            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
+            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
             try {
                 final IStrategoTerm result = invoke(runtime, input, strategy);
                 return result;
@@ -87,7 +86,7 @@ public class StrategoCommon implements IStrategoCommon {
                 continue;
             }
 
-            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
+            final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
             try {
                 final IStrategoTerm result = invoke(runtime, input, strategy);
                 return result;
@@ -182,8 +181,6 @@ public class StrategoCommon implements IStrategoCommon {
     }
 
     @Override public IStrategoString locationTerm(FileObject location) {
-        final ITermFactory termFactory = termFactoryService.getGeneric();
-
         final String locationURI = location.getName().getURI();
         final IStrategoString locationTerm = termFactory.makeString(locationURI);
 
@@ -191,8 +188,6 @@ public class StrategoCommon implements IStrategoCommon {
     }
 
     @Override public IStrategoString resourceTerm(FileObject resource, FileObject location) {
-        final ITermFactory termFactory = termFactoryService.getGeneric();
-
         String resourceURI = ResourceUtils.relativeName(resource.getName(), location.getName(), false);
         final IStrategoString resourceTerm = termFactory.makeString(resourceURI);
 
@@ -201,8 +196,6 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public BuilderInput builderInputTerm(IStrategoTerm ast, @Nullable IStrategoTerm selectedTerm,
         @Nullable FileObject resource, @Nullable FileObject location) {
-        final ITermFactory termFactory = termFactoryService.getGeneric();
-
         final IStrategoTerm node = selectedTerm != null ? selectedTerm : ast;
         final IStrategoTerm position = termFactory.makeList();
 
@@ -225,7 +218,6 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public IStrategoString prettyPrint(IStrategoTerm term) {
         final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
         org.strategoxt.stratego_aterm.Main.init(context);
         term = aterm_escape_strings_0_0.instance.invoke(context, term);
         term = pp_aterm_box_0_0.instance.invoke(context, term);

@@ -15,7 +15,6 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.style.ISpoofaxCategorizerService;
 import org.metaborg.spoofax.core.style.ISpoofaxStylerService;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxResolverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
@@ -27,6 +26,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Module;
 import com.google.inject.util.Types;
@@ -58,7 +58,7 @@ public class Spoofax extends
     public final ISpoofaxOutlineService outlineService;
     public final ISpoofaxCompletionService completionService;
     
-    public final ITermFactoryService termFactoryService;
+    public final ITermFactory termFactory;
     public final IStrategoRuntimeService strategoRuntimeService;
     public final IStrategoCommon strategoCommon;
 
@@ -106,7 +106,7 @@ public class Spoofax extends
         this.outlineService = injector.getInstance(ISpoofaxOutlineService.class);
         this.completionService = injector.getInstance(ISpoofaxCompletionService.class);
         
-        this.termFactoryService = injector.getInstance(ITermFactoryService.class);
+        this.termFactory = injector.getInstance(ITermFactory.class);
         this.strategoRuntimeService = injector.getInstance(IStrategoRuntimeService.class);
         this.strategoCommon = injector.getInstance(IStrategoCommon.class);
     }

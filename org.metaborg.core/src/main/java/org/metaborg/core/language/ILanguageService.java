@@ -1,12 +1,11 @@
 package org.metaborg.core.language;
 
-import javax.annotation.Nullable;
-
+import io.reactivex.rxjava3.core.Observable;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageComponentConfig;
 
-import rx.Observable;
+import javax.annotation.Nullable;
 
 /**
  * Interface for a language service that creates and destroys languages, maps names to active languages, and provides an

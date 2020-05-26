@@ -6,7 +6,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.syntax.IInputUnit;
 import org.metaborg.core.syntax.IParseUnit;
 
-import rx.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 /**
  * Interface for requesting single parse results or updates for parse results.

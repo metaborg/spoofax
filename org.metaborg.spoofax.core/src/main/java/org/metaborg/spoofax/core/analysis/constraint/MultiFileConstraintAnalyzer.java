@@ -4,9 +4,9 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.analysis.AnalysisCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
 
@@ -16,9 +16,9 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer {
 
     @Inject public MultiFileConstraintAnalyzer(AnalysisCommon analysisCommon, IResourceService resourceService,
             IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
-            ITermFactoryService termFactoryService, ISpoofaxTracingService tracingService,
+            ITermFactory termFactory, ISpoofaxTracingService tracingService,
             ISpoofaxUnitService unitService) {
-        super(analysisCommon, resourceService, runtimeService, strategoCommon, termFactoryService, tracingService,
+        super(analysisCommon, resourceService, runtimeService, strategoCommon, termFactory, tracingService,
                 unitService);
     }
 

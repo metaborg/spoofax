@@ -17,7 +17,6 @@ import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
 import org.metaborg.core.tracing.Hover;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.TracingCommon.TermWithRegion;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -36,18 +35,18 @@ public class HoverService implements ISpoofaxHoverService {
 
     private final IProjectService projectService;
     private final IContextService contextService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final ISpoofaxTracingService tracingService;
     private final TracingCommon common;
 
 
     @Inject public HoverService(IProjectService projectService, IContextService contextService,
-        ITermFactoryService termFactoryService, IStrategoRuntimeService strategoRuntimeService,
+        ITermFactory termFactory, IStrategoRuntimeService strategoRuntimeService,
         ISpoofaxTracingService tracingService, TracingCommon common) {
         this.projectService = projectService;
         this.contextService = contextService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.strategoRuntimeService = strategoRuntimeService;
         this.tracingService = tracingService;
         this.common = common;
@@ -84,12 +83,11 @@ public class HoverService implements ISpoofaxHoverService {
         final String strategy = facet.strategyName;
 
         try {
-            final ITermFactory termFactory = termFactoryService.get(contributor, project, true);
             final HybridInterpreter interpreter;
             if(context == null) {
-                interpreter = strategoRuntimeService.runtime(contributor, source, true);
+                interpreter = strategoRuntimeService.runtime(contributor, source);
             } else {
-                interpreter = strategoRuntimeService.runtime(contributor, context, true);
+                interpreter = strategoRuntimeService.runtime(contributor, context);
             }
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple =
@@ -114,13 +112,11 @@ public class HoverService implements ISpoofaxHoverService {
         final String strategy = facet.strategyName;
 
         try {
-            final IProject project = context.project();
-            final ITermFactory termFactory = termFactoryService.get(facetContrib.contributor, project, true);
             final HybridInterpreter interpreter =
-                strategoRuntimeService.runtime(facetContrib.contributor, context, true);
+                strategoRuntimeService.runtime(facetContrib.contributor, context);
             final Iterable<IStrategoTerm> inRegion = tracingService.fragments(result, new SourceRegion(offset));
             final TermWithRegion tuple;
-            try(IClosableLock lock = context.read()) {
+            try(IClosableLock _lock = context.read()) {
                 tuple = common.outputs(termFactory, interpreter, context.location(), source, result.ast(), inRegion, strategy);
             }
             return hover(tuple);

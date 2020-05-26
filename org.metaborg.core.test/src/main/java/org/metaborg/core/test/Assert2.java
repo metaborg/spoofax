@@ -6,10 +6,10 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.observable.ITestableObserver;
 import org.metaborg.util.observable.TimestampedNotification;
 
-import rx.Notification;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+
+import io.reactivex.rxjava3.core.Notification;
 
 public class Assert2 {
     public static <T> void assertSize(int expected, Iterable<T> actual, String message) {
@@ -237,7 +237,7 @@ public class Assert2 {
 
     private static <T> String formatOnNext(String message, Notification<T> actual) {
         final String formatted = preformat(message);
-        return formatted + "expected OnNext, was: " + actual.getKind();
+        return formatted + "expected OnNext, was: " + actual;
     }
 
     private static <T> String formatOnNext(String message, Iterable<T> expected, T actual) {

@@ -1,18 +1,18 @@
 package org.metaborg.core.processing;
 
-import rx.functions.Func0;
+import java.util.function.Supplier;
 
 /**
  * Task implementation that executes a function in blocking way when scheduled. Does not support cancellation.
  */
 public class BlockingTask<T> implements ITask<T> {
-    private final Func0<T> func;
+    private final Supplier<T> func;
 
     private T value;
     private boolean completed;
 
 
-    public BlockingTask(Func0<T> func) {
+    public BlockingTask(Supplier<T> func) {
         this.func = func;
     }
 
@@ -22,7 +22,7 @@ public class BlockingTask<T> implements ITask<T> {
             return this;
         }
 
-        value = func.call();
+        value = func.get();
         completed = true;
 
         return this;

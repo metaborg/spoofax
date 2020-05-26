@@ -20,7 +20,6 @@ import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResult;
 import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -51,18 +50,18 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     private static final ILogger logger = LoggerUtils.logger(StrategoAnalyzer.class);
 
     private final ISpoofaxUnitService unitService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final IStrategoRuntimeService runtimeService;
 
     private final IStrategoCommon strategoCommon;
     private final AnalysisCommon analysisCommon;
 
 
-    @Inject public StrategoAnalyzer(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService,
+    @Inject public StrategoAnalyzer(ISpoofaxUnitService unitService, ITermFactory termFactory,
             IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
         AnalysisCommon analysisCommon) {
         this.unitService = unitService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.runtimeService = runtimeService;
         this.strategoCommon = strategoCommon;
         this.analysisCommon = analysisCommon;
@@ -79,7 +78,6 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         }
 
         final ILanguageImpl language = context.language();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
@@ -92,7 +90,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         cancel.throwIfCancelled();
         final HybridInterpreter runtime;
         try {
-            runtime = runtimeService.runtime(facetContribution.contributor, context, true);
+            runtime = runtimeService.runtime(facetContribution.contributor, context);
         } catch(MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
@@ -107,7 +105,6 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         cancel.throwIfCancelled();
         
         final ILanguageImpl language = context.language();
-        final ITermFactory termFactory = termFactoryService.getGeneric();
 
         final FacetContribution<AnalysisFacet> facetContribution = language.facetContribution(AnalysisFacet.class);
         if(facetContribution == null) {
@@ -119,7 +116,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         cancel.throwIfCancelled();
         final HybridInterpreter runtime;
         try {
-            runtime = runtimeService.runtime(facetContribution.contributor, context, true);
+            runtime = runtimeService.runtime(facetContribution.contributor, context);
         } catch(MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }

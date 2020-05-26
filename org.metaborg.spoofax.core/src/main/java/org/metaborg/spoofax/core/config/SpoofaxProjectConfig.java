@@ -18,8 +18,6 @@ import mb.nabl2.config.NaBL2Config;
 
 public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProjectConfig {
 
-    private static final String PROP_STR_TYPESMART = "debug.typesmart";
-
     private static final String PROP_RUNTIME = "runtime";
     private static final String PROP_NABL2 = PROP_RUNTIME + ".nabl2";
 
@@ -29,12 +27,9 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
 
     protected SpoofaxProjectConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
             Collection<IExportConfig> sources, Collection<LanguageIdentifier> compileDeps,
-            Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps, Boolean typesmart,
+            Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps,
             NaBL2Config nabl2Config) {
         super(config, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps);
-        if(typesmart != null) {
-            config.setProperty(PROP_STR_TYPESMART, typesmart);
-        }
         if(nabl2Config != null) {
             Optional.ofNullable(configurationAt(PROP_NABL2, true))
                     .ifPresent(c -> NaBL2ConfigReaderWriter.write(nabl2Config, c));
@@ -48,10 +43,6 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
         } else {
             return sources;
         }
-    }
-
-    @Override public boolean typesmart() {
-        return config.getBoolean(PROP_STR_TYPESMART, false);
     }
 
     @Override public NaBL2Config nabl2Config() {

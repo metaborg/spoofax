@@ -25,7 +25,6 @@ import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -61,7 +60,7 @@ public class SpoofaxContext implements Serializable {
     private static final ThreadLocal<ISourceTextService> sourceTextService = new ThreadLocal<>();
     private static final ThreadLocal<ISpoofaxUnitService> unitService = new ThreadLocal<>();
     private static final ThreadLocal<ISpoofaxSyntaxService> syntaxService = new ThreadLocal<>();
-    private static final ThreadLocal<ITermFactoryService> termFactoryService = new ThreadLocal<>();
+    private static final ThreadLocal<ITermFactory> termFactory = new ThreadLocal<>();
     private static final ThreadLocal<IStrategoCommon> strategoCommon = new ThreadLocal<>();
     private static final ThreadLocal<ISpoofaxTransformService> transformService = new ThreadLocal<>();
     private static final ThreadLocal<IContextService> contextService = new ThreadLocal<>();
@@ -93,7 +92,7 @@ public class SpoofaxContext implements Serializable {
         sourceTextService.set(newInjector.getInstance(ISourceTextService.class));
         unitService.set(newInjector.getInstance(ISpoofaxUnitService.class));
         syntaxService.set(newInjector.getInstance(ISpoofaxSyntaxService.class));
-        termFactoryService.set(newInjector.getInstance(ITermFactoryService.class));
+        termFactory.set(newInjector.getInstance(ITermFactory.class));
         strategoCommon.set(newInjector.getInstance(IStrategoCommon.class));
         transformService.set(newInjector.getInstance(ISpoofaxTransformService.class));
         contextService.set(newInjector.getInstance(IContextService.class));
@@ -113,7 +112,7 @@ public class SpoofaxContext implements Serializable {
         sourceTextService.set(null);
         unitService.set(null);
         syntaxService.set(null);
-        termFactoryService.set(null);
+        termFactory.set(null);
         strategoCommon.set(null);
         transformService.set(null);
         contextService.set(null);
@@ -224,12 +223,8 @@ public class SpoofaxContext implements Serializable {
         return syntaxService.get();
     }
 
-    public ITermFactoryService termFactoryService() {
-        return termFactoryService.get();
-    }
-
     public ITermFactory termFactory() {
-        return termFactoryService.get().getGeneric();
+        return termFactory.get();
     }
 
 
