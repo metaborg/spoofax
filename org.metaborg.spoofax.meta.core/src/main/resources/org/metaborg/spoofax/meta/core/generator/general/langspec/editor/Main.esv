@@ -12,4 +12,4 @@ module Main
 {{/fileExtensions}}
 
   provider : target/metaborg/stratego.ctree
-  provider : target/metaborg/stratego-javastrat.jar
+  provider : target/metaborg/stratego.jar
