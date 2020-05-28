@@ -144,11 +144,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withTypesmart(boolean typesmart) {
-        projectConfigBuilder.withTypesmart(typesmart);
-        return this;
-    }
-
     @Override public ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config) {
         projectConfigBuilder.withNaBL2Config(config);
         return this;
@@ -270,11 +265,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withStrExternalJarFlags(String flags) {
         this.strExternalJarFlags = flags;
-        return this;
-    }
-
-    @Override public ISpoofaxLanguageSpecConfigBuilder withStrTypesmart(boolean typesmart) {
-        projectConfigBuilder.withTypesmart(typesmart);
         return this;
     }
 

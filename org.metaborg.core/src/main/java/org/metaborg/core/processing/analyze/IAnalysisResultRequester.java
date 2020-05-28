@@ -7,7 +7,7 @@ import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.syntax.IInputUnit;
 
-import rx.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 /**
  * Interface for requesting single analysis results or updates for analysis results.

@@ -17,7 +17,6 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.runtime.task.engine.ITaskEngine;
 import org.metaborg.runtime.task.engine.TaskManager;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
@@ -44,10 +43,10 @@ public class IndexTaskContext implements IContext, IContextInternal, IIndexTaskC
     private ITaskEngine taskEngine;
 
 
-    public IndexTaskContext(Injector injector, ITermFactoryService termFactoryService, ContextIdentifier identifier) {
+    public IndexTaskContext(Injector injector, ITermFactory termFactory, ContextIdentifier identifier) {
         this.injector = injector;
 
-        this.termFactory = termFactoryService.get(identifier.language, null, false);
+        this.termFactory = termFactory;
         this.lock = new ReentrantReadWriteLock(true);
         this.persistentIdentifier = FileUtils.sanitize(identifier.language.id().toString());
         this.identifier = identifier;

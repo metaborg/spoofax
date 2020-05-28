@@ -7,6 +7,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.sdf2table.io.ParseTableIO;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.terms.io.binary.TermReader;
 
@@ -44,12 +45,17 @@ public class JSGLR1FileParseTableProvider implements IParseTableProvider {
                 persistedTable = resource.getParent().resolveFile("table.bin");
             }
 
-            parseTable = new ParseTable(parseTableTerm, termFactory);
-
-            // only read serialized table when table generation is dynamic (#states = 0)
-            if(persistedTable.exists() && parseTable.getStateCount() == 0) {
-                parseTable =
-                    new ParseTable(parseTableTerm, termFactory, persistedTable, new ParseTableIO(persistedTable));
+            try {
+                parseTable = new ParseTable(parseTableTerm, termFactory);
+            } catch(Exception e) {
+                // only read serialized table when table generation is dynamic (#states = 0)
+                if(persistedTable.exists()
+                    && e.getMessage() == "Parse table does not contain any state and normalized grammar is null") {
+                    parseTable =
+                        new ParseTable(parseTableTerm, termFactory, persistedTable, new ParseTableIO(persistedTable));
+                } else {
+                    throw e;
+                }
             }
         } catch(Exception e) {
             throw new IOException("Could not load parse table from " + resource, e);

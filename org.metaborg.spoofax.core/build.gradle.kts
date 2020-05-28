@@ -18,7 +18,6 @@ dependencies {
   api("org.metaborg:org.strategoxt.strj:$version")
   api("org.metaborg:org.spoofax.interpreter.library.index:$version")
   api("org.metaborg:org.metaborg.runtime.task:$version")
-  api("org.metaborg:org.spoofax.terms.typesmart:$version")
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")
@@ -26,8 +25,8 @@ dependencies {
   api("commons-io:commons-io")
   api("org.apache.commons:commons-vfs2")
   api("com.google.guava:guava")
-  api("com.netflix.rxjava:rxjava-core")
-  
+  api("io.reactivex.rxjava3:rxjava")
+
   compileOnly("com.google.code.findbugs:jsr305")
 
   testImplementation(project(":org.metaborg.core.test"))

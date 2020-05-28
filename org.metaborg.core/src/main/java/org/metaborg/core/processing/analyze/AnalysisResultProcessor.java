@@ -17,7 +17,6 @@ import org.metaborg.core.build.UpdateKind;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.processing.parse.IParseResultRequester;
-import org.metaborg.core.processing.parse.ParseChange;
 import org.metaborg.core.syntax.IInputUnit;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
@@ -27,11 +26,8 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-import rx.Observable;
-import rx.Observable.OnSubscribe;
-import rx.Subscriber;
-import rx.functions.Func1;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate>
     implements IAnalysisResultProcessor<I, P, A>, AutoCloseable {
@@ -52,7 +48,7 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
 
     @Override public void close() {
         for(BehaviorSubject<AnalysisChange<A>> updates : updatesPerResource.values()) {
-            updates.onCompleted();
+            updates.onComplete();
         }
         updatesPerResource.clear();
     }
@@ -63,50 +59,48 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
             throw new MetaborgRuntimeException("Cannot request updates for detached (no source) units");
         }
         final FileObject resource = input.source();
-        return Observable.create(new OnSubscribe<A>() {
-            @Override public void call(Subscriber<? super A> observer) {
-                if(observer.isUnsubscribed()) {
-                    logger.trace("Unsubscribed from analysis result request for {}", resource);
-                    return;
+        return Observable.create(observer -> {
+            if(observer.isDisposed()) {
+                logger.trace("Unsubscribed from analysis result request for {}", resource);
+                return;
+            }
+
+            final BehaviorSubject<AnalysisChange<A>> updates = getUpdates(input, context);
+            final AnalysisChange<A> update = updates.blockingStream().filter(updateToFilter -> {
+                final UpdateKind kind = updateToFilter.kind;
+                return kind != UpdateKind.Invalidate;
+            }).findFirst().orElse(null);
+            if(update == null) {
+                return;
+            }
+
+            if(observer.isDisposed()) {
+                logger.trace("Unsubscribed from analysis result request for {}", resource);
+                return;
+            }
+
+            switch(update.kind) {
+                case Update:
+                    logger.trace("Returning cached analysis result for {}", resource);
+                    observer.onNext(update.result);
+                    observer.onComplete();
+                    break;
+                case Error:
+                    logger.trace("Returning analysis error for {}", resource);
+                    observer.onError(update.exception);
+                    break;
+                case Remove: {
+                    final String message = String.format("Analysis result for %s was removed unexpectedly", resource);
+                    logger.error(message);
+                    observer.onError(new AnalysisException(context, message));
+                    break;
                 }
-
-                final BehaviorSubject<AnalysisChange<A>> updates = getUpdates(input, context);
-                final AnalysisChange<A> update = updates.toBlocking().first(new Func1<AnalysisChange<A>, Boolean>() {
-                    @Override public Boolean call(AnalysisChange<A> updateToFilter) {
-                        final UpdateKind kind = updateToFilter.kind;
-                        return kind != UpdateKind.Invalidate;
-                    }
-                });
-
-                if(observer.isUnsubscribed()) {
-                    logger.trace("Unsubscribed from analysis result request for {}", resource);
-                    return;
-                }
-
-                switch(update.kind) {
-                    case Update:
-                        logger.trace("Returning cached analysis result for {}", resource);
-                        observer.onNext(update.result);
-                        observer.onCompleted();
-                        break;
-                    case Error:
-                        logger.trace("Returning analysis error for {}", resource);
-                        observer.onError(update.exception);
-                        break;
-                    case Remove: {
-                        final String message =
-                            String.format("Analysis result for %s was removed unexpectedly", resource);
-                        logger.error(message);
-                        observer.onError(new AnalysisException(context, message));
-                        break;
-                    }
-                    default: {
-                        final String message =
-                            String.format("Unexpected analysis update kind %s for %s", update.kind, resource);
-                        logger.error(message);
-                        observer.onError(new MetaborgRuntimeException(message));
-                        break;
-                    }
+                default: {
+                    final String message =
+                        String.format("Unexpected analysis update kind %s for %s", update.kind, resource);
+                    logger.error(message);
+                    observer.onError(new MetaborgRuntimeException(message));
+                    break;
                 }
             }
         });
@@ -121,7 +115,7 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
         if(subject == null) {
             return null;
         }
-        final AnalysisChange<A> change = subject.toBlocking().firstOrDefault(null);
+        final @Nullable AnalysisChange<A> change = subject.blockingStream().findFirst().orElse(null);
         if(change == null) {
             return null;
         }
@@ -146,7 +140,7 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
 
     @Override public void invalidate(ILanguageImpl impl) {
         for(BehaviorSubject<AnalysisChange<A>> changes : updatesPerResource.values()) {
-            final AnalysisChange<A> change = changes.toBlocking().firstOrDefault(null);
+            final @Nullable AnalysisChange<A> change = changes.blockingStream().findFirst().orElse(null);
             if(change != null && change.result != null && impl.equals(change.result.context().language())) {
                 changes.onNext(AnalysisChange.<A>invalidate(change.resource));
             }
@@ -214,7 +208,7 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
             updatesPerResource.put(name, updates);
             try {
                 logger.trace("Requesting parse result for {}", source);
-                final P parseResult = parseResultRequester.request(input).toBlocking().single();
+                final P parseResult = parseResultRequester.request(input).blockingSingle();
                 if(!parseResult.valid()) {
                     updates.onNext(AnalysisChange.<A>error(source, new AnalysisException(context, "Parsing failed")));
                     return updates;

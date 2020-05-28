@@ -8,6 +8,10 @@ context-free start-symbols
   
   {{startSymbol}}
 
+context-free sorts
+
+  {{startSymbol}}
+
 context-free syntax
   
   {{startSymbol}}.Empty = <>

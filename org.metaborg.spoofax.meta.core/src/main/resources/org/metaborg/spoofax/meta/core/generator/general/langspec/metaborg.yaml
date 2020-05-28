@@ -9,6 +9,7 @@ dependencies:
   - org.metaborg:org.metaborg.meta.lang.ts:${metaborgVersion}
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.lang:${metaborgVersion}
 {{/analysisNabl2}}{{#analysisStatix}}  - org.metaborg:statix.lang:${metaborgVersion}
+  - org.metaborg:sdf3.ext.statix:${metaborgVersion}
 {{/analysisStatix}}  - org.metaborg:dynsem:${metaborgVersion}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
@@ -21,12 +22,10 @@ pardonedLanguages:
 - EditorService
 - Stratego-Sugar
 - SDF
-debug:
-  typesmart: false
 language:
   sdf:
     pretty-print: {{name}}
-    sdf2table: c
+    sdf2table: java
     placeholder:
       prefix: "$"
 {{#syntaxSdf2}}  

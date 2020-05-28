@@ -229,10 +229,6 @@ public class SpoofaxCommonPaths extends CommonPaths {
         return resolve(targetDir(), "stratego-cache");
     }
 
-    public FileObject strTypesmartExportedFile() {
-        return resolve(targetMetaborgDir(), "typesmart.context");
-    }
-
     public FileObject strSepCompSrcGenDir() {
         return resolve(srcGenDir(), "stratego_sugar");
     }

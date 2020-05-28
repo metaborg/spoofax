@@ -57,7 +57,7 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
         final StrategoRuntimeFacet strategoRuntimeFacet = impl.facet(StrategoRuntimeFacet.class);
 
         assertIterableEquals(strategoRuntimeFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
-        assertIterableEquals(dynamicClassLoadingFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego-javastrat.jar"));
+        assertIterableEquals(dynamicClassLoadingFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.jar"));
 
         final AnalysisFacet analysisFacet = impl.facet(AnalysisFacet.class);
 
