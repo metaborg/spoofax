@@ -400,7 +400,14 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                         analysisResultUpdater.update(result, removedResources);
                         allAnalyzeUnits.put(context, result);
                     }
-                    analyzeUpdates.addAll(results.updates());
+                    for(AU update : results.updates()) {
+                        cancel.throwIfCancelled();
+                        final boolean noErrors = printMessages(update.messages(), "Analysis", input, pardoned);
+                        success.and(noErrors);
+                        // FIXME analysis updates are not supported by analysis updater
+                        // analysisResultUpdater.update(update, removedResources);
+                        analyzeUpdates.add(update);
+                    }
                 } finally {
                     context.persist();
                 }
