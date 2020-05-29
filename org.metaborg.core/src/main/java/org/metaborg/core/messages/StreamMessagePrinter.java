@@ -74,15 +74,13 @@ public class StreamMessagePrinter implements IMessagePrinter {
             sb.append('\n');
         }
 
-        if(printHighlight) {
+        if(printHighlight && source != null && region != null) {
             try {
                 final String sourceText = sourceTextService.text(source);
-                if(region != null) {
-                    final String affected =
-                        AffectedSourceHelper.affectedSourceText(message.region(), sourceText, "    ");
-                    if(affected != null) {
-                        sb.append(affected);
-                    }
+                final String affected =
+                    AffectedSourceHelper.affectedSourceText(message.region(), sourceText, "    ");
+                if(affected != null) {
+                    sb.append(affected);
                 }
             } catch(IOException e) {
             }
