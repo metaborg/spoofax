@@ -54,6 +54,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import mb.flowspec.terms.B;
 import mb.nabl2.terms.stratego.StrategoTermIndices;
 import mb.nabl2.terms.stratego.TermIndex;
 import mb.nabl2.terms.stratego.TermOrigin;
@@ -231,9 +232,10 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final Map<String, IStrategoTerm> results = new HashMap<>();
         final IStrategoTerm action;
         if(multifile()) {
-            action = build("AnalyzeMulti", projectChange, termFactory.makeList(changes));
+            action = build("AnalyzeMulti", projectChange, termFactory.makeList(changes), B.blob(progress),
+                    B.blob(cancel));
         } else {
-            action = build("AnalyzeSingle", termFactory.makeList(changes));
+            action = build("AnalyzeSingle", termFactory.makeList(changes), B.blob(progress), B.blob(cancel));
         }
         final IStrategoTerm allResultsTerm;
         try {
