@@ -45,6 +45,7 @@ public class ExplicateInjectionsPrimitive extends AbstractPrimitive {
         } catch(InterpreterRuntimeException ex) {
             throw ex.getCause();
         }
+        if (result == null) return false;
         env.setCurrent(result);
         return true;
     }

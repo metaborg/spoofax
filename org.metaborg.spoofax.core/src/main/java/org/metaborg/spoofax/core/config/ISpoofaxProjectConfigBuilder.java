@@ -78,15 +78,6 @@ public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
 
 
     /**
-     * Sets the typesmart property.
-     *
-     * @param typesmart
-     *            The typesmart property.
-     * @return This builder.
-     */
-    ISpoofaxProjectConfigBuilder withTypesmart(boolean typesmart);
-
-    /**
      * Sets whether debug output is enabled for the constraint solver.
      * 
      * @param incremental

@@ -514,19 +514,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         final StrategoFormat strFormat = config.strFormat();
 
-        final FileObject strJavaStratFileCandidate = paths.strMainJavaStratFile(config.identifier().id);
-        final @Nullable File strJavaStratFile;
-        if(strJavaStratFileCandidate.exists()) {
-            strJavaStratFile = resourceService.localPath(strJavaStratFileCandidate);
-        } else {
-            strJavaStratFile = null;
-        }
-
-        final List<File> strJavaStratIncludeDirs =
-            Lists.newArrayList(resourceService.localPath(paths.targetClassesDir()));
-
-        return new PackageBuilder.Input(context, config.identifier().id, origin, strFormat, strJavaStratFile,
-            strJavaStratIncludeDirs);
+        return new PackageBuilder.Input(context, config.identifier().id, origin, strFormat);
     }
 
     private ArchiveBuilder.Input archiveBuilderInput(LanguageSpecBuildInput input, Origin origin) {

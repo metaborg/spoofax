@@ -6,16 +6,20 @@ imports
   statix/api
 
   pp
+  injections/-
 
 rules // Analysis
 
   // see README.md for details on how to switch to multi-file analysis
 
   // single-file analysis
-  editor-analyze = stx-editor-analyze(id|"statics", "programOK")
+  editor-analyze = stx-editor-analyze(pre-analyze, post-analyze|"statics", "programOk")
   
   // multi-file analysis
-//  editor-analyze = stx-editor-analyze(id|"statics", "projectOk", "fileOk")
+//  editor-analyze = stx-editor-analyze(pre-analyze, post-analyze|"statics", "projectOk", "fileOk")
+
+  pre-analyze  = explicate-injections-{{name}}
+  post-analyze = strip-annos; implicate-injections-{{name}}
 
 rules // Editor Services
 
@@ -29,6 +33,11 @@ rules // Debugging
   debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
     with filename := <guarantee-extension(|"aterm")> path
        ; result   := selected
+
+  // Prints the pre-analyzed abstract syntax ATerm of a selection.
+  debug-show-pre-analyzed: (selected, _, _, path, project-path) -> (filename, result)
+    with filename := <guarantee-extension(|"pre-analyzed.aterm")> path
+       ; result   := <pre-analyze> selected
 
   // Prints the analyzed annotated abstract syntax ATerm of a selection.
   debug-show-analyzed: (selected, _, _, path, project-path) -> (filename, result)

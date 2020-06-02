@@ -81,11 +81,6 @@
 		</dependency>
 		<!-- <dependency> <groupId>org.metaborg</groupId> <artifactId>org.metaborg.meta.lang.dynsem.interpreter</artifactId> 
 			<version>${metaborg-version}</version> </dependency> -->
-		<dependency>
-			<groupId>org.metaborg</groupId>
-			<artifactId>org.spoofax.terms.typesmart</artifactId>
-			<version>${metaborg-version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -112,8 +107,8 @@
 			<artifactId>guava</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.netflix.rxjava</groupId>
-			<artifactId>rxjava-core</artifactId>
+			<groupId>io.reactivex.rxjava3</groupId>
+			<artifactId>rxjava</artifactId>
 		</dependency>
 
 		<dependency>

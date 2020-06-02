@@ -30,7 +30,6 @@ import org.metaborg.spoofax.core.analysis.SpoofaxAnalyzeResults;
 import org.metaborg.spoofax.core.context.constraint.IConstraintContext;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.AnalyzeContrib;
 import org.metaborg.spoofax.core.unit.AnalyzeUpdateData;
@@ -55,6 +54,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import mb.flowspec.terms.B;
 import mb.nabl2.terms.stratego.StrategoTermIndices;
 import mb.nabl2.terms.stratego.TermIndex;
 import mb.nabl2.terms.stratego.TermOrigin;
@@ -74,7 +74,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     public AbstractConstraintAnalyzer(final AnalysisCommon analysisCommon, final IResourceService resourceService,
             final IStrategoRuntimeService runtimeService, final IStrategoCommon strategoCommon,
-            final ITermFactoryService termFactoryService, final ISpoofaxTracingService tracingService,
+            final ITermFactory termFactory, final ISpoofaxTracingService tracingService,
             final ISpoofaxUnitService unitService) {
         this.analysisCommon = analysisCommon;
         this.resourceService = resourceService;
@@ -82,7 +82,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         this.strategoCommon = strategoCommon;
         this.tracingService = tracingService;
         this.unitService = unitService;
-        this.termFactory = termFactoryService.getGeneric();
+        this.termFactory = termFactory;
     }
 
     protected abstract boolean multifile();
@@ -118,7 +118,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         final HybridInterpreter runtime;
         try {
-            runtime = runtimeService.runtime(facetContribution.contributor, context, false);
+            runtime = runtimeService.runtime(facetContribution.contributor, context);
         } catch(MetaborgException e) {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
@@ -232,9 +232,10 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final Map<String, IStrategoTerm> results = new HashMap<>();
         final IStrategoTerm action;
         if(multifile()) {
-            action = build("AnalyzeMulti", projectChange, termFactory.makeList(changes));
+            action = build("AnalyzeMulti", projectChange, termFactory.makeList(changes), B.blob(progress),
+                    B.blob(cancel));
         } else {
-            action = build("AnalyzeSingle", termFactory.makeList(changes));
+            action = build("AnalyzeSingle", termFactory.makeList(changes), B.blob(progress), B.blob(cancel));
         }
         final IStrategoTerm allResultsTerm;
         try {

@@ -19,8 +19,6 @@ import org.metaborg.util.task.IProgress;
 
 import com.google.inject.Inject;
 
-import rx.functions.Action1;
-
 /**
  * Default implementation for the processor runner.
  */
@@ -32,17 +30,9 @@ public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, AU ex
     @Inject public ProcessorRunner(IProcessor<P, A, AU, T> processor, ILanguageService languageService) {
         this.processor = processor;
 
-        languageService.componentChanges().subscribe(new Action1<LanguageComponentChange>() {
-            @Override public void call(LanguageComponentChange change) {
-                languageChange(change);
-            }
-        });
+        languageService.componentChanges().subscribe(this::languageChange);
 
-        languageService.implChanges().subscribe(new Action1<LanguageImplChange>() {
-            @Override public void call(LanguageImplChange change) {
-                languageChange(change);
-            }
-        });
+        languageService.implChanges().subscribe(this::languageChange);
     }
 
 

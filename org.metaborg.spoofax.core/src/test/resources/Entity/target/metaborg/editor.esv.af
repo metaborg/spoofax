@@ -29,7 +29,7 @@ Module(
       , Table("target/metaborg/sdf.tbl")
       , StartSymbols([Sort("Start")])
       , SemanticProvider("target/metaborg/stratego.ctree")
-      , SemanticProvider("target/metaborg/stratego-javastrat.jar")
+      , SemanticProvider("target/metaborg/stratego.jar")
       , SemanticObserver(Strategy("editor-analyze"), [MultiFile()])
       , OnSave(Strategy("editor-save"), None())
       ]

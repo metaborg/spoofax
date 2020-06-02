@@ -20,13 +20,11 @@ public interface IStrategoRuntimeService extends ILanguageCache {
      *            Language component to load the Stratego CTree and JAR files from.
      * @param context
      *            Context to initialize the runtime with.
-     * @param typesmart
-     *            Whether the runtime should do typesmart analysis.
      * @return New Stratego runtime.
      * @throws MetaborgException
      *             When loading a Stratego CTree or JAR fails.
      */
-    HybridInterpreter runtime(ILanguageComponent component, IContext context, boolean typesmart) throws MetaborgException;
+    HybridInterpreter runtime(ILanguageComponent component, IContext context) throws MetaborgException;
 
     /**
      * Returns a new Stratego runtime for given component, initialized without a context.
@@ -35,13 +33,11 @@ public interface IStrategoRuntimeService extends ILanguageCache {
      *            Language component to load the Stratego CTree and JAR files from.
      * @param location
      *            Location to initialize the runtime with.
-     * @param typesmart
-     *            Whether the runtime should do typesmart analysis.
      * @return New Stratego runtime.
      * @throws MetaborgException
      *             When loading a Stratego CTree or JAR fails.
      */
-    HybridInterpreter runtime(ILanguageComponent component, FileObject location, boolean typesmart)
+    HybridInterpreter runtime(ILanguageComponent component, FileObject location)
         throws MetaborgException;
 
     /**

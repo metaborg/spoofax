@@ -26,9 +26,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 
-import rx.Observable;
-import rx.subjects.PublishSubject;
-import rx.subjects.Subject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.subjects.Subject;
+
 
 public class LanguageService implements ILanguageService, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageService.class);
@@ -37,11 +38,11 @@ public class LanguageService implements ILanguageService, AutoCloseable {
 
     private final Map<FileName, ILanguageComponentInternal> locationToComponent = Maps.newHashMap();
     private final Map<LanguageIdentifier, ILanguageComponentInternal> identifierToComponent = Maps.newHashMap();
-    private final Subject<LanguageComponentChange, LanguageComponentChange> componentChanges = PublishSubject.create();
+    private final Subject<LanguageComponentChange> componentChanges = PublishSubject.create();
 
     private final Map<LanguageIdentifier, ILanguageImplInternal> identifierToImpl = Maps.newHashMap();
     private final SetMultimap<String, ILanguageImplInternal> idToImpl = HashMultimap.create();
-    private final Subject<LanguageImplChange, LanguageImplChange> implChanges = PublishSubject.create();
+    private final Subject<LanguageImplChange> implChanges = PublishSubject.create();
 
     private final Map<String, ILanguageInternal> nameToLanguage = Maps.newHashMap();
 
@@ -65,10 +66,10 @@ public class LanguageService implements ILanguageService, AutoCloseable {
         languageCache.invalidateAll();
         languageCache.cleanUp();
         nameToLanguage.clear();
-        implChanges.onCompleted();
+        implChanges.onComplete();
         idToImpl.clear();
         identifierToImpl.clear();
-        componentChanges.onCompleted();
+        componentChanges.onComplete();
         identifierToComponent.clear();
         locationToComponent.clear();
     }
