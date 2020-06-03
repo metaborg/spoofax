@@ -163,8 +163,12 @@ public class StrategoCommon implements IStrategoCommon {
 		final IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
 		final IStrategoAppl strategyTerm = termFactory.makeAppl("SVar", strategyNameTerm);
 		
-		termArguments.add(0, strategyTerm);
-		IStrategoTerm[] termArgumentArray = termArguments.toArray(new IStrategoTerm[termArguments.size()]);
+		IStrategoTerm[] termArgumentArray = new IStrategoTerm[termArguments.size() + 1];
+		termArgumentArray[0] = strategyTerm;
+		for(int i = 1; i < termArgumentArray.length; i++) {
+			termArgumentArray[i] = termArguments.get(i - 1);
+		}
+		
 		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", termArgumentArray);
 		try {
 			if(runtime.evaluate(strategyCallTerm)) {
