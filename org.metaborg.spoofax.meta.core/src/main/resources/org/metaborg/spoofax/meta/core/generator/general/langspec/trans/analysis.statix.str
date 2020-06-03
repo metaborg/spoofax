@@ -19,7 +19,7 @@ rules // Analysis
 //  editor-analyze = stx-editor-analyze(pre-analyze, post-analyze|"statics", "projectOk", "fileOk")
 
   pre-analyze  = explicate-injections-{{name}}
-  post-analyze = strip-annos; implicate-injections-{{name}}
+  post-analyze = implicate-injections-{{name}}
 
 rules // Editor Services
 
