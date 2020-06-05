@@ -122,8 +122,12 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
     private Collection<IMessage> mapMessages(FileObject resource, Collection<Message> messages) {
         return messages.stream().map(message -> {
-            ISourceRegion region = new SourceRegion(message.region.startOffset, message.region.startRow,
-                message.region.startColumn, message.region.endOffset, message.region.endRow, message.region.endColumn);
+        	ISourceRegion region = null;
+        	
+        	if(message.region != null) {
+        		region = new SourceRegion(message.region.startOffset, message.region.startRow,
+                        message.region.startColumn, message.region.endOffset, message.region.endRow, message.region.endColumn); 
+        	}
             MessageSeverity severity;
 
             switch(message.severity) {
