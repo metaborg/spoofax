@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.stratego;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -33,6 +35,7 @@ public interface IStrategoCommon {
      */
     @Nullable IStrategoTerm invoke(ILanguageComponent component, IContext context, IStrategoTerm input, String strategy)
         throws MetaborgException;
+    
 
     /**
      * Invokes a Stratego strategy in components of given language implementation. Returns the first result that
@@ -54,6 +57,27 @@ public interface IStrategoCommon {
      */
     @Nullable IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input, String strategy)
         throws MetaborgException;
+    
+    /**
+     * Invokes a Stratego strategy in components of given language implementation. Returns the first result that
+     * succeeds.
+     *
+     * @param impl
+     *            Language implementation to invoke the strategy in.
+     * @param context
+     *            Context to initialize the runtime with.
+     * @param input
+     *            Input term
+     * @param strategy
+     *            Name of the strategy to call.
+     * @return Resulting term, or null if the strategy failed.
+     * @throws MetaborgException
+     *             When an error occurs getting a Stratego runtime.
+     * @throws MetaborgException
+     *             When invoking the strategy fails unexpectedly.
+     */
+    @Nullable IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input, String strategy,
+    		List<IStrategoTerm> termArguments) throws MetaborgException;
 
     /**
      * Invokes a Stratego strategy in components of given language implementation. Returns the first result that
@@ -67,6 +91,8 @@ public interface IStrategoCommon {
      *            Input term
      * @param strategy
      *            Name of the strategy to call.
+     * @param termArguments
+     *            Term arguments the strategy gets called with
      * @return Resulting term, or null if the strategy failed.
      * @throws MetaborgException
      *             When an error occurs getting a Stratego runtime.
@@ -75,6 +101,29 @@ public interface IStrategoCommon {
      */
     @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input, String strategy)
         throws MetaborgException;
+    
+    /**
+     * Invokes a Stratego strategy in components of given language implementation. Returns the first result that
+     * succeeds.
+     *
+     * @param impl
+     *            Language implementation to invoke the strategy in.
+     * @param location
+     *            Location to initialize the Stratego runtime with.
+     * @param input
+     *            Input term
+     * @param strategy
+     *            Name of the strategy to call.
+     * @param termArguments
+     *            Term arguments the strategy gets called with
+     * @return Resulting term, or null if the strategy failed.
+     * @throws MetaborgException
+     *             When an error occurs getting a Stratego runtime.
+     * @throws MetaborgException
+     *             When invoking the strategy fails unexpectedly.
+     */
+    @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input, String strategy,
+    		List<IStrategoTerm> termArguments) throws MetaborgException;
 
     /**
      * Invokes a Strategy strategy in given runtime.
@@ -91,6 +140,24 @@ public interface IStrategoCommon {
      */
     @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
         throws MetaborgException;
+    
+    /**
+     * Invokes a Strategy strategy in given runtime.
+     * 
+     * @param runtime
+     *            Stratego runtime to invoke the strategy in.
+     * @param input
+     *            Input term
+     * @param strategy
+     *            Name of the strategy to call.
+     * @param termArguments
+     *            Term arguments the strategy gets called with
+     * @return Resulting term, or null if the strategy failed.
+     * @throws MetaborgException
+     *             When invoking the strategy fails unexpectedly.
+     */
+    @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy, List<IStrategoTerm> termArguments) 
+    		throws MetaborgException;
 
     /**
      * Converts a location into a Stratego string.
