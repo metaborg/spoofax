@@ -87,7 +87,7 @@ public class StrategoCommon implements IStrategoCommon {
                     continue;
                 }
 
-                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context, true);
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
                 try {
                     final IStrategoTerm result = invoke(runtime, input, strategy, termArguments);
                     return result;
@@ -127,7 +127,7 @@ public class StrategoCommon implements IStrategoCommon {
                     continue;
                 }
 
-                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location, true);
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
                 try {
                     final IStrategoTerm result = invoke(runtime, input, strategy, termArguments);
                     return result;
@@ -158,7 +158,6 @@ public class StrategoCommon implements IStrategoCommon {
 	public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
 			List<IStrategoTerm> termArguments) throws MetaborgException {
 		runtime.setCurrent(input);
-		final ITermFactory termFactory = termFactoryService.getGeneric();
 		final String strategyName = strategy + "_0_" + termArguments.size();
 		final IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
 		final IStrategoAppl strategyTerm = termFactory.makeAppl("SVar", strategyNameTerm);
