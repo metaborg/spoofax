@@ -25,6 +25,14 @@ public interface IParseUnit extends IUnit {
     boolean success();
 
     /**
+     * Gets whether the parse result is ambiguous.
+     *
+     * @return {@code true} when the parse result is ambiguous;
+     * otherwise, {@code false} when the parse result is unambiguous, invalid, or unsuccessful.
+     */
+    boolean isAmbiguous();
+
+    /**
      * @return Messages produced by the parser.
      */
     Iterable<IMessage> messages();

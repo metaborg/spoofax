@@ -104,6 +104,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
         final JSGLR2Result<IStrategoTerm> result = parser.parseResult(request);
         IStrategoTerm ast = result.isSuccess() ? ((JSGLR2Success<IStrategoTerm>) result).ast : null;
+        boolean isAmbiguous = result.isSuccess() && ((JSGLR2Success<IStrategoTerm>) result).isAmbiguous();
         final Collection<IMessage> messages = mapMessages(resource, result.messages);
 
         // add non-assoc warnings to messages
@@ -117,7 +118,7 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         if(hasAst && resource != null)
             SourceAttachment.putSource(ast, resource);
 
-        return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
+        return new ParseContrib(hasAst, hasAst && !hasErrors, isAmbiguous, ast, messages, duration);
     }
 
     private Collection<IMessage> mapMessages(FileObject resource, Collection<Message> messages) {
