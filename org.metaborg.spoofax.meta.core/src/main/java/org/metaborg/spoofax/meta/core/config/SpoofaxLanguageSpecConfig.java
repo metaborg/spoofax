@@ -195,7 +195,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     @Override public StrategoGradualSetting strGradualSetting() {
         final String value = this.config.getString(PROP_STR_GRADUAL_SETTING);
-        return value != null ? StrategoGradualSetting.valueOf(value) : StrategoGradualSetting.off;
+        return value != null ? StrategoGradualSetting.valueOf(value.toUpperCase()) : StrategoGradualSetting.NONE;
     }
 
     @Override public StrategoFormat strFormat() {

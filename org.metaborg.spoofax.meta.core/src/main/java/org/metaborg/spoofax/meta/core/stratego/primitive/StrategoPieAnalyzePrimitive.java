@@ -164,7 +164,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
         Collection<STask> originTasks = sdfTasks;
         Frontends.Input strIncrAnalysisInput =
-            new Frontends.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation, config.strGradualSetting() == StrategoGradualSetting.on);
+            new Frontends.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation, config.strGradualSetting() == StrategoGradualSetting.DYNAMIC);
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
         final Pie pie = GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);

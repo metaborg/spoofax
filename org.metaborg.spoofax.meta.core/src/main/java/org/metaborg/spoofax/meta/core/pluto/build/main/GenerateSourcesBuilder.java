@@ -521,7 +521,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final List<String> builtinLibs = splitOffBuiltinLibs(extraArgs, newArgs);
                 final StrIncr.Input strIncrInput =
                     new StrIncr.Input(strFile, input.strJavaPackage, input.strjIncludeDirs, builtinLibs, cacheDir,
-                        Collections.emptyList(), newArgs, depPath, Collections.emptyList(), projectLocation, input.strGradualSetting == StrategoGradualSetting.on);
+                        Collections.emptyList(), newArgs, depPath, Collections.emptyList(), projectLocation, input.strGradualSetting == StrategoGradualSetting.DYNAMIC);
 
                 final Pie pie =
                     initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
