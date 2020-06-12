@@ -24,9 +24,8 @@ import com.google.common.collect.Lists;
 import build.pluto.builder.BuildRequest;
 import build.pluto.buildjava.JarBuilder;
 import build.pluto.dependency.Origin;
-import build.pluto.output.None;
 
-public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
+public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, PackageBuilder.Output> {
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
@@ -45,7 +44,34 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         }
     }
 
-    public static SpoofaxBuilderFactory<Input, None, PackageBuilder> factory =
+    public static class Output implements build.pluto.output.Output {
+        private static final long serialVersionUID = -3404709430588259993L;
+
+        public final Origin jarBuilderOrigin;
+
+        public Output(Origin jarBuilderOrigin) {
+            this.jarBuilderOrigin = jarBuilderOrigin;
+        }
+
+        @Override public int hashCode() {
+            return jarBuilderOrigin.hashCode();
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Output other = (Output) obj;
+            if(!jarBuilderOrigin.equals(other.jarBuilderOrigin))
+                return false;
+            return true;
+        }
+    }
+
+    public static SpoofaxBuilderFactory<Input, Output, PackageBuilder> factory =
         SpoofaxBuilderFactoryFactory.of(PackageBuilder.class, Input.class);
 
 
@@ -54,7 +80,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
     }
 
 
-    public static BuildRequest<Input, None, PackageBuilder, SpoofaxBuilderFactory<Input, None, PackageBuilder>>
+    public static BuildRequest<Input, Output, PackageBuilder, SpoofaxBuilderFactory<Input, Output, PackageBuilder>>
         request(Input input) {
         return new BuildRequest<>(factory, input);
     }
@@ -72,7 +98,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         return context.depPath("package.dep");
     }
 
-    @Override protected None build(Input input) throws Throwable {
+    @Override protected Output build(Input input) throws Throwable {
         requireBuild(input.origin);
 
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
@@ -97,9 +123,8 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, None> {
         final File jarFile = FileUtils.getFile(targetMetaborgDir, jarName);
         final File depPath = FileUtils.getFile(context.depDir, jarName + ".dep");
         final Origin origin = jar(jarFile, targetClassesDir, copyPatternOrigin, depPath, targetClassesDir);
-        requireBuild(origin);
 
-        return None.val;
+        return new Output(origin);
     }
 
     public Origin jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, File... paths)
