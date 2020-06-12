@@ -16,6 +16,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder.Output;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
 import org.metaborg.util.resource.FileSelectorUtils;
 import org.metaborg.util.resource.ZipArchiver;
@@ -35,11 +36,14 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
         public final Iterable<IExportConfig> exports;
         public final LanguageIdentifier languageIdentifier;
 
+        public final BuildRequest<?, Output, ?, ?> packageBuildRequest;
 
-        public Input(SpoofaxContext context, Origin origin, Iterable<IExportConfig> exports,
+
+        public Input(SpoofaxContext context, Origin origin, BuildRequest<?, Output, ?, ?> packageBuildRequest, Iterable<IExportConfig> exports,
             LanguageIdentifier languageIdentifier) {
             super(context);
             this.origin = origin;
+            this.packageBuildRequest = packageBuildRequest;
             this.exports = exports;
             this.languageIdentifier = languageIdentifier;
         }
@@ -75,6 +79,8 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
 
     @Override protected OutputTransient<File> build(Input input) throws Throwable {
         requireBuild(input.origin);
+        final Output packageBuilderOutput = requireBuild(input.packageBuildRequest);
+        requireBuild(packageBuilderOutput.jarBuilderOrigin);
 
         final ZipArchiver zipArchiver = new ZipArchiver();
         final FileObject root = paths.root();

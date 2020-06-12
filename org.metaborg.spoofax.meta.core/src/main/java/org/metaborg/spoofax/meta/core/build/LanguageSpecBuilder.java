@@ -38,11 +38,13 @@ import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
+import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.ArchiveBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
+import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder.Input;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.FileUtils;
@@ -248,10 +250,9 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final File archiveFile;
         try {
             final Origin generateSourcesOrigin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
-            final Origin packageOrigin = PackageBuilder.origin(packageBuilderInput(input, generateSourcesOrigin));
-            final Origin origin = Origin.Builder().add(generateSourcesOrigin).add(packageOrigin).get();
+            final BuildRequest<?,PackageBuilder.Output,?,?> packageBuildRequest = PackageBuilder.request(packageBuilderInput(input, generateSourcesOrigin));
             final String path = path(input);
-            archiveFile = plutoBuild(ArchiveBuilder.request(archiveBuilderInput(input, origin)), path).val();
+            archiveFile = plutoBuild(ArchiveBuilder.request(archiveBuilderInput(input, generateSourcesOrigin, packageBuildRequest)), path).val();
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage);
@@ -516,7 +517,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         return new PackageBuilder.Input(context, config.identifier().id, origin, strFormat);
     }
 
-    private ArchiveBuilder.Input archiveBuilderInput(LanguageSpecBuildInput input, Origin origin) {
+    private ArchiveBuilder.Input archiveBuilderInput(LanguageSpecBuildInput input, Origin origin, BuildRequest<?,PackageBuilder.Output,?,?> packageBuildRequest) {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
         final FileObject baseLoc = input.languageSpec().location();
@@ -527,6 +528,6 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final Iterable<IExportConfig> exports = config.exports();
         final LanguageIdentifier languageIdentifier = config.identifier();
 
-        return new ArchiveBuilder.Input(context, origin, exports, languageIdentifier);
+        return new ArchiveBuilder.Input(context, origin, packageBuildRequest, exports, languageIdentifier);
     }
 }
