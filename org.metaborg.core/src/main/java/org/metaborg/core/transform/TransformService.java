@@ -8,7 +8,9 @@ import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -80,11 +82,10 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TA> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
-        	if (!context.project().config().compileDeps().contains(action.contributor.id())) {
-        		// The action is contributed by a language component that is not a compile dependency of this project,
-        		// so we skip it.
-        		continue;
-        	}
+        	if (!isActionEnabled(action, context)) {
+        	    logger.info("Skipped action '" + action.action.name() + "' because it is not enabled by the project or a compile dependency.");
+                continue;
+            }
             final TA result = transformer.transform(input, context, action, config);
             results.add(result);
         }
@@ -148,5 +149,23 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
                 logger.format("Transformation {} requires an analyzed result, but a parsed result is given", action);
             throw new TransformException(message);
         }
+    }
+
+    /**
+     * Determines whether a transformation action is enabled.
+     *
+     * A transformation action is enabled when it is contributed by a language component that
+     * is a compile dependency of this project, or is a component of the project itself.
+     *
+     * @param action the action to check
+     * @param context the context in which to check
+     * @return {@code true} when the action is enabled; otherwise, {@code false}
+     */
+    private static boolean isActionEnabled(TransformActionContrib action, IContext context) {
+        // @formatter:off
+        final ILanguageComponent actionContributor = action.contributor;
+        return context.project().config().compileDeps().contains(actionContributor.id())
+            || context.language().components().contains(actionContributor);
+        // @formatter:on
     }
 }
