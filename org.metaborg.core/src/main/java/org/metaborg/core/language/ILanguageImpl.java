@@ -3,6 +3,9 @@ package org.metaborg.core.language;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageImplConfig;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * Interface that represents a language implementation. A language implementation is a view over all components that
  * contribute to the implementation. An implementation belongs to a language. Facet operations return facets from all
@@ -22,12 +25,12 @@ public interface ILanguageImpl extends IFacetContributions {
     /**
      * @return Locations of this implementation's components.
      */
-    Iterable<FileObject> locations();
+    List<FileObject> locations();
 
     /**
      * @return All components that contribute to this implementation.
      */
-    Iterable<ILanguageComponent> components();
+    Set<ILanguageComponent> components();
 
     /**
      * @return Language this implementation belongs to.
