@@ -1,6 +1,7 @@
 package org.metaborg.core.transform;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.action.ITransformGoal;
@@ -164,6 +165,7 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     private static boolean isActionEnabled(TransformActionContrib action, IContext context) {
         // @formatter:off
         final ILanguageComponent actionContributor = action.contributor;
+        logger.info("Looking for '" + action.contributor.id() + "' in [" + context.project().config().compileDeps().stream().map(d -> d.toString()).collect(Collectors.joining(", ")) + "] or in [" + context.language().components().stream().map(d -> d.id().toString()).collect(Collectors.joining(", ")) + "].");
         return context.project().config().compileDeps().contains(actionContributor.id())
             || context.language().components().contains(actionContributor);
         // @formatter:on
