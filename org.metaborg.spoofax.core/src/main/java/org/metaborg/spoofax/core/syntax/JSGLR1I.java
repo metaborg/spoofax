@@ -1,10 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Nullable;
 
@@ -119,7 +116,27 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
             }
         }
         final boolean hasErrors = MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
-        return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
+        final boolean isAmbiguous = hasAst && isAmbiguous(ast);
+        return new ParseContrib(hasAst, hasAst && !hasErrors, isAmbiguous, ast, messages, duration);
+    }
+
+    /**
+     * Determines whether the AST has any ambiguities by traversing
+     * the AST until it finds an amb() node.
+     *
+     * @param ast the AST to check
+     * @return {@code true} when the AST has at least one ambiguity;
+     * otherwise, {@code false}
+     */
+    private boolean isAmbiguous(IStrategoTerm ast) {
+        LinkedList<IStrategoTerm> worklist = new LinkedList<>();
+        worklist.add(ast);
+        while (!worklist.isEmpty()) {
+            IStrategoTerm term = worklist.pop();
+            if (TermUtils.isAppl(term, "amb")) return true;
+            worklist.addAll(term.getSubterms());
+        }
+        return false;
     }
 
     public SGLRParseResult actuallyParse(String text, @Nullable String filename,
