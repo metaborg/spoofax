@@ -156,7 +156,7 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
      * Determines whether a transformation action is enabled.
      *
      * A transformation action is enabled when it is contributed by a language component that
-     * is a compile dependency of this project, or is a component of the project itself.
+     * is a compile dependency of this project, or when it is contributed by the project itself.
      *
      * @param action the action to check
      * @param context the context in which to check
@@ -164,10 +164,9 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
      */
     private static boolean isActionEnabled(TransformActionContrib action, IContext context) {
         // @formatter:off
-        final ILanguageComponent actionContributor = action.contributor;
-        logger.info("Looking for '" + action.contributor.id() + "' in [" + context.project().config().compileDeps().stream().map(d -> d.toString()).collect(Collectors.joining(", ")) + "] or in [" + context.language().components().stream().map(d -> d.id().toString()).collect(Collectors.joining(", ")) + "].");
-        return context.project().config().compileDeps().contains(actionContributor.id())
-            || context.language().components().contains(actionContributor);
+        final LanguageIdentifier actionContributorId = action.contributor.id();
+        return context.project().config().compileDeps().contains(actionContributorId)
+            || context.language().id().equals(actionContributorId);
         // @formatter:on
     }
 }
