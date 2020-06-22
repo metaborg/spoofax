@@ -255,7 +255,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final boolean checkOverlap = input.checkOverlap;
         final boolean checkPriorities = input.checkPriorities;
         ParseTableConfiguration config = new ParseTableConfiguration(dynamicGeneration, dataDependent, !layoutSensitive,
-            checkOverlap, checkPriorities);
+            checkOverlap, checkPriorities, layoutSensitive);
 
         Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, sdfNormFile, input.sourceDeps, tableFile,
             persistedTableFile, config, isCompletions);

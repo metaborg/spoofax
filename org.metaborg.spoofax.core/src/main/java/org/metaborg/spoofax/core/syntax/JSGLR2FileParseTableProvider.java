@@ -28,7 +28,7 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
         }
 
         resource.refresh();
-        
+
         if(!resource.exists()) {
             throw new IOException("Could not load parse table from " + resource + ", file does not exist");
         }
@@ -36,11 +36,13 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
         try(final InputStream stream = resource.getContent().getInputStream()) {
             final TermReader termReader = new TermReader(termFactory);
             IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
-       
+
             FileObject persistedTable = resource.getParent().resolveFile("table.bin");
             parseTable = new ParseTableReader().read(parseTableTerm);
+
             // only read serialized table when table generation is dynamic (#states = 0)
-            if(parseTable.totalStates() == 0 && persistedTable.exists()) {
+            // or when using layout-sensitive parsing
+            if((parseTable.totalStates() == 0 || parseTable.isLayoutSensitive()) && persistedTable.exists()) {
                 ParseTableIO ptg = new ParseTableIO(persistedTable);
 
                 org.metaborg.sdf2table.parsetable.ParseTable parseTableFromSerializable = ptg.getParseTable();
