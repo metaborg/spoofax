@@ -21,6 +21,7 @@ import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.file.URIEncode;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -104,7 +105,7 @@ public class ResourceService implements IResourceService {
         }
 
         try {
-            return parent.resolveFile(path);
+            return ResourceUtils.resolveFile(parent, path);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }
@@ -156,7 +157,7 @@ public class ResourceService implements IResourceService {
             if(resource.getType() == FileType.FOLDER) {
                 copyLoc = dir;
             } else {
-                copyLoc = dir.resolveFile(resource.getName().getBaseName());
+                copyLoc = ResourceUtils.resolveFile(dir, resource.getName().getBaseName());
             }
             copyLoc.copyFrom(resource, new AllFileSelector());
 

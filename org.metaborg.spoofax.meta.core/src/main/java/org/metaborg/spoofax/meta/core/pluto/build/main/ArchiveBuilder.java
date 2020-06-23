@@ -19,6 +19,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder.Output;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
 import org.metaborg.util.resource.FileSelectorUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.resource.ZipArchiver;
 
 import com.google.common.collect.Iterables;
@@ -105,7 +106,7 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
 
                 @Override public void visit(LangFileExport export) {
                     try {
-                        final FileObject file = paths.root().resolveFile(export.file);
+                        final FileObject file = ResourceUtils.resolveFile(paths.root(), export.file);
                         zipArchiver.addFile(export.file, file);
                     } catch(IOException e) {
                         report("Unable to package export: " + export);
@@ -115,7 +116,7 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
                 private void addFiles(IExportConfig export, String directory, Iterable<String> includes,
                     Iterable<String> excludes) {
                     try {
-                        final FileObject dir = paths.root().resolveFile(directory);
+                        final FileObject dir = ResourceUtils.resolveFile(paths.root(), directory);
                         final FileSelector includesSelector;
                         if(Iterables.isEmpty(includes)) {
                             includesSelector = FileSelectorUtils.all();

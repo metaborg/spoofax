@@ -23,7 +23,6 @@ import org.apache.commons.vfs2.provider.tar.TarFileProvider;
 import org.apache.commons.vfs2.provider.tar.Tbz2FileProvider;
 import org.apache.commons.vfs2.provider.tar.TgzFileProvider;
 import org.apache.commons.vfs2.provider.temp.TemporaryFileProvider;
-import org.apache.commons.vfs2.provider.webdav.WebdavFileProvider;
 import org.apache.commons.vfs2.provider.zip.ZipFileProvider;
 
 import com.google.inject.Provider;
@@ -81,7 +80,6 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
         manager.addProvider("bz2", new Bzip2FileProvider());
         manager.addProvider("http", new HttpFileProvider());
         manager.addProvider("https", new HttpsFileProvider());
-        manager.addProvider("webdav", new WebdavFileProvider());
         manager.addProvider("ftp", new FtpFileProvider());
         manager.addProvider("ftps", new FtpsFileProvider());
     }

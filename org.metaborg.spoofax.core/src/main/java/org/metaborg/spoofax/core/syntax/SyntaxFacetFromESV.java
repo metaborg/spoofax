@@ -10,6 +10,7 @@ import org.metaborg.core.syntax.FenceCharacters;
 import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Lists;
@@ -22,7 +23,7 @@ public class SyntaxFacetFromESV {
         if(parseTableLocation == null) {
             parseTable = null;
         } else {
-            parseTable = location.resolveFile(parseTableLocation);
+            parseTable = ResourceUtils.resolveFile(location, parseTableLocation);
         }
         final FileObject completionParseTable = null; 
         final Iterable<String> startSymbols = startSymbols(esv);
