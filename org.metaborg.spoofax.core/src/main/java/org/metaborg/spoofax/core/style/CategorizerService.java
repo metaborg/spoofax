@@ -18,9 +18,9 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokens;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
+import org.spoofax.terms.util.TermUtils;
 
 import com.google.common.collect.Lists;
-import org.spoofax.terms.util.TermUtils;
 
 public class CategorizerService implements ISpoofaxCategorizerService {
     private static final ILogger logger = LoggerUtils.logger(CategorizerService.class);
@@ -53,24 +53,7 @@ public class CategorizerService implements ISpoofaxCategorizerService {
             // GTODO: throw exception instead
             return regionCategories;
         }
-        final int tokenCount = tokenizer.getTokenCount();
-        int offset = -1;
-        for(int i = 0; i < tokenCount; ++i) {
-            final IToken token = tokenizer.getTokenAt(i);
-            if(tokenizer.isAmbiguous() && token.getStartOffset() < offset) {
-                // In case of ambiguities, tokens inside the ambiguity are duplicated, ignore.
-                continue;
-            }
-            if(token.getStartOffset() > token.getEndOffset()) {
-                // Indicates an invalid region. Empty lists have regions like this.
-                continue;
-            }
-            if(offset >= token.getStartOffset()) {
-                // Duplicate region, skip.
-                continue;
-            }
-            offset = token.getEndOffset();
-
+        for(IToken token : tokenizer) {
             final ICategory category = category(facet, token);
             if(category != null) {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromToken(token);
@@ -142,31 +125,31 @@ public class CategorizerService implements ISpoofaxCategorizerService {
 
     private ICategory tokenCategory(IToken token) {
         switch(token.getKind()) {
-            case IToken.TK_IDENTIFIER:
+            case TK_IDENTIFIER:
                 return new TokenCategory("TK_IDENTIFIER");
-            case IToken.TK_NUMBER:
+            case TK_NUMBER:
                 return new TokenCategory("TK_NUMBER");
-            case IToken.TK_STRING:
+            case TK_STRING:
                 return new TokenCategory("TK_STRING");
-            case IToken.TK_ERROR_KEYWORD:
-            case IToken.TK_KEYWORD:
+            case TK_ERROR_KEYWORD:
+            case TK_KEYWORD:
                 return new TokenCategory("TK_KEYWORD");
-            case IToken.TK_OPERATOR:
+            case TK_OPERATOR:
                 return new TokenCategory("TK_OPERATOR");
-            case IToken.TK_VAR:
+            case TK_VAR:
                 return new TokenCategory("TK_VAR");
-            case IToken.TK_ERROR_LAYOUT:
-            case IToken.TK_LAYOUT:
+            case TK_ERROR_LAYOUT:
+            case TK_LAYOUT:
                 return new TokenCategory("TK_LAYOUT");
             default:
                 logger.debug("Unhandled token kind " + token.getKind());
-            case IToken.TK_UNKNOWN:
-            case IToken.TK_ERROR:
-            case IToken.TK_EOF:
-            case IToken.TK_ERROR_EOF_UNEXPECTED:
-            case IToken.TK_ESCAPE_OPERATOR:
-            case IToken.TK_RESERVED:
-            case IToken.TK_NO_TOKEN_KIND:
+            case TK_UNKNOWN:
+            case TK_ERROR:
+            case TK_EOF:
+            case TK_ERROR_EOF_UNEXPECTED:
+            case TK_ESCAPE_OPERATOR:
+            case TK_RESERVED:
+            case TK_NO_TOKEN_KIND:
                 return null;
         }
     }
