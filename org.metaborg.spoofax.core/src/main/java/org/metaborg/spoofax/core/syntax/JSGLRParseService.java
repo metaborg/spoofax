@@ -21,6 +21,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -211,7 +212,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                                     throw new ParseException(input);
                                 }
 
-                                parseTable = component.location().resolveFile(parseTableLocation);
+                                parseTable = ResourceUtils.resolveFile(component.location(), parseTableLocation);
                                 multipleTables = true;
                             }
                         }

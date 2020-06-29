@@ -25,12 +25,12 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
     }
 
     /**
-     * The 'res:' filesystem redirects to resources inside the tests' JAR file or class file location, which are copied
+     * The 'res://' filesystem redirects to resources inside the tests' JAR file or class file location, which are copied
      * to the class file location from src/test/resources by Maven. The binary files of the Entity language are located
      * in the resources to test language discovery.
      */
     @Test public void discoverLanguage() throws Exception {
-        final FileObject location = resourceService.resolve("res:");
+        final FileObject location = resourceService.resolve("res://languages");
 
         final Iterable<ILanguageComponent> languages = languageDiscoveryService.discover(languageDiscoveryService.request(location));
 
@@ -41,7 +41,7 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
         final ILanguage language = impl.belongsTo();
 
         assertEquals("Entity", language.name());
-        assertEquals(resourceService.resolve("res:Entity"), component.location());
+        assertEquals(resourceService.resolve("res://languages/Entity"), component.location());
 
         final IdentificationFacet identificationFacet = impl.facet(IdentificationFacet.class);
 
@@ -49,15 +49,15 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
 
         final SyntaxFacet syntaxFacet = impl.facet(SyntaxFacet.class);
 
-        assertEquals(resourceService.resolve("res:Entity/target/metaborg/sdf.tbl"), syntaxFacet.parseTable);
+        assertEquals(resourceService.resolve("res://languages/Entity/target/metaborg/sdf.tbl"), syntaxFacet.parseTable);
 
         assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
         final DynamicClassLoadingFacet dynamicClassLoadingFacet = impl.facet(DynamicClassLoadingFacet.class);
         final StrategoRuntimeFacet strategoRuntimeFacet = impl.facet(StrategoRuntimeFacet.class);
 
-        assertIterableEquals(strategoRuntimeFacet.ctreeFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.ctree"));
-        assertIterableEquals(dynamicClassLoadingFacet.jarFiles, resourceService.resolve("res:Entity/target/metaborg/stratego.jar"));
+        assertIterableEquals(strategoRuntimeFacet.ctreeFiles, resourceService.resolve("res://languages/Entity/target/metaborg/stratego.ctree"));
+        assertIterableEquals(dynamicClassLoadingFacet.jarFiles, resourceService.resolve("res://languages/Entity/target/metaborg/stratego.jar"));
 
         final AnalysisFacet analysisFacet = impl.facet(AnalysisFacet.class);
 
