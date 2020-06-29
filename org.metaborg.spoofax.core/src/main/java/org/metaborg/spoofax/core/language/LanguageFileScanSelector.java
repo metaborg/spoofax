@@ -5,6 +5,7 @@ import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgConstants;
+import org.metaborg.util.resource.ResourceUtils;
 
 public class LanguageFileScanSelector implements FileSelector {
     @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {

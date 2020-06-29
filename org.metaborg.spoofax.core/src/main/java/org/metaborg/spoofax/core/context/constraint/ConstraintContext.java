@@ -91,7 +91,7 @@ public class ConstraintContext implements IConstraintContext {
 
     @Override public FileObject keyResource(String resource) {
         try {
-            return ResourceUtils.resolveFileRobust(location(), resource);
+            return ResourceUtils.resolveFile(location(), resource);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }

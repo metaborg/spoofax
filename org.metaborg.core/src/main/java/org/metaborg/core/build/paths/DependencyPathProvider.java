@@ -16,6 +16,7 @@ import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -76,7 +77,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     private void resolve(FileObject basedir, Iterable<String> paths, Collection<FileObject> filesToAppend) {
         for(String path : paths) {
             try {
-                filesToAppend.add(basedir.resolveFile(path));
+                filesToAppend.add(ResourceUtils.resolveFile(basedir, path));
             } catch(FileSystemException ex) {
                 throw new MetaborgRuntimeException(ex);
             }

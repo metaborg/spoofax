@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IExportVisitor;
@@ -26,6 +27,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
@@ -127,9 +129,8 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
                     @Override public void visit(LangDirExport export) {
                         if(export.language.equals(SpoofaxConstants.LANG_ATERM_NAME)) {
                             try {
-                                paths
-                                    .add(toFileReplicate(component.location().resolveFile(export.directory))
-                                        .getAbsolutePath());
+                                final FileObject dir = ResourceUtils.resolveFile(component.location(), export.directory);
+                                paths.add(toFileReplicate(dir).getAbsolutePath());
                             } catch(FileSystemException e) {
                                 System.out.println("Failed to locate path");
                                 e.printStackTrace();

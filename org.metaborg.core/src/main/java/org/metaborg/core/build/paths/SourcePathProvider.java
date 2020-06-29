@@ -9,6 +9,7 @@ import org.metaborg.core.config.ISourceConfig;
 import org.metaborg.core.config.ISourceVisitor;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.common.collect.Lists;
 
@@ -34,7 +35,7 @@ public class SourcePathProvider implements ILanguagePathProvider {
 
     private FileObject resolve(FileObject baseDir, String path) {
         try {
-            return baseDir.resolveFile(path);
+            return ResourceUtils.resolveFile(baseDir, path);
         } catch(FileSystemException ex) {
             throw new MetaborgRuntimeException(ex);
         }
