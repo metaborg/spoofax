@@ -26,7 +26,10 @@ import org.spoofax.jsglr.client.ParseException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
-import org.spoofax.jsglr.client.imploder.*;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.jsglr.client.imploder.NullTokenizer;
+import org.spoofax.jsglr.client.imploder.TermTreeFactory;
+import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
@@ -126,9 +129,14 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
      * otherwise, {@code false}
      */
     private boolean isAmbiguous(IStrategoTerm ast) {
-        final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(ast);
-        final ITokenizer tokenizer = (ITokenizer)rootImploderAttachment.getLeftToken().getTokenizer();
-        return tokenizer.isAmbiguous();
+        LinkedList<IStrategoTerm> worklist = new LinkedList<>();
+        worklist.add(ast);
+        while (!worklist.isEmpty()) {
+            IStrategoTerm term = worklist.pop();
+            if (TermUtils.isAppl(term, "amb")) return true;
+            worklist.addAll(term.getSubterms());
+        }
+        return false;
     }
 
     public SGLRParseResult actuallyParse(String text, @Nullable String filename,
