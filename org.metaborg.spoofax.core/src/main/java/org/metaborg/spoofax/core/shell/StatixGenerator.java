@@ -33,7 +33,6 @@ import com.google.common.collect.Streams;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.matching.Transform.T;
 import mb.nabl2.terms.stratego.StrategoTerms;
-import mb.nabl2.util.Tuple2;
 import mb.nabl2.util.TermFormatter;
 import mb.nabl2.util.Tuple2;
 import mb.statix.solver.IConstraint;

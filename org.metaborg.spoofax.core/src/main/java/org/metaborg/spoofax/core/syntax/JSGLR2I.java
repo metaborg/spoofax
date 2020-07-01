@@ -26,7 +26,12 @@ import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.shared.BadTokenException;
-import org.spoofax.jsglr2.*;
+import org.spoofax.jsglr2.JSGLR2;
+import org.spoofax.jsglr2.JSGLR2Request;
+import org.spoofax.jsglr2.JSGLR2Result;
+import org.spoofax.jsglr2.JSGLR2Spec;
+import org.spoofax.jsglr2.JSGLR2Success;
+import org.spoofax.jsglr2.JSGLR2Variant;
 import org.spoofax.jsglr2.messages.Message;
 
 import com.google.common.collect.SetMultimap;

@@ -17,7 +17,6 @@ import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.IProject;
-import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.inject.Inject;
 

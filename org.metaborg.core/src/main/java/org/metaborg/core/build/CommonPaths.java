@@ -8,7 +8,6 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.ResourceUtils;
 
 public class CommonPaths {
     static final ILogger logger = LoggerUtils.logger(CommonPaths.class);

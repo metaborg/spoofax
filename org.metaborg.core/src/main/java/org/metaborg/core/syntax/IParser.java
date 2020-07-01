@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
-import javax.annotation.Nullable;
 
 /**
  * Interface for a context-free parser implementation.

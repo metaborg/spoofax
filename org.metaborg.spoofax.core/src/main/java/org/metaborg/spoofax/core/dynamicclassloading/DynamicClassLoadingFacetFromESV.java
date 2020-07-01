@@ -2,8 +2,6 @@ package org.metaborg.spoofax.core.dynamicclassloading;
 
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.esv.ESVReader;

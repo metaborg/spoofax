@@ -1,6 +1,5 @@
 package org.metaborg.core.testing;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 

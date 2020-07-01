@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import mb.nabl2.util.Tuple2;
-import mb.nabl2.util.Tuple2;
 
 public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
 

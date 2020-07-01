@@ -1,7 +1,6 @@
 package org.metaborg.core.transform;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.action.ITransformGoal;
@@ -9,7 +8,6 @@ import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.syntax.IParseUnit;
