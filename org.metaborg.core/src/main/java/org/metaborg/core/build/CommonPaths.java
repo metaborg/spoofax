@@ -70,36 +70,36 @@ public class CommonPaths {
         return resolve(srcGenDir(), MetaborgConstants.FILE_COMPONENT_CONFIG);
     }
 
-    @Nullable protected FileObject find(Iterable<FileObject> dirs, String path) {
+    @Nullable protected FileObject find(Iterable<FileObject> dirs, String relativePath) {
         FileObject file = null;
         for(FileObject dir : dirs) {
             try {
-                FileObject candidate = dir.resolveFile(path);
+                FileObject candidate = dir.resolveFile(relativePath);
                 if(candidate.exists()) {
                     if(file != null) {
-                        throw new MetaborgRuntimeException("Found multiple candidates for " + path);
+                        throw new MetaborgRuntimeException("Found multiple candidates for " + relativePath);
                     } else {
                         file = candidate;
                     }
                 }
             } catch(FileSystemException e) {
-                logger.warn("Error when trying to resolve {} in {}", e, path, dir);
+                logger.warn("Error when trying to resolve {} in {}", e, relativePath, dir);
             }
         }
         return file;
     }
 
-    protected FileObject resolve(FileObject dir, String path) {
+    protected FileObject resolve(FileObject dir, String relativePath) {
         try {
-            return dir.resolveFile(path);
+            return dir.resolveFile(relativePath);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }
     }
 
-    protected FileObject resolve(FileObject dir, String... paths) {
+    protected FileObject resolve(FileObject dir, String... relativePaths) {
         FileObject file = dir;
-        for(String path : paths) {
+        for(String path : relativePaths) {
             file = resolve(file, path);
         }
         return file;

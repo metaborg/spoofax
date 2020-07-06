@@ -15,17 +15,16 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.sdf2table.parsetable.ParseTable;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr2.JSGLR2;
 import org.strategoxt.lang.Context;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -38,7 +37,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     private static final ILogger logger = LoggerUtils.logger(JSGLRParseService.class);
 
     private final ISpoofaxUnitService unitService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final IStrategoRuntimeService strategoRuntimeService;
     private final JSGLRParserConfiguration defaultParserConfig;
 
@@ -51,10 +50,10 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     private final Map<ILanguageImpl, JSGLRI<?>> parsers = Maps.newHashMap();
     private final Map<ILanguageImpl, JSGLRI<?>> completionParsers = Maps.newHashMap();
 
-    @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactoryService termFactoryService,
+    @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactory termFactory,
         IStrategoRuntimeService strategoRuntimeService, JSGLRParserConfiguration defaultParserConfig) {
         this.unitService = unitService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.strategoRuntimeService = strategoRuntimeService;
         this.defaultParserConfig = defaultParserConfig;
     }
@@ -143,7 +142,6 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
         if(!parserMap.containsKey(langImpl) || overrideImploder != null || overrideJSGLRVersion != null) {
             final IParserConfig config = getParserConfig(langImpl, input, parserConfig.completion, overrideJSGLRVersion, overrideImploder);
-            final ITermFactory termFactory = termFactoryService.get(langImpl, null, false);
             final JSGLRVersion version = jsglrVersion(input, overrideJSGLRVersion);
 
             final JSGLRI<?> parser;
@@ -180,7 +178,6 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
         IParserConfig parserConfig = null;
         if(!parserConfigMap.containsKey(lang) || overrideJSGLRVersion != null) {
-            final ITermFactory termFactory = termFactoryService.getGeneric();
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
 
             final String errorNotFound;
@@ -214,7 +211,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
                                     throw new ParseException(input);
                                 }
 
-                                parseTable = component.location().resolveFile(parseTableLocation);
+                                parseTable = ResourceUtils.resolveFile(component.location(), parseTableLocation);
                                 multipleTables = true;
                             }
                         }

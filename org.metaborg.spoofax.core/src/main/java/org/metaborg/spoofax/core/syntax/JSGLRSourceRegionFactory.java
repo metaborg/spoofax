@@ -20,7 +20,7 @@ public class JSGLRSourceRegionFactory {
         int rightEndOffset = right.getEndOffset();
 
         // To fix the difference between offset and cursor position
-        if(left.getKind() != IToken.TK_LAYOUT && !isNullable)
+        if(left.getKind() != IToken.Kind.TK_LAYOUT && !isNullable)
             leftStartOffset++;
 
         if(isNullable)

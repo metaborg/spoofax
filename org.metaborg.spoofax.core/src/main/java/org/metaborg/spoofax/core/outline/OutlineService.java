@@ -29,6 +29,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -91,9 +92,9 @@ public class OutlineService implements ISpoofaxOutlineService {
         try {
             final HybridInterpreter interpreter;
             if(context == null) {
-                interpreter = strategoRuntimeService.runtime(contributor, source, true);
+                interpreter = strategoRuntimeService.runtime(contributor, source);
             } else {
-                interpreter = strategoRuntimeService.runtime(contributor, context, true);
+                interpreter = strategoRuntimeService.runtime(contributor, context);
             }
             final IStrategoTerm input = common.builderInputTerm(result.ast(), source, source);
             final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
@@ -122,7 +123,7 @@ public class OutlineService implements ISpoofaxOutlineService {
         final String strategy = facet.strategyName;
 
         try {
-            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, context, true);
+            final HybridInterpreter interpreter = strategoRuntimeService.runtime(contributor, context);
             final IStrategoTerm input = common.builderInputTerm(result.ast(), source, context.location());
             final IStrategoTerm outlineTerm = common.invoke(interpreter, input, strategy);
             if(outlineTerm == null) {
@@ -219,7 +220,7 @@ public class OutlineService implements ISpoofaxOutlineService {
         final IStrategoString iconTermString = (IStrategoString) iconTerm;
         final String iconLocation = iconTermString.stringValue();
         try {
-            return location.resolveFile(iconLocation);
+            return ResourceUtils.resolveFile(location, iconLocation);
         } catch(FileSystemException e) {
             logger.error("Cannot resolve icon {} in {}", e, iconLocation, location);
             return null;

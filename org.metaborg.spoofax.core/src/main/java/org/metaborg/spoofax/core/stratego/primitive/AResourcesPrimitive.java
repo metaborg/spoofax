@@ -23,15 +23,14 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
+import org.spoofax.terms.util.TermUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import mb.nabl2.util.ImmutableTuple2;
 import mb.nabl2.util.Tuple2;
-import org.spoofax.terms.util.TermUtils;
 
 public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
 
@@ -104,7 +103,7 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
                     term = cacheEntry._2();
                 } else {
                     term = termReader.parseFromStream(content.getInputStream());
-                    fileCache.put(file, ImmutableTuple2.of(content.getLastModifiedTime(), term));
+                    fileCache.put(file, Tuple2.of(content.getLastModifiedTime(), term));
                 }
             } catch(IOException e) {
                 fileCache.invalidateAll(Arrays.asList(file));

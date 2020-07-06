@@ -11,9 +11,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
-import org.apache.commons.vfs2.provider.FileReplicator;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -21,6 +19,7 @@ import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.file.URIEncode;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -104,7 +103,7 @@ public class ResourceService implements IResourceService {
         }
 
         try {
-            return parent.resolveFile(path);
+            return ResourceUtils.resolveFile(parent, path);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException(e);
         }
@@ -156,7 +155,7 @@ public class ResourceService implements IResourceService {
             if(resource.getType() == FileType.FOLDER) {
                 copyLoc = dir;
             } else {
-                copyLoc = dir.resolveFile(resource.getName().getBaseName());
+                copyLoc = ResourceUtils.resolveFile(dir, resource.getName().getBaseName());
             }
             copyLoc.copyFrom(resource, new AllFileSelector());
 

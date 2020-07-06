@@ -2,13 +2,12 @@ package org.metaborg.spoofax.core.stratego;
 
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import com.google.common.collect.Sets;
@@ -43,7 +42,7 @@ public class StrategoRuntimeFacetFromESV {
         // Use LinkedHashSet to maintain ordering.
         final Set<FileObject> attachedFiles = Sets.newLinkedHashSet();
         for(IStrategoAppl s : ESVReader.collectTerms(esv, "SemanticProvider")) {
-            attachedFiles.add(location.resolveFile(ESVReader.termContents(s)));
+            attachedFiles.add(ResourceUtils.resolveFile(location, ESVReader.termContents(s)));
         }
         return attachedFiles;
     }

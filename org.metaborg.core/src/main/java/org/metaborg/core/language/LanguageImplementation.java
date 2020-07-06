@@ -1,6 +1,7 @@
 package org.metaborg.core.language;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
@@ -38,15 +39,15 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
         return max;
     }
 
-    @Override public Iterable<FileObject> locations() {
-        final Collection<FileObject> locations = Lists.newLinkedList();
+    @Override public List<FileObject> locations() {
+        final List<FileObject> locations = Lists.newLinkedList();
         for(ILanguageComponent component : components) {
             locations.add(component.location());
         }
         return locations;
     }
 
-    @Override public Iterable<ILanguageComponent> components() {
+    @Override public Set<ILanguageComponent> components() {
         return components;
     }
 

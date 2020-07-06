@@ -89,7 +89,31 @@ import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoCommon;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.primitive.*;
+import org.metaborg.spoofax.core.stratego.primitive.AbsolutePathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.CallStrategyPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.DigestPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ExplicateInjectionsPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.GetSortNamePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.IsLanguageActivePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageComponentsPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageImplementationPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeDirectoriesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageIncludeFilesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguagePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageResourcesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceDirectoriesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LanguageSourceFilesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LocalPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.LocalReplicatePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ParsePrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ProjectPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.ProjectResourcesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.RelativeSourceOrIncludePath;
+import org.metaborg.spoofax.core.stratego.primitive.RelativeSourcePath;
+import org.metaborg.spoofax.core.stratego.primitive.SLShowDialogPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.SLShowInputDialogPrimitive;
+import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
+import org.metaborg.spoofax.core.stratego.primitive.StatixLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_partial_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.flowspec.FS_solve;
@@ -122,8 +146,6 @@ import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.syntax.JSGLRParseService;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.metaborg.spoofax.core.syntax.SpoofaxSyntaxService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.tracing.HoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxHoverService;
 import org.metaborg.spoofax.core.tracing.ISpoofaxResolverService;
@@ -148,6 +170,9 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.library.index.primitives.legacy.LegacyIndexLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
+import org.spoofax.terms.TermFactory;
 
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
@@ -322,10 +347,7 @@ public class SpoofaxModule extends MetaborgModule {
         bind(new TypeLiteral<ISyntaxService<?, ?>>() {}).to(SpoofaxSyntaxService.class);
         bind(ISyntaxService.class).to(SpoofaxSyntaxService.class);
 
-        bind(TermFactoryService.class).in(Singleton.class);
-        bind(ITermFactoryService.class).to(TermFactoryService.class);
-        languageCacheBinder.addBinding().to(TermFactoryService.class);
-        autoClosableBinder.addBinding().to(TermFactoryService.class);
+        bind(ITermFactory.class).toInstance(new ImploderOriginTermFactory(new TermFactory()));
     }
 
     protected void bindParsers(MapBinder<String, IParser<ISpoofaxInputUnit, ISpoofaxParseUnit>> parserBinder,

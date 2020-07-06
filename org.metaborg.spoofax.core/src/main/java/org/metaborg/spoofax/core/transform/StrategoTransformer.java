@@ -36,10 +36,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.time.Timer;
-import org.spoofax.interpreter.terms.IStrategoList;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
@@ -151,7 +148,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         // Get Stratego runtime
         final HybridInterpreter runtime;
         try {
-            runtime = strategoRuntimeService.runtime(component, context, true);
+            runtime = strategoRuntimeService.runtime(component, context);
         } catch(MetaborgException e) {
             throw new TransformException("Transformation failed unexpectedly; cannot get Stratego interpreter", e);
         }

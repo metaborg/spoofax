@@ -65,8 +65,8 @@ signature
 
   constructors // analysis
 
-    AnalyzeSingle  : List(String, Change) -> AnalysisAction
-    AnalyzeMulti   : (String, Change) * List(String, Change) -> AnalysisAction
+    AnalyzeSingle  : List(String, Change) * Progress * Cancel -> AnalysisAction
+    AnalyzeMulti   : (String, Change) * List(String, Change) * Progress * Cancel -> AnalysisAction
 
     AnalysisResult : List(String, Result) -> AnalysisResult
 

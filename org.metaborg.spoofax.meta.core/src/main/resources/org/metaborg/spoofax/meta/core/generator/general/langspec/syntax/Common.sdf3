@@ -1,39 +1,45 @@
 module Common
 
+lexical sorts
+  ID INT STRING
+  STRING_CHAR BACKSLASH_CHAR
+  COMMENT_CHAR INSIDE_COMMENT
+  NEWLINE_EOF EOF
+
 lexical syntax
 
-  ID             = [a-zA-Z] [a-zA-Z0-9]* 
-  INT            = "-"? [0-9]+ 
-  STRING         = "\"" StringChar* "\"" 
-  StringChar     = ~[\"\n] 
-  StringChar     = "\\\"" 
-  StringChar     = BackSlashChar 
-  BackSlashChar  = "\\" 
-  LAYOUT         = [\ \t\n\r] 
-  CommentChar    = [\*] 
-  LAYOUT         = "/*" InsideComment* "*/" 
-  InsideComment  = ~[\*] 
-  InsideComment  = CommentChar 
-  LAYOUT         = "//" ~[\n\r]* NewLineEOF 
-  NewLineEOF     = [\n\r] 
-  NewLineEOF     = EOF 
-  EOF            =  
+  ID               = [a-zA-Z] [a-zA-Z0-9]*
+  INT              = "-"? [0-9]+
+  STRING           = "\"" STRING_CHAR* "\""
+  STRING_CHAR      = ~[\"\n]
+  STRING_CHAR      = "\\\""
+  STRING_CHAR      = BACKSLASH_CHAR
+  BACKSLASH_CHAR   = "\\"
+  LAYOUT           = [\ \t\n\r]
+  COMMENT_CHAR     = [\*]
+  LAYOUT           = "/*" INSIDE_COMMENT* "*/"
+  INSIDE_COMMENT   = ~[\*]
+  INSIDE_COMMENT   = COMMENT_CHAR
+  LAYOUT           = "//" ~[\n\r]* NEWLINE_EOF
+  NEWLINE_EOF      = [\n\r]
+  NEWLINE_EOF      = EOF
+  EOF              =
 
 lexical restrictions
 
   // Ensure greedy matching for lexicals
   
-  CommentChar   -/- [\/]
-  INT           -/- [0-9]
-  ID            -/- [a-zA-Z0-9\_]
+  COMMENT_CHAR    -/- [\/]
+  INT             -/- [0-9]
+  ID              -/- [a-zA-Z0-9\_]
   
   // EOF may not be followed by any char
   
-  EOF           -/- ~[]
+  EOF             -/- ~[]
   
   // Backslash chars in strings may not be followed by " 
   
-  BackSlashChar -/- [\"]
+  BACKSLASH_CHAR  -/- [\"]
 
 context-free restrictions
 

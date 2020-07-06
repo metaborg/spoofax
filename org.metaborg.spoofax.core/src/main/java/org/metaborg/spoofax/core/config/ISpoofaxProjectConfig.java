@@ -12,11 +12,6 @@ public interface ISpoofaxProjectConfig extends IProjectConfig {
     @Override Collection<ISourceConfig> sources();
 
     /**
-     * @return Whether typesmart dynamic analysis is enabled.
-     */
-    boolean typesmart();
-
-    /**
      * @return NaBL2 configuration.
      */
     NaBL2Config nabl2Config();

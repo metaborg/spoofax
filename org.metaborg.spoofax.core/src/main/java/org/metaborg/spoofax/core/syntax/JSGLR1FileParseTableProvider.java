@@ -44,12 +44,17 @@ public class JSGLR1FileParseTableProvider implements IParseTableProvider {
                 persistedTable = resource.getParent().resolveFile("table.bin");
             }
 
-            parseTable = new ParseTable(parseTableTerm, termFactory);
-
-            // only read serialized table when table generation is dynamic (#states = 0)
-            if(persistedTable.exists() && parseTable.getStateCount() == 0) {
-                parseTable =
-                    new ParseTable(parseTableTerm, termFactory, persistedTable, new ParseTableIO(persistedTable));
+            try {
+                parseTable = new ParseTable(parseTableTerm, termFactory);
+            } catch(Exception e) {
+                // only read serialized table when table generation is dynamic (#states = 0)
+                if(persistedTable.exists()
+                    && e.getMessage() == "Parse table does not contain any state and normalized grammar is null") {
+                    parseTable =
+                        new ParseTable(parseTableTerm, termFactory, persistedTable, new ParseTableIO(persistedTable));
+                } else {
+                    throw e;
+                }
             }
         } catch(Exception e) {
             throw new IOException("Could not load parse table from " + resource, e);
