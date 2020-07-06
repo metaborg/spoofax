@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.dialogs;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 /**

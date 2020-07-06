@@ -7,7 +7,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.sdf2table.io.ParseTableIO;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.terms.io.binary.TermReader;
 

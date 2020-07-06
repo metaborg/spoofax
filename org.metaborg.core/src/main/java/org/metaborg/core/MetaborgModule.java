@@ -1,6 +1,5 @@
 package org.metaborg.core;
 
-import com.google.inject.name.Named;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.core.analysis.AnalysisService;
 import org.metaborg.core.analysis.IAnalysisService;

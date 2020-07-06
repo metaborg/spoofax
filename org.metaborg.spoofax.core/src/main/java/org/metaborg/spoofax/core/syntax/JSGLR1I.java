@@ -12,10 +12,8 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
-import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.time.Timer;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
@@ -26,7 +24,6 @@ import org.spoofax.jsglr.client.ParseException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -38,8 +35,6 @@ import org.spoofax.terms.attachments.ParentTermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
-
-import com.google.common.collect.Lists;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
     

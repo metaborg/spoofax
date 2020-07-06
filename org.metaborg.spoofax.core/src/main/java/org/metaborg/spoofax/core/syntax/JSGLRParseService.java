@@ -25,7 +25,6 @@ import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr2.JSGLR2;
 import org.strategoxt.lang.Context;
 import javax.annotation.Nullable;
 import java.io.IOException;

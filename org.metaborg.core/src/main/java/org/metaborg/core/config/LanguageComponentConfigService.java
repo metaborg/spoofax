@@ -10,7 +10,6 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.inject.Inject;
 
