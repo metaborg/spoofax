@@ -21,7 +21,7 @@ import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
-import mb.stratego.build.strincr.StrIncrModule;
+import mb.stratego.build.spoofax2.StrIncrModule;
 
 /**
  * Module for extending {@link Spoofax}.
