@@ -18,6 +18,7 @@ dependencies {
   api("org.metaborg:org.metaborg.parsetable:$version")
   api("org.metaborg:stratego.compiler.pack:$version")
   api("org.metaborg:stratego.build:$version")
+  api("org.metaborg:stratego.build.spoofax2:$version")
   api("build.pluto:pluto")
   api("build.pluto:build-java")
   api("org.metaborg:pie.runtime")
