@@ -1,5 +1,8 @@
 package org.metaborg.spoofax.core.syntax;
 
+import java.util.List;
+import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -64,11 +67,11 @@ final class LanguageImplementationWithParserOverride implements ILanguageImpl {
         return langImpl.facets(type);
     }
 
-    @Override public Iterable<FileObject> locations() {
+    @Override public List<FileObject> locations() {
         return langImpl.locations();
     }
 
-    @Override public Iterable<ILanguageComponent> components() {
+    @Override public Set<ILanguageComponent> components() {
         return langImpl.components();
     }
 
