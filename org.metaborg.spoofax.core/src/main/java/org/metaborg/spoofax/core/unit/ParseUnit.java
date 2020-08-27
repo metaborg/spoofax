@@ -26,6 +26,11 @@ public class ParseUnit extends UnitWrapper implements ISpoofaxParseUnit {
         return contrib.success;
     }
 
+    @Override
+    public boolean isAmbiguous() {
+        return contrib.isAmbiguous();
+    }
+
     @Override public IStrategoTerm ast() {
         return contrib.ast;
     }

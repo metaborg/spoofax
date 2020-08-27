@@ -4,8 +4,6 @@ import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoInt;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 

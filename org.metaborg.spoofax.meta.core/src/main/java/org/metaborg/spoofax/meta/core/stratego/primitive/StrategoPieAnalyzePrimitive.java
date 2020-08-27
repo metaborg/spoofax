@@ -46,7 +46,7 @@ import com.google.inject.Provider;
 
 import mb.pie.api.ExecException;
 import mb.pie.api.Pie;
-import mb.pie.api.PieSession;
+import mb.pie.api.MixedSession;
 import mb.pie.api.STask;
 import mb.pie.api.Task;
 import mb.resource.ResourceKey;
@@ -172,8 +172,8 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final IStrategoList.Builder errors = B.listBuilder();
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
-        try(final PieSession pieSession = pie.newSession()) {
-            Frontends.Output analysisInformation = pieSession.require(strIncrAnalysisTask);
+        try(final MixedSession session = pie.newSession()) {
+            Frontends.Output analysisInformation = session.require(strIncrAnalysisTask);
 
             for(Message<?> message : analysisInformation.messages) {
                 if(message.moduleFilePath.equals(path)) {
@@ -197,6 +197,8 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             }
         } catch(ExecException e) {
             throw new MetaborgException("Incremental Stratego build failed", e);
+        } catch(InterruptedException e) {
+            // Ignore
         }
 
         return B.tuple(B.list(errors), B.list(warnings), B.list(notes));

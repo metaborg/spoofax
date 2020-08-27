@@ -1,8 +1,5 @@
 package org.metaborg.spoofax.core.esv;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
-//import static org.spoofax.terms.Term.*;
-
 import java.util.ArrayList;
 import java.util.List;
 

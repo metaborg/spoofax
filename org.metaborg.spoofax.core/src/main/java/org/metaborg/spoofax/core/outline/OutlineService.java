@@ -29,6 +29,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -219,7 +220,7 @@ public class OutlineService implements ISpoofaxOutlineService {
         final IStrategoString iconTermString = (IStrategoString) iconTerm;
         final String iconLocation = iconTermString.stringValue();
         try {
-            return location.resolveFile(iconLocation);
+            return ResourceUtils.resolveFile(location, iconLocation);
         } catch(FileSystemException e) {
             logger.error("Cannot resolve icon {} in {}", e, iconLocation, location);
             return null;

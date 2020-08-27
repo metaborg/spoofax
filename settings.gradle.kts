@@ -1,16 +1,13 @@
-rootProject.name = "spoofax"
+rootProject.name = "spoofax2.root"
 
 pluginManagement {
   repositories {
-    // Get plugins from artifacts.metaborg.org, first.
-    maven("https://artifacts.metaborg.org/content/repositories/releases/")
-    maven("https://artifacts.metaborg.org/content/repositories/snapshots/")
-    // Required by several Gradle plugins (Maven central).
-    maven("https://artifacts.metaborg.org/content/repositories/central/") // Maven central mirror.
-    mavenCentral() // Maven central as backup.
-    // Get plugins from Gradle plugin portal.
-    gradlePluginPortal()
+    maven("https://artifacts.metaborg.org/content/groups/public/")
   }
+}
+
+if(org.gradle.util.VersionNumber.parse(gradle.gradleVersion).major < 6) {
+  enableFeaturePreview("GRADLE_METADATA")
 }
 
 include("org.metaborg.core")

@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
-import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.*;
+import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findLeftMostTokenOnSameLine;
+import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findRightMostTokenOnSameLine;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.RegionRecovery;
 import org.spoofax.jsglr.client.imploder.AbstractTokenizer;
 import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.ITokens;
 import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.shared.BadTokenException;
@@ -33,8 +35,7 @@ public class JSGLRParseErrorHandler {
         "Region could not be parsed because of subsequent syntax error(s) indicated below";
 
     private final JSGLRI<?> parser;
-    @Nullable
-    private final FileObject resource;
+    @Nullable private final FileObject resource;
     private final boolean hasRecoveryRules;
     private final Collection<IMessage> messages = Lists.newArrayList();
 
@@ -62,20 +63,20 @@ public class JSGLRParseErrorHandler {
      */
 
     public void gatherNonFatalErrors(IStrategoTerm top) {
-        final ITokens tokenizer = getTokenizer(top);
+        final ITokenizer tokenizer = (ITokenizer) getTokenizer(top);
         if(tokenizer != null) {
             for(int i = 0, max = tokenizer.getTokenCount(); i < max; i++) {
-                final IToken token = tokenizer.getTokenAt(i);
+                final Token token = tokenizer.getTokenAt(i);
                 final String error = token.getError();
                 if(error != null) {
-                    if(Objects.equals(error, ITokens.ERROR_SKIPPED_REGION)) {
+                    if(Objects.equals(error, ITokenizer.ERROR_SKIPPED_REGION)) {
                         i = findRightMostWithSameError(token, null);
                         reportSkippedRegion(token, tokenizer.getTokenAt(i));
-                    } else if(error.startsWith(ITokens.ERROR_WARNING_PREFIX)) {
+                    } else if(error.startsWith(ITokenizer.ERROR_WARNING_PREFIX)) {
                         i = findRightMostWithSameError(token, null);
                         reportWarningAtTokens(token, tokenizer.getTokenAt(i), error);
-                    } else if(error.startsWith(ITokens.ERROR_WATER_PREFIX)) {
-                        i = findRightMostWithSameError(token, ITokens.ERROR_WATER_PREFIX);
+                    } else if(error.startsWith(ITokenizer.ERROR_WATER_PREFIX)) {
+                        i = findRightMostWithSameError(token, ITokenizer.ERROR_WATER_PREFIX);
                         reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
                     } else {
                         i = findRightMostWithSameError(token, null);
@@ -88,9 +89,9 @@ public class JSGLRParseErrorHandler {
         }
     }
 
-    private static int findRightMostWithSameError(IToken token, String prefix) {
+    private static int findRightMostWithSameError(Token token, String prefix) {
         final String expectedError = token.getError();
-        final ITokens tokenizer = token.getTokenizer();
+        final ITokenizer tokenizer = (ITokenizer) token.getTokenizer();
         int i = token.getIndex();
         for(int max = tokenizer.getTokenCount(); i + 1 < max; i++) {
             String error = tokenizer.getTokenAt(i + 1).getError();
@@ -112,7 +113,7 @@ public class JSGLRParseErrorHandler {
 
         if(reportedLine == -1) {
             // Report entire region
-            reportErrorAtTokens(left, right, ITokens.ERROR_SKIPPED_REGION);
+            reportErrorAtTokens(left, right, ITokenizer.ERROR_SKIPPED_REGION);
         } else if(reportedLine - line >= LARGE_REGION_SIZE) {
             // Warn at start of region
             reportErrorAtTokens(findLeftMostTokenOnSameLine(left), findRightMostTokenOnSameLine(left),
@@ -176,7 +177,7 @@ public class JSGLRParseErrorHandler {
         } else {
             IToken token = tokenizer.getTokenAtOffset(exception.getOffset());
             token = findNextNonEmptyToken(token);
-            message = ITokens.ERROR_WATER_PREFIX + ": " + token.toString().trim();
+            message = ITokenizer.ERROR_WATER_PREFIX + ": " + token.toString().trim();
         }
         reportErrorNearOffset(tokenizer, exception.getOffset(), message);
     }
@@ -189,7 +190,7 @@ public class JSGLRParseErrorHandler {
     }
 
     private static IToken findNextNonEmptyToken(IToken token) {
-        final ITokens tokenizer = token.getTokenizer();
+        final ITokenizer tokenizer = (ITokenizer) token.getTokenizer();
         IToken result = null;
         for(int i = token.getIndex(), max = tokenizer.getTokenCount(); i < max; i++) {
             result = tokenizer.getTokenAt(i);

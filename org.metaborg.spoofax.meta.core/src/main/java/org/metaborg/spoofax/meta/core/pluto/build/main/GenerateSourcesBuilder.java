@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -58,7 +57,7 @@ import build.pluto.stamp.FileExistsStamper;
 import build.pluto.stamp.FileHashStamper;
 import mb.pie.api.ExecException;
 import mb.pie.api.Pie;
-import mb.pie.api.PieSession;
+import mb.pie.api.MixedSession;
 import mb.pie.api.Task;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
@@ -259,7 +258,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final boolean checkOverlap = input.checkOverlap;
         final boolean checkPriorities = input.checkPriorities;
         ParseTableConfiguration config = new ParseTableConfiguration(dynamicGeneration, dataDependent, !layoutSensitive,
-            checkOverlap, checkPriorities);
+            checkOverlap, checkPriorities, layoutSensitive);
 
         Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, sdfNormFile, input.sourceDeps, tableFile,
             persistedTableFile, config, isCompletions);
@@ -528,11 +527,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
                 BuildStats.reset();
                 long totalTime = System.nanoTime();
-                try(final PieSession pieSession = pie.newSession()) {
-                    pieSession.updateAffectedBy(changedResources);
-                    pieSession.deleteUnobservedTasks(t -> true, (t, r) -> {
-                        if(r instanceof HierarchicalResource
-                            && Objects.equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                try(final MixedSession session = pie.newSession()) {
+                    session.updateAffectedBy(changedResources);
+                    session.deleteUnobservedTasks(t -> true, (t, r) -> {
+                        if(r instanceof HierarchicalResource && ((HierarchicalResource) r).getLeafExtension().equals("java")) {
                             logger.debug("Deleting garbage from previous build: " + r);
                             return true;
                         }
@@ -540,6 +538,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     });
                 } catch(ExecException e) {
                     throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
+                } catch(InterruptedException e) {
+                    // Ignore
                 }
                 totalTime = totalTime - System.nanoTime();
             } else {
@@ -609,10 +609,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
             }
             pieProvider.setLogLevelWarn();
-            try(final PieSession session = pie.newSession()) {
+            try(final MixedSession session = pie.newSession()) {
                 session.require(strIncrTask);
             } catch(ExecException e) {
                 throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
+            } catch(InterruptedException e) {
+                // Ignore
             }
             pieProvider.setLogLevelTrace();
         }

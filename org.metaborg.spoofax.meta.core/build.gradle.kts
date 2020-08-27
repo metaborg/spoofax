@@ -17,9 +17,12 @@ dependencies {
   api("org.metaborg:sdf2parenthesize:$version")
   api("org.metaborg:org.metaborg.parsetable:$version")
   api("org.metaborg:stratego.compiler.pack:$version")
-
+  api("org.metaborg:stratego.build:$version")
+  api("org.metaborg:stratego.build.spoofax2:$version")
   api("build.pluto:pluto")
   api("build.pluto:build-java")
+  api("org.metaborg:pie.runtime")
+  api("org.metaborg:pie.taskdefs.guice")
   api("com.google.inject:guice")
   api("com.google.inject.extensions:guice-multibindings")
   api("com.github.spullara.mustache.java:compiler")

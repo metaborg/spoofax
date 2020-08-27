@@ -10,16 +10,15 @@ imports
 
 rules // Analysis
 
-  // see README.md for details on how to switch to multi-file analysis
-
   // single-file analysis
   editor-analyze = stx-editor-analyze(pre-analyze, post-analyze|"statics", "programOk")
   
+  // see README.md for details on how to switch to multi-file analysis
   // multi-file analysis
 //  editor-analyze = stx-editor-analyze(pre-analyze, post-analyze|"statics", "projectOk", "fileOk")
 
-  pre-analyze  = explicate-injections-{{name}}
-  post-analyze = strip-annos; implicate-injections-{{name}}
+  pre-analyze  = explicate-injections-{{name}}-{{startSymbol}}
+  post-analyze = implicate-injections-{{name}}-{{startSymbol}}
 
 rules // Editor Services
 

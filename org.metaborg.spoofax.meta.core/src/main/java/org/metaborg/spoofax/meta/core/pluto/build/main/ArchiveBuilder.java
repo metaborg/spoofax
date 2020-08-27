@@ -16,8 +16,10 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
+import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder.Output;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
 import org.metaborg.util.resource.FileSelectorUtils;
+import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.resource.ZipArchiver;
 
 import com.google.common.collect.Iterables;
@@ -35,11 +37,14 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
         public final Iterable<IExportConfig> exports;
         public final LanguageIdentifier languageIdentifier;
 
+        public final BuildRequest<?, Output, ?, ?> packageBuildRequest;
 
-        public Input(SpoofaxContext context, Origin origin, Iterable<IExportConfig> exports,
+
+        public Input(SpoofaxContext context, Origin origin, BuildRequest<?, Output, ?, ?> packageBuildRequest, Iterable<IExportConfig> exports,
             LanguageIdentifier languageIdentifier) {
             super(context);
             this.origin = origin;
+            this.packageBuildRequest = packageBuildRequest;
             this.exports = exports;
             this.languageIdentifier = languageIdentifier;
         }
@@ -75,6 +80,8 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
 
     @Override protected OutputTransient<File> build(Input input) throws Throwable {
         requireBuild(input.origin);
+        final Output packageBuilderOutput = requireBuild(input.packageBuildRequest);
+        requireBuild(packageBuilderOutput.jarBuilderOrigin);
 
         final ZipArchiver zipArchiver = new ZipArchiver();
         final FileObject root = paths.root();
@@ -99,7 +106,7 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
 
                 @Override public void visit(LangFileExport export) {
                     try {
-                        final FileObject file = paths.root().resolveFile(export.file);
+                        final FileObject file = ResourceUtils.resolveFile(paths.root(), export.file);
                         zipArchiver.addFile(export.file, file);
                     } catch(IOException e) {
                         report("Unable to package export: " + export);
@@ -109,7 +116,7 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
                 private void addFiles(IExportConfig export, String directory, Iterable<String> includes,
                     Iterable<String> excludes) {
                     try {
-                        final FileObject dir = paths.root().resolveFile(directory);
+                        final FileObject dir = ResourceUtils.resolveFile(paths.root(), directory);
                         final FileSelector includesSelector;
                         if(Iterables.isEmpty(includes)) {
                             includesSelector = FileSelectorUtils.all();

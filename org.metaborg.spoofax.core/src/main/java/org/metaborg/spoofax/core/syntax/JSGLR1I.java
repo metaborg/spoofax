@@ -1,10 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Nullable;
 
@@ -15,10 +12,8 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
-import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.time.Timer;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
@@ -29,7 +24,6 @@ import org.spoofax.jsglr.client.ParseException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -41,8 +35,6 @@ import org.spoofax.terms.attachments.ParentTermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
-
-import com.google.common.collect.Lists;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
     
@@ -119,7 +111,27 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
             }
         }
         final boolean hasErrors = MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
-        return new ParseContrib(hasAst, hasAst && !hasErrors, ast, messages, duration);
+        final boolean isAmbiguous = hasAst && isAmbiguous(ast);
+        return new ParseContrib(hasAst, hasAst && !hasErrors, isAmbiguous, ast, messages, duration);
+    }
+
+    /**
+     * Determines whether the AST has any ambiguities by traversing
+     * the AST until it finds an amb() node.
+     *
+     * @param ast the AST to check
+     * @return {@code true} when the AST has at least one ambiguity;
+     * otherwise, {@code false}
+     */
+    private boolean isAmbiguous(IStrategoTerm ast) {
+        LinkedList<IStrategoTerm> worklist = new LinkedList<>();
+        worklist.add(ast);
+        while (!worklist.isEmpty()) {
+            IStrategoTerm term = worklist.pop();
+            if (TermUtils.isAppl(term, "amb")) return true;
+            worklist.addAll(term.getSubterms());
+        }
+        return false;
     }
 
     public SGLRParseResult actuallyParse(String text, @Nullable String filename,
