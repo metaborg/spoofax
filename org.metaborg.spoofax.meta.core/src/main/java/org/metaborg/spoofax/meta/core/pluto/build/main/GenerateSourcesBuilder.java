@@ -15,9 +15,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import mb.resource.hierarchical.ResourcePath;
 import org.apache.commons.io.FileUtils;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.config.JSGLRVersion;
@@ -514,10 +516,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
 
                 final Arguments newArgs = new Arguments();
+                final List<ResourcePath> strjIncludeDirs = input.strjIncludeDirs.stream().map(FSPath::new).collect(Collectors.toList());
                 final List<String> builtinLibs = splitOffBuiltinLibs(extraArgs, newArgs);
                 final StrIncr.Input strIncrInput =
-                    new StrIncr.Input(strFile, input.strJavaPackage, input.strjIncludeDirs, builtinLibs, cacheDir,
-                        Collections.emptyList(), newArgs, depPath, Collections.emptyList(), projectLocation);
+                    new StrIncr.Input(new FSPath(strFile), input.strJavaPackage, strjIncludeDirs, builtinLibs, new FSPath(cacheDir),
+                        Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation));
 
                 Pie pie = initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
 
