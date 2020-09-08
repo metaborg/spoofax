@@ -151,7 +151,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final File projectLocation = resourceService.localPath(paths.root());
         assert projectLocation != null;
 
-        final List<STask> sdfTasks = Collections.emptyList();
+        final List<STask<?>> sdfTasks = Collections.emptyList();
 
         // Gather all Stratego files to be checked for changes
         final Set<Path> changedFiles = GenerateSourcesBuilder.getChangedFiles(projectLocation);
@@ -162,7 +162,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Arguments newArgs = new Arguments();
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
-        Collection<STask> originTasks = sdfTasks;
+        Collection<STask<?>> originTasks = sdfTasks;
         Frontends.Input strIncrAnalysisInput =
             new Frontends.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation, config.strGradualSetting() == StrategoGradualSetting.DYNAMIC);
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
