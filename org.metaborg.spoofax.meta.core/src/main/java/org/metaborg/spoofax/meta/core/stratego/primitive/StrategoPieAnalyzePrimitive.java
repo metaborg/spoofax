@@ -45,12 +45,13 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import mb.pie.api.ExecException;
-import mb.pie.api.Pie;
 import mb.pie.api.MixedSession;
+import mb.pie.api.Pie;
 import mb.pie.api.STask;
 import mb.pie.api.Task;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Frontends;
 import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.strincr.Message;
@@ -125,14 +126,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
         strjIncludesReplicateDir.delete(new AllFileSelector());
-        final List<File> strjIncludeDirs = new ArrayList<>();
+        final List<ResourcePath> strjIncludeDirs = new ArrayList<>();
         final List<File> strjIncludeFiles = new ArrayList<>();
         for(FileObject strIncludePath : strIncludePaths) {
             if(!strIncludePath.exists()) {
                 continue;
             }
             if(strIncludePath.isFolder()) {
-                strjIncludeDirs.add(resourceService.localFile(strIncludePath, strjIncludesReplicateDir));
+                strjIncludeDirs.add(new FSPath(resourceService.localFile(strIncludePath, strjIncludesReplicateDir)));
             }
             if(strIncludePath.isFile()) {
                 strjIncludeFiles.add(resourceService.localFile(strIncludePath, strjIncludesReplicateDir));
@@ -164,7 +165,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
         Collection<STask<?>> originTasks = sdfTasks;
         Frontends.Input strIncrAnalysisInput =
-            new Frontends.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation, config.strGradualSetting() == StrategoGradualSetting.DYNAMIC);
+            new Frontends.Input(new FSPath(strFile), strjIncludeDirs, builtinLibs, originTasks, new FSPath(projectLocation), config.strGradualSetting() == StrategoGradualSetting.DYNAMIC);
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
         final Pie pie = GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
