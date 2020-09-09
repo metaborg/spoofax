@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import mb.resource.hierarchical.ResourcePath;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -123,14 +124,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
         strjIncludesReplicateDir.delete(new AllFileSelector());
-        final List<File> strjIncludeDirs = new ArrayList<>();
+        final List<ResourcePath> strjIncludeDirs = new ArrayList<>();
         final List<File> strjIncludeFiles = new ArrayList<>();
         for(FileObject strIncludePath : strIncludePaths) {
             if(!strIncludePath.exists()) {
                 continue;
             }
             if(strIncludePath.isFolder()) {
-                strjIncludeDirs.add(resourceService.localFile(strIncludePath, strjIncludesReplicateDir));
+                strjIncludeDirs.add(new FSPath(resourceService.localFile(strIncludePath, strjIncludesReplicateDir)));
             }
             if(strIncludePath.isFile()) {
                 strjIncludeFiles.add(resourceService.localFile(strIncludePath, strjIncludesReplicateDir));
@@ -162,7 +163,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
         Collection<STask> originTasks = sdfTasks;
         Analysis.Input strIncrAnalysisInput =
-            new Analysis.Input(strFile, strjIncludeDirs, builtinLibs, originTasks, projectLocation);
+            new Analysis.Input(new FSPath(strFile), strjIncludeDirs, builtinLibs, originTasks, new FSPath(projectLocation));
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
         GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
