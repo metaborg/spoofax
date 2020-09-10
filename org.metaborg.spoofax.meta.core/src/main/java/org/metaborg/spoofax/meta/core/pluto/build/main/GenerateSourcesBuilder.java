@@ -28,7 +28,6 @@ import org.metaborg.sdf2table.parsetable.ParseTableConfiguration;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
-import org.metaborg.spoofax.meta.core.config.StrategoGradualSetting;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -66,6 +65,7 @@ import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuildStats;
 import mb.stratego.build.strincr.StrIncr;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
@@ -523,7 +523,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final List<String> builtinLibs = splitOffBuiltinLibs(extraArgs, newArgs);
                 final StrIncr.Input strIncrInput =
                     new StrIncr.Input(new FSPath(strFile), input.strJavaPackage, strjIncludeDirs, builtinLibs, new FSPath(cacheDir),
-                        Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation), input.strGradualSetting == StrategoGradualSetting.DYNAMIC);
+                        Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation), input.strGradualSetting);
 
                 final Pie pie =
                     initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);

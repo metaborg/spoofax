@@ -13,6 +13,7 @@ import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.

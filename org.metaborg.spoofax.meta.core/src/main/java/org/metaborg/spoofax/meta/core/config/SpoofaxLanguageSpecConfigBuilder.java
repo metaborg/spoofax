@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.

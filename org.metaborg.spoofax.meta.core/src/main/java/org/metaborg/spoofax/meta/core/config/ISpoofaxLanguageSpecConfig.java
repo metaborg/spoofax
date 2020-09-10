@@ -10,6 +10,8 @@ import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfig;
 import org.metaborg.util.cmd.Arguments;
 
+import mb.stratego.build.util.StrategoGradualSetting;
+
 /**
  * Spoofax-specific configuration for a language specification.
  *

@@ -23,6 +23,7 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Lists;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * An implementation of the {@link ISpoofaxLanguageSpecConfig} interface that is backed by an
