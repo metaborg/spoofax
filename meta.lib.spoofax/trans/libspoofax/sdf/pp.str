@@ -59,39 +59,39 @@ strategies
   pp-V-list(pp|vs) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp))>)
   pp-V-list(pp|vs, sep) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp)); at-init(add-sep(|sep), id)>)
 
-  // pp-indent(|is) = filter(gpp-is-real-vbox); (?[] <+ !I([SOpt(IS(), is)], H([SOpt(HS(), "0")], <id>)))
+  // pp-indent(|'is) = filter(gpp-is-real-vbox); (?[] <+ !I([SOpt(IS(), 'is)], H([SOpt(HS(), "0")], <id>)))
   
-  pp-indent(|is) = filter(gpp-is-real-vbox); (?[] <+ !H([SOpt(HS(), is)], [S(""), H([SOpt(HS(), "0")], <map(indent-Z-boxes(|is))>)]))
+  pp-indent(|'is) = filter(gpp-is-real-vbox); (?[] <+ !H([SOpt(HS(), 'is)], [S(""), H([SOpt(HS(), "0")], <map(indent-Z-boxes(|'is))>)]))
   
-  indent-Z-boxes(|is):
+  indent-Z-boxes(|'is):
     H(opt, boxes{l*}){a*} -> H(opt, new-boxes{l*}){a*}
     with
-      new-boxes := <map(indent-Z-boxes(|is))> boxes
+      new-boxes := <map(indent-Z-boxes(|'is))> boxes
     
-  indent-Z-boxes(|is):
+  indent-Z-boxes(|'is):
     V(opt, boxes{l*}){a*} -> V(opt, new-boxes{l*}){a*}
     with
-      new-boxes := <map(indent-Z-boxes(|is))> boxes
+      new-boxes := <map(indent-Z-boxes(|'is))> boxes
     
-  indent-Z-boxes(|is):
+  indent-Z-boxes(|'is):
     s@S(_) -> s
   
-  indent-Z-boxes(|is):
+  indent-Z-boxes(|'is):
     [] -> []
     
-  indent-Z-boxes(|is):
+  indent-Z-boxes(|'is):
     z@Z([], []) -> z
     
-  indent-Z-boxes(|is):
+  indent-Z-boxes(|'is):
     Z([], [b{b-annos*} | bs]{l*}){a*} -> Z([], [b'{b-annos*} | bs']{l*}){a*}
     with
-      b'  := <indent-Z-boxes(|is)> b;
-      bs' := <map(indent-boxes-list(|is))> bs
+      b'  := <indent-Z-boxes(|'is)> b;
+      bs' := <map(indent-boxes-list(|'is))> bs
       
-  indent-boxes-list(|is):   
-    b{a*} -> H([SOpt(HS(), is)], [S(""), b'{a*}]) 
+  indent-boxes-list(|'is):   
+    b{a*} -> H([SOpt(HS(), 'is)], [S(""), b'{a*}]) 
     with
-      b' := <indent-Z-boxes(|is)> b
+      b' := <indent-Z-boxes(|'is)> b
 
   pp-H-list(pp)     = ?[] <+ !H([], <map(pp-one-Z(pp))>)
   pp-H-list(pp|sep) = ?[] <+ !H([SOpt(HS(), "0")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
@@ -191,7 +191,7 @@ rules
       result := <conc> (boxes, [S(sep)])
       
  add-sep(|sep):
-  I(is, H(hs, boxes)) -> I(is, H(hs, result))
+  I('is, H(hs, boxes)) -> I('is, H(hs, result))
   where
       result := <conc> (boxes, [S(sep)])
       

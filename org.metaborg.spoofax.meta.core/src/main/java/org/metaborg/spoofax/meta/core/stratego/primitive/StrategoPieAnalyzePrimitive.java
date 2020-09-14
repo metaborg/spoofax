@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import mb.resource.hierarchical.ResourcePath;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -46,12 +45,14 @@ import com.google.inject.Provider;
 
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
+import mb.pie.api.Pie;
 import mb.pie.api.STask;
 import mb.pie.api.Task;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
-import mb.stratego.build.strincr.Analysis;
-import mb.stratego.build.strincr.Analysis.Output;
+import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.Frontends;
+import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.strincr.Message;
 import mb.stratego.build.strincr.StrIncrAnalysis;
 
@@ -150,7 +151,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final File projectLocation = resourceService.localPath(paths.root());
         assert projectLocation != null;
 
-        final List<STask> sdfTasks = Collections.emptyList();
+        final List<STask<?>> sdfTasks = Collections.emptyList();
 
         // Gather all Stratego files to be checked for changes
         final Set<Path> changedFiles = GenerateSourcesBuilder.getChangedFiles(projectLocation);
@@ -161,18 +162,18 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Arguments newArgs = new Arguments();
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
-        Collection<STask> originTasks = sdfTasks;
-        Analysis.Input strIncrAnalysisInput =
-            new Analysis.Input(new FSPath(strFile), strjIncludeDirs, builtinLibs, originTasks, new FSPath(projectLocation));
+        Collection<STask<?>> originTasks = sdfTasks;
+        Frontends.Input strIncrAnalysisInput =
+            new Frontends.Input(new FSPath(strFile), strjIncludeDirs, builtinLibs, originTasks, new FSPath(projectLocation), config.strGradualSetting());
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
-        GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
+        final Pie pie = GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
 
         final IStrategoList.Builder errors = B.listBuilder();
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
-        try(final MixedSession session = pieProviderProvider.get().pie().newSession()) {
-            Analysis.Output analysisInformation = session.require(strIncrAnalysisTask);
+        try(final MixedSession session = pie.newSession()) {
+            Frontends.Output analysisInformation = session.require(strIncrAnalysisTask);
 
             for(Message<?> message : analysisInformation.messages) {
                 if(message.moduleFilePath.equals(path)) {

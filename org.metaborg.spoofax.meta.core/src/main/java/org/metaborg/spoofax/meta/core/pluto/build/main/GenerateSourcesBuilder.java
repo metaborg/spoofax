@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import mb.resource.hierarchical.ResourcePath;
 import org.apache.commons.io.FileUtils;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.config.JSGLRVersion;
@@ -57,14 +56,16 @@ import build.pluto.output.OutputPersisted;
 import build.pluto.stamp.FileExistsStamper;
 import build.pluto.stamp.FileHashStamper;
 import mb.pie.api.ExecException;
-import mb.pie.api.Pie;
 import mb.pie.api.MixedSession;
+import mb.pie.api.Pie;
 import mb.pie.api.Task;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.HierarchicalResource;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuildStats;
 import mb.stratego.build.strincr.StrIncr;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
@@ -103,6 +104,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final List<File> strjIncludeFiles;
         public final Arguments strjArgs;
         public final StrategoBuildSetting strBuildSetting;
+        public final StrategoGradualSetting strGradualSetting;
 
 
         public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
@@ -114,7 +116,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
             StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
             List<File> strjIncludeDirs, List<File> strjIncludeFiles, Arguments strjArgs,
-            StrategoBuildSetting strBuildSetting) {
+            StrategoBuildSetting strBuildSetting, StrategoGradualSetting strGradualSetting) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -144,6 +146,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strjIncludeFiles = strjIncludeFiles;
             this.strjArgs = strjArgs;
             this.strBuildSetting = strBuildSetting;
+            this.strGradualSetting = strGradualSetting;
         }
     }
 
@@ -520,9 +523,10 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final List<String> builtinLibs = splitOffBuiltinLibs(extraArgs, newArgs);
                 final StrIncr.Input strIncrInput =
                     new StrIncr.Input(new FSPath(strFile), input.strJavaPackage, strjIncludeDirs, builtinLibs, new FSPath(cacheDir),
-                        Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation));
+                        Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation), input.strGradualSetting);
 
-                Pie pie = initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
+                final Pie pie =
+                    initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
 
                 BuildStats.reset();
                 long totalTime = System.nanoTime();
@@ -608,7 +612,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
             }
             pieProvider.setLogLevelWarn();
-            long totalTime = System.nanoTime();
             try(final MixedSession session = pie.newSession()) {
                 session.require(strIncrTask);
             } catch(ExecException e) {
@@ -616,7 +619,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             } catch(InterruptedException e) {
                 // Ignore
             }
-            totalTime = System.nanoTime() - totalTime;
             pieProvider.setLogLevelTrace();
         }
         return pie;
