@@ -155,11 +155,11 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
     }
 
     @Override public SetMultimap<String, String> getNonAssocPriorities() {
-        return ((ParseTable) parseTable).normalizedGrammar().getNonAssocPriorities();
+        return ((ParseTable) parseTable).normalizedGrammar().getNonAssocProductions();
     }
 
     @Override public SetMultimap<String, String> getNonNestedPriorities() {
-        return ((ParseTable) parseTable).normalizedGrammar().getNonNestedPriorities();
+        return ((ParseTable) parseTable).normalizedGrammar().getNonNestedProductions();
     }
 
 }
