@@ -112,9 +112,6 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
         boolean isAmbiguous = result.isSuccess() && ((JSGLR2Success<IStrategoTerm>) result).isAmbiguous();
         final Collection<IMessage> messages = mapMessages(resource, result.messages);
 
-        // add non-assoc warnings to messages
-        messages.addAll(addDisambiguationWarnings(ast, resource));
-
         final long duration = timer.stop();
 
         final boolean hasAst = ast != null;
@@ -152,14 +149,6 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
     @Override public Set<BadTokenException> getCollectedErrors() {
         return Collections.emptySet();
-    }
-
-    @Override public SetMultimap<String, String> getNonAssocPriorities() {
-        return ((ParseTable) parseTable).normalizedGrammar().getNonAssocProductions();
-    }
-
-    @Override public SetMultimap<String, String> getNonNestedPriorities() {
-        return ((ParseTable) parseTable).normalizedGrammar().getNonNestedProductions();
     }
 
 }

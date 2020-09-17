@@ -5,25 +5,20 @@ import java.util.*;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.SetMultimap;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
+import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.metaborg.util.time.Timer;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.Asfix2TreeBuilder;
-import org.spoofax.jsglr.client.Disambiguator;
-import org.spoofax.jsglr.client.FilterException;
-import org.spoofax.jsglr.client.NullTreeBuilder;
-import org.spoofax.jsglr.client.ParseException;
-import org.spoofax.jsglr.client.ParseTable;
-import org.spoofax.jsglr.client.SGLRParseResult;
-import org.spoofax.jsglr.client.StartSymbolException;
+import org.spoofax.jsglr.client.*;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -36,8 +31,11 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
+
 public class JSGLR1I extends JSGLRI<ParseTable> {
-    
+
     private final SGLR parser;
     private final Context context;
 
@@ -202,12 +200,60 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         return parser.getCollectedErrors();
     }
 
-    @Override public SetMultimap<String, String> getNonAssocPriorities() {
-        return parseTable.getNonAssocPriorities();
-    }
+    protected Collection<? extends IMessage> addDisambiguationWarnings(IStrategoTerm ast,
+        @Nullable FileObject resource) {
+        List<IMessage> result = Lists.newArrayList();
 
-    @Override public SetMultimap<String, String> getNonNestedPriorities() {
-        return parseTable.getNonNestedPriorities();
+        boolean addedMessage = false;
+
+        // non-associative and non-nested operators should be flagged with warnings
+        if(TermUtils.isAppl(ast) && ast.getAllSubterms().length >= 1) {
+            SetMultimap<String, String> nonAssocProductions = parseTable.getNonAssocPriorities();
+            SetMultimap<String, String> nonNestedProductions = parseTable.getNonNestedPriorities();
+
+            String sortConsParent =
+                ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
+
+            IStrategoTerm firstChild = ast.getSubterm(0);
+            IStrategoTerm lastChild = ast.getSubterm(ast.getSubtermCount() - 1);
+
+            if(TermUtils.isAppl(firstChild)) {
+                IStrategoAppl leftMostChild = (IStrategoAppl) firstChild;
+                @Nullable ImploderAttachment leftMostChildAttachment = ImploderAttachment.get(leftMostChild);
+                String sortConsChild = ImploderAttachment.getSort(ast) + "." + leftMostChild.getConstructor().getName();
+                if(leftMostChildAttachment != null && !leftMostChildAttachment.isBracket()
+                    && parseTable instanceof ParseTable
+                    && nonAssocProductions.containsEntry(sortConsParent, sortConsChild)) {
+                    ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
+                        ImploderAttachment.getRightToken(ast));
+                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-associative", null));
+                    addedMessage = true;
+                }
+            }
+
+            if(TermUtils.isAppl(lastChild)) {
+                IStrategoAppl rightMostChild = (IStrategoAppl) lastChild;
+                @Nullable ImploderAttachment rightMostChildAttachment = ImploderAttachment.get(rightMostChild);
+                String sortConsChild =
+                    ImploderAttachment.getSort(ast) + "." + rightMostChild.getConstructor().getName();
+                if(rightMostChildAttachment != null && !rightMostChildAttachment.isBracket()
+                    && parseTable instanceof ParseTable
+                    && nonNestedProductions.containsEntry(sortConsParent, sortConsChild)) {
+                    ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
+                        ImploderAttachment.getRightToken(ast));
+                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-nested", null));
+                    addedMessage = true;
+                }
+            }
+        }
+
+        if(ast != null && !addedMessage) {
+            for(IStrategoTerm child : ast.getAllSubterms()) {
+                result.addAll(addDisambiguationWarnings(child, resource));
+            }
+        }
+
+        return result;
     }
 
 }
