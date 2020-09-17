@@ -208,8 +208,8 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
         // non-associative and non-nested operators should be flagged with warnings
         if(TermUtils.isAppl(ast) && ast.getAllSubterms().length >= 1) {
-            SetMultimap<String, String> nonAssocProductions = parseTable.getNonAssocPriorities();
-            SetMultimap<String, String> nonNestedProductions = parseTable.getNonNestedPriorities();
+            SetMultimap<String, String> nonAssocProductions = parseTable.getNonAssocProductions();
+            SetMultimap<String, String> nonNestedProductions = parseTable.getNonNestedProductions();
 
             String sortConsParent =
                 ImploderAttachment.getSort(ast) + "." + ((IStrategoAppl) ast).getConstructor().getName();
@@ -226,7 +226,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
                     && nonAssocProductions.containsEntry(sortConsParent, sortConsChild)) {
                     ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
                         ImploderAttachment.getRightToken(ast));
-                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-associative", null));
+                    result.add(MessageFactory.newParseError(resource, region, "Operator is non-associative", null));
                     addedMessage = true;
                 }
             }
@@ -241,7 +241,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
                     && nonNestedProductions.containsEntry(sortConsParent, sortConsChild)) {
                     ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(ImploderAttachment.getLeftToken(ast),
                         ImploderAttachment.getRightToken(ast));
-                    result.add(MessageFactory.newParseWarning(resource, region, "Operator is non-nested", null));
+                    result.add(MessageFactory.newParseError(resource, region, "Operator is non-nested", null));
                     addedMessage = true;
                 }
             }
