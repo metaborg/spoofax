@@ -100,7 +100,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         }
 
         // add non-assoc warnings to messages
-        messages.addAll(addDisambiguationWarnings(ast, resource));
+        messages.addAll(addNonAssocErrorMessages(ast, resource));
 
         if(config.getImploderSetting() == ImploderImplementation.stratego) {
             for(BadTokenException badTokenException : parser.getCollectedErrors()) {
@@ -200,7 +200,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
         return parser.getCollectedErrors();
     }
 
-    protected Collection<? extends IMessage> addDisambiguationWarnings(IStrategoTerm ast,
+    protected Collection<? extends IMessage> addNonAssocErrorMessages(IStrategoTerm ast,
         @Nullable FileObject resource) {
         List<IMessage> result = Lists.newArrayList();
 
@@ -249,7 +249,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
         if(ast != null && !addedMessage) {
             for(IStrategoTerm child : ast.getAllSubterms()) {
-                result.addAll(addDisambiguationWarnings(child, resource));
+                result.addAll(addNonAssocErrorMessages(child, resource));
             }
         }
 
