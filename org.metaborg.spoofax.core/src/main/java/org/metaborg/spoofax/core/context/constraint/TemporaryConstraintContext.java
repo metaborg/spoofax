@@ -26,14 +26,6 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
 
     // -------------------------------------
 
-    @Override public boolean hasAnalysis(FileObject resource) {
-        return context.hasAnalysis(resource);
-    }
-
-    @Override public IStrategoTerm getAnalysis(FileObject resource) {
-        return context.getAnalysis(resource);
-    }
-
     @Override public String resourceKey(FileObject resource) {
         return context.resourceKey(resource);
     }

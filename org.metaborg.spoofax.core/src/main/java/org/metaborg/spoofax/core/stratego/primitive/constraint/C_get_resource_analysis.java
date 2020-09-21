@@ -17,15 +17,12 @@ public class C_get_resource_analysis extends ConstraintContextPrimitive {
 
     @Override protected Optional<? extends IStrategoTerm> call(IConstraintContext context, IStrategoTerm sterm,
             List<IStrategoTerm> sterms, ITermFactory factory) throws InterpreterException {
-        if(!TermUtils.isString(sterm)) throw new InterpreterException("Expect a resource path.");
+        if(!TermUtils.isString(sterm)) {
+            throw new InterpreterException("Expect a resource path.");
+        }
 
         final String resource = TermUtils.toJavaString(sterm);
-        final IStrategoTerm analysis;
-        if(context.hasAnalysis(resource)) {
-            analysis = context.getAnalysis(resource);
-        } else {
-            analysis = null;
-        }
+        final IStrategoTerm analysis = context.contains(resource) ? context.get(resource) : null;
         return Optional.ofNullable(analysis);
     }
 
