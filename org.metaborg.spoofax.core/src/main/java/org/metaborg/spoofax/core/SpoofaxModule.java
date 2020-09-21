@@ -60,8 +60,7 @@ import org.metaborg.spoofax.core.config.SpoofaxProjectConfigBuilder;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfigService;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
-import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
-import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
+import org.metaborg.spoofax.core.context.constraint.ConstraintContextFactory;
 import org.metaborg.spoofax.core.dialogs.ISpoofaxDialogService;
 import org.metaborg.spoofax.core.dialogs.NullSpoofaxDialogService;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingService;
@@ -336,9 +335,7 @@ public class SpoofaxModule extends MetaborgModule {
 
         binder.addBinding(IndexTaskContextFactory.name).to(IndexTaskContextFactory.class).in(Singleton.class);
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
-        binder.addBinding(SingleFileConstraintContextFactory.name).to(SingleFileConstraintContextFactory.class)
-                .in(Singleton.class);
-        binder.addBinding(MultiFileConstraintContextFactory.name).to(MultiFileConstraintContextFactory.class)
+        binder.addBinding(ConstraintContextFactory.name).to(ConstraintContextFactory.class)
                 .in(Singleton.class);
     }
 

@@ -166,7 +166,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         // project entry
         final IStrategoTerm projectChange;
         if(multifile()) {
-            final String resource = context.resourceKey(context.root());
+            final String resource = context.resourceKey(context.location());
             final IStrategoTerm ast = projectAST(resource);
             final IStrategoTerm change;
             final Expect expect;
