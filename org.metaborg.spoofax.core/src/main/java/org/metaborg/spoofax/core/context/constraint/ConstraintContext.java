@@ -49,14 +49,6 @@ public class ConstraintContext implements IConstraintContext {
         this.lock = new ReentrantReadWriteLock(true);
     }
 
-    @Override public boolean hasAnalysis(FileObject resource) {
-        return contains(resource);
-    }
-
-    @Override public IStrategoTerm getAnalysis(FileObject resource) {
-        return get(resource);
-    }
-
     @Override public String resourceKey(FileObject resource) {
         return ResourceUtils.relativeName(resource.getName(), location().getName(), true);
     }

@@ -9,20 +9,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface IConstraintContext extends IContextInternal {
 
-    default boolean hasAnalysis(String resource) {
-        return hasAnalysis(keyResource(resource));
-    }
-
-    boolean hasAnalysis(FileObject resource);
-
-
-    default IStrategoTerm getAnalysis(String resource) {
-        return getAnalysis(keyResource(resource));
-    }
-
-    IStrategoTerm getAnalysis(FileObject resource);
-
-
     default String resourceKey(String resource) {
         return resourceKey(keyResource(resource));
     }
