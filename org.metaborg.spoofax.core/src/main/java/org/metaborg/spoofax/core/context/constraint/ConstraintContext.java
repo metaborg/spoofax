@@ -35,7 +35,6 @@ public class ConstraintContext implements IConstraintContext {
 
     private static final ILogger logger = LoggerUtils.logger(ConstraintContext.class);
 
-    private final Mode mode;
     private final ContextIdentifier identifier;
     private final String persistentIdentifier;
     private final Injector injector;
@@ -43,46 +42,19 @@ public class ConstraintContext implements IConstraintContext {
 
     private State state = null;
 
-    public ConstraintContext(Mode mode, Injector injector, ContextIdentifier identifier) {
-        this.mode = mode;
+    public ConstraintContext(Injector injector, ContextIdentifier identifier) {
         this.identifier = identifier;
         this.persistentIdentifier = FileUtils.sanitize(identifier.language.id().toString());
         this.injector = injector;
         this.lock = new ReentrantReadWriteLock(true);
     }
 
-    @Override public Mode mode() {
-        return mode;
-    }
-
-    @Override public boolean isRoot(FileObject resource) {
-        return location().getName().equals(resource.getName());
-    }
-
-    @Override public FileObject root() {
-        return location();
-    }
-
     @Override public boolean hasAnalysis(FileObject resource) {
-        switch(mode()) {
-            case MULTI_FILE:
-                return contains(root());
-            case SINGLE_FILE:
-                return contains(resource);
-            default:
-                return false;
-        }
+        return contains(resource);
     }
 
     @Override public IStrategoTerm getAnalysis(FileObject resource) {
-        switch(mode()) {
-            case MULTI_FILE:
-                return get(root());
-            case SINGLE_FILE:
-                return get(resource);
-            default:
-                throw new IllegalStateException();
-        }
+        return get(resource);
     }
 
     @Override public String resourceKey(FileObject resource) {

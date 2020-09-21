@@ -60,8 +60,8 @@ import org.metaborg.spoofax.core.config.SpoofaxProjectConfigBuilder;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfigService;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
-import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
-import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
+import org.metaborg.spoofax.core.context.constraint.ConstraintContextFactory;
+import org.metaborg.spoofax.core.dialogs.ISpoofaxDialogService;
 import org.metaborg.spoofax.core.dialogs.NullSpoofaxDialogService;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingService;
 import org.metaborg.spoofax.core.dynamicclassloading.IDynamicClassLoadingService;
@@ -157,7 +157,6 @@ import org.metaborg.spoofax.core.transform.ISpoofaxTransformService;
 import org.metaborg.spoofax.core.transform.IStrategoTransformer;
 import org.metaborg.spoofax.core.transform.SpoofaxTransformService;
 import org.metaborg.spoofax.core.transform.StrategoTransformer;
-import org.metaborg.spoofax.core.dialogs.ISpoofaxDialogService;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
@@ -189,11 +188,11 @@ import mb.flowspec.primitives.FS_get_property_post;
 import mb.flowspec.primitives.FS_get_property_pre;
 import mb.flowspec.primitives.FS_show_control_flow_graph;
 import mb.nabl2.spoofax.primitives.SG_analysis_has_errors;
+import mb.nabl2.spoofax.primitives.SG_debug_ast_properties;
 import mb.nabl2.spoofax.primitives.SG_debug_constraints;
 import mb.nabl2.spoofax.primitives.SG_debug_name_resolution;
 import mb.nabl2.spoofax.primitives.SG_debug_scope_graph;
 import mb.nabl2.spoofax.primitives.SG_debug_symbolic_constraints;
-import mb.nabl2.spoofax.primitives.SG_debug_ast_properties;
 import mb.nabl2.spoofax.primitives.SG_debug_unifier;
 import mb.nabl2.spoofax.primitives.SG_focus_term;
 import mb.nabl2.spoofax.primitives.SG_get_all_decls;
@@ -334,9 +333,7 @@ public class SpoofaxModule extends MetaborgModule {
 
         binder.addBinding(IndexTaskContextFactory.name).to(IndexTaskContextFactory.class).in(Singleton.class);
         binder.addBinding(LegacyContextFactory.name).to(LegacyContextFactory.class).in(Singleton.class);
-        binder.addBinding(SingleFileConstraintContextFactory.name).to(SingleFileConstraintContextFactory.class)
-                .in(Singleton.class);
-        binder.addBinding(MultiFileConstraintContextFactory.name).to(MultiFileConstraintContextFactory.class)
+        binder.addBinding(ConstraintContextFactory.name).to(ConstraintContextFactory.class)
                 .in(Singleton.class);
     }
 

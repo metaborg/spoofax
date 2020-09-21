@@ -26,18 +26,6 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
 
     // -------------------------------------
 
-    @Override public Mode mode() {
-        return context.mode();
-    }
-
-    @Override public FileObject root() {
-        return context.root();
-    }
-
-    @Override public boolean isRoot(FileObject resource) {
-        return context.isRoot(resource);
-    }
-
     @Override public boolean hasAnalysis(FileObject resource) {
         return context.hasAnalysis(resource);
     }

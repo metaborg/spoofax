@@ -44,8 +44,7 @@ import org.metaborg.spoofax.core.analysis.taskengine.TaskEngineAnalyzer;
 import org.metaborg.spoofax.core.context.ContextFacetFromESV;
 import org.metaborg.spoofax.core.context.IndexTaskContextFactory;
 import org.metaborg.spoofax.core.context.LegacyContextFactory;
-import org.metaborg.spoofax.core.context.constraint.MultiFileConstraintContextFactory;
-import org.metaborg.spoofax.core.context.constraint.SingleFileConstraintContextFactory;
+import org.metaborg.spoofax.core.context.constraint.ConstraintContextFactory;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacetFromESV;
 import org.metaborg.spoofax.core.esv.ESVReader;
@@ -69,12 +68,12 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
+import org.spoofax.terms.util.TermUtils;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import org.spoofax.terms.util.TermUtils;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
     private static final ILogger logger = LoggerUtils.logger(LanguageComponentFactory.class);
@@ -367,10 +366,8 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
                             analysisContextType = IndexTaskContextFactory.name;
                             break;
                         case SingleFileConstraintAnalyzer.name:
-                            analysisContextType = SingleFileConstraintContextFactory.name;
-                            break;
                         case MultiFileConstraintAnalyzer.name:
-                            analysisContextType = MultiFileConstraintContextFactory.name;
+                            analysisContextType = ConstraintContextFactory.name;
                             break;
                     }
                     if(hasContext && !analysisType.equals(StrategoAnalyzer.name) && !analysisContextType.equals(contextType)) {

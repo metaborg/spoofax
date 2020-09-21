@@ -9,21 +9,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public interface IConstraintContext extends IContextInternal {
 
-    enum Mode {
-        SINGLE_FILE, MULTI_FILE
-    }
-
-    Mode mode();
-
-
-    default boolean isRoot(String resource) {
-        return isRoot(keyResource(resource));
-    }
-
-    boolean isRoot(FileObject resource);
-
-    FileObject root();
-
     default boolean hasAnalysis(String resource) {
         return hasAnalysis(keyResource(resource));
     }
