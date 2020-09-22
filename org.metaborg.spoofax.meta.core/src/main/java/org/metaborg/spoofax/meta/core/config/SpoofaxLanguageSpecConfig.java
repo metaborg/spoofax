@@ -65,29 +65,28 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private final SpoofaxProjectConfig projectConfig;
 
     public SpoofaxLanguageSpecConfig(HierarchicalConfiguration<ImmutableNode> config,
-        SpoofaxProjectConfig projectConfig) {
+            SpoofaxProjectConfig projectConfig) {
         super(config, projectConfig);
         this.projectConfig = projectConfig;
     }
 
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
-        SpoofaxProjectConfig projectConfig, @Nullable LanguageIdentifier id, @Nullable String name,
-        @Nullable Collection<LanguageContributionIdentifier> langContribs,
-        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
-        @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec,
-        @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
-        @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
-        @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
-        @Nullable JSGLR2Logging jsglr2Logging, @Nullable String sdfMainFile,
-        @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
-        @Nullable List<String> sdfMetaFile, @Nullable String externalDef, @Nullable Arguments sdfArgs,
-        @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoGradualSetting gradualSetting, 
-        @Nullable StrategoFormat format, @Nullable String externalJar,
-        @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
-        @Nullable Collection<IBuildStepConfig> buildSteps) {
+            SpoofaxProjectConfig projectConfig, @Nullable LanguageIdentifier id, @Nullable String name,
+            @Nullable Collection<LanguageContributionIdentifier> langContribs,
+            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
+            @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec,
+            @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
+            @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
+            @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
+            @Nullable JSGLR2Logging jsglr2Logging, @Nullable String sdfMainFile,
+            @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
+            @Nullable List<String> sdfMetaFile, @Nullable String externalDef, @Nullable Arguments sdfArgs,
+            @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoGradualSetting gradualSetting,
+            @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
+            @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
-            dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, langContribs, generates,
-            exports, pardonedLanguages, useBuildSystemSpec);
+                dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, langContribs, generates,
+                exports, pardonedLanguages, useBuildSystemSpec);
         this.projectConfig = projectConfig;
 
         if(sdfVersion != null) {
@@ -156,12 +155,15 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return projectConfig.nabl2Config();
     }
 
+    @Override public boolean statixConcurrent() {
+        return projectConfig.statixConcurrent();
+    }
+
 
     @Override public SdfVersion sdfVersion() {
         final String value = this.config.getString(PROP_SDF_VERSION);
         return value != null ? SdfVersion.valueOf(value) : SdfVersion.sdf3;
     }
-
 
 
     @Override public String sdfMainFile() {
@@ -257,7 +259,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             return phaseStr != null ? LanguageSpecBuildPhase.valueOf(phaseStr) : defaultPhase;
         } catch(IllegalArgumentException e) {
             logger.warn("Language specification build phase with name {} does not exist, defaulting to {}", e, phaseStr,
-                defaultPhase);
+                    defaultPhase);
             return defaultPhase;
         }
     }
@@ -309,8 +311,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
                 placeholderChars = new PlaceholderCharacters(prefix, suffix);
             } catch(IllegalArgumentException e) {
                 logger.warn(
-                    "Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead",
-                    suffix);
+                        "Placeholder suffix {} cannot be specified without a prefix, using \"[[\" and \"]]\" instead",
+                        suffix);
                 placeholderChars = new PlaceholderCharacters("$", null);
             }
         }
