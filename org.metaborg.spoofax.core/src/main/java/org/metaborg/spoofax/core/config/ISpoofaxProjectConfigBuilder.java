@@ -80,10 +80,19 @@ public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
     /**
      * Sets whether debug output is enabled for the constraint solver.
      * 
-     * @param incremental
-     *            True to enable, false to disable.
+     * @param config
+     *            NaBL2 configuration.
      * @return This builder.
      */
     ISpoofaxProjectConfigBuilder withNaBL2Config(NaBL2Config config);
+
+    /**
+     * Set whether concurrent solver should be used.
+     * 
+     * @param concurrent
+     *            True to enable, false to disable.
+     * @return This builder.
+     */
+    ISpoofaxProjectConfigBuilder withStatixConcurrent(boolean concurrent);
 
 }

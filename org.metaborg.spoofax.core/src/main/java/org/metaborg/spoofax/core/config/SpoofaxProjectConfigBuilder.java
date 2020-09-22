@@ -17,6 +17,7 @@ import mb.nabl2.config.NaBL2Config;
 
 public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements ISpoofaxProjectConfigBuilder {
     protected @Nullable NaBL2Config nabl2Config;
+    protected @Nullable Boolean statixConcurrent;
 
     @Inject public SpoofaxProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -27,17 +28,18 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
             configuration = configReaderWriter.create(null, rootFolder);
         }
         return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
-                nabl2Config);
+                nabl2Config, statixConcurrent);
     }
 
-    public SpoofaxProjectConfig build(HierarchicalConfiguration<ImmutableNode> configuration) {
+    @Override public SpoofaxProjectConfig build(HierarchicalConfiguration<ImmutableNode> configuration) {
         return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
-                nabl2Config);
+                nabl2Config, statixConcurrent);
     }
 
     @Override public ISpoofaxProjectConfigBuilder reset() {
         super.reset();
         nabl2Config = null;
+        statixConcurrent = null;
         return this;
     }
 
@@ -52,6 +54,7 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
     public void copyValuesFrom(ISpoofaxProjectConfig config) {
         super.copyValuesFrom(config);
         withNaBL2Config(config.nabl2Config());
+        withStatixConcurrent(config.statixConcurrent());
     }
 
     @Override public ISpoofaxProjectConfigBuilder withMetaborgVersion(String metaborgVersion) {
@@ -100,9 +103,13 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
     }
 
 
-
     @Override public ISpoofaxProjectConfigBuilder withNaBL2Config(NaBL2Config config) {
         this.nabl2Config = config;
+        return this;
+    }
+
+    @Override public ISpoofaxProjectConfigBuilder withStatixConcurrent(boolean enable) {
+        this.statixConcurrent = enable;
         return this;
     }
 

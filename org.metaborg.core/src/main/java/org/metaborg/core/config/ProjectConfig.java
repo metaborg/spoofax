@@ -30,7 +30,6 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
     private static final String PROP_SOURCE_DEPENDENCIES = PROP_DEPENDENCIES + ".source";
     private static final String PROP_JAVA_DEPENDENCIES = PROP_DEPENDENCIES + ".java";
 
-
     public ProjectConfig(HierarchicalConfiguration<ImmutableNode> config) {
         super(config);
 
