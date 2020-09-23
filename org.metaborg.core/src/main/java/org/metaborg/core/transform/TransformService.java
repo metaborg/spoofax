@@ -81,8 +81,8 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
         final Collection<TA> results = Lists.newArrayList();
         for(TransformActionContrib action : actions) {
-        	if (!isActionEnabled(action, context)) {
-        	    logger.info("Skipped action '" + action.action.name() + "' because it is not enabled by the project or a compile dependency.");
+            if (!isActionEnabled(action, context)) {
+                // Skip action because it is not enabled by the project or a compile dependency.
                 continue;
             }
             final TA result = transformer.transform(input, context, action, config);
