@@ -86,13 +86,4 @@ public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
      */
     ISpoofaxProjectConfigBuilder withNaBL2Config(NaBL2Config config);
 
-    /**
-     * Set whether concurrent solver should be used.
-     * 
-     * @param concurrent
-     *            True to enable, false to disable.
-     * @return This builder.
-     */
-    ISpoofaxProjectConfigBuilder withStatixConcurrent(boolean concurrent);
-
 }

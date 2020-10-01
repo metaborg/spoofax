@@ -16,6 +16,4 @@ public interface ISpoofaxProjectConfig extends IProjectConfig {
      */
     NaBL2Config nabl2Config();
 
-    boolean statixConcurrent();
-
 }

@@ -39,7 +39,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
         final LanguageSpecConfig config =
             new LanguageSpecConfig(configuration, projectConfig, identifier, name, sdfEnabled, sdf2tableVersion,
                 checkOverlap, checkPriorities, dataDependent, parseTable, completionsParseTable, jsglrVersion,
-                jsglr2Logging, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+                jsglr2Logging, statixConcurrent, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         return config;
     }
 

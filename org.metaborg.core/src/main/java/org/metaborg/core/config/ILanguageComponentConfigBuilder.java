@@ -155,6 +155,15 @@ public interface ILanguageComponentConfigBuilder {
     ILanguageComponentConfigBuilder withJSGLR2Logging(JSGLR2Logging jsglr2Logging);
 
     /**
+     * Set whether concurrent solver should be used.
+     * 
+     * @param concurrent
+     *            True to enable, false to disable.
+     * @return This builder.
+     */
+    ILanguageComponentConfigBuilder withStatixConcurrent(Boolean concurrent);
+
+    /**
      * Adds language contributions.
      *
      * @param contribs

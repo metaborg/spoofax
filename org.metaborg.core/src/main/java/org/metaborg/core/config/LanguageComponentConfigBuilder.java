@@ -35,6 +35,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable Boolean dataDependent;
     protected @Nullable JSGLRVersion jsglrVersion;
     protected @Nullable JSGLR2Logging jsglr2Logging;
+    protected @Nullable Boolean statixConcurrent;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -49,7 +50,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
             name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, checkOverlap, checkPriorities,
-            dataDependent, jsglrVersion, jsglr2Logging, langContribs, generates, exports);
+            dataDependent, jsglrVersion, jsglr2Logging, statixConcurrent, langContribs, generates, exports);
         return config;
     }
 
@@ -69,6 +70,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         jsglrVersion = null;
         jsglr2Logging = null;
         sdfEnabled = null;
+        statixConcurrent = null;
         return this;
     }
 
@@ -87,6 +89,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withSdf2tableVersion(config.sdf2tableVersion());
             withJSGLRVersion(config.jsglrVersion());
             withJSGLR2Logging(config.jsglr2Logging());
+            withStatixConcurrent(config.statixConcurrent());
             withCheckOverlap(config.checkOverlap());
             withCheckPriorities(config.checkPriorities());
             withSdfEnabled(config.sdfEnabled());
@@ -183,6 +186,12 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         this.jsglr2Logging = jsglr2Logging;
         return this;
     }
+
+    @Override public ILanguageComponentConfigBuilder withStatixConcurrent(Boolean enable) {
+        this.statixConcurrent = enable;
+        return this;
+    }
+
 
     @Override public ILanguageComponentConfigBuilder
         withLangContribs(Iterable<LanguageContributionIdentifier> contribs) {

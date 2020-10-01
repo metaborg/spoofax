@@ -96,6 +96,15 @@ public interface ILanguageComponentConfig extends IProjectConfig {
     JSGLR2Logging jsglr2Logging();
     
     /**
+     * Gets whether this language uses the concurrent Statix solver.
+     * 
+     * Specific to Spoofax.
+     * 
+     * @return true if the concurrent Statix solver is used.
+     */
+    boolean statixConcurrent();
+
+    /**
      * Gets the file exports.
      *
      * @return The file exports.

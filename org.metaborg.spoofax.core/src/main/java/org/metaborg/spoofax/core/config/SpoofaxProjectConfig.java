@@ -3,8 +3,6 @@ package org.metaborg.spoofax.core.config;
 import java.util.Collection;
 import java.util.Optional;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.config.IExportConfig;
@@ -24,26 +22,17 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
 
     private static final String PROP_NABL2 = PROP_RUNTIME + ".nabl2";
 
-    private static final String PROP_LANGUAGE = "language";
-
-    private static final String PROP_STATIX = PROP_LANGUAGE + ".statix";
-    private static final String PROP_STATIX_CONCURRENT = PROP_STATIX + ".concurrent";
-
     public SpoofaxProjectConfig(HierarchicalConfiguration<ImmutableNode> config) {
         super(config);
     }
 
     protected SpoofaxProjectConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
             Collection<IExportConfig> sources, Collection<LanguageIdentifier> compileDeps,
-            Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps,
-            NaBL2Config nabl2Config, @Nullable Boolean statixConcurrent) {
+            Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps, NaBL2Config nabl2Config) {
         super(config, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps);
         if(nabl2Config != null) {
             Optional.ofNullable(configurationAt(PROP_NABL2, true))
                     .ifPresent(c -> NaBL2ConfigReaderWriter.write(nabl2Config, c));
-        }
-        if(statixConcurrent != null) {
-            config.setProperty(PROP_STATIX_CONCURRENT, statixConcurrent);
         }
     }
 
@@ -59,10 +48,6 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
     @Override public NaBL2Config nabl2Config() {
         return Optional.ofNullable(configurationAt(PROP_NABL2, false)).map(NaBL2ConfigReaderWriter::read)
                 .orElse(NaBL2Config.DEFAULT);
-    }
-
-    @Override public boolean statixConcurrent() {
-        return config.getBoolean(PROP_STATIX_CONCURRENT, false);
     }
 
     @Override public Collection<IMessage> validate(MessageBuilder mb) {

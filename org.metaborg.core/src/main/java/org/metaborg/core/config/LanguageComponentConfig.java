@@ -13,10 +13,10 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-
-import com.google.common.collect.Lists;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+
+import com.google.common.collect.Lists;
 
 /**
  * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
@@ -28,15 +28,20 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_LANGUAGE_CONTRIBUTIONS = "contributions";
     private static final String PROP_GENERATES = "generates";
     private static final String PROP_EXPORTS = "exports";
+    private static final String PROP_LANGUAGE = "language";
 
-    private static final String PROP_SDF_ENABLED = "language.sdf.enabled";
-    private static final String PROP_SDF_PARSE_TABLE = "language.sdf.parse-table";
-    private static final String PROP_SDF_COMPLETION_PARSE_TABLE = "language.sdf.completion-parse-table";
-    private static final String PROP_SDF2TABLE_VERSION = "language.sdf.sdf2table";
-    private static final String PROP_SDF2TABLE_CHECKOVERLAP = "language.sdf.check-overlap";
-    private static final String PROP_SDF2TABLE_CHECKPRIORITIES = "language.sdf.check-priorities";
-    private static final String PROP_SDF_JSGLR_VERSION = "language.sdf.jsglr-version";
-    private static final String PROP_SDF_JSGLR2_LOGGING = "language.sdf.jsglr2-logging";
+    private static final String PROP_SDF = PROP_LANGUAGE + ".sdf";
+    private static final String PROP_SDF_ENABLED = PROP_SDF + ".enabled";
+    private static final String PROP_SDF_PARSE_TABLE = PROP_SDF + ".parse-table";
+    private static final String PROP_SDF_COMPLETION_PARSE_TABLE = PROP_SDF + ".completion-parse-table";
+    private static final String PROP_SDF2TABLE_VERSION = PROP_SDF + ".sdf2table";
+    private static final String PROP_SDF2TABLE_CHECKOVERLAP = PROP_SDF + ".check-overlap";
+    private static final String PROP_SDF2TABLE_CHECKPRIORITIES = PROP_SDF + ".check-priorities";
+    private static final String PROP_SDF_JSGLR_VERSION = PROP_SDF + ".jsglr-version";
+    private static final String PROP_SDF_JSGLR2_LOGGING = PROP_SDF + ".jsglr2-logging";
+
+    private static final String PROP_STATIX = PROP_LANGUAGE + ".statix";
+    private static final String PROP_STATIX_CONCURRENT = PROP_STATIX + ".concurrent";
 
     private final ProjectConfig projectConfig;
 
@@ -48,12 +53,13 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     }
 
     protected LanguageComponentConfig(HierarchicalConfiguration<ImmutableNode> config, ProjectConfig projectConfig,
-        @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
-        @Nullable String parseTable, @Nullable String completionParseTable, @Nullable Sdf2tableVersion sdf2tableVersion, 
-        @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities,
-        @Nullable Boolean dataDependent, @Nullable JSGLRVersion jsglrVersion, @Nullable JSGLR2Logging jsglr2Logging,
-        @Nullable Collection<LanguageContributionIdentifier> langContribs,
-        @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
+            @Nullable LanguageIdentifier identifier, @Nullable String name, @Nullable Boolean sdfEnabled,
+            @Nullable String parseTable, @Nullable String completionParseTable,
+            @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable Boolean checkOverlap,
+            @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent, @Nullable JSGLRVersion jsglrVersion,
+            @Nullable JSGLR2Logging jsglr2Logging, @Nullable Boolean statixConcurrent,
+            @Nullable Collection<LanguageContributionIdentifier> langContribs,
+            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config);
         this.projectConfig = projectConfig;
 
@@ -80,6 +86,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         }
         if(jsglr2Logging != null) {
             config.setProperty(PROP_SDF_JSGLR2_LOGGING, jsglr2Logging);
+        }
+        if(statixConcurrent != null) {
+            config.setProperty(PROP_STATIX_CONCURRENT, statixConcurrent);
         }
         if(name != null) {
             config.setProperty(PROP_NAME, name);
@@ -135,9 +144,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Collection<LanguageContributionIdentifier> langContribs() {
         final List<HierarchicalConfiguration<ImmutableNode>> langContribConfigs =
-            config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
+                config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
         final List<LanguageContributionIdentifier> langContribs =
-            Lists.newArrayListWithCapacity(langContribConfigs.size());
+                Lists.newArrayListWithCapacity(langContribConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> langContribConfig : langContribConfigs) {
             // HACK: for some reason get(LanguageIdentifier.class, "id") does not work here, it cannot convert to a
             // language identifier, do manually instead.
@@ -166,7 +175,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Collection<IExportConfig> exports() {
         final List<HierarchicalConfiguration<ImmutableNode>> exportConfigs =
-            config.configurationsAt(PROP_EXPORTS, false);
+                config.configurationsAt(PROP_EXPORTS, false);
         final List<IExportConfig> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> exportConfig : exportConfigs) {
             final List<String> languages = exportConfig.getList(String.class, "language");
@@ -211,8 +220,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             messages.add(mb.withMessage("Field 'name' must be set").build());
         } else {
             if(!LanguageIdentifier.validId(name)) {
-                messages.add(
-                    mb.withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
+                messages.add(mb
+                        .withMessage("Field 'name' contains invalid characters, " + LanguageIdentifier.errorDescription)
                         .build());
             }
         }
@@ -232,11 +241,11 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         final String value = this.config.getString(PROP_SDF_PARSE_TABLE);
         return value != null ? value : "target/metaborg/sdf.tbl";
     }
-    
+
     @Override public Boolean checkPriorities() {
         return this.config.getBoolean(PROP_SDF2TABLE_CHECKPRIORITIES, false);
     }
-    
+
     @Override public Boolean checkOverlap() {
         return this.config.getBoolean(PROP_SDF2TABLE_CHECKOVERLAP, false);
     }
@@ -249,10 +258,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     @Override public Sdf2tableVersion sdf2tableVersion() {
         final String value = this.config.getString(PROP_SDF2TABLE_VERSION);
 
-        if (value != null)
+        if(value != null)
             return Sdf2tableVersion.valueOf(value);
         else {
-            if (sdfEnabled())
+            if(sdfEnabled())
                 logger.warn("No {} config found; defaulting to java", PROP_SDF2TABLE_VERSION);
 
             return Sdf2tableVersion.java;
@@ -278,4 +287,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
         return value != null ? JSGLR2Logging.valueOf(value) : JSGLR2Logging.none;
     }
+
+    @Override public boolean statixConcurrent() {
+        return config.getBoolean(PROP_STATIX_CONCURRENT, false);
+    }
+
 }
