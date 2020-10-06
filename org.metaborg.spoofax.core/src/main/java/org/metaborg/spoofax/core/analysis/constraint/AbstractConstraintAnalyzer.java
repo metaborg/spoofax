@@ -43,6 +43,7 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
@@ -147,7 +148,12 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             }
         }
 
-        return doAnalysis(changed, removed, invalid, context, runtime, facet.strategyName, progress, cancel);
+        final Timer timer = new Timer(true);
+        try {
+            return doAnalysis(changed, removed, invalid, context, runtime, facet.strategyName, progress, cancel);
+        } finally {
+            logger.info("Analysis finished in {} s", timer.stop() / 1_000_000_000d);
+        }
     }
 
     private boolean isEmptyAST(IStrategoTerm ast) {
@@ -158,9 +164,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             Map<String, ISpoofaxAnalyzeUnit> removed, Map<String, ISpoofaxAnalyzeUnit> invalid,
             IConstraintContext context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
             throws AnalysisException {
-
-        //        final AggregateTimer timer = new AggregateTimer(true);
-        //        try {
 
         /*******************************************************************
          * 1. Compute changeset, and remove invalidated units from context *
@@ -207,9 +210,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         fullResults.addAll(invalid.values());
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
 
-        //        } finally {
-        //            logger.info("Analysis finished in {} s", timer.stop() / 1_000_000_000d);
-        //        }
     }
 
     private boolean computeChanges(IConstraintContext context, Map<String, ISpoofaxParseUnit> changed,
