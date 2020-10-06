@@ -468,10 +468,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analyzedAst = null;
                 analysis = null;
                 failMessage("Analysis failed");
-                if(!input.detached()) {
-                    context.remove(resource);
-                }
             } else {
+                analyzedAst = null;
+                analysis = null;
                 failMessage("Analysis returned incorrect result");
             }
         }
@@ -479,7 +478,11 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
             if(!input.detached()) {
-                context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
+                if(analysis != null) {
+                    context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
+                } else {
+                    context.remove(resource);
+                }
             }
             fullResults.add(unitService.analyzeUnit(input,
                     new AnalyzeContrib(analyzedAst != null, success(messages), true, analyzedAst, messages, -1),
@@ -511,18 +514,22 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(0);
                 resultMessages(results.get(1), results.get(2), results.get(3));
             } else if(match(result, "Failed", 0) != null) {
+                analyzedAst = null;
                 analysis = null;
                 failMessage("Analysis failed");
-                context.remove(resource);
             } else {
+                analyzedAst = null;
+                analysis = null;
                 failMessage("Analysis returned incorrect result");
             }
         }
 
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
-            if(!input.detached()) {
+            if(analysis != null) {
                 context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
+            } else {
+                context.remove(resource);
             }
             fullResults.add(unitService.analyzeUnit(input,
                     new AnalyzeContrib(analyzedAst != null, success(messages), true, analyzedAst, messages, -1),
@@ -551,17 +558,23 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(0);
                 resultMessages(results.get(1), results.get(2), results.get(3));
             } else if(match(result, "Failed", 0) != null) {
+                analyzedAst = null;
                 analysis = null;
                 failMessage("Analysis failed");
-                context.remove(resource);
             } else {
+                analyzedAst = null;
+                analysis = null;
                 failMessage("Analysis returned incorrect result");
             }
         }
 
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
-            context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
+            if(analysis != null) {
+                context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
+            } else {
+                context.remove(resource);
+            }
             updateResults.add(unitService.analyzeUnitUpdate(resource(), new AnalyzeUpdateData(messages), context));
         }
 
@@ -585,17 +598,23 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(1);
                 resultMessages(results.get(2), results.get(3), results.get(4));
             } else if(match(result, "Failed", 0) != null) {
+                analyzedAst = null;
                 analysis = null;
                 failMessage("Analysis failed");
-                context.remove(resource);
             } else {
+                analyzedAst = null;
+                analysis = null;
                 failMessage("Analysis returned incorrect result");
             }
         }
 
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
-            context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
+            if(analysis != null) {
+                context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
+            } else {
+                context.remove(resource);
+            }
             updateResults.add(unitService.analyzeUnitUpdate(resource(), new AnalyzeUpdateData(messages), context));
         }
 
