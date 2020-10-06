@@ -6,7 +6,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -62,27 +61,33 @@ public class ConstraintContext implements IConstraintContext {
     }
 
     @Override public boolean contains(FileObject resource) {
-        return state.analyses.containsKey(resourceKey(resource));
+        return state.entries.containsKey(resourceKey(resource));
     }
 
-    @Override public boolean put(FileObject resource, IStrategoTerm value) {
-        return state.analyses.put(resourceKey(resource), value) != null;
+    @Override public boolean hasChanged(FileObject resource, int parseHash) {
+        final String key = resourceKey(resource);
+        return !state.entries.containsKey(key) || state.entries.get(key).parseHash() != parseHash;
     }
 
-    @Override public IStrategoTerm get(FileObject resource) {
-        return state.analyses.get(resourceKey(resource));
+    @Override public boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst,
+            IStrategoTerm analysis) {
+        return state.entries.put(resourceKey(resource), new Entry(parseHash, analyzedAst, analysis)) != null;
+    }
+
+    @Override public IConstraintContext.Entry get(FileObject resource) {
+        return state.entries.get(resourceKey(resource));
     }
 
     @Override public boolean remove(FileObject resource) {
-        return state.analyses.remove(resourceKey(resource)) != null;
+        return state.entries.remove(resourceKey(resource)) != null;
     }
 
-    @Override public Set<Entry<String, IStrategoTerm>> entrySet() {
-        return state.analyses.entrySet();
+    @Override public Set<Map.Entry<String, IConstraintContext.Entry>> entrySet() {
+        return state.entries.entrySet();
     }
 
     @Override public void clear() {
-        state.analyses.clear();
+        state.entries.clear();
     }
 
     // ----------------------------------------------------------
@@ -294,10 +299,38 @@ public class ConstraintContext implements IConstraintContext {
 
         private static final long serialVersionUID = 1L;
 
-        public final Map<String, IStrategoTerm> analyses;
+        public final Map<String, IConstraintContext.Entry> entries;
 
         public State() {
-            this.analyses = Maps.newHashMap();
+            this.entries = Maps.newHashMap();
+        }
+
+    }
+
+    private static class Entry implements IConstraintContext.Entry, Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final int parseHash;
+        public transient IStrategoTerm analyzedAst;
+        public final IStrategoTerm analysis;
+
+        Entry(int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis) {
+            this.parseHash = parseHash;
+            this.analyzedAst = analyzedAst;
+            this.analysis = analysis;
+        }
+
+        @Override public int parseHash() {
+            return parseHash;
+        }
+
+        @Override public IStrategoTerm analyzedAst() {
+            return analyzedAst;
+        }
+
+        @Override public IStrategoTerm analysis() {
+            return analysis;
         }
 
     }

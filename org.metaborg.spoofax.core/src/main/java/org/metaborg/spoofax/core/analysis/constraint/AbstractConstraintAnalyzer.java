@@ -37,11 +37,13 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.util.Ref;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
+import org.metaborg.util.time.AggregateTimer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
@@ -91,7 +93,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             ICancel cancel) throws AnalysisException {
         final ISpoofaxAnalyzeResults results =
                 analyzeAll(Iterables2.singleton(input), genericContext, progress, cancel);
-        if(results.results().isEmpty()) {
+        if(results.results().isEmpty() && results.updates().isEmpty()) {
             throw new AnalysisException(genericContext, "Analysis failed, no result was returned.");
         }
         return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(),
@@ -156,42 +158,95 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             IConstraintContext context, HybridInterpreter runtime, String strategy, IProgress progress, ICancel cancel)
             throws AnalysisException {
 
+        //        final AggregateTimer timer = new AggregateTimer(true);
+        //        try {
+
         /*******************************************************************
          * 1. Compute changeset, and remove invalidated units from context *
          *******************************************************************/
 
+        final Ref<IStrategoTerm> projectChange = new Ref<>();
         final List<IStrategoTerm> changes = new ArrayList<>();
         final Map<String, Expect> expects = new HashMap<>();
 
+        final boolean realChange = computeChanges(context, changed, removed, projectChange, changes, expects);
+
+        /***************************************
+         * 2. Call analysis, and parse results *
+         ***************************************/
+
+        final Map<String, IStrategoTerm> results = new HashMap<>();
+
+        if(realChange) {
+
+            callAnalysis(context, changed, projectChange.get(), changes, expects, runtime, strategy, cancel, progress,
+                    results);
+
+        }
+
+        /**************************************************
+         * 3. Process analysis results & collect messages *
+         **************************************************/
+
+        final ListMultimap<FileName, IMessage> messages = ArrayListMultimap.create();
+
+        processResults(changed, expects, results, messages);
+
+        /************************************
+         * 4. Create Spoofax analysis units *
+         ************************************/
+
+        final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
+        final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
+        for(Expect expect : expects.values()) {
+            Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
+            expect.result(fileMessages, fullResults, updateResults);
+        }
+        fullResults.addAll(removed.values());
+        fullResults.addAll(invalid.values());
+        return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
+
+        //        } finally {
+        //            logger.info("Analysis finished in {} s", timer.stop() / 1_000_000_000d);
+        //        }
+    }
+
+    private boolean computeChanges(IConstraintContext context, Map<String, ISpoofaxParseUnit> changed,
+            Map<String, ISpoofaxAnalyzeUnit> removed, Ref<IStrategoTerm> projectChange,
+            final List<IStrategoTerm> changes, final Map<String, Expect> expects) {
+        boolean realChange = false;
+
         // project entry
-        final IStrategoTerm projectChange;
         if(multifile()) {
             final String resource = context.resourceKey(context.location());
-            final IStrategoTerm ast = projectAST(resource);
+            final IStrategoTerm projectAst = projectAST(resource);
             final IStrategoTerm change;
             final Expect expect;
             if(context.contains(resource)) {
-                final IStrategoTerm analysis = context.get(resource);
-                change = build("Cached", analysis);
-                expect = new Update(resource, context);
+                final IConstraintContext.Entry ctxEntry = context.get(resource);
+                change = build("Cached", ctxEntry.analysis());
+                expect = new Update(resource, projectAst.hashCode(), projectAst, ctxEntry.analysis(), context);
                 context.remove(resource);
             } else {
-                change = build("Added", ast);
-                expect = new Project(resource, context);
+                change = build("Added", projectAst);
+                expect = new ProjectFull(resource, projectAst.hashCode(), projectAst, context);
+                realChange = true;
             }
             expects.put(resource, expect);
-            projectChange = termFactory.makeTuple(termFactory.makeString(resource), change);
+            projectChange.set(termFactory.makeTuple(termFactory.makeString(resource), change));
         } else {
-            projectChange = null;
+            projectChange.set(null);
         }
 
         // removed files
         for(Map.Entry<String, ISpoofaxAnalyzeUnit> entry : removed.entrySet()) {
             final String resource = entry.getKey();
             if(context.contains(entry.getKey())) {
-                final IStrategoTerm analysis = context.get(resource);
-                changes.add(termFactory.makeTuple(termFactory.makeString(resource), build("Removed", analysis)));
+                final IConstraintContext.Entry ctxEntry = context.get(resource);
+                changes.add(
+                        termFactory.makeTuple(termFactory.makeString(resource), build("Removed", ctxEntry.analysis())));
                 context.remove(resource);
+                realChange = true;
             }
         }
 
@@ -199,37 +254,55 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         for(Map.Entry<String, ISpoofaxParseUnit> entry : changed.entrySet()) {
             final String resource = entry.getKey();
             final ISpoofaxParseUnit input = entry.getValue();
-            final IStrategoTerm ast = input.ast();
+            final IStrategoTerm parseAst = input.ast();
             final IStrategoTerm change;
+            final Expect expect;
             if(context.contains(resource)) {
-                final IStrategoTerm analysis = context.get(resource);
-                change = build("Changed", ast, analysis);
-                context.remove(resource);
+                final IConstraintContext.Entry ctxEntry = context.get(resource);
+                final IStrategoTerm analyzedAst = ctxEntry.analyzedAst();
+                if(context.hasChanged(resource, parseAst.hashCode()) || analyzedAst == null) {
+                    change = build("Changed", parseAst, ctxEntry.analysis());
+                    expect = new Full(resource, parseAst.hashCode(), input, context);
+                    realChange = true;
+                } else {
+                    change = build("Cached", ctxEntry.analysis());
+                    expect = new UpdateFull(resource, parseAst.hashCode(), analyzedAst, ctxEntry.analysis(), input,
+                            context);
+                }
             } else {
-                change = build("Added", ast);
+                change = build("Added", parseAst);
+                expect = new Full(resource, parseAst.hashCode(), input, context);
+                realChange = true;
             }
-            expects.put(resource, new Full(resource, input, context));
+            context.remove(resource);
+            expects.put(resource, expect);
             changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
         }
 
         // cached files
         if(multifile()) {
-            for(Map.Entry<String, IStrategoTerm> entry : context.entrySet()) {
+            for(Map.Entry<String, IConstraintContext.Entry> entry : context.entrySet()) {
                 final String resource = entry.getKey();
-                final IStrategoTerm analysis = entry.getValue();
+                final IConstraintContext.Entry ctxEntry = entry.getValue();
+                final IStrategoTerm analyzedAst = ctxEntry.analyzedAst();
+                final IStrategoTerm analysis = ctxEntry.analysis();
                 if(!changed.containsKey(resource)) {
                     final IStrategoTerm change = build("Cached", analysis);
-                    expects.put(resource, new Update(resource, context));
+                    expects.put(resource,
+                            new Update(resource, entry.getValue().parseHash(), analyzedAst, analysis, context));
                     changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
                 }
             }
         }
 
-        /***************************************
-         * 2. Call analysis, and parse results *
-         ***************************************/
+        return realChange;
+    }
 
-        final Map<String, IStrategoTerm> results = new HashMap<>();
+    private void callAnalysis(IConstraintContext context, Map<String, ISpoofaxParseUnit> changed,
+            final IStrategoTerm projectChange, final List<IStrategoTerm> changes, Map<String, Expect> expects,
+            HybridInterpreter runtime, String strategy, ICancel cancel, IProgress progress,
+            final Map<String, IStrategoTerm> results) throws AnalysisException {
+
         final IStrategoTerm action;
         if(multifile()) {
             action = build("AnalyzeMulti", projectChange, termFactory.makeList(changes), B.blob(progress),
@@ -268,9 +341,18 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             results.put(resource, resultTerm);
         }
 
-        /*******************************
-         * 3. Process analysis results *
-         *******************************/
+        // check coverage
+        for(Map.Entry<String, ISpoofaxParseUnit> entry : changed.entrySet()) {
+            final String resource = entry.getKey();
+            if(!results.containsKey(resource)) {
+                expects.get(resource).failMessage("Missing analysis result");
+            }
+        }
+
+    }
+
+    private void processResults(Map<String, ISpoofaxParseUnit> changed, final Map<String, Expect> expects,
+            final Map<String, IStrategoTerm> results, ListMultimap<FileName, IMessage> messages) {
 
         // call expects with result
         for(Map.Entry<String, IStrategoTerm> entry : results.entrySet()) {
@@ -283,47 +365,25 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             }
         }
 
-        // check coverage
-        for(Map.Entry<String, ISpoofaxParseUnit> entry : changed.entrySet()) {
-            final String resource = entry.getKey();
-            if(!results.containsKey(resource)) {
-                expects.get(resource).failMessage("Missing analysis result");
-            }
-        }
-
-        /**************************************
-         * 4. Globally collect error messages *
-         **************************************/
-
-        final ListMultimap<FileName, IMessage> messages = ArrayListMultimap.create();
+        // collect messages
         for(Map.Entry<String, Expect> entry : expects.entrySet()) {
             final Expect expect = entry.getValue();
             messages.putAll(expect.messages);
         }
 
-        /************************************
-         * 5. Create Spoofax analysis units *
-         ************************************/
-
-        final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
-        final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
-        for(Expect expect : expects.values()) {
-            Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
-            expect.result(fileMessages, fullResults, updateResults);
-        }
-        fullResults.addAll(removed.values());
-        fullResults.addAll(invalid.values());
-        return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
     }
+
 
     private abstract class Expect {
 
         protected final String resource;
+        protected final int parseHash;
         protected final IConstraintContext context;
         protected final ListMultimap<FileName, IMessage> messages;
 
-        protected Expect(String resource, IConstraintContext context) {
+        protected Expect(String resource, int parseHash, IConstraintContext context) {
             this.resource = resource;
+            this.parseHash = parseHash;
             this.context = context;
             this.messages = ArrayListMultimap.create();
         }
@@ -367,25 +427,22 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         // 1. initialized by constructor
         private ISpoofaxParseUnit input;
         // 2. initialized by accept
-        private IStrategoTerm ast;
+        private IStrategoTerm analyzedAst;
         private IStrategoTerm analysis;
 
-        public Full(String resource, ISpoofaxParseUnit input, IConstraintContext context) {
-            super(resource, context);
+        public Full(String resource, int parseHash, ISpoofaxParseUnit input, IConstraintContext context) {
+            super(resource, parseHash, context);
             this.input = input;
         }
 
         @Override public void accept(IStrategoTerm result) {
             final List<IStrategoTerm> results;
             if((results = match(result, "Full", 5)) != null) {
-                ast = results.get(0);
+                analyzedAst = results.get(0);
                 analysis = results.get(1);
                 resultMessages(results.get(2), results.get(3), results.get(4));
-                if(!input.detached()) {
-                    context.put(resource, analysis);
-                }
             } else if(match(result, "Failed", 0) != null) {
-                ast = null;
+                analyzedAst = null;
                 analysis = null;
                 failMessage("Analysis failed");
                 if(!input.detached()) {
@@ -398,19 +455,30 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
+            if(!input.detached()) {
+                context.put(resource, parseHash, analyzedAst, analysis);
+            }
             fullResults.add(unitService.analyzeUnit(input,
-                    new AnalyzeContrib(ast != null, success(messages), true, ast, messages, -1), context));
+                    new AnalyzeContrib(analyzedAst != null, success(messages), true, analyzedAst, messages, -1),
+                    context));
         }
 
     }
 
-    private class Update extends Expect {
+    private class UpdateFull extends Expect {
 
-        // 2. initialized by accept
+        // 1. initialized by constructor
+        private ISpoofaxParseUnit input;
+        private IStrategoTerm analyzedAst;
+        // 2. initialized by constructor, overwritten by accept
         private IStrategoTerm analysis;
 
-        private Update(String resource, IConstraintContext context) {
-            super(resource, context);
+        public UpdateFull(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+                ISpoofaxParseUnit input, IConstraintContext context) {
+            super(resource, parseHash, context);
+            this.input = input;
+            this.analyzedAst = analyzedAst;
+            this.analysis = analysis;
         }
 
         @Override public void accept(IStrategoTerm result) {
@@ -418,7 +486,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             if((results = match(result, "Update", 4)) != null) {
                 analysis = results.get(0);
                 resultMessages(results.get(1), results.get(2), results.get(3));
-                context.put(resource, analysis);
             } else if(match(result, "Failed", 0) != null) {
                 analysis = null;
                 failMessage("Analysis failed");
@@ -430,18 +497,61 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
+            if(!input.detached()) {
+                context.put(resource, parseHash, analyzedAst, analysis);
+            }
+            fullResults.add(unitService.analyzeUnit(input,
+                    new AnalyzeContrib(analyzedAst != null, success(messages), true, analyzedAst, messages, -1),
+                    context));
+        }
+
+    }
+
+    private class Update extends Expect {
+
+        // 1. initialized by constructor
+        private IStrategoTerm analyzedAst;
+        // 2. initialized by constructor, overwritten by accept
+        private IStrategoTerm analysis;
+
+        private Update(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+                IConstraintContext context) {
+            super(resource, parseHash, context);
+            this.analysis = analysis;
+        }
+
+        @Override public void accept(IStrategoTerm result) {
+            final List<IStrategoTerm> results;
+            if((results = match(result, "Update", 4)) != null) {
+                analysis = results.get(0);
+                resultMessages(results.get(1), results.get(2), results.get(3));
+            } else if(match(result, "Failed", 0) != null) {
+                analysis = null;
+                failMessage("Analysis failed");
+                context.remove(resource);
+            } else {
+                failMessage("Analysis returned incorrect result");
+            }
+        }
+
+        @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
+                Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
+            context.put(resource, parseHash, analyzedAst, analysis);
             updateResults.add(unitService.analyzeUnitUpdate(resource(), new AnalyzeUpdateData(messages), context));
         }
 
     }
 
-    private class Project extends Expect {
+    private class ProjectFull extends Expect {
 
+        // 1. initialized by constructor
+        private IStrategoTerm analyzedAst;
         // 2. initialized by accept
         private IStrategoTerm analysis;
 
-        public Project(String resource, IConstraintContext context) {
-            super(resource, context);
+        public ProjectFull(String resource, int parseHash, IStrategoTerm analyzedAst, IConstraintContext context) {
+            super(resource, parseHash, context);
+            this.analyzedAst = analyzedAst;
         }
 
         @Override public void accept(IStrategoTerm result) {
@@ -449,7 +559,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             if((results = match(result, "Full", 5)) != null) {
                 analysis = results.get(1);
                 resultMessages(results.get(2), results.get(3), results.get(4));
-                context.put(resource, analysis);
             } else if(match(result, "Failed", 0) != null) {
                 analysis = null;
                 failMessage("Analysis failed");
@@ -461,10 +570,12 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
+            context.put(resource, parseHash, analyzedAst, analysis);
             updateResults.add(unitService.analyzeUnitUpdate(resource(), new AnalyzeUpdateData(messages), context));
         }
 
     }
+
 
     private IStrategoTerm projectAST(String resource) {
         IStrategoTerm ast = termFactory.makeTuple();
@@ -473,9 +584,11 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         return ast;
     }
 
+
     protected boolean success(Collection<IMessage> messages) {
         return messages.stream().noneMatch(m -> m.severity().equals(MessageSeverity.ERROR));
     }
+
 
     protected IStrategoTerm build(String op, IStrategoTerm... subterms) {
         return termFactory.makeAppl(termFactory.makeConstructor(op, subterms.length), subterms);

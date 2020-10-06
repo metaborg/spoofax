@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.context.constraint;
 
-import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
@@ -25,18 +25,25 @@ public interface IConstraintContext extends IContextInternal {
     boolean contains(FileObject resource);
 
 
-    default boolean put(String resource, IStrategoTerm value) {
-        return put(keyResource(resource), value);
+    default boolean hasChanged(String resource, int parseHash) {
+        return hasChanged(keyResource(resource), parseHash);
     }
 
-    boolean put(FileObject resource, IStrategoTerm value);
+    boolean hasChanged(FileObject resource, int parseHash);
 
 
-    default IStrategoTerm get(String resource) {
+    default boolean put(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis) {
+        return put(keyResource(resource), parseHash, analyzedAst, analysis);
+    }
+
+    boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis);
+
+
+    default Entry get(String resource) {
         return get(keyResource(resource));
     }
 
-    IStrategoTerm get(FileObject resource);
+    Entry get(FileObject resource);
 
 
     default boolean remove(String resource) {
@@ -46,8 +53,19 @@ public interface IConstraintContext extends IContextInternal {
     boolean remove(FileObject resource);
 
 
-    Set<Entry<String, IStrategoTerm>> entrySet();
+    Set<Map.Entry<String, Entry>> entrySet();
 
     void clear();
+
+
+    interface Entry {
+
+        int parseHash();
+
+        IStrategoTerm analyzedAst();
+
+        IStrategoTerm analysis();
+
+    }
 
 }
