@@ -43,7 +43,6 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
-import org.metaborg.util.time.AggregateTimer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
@@ -52,7 +51,9 @@ import org.strategoxt.HybridInterpreter;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -225,7 +226,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             if(context.contains(resource)) {
                 final IConstraintContext.Entry ctxEntry = context.get(resource);
                 change = build("Cached", ctxEntry.analysis());
-                expect = new Update(resource, projectAst.hashCode(), projectAst, ctxEntry.analysis(), context);
+                expect = new Update(resource, projectAst.hashCode(), projectAst, ctxEntry.analysis(), ctxEntry.errors(),
+                        ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), context);
                 context.remove(resource);
             } else {
                 change = build("Added", projectAst);
@@ -266,7 +268,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                     realChange = true;
                 } else {
                     change = build("Cached", ctxEntry.analysis());
-                    expect = new UpdateFull(resource, parseAst.hashCode(), analyzedAst, ctxEntry.analysis(), input,
+                    expect = new UpdateFull(resource, parseAst.hashCode(), analyzedAst, ctxEntry.analysis(),
+                            ctxEntry.errors(), ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), input,
                             context);
                 }
             } else {
@@ -288,8 +291,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 final IStrategoTerm analysis = ctxEntry.analysis();
                 if(!changed.containsKey(resource)) {
                     final IStrategoTerm change = build("Cached", analysis);
-                    expects.put(resource,
-                            new Update(resource, entry.getValue().parseHash(), analyzedAst, analysis, context));
+                    expects.put(resource, new Update(resource, entry.getValue().parseHash(), analyzedAst, analysis,
+                            ctxEntry.errors(), ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), context));
                     changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
                 }
             }
@@ -368,7 +371,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         // collect messages
         for(Map.Entry<String, Expect> entry : expects.entrySet()) {
             final Expect expect = entry.getValue();
-            messages.putAll(expect.messages);
+            messages.putAll(expect.messages());
         }
 
     }
@@ -379,13 +382,21 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         protected final String resource;
         protected final int parseHash;
         protected final IConstraintContext context;
-        protected final ListMultimap<FileName, IMessage> messages;
 
-        protected Expect(String resource, int parseHash, IConstraintContext context) {
+        protected IStrategoTerm errors;
+        protected IStrategoTerm warnings;
+        protected IStrategoTerm notes;
+        protected List<String> exceptions;
+
+        protected Expect(String resource, int parseHash, IStrategoTerm errors, IStrategoTerm warnings,
+                IStrategoTerm notes, List<String> exceptions, IConstraintContext context) {
             this.resource = resource;
             this.parseHash = parseHash;
+            this.errors = errors;
+            this.warnings = warnings;
+            this.notes = notes;
+            this.exceptions = exceptions != null ? Lists.newArrayList(exceptions) : Lists.newArrayList();
             this.context = context;
-            this.messages = ArrayListMultimap.create();
         }
 
         protected FileObject resource() {
@@ -393,32 +404,44 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         protected void resultMessages(IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes) {
-            final FileName resource = resource().getName();
-            if(multifile()) {
-                analysisCommon.messages(MessageSeverity.ERROR, errors)
-                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
-                analysisCommon.messages(MessageSeverity.WARNING, warnings)
-                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
-                analysisCommon.messages(MessageSeverity.NOTE, notes)
-                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : resource, m));
-            } else {
-                analysisCommon.messages(resource(), MessageSeverity.ERROR, errors)
-                        .forEach(m -> messages.put(resource, m));
-                analysisCommon.messages(resource(), MessageSeverity.WARNING, warnings)
-                        .forEach(m -> messages.put(resource, m));
-                analysisCommon.messages(resource(), MessageSeverity.NOTE, notes)
-                        .forEach(m -> messages.put(resource, m));
-            }
+            this.errors = errors;
+            this.warnings = warnings;
+            this.notes = notes;
         }
 
         protected void failMessage(String message) {
-            messages.put(resource().getName(), MessageFactory.newAnalysisErrorAtTop(resource(), message, null));
+            exceptions.add(message);
         }
 
         abstract void accept(IStrategoTerm result);
 
         abstract void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults);
+
+        ListMultimap<FileName, IMessage> messages() {
+            final ListMultimap<FileName, IMessage> messages = LinkedListMultimap.create();
+            messages(MessageSeverity.ERROR, errors, messages);
+            messages(MessageSeverity.WARNING, warnings, messages);
+            messages(MessageSeverity.NOTE, notes, messages);
+            for(String exception : exceptions) {
+                messages.put(resource().getName(), MessageFactory.newAnalysisErrorAtTop(resource(), exception, null));
+            }
+            return messages;
+        }
+
+        private void messages(MessageSeverity severity, IStrategoTerm messagesTerm,
+                ListMultimap<FileName, IMessage> messages) {
+            if(messagesTerm == null) {
+                return;
+            }
+            final FileName fileName = resource().getName();
+            if(multifile()) {
+                analysisCommon.messages(severity, messagesTerm)
+                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : fileName, m));
+            } else {
+                analysisCommon.messages(resource(), severity, messagesTerm).forEach(m -> messages.put(fileName, m));
+            }
+        }
 
     }
 
@@ -431,7 +454,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         private IStrategoTerm analysis;
 
         public Full(String resource, int parseHash, ISpoofaxParseUnit input, IConstraintContext context) {
-            super(resource, parseHash, context);
+            super(resource, parseHash, null, null, null, null, context);
             this.input = input;
         }
 
@@ -456,7 +479,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
             if(!input.detached()) {
-                context.put(resource, parseHash, analyzedAst, analysis);
+                context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
             }
             fullResults.add(unitService.analyzeUnit(input,
                     new AnalyzeContrib(analyzedAst != null, success(messages), true, analyzedAst, messages, -1),
@@ -474,8 +497,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         private IStrategoTerm analysis;
 
         public UpdateFull(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+                IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions,
                 ISpoofaxParseUnit input, IConstraintContext context) {
-            super(resource, parseHash, context);
+            super(resource, parseHash, errors, warnings, notes, exceptions, context);
             this.input = input;
             this.analyzedAst = analyzedAst;
             this.analysis = analysis;
@@ -498,7 +522,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
             if(!input.detached()) {
-                context.put(resource, parseHash, analyzedAst, analysis);
+                context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
             }
             fullResults.add(unitService.analyzeUnit(input,
                     new AnalyzeContrib(analyzedAst != null, success(messages), true, analyzedAst, messages, -1),
@@ -515,8 +539,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         private IStrategoTerm analysis;
 
         private Update(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+                IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions,
                 IConstraintContext context) {
-            super(resource, parseHash, context);
+            super(resource, parseHash, errors, warnings, notes, exceptions, context);
             this.analysis = analysis;
         }
 
@@ -536,7 +561,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
-            context.put(resource, parseHash, analyzedAst, analysis);
+            context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
             updateResults.add(unitService.analyzeUnitUpdate(resource(), new AnalyzeUpdateData(messages), context));
         }
 
@@ -550,7 +575,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         private IStrategoTerm analysis;
 
         public ProjectFull(String resource, int parseHash, IStrategoTerm analyzedAst, IConstraintContext context) {
-            super(resource, parseHash, context);
+            super(resource, parseHash, null, null, null, null, context);
             this.analyzedAst = analyzedAst;
         }
 
@@ -570,7 +595,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         @Override public void result(Collection<IMessage> messages, Collection<ISpoofaxAnalyzeUnit> fullResults,
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults) {
-            context.put(resource, parseHash, analyzedAst, analysis);
+            context.put(resource, parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
             updateResults.add(unitService.analyzeUnitUpdate(resource(), new AnalyzeUpdateData(messages), context));
         }
 

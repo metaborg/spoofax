@@ -5,6 +5,7 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -27,6 +28,7 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
@@ -69,9 +71,10 @@ public class ConstraintContext implements IConstraintContext {
         return !state.entries.containsKey(key) || state.entries.get(key).parseHash() != parseHash;
     }
 
-    @Override public boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst,
-            IStrategoTerm analysis) {
-        return state.entries.put(resourceKey(resource), new Entry(parseHash, analyzedAst, analysis)) != null;
+    @Override public boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+            IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
+        return state.entries.put(resourceKey(resource),
+                new Entry(parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions)) != null;
     }
 
     @Override public IConstraintContext.Entry get(FileObject resource) {
@@ -314,11 +317,20 @@ public class ConstraintContext implements IConstraintContext {
         public final int parseHash;
         public transient IStrategoTerm analyzedAst;
         public final IStrategoTerm analysis;
+        public final IStrategoTerm errors;
+        public final IStrategoTerm warnings;
+        public final IStrategoTerm notes;
+        public final List<String> exceptions;
 
-        Entry(int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis) {
+        Entry(int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis, IStrategoTerm errors,
+                IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
             this.parseHash = parseHash;
             this.analyzedAst = analyzedAst;
             this.analysis = analysis;
+            this.errors = errors;
+            this.warnings = warnings;
+            this.notes = notes;
+            this.exceptions = ImmutableList.copyOf(exceptions);
         }
 
         @Override public int parseHash() {
@@ -331,6 +343,22 @@ public class ConstraintContext implements IConstraintContext {
 
         @Override public IStrategoTerm analysis() {
             return analysis;
+        }
+
+        @Override public IStrategoTerm errors() {
+            return errors;
+        }
+
+        @Override public IStrategoTerm warnings() {
+            return warnings;
+        }
+
+        @Override public IStrategoTerm notes() {
+            return notes;
+        }
+
+        @Override public List<String> exceptions() {
+            return exceptions;
         }
 
     }

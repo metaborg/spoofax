@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.context.constraint;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,11 +33,13 @@ public interface IConstraintContext extends IContextInternal {
     boolean hasChanged(FileObject resource, int parseHash);
 
 
-    default boolean put(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis) {
-        return put(keyResource(resource), parseHash, analyzedAst, analysis);
+    default boolean put(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+            IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
+        return put(keyResource(resource), parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);
     }
 
-    boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis);
+    boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+            IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions);
 
 
     default Entry get(String resource) {
@@ -65,6 +68,14 @@ public interface IConstraintContext extends IContextInternal {
         IStrategoTerm analyzedAst();
 
         IStrategoTerm analysis();
+
+        IStrategoTerm errors();
+
+        IStrategoTerm warnings();
+
+        IStrategoTerm notes();
+
+        List<String> exceptions();
 
     }
 
