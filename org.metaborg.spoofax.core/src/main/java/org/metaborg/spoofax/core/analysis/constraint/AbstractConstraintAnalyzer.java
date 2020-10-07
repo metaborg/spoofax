@@ -473,8 +473,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(1);
                 resultMessages(results.get(2), results.get(3), results.get(4));
             } else if(match(result, "Failed", 0) != null) {
-                analyzedAst = null;
-                analysis = null;
+                // keep old results for more stable editor experience
                 failMessage("Analysis failed");
             } else {
                 analyzedAst = null;
@@ -526,8 +525,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(0);
                 resultMessages(results.get(1), results.get(2), results.get(3));
             } else if(match(result, "Failed", 0) != null) {
-                analyzedAst = null;
-                analysis = null;
+                // keep old results for more stable editor experience
                 failMessage("Analysis failed");
             } else {
                 analyzedAst = null;
@@ -575,8 +573,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(0);
                 resultMessages(results.get(1), results.get(2), results.get(3));
             } else if(match(result, "Failed", 0) != null) {
-                analyzedAst = null;
-                analysis = null;
+                // keep old results for more stable editor experience
                 failMessage("Analysis failed");
             } else {
                 analyzedAst = null;
@@ -619,8 +616,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(1);
                 resultMessages(results.get(2), results.get(3), results.get(4));
             } else if(match(result, "Failed", 0) != null) {
-                analyzedAst = null;
-                analysis = null;
+                // keep old results for more stable editor experience
                 failMessage("Analysis failed");
             } else {
                 analyzedAst = null;
