@@ -26,6 +26,7 @@ import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
+import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.ImmutableList;
@@ -257,12 +258,15 @@ public class ConstraintContext implements IConstraintContext {
     }
 
     private void writeContext(FileObject file) throws IOException {
+        Timer timer = new Timer(true);
         try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
             oos.writeObject(state);
         } catch(NotSerializableException ex) {
             logger.warn("Constraint context persistence not serializable: {}", ex.getMessage());
         } catch(Exception ex) {
             throw new IOException("Context file could not be written.", ex);
+        } finally {
+            logger.info("Context written in {} s", timer.stop() / 1_000_000_000d);
         }
     }
 
