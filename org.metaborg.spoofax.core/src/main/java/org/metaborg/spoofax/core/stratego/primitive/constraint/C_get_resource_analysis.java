@@ -22,7 +22,7 @@ public class C_get_resource_analysis extends ConstraintContextPrimitive {
         }
 
         final String resource = TermUtils.toJavaString(sterm);
-        final IStrategoTerm analysis = context.contains(resource) ? context.get(resource) : null;
+        final IStrategoTerm analysis = context.contains(resource) ? context.get(resource).analysis() : null;
         return Optional.ofNullable(analysis);
     }
 

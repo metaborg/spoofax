@@ -1,7 +1,8 @@
 package org.metaborg.spoofax.core.context.constraint;
 
 import java.io.IOException;
-import java.util.Map.Entry;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
@@ -38,11 +39,15 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.contains(resource);
     }
 
-    @Override public boolean put(FileObject resource, IStrategoTerm value) {
-        return context.put(resource, value);
+    @Override public boolean hasChanged(FileObject resource, int contentHash) {
+        return context.hasChanged(resource, contentHash);
     }
 
-    @Override public IStrategoTerm get(FileObject resource) {
+    @Override public boolean put(FileObject resource, int contentHash, IStrategoTerm analyzedAst, IStrategoTerm value, IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
+        return context.put(resource, contentHash, analyzedAst, value, errors, warnings, notes, exceptions);
+    }
+
+    @Override public Entry get(FileObject resource) {
         return context.get(resource);
     }
 
@@ -50,7 +55,7 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.remove(resource);
     }
 
-    @Override public Set<Entry<String, IStrategoTerm>> entrySet() {
+    @Override public Set<Map.Entry<String, Entry>> entrySet() {
         return context.entrySet();
     }
 
