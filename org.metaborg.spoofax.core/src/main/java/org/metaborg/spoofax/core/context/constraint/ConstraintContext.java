@@ -266,7 +266,7 @@ public class ConstraintContext implements IConstraintContext {
         } catch(Exception ex) {
             throw new IOException("Context file could not be written.", ex);
         } finally {
-            logger.info("Context written in {} s", timer.stop() / 1_000_000_000d);
+            logger.debug("Context written in {} s", timer.stop() / 1_000_000_000d);
         }
     }
 

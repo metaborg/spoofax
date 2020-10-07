@@ -152,7 +152,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         try {
             return doAnalysis(changed, removed, invalid, context, runtime, facet.strategyName, progress, cancel);
         } finally {
-            logger.info("Analysis finished in {} s", timer.stop() / 1_000_000_000d);
+            logger.debug("Analysis finished in {} s", timer.stop() / 1_000_000_000d);
         }
     }
 
