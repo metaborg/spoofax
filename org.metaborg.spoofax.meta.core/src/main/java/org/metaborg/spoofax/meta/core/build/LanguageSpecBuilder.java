@@ -55,6 +55,9 @@ import org.metaborg.util.log.LoggerUtils;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -345,6 +348,9 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final FileObject buildInfoLoc = paths.plutoBuildInfoDir();
         final SpoofaxContext context = new SpoofaxContext(baseLoc, buildInfoLoc);
 
+        // Sort source dependencies to ensure deterministic input.
+        final ArrayList<LanguageIdentifier> sourceDeps = new ArrayList<>(config.sourceDeps());
+        Collections.sort(sourceDeps);
 
         // SDF
         final Boolean sdfEnabled = config.sdfEnabled();
@@ -495,7 +501,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id, config.sourceDeps(), sdfEnabled,
+        return new GenerateSourcesBuilder.Input(context, config.identifier().id, sourceDeps, sdfEnabled,
             sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
             sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
             sdfMetaFiles, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
