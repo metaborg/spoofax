@@ -14,11 +14,13 @@ import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
+import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -158,25 +160,29 @@ public class StrategoCommon implements IStrategoCommon {
 	public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
 			List<IStrategoTerm> termArguments) throws MetaborgException {
 		runtime.setCurrent(input);
-		final String strategyName = strategy + "_0_" + termArguments.size();
-		final IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
-		final IStrategoAppl strategyTerm = termFactory.makeAppl("SVar", strategyNameTerm);
 		
-		IStrategoTerm[] termArgumentArray = new IStrategoTerm[termArguments.size() + 1];
-		termArgumentArray[0] = strategyTerm;
-		for(int i = 1; i < termArgumentArray.length; i++) {
-			termArgumentArray[i] = termArguments.get(i - 1);
-		}
+		final IStrategoAppl strategyNameTerm = createStrategyNameTerm(strategy, termArguments);
+		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", strategyNameTerm, termFactory.makeList(), termFactory.makeList(termArguments));
 		
-		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", termArgumentArray);
+        final IStrategoConstructor sdefT = termFactory.makeConstructor("SDefT", 4);
+		final IStrategoAppl strategyTerm = termFactory.makeAppl(sdefT, strategyNameTerm, 
+				termFactory.makeList(), termFactory.makeList(), strategyCallTerm);
 		try {
-			if(runtime.evaluate(strategyCallTerm)) {
+			if(runtime.evaluate(strategyTerm)) {
 				return runtime.current();
 			}
 		} catch (InterpreterException e) {
             throw handleException(e, runtime, strategy);
 		}
 		return null;
+	}
+	
+	private IStrategoAppl createStrategyNameTerm(String identifier, List<IStrategoTerm> termArguments) {
+		int termArgSize = termArguments != null ? termArguments.size() : 0;
+		final String strategyName = Interpreter.cify(identifier + "_0_" + termArgSize);
+		final IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
+		final IStrategoAppl strategyTerm = termFactory.makeAppl("SVar", strategyNameTerm);
+		return strategyTerm;
 	}
 
     private MetaborgException handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) {
