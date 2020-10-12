@@ -161,11 +161,12 @@ public class StrategoCommon implements IStrategoCommon {
 			List<IStrategoTerm> termArguments) throws MetaborgException {
 		runtime.setCurrent(input);
 		
-		final IStrategoAppl strategyNameTerm = createStrategyNameTerm(strategy, termArguments);
+		final IStrategoString strategyName = createStrategyName(strategy, termArguments);
+		final IStrategoAppl strategyNameTerm = termFactory.makeAppl("SVar", strategyName);
 		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", strategyNameTerm, termFactory.makeList(), termFactory.makeList(termArguments));
 		
         final IStrategoConstructor sdefT = termFactory.makeConstructor("SDefT", 4);
-		final IStrategoAppl strategyTerm = termFactory.makeAppl(sdefT, strategyNameTerm, 
+		final IStrategoAppl strategyTerm = termFactory.makeAppl(sdefT, strategyName, 
 				termFactory.makeList(), termFactory.makeList(), strategyCallTerm);
 		try {
 			if(runtime.evaluate(strategyTerm)) {
@@ -176,13 +177,12 @@ public class StrategoCommon implements IStrategoCommon {
 		}
 		return null;
 	}
-	
-	private IStrategoAppl createStrategyNameTerm(String identifier, List<IStrategoTerm> termArguments) {
+		
+	private IStrategoString createStrategyName(String identifier, List<IStrategoTerm> termArguments) {
 		int termArgSize = termArguments != null ? termArguments.size() : 0;
-		final String strategyName = Interpreter.cify(identifier + "_0_" + termArgSize);
-		final IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
-		final IStrategoAppl strategyTerm = termFactory.makeAppl("SVar", strategyNameTerm);
-		return strategyTerm;
+		String strategyName = Interpreter.cify(identifier) + "_0_" + termArgSize;
+		IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
+		return strategyNameTerm;
 	}
 
     private MetaborgException handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) {
