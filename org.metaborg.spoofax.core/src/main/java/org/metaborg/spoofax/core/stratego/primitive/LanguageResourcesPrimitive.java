@@ -8,7 +8,6 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.resource.IResourceService;
 
-import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 
 public class LanguageResourcesPrimitive extends AResourcesPrimitive {
@@ -18,8 +17,7 @@ public class LanguageResourcesPrimitive extends AResourcesPrimitive {
     }
 
     @Override protected List<FileObject> locations(IContext context) {
-        return Streams.stream(context.language().components()).map(ILanguageComponent::location)
-                .collect(Collectors.toList());
+        return context.language().components().stream().map(ILanguageComponent::location).collect(Collectors.toList());
     }
 
 }
