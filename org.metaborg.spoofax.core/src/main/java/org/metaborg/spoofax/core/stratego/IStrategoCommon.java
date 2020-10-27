@@ -91,8 +91,6 @@ public interface IStrategoCommon {
      *            Input term
      * @param strategy
      *            Name of the strategy to call.
-     * @param termArguments
-     *            Term arguments the strategy gets called with
      * @return Resulting term, or null if the strategy failed.
      * @throws MetaborgException
      *             When an error occurs getting a Stratego runtime.

@@ -157,23 +157,24 @@ public class StrategoCommon implements IStrategoCommon {
     }
     
 	@Override
-	public IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
+	public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
 			List<IStrategoTerm> termArguments) throws MetaborgException {
 		runtime.setCurrent(input);
-		
+
 		final IStrategoString strategyName = createStrategyName(strategy, termArguments);
 		final IStrategoAppl strategyNameTerm = termFactory.makeAppl("SVar", strategyName);
-		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", strategyNameTerm, termFactory.makeList(), termFactory.makeList(termArguments));
-		
-        final IStrategoConstructor sdefT = termFactory.makeConstructor("SDefT", 4);
-		final IStrategoAppl strategyTerm = termFactory.makeAppl(sdefT, strategyName, 
-				termFactory.makeList(), termFactory.makeList(), strategyCallTerm);
+		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", strategyNameTerm, termFactory.makeList(),
+				termFactory.makeList(termArguments));
+
+		final IStrategoConstructor sdefT = termFactory.makeConstructor("SDefT", 4);
+		final IStrategoAppl strategyTerm = termFactory.makeAppl(sdefT, strategyName, termFactory.makeList(),
+				termFactory.makeList(), strategyCallTerm);
 		try {
-			if(runtime.evaluate(strategyTerm)) {
+			if (runtime.evaluate(strategyTerm)) {
 				return runtime.current();
 			}
 		} catch (InterpreterException e) {
-            throw handleException(e, runtime, strategy);
+			throw handleException(e, runtime, strategy);
 		}
 		return null;
 	}
