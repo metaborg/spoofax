@@ -20,7 +20,6 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -166,11 +165,8 @@ public class StrategoCommon implements IStrategoCommon {
 		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", strategyNameTerm, termFactory.makeList(),
 				termFactory.makeList(termArguments));
 
-		final IStrategoConstructor sdefT = termFactory.makeConstructor("SDefT", 4);
-		final IStrategoAppl strategyTerm = termFactory.makeAppl(sdefT, strategyName, termFactory.makeList(),
-				termFactory.makeList(), strategyCallTerm);
 		try {
-			if (runtime.evaluate(strategyTerm)) {
+			if (runtime.evaluate(strategyCallTerm)) {
 				return runtime.current();
 			}
 		} catch (InterpreterException e) {
