@@ -90,6 +90,11 @@
 			<groupId>org.metaborg</groupId>
 			<artifactId>pie.taskdefs.guice</artifactId>
 		</dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>log.backend.slf4j</artifactId>
+      <version>0.4.0</version>
+    </dependency>
 
 		<dependency>
 			<groupId>com.google.inject</groupId>

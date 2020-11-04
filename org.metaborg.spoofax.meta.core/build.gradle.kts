@@ -21,6 +21,7 @@ dependencies {
   api("org.metaborg:stratego.build.spoofax2:$version")
   api("build.pluto:pluto")
   api("build.pluto:build-java")
+  api("org.metaborg:log.backend.slf4j:0.4.0")
   api("org.metaborg:pie.runtime")
   api("org.metaborg:pie.taskdefs.guice")
   api("com.google.inject:guice")
