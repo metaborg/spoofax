@@ -78,15 +78,15 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
             @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
             @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
-            @Nullable JSGLR2Logging jsglr2Logging, Boolean statixConcurrent,
-            @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters,
-            @Nullable String prettyPrint, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
-            @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting,
-            @Nullable StrategoGradualSetting gradualSetting, @Nullable StrategoFormat format, @Nullable String externalJar,
-            @Nullable String externalJarFlags, @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
+            @Nullable JSGLR2Logging jsglr2Logging, Boolean statixConcurrent, @Nullable String sdfMainFile,
+            @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
+            @Nullable List<String> sdfMetaFile, @Nullable String externalDef, @Nullable Arguments sdfArgs,
+            @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoGradualSetting gradualSetting,
+            @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
+            @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
-                dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixConcurrent, langContribs, generates,
-                exports, pardonedLanguages, useBuildSystemSpec);
+                dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixConcurrent,
+                langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         this.projectConfig = projectConfig;
 
         if(sdfVersion != null) {
@@ -153,6 +153,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     @Override public NaBL2Config nabl2Config() {
         return projectConfig.nabl2Config();
+    }
+
+    @Override public Collection<String> statixConcurrentLanguages() {
+        return projectConfig.statixConcurrentLanguages();
     }
 
 

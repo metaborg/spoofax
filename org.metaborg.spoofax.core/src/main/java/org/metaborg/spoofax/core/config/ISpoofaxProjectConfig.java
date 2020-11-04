@@ -16,4 +16,9 @@ public interface ISpoofaxProjectConfig extends IProjectConfig {
      */
     NaBL2Config nabl2Config();
 
+    /**
+     * Return language names for which Statix should use concurrent solver.
+     */
+    Collection<String> statixConcurrentLanguages();
+
 }

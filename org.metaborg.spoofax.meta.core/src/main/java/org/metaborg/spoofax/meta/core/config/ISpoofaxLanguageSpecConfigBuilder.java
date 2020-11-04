@@ -74,6 +74,11 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      */
     ISpoofaxLanguageSpecConfigBuilder withNaBL2Config(NaBL2Config config);
 
+    /**
+     * {@see ISpoofaxProjectConfigBuilder#withStatixConcurrentLanguages(Iterable<String>)}
+     */
+    ISpoofaxLanguageSpecConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs);
+
 
     /**
      * {@inheritDoc}
