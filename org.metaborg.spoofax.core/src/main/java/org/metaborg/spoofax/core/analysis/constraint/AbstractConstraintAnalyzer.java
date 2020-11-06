@@ -226,8 +226,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             if(context.contains(resource)) {
                 final IConstraintContext.Entry ctxEntry = context.get(resource);
                 change = build("Cached", ctxEntry.analysis());
-                expect = new Update(resource, projectAst.hashCode(), projectAst, ctxEntry.analysis(), ctxEntry.errors(),
-                        ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), context);
+                expect = new CachedUpdate(resource, projectAst.hashCode(), projectAst, ctxEntry.analysis(),
+                        ctxEntry.errors(), ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), context);
                 context.remove(resource);
             } else {
                 change = build("Added", projectAst);
@@ -265,7 +265,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 final IStrategoTerm analyzedAst = ctxEntry.analyzedAst();
                 if(ctxEntry.parseHash() != parseHash || analyzedAst == null) {
                     change = build("Changed", parseAst, ctxEntry.analysis());
-                    expect = new Full(resource, parseHash, input, context);
+                    expect = new ChangedFull(resource, parseHash, input, context);
                     realChange = true;
                 } else {
                     change = build("Cached", ctxEntry.analysis());
@@ -274,7 +274,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 }
             } else {
                 change = build("Added", parseAst);
-                expect = new Full(resource, parseHash, input, context);
+                expect = new ChangedFull(resource, parseHash, input, context);
                 realChange = true;
             }
             context.remove(resource);
@@ -286,12 +286,12 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         if(multifile()) {
             for(Map.Entry<String, IConstraintContext.Entry> entry : context.entrySet()) {
                 final String resource = entry.getKey();
-                final IConstraintContext.Entry ctxEntry = entry.getValue();
-                final IStrategoTerm analyzedAst = ctxEntry.analyzedAst();
-                final IStrategoTerm analysis = ctxEntry.analysis();
                 if(!changed.containsKey(resource)) {
+                    final IConstraintContext.Entry ctxEntry = entry.getValue();
+                    final IStrategoTerm analyzedAst = ctxEntry.analyzedAst();
+                    final IStrategoTerm analysis = ctxEntry.analysis();
                     final IStrategoTerm change = build("Cached", analysis);
-                    expects.put(resource, new Update(resource, ctxEntry.parseHash(), analyzedAst, analysis,
+                    expects.put(resource, new CachedUpdate(resource, ctxEntry.parseHash(), analyzedAst, analysis,
                             ctxEntry.errors(), ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), context));
                     changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
                 }
@@ -449,7 +449,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     }
 
-    private class Full extends Expect {
+    private class ChangedFull extends Expect {
 
         // 1. initialized by constructor
         private ISpoofaxParseUnit input;
@@ -457,7 +457,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         private IStrategoTerm analyzedAst;
         private IStrategoTerm analysis;
 
-        public Full(String resource, int parseHash, ISpoofaxParseUnit input, IConstraintContext context) {
+        public ChangedFull(String resource, int parseHash, ISpoofaxParseUnit input, IConstraintContext context) {
             super(resource, parseHash, null, null, null, null, context);
             this.input = input;
         }
@@ -548,14 +548,14 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     }
 
-    private class Update extends Expect {
+    private class CachedUpdate extends Expect {
 
         // 1. initialized by constructor
         private IStrategoTerm analyzedAst;
         // 2. initialized by constructor, overwritten by accept
         private IStrategoTerm analysis;
 
-        private Update(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+        private CachedUpdate(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
                 IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions,
                 IConstraintContext context) {
             super(resource, parseHash, errors, warnings, notes, exceptions, context);
