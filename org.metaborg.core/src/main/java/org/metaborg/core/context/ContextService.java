@@ -10,7 +10,10 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -21,6 +24,7 @@ public class ContextService implements IContextService, IContextProcessor {
 
     private final ConcurrentMap<ContextIdentifier, IContextInternal> idToContext = Maps.newConcurrentMap();
     private final ConcurrentMap<ILanguageImpl, ContextIdentifier> langToContextId = Maps.newConcurrentMap();
+    private final Multimap<ILanguageImpl, ContextIdentifier> langToDownstreamContextIds = Multimaps.synchronizedMultimap(HashMultimap.create());
 
     @Inject public ContextService(Injector injector) {
         this.injector = injector;
@@ -67,15 +71,27 @@ public class ContextService implements IContextService, IContextProcessor {
     @Override public void update(LanguageImplChange change) {
         switch(change.kind) {
             case Remove:
-                final ContextIdentifier id = langToContextId.remove(change.impl);
-                if(id != null) {
-                    final IContextInternal removed = idToContext.remove(id);
+                final ContextIdentifier removedId = langToContextId.remove(change.impl);
+                if(removedId != null) {
+                    final IContextInternal removed = idToContext.remove(removedId);
                     if(removed != null) {
                         removed.unload();
                         logger.debug("Removing {}", removed);
                     }
                 }
                 break;
+            case Reload:
+                for(ContextIdentifier reloadedId : langToDownstreamContextIds.get(change.impl)) {
+                    final IContextInternal reloaded = idToContext.remove(reloadedId);
+                    if(reloaded != null) {
+                        try {
+                            reloaded.reset();
+                            logger.debug("Resetting {}", reloaded);
+                        } catch(IOException e) {
+                            logger.debug("Resetting {} failed.", e, reloaded);
+                        }
+                    }
+                }
             default:
                 // Ignore other changes
                 break;
@@ -101,6 +117,7 @@ public class ContextService implements IContextService, IContextProcessor {
         final IContextInternal newContext = create(factory, identifier);
         final IContextInternal prevContext = idToContext.putIfAbsent(identifier, newContext);
         langToContextId.putIfAbsent(identifier.language, identifier);
+        langToDownstreamContextIds.put(newContext.language(), identifier);
         if(prevContext == null) {
             return newContext;
         } else if (!prevContext.getClass().equals(newContext.getClass())) {
@@ -117,6 +134,7 @@ public class ContextService implements IContextService, IContextProcessor {
             } else {
                 logger.warn("Race condition while replacing context {} with {}",prevContext,newContext);
             }
+            langToDownstreamContextIds.remove(prevContext.language(), identifier);
             return newContext;
         }
         return prevContext;
