@@ -26,13 +26,6 @@ public interface IConstraintContext extends IContextInternal {
     boolean contains(FileObject resource);
 
 
-    default boolean hasChanged(String resource, int parseHash) {
-        return hasChanged(keyResource(resource), parseHash);
-    }
-
-    boolean hasChanged(FileObject resource, int parseHash);
-
-
     default boolean put(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
             IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
         return put(keyResource(resource), parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions);

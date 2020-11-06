@@ -67,11 +67,6 @@ public class ConstraintContext implements IConstraintContext {
         return state.entries.containsKey(resourceKey(resource));
     }
 
-    @Override public boolean hasChanged(FileObject resource, int parseHash) {
-        final String key = resourceKey(resource);
-        return !state.entries.containsKey(key) || state.entries.get(key).parseHash() != parseHash;
-    }
-
     @Override public boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
             IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
         return state.entries.put(resourceKey(resource),
