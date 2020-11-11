@@ -160,7 +160,7 @@ public class StrategoCommon implements IStrategoCommon {
 			List<IStrategoTerm> termArguments) throws MetaborgException {
 		runtime.setCurrent(input);
 
-		final IStrategoString strategyName = createStrategyName(strategy, termArguments);
+		final IStrategoString strategyName = createStrategyName(strategy, termArguments.size());
 		final IStrategoAppl strategyNameTerm = termFactory.makeAppl("SVar", strategyName);
 		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", strategyNameTerm, termFactory.makeList(),
 				termFactory.makeList(termArguments));
@@ -175,8 +175,7 @@ public class StrategoCommon implements IStrategoCommon {
 		return null;
 	}
 		
-	private IStrategoString createStrategyName(String identifier, List<IStrategoTerm> termArguments) {
-		int termArgSize = termArguments != null ? termArguments.size() : 0;
+	private IStrategoString createStrategyName(String identifier, int termArgSize) {
 		String strategyName = Interpreter.cify(identifier) + "_0_" + termArgSize;
 		IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
 		return strategyNameTerm;
