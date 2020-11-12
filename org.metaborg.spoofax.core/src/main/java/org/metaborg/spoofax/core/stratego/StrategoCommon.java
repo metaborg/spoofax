@@ -14,10 +14,12 @@ import org.metaborg.spoofax.core.dynamicclassloading.BuilderInput;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
+import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -77,6 +79,26 @@ public class StrategoCommon implements IStrategoCommon {
         }
         throw new AggregateMetaborgException(exceptions);
     }
+    
+    @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input,
+            String strategy, List<IStrategoTerm> termArguments) throws MetaborgException {
+            List<MetaborgException> exceptions = Lists.newArrayList();
+            for(ILanguageComponent component : impl.components()) {
+                if(!IStrategoCommon.hasStrategoFacets(component)) {
+                    continue;
+                }
+
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, context);
+                try {
+                    final IStrategoTerm result = invoke(runtime, input, strategy, termArguments);
+                    return result;
+                } catch(MetaborgException ex) {
+                    exceptions.add(ex);
+                }
+
+            }
+            throw new AggregateMetaborgException(exceptions);
+        }
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
         String strategy) throws MetaborgException {
@@ -97,6 +119,26 @@ public class StrategoCommon implements IStrategoCommon {
         }
         throw new AggregateMetaborgException(exceptions);
     }
+    
+    @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
+            String strategy, List<IStrategoTerm> termArguments) throws MetaborgException {
+            List<MetaborgException> exceptions = Lists.newArrayList();
+            for(ILanguageComponent component : impl.components()) {
+                if(!IStrategoCommon.hasStrategoFacets(component)) {
+                    continue;
+                }
+
+                final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
+                try {
+                    final IStrategoTerm result = invoke(runtime, input, strategy, termArguments);
+                    return result;
+                } catch(MetaborgException ex) {
+                    exceptions.add(ex);
+                }
+
+            }
+            throw new AggregateMetaborgException(exceptions);
+        }
 
 
     @Override public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy)
@@ -112,6 +154,32 @@ public class StrategoCommon implements IStrategoCommon {
             throw handleException(e, runtime, strategy);
         }
     }
+    
+	@Override
+	public @Nullable IStrategoTerm invoke(HybridInterpreter runtime, IStrategoTerm input, String strategy,
+			List<IStrategoTerm> termArguments) throws MetaborgException {
+		runtime.setCurrent(input);
+
+		final IStrategoString strategyName = createStrategyName(strategy, termArguments.size());
+		final IStrategoAppl strategyNameTerm = termFactory.makeAppl("SVar", strategyName);
+		final IStrategoAppl strategyCallTerm = termFactory.makeAppl("CallT", strategyNameTerm, termFactory.makeList(),
+				termFactory.makeList(termArguments));
+
+		try {
+			if (runtime.evaluate(strategyCallTerm)) {
+				return runtime.current();
+			}
+		} catch (InterpreterException e) {
+			throw handleException(e, runtime, strategy);
+		}
+		return null;
+	}
+		
+	private IStrategoString createStrategyName(String identifier, int termArgSize) {
+		String strategyName = Interpreter.cify(identifier) + "_0_" + termArgSize;
+		IStrategoString strategyNameTerm = termFactory.makeString(strategyName);
+		return strategyNameTerm;
+	}
 
     private MetaborgException handleException(InterpreterException ex, HybridInterpreter runtime, String strategy) {
         final String trace = traceToString(runtime.getCompiledContext().getTrace());
