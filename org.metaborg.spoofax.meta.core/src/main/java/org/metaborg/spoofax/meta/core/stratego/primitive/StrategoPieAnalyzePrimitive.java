@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
@@ -48,13 +50,16 @@ import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.STask;
 import mb.pie.api.Task;
+import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
+import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Frontends;
 import mb.stratego.build.strincr.Frontends.Output;
-import mb.stratego.build.strincr.Message;
 import mb.stratego.build.strincr.StrIncrAnalysis;
+import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
@@ -75,7 +80,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         this.resourceService = resourceService;
     }
 
-    @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
+    @Override protected @Nullable IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext context) throws MetaborgException, IOException {
         @SuppressWarnings("unused") final IStrategoAppl ast = TermUtils.toApplAt(current, 0);
         final String path = TermUtils.toJavaStringAt(current, 1);
@@ -88,7 +93,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final IProject project = context.project();
         if(project == null) {
-            logger.debug("Cannot find project for opened file, cancelling analysis. ");
+            logger.warn("Cannot find project for opened file, cancelling analysis. ");
             return null;
         }
 
@@ -99,8 +104,20 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             return null;
         }
 
-        final ISpoofaxLanguageSpec languageSpec = getLanguageSpecification(project);
+        final @Nullable ISpoofaxLanguageSpec languageSpec = getLanguageSpecification(project);
+        if(languageSpec == null) {
+            logger.warn("Cannot find language specification for project of opened file, cancelling analysis. ");
+            return null;
+        }
+
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
+
+        // Fail this primitive if gradual types is not on. May be changed later to filter out type-related messages, but it's currently too slow for that.
+        if(config.strGradualSetting() == StrategoGradualSetting.NONE) {
+            logger.debug("Gradual types is set to none, default to old Stratego editor analysis. ");
+            return null;
+        }
+
         final FileObject baseLoc = languageSpec.location();
         final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc);
 
@@ -108,11 +125,11 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(project, SpoofaxConstants.LANG_STRATEGO_NAME);
-        final File strFile;
+        final @Nullable File strFile;
         final FileObject strFileCandidate = paths.findStrMainFile(strRoots, strModule);
         if(strFileCandidate != null && strFileCandidate.exists()) {
             strFile = resourceService.localPath(strFileCandidate);
-            if(!strFile.exists()) {
+            if(strFile == null || !strFile.exists()) {
                 throw new IOException("Main Stratego file at " + strFile + " does not exist");
             }
         } else {
@@ -126,16 +143,12 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
         strjIncludesReplicateDir.delete(new AllFileSelector());
         final List<ResourcePath> strjIncludeDirs = new ArrayList<>();
-        final List<File> strjIncludeFiles = new ArrayList<>();
         for(FileObject strIncludePath : strIncludePaths) {
             if(!strIncludePath.exists()) {
                 continue;
             }
             if(strIncludePath.isFolder()) {
                 strjIncludeDirs.add(new FSPath(resourceService.localFile(strIncludePath, strjIncludesReplicateDir)));
-            }
-            if(strIncludePath.isFile()) {
-                strjIncludeFiles.add(resourceService.localFile(strIncludePath, strjIncludesReplicateDir));
             }
         }
 
@@ -162,49 +175,64 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Arguments newArgs = new Arguments();
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
-        Collection<STask<?>> originTasks = sdfTasks;
-        Frontends.Input strIncrAnalysisInput =
-            new Frontends.Input(new FSPath(strFile), strjIncludeDirs, builtinLibs, originTasks, new FSPath(projectLocation), config.strGradualSetting());
+        final Frontends.Input strIncrAnalysisInput =
+            new Frontends.Input(new FSPath(strFile), strjIncludeDirs, builtinLibs, sdfTasks, new FSPath(projectLocation), config.strGradualSetting());
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
-        final Pie pie = GenerateSourcesBuilder.initCompiler(pieProviderProvider.get(), strIncrAnalysisTask);
+        final IPieProvider pieProvider = pieProviderProvider.get();
+        final Pie pie = pieProvider.pie();
 
         final IStrategoList.Builder errors = B.listBuilder();
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
-        try(final MixedSession session = pie.newSession()) {
-            Frontends.Output analysisInformation = session.require(strIncrAnalysisTask);
+        final Frontends.Output analysisInformation;
+        synchronized(pie) {
+            GenerateSourcesBuilder.initCompiler(pieProvider, strIncrAnalysisTask);
+            try(final MixedSession session = pie.newSession()) {
+                TopDownSession tdSession = session.updateAffectedBy(changedResources);
+                session.deleteUnobservedTasks(t -> true, (t, r) -> {
+                    if(r instanceof HierarchicalResource && Objects
+                        .equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                        logger.debug("Deleting garbage from previous build: " + r);
+                        return true;
+                    }
+                    return false;
+                });
+                analysisInformation = tdSession.getOutput(strIncrAnalysisTask);
+            } catch(ExecException e) {
+                logger.warn("Incremental Stratego build failed", e);
+                return null;
+            } catch(InterruptedException e) {
+                // Ignore
+                return null;
+            }
+        }
 
-            for(Message<?> message : analysisInformation.messages) {
-                if(message.moduleFilePath.equals(path)) {
-                    final ImploderAttachment imploderAttachment = ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
-                    if(imploderAttachment == null) {
-                        logger.debug("No origins for message: " + message);
-                    }
-                    final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
-                    switch(message.severity) {
-                        case ERROR:
-                            errors.add(messageTuple);
-                            break;
-                        case NOTE:
-                            notes.add(messageTuple);
-                            break;
-                        case WARNING:
-                            warnings.add(messageTuple);
-                            break;
-                    }
+        for(Message<?> message : analysisInformation.messages) {
+            if(message.moduleFilePath.endsWith(path)) {
+                final ImploderAttachment imploderAttachment = ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
+                if(imploderAttachment == null) {
+                    logger.debug("No origins for message: " + message);
+                }
+                final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
+                switch(message.severity) {
+                    case ERROR:
+                        errors.add(messageTuple);
+                        break;
+                    case NOTE:
+                        notes.add(messageTuple);
+                        break;
+                    case WARNING:
+                        warnings.add(messageTuple);
+                        break;
                 }
             }
-        } catch(ExecException e) {
-            throw new MetaborgException("Incremental Stratego build failed", e);
-        } catch(InterruptedException e) {
-            // Ignore
         }
 
         return B.tuple(B.list(errors), B.list(warnings), B.list(notes));
     }
 
-    private ISpoofaxLanguageSpec getLanguageSpecification(IProject project) throws MetaborgException {
+    private @Nullable ISpoofaxLanguageSpec getLanguageSpecification(IProject project) throws MetaborgException {
         if(languageSpecServiceProvider == null) {
             // Indicates that meta-Spoofax is not available (ISpoofaxLanguageSpecService cannot be injected), but this
             // should never happen because this primitive is inside meta-Spoofax. Check for null just in case.
@@ -213,6 +241,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
         final ISpoofaxLanguageSpecService languageSpecService = languageSpecServiceProvider.get();
         if(!languageSpecService.available(project)) {
+            logger.error("Language specification service is not available for " + project);
             return null;
         }
         final ISpoofaxLanguageSpec languageSpec;

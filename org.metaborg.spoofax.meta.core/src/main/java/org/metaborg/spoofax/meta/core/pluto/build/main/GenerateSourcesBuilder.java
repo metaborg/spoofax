@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -525,26 +526,30 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     new StrIncr.Input(new FSPath(strFile), input.strJavaPackage, strjIncludeDirs, builtinLibs, new FSPath(cacheDir),
                         Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation), input.strGradualSetting);
 
-                final Pie pie =
-                    initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
+                final IPieProvider pieProvider = context.pieProvider();
+                final Pie pie = pieProvider.pie();
+                synchronized(pie) {
+                    initCompiler(pieProvider, context.getStrIncrTask().createTask(strIncrInput), depPath);
 
-                BuildStats.reset();
-                long totalTime = System.nanoTime();
-                try(final MixedSession session = pie.newSession()) {
-                    session.updateAffectedBy(changedResources);
-                    session.deleteUnobservedTasks(t -> true, (t, r) -> {
-                        if(r instanceof HierarchicalResource && ((HierarchicalResource) r).getLeafExtension().equals("java")) {
-                            logger.debug("Deleting garbage from previous build: " + r);
-                            return true;
-                        }
-                        return false;
-                    });
-                } catch(ExecException e) {
-                    throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
-                } catch(InterruptedException e) {
-                    // Ignore
+                    BuildStats.reset();
+                    long totalTime = System.nanoTime();
+                    try(final MixedSession session = pie.newSession()) {
+                        session.updateAffectedBy(changedResources);
+                        session.deleteUnobservedTasks(t -> true, (t, r) -> {
+                            if(r instanceof HierarchicalResource && Objects
+                                .equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                                logger.debug("Deleting garbage from previous build: " + r);
+                                return true;
+                            }
+                            return false;
+                        });
+                    } catch(ExecException e) {
+                        throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
+                    } catch(InterruptedException e) {
+                        // Ignore
+                    }
+                    totalTime = totalTime - System.nanoTime();
                 }
-                totalTime = totalTime - System.nanoTime();
             } else {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
                     true, true, input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir,
