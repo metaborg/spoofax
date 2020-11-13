@@ -13,10 +13,10 @@ lexical syntax
 
   // Allow to skip over identifier strings
   WATERTOKEN      = WATERTOKENSTART [A-Za-z0-9\_]*
-  WATERTOKENSTART = [A-Za-z0-9\_] {recover, avoid}
+  WATERTOKENSTART = [A-Za-z0-9\_] {recover}
 
   // Allow to skip over special characters that are neither part of identifiers nor whitespace characters
-  WATERTOKENSEPARATOR = ~[A-Za-z0-9\_\ \t\12\r\n\*] {recover, avoid}
+  WATERTOKENSEPARATOR = ~[A-Za-z0-9\_\ \t\12\r\n\*] {recover}
 
 lexical restrictions
   WATERTOKEN -/- [A-Za-z0-9\_]
