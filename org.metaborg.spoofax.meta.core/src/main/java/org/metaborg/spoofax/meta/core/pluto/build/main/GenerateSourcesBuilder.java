@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -215,15 +216,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     private void newParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder)
         throws IOException {
-        // Standard parser generation
-        final File srcNormDir = toFile(paths.syntaxNormDir());
-        final File sdfNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
+		// Standard parser generation
+		final File srcNormDir = toFile(paths.syntaxNormDir());
+		final File sdfMainNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
+		final File sdfPermissiveWaterNormFile = FileUtils.getFile(srcNormDir, "permissive-water-norm.aterm");
 
-        final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration =
-            newParseTableGeneration(input, sdfNormFile, "sdf.tbl", "table.bin", false);
+		final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration = newParseTableGeneration(input,
+				Arrays.asList(sdfMainNormFile, sdfPermissiveWaterNormFile), "sdf.tbl", "table.bin", false);
 
-        sdfOriginBuilder.add(parseTableGeneration);
-        requireBuild(parseTableGeneration);
+		sdfOriginBuilder.add(parseTableGeneration);
+		requireBuild(parseTableGeneration);
 
         // Generate parenthesizer
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
@@ -238,8 +240,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
-            final BuildRequest<?, ?, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input,
-                input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", true);
+			final BuildRequest<?, ?, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input,
+					Arrays.asList(input.sdfCompletionFile), "sdf-completions.tbl", "table-completions.bin", true);
 
             sdfOriginBuilder.add(parseTableGenerationCompletions);
             requireBuild(parseTableGenerationCompletions);
@@ -247,7 +249,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     private BuildRequest<?, OutputPersisted<File>, ?, ?> newParseTableGeneration(GenerateSourcesBuilder.Input input,
-        File sdfNormFile, String tableFilename, String persistedTableFilename, boolean isCompletions)
+        Collection<File> sdfNormFiles, String tableFilename, String persistedTableFilename, boolean isCompletions)
         throws IOException {
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
         final File tableFile = FileUtils.getFile(targetMetaborgDir, tableFilename);
@@ -262,7 +264,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         ParseTableConfiguration config = new ParseTableConfiguration(dynamicGeneration, dataDependent, !layoutSensitive,
             checkOverlap, checkPriorities, layoutSensitive);
 
-        Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, sdfNormFile, input.sourceDeps, tableFile,
+        Sdf2Table.Input sdf2TableInput = new Sdf2Table.Input(context, sdfNormFiles, input.sourceDeps, tableFile,
             persistedTableFile, config, isCompletions);
 
         return Sdf2Table.request(sdf2TableInput);
@@ -525,26 +527,30 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     new StrIncr.Input(new FSPath(strFile), input.strJavaPackage, strjIncludeDirs, builtinLibs, new FSPath(cacheDir),
                         Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation), input.strGradualSetting);
 
-                final Pie pie =
-                    initCompiler(context.pieProvider(), context.getStrIncrTask().createTask(strIncrInput), depPath);
+                final IPieProvider pieProvider = context.pieProvider();
+                final Pie pie = pieProvider.pie();
+                synchronized(pie) {
+                    initCompiler(pieProvider, context.getStrIncrTask().createTask(strIncrInput), depPath);
 
-                BuildStats.reset();
-                long totalTime = System.nanoTime();
-                try(final MixedSession session = pie.newSession()) {
-                    session.updateAffectedBy(changedResources);
-                    session.deleteUnobservedTasks(t -> true, (t, r) -> {
-                        if(r instanceof HierarchicalResource && ((HierarchicalResource) r).getLeafExtension().equals("java")) {
-                            logger.debug("Deleting garbage from previous build: " + r);
-                            return true;
-                        }
-                        return false;
-                    });
-                } catch(ExecException e) {
-                    throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
-                } catch(InterruptedException e) {
-                    // Ignore
+                    BuildStats.reset();
+                    long totalTime = System.nanoTime();
+                    try(final MixedSession session = pie.newSession()) {
+                        session.updateAffectedBy(changedResources);
+                        session.deleteUnobservedTasks(t -> true, (t, r) -> {
+                            if(r instanceof HierarchicalResource && Objects
+                                .equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                                logger.debug("Deleting garbage from previous build: " + r);
+                                return true;
+                            }
+                            return false;
+                        });
+                    } catch(ExecException e) {
+                        throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
+                    } catch(InterruptedException e) {
+                        // Ignore
+                    }
+                    totalTime = totalTime - System.nanoTime();
                 }
-                totalTime = totalTime - System.nanoTime();
             } else {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
                     true, true, input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir,

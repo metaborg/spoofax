@@ -89,7 +89,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withSdf2tableVersion(config.sdf2tableVersion());
             withJSGLRVersion(config.jsglrVersion());
             withJSGLR2Logging(config.jsglr2Logging());
-            withStatixConcurrent(config.statixConcurrent());
+            withStatixConcurrent(config.statixConcurrentComponent());
             withCheckOverlap(config.checkOverlap());
             withCheckPriorities(config.checkPriorities());
             withSdfEnabled(config.sdfEnabled());

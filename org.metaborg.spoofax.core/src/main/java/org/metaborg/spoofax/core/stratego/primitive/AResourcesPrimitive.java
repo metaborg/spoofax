@@ -13,6 +13,7 @@ import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.build.dependency.MissingDependencyException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
@@ -62,10 +63,13 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
         if(context == null) {
             throw new MetaborgException("Cannot execute primitive " + name + ", no Spoofax context was set");
         }
+
         final ITermFactory TF = strategoContext.getFactory();
         final Strategy nameToPathStr = svars[0];
         final Strategy importStr = svars[1];
         final TermReader termReader = new TermReader(TF);
+
+        final List<FileObject> locations = locations(context);
 
         final Deque<IStrategoTerm> names = Lists.newLinkedList(parseNames(current));
         final Map<IStrategoTerm, IStrategoTerm> resources = Maps.newHashMap();
@@ -74,7 +78,7 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
             if(!resources.containsKey(name)) {
                 final String path = resourcePath(strategoContext, nameToPathStr, name);
                 final IStrategoTerm resource;
-                if((resource = loadResource(locations(context), path, termReader).orElse(null)) == null) {
+                if((resource = loadResource(locations, path, termReader).orElse(null)) == null) {
                     return null;
                 }
                 resources.put(name, resource);
@@ -86,7 +90,7 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
                 .collect(Collectors.toList()));
     }
 
-    protected abstract List<FileObject> locations(IContext context);
+    protected abstract List<FileObject> locations(IContext context) throws MissingDependencyException;
 
     private Optional<IStrategoTerm> loadResource(List<FileObject> locations, String path, TermReader termReader) {
         for(FileObject location : locations) {

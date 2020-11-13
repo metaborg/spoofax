@@ -39,11 +39,8 @@ public class TemporaryConstraintContext implements IConstraintContext, ITemporar
         return context.contains(resource);
     }
 
-    @Override public boolean hasChanged(FileObject resource, int contentHash) {
-        return context.hasChanged(resource, contentHash);
-    }
-
-    @Override public boolean put(FileObject resource, int contentHash, IStrategoTerm analyzedAst, IStrategoTerm value, IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
+    @Override public boolean put(FileObject resource, int contentHash, IStrategoTerm analyzedAst, IStrategoTerm value,
+            IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
         return context.put(resource, contentHash, analyzedAst, value, errors, warnings, notes, exceptions);
     }
 

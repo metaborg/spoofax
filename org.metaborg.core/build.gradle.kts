@@ -27,7 +27,7 @@ dependencies {
 
   testCompileOnly("junit:junit")
   testCompileOnly("com.google.code.findbugs:jsr305")
-  testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.1.0")
+  testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
   testImplementation("ch.qos.logback:logback-core")
   testImplementation("ch.qos.logback:logback-classic")
   testImplementation("org.slf4j:jcl-over-slf4j")

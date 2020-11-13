@@ -3,12 +3,11 @@ package org.metaborg.spoofax.core.config;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import mb.nabl2.config.NaBL2Config;
-
-import org.metaborg.core.config.IExportConfig;
 
 public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
 
@@ -85,5 +84,15 @@ public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
      * @return This builder.
      */
     ISpoofaxProjectConfigBuilder withNaBL2Config(NaBL2Config config);
+
+    /**
+     * Set names languages for which Statix should use the concurrent solver.
+     */
+    ISpoofaxProjectConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs);
+
+    /**
+     * Add names of languages for which Statix should use the concurrent solver.
+     */
+    ISpoofaxProjectConfigBuilder addStatixConcurrentLanguages(Iterable<String> langs);
 
 }

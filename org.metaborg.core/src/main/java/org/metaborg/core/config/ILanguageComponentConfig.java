@@ -102,7 +102,7 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      * 
      * @return true if the concurrent Statix solver is used.
      */
-    boolean statixConcurrent();
+    boolean statixConcurrentComponent();
 
     /**
      * Gets the file exports.

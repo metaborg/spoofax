@@ -174,7 +174,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
         final DynamicClassLoadingFacet dynamicClassLoadingFacet = component.facet(DynamicClassLoadingFacet.class);
         if(dynamicClassLoadingFacet == null) {
             final String message =
-                String.format("Cannot get Stratego runtime for %s, it does not have a Stratego facet", component);
+                String.format("Cannot get Stratego runtime for %s, it does not have a DynamicClassLoading facet", component);
             logger.error(message);
             throw new MetaborgException(message);
         }

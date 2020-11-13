@@ -151,6 +151,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
+    @Override public ISpoofaxLanguageSpecConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs) {
+        projectConfigBuilder.withStatixConcurrentLanguages(langs);
+        return this;
+    }
+
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withIdentifier(LanguageIdentifier identifier) {
         super.withIdentifier(identifier);

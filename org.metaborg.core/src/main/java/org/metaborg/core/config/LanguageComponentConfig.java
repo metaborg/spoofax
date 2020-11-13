@@ -288,7 +288,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         return value != null ? JSGLR2Logging.valueOf(value) : JSGLR2Logging.none;
     }
 
-    @Override public boolean statixConcurrent() {
+    @Override public boolean statixConcurrentComponent() {
         return config.getBoolean(PROP_STATIX_CONCURRENT, false);
     }
 

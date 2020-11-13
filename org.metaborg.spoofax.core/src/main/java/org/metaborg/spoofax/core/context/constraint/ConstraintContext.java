@@ -26,6 +26,7 @@ import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
+import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.ImmutableList;
@@ -64,11 +65,6 @@ public class ConstraintContext implements IConstraintContext {
 
     @Override public boolean contains(FileObject resource) {
         return state.entries.containsKey(resourceKey(resource));
-    }
-
-    @Override public boolean hasChanged(FileObject resource, int parseHash) {
-        final String key = resourceKey(resource);
-        return !state.entries.containsKey(key) || state.entries.get(key).parseHash() != parseHash;
     }
 
     @Override public boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
@@ -257,12 +253,15 @@ public class ConstraintContext implements IConstraintContext {
     }
 
     private void writeContext(FileObject file) throws IOException {
+        Timer timer = new Timer(true);
         try(ObjectOutputStream oos = new ObjectOutputStream(file.getContent().getOutputStream())) {
             oos.writeObject(state);
         } catch(NotSerializableException ex) {
             logger.warn("Constraint context persistence not serializable: {}", ex.getMessage());
         } catch(Exception ex) {
             throw new IOException("Context file could not be written.", ex);
+        } finally {
+            logger.debug("Context written in {} s", timer.stop() / 1_000_000_000d);
         }
     }
 

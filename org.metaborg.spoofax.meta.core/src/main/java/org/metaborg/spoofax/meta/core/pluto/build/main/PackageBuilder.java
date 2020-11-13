@@ -137,12 +137,17 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, Package
         final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
 
         for(File path : paths) {
+            // N.B. this only checks the modified time of the dir, not subdirs which we do traverse!
             require(path, new DirectoryModifiedStamper());
             final Collection<File> files = findFiles(path);
             for(final File classFile : files) {
                 final String relative = relativize(classFile, baseDir);
                 // Ignore files that are not relative to the base directory.
                 if(relative != null) {
+                    if(classFile.isDirectory()) {
+                        // So we also require all subdirs we find
+                        require(classFile, new DirectoryModifiedStamper());
+                    }
                     // Convert \ to / on Windows; ZIP/JAR files must use / for paths.
                     // HACK: this should be fixed in the JarBuilder.
                     final String forwardslashRelative = relative.replace('\\', '/');

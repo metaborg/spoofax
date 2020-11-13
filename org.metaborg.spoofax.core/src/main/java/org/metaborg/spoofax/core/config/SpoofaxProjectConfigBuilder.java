@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.config;
 
+import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -11,12 +13,15 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
 
 public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements ISpoofaxProjectConfigBuilder {
     protected @Nullable NaBL2Config nabl2Config;
+    protected @Nullable Set<String> statixConcurrentLanguages;
 
     @Inject public SpoofaxProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -27,12 +32,12 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
             configuration = configReaderWriter.create(null, rootFolder);
         }
         return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
-                nabl2Config);
+                nabl2Config, statixConcurrentLanguages);
     }
 
     @Override public SpoofaxProjectConfig build(HierarchicalConfiguration<ImmutableNode> configuration) {
         return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
-                nabl2Config);
+                nabl2Config, statixConcurrentLanguages);
     }
 
     @Override public ISpoofaxProjectConfigBuilder reset() {
@@ -52,6 +57,7 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
     public void copyValuesFrom(ISpoofaxProjectConfig config) {
         super.copyValuesFrom(config);
         withNaBL2Config(config.nabl2Config());
+        withStatixConcurrentLanguages(config.statixConcurrentLanguages());
     }
 
     @Override public ISpoofaxProjectConfigBuilder withMetaborgVersion(String metaborgVersion) {
@@ -102,6 +108,24 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
 
     @Override public ISpoofaxProjectConfigBuilder withNaBL2Config(NaBL2Config config) {
         this.nabl2Config = config;
+        return this;
+    }
+
+    @Override public ISpoofaxProjectConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs) {
+        if(this.statixConcurrentLanguages != null) {
+            this.statixConcurrentLanguages.clear();
+        }
+
+        addStatixConcurrentLanguages(langs);
+        return this;
+    }
+
+    @Override public ISpoofaxProjectConfigBuilder addStatixConcurrentLanguages(Iterable<String> langs) {
+        if(this.statixConcurrentLanguages == null) {
+            this.statixConcurrentLanguages = Sets.newHashSet();
+        }
+
+        Iterables.addAll(this.statixConcurrentLanguages, langs);
         return this;
     }
 

@@ -41,16 +41,16 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
     public static class Input extends SpoofaxInput {
         private static final long serialVersionUID = -2379365089609792204L;
 
-        public final File inputMainNormSdfFile;
+        public final Collection<File> inputNormSdfFiles;
         public final Collection<LanguageIdentifier> sourceDeps;
         public final File outputParseTableFile;
         public final File outputPersistedParseTableFile;
         public final ParseTableConfiguration tableConfig;
         public final boolean isCompletions;
 
-        public Input(SpoofaxContext context, File inputMainNormSdfFile, Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile, ParseTableConfiguration tableConfig, boolean isCompletions) {
+        public Input(SpoofaxContext context, Collection<File> inputNormSdfFiles, Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile, ParseTableConfiguration tableConfig, boolean isCompletions) {
             super(context);
-            this.inputMainNormSdfFile = inputMainNormSdfFile;
+            this.inputNormSdfFiles = inputNormSdfFiles;
             this.sourceDeps = sourceDeps;
             this.outputParseTableFile = outputParseTableFile;
             this.outputPersistedParseTableFile = outputPersistedParseTableFile;
@@ -91,14 +91,15 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         
         normGrammarReader.accept(this::require);
         
-        NormGrammar normGrammar = normGrammarReader.readGrammar(input.inputMainNormSdfFile);
+        for (File inputNormSdfFile : input.inputNormSdfFiles)
+        	normGrammarReader.readModule(inputNormSdfFile);
+        
+        NormGrammar normGrammar = normGrammarReader.getGrammar();
         
         ParseTable parseTable = new ParseTable(normGrammar, input.tableConfig);
-        
         IStrategoTerm parseTableATerm = ParseTableIO.generateATerm(parseTable);
         
         ParseTableIO.outputToFile(parseTableATerm, input.outputParseTableFile);
-        
         ParseTableIO.persistObjectToFile(parseTable, input.outputPersistedParseTableFile);
         
         provide(input.outputParseTableFile);

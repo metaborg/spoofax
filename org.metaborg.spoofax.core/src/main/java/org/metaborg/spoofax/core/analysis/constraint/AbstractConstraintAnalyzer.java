@@ -152,7 +152,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         try {
             return doAnalysis(changed, removed, invalid, context, runtime, facet.strategyName, progress, cancel);
         } finally {
-            logger.info("Analysis finished in {} s", timer.stop() / 1_000_000_000d);
+            logger.debug("Analysis finished in {} s", timer.stop() / 1_000_000_000d);
         }
     }
 
@@ -226,8 +226,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             if(context.contains(resource)) {
                 final IConstraintContext.Entry ctxEntry = context.get(resource);
                 change = build("Cached", ctxEntry.analysis());
-                expect = new Update(resource, projectAst.hashCode(), projectAst, ctxEntry.analysis(), ctxEntry.errors(),
-                        ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), context);
+                expect = new CachedUpdate(resource, projectAst.hashCode(), projectAst, ctxEntry.analysis(),
+                        ctxEntry.errors(), ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), context);
                 context.remove(resource);
             } else {
                 change = build("Added", projectAst);
@@ -257,24 +257,24 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             final String resource = entry.getKey();
             final ISpoofaxParseUnit input = entry.getValue();
             final IStrategoTerm parseAst = input.ast();
+            final int parseHash = parseAst.hashCode();
             final IStrategoTerm change;
             final Expect expect;
             if(context.contains(resource)) {
                 final IConstraintContext.Entry ctxEntry = context.get(resource);
                 final IStrategoTerm analyzedAst = ctxEntry.analyzedAst();
-                if(context.hasChanged(resource, parseAst.hashCode()) || analyzedAst == null) {
+                if(ctxEntry.parseHash() != parseHash || analyzedAst == null) {
                     change = build("Changed", parseAst, ctxEntry.analysis());
-                    expect = new Full(resource, parseAst.hashCode(), input, context);
+                    expect = new ChangedFull(resource, parseHash, input, context);
                     realChange = true;
                 } else {
                     change = build("Cached", ctxEntry.analysis());
-                    expect = new UpdateFull(resource, parseAst.hashCode(), analyzedAst, ctxEntry.analysis(),
-                            ctxEntry.errors(), ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), input,
-                            context);
+                    expect = new UpdateFull(resource, parseHash, analyzedAst, ctxEntry.analysis(), ctxEntry.errors(),
+                            ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), input, context);
                 }
             } else {
                 change = build("Added", parseAst);
-                expect = new Full(resource, parseAst.hashCode(), input, context);
+                expect = new ChangedFull(resource, parseHash, input, context);
                 realChange = true;
             }
             context.remove(resource);
@@ -286,12 +286,12 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         if(multifile()) {
             for(Map.Entry<String, IConstraintContext.Entry> entry : context.entrySet()) {
                 final String resource = entry.getKey();
-                final IConstraintContext.Entry ctxEntry = entry.getValue();
-                final IStrategoTerm analyzedAst = ctxEntry.analyzedAst();
-                final IStrategoTerm analysis = ctxEntry.analysis();
                 if(!changed.containsKey(resource)) {
+                    final IConstraintContext.Entry ctxEntry = entry.getValue();
+                    final IStrategoTerm analyzedAst = ctxEntry.analyzedAst();
+                    final IStrategoTerm analysis = ctxEntry.analysis();
                     final IStrategoTerm change = build("Cached", analysis);
-                    expects.put(resource, new Update(resource, entry.getValue().parseHash(), analyzedAst, analysis,
+                    expects.put(resource, new CachedUpdate(resource, ctxEntry.parseHash(), analyzedAst, analysis,
                             ctxEntry.errors(), ctxEntry.warnings(), ctxEntry.notes(), ctxEntry.exceptions(), context));
                     changes.add(termFactory.makeTuple(termFactory.makeString(resource), change));
                 }
@@ -345,10 +345,11 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         }
 
         // check coverage
-        for(Map.Entry<String, ISpoofaxParseUnit> entry : changed.entrySet()) {
+        for(Map.Entry<String, Expect> entry : expects.entrySet()) {
             final String resource = entry.getKey();
-            if(!results.containsKey(resource)) {
-                expects.get(resource).failMessage("Missing analysis result");
+            final Expect expect = entry.getValue();
+            if(expect.requireResult() && !results.containsKey(resource)) {
+                expect.failMessage("Missing analysis result");
             }
         }
 
@@ -403,10 +404,13 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             return context.keyResource(resource);
         }
 
+        abstract boolean requireResult();
+
         protected void resultMessages(IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes) {
             this.errors = errors;
             this.warnings = warnings;
             this.notes = notes;
+            this.exceptions.clear();
         }
 
         protected void failMessage(String message) {
@@ -445,7 +449,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     }
 
-    private class Full extends Expect {
+    private class ChangedFull extends Expect {
 
         // 1. initialized by constructor
         private ISpoofaxParseUnit input;
@@ -453,9 +457,13 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         private IStrategoTerm analyzedAst;
         private IStrategoTerm analysis;
 
-        public Full(String resource, int parseHash, ISpoofaxParseUnit input, IConstraintContext context) {
+        public ChangedFull(String resource, int parseHash, ISpoofaxParseUnit input, IConstraintContext context) {
             super(resource, parseHash, null, null, null, null, context);
             this.input = input;
+        }
+
+        @Override boolean requireResult() {
+            return true;
         }
 
         @Override public void accept(IStrategoTerm result) {
@@ -465,8 +473,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(1);
                 resultMessages(results.get(2), results.get(3), results.get(4));
             } else if(match(result, "Failed", 0) != null) {
-                analyzedAst = null;
-                analysis = null;
+                // keep old results for more stable editor experience
                 failMessage("Analysis failed");
             } else {
                 analyzedAst = null;
@@ -508,14 +515,17 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             this.analysis = analysis;
         }
 
+        @Override boolean requireResult() {
+            return false;
+        }
+
         @Override public void accept(IStrategoTerm result) {
             final List<IStrategoTerm> results;
             if((results = match(result, "Update", 4)) != null) {
                 analysis = results.get(0);
                 resultMessages(results.get(1), results.get(2), results.get(3));
             } else if(match(result, "Failed", 0) != null) {
-                analyzedAst = null;
-                analysis = null;
+                // keep old results for more stable editor experience
                 failMessage("Analysis failed");
             } else {
                 analyzedAst = null;
@@ -538,18 +548,23 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     }
 
-    private class Update extends Expect {
+    private class CachedUpdate extends Expect {
 
         // 1. initialized by constructor
         private IStrategoTerm analyzedAst;
         // 2. initialized by constructor, overwritten by accept
         private IStrategoTerm analysis;
 
-        private Update(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
+        private CachedUpdate(String resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
                 IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions,
                 IConstraintContext context) {
             super(resource, parseHash, errors, warnings, notes, exceptions, context);
+            this.analyzedAst = analyzedAst;
             this.analysis = analysis;
+        }
+
+        @Override boolean requireResult() {
+            return false;
         }
 
         @Override public void accept(IStrategoTerm result) {
@@ -558,8 +573,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 analysis = results.get(0);
                 resultMessages(results.get(1), results.get(2), results.get(3));
             } else if(match(result, "Failed", 0) != null) {
-                analyzedAst = null;
-                analysis = null;
+                // keep old results for more stable editor experience
                 failMessage("Analysis failed");
             } else {
                 analyzedAst = null;
@@ -592,14 +606,17 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             this.analyzedAst = analyzedAst;
         }
 
+        @Override boolean requireResult() {
+            return true;
+        }
+
         @Override public void accept(IStrategoTerm result) {
             final List<IStrategoTerm> results;
             if((results = match(result, "Full", 5)) != null) {
                 analysis = results.get(1);
                 resultMessages(results.get(2), results.get(3), results.get(4));
             } else if(match(result, "Failed", 0) != null) {
-                analyzedAst = null;
-                analysis = null;
+                // keep old results for more stable editor experience
                 failMessage("Analysis failed");
             } else {
                 analyzedAst = null;
