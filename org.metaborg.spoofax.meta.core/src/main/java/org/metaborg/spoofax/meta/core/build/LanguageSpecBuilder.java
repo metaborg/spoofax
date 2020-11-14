@@ -147,7 +147,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage, e);
             } else {
-                throw new MetaborgException();
+                throw new MetaborgException(e);
             }
         } catch(RuntimeException e) {
             throw e;
