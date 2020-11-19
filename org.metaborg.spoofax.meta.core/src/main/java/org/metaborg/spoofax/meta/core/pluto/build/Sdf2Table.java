@@ -48,7 +48,9 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         public final ParseTableConfiguration tableConfig;
         public final boolean isCompletions;
 
-        public Input(SpoofaxContext context, Collection<File> inputNormSdfFiles, Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile, ParseTableConfiguration tableConfig, boolean isCompletions) {
+        public Input(SpoofaxContext context, Collection<File> inputNormSdfFiles,
+            Collection<LanguageIdentifier> sourceDeps, File outputParseTableFile, File outputPersistedParseTableFile,
+            ParseTableConfiguration tableConfig, boolean isCompletions) {
             super(context);
             this.inputNormSdfFiles = inputNormSdfFiles;
             this.sourceDeps = sourceDeps;
@@ -91,11 +93,11 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
         
         normGrammarReader.accept(this::require);
         
-        for (File inputNormSdfFile : input.inputNormSdfFiles)
-        	normGrammarReader.readModule(inputNormSdfFile);
-        
+        for(File inputNormSdfFile : input.inputNormSdfFiles)
+            normGrammarReader.readModule(inputNormSdfFile);
+
         NormGrammar normGrammar = normGrammarReader.getGrammar();
-        
+
         ParseTable parseTable = new ParseTable(normGrammar, input.tableConfig);
         IStrategoTerm parseTableATerm = ParseTableIO.generateATerm(parseTable);
         

@@ -43,9 +43,9 @@ public class ContinuousLanguageSpecGenerator extends BaseGenerator {
         writer.write("langspec/src-gen/completion/completion.str", "src-gen/completion/completion.str", true);
     }
 
-	public void generatePermissiveAterm() throws IOException {
-		// Add the predefined water rules for recovery, which will be normalized by SDF3
-		// into src-gen/syntax/normalized/permissive-water-norm.sdf3
-		writer.write("langspec/src-gen/syntax/permissive-water.sdf3", "src-gen/syntax/permissive-water.sdf3", true);
-	}
+    public void generatePermissiveAterm() throws IOException {
+        // Add the predefined water rules for recovery, which will be normalized by SDF3
+        // into src-gen/syntax/normalized/permissive-water-norm.sdf3
+        writer.write("langspec/src-gen/syntax/permissive-water.sdf3", "src-gen/syntax/permissive-water.sdf3", true);
+    }
 }
