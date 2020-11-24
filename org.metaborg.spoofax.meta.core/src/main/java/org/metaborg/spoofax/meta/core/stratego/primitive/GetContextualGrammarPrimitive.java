@@ -2,9 +2,7 @@ package org.metaborg.spoofax.meta.core.stratego.primitive;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.ResourceService;
 import org.spoofax.interpreter.core.IContext;
@@ -13,6 +11,7 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.io.binary.TermReader;
 
 import com.google.inject.Inject;
 
@@ -28,20 +27,15 @@ public class GetContextualGrammarPrimitive extends AbstractPrimitive {
         String path = ((IStrategoString) tvars[0]).stringValue();
         ResourceService rs = context.injector().getInstance(ResourceService.class);
         FileObject fo = rs.resolve(path + "/target/metaborg/ctxgrammar.aterm");
-
-        InputStream inputStream;
-        String text = "";
+        final ITermFactory tf = env.getFactory();
 
         try {
-            inputStream = fo.getContent().getInputStream();
-            text = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+            InputStream inputStream = fo.getContent().getInputStream();
+            env.setCurrent(new TermReader(tf).parseFromStream(inputStream));
         } catch(IOException e) {
             e.printStackTrace();
         }
 
-        final ITermFactory tf = env.getFactory();
-        env.setCurrent(tf.parseFromString(text));
-        
         return true;
     }
 }

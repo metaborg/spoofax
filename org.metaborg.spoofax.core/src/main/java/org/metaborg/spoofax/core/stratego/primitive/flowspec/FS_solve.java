@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitive.flowspec;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.context.IContext;
@@ -27,6 +25,8 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.ParseError;
+import org.spoofax.terms.io.binary.TermReader;
+import org.spoofax.terms.util.M;
 
 import com.google.inject.Inject;
 
@@ -36,7 +36,6 @@ import mb.flowspec.runtime.interpreter.InterpreterBuilder;
 import mb.flowspec.runtime.solver.FixedPoint;
 import mb.flowspec.runtime.solver.ParseException;
 import mb.flowspec.terms.B;
-import org.spoofax.terms.util.M;
 import mb.nabl2.spoofax.analysis.IResult;
 
 public class FS_solve extends AbstractPrimitive implements ILanguageCache {
@@ -131,8 +130,8 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
             for(FileObject staticInfoFile : staticInfoDir.getChildren()) {
                 try {
                     String moduleName = FilenameUtils.removeExtension(staticInfoFile.getName().getBaseName().replace('+', '/'));
-                    IStrategoTerm term = termFactory
-                            .parseFromString(IOUtils.toString(staticInfoFile.getContent().getInputStream(), StandardCharsets.UTF_8));
+                    IStrategoTerm term = new TermReader(termFactory)
+                            .parseFromStream(staticInfoFile.getContent().getInputStream());
                     result.add(term, moduleName);
                 } catch (IOException e) {
                     logger.info("Could not read FlowSpec static info file for {}. \n{}", component, e.getMessage());
