@@ -486,12 +486,12 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     }
 
                     try(IClosableLock lock = context.read()) {
+                        final List<FileObject> missingResults = new ArrayList<>();
                         for(IAnalyzeResults<A, AU> analysisResults : analysisResultList) {
                             cancel.throwIfCancelled();
 
                             List<A> results = new ArrayList<>();
                             results.addAll(analysisResults.results());
-                            List<FileObject> missingResults = new ArrayList<>();
                             for(AU update : analysisResults.updates()) {
                                 final FileObject source = update.source();
                                 try {
@@ -508,10 +508,6 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                                 } else {
                                     results.add(result);
                                 }
-                            }
-                            if(!missingResults.isEmpty()) {
-                                logger.warn("Cannot transform files missing a full analysis result: {}", missingResults);
-                                logger.warn("Clean and build to fix this.");
                             }
 
                             for(A analysisResult : results) {
@@ -556,6 +552,11 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                                 }
 
                             }
+                        }
+                        if(!missingResults.isEmpty()) {
+                            logger.warn("Some files with updated analysis could not be compiled because a full analysis is missing.");
+                            logger.warn("Previous compilation results may be out-dated.");
+                            logger.warn("Cleaning and building the project fixes this.");
                         }
                     }
                 }
