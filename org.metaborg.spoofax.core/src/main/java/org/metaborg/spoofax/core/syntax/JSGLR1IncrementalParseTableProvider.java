@@ -50,7 +50,7 @@ public class JSGLR1IncrementalParseTableProvider implements IParseTableProvider 
                         ptGenerator, ParseTableIO.generateATerm(ptGenerator.getParseTable()));
                 } else {
                     parseTable =
-                        new ParseTable(parseTableTerm, termFactory, persistedTable, new ParseTableIO(persistedTable));
+                        new ParseTable(parseTableTerm, termFactory, new ParseTableIO(persistedTable));
                 }
             } else {
                 parseTable = new ParseTable(parseTableTerm, termFactory);
