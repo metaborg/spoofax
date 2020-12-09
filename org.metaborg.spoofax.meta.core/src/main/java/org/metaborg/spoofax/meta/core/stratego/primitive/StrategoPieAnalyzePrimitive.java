@@ -60,6 +60,7 @@ import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.strincr.StrIncrAnalysis;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.StrategoGradualSetting;
+import mb.stratego.build.util.TermEqWithAttachments;
 
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
@@ -82,14 +83,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
     @Override protected @Nullable IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
         ITermFactory factory, IContext context) throws MetaborgException, IOException {
-        @SuppressWarnings("unused") final IStrategoAppl ast = TermUtils.toApplAt(current, 0);
+        final IStrategoAppl ast = TermUtils.toApplAt(current, 0);
         final String path = TermUtils.toJavaStringAt(current, 1);
         @SuppressWarnings("unused") final String projectPath = TermUtils.toJavaStringAt(current, 2);
 
-//        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
-//            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");
-//        }
-//        final String moduleName = TermUtils.toJavaStringAt(ast, 0);
+        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
+            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");
+        }
+        final String moduleName = TermUtils.toJavaStringAt(ast, 0);
 
         final IProject project = context.project();
         if(project == null) {
@@ -175,8 +176,8 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Arguments newArgs = new Arguments();
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
-        final Frontends.Input strIncrAnalysisInput =
-            new Frontends.Input(new FSPath(strFile), strjIncludeDirs, builtinLibs, sdfTasks, new FSPath(projectLocation), config.strGradualSetting());
+        final Frontends.Input strIncrAnalysisInput = new Frontends.Input(new FSPath(strFile), strjIncludeDirs,
+            builtinLibs, sdfTasks, new FSPath(projectLocation), config.strGradualSetting(), moduleName, new TermEqWithAttachments(ast));
         final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
