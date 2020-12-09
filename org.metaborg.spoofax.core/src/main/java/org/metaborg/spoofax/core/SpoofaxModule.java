@@ -133,6 +133,7 @@ import org.metaborg.spoofax.core.stratego.primitive.legacy.parse.LegacySpoofaxJS
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_collection_enabled;
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_custom_enabled;
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_resolution_enabled;
+import org.metaborg.spoofax.core.stratego.primitive.shared.SharedLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.statix.STX_is_concurrent_enabled;
 import org.metaborg.spoofax.core.stratego.primitive.statix.StatixLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.NaBL2Library;
@@ -231,6 +232,7 @@ import mb.nabl2.terms.stratego.primitives.SG_get_ast_index;
 import mb.nabl2.terms.stratego.primitives.SG_get_ast_resource;
 import mb.nabl2.terms.stratego.primitives.SG_index_ast;
 import mb.nabl2.terms.stratego.primitives.SG_set_ast_index;
+import mb.shared.namegraph.FindAllRelatedOccurrencesPrimitive;
 import mb.statix.spoofax.STX_analysis_has_errors;
 import mb.statix.spoofax.STX_compare_patterns;
 import mb.statix.spoofax.STX_debug_scopegraph;
@@ -404,6 +406,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitiveLibrary(libraryBinder, FlowSpecLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacySpoofaxPrimitiveLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacySpoofaxJSGLRLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, SharedLibrary.class);
 
         final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(SpoofaxPrimitiveLibrary.name));
@@ -548,6 +551,10 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(legacySpoofaxJSGLRLibrary, LegacyParseFilePtPrimitive.class);
         bindPrimitive(legacySpoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
         bindPrimitive(legacySpoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
+        
+        final Multibinder<AbstractPrimitive> sharedPrimitivesLibrary = Multibinder.newSetBinder(binder(), 
+                AbstractPrimitive.class, Names.named(SharedLibrary.name));
+        bindPrimitive(sharedPrimitivesLibrary, FindAllRelatedOccurrencesPrimitive.class);
     }
 
     private void bindAnalyzers(

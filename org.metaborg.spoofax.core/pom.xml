@@ -79,6 +79,11 @@
 			<artifactId>org.metaborg.runtime.task</artifactId>
 			<version>${metaborg-version}</version>
 		</dependency>
+		<dependency>
+		  <groupId>org.metaborg</groupId>
+		  <artifactId>shared.primitives</artifactId>
+		  <version>${metaborg-version}</version>
+		</dependency>
 		<!-- <dependency> <groupId>org.metaborg</groupId> <artifactId>org.metaborg.meta.lang.dynsem.interpreter</artifactId> 
 			<version>${metaborg-version}</version> </dependency> -->
 
