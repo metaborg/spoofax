@@ -21,10 +21,6 @@ public class C_get_project_analyses extends ConstraintContextPrimitive {
 
     @Override protected Optional<? extends IStrategoTerm> call(IConstraintContext context, IStrategoTerm sterm,
             List<IStrategoTerm> sterms, ITermFactory factory) throws InterpreterException {
-        if(!TermUtils.isString(sterm)) {
-            throw new InterpreterException("Expect a resource path.");
-        }
-
         final List<IStrategoTuple> entries = new ArrayList<>();
         for(Entry<String, IConstraintContext.Entry> e : context.entrySet()) {
             IStrategoString resource = factory.makeString(e.getKey());
