@@ -55,8 +55,6 @@ import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.Frontends;
-import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.strincr.StrIncrAnalysis;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.StrategoGradualSetting;
@@ -176,9 +174,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Arguments newArgs = new Arguments();
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
-        final Frontends.Input strIncrAnalysisInput = new Frontends.Input(new FSPath(strFile), strjIncludeDirs,
+        final StrIncrAnalysis.Input strIncrAnalysisInput = new StrIncrAnalysis.Input(new FSPath(strFile), strjIncludeDirs,
             builtinLibs, sdfTasks, new FSPath(projectLocation), config.strGradualSetting(), moduleName, new TermEqWithAttachments(ast));
-        final Task<Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
+        final Task<StrIncrAnalysis.Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
         final Pie pie = pieProvider.pie();
@@ -186,7 +184,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final IStrategoList.Builder errors = B.listBuilder();
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
-        final Frontends.Output analysisInformation;
+        final StrIncrAnalysis.Output analysisInformation;
         synchronized(pie) {
             GenerateSourcesBuilder.initCompiler(pieProvider, strIncrAnalysisTask);
             try(final MixedSession session = pie.newSession()) {
