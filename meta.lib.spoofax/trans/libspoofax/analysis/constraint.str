@@ -116,6 +116,6 @@ rules
    *
    * @type _ -> List(resource:String * analysis:Term)
    */
-  get-resource-constraint-analysis =
+  get-project-constraint-analyses =
     prim("C_get_project_analyses")
 
