@@ -10,6 +10,7 @@ dependencies {
 
   api("org.metaborg:org.metaborg.util:$version")
   api("org.metaborg:org.spoofax.terms:$version")
+  api("org.metaborg:nabl2.terms:$version")
   implementation("org.metaborg:nabl2.solver:$version")
   implementation("org.metaborg:statix.solver:$version")
   implementation("org.metaborg:flowspec.runtime:$version")
