@@ -2,29 +2,34 @@ plugins {
   id("org.metaborg.gradle.config.java-library")
 }
 
+fun compositeBuild(name: String) = "$group:$name:$version"
+val pieVersion = "0.14.0"
+val spoofax2Version: String by ext
 dependencies {
-  api(platform("org.metaborg:parent:$version"))
+  api(platform("org.metaborg:parent:$spoofax2Version"))
 
   api(project(":org.metaborg.core"))
   api(project(":org.metaborg.meta.core"))
   api(project(":org.metaborg.spoofax.core"))
 
-  implementation("org.metaborg:org.metaborg.spoofax.nativebundle:$version") // TODO: project dependency
-  api("org.metaborg:org.metaborg.util:$version")
-  api("org.metaborg:strategoxt-min-jar:$version")
-  implementation("org.metaborg:make-permissive:$version")
-  implementation("org.metaborg:sdf2table:$version")
-  implementation("org.metaborg:sdf2parenthesize:$version")
-  implementation("org.metaborg:org.metaborg.parsetable:$version")
-  implementation("org.metaborg:nabl2.solver:$version")
-  implementation("org.metaborg:stratego.compiler.pack:$version")
-  implementation("org.metaborg:stratego.build:$version")
-  implementation("org.metaborg:stratego.build.spoofax2:$version")
+  implementation(compositeBuild("org.metaborg.util"))
+  implementation(compositeBuild("sdf2table"))
+  implementation(compositeBuild("sdf2parenthesize"))
+  implementation(compositeBuild("org.metaborg.parsetable"))
+  implementation(compositeBuild("stratego.compiler.pack"))
+  implementation(compositeBuild("stratego.build"))
+  implementation(compositeBuild("stratego.build.spoofax2"))
+  implementation(compositeBuild("nabl2.solver"))
+
+  implementation("org.metaborg:org.metaborg.spoofax.nativebundle:$spoofax2Version")
+  implementation("org.metaborg:strategoxt-min-jar:$spoofax2Version")
+  implementation("org.metaborg:make-permissive:$spoofax2Version")
+
   implementation("build.pluto:pluto")
   implementation("build.pluto:build-java")
-  implementation("org.metaborg:log.backend.slf4j:0.4.0")
-  implementation("org.metaborg:pie.runtime")
-  implementation("org.metaborg:pie.taskdefs.guice")
+  implementation("org.metaborg:log.backend.slf4j:0.5.0")
+  implementation("org.metaborg:pie.runtime:$pieVersion")
+  implementation("org.metaborg:pie.taskdefs.guice:$pieVersion")
   api("com.google.inject:guice")
   api("com.google.inject.extensions:guice-multibindings")
   implementation("com.github.spullara.mustache.java:compiler")
