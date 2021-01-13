@@ -11,7 +11,7 @@ lexical syntax
   ID               = [a-zA-Z] [a-zA-Z0-9]*
   INT              = "-"? [0-9]+
   STRING           = "\"" STRING_CHAR* "\""
-  STRING_CHAR      = ~[\"\n]
+  STRING_CHAR      = ~[\\\"\n]
   STRING_CHAR      = "\\\""
   STRING_CHAR      = BACKSLASH_CHAR
   BACKSLASH_CHAR   = "\\"
