@@ -8,6 +8,8 @@ imports
   pp
   injections/-
 
+  libspoofax/term/origin
+
 rules // Analysis
 
   // single-file analysis
