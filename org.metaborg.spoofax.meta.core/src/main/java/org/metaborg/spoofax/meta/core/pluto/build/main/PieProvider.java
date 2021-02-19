@@ -10,10 +10,9 @@ import mb.pie.api.Pie;
 import mb.pie.api.PieBuilder;
 import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
-import mb.stratego.build.strincr.StrIncr;
 
 public class PieProvider implements IPieProvider {
-    private static final ILogger logger = LoggerUtils.logger(StrIncr.class);
+    private static final ILogger logger = LoggerUtils.logger(GenerateSourcesBuilder.class);
     protected final Pie pie;
 
     protected boolean logInfoAndBelow = false;

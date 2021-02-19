@@ -60,12 +60,17 @@ import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.Task;
+import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
+import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.BuildStats;
-import mb.stratego.build.strincr.StrIncr;
+import mb.stratego.build.spoofax2.ModuleIdentifier;
+import mb.stratego.build.strincr.task.output.CompileOutput;
+import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
@@ -186,14 +191,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
 
-    @Override public None build(GenerateSourcesBuilder.Input input)
-        throws IOException, MetaborgException {
+    @Override public None build(GenerateSourcesBuilder.Input input) throws IOException, MetaborgException {
         // SDF
         Origin.Builder sdfOriginBuilder = Origin.Builder();
 
         buildSdf(input, sdfOriginBuilder);
         buildSdfMeta(input, sdfOriginBuilder); // SDF meta-module for creating a Stratego concrete syntax extension
-                                               // parse table
+        // parse table
 
         final Origin sdfOrigin = sdfOriginBuilder.get();
 
@@ -520,36 +524,69 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     changedResources.add(new FSPath(changedFile));
                 }
 
-                final Arguments newArgs = new Arguments();
-                final List<ResourcePath> strjIncludeDirs = input.strjIncludeDirs.stream().map(FSPath::new).collect(Collectors.toList());
-                final List<String> builtinLibs = splitOffBuiltinLibs(extraArgs, newArgs);
-                final StrIncr.Input strIncrInput =
-                    new StrIncr.Input(new FSPath(strFile), input.strJavaPackage, strjIncludeDirs, builtinLibs, new FSPath(cacheDir),
-                        Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation), input.strGradualSetting);
+                final List<ResourcePath> strjIncludeDirs =
+                    input.strjIncludeDirs.stream().map(FSPath::new).collect(Collectors.toList());
+                final IModuleImportService moduleImportService =
+                    context.getModuleImportServiceFactory().create(Collections.emptyList(), strjIncludeDirs);
+                final String strFileName = strFile.getName();
+                final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str".length());
+                final ModuleIdentifier mainModuleIdentifier =
+                    new ModuleIdentifier(false, mainModuleName, new FSResource(strFile));
+                final CompileInput compileInput = new CompileInput(mainModuleIdentifier, moduleImportService,
+                    new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), Collections.emptyList(),
+                    strjIncludeDirs, extraArgs, Collections.emptyList());
+                final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
                 final IPieProvider pieProvider = context.pieProvider();
                 final Pie pie = pieProvider.pie();
                 synchronized(pie) {
-                    initCompiler(pieProvider, context.getStrIncrTask().createTask(strIncrInput), depPath);
+                    initCompiler(pieProvider, compileTask, depPath);
 
-                    BuildStats.reset();
-                    long totalTime = System.nanoTime();
                     try(final MixedSession session = pie.newSession()) {
-                        session.updateAffectedBy(changedResources);
+                        TopDownSession tdSession = session.updateAffectedBy(changedResources);
                         session.deleteUnobservedTasks(t -> true, (t, r) -> {
-                            if(r instanceof HierarchicalResource && Objects
-                                .equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                            if(r instanceof HierarchicalResource
+                                && Objects.equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
                                 logger.debug("Deleting garbage from previous build: " + r);
                                 return true;
                             }
                             return false;
                         });
+
+                        final CompileOutput compileOutput = tdSession.getOutput(compileTask);
+                        if(compileOutput instanceof CompileOutput.Failure) {
+                            logger.info("> Incremental compilation of Stratego failed:");
+                            final CompileOutput.Failure failure = (CompileOutput.Failure) compileOutput;
+                            int errorsCount = 0;
+                            for(Message2<?> message : failure.messages) {
+                                switch(message.severity) {
+                                    case NOTE:
+                                        logger.info(message.toString());
+                                        break;
+                                    case WARNING:
+                                        logger.warn(message.toString());
+                                        break;
+                                    case ERROR:
+                                        logger.error(message.toString());
+                                        errorsCount++;
+                                        break;
+                                }
+                            }
+                            throw new MetaborgException(
+                                "Incremental Stratego Compilation failed with " + errorsCount + " errors.");
+                        } else {
+                            assert compileOutput instanceof CompileOutput.Success;
+                            final CompileOutput.Success success = (CompileOutput.Success) compileOutput;
+                            for(ResourcePath resultFile : success.resultFiles) {
+                                final File file = context.getMbResourceService().toLocalFile(resultFile);
+                                provide(file);
+                            }
+                        }
                     } catch(ExecException e) {
                         throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
                     } catch(InterruptedException e) {
                         // Ignore
                     }
-                    totalTime = totalTime - System.nanoTime();
                 }
             } else {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
@@ -598,8 +635,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         return builtinLibs;
     }
 
-    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask)
-        throws MetaborgException {
+    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask) throws MetaborgException {
         return initCompiler(pieProvider, strIncrTask, null);
     }
 
@@ -607,7 +643,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         throws MetaborgException {
         pie = pieProvider.pie();
         if(!pie.hasBeenExecuted(strIncrTask)) {
-            BuildStats.reset();
             logger.info("> Clean build required by PIE");
             if(outputPath != null && outputPath.exists()) {
                 try {

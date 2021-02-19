@@ -39,7 +39,9 @@ import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Injector;
 
-import mb.stratego.build.strincr.StrIncr;
+import mb.resource.ResourceService;
+import mb.stratego.build.strincr.task.Compile;
+import mb.stratego.build.strincr.IModuleImportServiceFactory;
 
 public class SpoofaxContext implements Serializable {
     private static final long serialVersionUID = -1973461199459693455L;
@@ -66,7 +68,11 @@ public class SpoofaxContext implements Serializable {
     private static final ThreadLocal<IContextService> contextService = new ThreadLocal<>();
     private static final ThreadLocal<IDialectService> dialectService = new ThreadLocal<>();
     private static final ThreadLocal<IPieProvider> pieProvider = new ThreadLocal<>();
-    private static final ThreadLocal<StrIncr> strIncr = new ThreadLocal<>();
+    private static final ThreadLocal<Compile> compile = new ThreadLocal<>();
+    private static final ThreadLocal<IModuleImportServiceFactory> moduleImportServiceFactory = new ThreadLocal<>();
+
+    private static final ThreadLocal<ResourceService> mbResourceService = new ThreadLocal<>();
+
 
     public final File baseDir;
     public final URI baseURI;
@@ -98,7 +104,9 @@ public class SpoofaxContext implements Serializable {
         contextService.set(newInjector.getInstance(IContextService.class));
         dialectService.set(newInjector.getInstance(IDialectService.class));
         pieProvider.set(newInjector.getInstance(IPieProvider.class));
-        strIncr.set(newInjector.getInstance(StrIncr.class));
+        compile.set(newInjector.getInstance(Compile.class));
+        moduleImportServiceFactory.set(newInjector.getInstance(IModuleImportServiceFactory.class));
+        mbResourceService.set(newInjector.getInstance(ResourceService.class));
     }
 
     public static void deinit() {
@@ -118,7 +126,9 @@ public class SpoofaxContext implements Serializable {
         contextService.set(null);
         dialectService.set(null);
         pieProvider.set(null);
-        strIncr.set(null);
+        compile.set(null);
+        moduleImportServiceFactory.set(null);
+        mbResourceService.set(null);
     }
 
 
@@ -254,7 +264,15 @@ public class SpoofaxContext implements Serializable {
         init();
     }
 
-    public StrIncr getStrIncrTask() {
-        return strIncr.get();
+    public Compile getCompileTask() {
+        return compile.get();
+    }
+
+    public IModuleImportServiceFactory getModuleImportServiceFactory() {
+        return moduleImportServiceFactory.get();
+    }
+
+    public ResourceService getMbResourceService() {
+        return mbResourceService.get();
     }
 }

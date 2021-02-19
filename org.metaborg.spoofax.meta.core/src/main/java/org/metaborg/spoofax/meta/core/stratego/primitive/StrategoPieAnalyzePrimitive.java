@@ -3,6 +3,7 @@ package org.metaborg.spoofax.meta.core.stratego.primitive;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
@@ -53,12 +55,18 @@ import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
+import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.StrIncrAnalysis;
-import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.spoofax2.ModuleIdentifier;
+import mb.stratego.build.strincr.task.input.CheckInput;
+import mb.stratego.build.strincr.task.Check;
+import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.IModuleImportServiceFactory;
+import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.task.output.CheckOutput;
+import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrategoGradualSetting;
-import mb.stratego.build.util.TermEqWithAttachments;
 
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
@@ -66,17 +74,19 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
     @Inject private static Provider<IPieProvider> pieProviderProvider;
 
-    // Using provider to break cycle between StrIncrAnalysis -> Stratego runtime -> all primitives -> this primitive
-    private final Provider<StrIncrAnalysis> strIncrAnalysisProvider;
+    // Using provider to break cycle between Check -> Stratego runtime -> all primitives -> this primitive
+    private final Provider<Check> checkProvider;
     private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
+    private final IModuleImportServiceFactory moduleImportServiceFactoryProvider;
 
-    @Inject public StrategoPieAnalyzePrimitive(Provider<StrIncrAnalysis> strIncrAnalysisProvider,
-        ILanguagePathService languagePathService, IResourceService resourceService) {
+    @Inject public StrategoPieAnalyzePrimitive(Provider<Check> checkProvider, ILanguagePathService languagePathService,
+        IResourceService resourceService, IModuleImportServiceFactory moduleImportServiceFactoryProvider) {
         super("stratego_pie_analyze", 0, 0);
-        this.strIncrAnalysisProvider = strIncrAnalysisProvider;
+        this.checkProvider = checkProvider;
         this.languagePathService = languagePathService;
         this.resourceService = resourceService;
+        this.moduleImportServiceFactoryProvider = moduleImportServiceFactoryProvider;
     }
 
     @Override protected @Nullable IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
@@ -111,7 +121,8 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
 
-        // Fail this primitive if gradual types is not on. May be changed later to filter out type-related messages, but it's currently too slow for that.
+        // Fail this primitive if gradual types is not on. May be changed later to filter out type-related messages, but
+        // it's currently too slow for that.
         if(config.strGradualSetting() == StrategoGradualSetting.NONE) {
             logger.debug("Gradual types is set to none, default to old Stratego editor analysis. ");
             return null;
@@ -174,9 +185,12 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Arguments newArgs = new Arguments();
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
-        final StrIncrAnalysis.Input strIncrAnalysisInput = new StrIncrAnalysis.Input(new FSPath(strFile), strjIncludeDirs,
-            builtinLibs, sdfTasks, new FSPath(projectLocation), config.strGradualSetting(), moduleName, new TermEqWithAttachments(ast));
-        final Task<StrIncrAnalysis.Output> strIncrAnalysisTask = strIncrAnalysisProvider.get().createTask(strIncrAnalysisInput);
+        final IModuleImportService moduleImportService = moduleImportServiceFactoryProvider.create(sdfTasks,
+            strjIncludeDirs, moduleName, new LastModified<>(ast, Instant.now().getEpochSecond()));
+        final ModuleIdentifier mainModuleIdentifier =
+            new ModuleIdentifier(false, NameUtil.toJavaId(strModule.toLowerCase()), new FSResource(strFile));
+        final CheckInput strIncrAnalysisInput = new CheckInput(mainModuleIdentifier, moduleImportService);
+        final Task<CheckOutput> checkTask = checkProvider.get().createTask(strIncrAnalysisInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
         final Pie pie = pieProvider.pie();
@@ -184,20 +198,20 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final IStrategoList.Builder errors = B.listBuilder();
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
-        final StrIncrAnalysis.Output analysisInformation;
+        final CheckOutput analysisInformation;
         synchronized(pie) {
-            GenerateSourcesBuilder.initCompiler(pieProvider, strIncrAnalysisTask);
+            GenerateSourcesBuilder.initCompiler(pieProvider, checkTask);
             try(final MixedSession session = pie.newSession()) {
                 TopDownSession tdSession = session.updateAffectedBy(changedResources);
                 session.deleteUnobservedTasks(t -> true, (t, r) -> {
-                    if(r instanceof HierarchicalResource && Objects
-                        .equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                    if(r instanceof HierarchicalResource
+                        && Objects.equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
                         logger.debug("Deleting garbage from previous build: " + r);
                         return true;
                     }
                     return false;
                 });
-                analysisInformation = tdSession.getOutput(strIncrAnalysisTask);
+                analysisInformation = tdSession.getOutput(checkTask);
             } catch(ExecException e) {
                 logger.warn("Incremental Stratego build failed", e);
                 return null;
@@ -207,9 +221,10 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             }
         }
 
-        for(Message<?> message : analysisInformation.messages) {
-            if(message.moduleFilePath.endsWith(path)) {
-                final ImploderAttachment imploderAttachment = ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
+        for(Message2<?> message : analysisInformation.messages) {
+            if(message.moduleFilePath().endsWith(path)) {
+                final ImploderAttachment imploderAttachment =
+                    ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
                 if(imploderAttachment == null) {
                     logger.debug("No origins for message: " + message);
                 }
