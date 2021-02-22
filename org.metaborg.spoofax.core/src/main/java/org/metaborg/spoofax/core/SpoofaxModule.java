@@ -114,6 +114,7 @@ import org.metaborg.spoofax.core.stratego.primitive.SLShowDialogPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.SLShowInputDialogPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_project_analyses;
+import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_project_asts;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.flowspec.FS_solve;
 import org.metaborg.spoofax.core.stratego.primitive.flowspec.FlowSpecLibrary;
@@ -440,6 +441,7 @@ public class SpoofaxModule extends MetaborgModule {
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(NaBL2Library.name));
         // libspoofax
         bindPrimitive(spoofaxScopeGraphLibrary, C_get_project_analyses.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, C_get_project_asts.class);
         bindPrimitive(spoofaxScopeGraphLibrary, C_get_resource_analysis.class);
         // nabl2.terms
         bindPrimitive(spoofaxScopeGraphLibrary, SG_erase_ast_indices.class);
