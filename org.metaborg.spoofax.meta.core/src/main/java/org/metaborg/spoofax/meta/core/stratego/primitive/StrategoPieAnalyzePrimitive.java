@@ -62,7 +62,7 @@ import mb.stratego.build.spoofax2.ModuleIdentifier;
 import mb.stratego.build.strincr.task.input.CheckInput;
 import mb.stratego.build.strincr.task.Check;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.IModuleImportServiceFactory;
+import mb.stratego.build.spoofax2.IModuleImportServiceFactory;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.output.CheckOutput;
 import mb.stratego.build.util.LastModified;

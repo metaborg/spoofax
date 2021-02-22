@@ -41,7 +41,7 @@ import com.google.inject.Injector;
 
 import mb.resource.ResourceService;
 import mb.stratego.build.strincr.task.Compile;
-import mb.stratego.build.strincr.IModuleImportServiceFactory;
+import mb.stratego.build.spoofax2.IModuleImportServiceFactory;
 
 public class SpoofaxContext implements Serializable {
     private static final long serialVersionUID = -1973461199459693455L;
