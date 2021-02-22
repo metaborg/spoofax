@@ -69,7 +69,7 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.spoofax2.ModuleIdentifier;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.util.StrategoGradualSetting;
 
@@ -534,7 +534,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     new ModuleIdentifier(false, mainModuleName, new FSResource(strFile));
                 final CompileInput compileInput = new CompileInput(mainModuleIdentifier, moduleImportService,
                     new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), Collections.emptyList(),
-                    strjIncludeDirs, extraArgs, Collections.emptyList());
+                    strjIncludeDirs, extraArgs, Collections.emptyList(), input.strGradualSetting);
                 final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
                 final IPieProvider pieProvider = context.pieProvider();
@@ -558,7 +558,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                             logger.info("> Incremental compilation of Stratego failed:");
                             final CompileOutput.Failure failure = (CompileOutput.Failure) compileOutput;
                             int errorsCount = 0;
-                            for(Message2<?> message : failure.messages) {
+                            for(Message<?> message : failure.messages) {
                                 switch(message.severity) {
                                     case NOTE:
                                         logger.info(message.toString());

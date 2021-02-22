@@ -63,7 +63,7 @@ import mb.stratego.build.strincr.task.input.CheckInput;
 import mb.stratego.build.strincr.task.Check;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportServiceFactory;
-import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.output.CheckOutput;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrategoGradualSetting;
@@ -189,8 +189,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             strjIncludeDirs, moduleName, new LastModified<>(ast, Instant.now().getEpochSecond()));
         final ModuleIdentifier mainModuleIdentifier =
             new ModuleIdentifier(false, NameUtil.toJavaId(strModule.toLowerCase()), new FSResource(strFile));
-        final CheckInput strIncrAnalysisInput = new CheckInput(mainModuleIdentifier, moduleImportService);
-        final Task<CheckOutput> checkTask = checkProvider.get().createTask(strIncrAnalysisInput);
+        final CheckInput checkInput = new CheckInput(mainModuleIdentifier, moduleImportService,
+            config.strGradualSetting() == StrategoGradualSetting.NONE);
+        final Task<CheckOutput> checkTask = checkProvider.get().createTask(checkInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
         final Pie pie = pieProvider.pie();
@@ -221,7 +222,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             }
         }
 
-        for(Message2<?> message : analysisInformation.messages) {
+        for(Message<?> message : analysisInformation.messages) {
             if(message.moduleFilePath().endsWith(path)) {
                 final ImploderAttachment imploderAttachment =
                     ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
