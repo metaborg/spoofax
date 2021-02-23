@@ -123,5 +123,5 @@ rules
    *
    * @type _ -> List(resource:String * asts:Term)
    */
-  get-project-constraint-asts =
+  get-project-analyzed-asts =
     prim("C_get_project_asts")
