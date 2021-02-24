@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -220,7 +219,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             }
         }
 
-        for(Message<?> message : analysisInformation.messages) {
+        for(Message message : analysisInformation.messages) {
             final ImploderAttachment imploderAttachment =
                 ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
             if(imploderAttachment == null) {

@@ -555,7 +555,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                             logger.info("> Incremental compilation of Stratego failed:");
                             final CompileOutput.Failure failure = (CompileOutput.Failure) compileOutput;
                             int errorsCount = 0;
-                            for(Message<?> message : failure.messages) {
+                            for(Message message : failure.messages) {
                                 switch(message.severity) {
                                     case NOTE:
                                         logger.info(message.toString());
