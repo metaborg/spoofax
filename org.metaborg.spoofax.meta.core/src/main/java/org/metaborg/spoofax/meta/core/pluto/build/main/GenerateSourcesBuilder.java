@@ -10,13 +10,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -66,11 +64,10 @@ import mb.resource.fs.FSPath;
 import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.spoofax2.ModuleIdentifier;
-import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.input.CompileInput;
+import mb.stratego.build.strincr.task.output.CompileOutput;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
@@ -524,17 +521,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     changedResources.add(new FSPath(changedFile));
                 }
 
-                final List<ResourcePath> strjIncludeDirs =
-                    input.strjIncludeDirs.stream().map(FSPath::new).collect(Collectors.toList());
-                final IModuleImportService moduleImportService =
-                    context.getModuleImportServiceFactory().create(Collections.emptyList(), strjIncludeDirs);
+                final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
+                for(File strjIncludeDir : input.strjIncludeDirs) {
+                    FSPath fsPath = new FSPath(strjIncludeDir);
+                    strjIncludeDirs.add(fsPath);
+                }
                 final String strFileName = strFile.getName();
                 final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str".length());
                 final ModuleIdentifier mainModuleIdentifier =
                     new ModuleIdentifier(false, mainModuleName, new FSResource(strFile));
-                final CompileInput compileInput = new CompileInput(mainModuleIdentifier, moduleImportService,
-                    new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), Collections.emptyList(),
-                    strjIncludeDirs, extraArgs, Collections.emptyList(), input.strGradualSetting);
+                final CompileInput compileInput = new CompileInput(mainModuleIdentifier, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
+                    strjIncludeDirs, extraArgs, new ArrayList<>(0), input.strGradualSetting);
                 final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
                 final IPieProvider pieProvider = context.pieProvider();
@@ -643,13 +640,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         throws MetaborgException {
         pie = pieProvider.pie();
         if(!pie.hasBeenExecuted(strIncrTask)) {
-            logger.info("> Clean build required by PIE");
             if(outputPath != null && outputPath.exists()) {
+                logger.info("> Clean build required by PIE");
                 try {
                     FileUtils.deleteDirectory(outputPath);
                     Files.createDirectories(outputPath.toPath());
                 } catch(IOException e) {
-                    e.printStackTrace();
+                    throw new MetaborgException("Failed to clean: " + e.getMessage(), e);
                 }
             }
             pieProvider.setLogLevelWarn();

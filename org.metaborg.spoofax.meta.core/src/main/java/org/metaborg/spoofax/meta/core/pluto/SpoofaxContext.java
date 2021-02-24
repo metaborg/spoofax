@@ -41,7 +41,6 @@ import com.google.inject.Injector;
 
 import mb.resource.ResourceService;
 import mb.stratego.build.strincr.task.Compile;
-import mb.stratego.build.spoofax2.IModuleImportServiceFactory;
 
 public class SpoofaxContext implements Serializable {
     private static final long serialVersionUID = -1973461199459693455L;
@@ -69,7 +68,6 @@ public class SpoofaxContext implements Serializable {
     private static final ThreadLocal<IDialectService> dialectService = new ThreadLocal<>();
     private static final ThreadLocal<IPieProvider> pieProvider = new ThreadLocal<>();
     private static final ThreadLocal<Compile> compile = new ThreadLocal<>();
-    private static final ThreadLocal<IModuleImportServiceFactory> moduleImportServiceFactory = new ThreadLocal<>();
 
     private static final ThreadLocal<ResourceService> mbResourceService = new ThreadLocal<>();
 
@@ -105,7 +103,6 @@ public class SpoofaxContext implements Serializable {
         dialectService.set(newInjector.getInstance(IDialectService.class));
         pieProvider.set(newInjector.getInstance(IPieProvider.class));
         compile.set(newInjector.getInstance(Compile.class));
-        moduleImportServiceFactory.set(newInjector.getInstance(IModuleImportServiceFactory.class));
         mbResourceService.set(newInjector.getInstance(ResourceService.class));
     }
 
@@ -127,7 +124,6 @@ public class SpoofaxContext implements Serializable {
         dialectService.set(null);
         pieProvider.set(null);
         compile.set(null);
-        moduleImportServiceFactory.set(null);
         mbResourceService.set(null);
     }
 
@@ -266,10 +262,6 @@ public class SpoofaxContext implements Serializable {
 
     public Compile getCompileTask() {
         return compile.get();
-    }
-
-    public IModuleImportServiceFactory getModuleImportServiceFactory() {
-        return moduleImportServiceFactory.get();
     }
 
     public ResourceService getMbResourceService() {

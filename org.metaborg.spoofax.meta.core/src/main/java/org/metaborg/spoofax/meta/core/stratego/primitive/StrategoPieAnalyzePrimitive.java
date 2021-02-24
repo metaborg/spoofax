@@ -58,13 +58,12 @@ import mb.resource.fs.FSPath;
 import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.spoofax2.ModuleIdentifier;
-import mb.stratego.build.strincr.task.input.CheckInput;
-import mb.stratego.build.strincr.task.Check;
-import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.spoofax2.IModuleImportServiceFactory;
+import mb.stratego.build.strincr.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.task.output.CheckOutput;
+import mb.stratego.build.strincr.message.type.TypeMessage;
+import mb.stratego.build.strincr.task.CheckModule;
+import mb.stratego.build.strincr.task.input.CheckModuleInput;
+import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrategoGradualSetting;
 
@@ -75,18 +74,16 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
     @Inject private static Provider<IPieProvider> pieProviderProvider;
 
     // Using provider to break cycle between Check -> Stratego runtime -> all primitives -> this primitive
-    private final Provider<Check> checkProvider;
+    private final Provider<CheckModule> checkModuleProvider;
     private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
-    private final IModuleImportServiceFactory moduleImportServiceFactoryProvider;
 
-    @Inject public StrategoPieAnalyzePrimitive(Provider<Check> checkProvider, ILanguagePathService languagePathService,
-        IResourceService resourceService, IModuleImportServiceFactory moduleImportServiceFactoryProvider) {
+    @Inject public StrategoPieAnalyzePrimitive(Provider<CheckModule> checkModuleProvider, ILanguagePathService languagePathService,
+        IResourceService resourceService) {
         super("stratego_pie_analyze", 0, 0);
-        this.checkProvider = checkProvider;
+        this.checkModuleProvider = checkModuleProvider;
         this.languagePathService = languagePathService;
         this.resourceService = resourceService;
-        this.moduleImportServiceFactoryProvider = moduleImportServiceFactoryProvider;
     }
 
     @Override protected @Nullable IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
@@ -152,7 +149,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
         strjIncludesReplicateDir.delete(new AllFileSelector());
-        final List<ResourcePath> strjIncludeDirs = new ArrayList<>();
+        final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
         for(FileObject strIncludePath : strIncludePaths) {
             if(!strIncludePath.exists()) {
                 continue;
@@ -174,7 +171,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final File projectLocation = resourceService.localPath(paths.root());
         assert projectLocation != null;
 
-        final List<STask<?>> sdfTasks = Collections.emptyList();
+        final ArrayList<STask<?>> sdfTasks = new ArrayList<>(0);
 
         // Gather all Stratego files to be checked for changes
         final Set<Path> changedFiles = GenerateSourcesBuilder.getChangedFiles(projectLocation);
@@ -185,13 +182,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Arguments newArgs = new Arguments();
         final List<String> builtinLibs = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
-        final IModuleImportService moduleImportService = moduleImportServiceFactoryProvider.create(sdfTasks,
-            strjIncludeDirs, moduleName, new LastModified<>(ast, Instant.now().getEpochSecond()));
-        final ModuleIdentifier mainModuleIdentifier =
+        final LastModified<IStrategoTerm> astWLM =
+            new LastModified<>(ast, Instant.now().getEpochSecond());
+        final ModuleIdentifier moduleIdentifier =
             new ModuleIdentifier(false, NameUtil.toJavaId(strModule.toLowerCase()), new FSResource(strFile));
-        final CheckInput checkInput = new CheckInput(mainModuleIdentifier, moduleImportService,
-            config.strGradualSetting() == StrategoGradualSetting.NONE);
-        final Task<CheckOutput> checkTask = checkProvider.get().createTask(checkInput);
+        final CheckModuleInput checkModuleInput = new CheckModuleInput.FileOpenInEditor(moduleIdentifier, astWLM,
+            moduleIdentifier, sdfTasks,
+            strjIncludeDirs);
+        final Task<CheckModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
         final Pie pie = pieProvider.pie();
@@ -199,9 +197,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final IStrategoList.Builder errors = B.listBuilder();
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
-        final CheckOutput analysisInformation;
+        final CheckModuleOutput analysisInformation;
         synchronized(pie) {
-            GenerateSourcesBuilder.initCompiler(pieProvider, checkTask);
+            GenerateSourcesBuilder.initCompiler(pieProvider, checkModuleTask);
             try(final MixedSession session = pie.newSession()) {
                 TopDownSession tdSession = session.updateAffectedBy(changedResources);
                 session.deleteUnobservedTasks(t -> true, (t, r) -> {
@@ -212,7 +210,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                     }
                     return false;
                 });
-                analysisInformation = tdSession.getOutput(checkTask);
+                analysisInformation = tdSession.getOutput(checkModuleTask);
             } catch(ExecException e) {
                 logger.warn("Incremental Stratego build failed", e);
                 return null;
@@ -223,24 +221,25 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         for(Message<?> message : analysisInformation.messages) {
-            if(message.moduleFilePath().endsWith(path)) {
-                final ImploderAttachment imploderAttachment =
-                    ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
-                if(imploderAttachment == null) {
-                    logger.debug("No origins for message: " + message);
-                }
-                final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
-                switch(message.severity) {
-                    case ERROR:
-                        errors.add(messageTuple);
-                        break;
-                    case NOTE:
-                        notes.add(messageTuple);
-                        break;
-                    case WARNING:
-                        warnings.add(messageTuple);
-                        break;
-                }
+            final ImploderAttachment imploderAttachment =
+                ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
+            if(imploderAttachment == null) {
+                logger.debug("No origins for message: " + message);
+            }
+            final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
+            if(config.strGradualSetting() == StrategoGradualSetting.NONE && message instanceof TypeMessage) {
+                continue;
+            }
+            switch(message.severity) {
+                case ERROR:
+                    errors.add(messageTuple);
+                    break;
+                case NOTE:
+                    notes.add(messageTuple);
+                    break;
+                case WARNING:
+                    warnings.add(messageTuple);
+                    break;
             }
         }
 
