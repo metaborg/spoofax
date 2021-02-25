@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -64,6 +65,8 @@ import mb.resource.fs.FSPath;
 import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.input.CompileInput;
@@ -521,6 +524,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     changedResources.add(new FSPath(changedFile));
                 }
 
+                final Arguments newArgs = new Arguments();
+                final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
                 final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
                 for(File strjIncludeDir : input.strjIncludeDirs) {
                     FSPath fsPath = new FSPath(strjIncludeDir);
@@ -531,7 +536,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final ModuleIdentifier mainModuleIdentifier =
                     new ModuleIdentifier(false, mainModuleName, new FSResource(strFile));
                 final CompileInput compileInput = new CompileInput(mainModuleIdentifier, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
-                    strjIncludeDirs, extraArgs, new ArrayList<>(0), input.strGradualSetting);
+                    strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), input.strGradualSetting);
                 final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
                 final IPieProvider pieProvider = context.pieProvider();
@@ -613,16 +618,18 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     /**
      * Copy oldArgs to newArgs, except for built-in libraries, which are split off and their names returned.
      */
-    public static List<String> splitOffBuiltinLibs(Arguments oldArgs, Arguments newArgs) {
-        final List<String> builtinLibs = new ArrayList<>();
+    public static ArrayList<IModuleImportService.ModuleIdentifier> splitOffBuiltinLibs(Arguments oldArgs, Arguments newArgs) {
+        final ArrayList<IModuleImportService.ModuleIdentifier> builtinLibs = new ArrayList<>();
         for(Iterator<Object> iterator = oldArgs.iterator(); iterator.hasNext();) {
             Object oldArg = iterator.next();
             if(oldArg.equals("-la")) {
                 final Object nextOldArg = iterator.next();
-                // noinspection SuspiciousMethodCalls
-                if(BUILTIN_LIBS.contains(nextOldArg)) {
-                    builtinLibs.add((String) nextOldArg);
+                final String nextOldArgString = nextOldArg instanceof String ? (String) nextOldArg : nextOldArg.toString();
+                final @Nullable BuiltinLibraryIdentifier libraryIdentifier = BuiltinLibraryIdentifier.fromString(nextOldArgString);
+                if(libraryIdentifier != null) {
+                    builtinLibs.add(libraryIdentifier);
                 } else {
+                    // throw new MetaborgRuntimeException("Incremental compiler internal bug: missing support for custom pre-compiled libraries such as: " + nextOldArgString);
                     newArgs.add(oldArg, nextOldArg);
                 }
             } else {
