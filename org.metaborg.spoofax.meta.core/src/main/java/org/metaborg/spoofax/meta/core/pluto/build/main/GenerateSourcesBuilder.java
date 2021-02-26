@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -524,13 +523,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     changedResources.add(new FSPath(changedFile));
                 }
 
-                final Arguments newArgs = new Arguments();
-                final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
+                final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>();
                 final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
                 for(File strjIncludeDir : input.strjIncludeDirs) {
                     FSPath fsPath = new FSPath(strjIncludeDir);
                     strjIncludeDirs.add(fsPath);
                 }
+                final Arguments newArgs = GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs);
                 final String strFileName = strFile.getName();
                 final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str".length());
                 final ModuleIdentifier mainModuleIdentifier =
@@ -617,26 +616,42 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     /**
      * Copy oldArgs to newArgs, except for built-in libraries, which are split off and their names returned.
+     * @return
      */
-    public static ArrayList<IModuleImportService.ModuleIdentifier> splitOffBuiltinLibs(Arguments oldArgs, Arguments newArgs) {
-        final ArrayList<IModuleImportService.ModuleIdentifier> builtinLibs = new ArrayList<>();
+    public static Arguments splitOffLinkedLibrariesIncludeDirs(Arguments oldArgs, Collection<IModuleImportService.ModuleIdentifier> builtinLibs, Collection<ResourcePath> includeDirs) {
+        final Arguments newArgs = new Arguments();
         for(Iterator<Object> iterator = oldArgs.iterator(); iterator.hasNext();) {
             Object oldArg = iterator.next();
-            if(oldArg.equals("-la")) {
+            if(oldArg.equals("-I")) {
+                final Object nextOldArg = iterator.next();
+                final File nextOldArgFile;
+                if(nextOldArg instanceof File) {
+                    nextOldArgFile = (File) nextOldArg;
+                } else if(nextOldArg instanceof String) {
+                    nextOldArgFile = new File((String) nextOldArg);
+                } else {
+                    logger.error(
+                        "-I argument is not a string or file? Ignoring this for import resolution: "
+                            + nextOldArg);
+                    newArgs.add(oldArg, nextOldArg);
+                    continue;
+                }
+                includeDirs.add(new FSPath(nextOldArgFile));
+            } else if(oldArg.equals("-la")) {
                 final Object nextOldArg = iterator.next();
                 final String nextOldArgString = nextOldArg instanceof String ? (String) nextOldArg : nextOldArg.toString();
                 final @Nullable BuiltinLibraryIdentifier libraryIdentifier = BuiltinLibraryIdentifier.fromString(nextOldArgString);
-                if(libraryIdentifier != null) {
-                    builtinLibs.add(libraryIdentifier);
-                } else {
+                if(libraryIdentifier == null) {
                     // throw new MetaborgRuntimeException("Incremental compiler internal bug: missing support for custom pre-compiled libraries such as: " + nextOldArgString);
                     newArgs.add(oldArg, nextOldArg);
+                    continue;
                 }
+                builtinLibs.add(libraryIdentifier);
             } else {
                 newArgs.add(oldArg);
             }
         }
-        return builtinLibs;
+        return newArgs;
     }
 
     public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask) throws MetaborgException {

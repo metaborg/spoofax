@@ -62,6 +62,7 @@ import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
+import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrategoGradualSetting;
@@ -179,15 +180,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             changedResources.add(new FSPath(changedFile));
         }
 
-        final Arguments newArgs = new Arguments();
-        final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = GenerateSourcesBuilder.splitOffBuiltinLibs(extraArgs, newArgs);
+        final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>();
+        GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs);
         final LastModified<IStrategoTerm> astWLM =
             new LastModified<>(ast, Instant.now().getEpochSecond());
         final ModuleIdentifier moduleIdentifier =
             new ModuleIdentifier(false, NameUtil.toJavaId(strModule.toLowerCase()), new FSResource(strFile));
-        final CheckModuleInput checkModuleInput = new CheckModuleInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
-            strjIncludeDirs, linkedLibraries, astWLM,
-            moduleIdentifier);
+        final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
+            strjIncludeDirs, linkedLibraries, astWLM), moduleIdentifier);
         final Task<CheckModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
