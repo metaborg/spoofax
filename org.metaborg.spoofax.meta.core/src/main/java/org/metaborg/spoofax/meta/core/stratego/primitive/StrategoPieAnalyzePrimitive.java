@@ -24,6 +24,7 @@ import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
@@ -118,10 +119,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
 
-        // Fail this primitive if gradual types is not on. May be changed later to filter out type-related messages, but
-        // it's currently too slow for that.
-        if(config.strGradualSetting() == StrategoGradualSetting.NONE) {
-            logger.debug("Gradual types is set to none, default to old Stratego editor analysis. ");
+        // Fail this primitive if compilation is set to batch mode
+        if(config.strBuildSetting() == StrategoBuildSetting.batch) {
+            logger.debug("Compilation mode is set to batch, default to old Stratego editor analysis. ");
             return null;
         }
 
