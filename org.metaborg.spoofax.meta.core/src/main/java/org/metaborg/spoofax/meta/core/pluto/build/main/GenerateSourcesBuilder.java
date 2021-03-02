@@ -61,7 +61,6 @@ import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
-import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
@@ -533,7 +532,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final String strFileName = strFile.getName();
                 final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str".length());
                 final ModuleIdentifier mainModuleIdentifier =
-                    new ModuleIdentifier(false, mainModuleName, new FSResource(strFile));
+                    new ModuleIdentifier(false, mainModuleName, new FSPath(strFile));
                 final CompileInput compileInput = new CompileInput(mainModuleIdentifier, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
                     strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), input.strGradualSetting);
                 final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);

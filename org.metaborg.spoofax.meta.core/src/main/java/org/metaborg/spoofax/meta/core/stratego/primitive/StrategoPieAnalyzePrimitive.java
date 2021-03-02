@@ -54,7 +54,6 @@ import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
-import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
@@ -185,7 +184,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final LastModified<IStrategoTerm> astWLM =
             new LastModified<>(ast, Instant.now().getEpochSecond());
         final ModuleIdentifier moduleIdentifier =
-            new ModuleIdentifier(false, NameUtil.toJavaId(strModule.toLowerCase()), new FSResource(strFile));
+            new ModuleIdentifier(false, NameUtil.toJavaId(strModule.toLowerCase()), new FSPath(strFile));
         final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
             strjIncludeDirs, linkedLibraries, astWLM), moduleIdentifier);
         final Task<CheckModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
