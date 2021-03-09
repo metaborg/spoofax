@@ -64,7 +64,7 @@ public class ExecutableCommandStrategy extends xtc_command_1_0 {
     private ExecutionResult runInternal(String[] commandAndArgs) {
         final String[] args = Arrays.copyOfRange(commandAndArgs, 1, commandAndArgs.length);
         log.info("Execute {} {}", command, Joiner.on(' ').join(args));
-        final Exec.ExecutionResult result = Exec.run(commandAndArgs);
+        final Exec.ExecutionResult result = (new Exec(false)).runWithPrefix(commandAndArgs[0], (File)null, commandAndArgs);
         return new ExecutionResult(true, StringUtils.join(result.outMsgs, '\n'),
             StringUtils.join(result.errMsgs, '\n'));
     }
