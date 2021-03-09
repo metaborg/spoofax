@@ -21,7 +21,7 @@ dependencies {
   implementation(compositeBuild("stratego.build.spoofax2"))
   implementation(compositeBuild("nabl2.solver"))
 
-  implementation("org.metaborg:org.metaborg.spoofax.nativebundle:$spoofax2Version")
+  implementation(project(":org.metaborg.spoofax.nativebundle"))
   implementation("org.metaborg:strategoxt-min-jar:$spoofax2Version")
   implementation("org.metaborg:make-permissive:$spoofax2Version")
 
