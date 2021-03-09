@@ -46,13 +46,6 @@ newopts=""
 declare -a vols=()
 while getopts "bcdghi:l:m:no:p:tvV" o; do
     case "${o}" in
-        # s)
-        #     s=${OPTARG}
-        #     ((s == 45 || s == 90)) || usage
-        #     ;;
-        # p)
-        #     p=${OPTARG}
-        #     ;;
         b) newopts+=" -b" ;;
         c) newopts+=" -c" ;;
         d) newopts+=" -d" ;;
@@ -109,5 +102,3 @@ docker run --rm -it -v "$DIR/../":/native \
 # `docker run` returns the exit code of its command
 
 echo "Done"
-
-#./sdf2table -t -i /Users/daniel/repos/spoofax3/devenv-update/esv/org.metaborg.meta.lang.esv/src-gen/syntax/EditorService-permissive.def -m EditorService -o /Users/daniel/repos/spoofax3/devenv-update/esv/org.metaborg.meta.lang.esv/target/metaborg/sdf.tbl
