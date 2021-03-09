@@ -75,7 +75,7 @@ shift $((OPTIND-1))
 
 # Attempt to run the native sdf2table
 set +o errexit
-./sdf2table-macosx ${newopts}  # && retVal=$? || retVal=$?
+"$DIR/sdf2table-macosx" ${newopts}  # && retVal=$? || retVal=$?
 retVal=$?
 set -o errexit
 if [[ $retVal -ne 0 && $retVal -ne 126 ]]; then
