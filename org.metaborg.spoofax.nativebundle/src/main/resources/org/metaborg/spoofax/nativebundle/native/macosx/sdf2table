@@ -89,8 +89,9 @@ echo "sdf2table failed to run natively, attemping using Docker"
 volumes=""
 for i in "${vols[@]}"
 do
-    echo "VOLUME: $i"
-    volumes+=" -v $i:$i"
+    echo "VOLUME: ${i}"
+    volumes+=" -v ${i}:${i}"
+    mkdir -p "${i}"
 done
 echo $volumes
 
