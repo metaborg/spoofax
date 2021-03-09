@@ -96,7 +96,7 @@ done
 echo $volumes
 
 # Run the docker container with the volumes mounted, and execute sdf2table
-docker run --rm -it -v "$DIR/":/sdf2table-bin \
+docker run --rm -v "$DIR/":/sdf2table-bin \
   ${volumes} \
   ubuntu:focal \
   /sdf2table-bin/sdf2table-linux ${newopts}
