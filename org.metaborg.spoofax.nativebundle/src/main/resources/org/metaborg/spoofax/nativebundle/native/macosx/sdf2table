@@ -75,7 +75,7 @@ shift $((OPTIND-1))
 
 # Attempt to run the native sdf2table
 set +o errexit
-./sdf2table-native ${newopts}  # && retVal=$? || retVal=$?
+./sdf2table-macosx ${newopts}  # && retVal=$? || retVal=$?
 retVal=$?
 set -o errexit
 if [[ $retVal -ne 0 && $retVal -ne 126 ]]; then
@@ -95,10 +95,10 @@ done
 echo $volumes
 
 # Run the docker container with the volumes mounted, and execute sdf2table
-docker run --rm -it -v "$DIR/../":/native \
+docker run --rm -it -v "$DIR/":/sdf2table-bin \
   ${volumes} \
   ubuntu:focal \
-  /native/linux/sdf2table ${newopts}
+  /sdf2table-bin/sdf2table-linux ${newopts}
 # `docker run` returns the exit code of its command
 
 echo "Done"
