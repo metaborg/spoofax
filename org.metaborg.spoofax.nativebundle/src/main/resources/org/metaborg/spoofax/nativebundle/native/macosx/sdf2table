@@ -78,7 +78,7 @@ set +o errexit
 "$DIR/sdf2table-macosx" ${newopts}  # && retVal=$? || retVal=$?
 retVal=$?
 set -o errexit
-if [[ $retVal -ne 0 && $retVal -ne 126 ]]; then
+if [[ $retVal -ne 126 ]]; then
     # sdf2table ran but succeeded or failed
     exit $retVal
 fi
