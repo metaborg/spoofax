@@ -8,6 +8,8 @@ set -o nounset
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [ ! -z "$DIR" ]
 
+BIN="sdf2table"
+
 usage() { echo "sdf2table in Docker
 
 Use this program to generate a parse table from an SDF definition.
@@ -34,7 +36,7 @@ Options:
 	-m modulename   name of top module (default Main)
 	-n              only normalization of grammar
 	-o filename     output to file (default stdout)
-	-p path         colon separated search path for SDF modules (default '.')
+	-p path         colon separated search path for SDF modules (default '.', not supported)
 	-t              output terms in plaintext format
 	-v              verbose mode
 	-V              reveal program version (i.e. 5.0)
@@ -73,17 +75,17 @@ while getopts "bcdghi:l:m:no:p:tvV" o; do
 done
 shift $((OPTIND-1))
 
-# Attempt to run the native sdf2table
+# Attempt to run the native command
 set +o errexit
-"$DIR/sdf2table-macosx" ${newopts}  # && retVal=$? || retVal=$?
+"$DIR/$BIN-macosx" ${newopts}
 retVal=$?
 set -o errexit
 if [[ $retVal -ne 126 ]]; then
-    # sdf2table ran but succeeded or failed
+    # It ran but succeeded or failed
     exit $retVal
 fi
-# sdf2table didn't run, attempt run sdf2table using Docker
-echo "sdf2table failed to run natively, attemping using Docker"
+# The command didn't run, attempt run using Docker
+echo "$BIN failed to run natively, attemping using Docker"
 
 # Gather the volumes to mount (basically, every directory mentioned in -i, -l, or -o)
 volumes=""
@@ -95,11 +97,11 @@ do
 done
 echo $volumes
 
-# Run the docker container with the volumes mounted, and execute sdf2table
-docker run --rm -v "$DIR/":/sdf2table-bin \
+# Run the docker container with the volumes mounted, and execute it
+docker run --rm -v "$DIR/":/bundle \
   ${volumes} \
   ubuntu:focal \
-  /sdf2table-bin/sdf2table-linux ${newopts}
+  /bundle/$BIN-linux ${newopts}
 # `docker run` returns the exit code of its command
 
 echo "Done"
