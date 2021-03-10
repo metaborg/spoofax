@@ -5,7 +5,7 @@ hs_err_pid*
 
 # Gradle
 **/.gradle
-build/
+/build
 
 # IntelliJ
 **/.idea
