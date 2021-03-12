@@ -32,8 +32,8 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
 
     protected SpoofaxProjectConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
             Collection<IExportConfig> sources, Collection<LanguageIdentifier> compileDeps,
-            Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps,
-            NaBL2Config nabl2Config, Collection<String> statixConcurrent) {
+            Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps, NaBL2Config nabl2Config,
+            Collection<String> statixConcurrent) {
         super(config, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps);
         if(nabl2Config != null) {
             Optional.ofNullable(configurationAt(PROP_NABL2, true))
@@ -53,9 +53,16 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
         }
     }
 
+    private volatile NaBL2Config nabl2Config = null;
+
     @Override public NaBL2Config nabl2Config() {
-        return Optional.ofNullable(configurationAt(PROP_NABL2, false)).map(NaBL2ConfigReaderWriter::read)
-                .orElse(NaBL2Config.DEFAULT);
+        NaBL2Config result = nabl2Config;
+        if(result == null) {
+            result = Optional.ofNullable(configurationAt(PROP_NABL2, false)).map(NaBL2ConfigReaderWriter::read)
+                    .orElse(NaBL2Config.DEFAULT);
+            nabl2Config = result;
+        }
+        return result;
     }
 
     @Override public Collection<String> statixConcurrentLanguages() {

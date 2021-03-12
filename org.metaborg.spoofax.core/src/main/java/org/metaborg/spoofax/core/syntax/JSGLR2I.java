@@ -25,12 +25,7 @@ import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.shared.BadTokenException;
-import org.spoofax.jsglr2.JSGLR2;
-import org.spoofax.jsglr2.JSGLR2Request;
-import org.spoofax.jsglr2.JSGLR2Result;
-import org.spoofax.jsglr2.JSGLR2Spec;
-import org.spoofax.jsglr2.JSGLR2Success;
-import org.spoofax.jsglr2.JSGLR2Variant;
+import org.spoofax.jsglr2.*;
 import org.spoofax.jsglr2.messages.Message;
 
 public class JSGLR2I extends JSGLRI<IParseTable> {
@@ -100,9 +95,9 @@ public class JSGLR2I extends JSGLRI<IParseTable> {
 
         final Timer timer = new Timer(true);
 
-        JSGLR2Request request = new JSGLR2Request(input, fileName, startSymbol,
-            JSGLR2Request.DEFAULT_RECOVERY_ITERATIONS_QUOTA, JSGLR2Request.DEFAULT_SUCCEEDING_RECOVERY_OFFSET,
-            parserConfig.completion ? Optional.of(parserConfig.cursorPosition) : Optional.empty(), true);
+        JSGLR2Request request = new JSGLR2Request(input, fileName, startSymbol)
+            .withCompletion(parserConfig.completion ? Optional.of(parserConfig.cursorPosition) : Optional.empty())
+            .withAmbiguitiesReporting(true);
 
         final JSGLR2Result<IStrategoTerm> result = parser.parseResult(request);
         IStrategoTerm ast = result.isSuccess() ? ((JSGLR2Success<IStrategoTerm>) result).ast : null;

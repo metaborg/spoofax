@@ -216,16 +216,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     private void newParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder)
         throws IOException {
-		// Standard parser generation
-		final File srcNormDir = toFile(paths.syntaxNormDir());
-		final File sdfMainNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
-		final File sdfPermissiveWaterNormFile = FileUtils.getFile(srcNormDir, "permissive-water-norm.aterm");
+        // Standard parser generation
+        final File srcNormDir = toFile(paths.syntaxNormDir());
+        final File sdfMainNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
+        final File sdfPermissiveWaterNormFile = FileUtils.getFile(srcNormDir, "permissive-water-norm.aterm");
 
-		final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration = newParseTableGeneration(input,
-				Arrays.asList(sdfMainNormFile, sdfPermissiveWaterNormFile), "sdf.tbl", "table.bin", false);
+        final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration = newParseTableGeneration(input,
+            Arrays.asList(sdfMainNormFile, sdfPermissiveWaterNormFile), "sdf.tbl", "table.bin", false);
 
-		sdfOriginBuilder.add(parseTableGeneration);
-		requireBuild(parseTableGeneration);
+        sdfOriginBuilder.add(parseTableGeneration);
+        requireBuild(parseTableGeneration);
 
         // Generate parenthesizer
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
@@ -240,8 +240,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
-			final BuildRequest<?, ?, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input,
-					Arrays.asList(input.sdfCompletionFile), "sdf-completions.tbl", "table-completions.bin", true);
+            final BuildRequest<?, ?, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input,
+                Arrays.asList(input.sdfCompletionFile), "sdf-completions.tbl", "table-completions.bin", true);
 
             sdfOriginBuilder.add(parseTableGenerationCompletions);
             requireBuild(parseTableGenerationCompletions);
