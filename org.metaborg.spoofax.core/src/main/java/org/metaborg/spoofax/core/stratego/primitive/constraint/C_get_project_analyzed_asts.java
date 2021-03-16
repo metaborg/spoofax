@@ -12,10 +12,10 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-public class C_get_project_asts extends ConstraintContextPrimitive {
+public class C_get_project_analyzed_asts extends ConstraintContextPrimitive {
 
-    public C_get_project_asts() {
-        super(C_get_project_asts.class.getSimpleName());
+    public C_get_project_analyzed_asts() {
+        super(C_get_project_analyzed_asts.class.getSimpleName());
     }
 
     @Override protected Optional<? extends IStrategoTerm> call(IConstraintContext context, IStrategoTerm sterm,

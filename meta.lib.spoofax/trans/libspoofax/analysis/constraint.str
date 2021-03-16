@@ -121,7 +121,7 @@ rules
 
   /** Get analyzed ASTs for all resources in the project
    *
-   * @type _ -> List(resource:String * asts:Term)
+   * @type _ -> List(resource:String * ast:Term)
    */
   get-project-analyzed-asts =
-    prim("C_get_project_asts")
+    prim("C_get_project_analyzed_asts")
