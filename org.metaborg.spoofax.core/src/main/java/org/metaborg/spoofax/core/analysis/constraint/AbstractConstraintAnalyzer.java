@@ -440,10 +440,21 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             }
             final FileName fileName = resource().getName();
             if(multifile()) {
-                analysisCommon.messages(severity, messagesTerm)
-                        .forEach(m -> messages.put(m.source() != null ? m.source().getName() : fileName, m));
+                for(IMessage m : analysisCommon.messages(severity, messagesTerm)) {
+                    if(m.source() == null) { // make sure we do not lose messages, default to the current resource
+                        m = MessageFactory.newAnalysisMessageAtTop(resource(), m.message(), m.severity(),
+                                m.exception());
+                    }
+                    messages.put(m.source() != null ? m.source().getName() : fileName, m);
+                }
             } else {
-                analysisCommon.messages(resource(), severity, messagesTerm).forEach(m -> messages.put(fileName, m));
+                for(IMessage m : analysisCommon.messages(resource(), severity, messagesTerm)) {
+                    if(m.source() == null) { // make sure we do not lose messages, default to the current resource
+                        m = MessageFactory.newAnalysisMessageAtTop(resource(), m.message(), m.severity(),
+                                m.exception());
+                    }
+                    messages.put(fileName, m);
+                }
             }
         }
 
