@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -17,6 +18,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.resource.IResourceService;
@@ -24,7 +26,6 @@ import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
@@ -90,12 +91,12 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         ITermFactory factory, IContext context) throws MetaborgException, IOException {
         final IStrategoAppl ast = TermUtils.toApplAt(current, 0);
         final String path = TermUtils.toJavaStringAt(current, 1);
-        @SuppressWarnings("unused") final String projectPath = TermUtils.toJavaStringAt(current, 2);
+//        final String projectPath = TermUtils.toJavaStringAt(current, 2);
 
-        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
-            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");
-        }
-        final String moduleName = TermUtils.toJavaStringAt(ast, 0);
+//        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
+//            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");
+//        }
+//        final String moduleName = TermUtils.toJavaStringAt(ast, 0);
 
         final IProject project = context.project();
         if(project == null) {
@@ -118,9 +119,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
 
-        // Fail this primitive if compilation is set to batch mode
-        if(config.strBuildSetting() == StrategoBuildSetting.batch) {
-            logger.debug("Compilation mode is set to batch, default to old Stratego editor analysis. ");
+        // Fail this primitive if there is no compilation dependency on the new incremental Stratego language project
+        if(!containsStrategoLang(config.compileDeps())) {
+            logger.debug("Cannot find org.metaborg:stratego:${metaborg-version} among compile dependencies. ");
             return null;
         }
 
@@ -131,18 +132,20 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(project, SpoofaxConstants.LANG_STRATEGO_NAME);
-        final @Nullable File strFile;
+        @Nullable File strFile;
         final FileObject strFileCandidate = paths.findStrMainFile(strRoots, strModule);
         if(strFileCandidate != null && strFileCandidate.exists()) {
             strFile = resourceService.localPath(strFileCandidate);
             if(strFile == null || !strFile.exists()) {
-                throw new IOException("Main Stratego file at " + strFile + " does not exist");
+                logger.info("Main Stratego2 file at " + strFile + " does not exist");
+                strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
             }
         } else {
-            throw new IOException("Main Stratego file does not exist");
+            logger.info("Main Stratego2 file does not exist");
+            strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
         }
 
-        final String strExternalJarFlags = config.strExternalJarFlags();
+        final @Nullable String strExternalJarFlags = config.strExternalJarFlags();
 
         final Iterable<FileObject> strIncludePaths =
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
@@ -168,6 +171,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         final File projectLocation = resourceService.localPath(paths.root());
+        final ResourcePath projectPath = new FSPath(projectLocation);
         assert projectLocation != null;
 
         final ArrayList<STask<?>> sdfTasks = new ArrayList<>(0);
@@ -186,7 +190,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final ModuleIdentifier moduleIdentifier =
             new ModuleIdentifier(false, NameUtil.toJavaId(strModule.toLowerCase()), new FSPath(strFile));
         final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
-            strjIncludeDirs, linkedLibraries, astWLM), moduleIdentifier);
+            strjIncludeDirs, linkedLibraries, astWLM), moduleIdentifier, projectPath);
         final Task<CheckModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
@@ -242,6 +246,15 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         return B.tuple(B.list(errors), B.list(warnings), B.list(notes));
+    }
+
+    private static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
+        for(LanguageIdentifier compileDep : compileDeps) {
+            if(compileDep.groupId.equals("org.metaborg") && compileDep.id.equals("stratego")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private @Nullable ISpoofaxLanguageSpec getLanguageSpecification(IProject project) throws MetaborgException {

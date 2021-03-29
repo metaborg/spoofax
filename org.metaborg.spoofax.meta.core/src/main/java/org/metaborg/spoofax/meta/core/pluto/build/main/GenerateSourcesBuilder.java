@@ -530,10 +530,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
                 final Arguments newArgs = GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs);
                 final String strFileName = strFile.getName();
-                final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str".length());
+                final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str2".length());
                 final ModuleIdentifier mainModuleIdentifier =
                     new ModuleIdentifier(false, mainModuleName, new FSPath(strFile));
-                final CompileInput compileInput = new CompileInput(mainModuleIdentifier, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
+                final ResourcePath projectPath = new FSPath(projectLocation);
+                final CompileInput compileInput = new CompileInput(mainModuleIdentifier,
+                    projectPath, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
                     strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), input.strGradualSetting);
                 final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
@@ -604,7 +606,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         Files.walkFileTree(projectLocation.toPath(), new SimpleFileVisitor<Path>() {
             @Override public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
                 String pathString = path.toString().toLowerCase();
-                if(pathString.endsWith(".str") || pathString.endsWith(".rtree") || pathString.endsWith(".ctree")) {
+                if(pathString.endsWith(".str2") || pathString.endsWith(".rtree") || pathString.endsWith(".ctree") || pathString.endsWith(".java")) {
                     result.add(path);
                 }
                 return FileVisitResult.CONTINUE;
