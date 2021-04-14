@@ -93,10 +93,12 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final String path = TermUtils.toJavaStringAt(current, 1);
 //        final String projectPath = TermUtils.toJavaStringAt(current, 2);
 
-//        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
-//            throw new MetaborgException("Input AST for Stratego analysis not Module/2.");
-//        }
-//        final String moduleName = TermUtils.toJavaStringAt(ast, 0);
+        final String moduleName;
+        if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
+        	moduleName = path;
+        } else {
+        	moduleName = TermUtils.toJavaStringAt(ast, 0);
+        }
 
         final IProject project = context.project();
         if(project == null) {
@@ -121,14 +123,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         // Fail this primitive if there is no compilation dependency on the new incremental Stratego language project
         if(!containsStrategoLang(config.compileDeps())) {
-            logger.debug("Cannot find org.metaborg:stratego:${metaborg-version} among compile dependencies. ");
+            logger.debug("Cannot find org.metaborg:stratego.lang:${metaborg-version} among compile dependencies. ");
             return null;
         }
 
         final FileObject baseLoc = languageSpec.location();
         final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc);
 
-        final String strModule = config.strategoName();
+        String strModule = NameUtil.toJavaId(config.strategoName().toLowerCase());
 
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(project, SpoofaxConstants.LANG_STRATEGO_NAME);
@@ -139,10 +141,12 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             if(strFile == null || !strFile.exists()) {
                 logger.info("Main Stratego2 file at " + strFile + " does not exist");
                 strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
+                strModule = moduleName;
             }
         } else {
             logger.info("Main Stratego2 file does not exist");
             strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
+            strModule = moduleName;
         }
 
         final @Nullable String strExternalJarFlags = config.strExternalJarFlags();
@@ -188,7 +192,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final LastModified<IStrategoTerm> astWLM =
             new LastModified<>(ast, Instant.now().getEpochSecond());
         final ModuleIdentifier moduleIdentifier =
-            new ModuleIdentifier(false, NameUtil.toJavaId(strModule.toLowerCase()), new FSPath(strFile));
+            new ModuleIdentifier(false, strModule, new FSPath(strFile));
         final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
             strjIncludeDirs, linkedLibraries, astWLM), moduleIdentifier, projectPath);
         final Task<CheckModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
@@ -250,7 +254,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
     private static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
         for(LanguageIdentifier compileDep : compileDeps) {
-            if(compileDep.groupId.equals("org.metaborg") && compileDep.id.equals("stratego")) {
+            if(compileDep.groupId.equals("org.metaborg") && compileDep.id.equals("stratego.lang")) {
                 return true;
             }
         }
