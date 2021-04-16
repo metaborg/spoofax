@@ -211,6 +211,15 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     ISpoofaxLanguageSpecConfigBuilder withPrettyPrintLanguage(String prettyPrintLanguage);
 
     /**
+     * Sets if a namespaced version of the grammar should be generated.
+     *
+     * @param generateNamespacedGrammar
+     *            Whether the namespaced version should be generated.
+     * @return This builder.
+     */
+    ISpoofaxLanguageSpecConfigBuilder withGenerateNamespacedGrammar(Boolean generateNamespacedGrammar);
+
+    /**
      * Sets the project artifact Stratego build setting.
      *
      * @param buildSetting
