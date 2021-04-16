@@ -183,8 +183,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
     @Override public boolean generateNamespacedGrammar() {
-        final Boolean value = this.config.getBoolean(PROP_GENERATE_NAMESPACED_GRAMMAR);
-        return value != null ? value : false;
+        return this.config.getBoolean(PROP_GENERATE_NAMESPACED_GRAMMAR, false);
     }
 
     @Override @Nullable public String sdfExternalDef() {
