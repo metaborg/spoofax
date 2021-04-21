@@ -207,8 +207,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     private void buildSdf(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder) throws IOException {
         if(input.sdfModule != null && input.sdfEnabled) {
-            if(input.sdf2tableVersion == Sdf2tableVersion.java || input.sdf2tableVersion == Sdf2tableVersion.dynamic
-                || input.sdf2tableVersion == Sdf2tableVersion.incremental) {
+            if(input.sdf2tableVersion.javaBased) {
                 newParseTableGenerationBuild(input, sdfOriginBuilder);
             } else {
                 oldParseTableGenerationBuild(input, sdfOriginBuilder);

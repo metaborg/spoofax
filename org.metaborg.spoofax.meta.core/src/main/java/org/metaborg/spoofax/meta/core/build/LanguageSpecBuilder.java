@@ -413,9 +413,9 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         FileObject sdfCompletionFileCandidate = null;
 
-        if(sdf2tableVersion == Sdf2tableVersion.c) {
+        if(!sdf2tableVersion.javaBased) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
-        } else if(sdf2tableVersion == Sdf2tableVersion.java || sdf2tableVersion == Sdf2tableVersion.dynamic) {
+        } else {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
         }
 
