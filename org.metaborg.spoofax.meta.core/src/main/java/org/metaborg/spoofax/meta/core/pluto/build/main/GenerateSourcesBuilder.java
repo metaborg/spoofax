@@ -416,8 +416,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     private void buildSdfMeta(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder) throws IOException {
-        final File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
-
         for(int i = 0; i < input.sdfMetaFiles.size(); i++) {
             final File sdfMetaFile = input.sdfMetaFiles.get(i);
 
@@ -428,33 +426,52 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
                 final String sdfMetaModule = input.sdfMetaModules.get(i);
 
-                final BuildRequest<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix, SpoofaxBuilderFactory<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix>> getStrategoMixRequest =
-                    GetStrategoMix.request(new GetStrategoMix.Input(context));
-                final File strategoMixFile = requireBuild(getStrategoMixRequest).val();
-                final Origin strategoMixOrigin = Origin.from(getStrategoMixRequest);
-                final Arguments packSdfMetaArgs = new Arguments(input.packSdfArgs);
-                packSdfMetaArgs.addFile("-Idef", strategoMixFile);
-
-                final File packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + ".def");
-
-                final Origin packSdfOrigin = PackSdfLegacy.origin(new PackSdfLegacy.Input(context, sdfMetaModule,
-                    sdfMetaFile, packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, strategoMixOrigin));
-
-                final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + "-permissive.def");
-                final Origin permissiveDefOrigin = MakePermissive.origin(
-                    new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfMetaModule, packSdfOrigin));
-
-                final File transDir = toFile(paths.transDir());
-                final File tableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
-
-                Origin sdfMetaOrigin = Sdf2TableLegacy.origin(new Sdf2TableLegacy.Input(context, permissiveDefFile,
-                    tableFile, sdfMetaModule, permissiveDefOrigin));
-
-                sdfOriginBuilder.add(sdfMetaOrigin);
-
-                requireBuild(sdfMetaOrigin);
+                if(input.sdf2tableVersion.javaBased)
+                    newMetaParseTableGenerationBuild(input, sdfOriginBuilder, sdfMetaModule, sdfMetaFile);
+                else
+                    oldMetaParseTableGenerationBuild(input, sdfOriginBuilder, sdfMetaModule, sdfMetaFile);
             }
         }
+    }
+
+    private void newMetaParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder,
+        String sdfMetaModule, File sdfMainNormFile) throws IOException {
+        final BuildRequest<?, OutputPersisted<File>, ?, ?> metaParseTableGeneration = newParseTableGeneration(input,
+            Arrays.asList(sdfMainNormFile), sdfMetaModule + ".tbl", "table-" + sdfMetaModule + ".bin", false);
+
+        sdfOriginBuilder.add(metaParseTableGeneration);
+        requireBuild(metaParseTableGeneration);
+    }
+
+    private void oldMetaParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder,
+        String sdfMetaModule, File sdfMetaFile) throws IOException {
+        final File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
+
+        final BuildRequest<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix, SpoofaxBuilderFactory<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix>> getStrategoMixRequest =
+            GetStrategoMix.request(new GetStrategoMix.Input(context));
+        final File strategoMixFile = requireBuild(getStrategoMixRequest).val();
+        final Origin strategoMixOrigin = Origin.from(getStrategoMixRequest);
+        final Arguments packSdfMetaArgs = new Arguments(input.packSdfArgs);
+        packSdfMetaArgs.addFile("-Idef", strategoMixFile);
+
+        final File packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + ".def");
+
+        final Origin packSdfOrigin = PackSdfLegacy.origin(new PackSdfLegacy.Input(context, sdfMetaModule, sdfMetaFile,
+            packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, strategoMixOrigin));
+
+        final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + "-permissive.def");
+        final Origin permissiveDefOrigin = MakePermissive
+            .origin(new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfMetaModule, packSdfOrigin));
+
+        final File transDir = toFile(paths.transDir());
+        final File tableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
+
+        Origin sdfMetaOrigin = Sdf2TableLegacy.origin(
+            new Sdf2TableLegacy.Input(context, permissiveDefFile, tableFile, sdfMetaModule, permissiveDefOrigin));
+
+        sdfOriginBuilder.add(sdfMetaOrigin);
+
+        requireBuild(sdfMetaOrigin);
     }
 
     private void buildStratego(GenerateSourcesBuilder.Input input, Origin sdfOrigin)

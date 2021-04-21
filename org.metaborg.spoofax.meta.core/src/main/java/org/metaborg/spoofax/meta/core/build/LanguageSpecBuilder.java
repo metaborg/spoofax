@@ -436,10 +436,15 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final @Nullable List<File> sdfMetaFiles = Lists.newArrayList();
 
         for(String sdfMetaModule : sdfMetaModules) {
-            final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
-            if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists()) {
+            final FileObject sdfMetaFileCandidate;
+
+            if(config.sdf2tableVersion().javaBased)
+                sdfMetaFileCandidate = paths.syntaxSrcGenMainNormFile(sdfMetaModule);
+            else
+                sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
+
+            if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists())
                 sdfMetaFiles.add(resourceService.localPath(sdfMetaFileCandidate));
-            }
         }
 
 
