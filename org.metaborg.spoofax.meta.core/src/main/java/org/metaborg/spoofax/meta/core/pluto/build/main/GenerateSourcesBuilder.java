@@ -220,10 +220,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // Standard parser generation
         final File srcNormDir = toFile(paths.syntaxNormDir());
         final File sdfMainNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
-        final File sdfPermissiveWaterNormFile = FileUtils.getFile(srcNormDir, "permissive-water-norm.aterm");
 
-        final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration = newParseTableGeneration(input,
-            Arrays.asList(sdfMainNormFile, sdfPermissiveWaterNormFile), "sdf.tbl", "table.bin", false);
+        final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration =
+            newParseTableGeneration(input, sdfMainNormFile, "sdf.tbl", "table.bin", true, false);
 
         sdfOriginBuilder.add(parseTableGeneration);
         requireBuild(parseTableGeneration);
@@ -242,7 +241,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
             final BuildRequest<?, ?, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input,
-                Arrays.asList(input.sdfCompletionFile), "sdf-completions.tbl", "table-completions.bin", true);
+                input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", false, true);
 
             sdfOriginBuilder.add(parseTableGenerationCompletions);
             requireBuild(parseTableGenerationCompletions);
@@ -250,11 +249,21 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     private BuildRequest<?, OutputPersisted<File>, ?, ?> newParseTableGeneration(GenerateSourcesBuilder.Input input,
-        Collection<File> sdfNormFiles, String tableFilename, String persistedTableFilename, boolean isCompletions)
+        File sdfMainNormFile, String tableFilename, String persistedTableFilename, boolean withRecovery, boolean isCompletions)
         throws IOException {
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
         final File tableFile = FileUtils.getFile(targetMetaborgDir, tableFilename);
         final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, persistedTableFilename);
+        List<File> sdfNormFiles = new ArrayList<>();
+
+        sdfNormFiles.add(sdfMainNormFile);
+
+        if(withRecovery) {
+            final File srcNormDir = toFile(paths.syntaxNormDir());
+            final File sdfPermissiveWaterNormFile = FileUtils.getFile(srcNormDir, "permissive-water-norm.aterm");
+
+            sdfNormFiles.add(sdfPermissiveWaterNormFile);
+        }
 
         final boolean dynamicGeneration = (input.sdf2tableVersion == Sdf2tableVersion.dynamic
             || input.sdf2tableVersion == Sdf2tableVersion.incremental);
@@ -437,7 +446,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     private void newMetaParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder,
         String sdfMetaModule, File sdfMainNormFile) throws IOException {
         final BuildRequest<?, OutputPersisted<File>, ?, ?> metaParseTableGeneration = newParseTableGeneration(input,
-            Arrays.asList(sdfMainNormFile), sdfMetaModule + ".tbl", "table-" + sdfMetaModule + ".bin", false);
+            sdfMainNormFile, sdfMetaModule + ".tbl", "table-" + sdfMetaModule + ".bin", true, false);
 
         sdfOriginBuilder.add(metaParseTableGeneration);
         requireBuild(metaParseTableGeneration);
