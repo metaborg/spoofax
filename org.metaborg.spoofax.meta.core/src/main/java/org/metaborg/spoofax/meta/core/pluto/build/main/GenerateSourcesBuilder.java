@@ -220,9 +220,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // Standard parser generation
         final File srcNormDir = toFile(paths.syntaxNormDir());
         final File sdfMainNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
+        final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
+        final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf.tbl");
+        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table.bin");
 
         final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration =
-            newParseTableGeneration(input, sdfMainNormFile, "sdf.tbl", "table.bin", true, false);
+            newParseTableGeneration(input, sdfMainNormFile, tableFile, persistedTableFile, true, false);
 
         sdfOriginBuilder.add(parseTableGeneration);
         requireBuild(parseTableGeneration);
@@ -240,8 +243,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
+            final File completionsTableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
+            final File completionsPersistedTableFile = FileUtils.getFile(targetMetaborgDir, "table-completions.bin");
+
             final BuildRequest<?, ?, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input,
-                input.sdfCompletionFile, "sdf-completions.tbl", "table-completions.bin", false, true);
+                input.sdfCompletionFile, completionsTableFile, completionsPersistedTableFile, false, true);
 
             sdfOriginBuilder.add(parseTableGenerationCompletions);
             requireBuild(parseTableGenerationCompletions);
@@ -249,11 +255,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     private BuildRequest<?, OutputPersisted<File>, ?, ?> newParseTableGeneration(GenerateSourcesBuilder.Input input,
-        File sdfMainNormFile, String tableFilename, String persistedTableFilename, boolean withRecovery, boolean isCompletions)
+        File sdfMainNormFile, File tableFile, File persistedTableFile, boolean withRecovery, boolean isCompletions)
         throws IOException {
-        final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
-        final File tableFile = FileUtils.getFile(targetMetaborgDir, tableFilename);
-        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, persistedTableFilename);
         List<File> sdfNormFiles = new ArrayList<>();
 
         sdfNormFiles.add(sdfMainNormFile);
@@ -445,8 +448,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     private void newMetaParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder,
         String sdfMetaModule, File sdfMainNormFile) throws IOException {
+        final File transDir = toFile(paths.transDir());
+        final File metaTableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
+        final File metaPersistedTableFile = FileUtils.getFile(transDir, "table-" + sdfMetaModule + ".bin");
+
         final BuildRequest<?, OutputPersisted<File>, ?, ?> metaParseTableGeneration = newParseTableGeneration(input,
-            sdfMainNormFile, sdfMetaModule + ".tbl", "table-" + sdfMetaModule + ".bin", true, false);
+            sdfMainNormFile, metaTableFile, metaPersistedTableFile, true, false);
 
         sdfOriginBuilder.add(metaParseTableGeneration);
         requireBuild(metaParseTableGeneration);
