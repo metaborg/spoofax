@@ -6,6 +6,7 @@ import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.config.ISourceConfig;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 
 public interface ISpoofaxProjectConfig extends IProjectConfig {
 
@@ -17,8 +18,8 @@ public interface ISpoofaxProjectConfig extends IProjectConfig {
     NaBL2Config nabl2Config();
 
     /**
-     * Return language names for which Statix should use concurrent solver.
+     * Return Statix configuration.
      */
-    Collection<String> statixConcurrentLanguages();
+    IStatixProjectConfig statixConfig();
 
 }

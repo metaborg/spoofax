@@ -13,6 +13,7 @@ import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
@@ -77,7 +78,7 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
     /**
      * {@see ISpoofaxProjectConfigBuilder#withStatixConcurrentLanguages(Iterable<String>)}
      */
-    ISpoofaxLanguageSpecConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs);
+    ISpoofaxLanguageSpecConfigBuilder withStatixConfig(IStatixProjectConfig statixConfig);
 
 
     /**

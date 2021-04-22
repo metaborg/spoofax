@@ -23,6 +23,7 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Lists;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
@@ -155,8 +156,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return projectConfig.nabl2Config();
     }
 
-    @Override public Collection<String> statixConcurrentLanguages() {
-        return projectConfig.statixConcurrentLanguages();
+    @Override public IStatixProjectConfig statixConfig() {
+        return projectConfig.statixConfig();
     }
 
 

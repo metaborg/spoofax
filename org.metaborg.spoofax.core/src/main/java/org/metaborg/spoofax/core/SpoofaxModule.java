@@ -136,6 +136,7 @@ import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_custom_ena
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_resolution_enabled;
 import org.metaborg.spoofax.core.stratego.primitive.renaming.RenamingLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.statix.STX_is_concurrent_enabled;
+import org.metaborg.spoofax.core.stratego.primitive.statix.STX_project_config;
 import org.metaborg.spoofax.core.stratego.primitive.statix.StatixLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.NaBL2Library;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
@@ -496,6 +497,7 @@ public class SpoofaxModule extends MetaborgModule {
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));
         // libspoofax
         bindPrimitive(statixLibrary, STX_is_concurrent_enabled.class);
+        bindPrimitive(statixLibrary, STX_project_config.class);
         // statix.solver
         bindPrimitive(statixLibrary, STX_analysis_has_errors.class);
         bindPrimitive(statixLibrary, STX_compare_patterns.class);

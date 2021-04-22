@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
@@ -151,8 +152,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs) {
-        projectConfigBuilder.withStatixConcurrentLanguages(langs);
+    @Override public ISpoofaxLanguageSpecConfigBuilder withStatixConfig(IStatixProjectConfig statixConfig) {
+        projectConfigBuilder.withStatixConfig(statixConfig);
         return this;
     }
 
