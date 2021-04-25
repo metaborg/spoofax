@@ -257,7 +257,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 parseUnitsPerContext.put(context, parseResult);
             } catch(ContextException e) {
                 final String message = String.format("Failed to retrieve context for parse result of %s", resource);
-                printMessage(resource, message, e, input, pardoned);
+                printMessageAndMaybeThrow(resource, message, e, input, pardoned);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
             }
         }
@@ -285,7 +285,11 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             allTransformUnits = Lists.newLinkedList();
         }
 
-        printMessages(extraMessages, "Something", input, pardoned);
+        final boolean noErrors = printMessages(extraMessages, input, pardoned);
+        if(input.throwOnErrors && !noErrors) {
+            throw new MetaborgRuntimeException("Something produced errors");
+        }
+
 
         output.add(success.get(), removedResources, includes, changedSources, allParseResults, allAnalyzeUnits.values(),
             allAnalyzeUpdates, allTransformUnits, extraMessages);
@@ -340,7 +344,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     parseResultUpdater.invalidate(resource);
                     final I inputUnit = unitService.inputUnit(resource, sourceText, langImpl, dialect);
                     final P parseResult = syntaxService.parse(inputUnit, progress.subProgress(1), cancel);
-                    final boolean noErrors = printMessages(parseResult.messages(), "Parsing", input, pardoned);
+                    final boolean noErrors = printMessages(parseResult.messages(), input, pardoned);
                     success.and(noErrors);
                     allParseUnits.add(parseResult);
                     parseResultUpdater.update(resource, parseResult);
@@ -348,14 +352,14 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 }
             } catch(ParseException e) {
                 final String message = logger.format("Parsing {} failed unexpectedly", resource);
-                final boolean noErrors = printMessage(resource, message, e, input, pardoned);
+                final boolean noErrors = printMessageAndMaybeThrow(resource, message, e, input, pardoned);
                 success.and(noErrors);
                 parseResultUpdater.error(resource, e);
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed unexpectedly", e));
                 changedResources.add(resource);
             } catch(IOException e) {
                 final String message = logger.format("Getting source text for {} failed unexpectedly", resource);
-                final boolean noErrors = printMessage(resource, message, e, input, pardoned);
+                final boolean noErrors = printMessageAndMaybeThrow(resource, message, e, input, pardoned);
                 success.and(noErrors);
                 final I inputUnit = unitService.emptyInputUnit(resource, langImpl, dialect);
                 parseResultUpdater.error(resource, new ParseException(inputUnit, e));
@@ -363,6 +367,9 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                     .add(MessageFactory.newParseErrorAtTop(resource, "Getting source text failed unexpectedly", e));
                 changedResources.add(resource);
             }
+        }
+        if(input.throwOnErrors && !success.get()) {
+            throw new MetaborgRuntimeException("Parsing produced errors");
         }
         return allParseUnits;
     }
@@ -395,14 +402,14 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                         analysisService.analyzeAll(parseResults, context, progress.subProgress(1), cancel);
                     for(A result : results.results()) {
                         cancel.throwIfCancelled();
-                        final boolean noErrors = printMessages(result.messages(), "Analysis", input, pardoned);
+                        final boolean noErrors = printMessages(result.messages(), input, pardoned);
                         success.and(noErrors);
                         analysisResultUpdater.update(result, removedResources);
                         allAnalyzeUnits.put(context, result);
                     }
                     for(AU update : results.updates()) {
                         cancel.throwIfCancelled();
-                        final boolean noErrors = printMessages(update.messages(), "Analysis", input, pardoned);
+                        final boolean noErrors = printMessages(update.messages(), input, pardoned);
                         success.and(noErrors);
                         // FIXME analysis updates are not supported by analysis updater
                         // analysisResultUpdater.update(update, removedResources);
@@ -413,16 +420,21 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 }
             } catch(AnalysisException e) {
                 final String message = "Analysis failed unexpectedly";
-                final boolean noErrors = printMessage(message, e, input, pardoned);
+                logger.error(message, e);
+                final boolean noErrors = printMessageAndMaybeThrow(message, e, input, pardoned);
                 success.and(noErrors);
                 analysisResultUpdater.error(parseResults, e);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             } catch(IOException e) {
                 final String message = "Persisting analysis data failed unexpectedly";
-                final boolean noErrors = printMessage(message, e, input, pardoned);
+                logger.error(message, e);
+                final boolean noErrors = printMessageAndMaybeThrow(message, e, input, pardoned);
                 success.and(noErrors);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             }
+        }
+        if(input.throwOnErrors && !success.get()) {
+            throw new MetaborgRuntimeException("Analysis produced errors");
         }
         return allAnalyzeUnits;
     }
@@ -492,7 +504,10 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                                 final Collection<TA> results = transformService.transform(analysisResult, context, goal);
                                 for(TA result : results) {
                                     final boolean noErrors =
-                                        printMessages(result.messages(), goal + " transformation", input, pardoned);
+                                        printMessages(result.messages(), input, pardoned);
+                                        if(input.throwOnErrors && !noErrors) {
+                                            throw new MetaborgRuntimeException(goal + " transformation produced errors");
+                                        }
                                     success.and(noErrors);
                                     @SuppressWarnings("unchecked") final T genericResult = (T) result;
                                     allTransformUnits.add(genericResult);
@@ -501,7 +516,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                             } catch(TransformException e) {
                                 final String message = String.format("Transformation failed unexpectedly for %s", name);
                                 logger.error(message, e);
-                                final boolean noErrors = printMessage(source, message, e, input, pardoned);
+                                final boolean noErrors = printMessageAndMaybeThrow(source, message, e, input, pardoned);
                                 success.and(noErrors);
                                 extraMessages.add(
                                     MessageFactory.newBuilderErrorAtTop(location, "Transformation failed unexpectedly", e));
@@ -553,7 +568,10 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                             final Collection<TP> results = transformService.transform(parseResult, context, goal);
                             for(TP result : results) {
                                 final boolean noErrors =
-                                    printMessages(result.messages(), goal + " transformation", input, pardoned);
+                                    printMessages(result.messages(), input, pardoned);
+                                    if(input.throwOnErrors && !noErrors) {
+                                        throw new MetaborgRuntimeException(goal + " transformation produced errors");
+                                    }
                                 success.and(noErrors);
                                 @SuppressWarnings("unchecked") final T genericResult = (T) result;
                                 allTransformUnits.add(genericResult);
@@ -562,7 +580,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                         } catch(TransformException e) {
                             final String message = String.format("Transformation failed unexpectedly for %s", name);
                             logger.error(message, e);
-                            final boolean noErrors = printMessage(source, message, e, input, pardoned);
+                            final boolean noErrors = printMessageAndMaybeThrow(source, message, e, input, pardoned);
                             success.and(noErrors);
                             extraMessages.add(
                                 MessageFactory.newBuilderErrorAtTop(location, "Transformation failed unexpectedly", e));
@@ -576,7 +594,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         return allTransformUnits;
     }
 
-    private boolean printMessages(Iterable<IMessage> messages, String phase, BuildInput input, boolean pardoned) {
+    private boolean printMessages(Iterable<IMessage> messages, BuildInput input, boolean pardoned) {
         final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             for(IMessage message : messages) {
@@ -585,13 +603,10 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         }
 
         final boolean failed = !pardoned && MessageUtils.containsSeverity(messages, MessageSeverity.ERROR);
-        if(input.throwOnErrors && failed) {
-            throw new MetaborgRuntimeException(phase + " produced errors");
-        }
         return !failed;
     }
 
-    private boolean printMessage(@Nullable FileObject resource, String message, @Nullable Throwable e, BuildInput input,
+    private boolean printMessageAndMaybeThrow(@Nullable FileObject resource, String message, @Nullable Throwable e, BuildInput input,
         boolean pardoned) {
         final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
@@ -604,7 +619,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         return pardoned;
     }
 
-    private boolean printMessage(String message, @Nullable Throwable e, BuildInput input, boolean pardoned) {
+    private boolean printMessageAndMaybeThrow(String message, @Nullable Throwable e, BuildInput input, boolean pardoned) {
         final IMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             printer.print(input.project, message, e, pardoned);
