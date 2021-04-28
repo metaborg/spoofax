@@ -536,7 +536,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final ResourcePath projectPath = new FSPath(projectLocation);
                 final CompileInput compileInput = new CompileInput(mainModuleIdentifier,
                     projectPath, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
-                    strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), input.strGradualSetting);
+                    strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), input.strGradualSetting, true);
                 final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
                 final IPieProvider pieProvider = context.pieProvider();
