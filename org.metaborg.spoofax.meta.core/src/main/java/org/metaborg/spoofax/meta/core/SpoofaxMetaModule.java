@@ -22,6 +22,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.PieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecService;
 import org.metaborg.spoofax.meta.core.stratego.primitive.CheckSdf2TablePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.GenerateNamespacedGrammarPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecPpNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecSrcGenDirectory;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecificationPrimitive;
@@ -53,6 +54,7 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         requestStaticInjection(CheckSdf2TablePrimitive.class);
         requestStaticInjection(PlaceholderCharsPrimitive.class);
         requestStaticInjection(StrategoPieAnalyzePrimitive.class);
+        requestStaticInjection(GenerateNamespacedGrammarPrimitive.class);
 
         requestStaticInjection(LegacyLanguageSpecNamePrimitive.class);
     }
