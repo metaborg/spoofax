@@ -193,8 +193,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             new LastModified<>(ast, Instant.now().getEpochSecond());
         final ModuleIdentifier moduleIdentifier =
             new ModuleIdentifier(false, strModule, new FSPath(strFile));
+        final boolean autoImportStd = true;
         final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
-            strjIncludeDirs, linkedLibraries, astWLM), moduleIdentifier, projectPath);
+            strjIncludeDirs, linkedLibraries, astWLM, autoImportStd), moduleIdentifier, projectPath);
         final Task<CheckModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
