@@ -262,7 +262,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             return Sdf2tableVersion.valueOf(value);
         else {
             if(sdfEnabled())
-                logger.warn("No {} config found; defaulting to java", PROP_SDF2TABLE_VERSION);
+                logger.warn("No {} config found for {}; defaulting to java", PROP_SDF2TABLE_VERSION, this.identifier().toString());
 
             return Sdf2tableVersion.java;
         }
