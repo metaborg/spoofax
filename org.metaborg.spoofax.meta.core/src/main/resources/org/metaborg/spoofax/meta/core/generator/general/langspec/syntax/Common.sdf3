@@ -11,10 +11,8 @@ lexical syntax
   ID               = [a-zA-Z] [a-zA-Z0-9]*
   INT              = "-"? [0-9]+
   STRING           = "\"" STRING_CHAR* "\""
-  STRING_CHAR      = ~[\"\n]
-  STRING_CHAR      = "\\\""
-  STRING_CHAR      = BACKSLASH_CHAR
-  BACKSLASH_CHAR   = "\\"
+  STRING_CHAR      = ~[\\\"\n]
+  STRING_CHAR      = "\\" [\\\"]
   LAYOUT           = [\ \t\n\r]
   COMMENT_CHAR     = [\*]
   LAYOUT           = "/*" INSIDE_COMMENT* "*/"
@@ -36,10 +34,6 @@ lexical restrictions
   // EOF may not be followed by any char
   
   EOF             -/- ~[]
-  
-  // Backslash chars in strings may not be followed by " 
-  
-  BACKSLASH_CHAR  -/- [\"]
 
 context-free restrictions
 

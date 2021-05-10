@@ -172,7 +172,9 @@ public class SpoofaxCommonPaths extends CommonPaths {
      * @return Main Stratego file.
      */
     public @Nullable FileObject findStrMainFile(Iterable<FileObject> sources, String languageName) {
-        return find(sources, NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
+        final @Nullable FileObject str2File =
+            find(sources, NameUtil.toJavaId(languageName.toLowerCase()) + ".str2");
+        return str2File != null ? str2File : find(sources, NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
     }
 
     /**
@@ -227,54 +229,6 @@ public class SpoofaxCommonPaths extends CommonPaths {
      */
     public FileObject strCacheDir() {
         return resolve(targetDir(), "stratego-cache");
-    }
-
-    public FileObject strSepCompSrcGenDir() {
-        return resolve(srcGenDir(), "stratego_sugar");
-    }
-
-    public FileObject strSepCompStrategyDir(String strategy) {
-        return resolve(strSepCompSrcGenDir(), capitalsForDollars(strategy));
-    }
-
-    public FileObject strSepCompStrategyFile(String projectName, String moduleName, String strategy) {
-        return resolve(strSepCompStrategyDir(strategy), prepareModuleName(projectName, moduleName) + ".aterm");
-    }
-
-    public FileObject strSepCompConstrListFile(String projectName, String moduleName, String strategy) {
-        return resolve(strSepCompStrategyDir(strategy), prepareConstrListName(projectName, moduleName) + ".aterm");
-    }
-
-    public FileObject strSepCompOverlayDir(String overlayName) {
-        return resolve(strSepCompSrcGenDir(), "overlays", capitalsForDollars(overlayName));
-    }
-
-    public FileObject strSepCompOverlayFile(String projectName, String moduleName, String overlayName) {
-        return resolve(strSepCompOverlayDir(overlayName), prepareModuleName(projectName, moduleName) + ".aterm");
-    }
-
-    public FileObject strSepCompBoilerplateFile(String projectName, String moduleName) {
-        return resolve(strSepCompSrcGenDir(), prepareModuleName(projectName, moduleName) + ".aterm");
-    }
-
-    public FileObject strSepCompPackedStrategyFile(String strategy) {
-        return resolve(strSepCompStrategyDir(strategy), "packed$" + ".aterm");
-    }
-
-    public FileObject strSepCompPackedBoilerplateFile() {
-        return resolve(strSepCompSrcGenDir(), "packed$" + ".aterm");
-    }
-
-    public String capitalsForDollars(String strategy) {
-        return strategy.replaceAll("[A-Z]", "\\$$0");
-    }
-
-    public String prepareModuleName(String projectName, String moduleName) {
-        return projectName + "&" + capitalsForDollars(moduleName).replace('/', '+');
-    }
-
-    public String prepareConstrListName(String projectName, String moduleName) {
-        return projectName + "&" + capitalsForDollars(moduleName).replace('/', '+') + "&constrs";
     }
 
     /* DynSem */

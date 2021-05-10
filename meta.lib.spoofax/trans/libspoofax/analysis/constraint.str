@@ -119,3 +119,9 @@ rules
   get-project-constraint-analyses =
     prim("C_get_project_analyses")
 
+  /** Get analyzed ASTs for all resources in the project
+   *
+   * @type _ -> List(resource:String * ast:Term)
+   */
+  get-project-analyzed-asts =
+    prim("C_get_project_analyzed_asts")

@@ -114,6 +114,7 @@ import org.metaborg.spoofax.core.stratego.primitive.SLShowDialogPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.SLShowInputDialogPrimitive;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_project_analyses;
+import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_project_analyzed_asts;
 import org.metaborg.spoofax.core.stratego.primitive.constraint.C_get_resource_analysis;
 import org.metaborg.spoofax.core.stratego.primitive.flowspec.FS_solve;
 import org.metaborg.spoofax.core.stratego.primitive.flowspec.FlowSpecLibrary;
@@ -133,7 +134,9 @@ import org.metaborg.spoofax.core.stratego.primitive.legacy.parse.LegacySpoofaxJS
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_collection_enabled;
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_custom_enabled;
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_resolution_enabled;
+import org.metaborg.spoofax.core.stratego.primitive.renaming.RenamingLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.statix.STX_is_concurrent_enabled;
+import org.metaborg.spoofax.core.stratego.primitive.statix.STX_project_config;
 import org.metaborg.spoofax.core.stratego.primitive.statix.StatixLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.NaBL2Library;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
@@ -231,6 +234,7 @@ import mb.nabl2.terms.stratego.primitives.SG_get_ast_index;
 import mb.nabl2.terms.stratego.primitives.SG_get_ast_resource;
 import mb.nabl2.terms.stratego.primitives.SG_index_ast;
 import mb.nabl2.terms.stratego.primitives.SG_set_ast_index;
+import mb.renaming.namegraph.FindAllRelatedOccurrencesPrimitive;
 import mb.statix.spoofax.STX_analysis_has_errors;
 import mb.statix.spoofax.STX_compare_patterns;
 import mb.statix.spoofax.STX_debug_scopegraph;
@@ -238,6 +242,7 @@ import mb.statix.spoofax.STX_delays_as_errors;
 import mb.statix.spoofax.STX_diff_scopegraphs;
 import mb.statix.spoofax.STX_extract_messages;
 import mb.statix.spoofax.STX_get_ast_property;
+import mb.statix.spoofax.STX_get_scopegraph;
 import mb.statix.spoofax.STX_get_scopegraph_data;
 import mb.statix.spoofax.STX_get_scopegraph_edges;
 import mb.statix.spoofax.STX_is_analysis;
@@ -404,6 +409,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitiveLibrary(libraryBinder, FlowSpecLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacySpoofaxPrimitiveLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacySpoofaxJSGLRLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, RenamingLibrary.class);
 
         final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(SpoofaxPrimitiveLibrary.name));
@@ -436,6 +442,7 @@ public class SpoofaxModule extends MetaborgModule {
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(NaBL2Library.name));
         // libspoofax
         bindPrimitive(spoofaxScopeGraphLibrary, C_get_project_analyses.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, C_get_project_analyzed_asts.class);
         bindPrimitive(spoofaxScopeGraphLibrary, C_get_resource_analysis.class);
         // nabl2.terms
         bindPrimitive(spoofaxScopeGraphLibrary, SG_erase_ast_indices.class);
@@ -490,6 +497,7 @@ public class SpoofaxModule extends MetaborgModule {
                 Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named(StatixLibrary.name));
         // libspoofax
         bindPrimitive(statixLibrary, STX_is_concurrent_enabled.class);
+        bindPrimitive(statixLibrary, STX_project_config.class);
         // statix.solver
         bindPrimitive(statixLibrary, STX_analysis_has_errors.class);
         bindPrimitive(statixLibrary, STX_compare_patterns.class);
@@ -498,6 +506,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_diff_scopegraphs.class);
         bindPrimitive(statixLibrary, STX_extract_messages.class);
         bindPrimitive(statixLibrary, STX_get_ast_property.class);
+        bindPrimitive(statixLibrary, STX_get_scopegraph.class);
         bindPrimitive(statixLibrary, STX_get_scopegraph_data.class);
         bindPrimitive(statixLibrary, STX_get_scopegraph_edges.class);
         bindPrimitive(statixLibrary, STX_is_analysis.class);
@@ -548,6 +557,10 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(legacySpoofaxJSGLRLibrary, LegacyParseFilePtPrimitive.class);
         bindPrimitive(legacySpoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
         bindPrimitive(legacySpoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
+        
+        final Multibinder<AbstractPrimitive> renamingPrimitivesLibrary = Multibinder.newSetBinder(binder(), 
+                AbstractPrimitive.class, Names.named(RenamingLibrary.name));
+        bindPrimitive(renamingPrimitivesLibrary, FindAllRelatedOccurrencesPrimitive.class);
     }
 
     private void bindAnalyzers(

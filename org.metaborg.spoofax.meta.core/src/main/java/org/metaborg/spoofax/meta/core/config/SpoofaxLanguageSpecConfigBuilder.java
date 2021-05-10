@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
@@ -37,6 +38,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable List<String> sdfMetaFile;
     protected @Nullable PlaceholderCharacters placeholderCharacters;
     protected @Nullable String prettyPrint;
+    protected @Nullable Boolean generateNamespacedGrammar;
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
     protected @Nullable StrategoBuildSetting strBuildSetting;
@@ -62,8 +64,9 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, projectConfig, identifier,
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
             sdf2tableVersion, checkOverlap, checkPriorities, dataDependent, sdfMainFile, parseTable, jsglrVersion,
-            jsglr2Logging, statixConcurrent, completionsParseTable, placeholderCharacters, prettyPrint, sdfMetaFile,
-            sdfExternalDef, sdfArgs, strBuildSetting, strGradualSetting, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            jsglr2Logging, statixConcurrent, completionsParseTable, placeholderCharacters, prettyPrint,
+            generateNamespacedGrammar, sdfMetaFile, sdfExternalDef, sdfArgs, strBuildSetting, strGradualSetting,
+            strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -76,6 +79,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         sdfMetaFile = null;
         placeholderCharacters = null;
         prettyPrint = null;
+        generateNamespacedGrammar = null;
         sdfExternalDef = null;
         sdfArgs = null;
         strBuildSetting = null;
@@ -93,6 +97,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             withSdfVersion(config.sdfVersion());
             withSdf2tableVersion(config.sdf2tableVersion());
             withPrettyPrintLanguage(config.prettyPrintLanguage());
+            withGenerateNamespacedGrammar(config.generateNamespacedGrammar());
             withSdfMainFile(config.sdfMainFile());
             withSdfMetaFiles(config.sdfMetaFiles());
             withPlaceholderPrefix(config.placeholderChars().prefix);
@@ -151,8 +156,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs) {
-        projectConfigBuilder.withStatixConcurrentLanguages(langs);
+    @Override public ISpoofaxLanguageSpecConfigBuilder withStatixConfig(IStatixProjectConfig statixConfig) {
+        projectConfigBuilder.withStatixConfig(statixConfig);
         return this;
     }
 
@@ -252,6 +257,11 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withPrettyPrintLanguage(String prettyPrintLanguage) {
         this.prettyPrint = prettyPrintLanguage;
+        return this;
+    }
+
+    @Override public ISpoofaxLanguageSpecConfigBuilder withGenerateNamespacedGrammar(Boolean generateNamespacedGrammar) {
+        this.generateNamespacedGrammar = generateNamespacedGrammar;
         return this;
     }
 

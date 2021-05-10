@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.config;
 
-import java.util.Set;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -13,15 +11,14 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 
 public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements ISpoofaxProjectConfigBuilder {
     protected @Nullable NaBL2Config nabl2Config;
-    protected @Nullable Set<String> statixConcurrentLanguages;
+    protected @Nullable IStatixProjectConfig statixConfig;
 
     @Inject public SpoofaxProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -32,12 +29,12 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
             configuration = configReaderWriter.create(null, rootFolder);
         }
         return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
-                nabl2Config, statixConcurrentLanguages);
+                nabl2Config, statixConfig);
     }
 
     @Override public SpoofaxProjectConfig build(HierarchicalConfiguration<ImmutableNode> configuration) {
         return new SpoofaxProjectConfig(configuration, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps,
-                nabl2Config, statixConcurrentLanguages);
+                nabl2Config, statixConfig);
     }
 
     @Override public ISpoofaxProjectConfigBuilder reset() {
@@ -57,7 +54,7 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
     public void copyValuesFrom(ISpoofaxProjectConfig config) {
         super.copyValuesFrom(config);
         withNaBL2Config(config.nabl2Config());
-        withStatixConcurrentLanguages(config.statixConcurrentLanguages());
+        withStatixConfig(config.statixConfig());
     }
 
     @Override public ISpoofaxProjectConfigBuilder withMetaborgVersion(String metaborgVersion) {
@@ -111,21 +108,8 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
         return this;
     }
 
-    @Override public ISpoofaxProjectConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs) {
-        if(this.statixConcurrentLanguages != null) {
-            this.statixConcurrentLanguages.clear();
-        }
-
-        addStatixConcurrentLanguages(langs);
-        return this;
-    }
-
-    @Override public ISpoofaxProjectConfigBuilder addStatixConcurrentLanguages(Iterable<String> langs) {
-        if(this.statixConcurrentLanguages == null) {
-            this.statixConcurrentLanguages = Sets.newHashSet();
-        }
-
-        Iterables.addAll(this.statixConcurrentLanguages, langs);
+    @Override public ISpoofaxProjectConfigBuilder withStatixConfig(IStatixProjectConfig config) {
+        this.statixConfig = config;
         return this;
     }
 

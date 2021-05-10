@@ -10,13 +10,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -60,12 +58,17 @@ import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.Task;
+import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.BuildStats;
-import mb.stratego.build.strincr.StrIncr;
+import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.task.input.CompileInput;
+import mb.stratego.build.strincr.task.output.CompileOutput;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
@@ -186,14 +189,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
 
-    @Override public None build(GenerateSourcesBuilder.Input input)
-        throws IOException, MetaborgException {
+    @Override public None build(GenerateSourcesBuilder.Input input) throws IOException, MetaborgException {
         // SDF
         Origin.Builder sdfOriginBuilder = Origin.Builder();
 
         buildSdf(input, sdfOriginBuilder);
         buildSdfMeta(input, sdfOriginBuilder); // SDF meta-module for creating a Stratego concrete syntax extension
-                                               // parse table
+        // parse table
 
         final Origin sdfOrigin = sdfOriginBuilder.get();
 
@@ -520,36 +522,73 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     changedResources.add(new FSPath(changedFile));
                 }
 
-                final Arguments newArgs = new Arguments();
-                final List<ResourcePath> strjIncludeDirs = input.strjIncludeDirs.stream().map(FSPath::new).collect(Collectors.toList());
-                final List<String> builtinLibs = splitOffBuiltinLibs(extraArgs, newArgs);
-                final StrIncr.Input strIncrInput =
-                    new StrIncr.Input(new FSPath(strFile), input.strJavaPackage, strjIncludeDirs, builtinLibs, new FSPath(cacheDir),
-                        Collections.emptyList(), newArgs, new FSPath(depPath), Collections.emptyList(), new FSPath(projectLocation), input.strGradualSetting);
+                final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>();
+                final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
+                for(File strjIncludeDir : input.strjIncludeDirs) {
+                    FSPath fsPath = new FSPath(strjIncludeDir);
+                    strjIncludeDirs.add(fsPath);
+                }
+                final Arguments newArgs = GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs);
+                final String strFileName = strFile.getName();
+                final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str2".length());
+                final ModuleIdentifier mainModuleIdentifier =
+                    new ModuleIdentifier(false, mainModuleName, new FSPath(strFile));
+                final ResourcePath projectPath = new FSPath(projectLocation);
+                final CompileInput compileInput = new CompileInput(mainModuleIdentifier,
+                    projectPath, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
+                    strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), input.strGradualSetting);
+                final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
                 final IPieProvider pieProvider = context.pieProvider();
                 final Pie pie = pieProvider.pie();
                 synchronized(pie) {
-                    initCompiler(pieProvider, context.getStrIncrTask().createTask(strIncrInput), depPath);
+                    initCompiler(pieProvider, compileTask, depPath);
 
-                    BuildStats.reset();
-                    long totalTime = System.nanoTime();
                     try(final MixedSession session = pie.newSession()) {
-                        session.updateAffectedBy(changedResources);
+                        TopDownSession tdSession = session.updateAffectedBy(changedResources);
                         session.deleteUnobservedTasks(t -> true, (t, r) -> {
-                            if(r instanceof HierarchicalResource && Objects
-                                .equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                            if(r instanceof HierarchicalResource
+                                && Objects.equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
                                 logger.debug("Deleting garbage from previous build: " + r);
                                 return true;
                             }
                             return false;
                         });
+
+                        final CompileOutput compileOutput = tdSession.getOutput(compileTask);
+                        if(compileOutput instanceof CompileOutput.Failure) {
+                            logger.info("> Incremental compilation of Stratego failed:");
+                            final CompileOutput.Failure failure = (CompileOutput.Failure) compileOutput;
+                            int errorsCount = 0;
+                            for(Message message : failure.messages) {
+                                switch(message.severity) {
+                                    case NOTE:
+                                        logger.info(message.toString());
+                                        break;
+                                    case WARNING:
+                                        logger.warn(message.toString());
+                                        break;
+                                    case ERROR:
+                                        logger.error(message.toString());
+                                        errorsCount++;
+                                        break;
+                                }
+                            }
+                            throw new MetaborgException(
+                                "Incremental Stratego Compilation failed with " + errorsCount + " errors.");
+                        } else {
+                            assert compileOutput instanceof CompileOutput.Success;
+                            final CompileOutput.Success success = (CompileOutput.Success) compileOutput;
+                            for(ResourcePath resultFile : success.resultFiles) {
+                                final File file = context.getMbResourceService().toLocalFile(resultFile);
+                                provide(file);
+                            }
+                        }
                     } catch(ExecException e) {
                         throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
                     } catch(InterruptedException e) {
                         // Ignore
                     }
-                    totalTime = totalTime - System.nanoTime();
                 }
             } else {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
@@ -567,7 +606,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         Files.walkFileTree(projectLocation.toPath(), new SimpleFileVisitor<Path>() {
             @Override public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
                 String pathString = path.toString().toLowerCase();
-                if(pathString.endsWith(".str") || pathString.endsWith(".rtree") || pathString.endsWith(".ctree")) {
+                if(pathString.endsWith(".str2") || pathString.endsWith(".rtree") || pathString.endsWith(".ctree") || pathString.endsWith(".java")) {
                     result.add(path);
                 }
                 return FileVisitResult.CONTINUE;
@@ -578,28 +617,45 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     /**
      * Copy oldArgs to newArgs, except for built-in libraries, which are split off and their names returned.
+     * @return
      */
-    public static List<String> splitOffBuiltinLibs(Arguments oldArgs, Arguments newArgs) {
-        final List<String> builtinLibs = new ArrayList<>();
+    public static Arguments splitOffLinkedLibrariesIncludeDirs(Arguments oldArgs, Collection<IModuleImportService.ModuleIdentifier> builtinLibs, Collection<ResourcePath> includeDirs) {
+        final Arguments newArgs = new Arguments();
         for(Iterator<Object> iterator = oldArgs.iterator(); iterator.hasNext();) {
             Object oldArg = iterator.next();
-            if(oldArg.equals("-la")) {
+            if(oldArg.equals("-I")) {
                 final Object nextOldArg = iterator.next();
-                // noinspection SuspiciousMethodCalls
-                if(BUILTIN_LIBS.contains(nextOldArg)) {
-                    builtinLibs.add((String) nextOldArg);
+                final File nextOldArgFile;
+                if(nextOldArg instanceof File) {
+                    nextOldArgFile = (File) nextOldArg;
+                } else if(nextOldArg instanceof String) {
+                    nextOldArgFile = new File((String) nextOldArg);
                 } else {
+                    logger.error(
+                        "-I argument is not a string or file? Ignoring this for import resolution: "
+                            + nextOldArg);
                     newArgs.add(oldArg, nextOldArg);
+                    continue;
                 }
+                includeDirs.add(new FSPath(nextOldArgFile));
+            } else if(oldArg.equals("-la")) {
+                final Object nextOldArg = iterator.next();
+                final String nextOldArgString = nextOldArg instanceof String ? (String) nextOldArg : nextOldArg.toString();
+                final @Nullable BuiltinLibraryIdentifier libraryIdentifier = BuiltinLibraryIdentifier.fromString(nextOldArgString);
+                if(libraryIdentifier == null) {
+                    // throw new MetaborgRuntimeException("Incremental compiler internal bug: missing support for custom pre-compiled libraries such as: " + nextOldArgString);
+                    newArgs.add(oldArg, nextOldArg);
+                    continue;
+                }
+                builtinLibs.add(libraryIdentifier);
             } else {
                 newArgs.add(oldArg);
             }
         }
-        return builtinLibs;
+        return newArgs;
     }
 
-    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask)
-        throws MetaborgException {
+    public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask) throws MetaborgException {
         return initCompiler(pieProvider, strIncrTask, null);
     }
 
@@ -607,14 +663,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         throws MetaborgException {
         pie = pieProvider.pie();
         if(!pie.hasBeenExecuted(strIncrTask)) {
-            BuildStats.reset();
-            logger.info("> Clean build required by PIE");
             if(outputPath != null && outputPath.exists()) {
+                logger.info("> Clean build required by PIE");
                 try {
                     FileUtils.deleteDirectory(outputPath);
                     Files.createDirectories(outputPath.toPath());
                 } catch(IOException e) {
-                    e.printStackTrace();
+                    throw new MetaborgException("Failed to clean: " + e.getMessage(), e);
                 }
             }
             pieProvider.setLogLevelWarn();

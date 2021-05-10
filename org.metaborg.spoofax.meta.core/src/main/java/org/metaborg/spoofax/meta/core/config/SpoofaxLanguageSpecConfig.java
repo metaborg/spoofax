@@ -23,6 +23,7 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Lists;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
@@ -43,6 +44,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
     private static final String PROP_PRETTY_PRINT = PROP_SDF + ".pretty-print";
+    private static final String PROP_GENERATE_NAMESPACED_GRAMMAR = PROP_SDF + ".generate-namespaced";
 
     private static final String PROP_PLACEHOLDER_PREFIX = PROP_SDF + ".placeholder.prefix";
     private static final String PROP_PLACEHOLDER_SUFFIX = PROP_SDF + ".placeholder.suffix";
@@ -80,10 +82,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
             @Nullable JSGLR2Logging jsglr2Logging, Boolean statixConcurrent, @Nullable String sdfMainFile,
             @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
-            @Nullable List<String> sdfMetaFile, @Nullable String externalDef, @Nullable Arguments sdfArgs,
-            @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoGradualSetting gradualSetting,
-            @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
-            @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
+            @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
+            @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting,
+            @Nullable StrategoGradualSetting gradualSetting, @Nullable StrategoFormat format, @Nullable String externalJar,
+            @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
+            @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
                 dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixConcurrent,
                 langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
@@ -107,6 +110,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         }
         if(prettyPrint != null) {
             config.setProperty(PROP_PRETTY_PRINT, prettyPrint);
+        }
+        if(generateNamespacedGrammar != null) {
+            config.setProperty(PROP_GENERATE_NAMESPACED_GRAMMAR, generateNamespacedGrammar);
         }
         if(externalDef != null) {
             config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
@@ -155,8 +161,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return projectConfig.nabl2Config();
     }
 
-    @Override public Collection<String> statixConcurrentLanguages() {
-        return projectConfig.statixConcurrentLanguages();
+    @Override public IStatixProjectConfig statixConfig() {
+        return projectConfig.statixConfig();
     }
 
 
@@ -174,6 +180,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     @Override public String prettyPrintLanguage() {
         final String value = this.config.getString(PROP_PRETTY_PRINT);
         return value != null ? value : name();
+    }
+
+    @Override public boolean generateNamespacedGrammar() {
+        return this.config.getBoolean(PROP_GENERATE_NAMESPACED_GRAMMAR, false);
     }
 
     @Override @Nullable public String sdfExternalDef() {
