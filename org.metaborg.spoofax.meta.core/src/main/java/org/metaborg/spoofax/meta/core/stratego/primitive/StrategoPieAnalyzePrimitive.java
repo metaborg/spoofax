@@ -61,10 +61,10 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.type.TypeMessage;
-import mb.stratego.build.strincr.task.CheckModule;
+import mb.stratego.build.strincr.task.CheckOpenModule;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
-import mb.stratego.build.strincr.task.output.CheckModuleOutput;
+import mb.stratego.build.strincr.task.output.CheckOpenModuleOutput;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrategoGradualSetting;
 
@@ -75,11 +75,11 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
     @Inject private static Provider<IPieProvider> pieProviderProvider;
 
     // Using provider to break cycle between Check -> Stratego runtime -> all primitives -> this primitive
-    private final Provider<CheckModule> checkModuleProvider;
+    private final Provider<CheckOpenModule> checkModuleProvider;
     private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
 
-    @Inject public StrategoPieAnalyzePrimitive(Provider<CheckModule> checkModuleProvider, ILanguagePathService languagePathService,
+    @Inject public StrategoPieAnalyzePrimitive(Provider<CheckOpenModule> checkModuleProvider, ILanguagePathService languagePathService,
         IResourceService resourceService) {
         super("stratego_pie_analyze", 0, 0);
         this.checkModuleProvider = checkModuleProvider;
@@ -196,7 +196,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final boolean autoImportStd = true;
         final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
             strjIncludeDirs, linkedLibraries, astWLM, autoImportStd), moduleIdentifier, projectPath);
-        final Task<CheckModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
+        final Task<CheckOpenModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
         final Pie pie = pieProvider.pie();
@@ -204,7 +204,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final IStrategoList.Builder errors = B.listBuilder();
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
-        final CheckModuleOutput analysisInformation;
+        final CheckOpenModuleOutput analysisInformation;
         synchronized(pie) {
             GenerateSourcesBuilder.initCompiler(pieProvider, checkModuleTask);
             try(final MixedSession session = pie.newSession()) {
@@ -250,7 +250,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             }
         }
 
-        return B.tuple(B.list(errors), B.list(warnings), B.list(notes));
+        return B.tuple(analysisInformation.astWithCasts, B.list(errors), B.list(warnings), B.list(notes));
     }
 
     private static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
