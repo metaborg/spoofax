@@ -4,6 +4,7 @@ module Main
 
 {{#syntaxEnabled}}  Syntax
 {{/syntaxEnabled}}{{#analysisEnabled}}  Analysis
+  Refactoring
 
 {{/analysisEnabled}}
 {{/syntaxOrAnalysisEnabled}}language
