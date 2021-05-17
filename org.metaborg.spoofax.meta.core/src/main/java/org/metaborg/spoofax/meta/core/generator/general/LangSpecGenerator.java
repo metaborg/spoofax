@@ -164,6 +164,7 @@ public class LangSpecGenerator extends BaseGenerator {
         if(analysisEnabled()) {
             writer.writeResolve("langspec/editor/Analysis.{{analysisType.id}}.esv", "editor/Analysis.esv", false);
         }
+        writer.write("langspec/editor/Refactoring.esv", "editor/Refactoring.esv", false);
         writer.write("langspec/editor/Main.esv", "editor/Main.esv", false);
     }
 
