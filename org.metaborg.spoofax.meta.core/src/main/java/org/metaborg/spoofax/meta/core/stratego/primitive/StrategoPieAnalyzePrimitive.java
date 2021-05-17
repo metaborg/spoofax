@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -18,14 +17,15 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
+import org.metaborg.spoofax.meta.core.build.LanguageSpecBuilder;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
@@ -122,7 +122,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
 
         // Fail this primitive if there is no compilation dependency on the new incremental Stratego language project
-        if(!containsStrategoLang(config.compileDeps())) {
+        if(!SpoofaxLanguageSpecConfig.containsStrategoLang(config.compileDeps())) {
             logger.debug("Cannot find org.metaborg:stratego.lang:${metaborg-version} among compile dependencies. ");
             return null;
         }
@@ -251,15 +251,6 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         return B.tuple(analysisInformation.astWithCasts, B.list(errors), B.list(warnings), B.list(notes));
-    }
-
-    private static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
-        for(LanguageIdentifier compileDep : compileDeps) {
-            if(compileDep.groupId.equals("org.metaborg") && compileDep.id.equals("stratego.lang")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private @Nullable ISpoofaxLanguageSpec getLanguageSpecification(IProject project) throws MetaborgException {

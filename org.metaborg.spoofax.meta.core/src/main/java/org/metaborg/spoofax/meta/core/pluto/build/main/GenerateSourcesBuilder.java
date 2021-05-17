@@ -61,7 +61,6 @@ import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
-import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
@@ -483,7 +482,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             final File outputFile;
             final File depPath;
-            if(input.strFormat == StrategoFormat.ctree && input.strBuildSetting != StrategoBuildSetting.incremental) {
+            if(input.strFormat == StrategoFormat.ctree) {
                 outputFile = FileUtils.getFile(targetMetaborgDir, "stratego.ctree");
                 depPath = outputFile;
                 extraArgs.add("-F");
@@ -548,8 +547,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     try(final MixedSession session = pie.newSession()) {
                         TopDownSession tdSession = session.updateAffectedBy(changedResources);
                         session.deleteUnobservedTasks(t -> true, (t, r) -> {
-                            if(r instanceof HierarchicalResource
-                                && Objects.equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                            if(r != null
+                                && Objects.equals(r.getLeafExtension(), "java")) {
                                 logger.debug("Deleting garbage from previous build: " + r);
                                 return true;
                             }
@@ -606,9 +605,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final Set<Path> result = new HashSet<>();
         Files.walkFileTree(projectLocation.toPath(), new SimpleFileVisitor<Path>() {
             @Override public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
-                String pathString = path.toString().toLowerCase();
-                if(pathString.endsWith(".str2") || pathString.endsWith(".rtree") || pathString.endsWith(".ctree") || pathString.endsWith(".java")) {
-                    result.add(path);
+                final String pathString = path.toString();
+                final String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
+                switch(extension.toLowerCase()) {
+                    case "str2":
+                    case "str":
+                    case "rtree":
+                    case "ctree":
+                    case "java":
+                        result.add(path);
                 }
                 return FileVisitResult.CONTINUE;
             }
