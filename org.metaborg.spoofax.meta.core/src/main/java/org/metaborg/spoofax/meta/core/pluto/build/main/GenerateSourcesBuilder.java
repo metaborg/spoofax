@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -527,7 +528,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     FSPath fsPath = new FSPath(strjIncludeDir);
                     strjIncludeDirs.add(fsPath);
                 }
-                final Arguments newArgs = GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs);
+                final Arguments newArgs = GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs, projectLocation.getPath());
                 final String strFileName = strFile.getName();
                 final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str2".length());
                 final ModuleIdentifier mainModuleIdentifier =
@@ -625,17 +626,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
      * Copy oldArgs to newArgs, except for built-in libraries, which are split off and their names returned.
      * @return
      */
-    public static Arguments splitOffLinkedLibrariesIncludeDirs(Arguments oldArgs, Collection<IModuleImportService.ModuleIdentifier> builtinLibs, Collection<ResourcePath> includeDirs) {
+    public static Arguments splitOffLinkedLibrariesIncludeDirs(Arguments oldArgs, Collection<IModuleImportService.ModuleIdentifier> builtinLibs, Collection<ResourcePath> includeDirs, String projectPath) {
         final Arguments newArgs = new Arguments();
         for(Iterator<Object> iterator = oldArgs.iterator(); iterator.hasNext();) {
             Object oldArg = iterator.next();
             if(oldArg.equals("-I")) {
                 final Object nextOldArg = iterator.next();
-                final File nextOldArgFile;
+                final Path nextOldArgPath;
                 if(nextOldArg instanceof File) {
-                    nextOldArgFile = (File) nextOldArg;
+                    nextOldArgPath = ((File) nextOldArg).toPath();
                 } else if(nextOldArg instanceof String) {
-                    nextOldArgFile = new File((String) nextOldArg);
+                    nextOldArgPath = Paths.get(projectPath, (String) nextOldArg);
                 } else {
                     logger.error(
                         "-I argument is not a string or file? Ignoring this for import resolution: "
@@ -643,7 +644,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     newArgs.add(oldArg, nextOldArg);
                     continue;
                 }
-                includeDirs.add(new FSPath(nextOldArgFile));
+                includeDirs.add(new FSPath(nextOldArgPath));
             } else if(oldArg.equals("-la")) {
                 final Object nextOldArg = iterator.next();
                 final String nextOldArgString = nextOldArg instanceof String ? (String) nextOldArg : nextOldArg.toString();

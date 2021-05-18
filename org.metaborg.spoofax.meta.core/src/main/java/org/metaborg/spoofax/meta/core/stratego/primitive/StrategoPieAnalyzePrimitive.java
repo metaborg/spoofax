@@ -188,7 +188,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>();
-        GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs);
+        GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs, projectLocation.getPath());
         final LastModified<IStrategoTerm> astWLM =
             new LastModified<>(ast, Instant.now().getEpochSecond());
         final ModuleIdentifier moduleIdentifier =
