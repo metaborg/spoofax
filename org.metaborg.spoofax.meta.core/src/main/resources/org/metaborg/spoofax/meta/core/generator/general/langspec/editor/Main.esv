@@ -3,10 +3,14 @@ module Main
 {{#syntaxOrAnalysisEnabled}}imports
 
 {{#syntaxEnabled}}  Syntax
-{{/syntaxEnabled}}{{#analysisEnabled}}  Analysis
-  Refactoring
-
+{{/syntaxEnabled}}
+{{#analysisEnabled}}  Analysis
 {{/analysisEnabled}}
+{{#analysisNabl2}}  Refactoring
+{{/analysisNabl2}}
+{{#analysisStatix}}  Refactoring
+{{/analysisStatix}}
+
 {{/syntaxOrAnalysisEnabled}}language
 
 {{#fileExtensions}}  extensions : {{fileExtensions}}
