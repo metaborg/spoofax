@@ -193,23 +193,25 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          **************************************************/
 
         final ListMultimap<FileName, IMessage> messages = ArrayListMultimap.create();
-
-        processResults(changed, expects, results, messages);
-
-        /************************************
-         * 4. Create Spoofax analysis units *
-         ************************************/
-
         final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
         final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
-        for(Expect expect : expects.values()) {
-            Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
-            expect.result(fileMessages, fullResults, updateResults);
-        }
-        fullResults.addAll(removed.values());
-        fullResults.addAll(invalid.values());
-        return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
 
+        if(!results.isEmpty()) {
+            processResults(changed, expects, results, messages);
+
+            /************************************
+             * 4. Create Spoofax analysis units *
+             ************************************/
+
+            for(Expect expect : expects.values()) {
+                Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
+                expect.result(fileMessages, fullResults, updateResults);
+            }
+            fullResults.addAll(removed.values());
+            fullResults.addAll(invalid.values());
+        }
+
+        return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
     }
 
     private boolean computeChanges(IConstraintContext context, Map<String, ISpoofaxParseUnit> changed,
