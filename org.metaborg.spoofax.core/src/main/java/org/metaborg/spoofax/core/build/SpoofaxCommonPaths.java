@@ -257,13 +257,20 @@ public class SpoofaxCommonPaths extends CommonPaths {
     }
 
     /**
+     * @return Stratego generated Java directory.
+     */
+    public FileObject strSrcGenJavaDir() {
+        return resolve(srcGenDir(), "java");
+    }
+
+    /**
      * Gets all the Java source root folders.
      * 
      * @param languageId
      *            Identifier of the language.
      * @return A list of Java source root folders.
      */
-    public Collection<FileObject> javaSrcDirs(String languageId) {
-        return Lists.newArrayList(strJavaStratDir(), dsManualJavaDir(), dsSrcGenJavaDir());
+    public Collection<FileObject> javaSrcDirs() {
+        return Lists.newArrayList(strJavaStratDir(), strSrcGenJavaDir(), dsManualJavaDir(), dsSrcGenJavaDir());
     }
 }
