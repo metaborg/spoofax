@@ -247,6 +247,7 @@ import mb.statix.spoofax.STX_get_scopegraph_data;
 import mb.statix.spoofax.STX_get_scopegraph_edges;
 import mb.statix.spoofax.STX_is_analysis;
 import mb.statix.spoofax.STX_solve_constraint;
+import mb.statix.spoofax.STX_solve_constraint_concurrent;
 import mb.statix.spoofax.STX_solve_multi;
 import mb.statix.spoofax.STX_solve_multi_file;
 import mb.statix.spoofax.STX_solve_multi_project;
@@ -511,6 +512,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_get_scopegraph_edges.class);
         bindPrimitive(statixLibrary, STX_is_analysis.class);
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
+        bindPrimitive(statixLibrary, STX_solve_constraint_concurrent.class);
         bindPrimitive(statixLibrary, STX_solve_multi.class);
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);
@@ -557,8 +559,8 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(legacySpoofaxJSGLRLibrary, LegacyParseFilePtPrimitive.class);
         bindPrimitive(legacySpoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
         bindPrimitive(legacySpoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
-        
-        final Multibinder<AbstractPrimitive> renamingPrimitivesLibrary = Multibinder.newSetBinder(binder(), 
+
+        final Multibinder<AbstractPrimitive> renamingPrimitivesLibrary = Multibinder.newSetBinder(binder(),
                 AbstractPrimitive.class, Names.named(RenamingLibrary.name));
         bindPrimitive(renamingPrimitivesLibrary, FindAllRelatedOccurrencesPrimitive.class);
     }
