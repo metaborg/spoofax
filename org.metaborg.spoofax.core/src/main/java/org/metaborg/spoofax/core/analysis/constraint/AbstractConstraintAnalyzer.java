@@ -196,20 +196,18 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
         final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
 
-        if(!results.isEmpty()) {
-            processResults(changed, expects, results, messages);
+        processResults(changed, expects, results, messages);
 
-            /************************************
-             * 4. Create Spoofax analysis units *
-             ************************************/
+        /************************************
+         * 4. Create Spoofax analysis units *
+         ************************************/
 
-            for(Expect expect : expects.values()) {
-                Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
-                expect.result(fileMessages, fullResults, updateResults);
-            }
-            fullResults.addAll(removed.values());
-            fullResults.addAll(invalid.values());
+        for(Expect expect : expects.values()) {
+            Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
+            expect.result(fileMessages, fullResults, updateResults);
         }
+        fullResults.addAll(removed.values());
+        fullResults.addAll(invalid.values());
 
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
     }
