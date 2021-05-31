@@ -650,7 +650,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     newArgs.add(oldArg, nextOldArg);
                     continue;
                 }
-                includeDirs.add(new FSPath(nextOldArgPath));
+                if(Files.exists(nextOldArgPath)) {
+                    includeDirs.add(new FSPath(nextOldArgPath));
+                } else {
+                    logger.warn("-I argument '" + nextOldArgPath + "' does not exist, ignoring.");
+                }
             } else if(oldArg.equals("-la")) {
                 final Object nextOldArg = iterator.next();
                 final String nextOldArgString = nextOldArg instanceof String ? (String) nextOldArg : nextOldArg.toString();
