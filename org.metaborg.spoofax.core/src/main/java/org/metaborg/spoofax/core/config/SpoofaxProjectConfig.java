@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.config;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -14,8 +13,10 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxDefaultSources;
 import org.metaborg.spoofax.core.config.language.NaBL2ConfigReaderWriter;
+import org.metaborg.spoofax.core.config.language.StatixProjectConfigReaderWriter;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 
 public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProjectConfig {
 
@@ -24,7 +25,6 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
     private static final String PROP_NABL2 = PROP_RUNTIME + ".nabl2";
 
     private static final String PROP_STATIX = PROP_RUNTIME + ".statix";
-    private static final String PROP_STATIX_CONCURRENT = PROP_STATIX + ".concurrent";
 
     public SpoofaxProjectConfig(HierarchicalConfiguration<ImmutableNode> config) {
         super(config);
@@ -33,14 +33,15 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
     protected SpoofaxProjectConfig(HierarchicalConfiguration<ImmutableNode> config, String metaborgVersion,
             Collection<IExportConfig> sources, Collection<LanguageIdentifier> compileDeps,
             Collection<LanguageIdentifier> sourceDeps, Collection<LanguageIdentifier> javaDeps, NaBL2Config nabl2Config,
-            Collection<String> statixConcurrent) {
+            IStatixProjectConfig statixConfig) {
         super(config, metaborgVersion, sources, compileDeps, sourceDeps, javaDeps);
         if(nabl2Config != null) {
             Optional.ofNullable(configurationAt(PROP_NABL2, true))
                     .ifPresent(c -> NaBL2ConfigReaderWriter.write(nabl2Config, c));
         }
-        if(statixConcurrent != null) {
-            config.setProperty(PROP_STATIX_CONCURRENT, statixConcurrent);
+        if(statixConfig != null) {
+            Optional.ofNullable(configurationAt(PROP_STATIX, true))
+                    .ifPresent(c -> StatixProjectConfigReaderWriter.write(statixConfig, c));
         }
     }
 
@@ -65,8 +66,16 @@ public class SpoofaxProjectConfig extends ProjectConfig implements ISpoofaxProje
         return result;
     }
 
-    @Override public Collection<String> statixConcurrentLanguages() {
-        return config.getList(String.class, PROP_STATIX_CONCURRENT, Collections.emptyList());
+    private volatile IStatixProjectConfig statixConfig = null;
+
+    @Override public IStatixProjectConfig statixConfig() {
+        IStatixProjectConfig result = statixConfig;
+        if(result == null) {
+            result = Optional.ofNullable(configurationAt(PROP_STATIX, false)).map(StatixProjectConfigReaderWriter::read)
+                    .orElse(IStatixProjectConfig.NULL);
+            statixConfig = result;
+        }
+        return result;
     }
 
     @Override public Collection<IMessage> validate(MessageBuilder mb) {

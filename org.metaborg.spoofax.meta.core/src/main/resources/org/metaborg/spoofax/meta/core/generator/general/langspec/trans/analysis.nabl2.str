@@ -1,7 +1,7 @@
 module analysis
 
 imports
-  
+
   nabl2/api
   nabl2/runtime
 
@@ -14,7 +14,7 @@ rules // Analysis
   editor-analyze = nabl2-analyze(id)
 
 rules // Debugging
-  
+
   // Prints the abstract syntax ATerm of a selection.
   debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
     with filename := <guarantee-extension(|"aterm")> path
@@ -24,3 +24,8 @@ rules // Debugging
   debug-show-analyzed: (selected, _, _, path, project-path) -> (filename, result)
     with filename := <guarantee-extension(|"analyzed.aterm")> path
        ; result   := selected
+
+rules // Rename refactoring
+
+  // change last strategy argument to id if multi-file analysis is enabled
+  rename-menu-action = nabl2-rename-action(construct-textual-change, editor-analyze, fail)

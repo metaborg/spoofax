@@ -55,6 +55,13 @@ public interface ISpoofaxLanguageSpecConfig extends ISpoofaxProjectConfig, ILang
     String prettyPrintLanguage();
 
     /**
+     * Gets the language to be pretty printed.
+     * 
+     * @return Language to be pretty printed
+     */
+    boolean generateNamespacedGrammar();
+
+    /**
      * Gets the external def.
      *
      * @return The external def.

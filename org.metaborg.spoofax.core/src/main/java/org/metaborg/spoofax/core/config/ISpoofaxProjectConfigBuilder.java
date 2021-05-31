@@ -8,6 +8,7 @@ import org.metaborg.core.config.IProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 
 public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
 
@@ -88,11 +89,6 @@ public interface ISpoofaxProjectConfigBuilder extends IProjectConfigBuilder {
     /**
      * Set names languages for which Statix should use the concurrent solver.
      */
-    ISpoofaxProjectConfigBuilder withStatixConcurrentLanguages(Iterable<String> langs);
-
-    /**
-     * Add names of languages for which Statix should use the concurrent solver.
-     */
-    ISpoofaxProjectConfigBuilder addStatixConcurrentLanguages(Iterable<String> langs);
+    ISpoofaxProjectConfigBuilder withStatixConfig(IStatixProjectConfig config);
 
 }

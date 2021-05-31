@@ -8,7 +8,11 @@ import javax.annotation.Nullable;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.metaborg.core.config.*;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IGenerateConfig;
+import org.metaborg.core.config.JSGLR2Logging;
+import org.metaborg.core.config.JSGLRVersion;
+import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
@@ -23,6 +27,7 @@ import org.metaborg.util.log.LoggerUtils;
 import com.google.common.collect.Lists;
 
 import mb.nabl2.config.NaBL2Config;
+import mb.statix.spoofax.IStatixProjectConfig;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
@@ -43,6 +48,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_ARGS = PROP_SDF + ".args";
 
     private static final String PROP_PRETTY_PRINT = PROP_SDF + ".pretty-print";
+    private static final String PROP_GENERATE_NAMESPACED_GRAMMAR = PROP_SDF + ".generate-namespaced";
 
     private static final String PROP_PLACEHOLDER_PREFIX = PROP_SDF + ".placeholder.prefix";
     private static final String PROP_PLACEHOLDER_SUFFIX = PROP_SDF + ".placeholder.suffix";
@@ -50,7 +56,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_META = PROP_SDF + ".sdf-meta";
 
     private static final String PROP_STR = "language.stratego";
-    private static final String PROP_STR_BUILD_SETTING = PROP_STR + ".build";
     private static final String PROP_STR_GRADUAL_SETTING = PROP_STR + ".gradual";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
@@ -80,10 +85,11 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
             @Nullable JSGLR2Logging jsglr2Logging, Boolean statixConcurrent, @Nullable String sdfMainFile,
             @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
-            @Nullable List<String> sdfMetaFile, @Nullable String externalDef, @Nullable Arguments sdfArgs,
-            @Nullable StrategoBuildSetting buildSetting, @Nullable StrategoGradualSetting gradualSetting,
-            @Nullable StrategoFormat format, @Nullable String externalJar, @Nullable String externalJarFlags,
-            @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
+            @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
+            @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting,
+            @Nullable StrategoGradualSetting gradualSetting, @Nullable StrategoFormat format, @Nullable String externalJar,
+            @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
+            @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
                 dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixConcurrent,
                 langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
@@ -108,6 +114,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         if(prettyPrint != null) {
             config.setProperty(PROP_PRETTY_PRINT, prettyPrint);
         }
+        if(generateNamespacedGrammar != null) {
+            config.setProperty(PROP_GENERATE_NAMESPACED_GRAMMAR, generateNamespacedGrammar);
+        }
         if(externalDef != null) {
             config.setProperty(PROP_SDF_EXTERNAL_DEF, externalDef);
         }
@@ -115,9 +124,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             config.setProperty(PROP_SDF_ARGS, sdfArgs);
         }
 
-        if(buildSetting != null) {
-            config.setProperty(PROP_STR_BUILD_SETTING, buildSetting);
-        }
         if(gradualSetting != null) {
             config.setProperty(PROP_STR_GRADUAL_SETTING, gradualSetting);
         }
@@ -155,8 +161,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return projectConfig.nabl2Config();
     }
 
-    @Override public Collection<String> statixConcurrentLanguages() {
-        return projectConfig.statixConcurrentLanguages();
+    @Override public IStatixProjectConfig statixConfig() {
+        return projectConfig.statixConfig();
     }
 
 
@@ -176,6 +182,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return value != null ? value : name();
     }
 
+    @Override public boolean generateNamespacedGrammar() {
+        return this.config.getBoolean(PROP_GENERATE_NAMESPACED_GRAMMAR, false);
+    }
+
     @Override @Nullable public String sdfExternalDef() {
         return config.getString(PROP_SDF_EXTERNAL_DEF);
     }
@@ -191,9 +201,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return arguments;
     }
 
-    @Override public StrategoBuildSetting strBuildSetting() {
-        final String value = this.config.getString(PROP_STR_BUILD_SETTING);
-        return value != null ? StrategoBuildSetting.valueOf(value) : StrategoBuildSetting.batch;
+    @Override public StrategoBuildSetting strBuildSetting() {;
+        return
+            containsStrategoLang(compileDeps()) ?
+                StrategoBuildSetting.incremental : StrategoBuildSetting.batch;
     }
 
     @Override public StrategoGradualSetting strGradualSetting() {
@@ -226,6 +237,15 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             }
         }
         return arguments;
+    }
+
+    public static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
+        for(LanguageIdentifier compileDep : compileDeps) {
+            if(compileDep.groupId.equals("org.metaborg") && compileDep.id.equals("stratego.lang")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override public Collection<IBuildStepConfig> buildSteps() {

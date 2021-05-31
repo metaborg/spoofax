@@ -19,6 +19,7 @@ dependencies {
   implementation(compositeBuild("nabl2.solver"))
   implementation(compositeBuild("statix.solver"))
   implementation(compositeBuild("org.spoofax.interpreter.library.index"))
+  implementation(compositeBuild("renaming.java"))
 
   implementation("org.metaborg:flowspec.runtime:$spoofax2Version")
   implementation("org.metaborg:org.metaborg.runtime.task:$spoofax2Version")

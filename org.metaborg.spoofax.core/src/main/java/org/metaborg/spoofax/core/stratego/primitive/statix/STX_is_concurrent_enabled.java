@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.stratego.primitive.statix;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
@@ -23,11 +24,13 @@ public class STX_is_concurrent_enabled extends ASpoofaxContextPrimitive {
         this.projectConfigService = projectConfigService;
     }
 
-    @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
-            ITermFactory factory, IContext context) throws MetaborgException, IOException {
+    @Override protected IStrategoTerm call(IStrategoTerm current, @SuppressWarnings("unused") Strategy[] svars,
+            @SuppressWarnings("unused") IStrategoTerm[] tvars, @SuppressWarnings("unused") ITermFactory factory,
+            IContext context) throws MetaborgException, IOException {
         ISpoofaxProjectConfig config = projectConfigService.get(context.project());
         if(config != null) {
-            boolean concurrentInProject = config.statixConcurrentLanguages().contains(context.language().belongsTo().name());
+            boolean concurrentInProject = config.statixConfig().parallelLanguages(Collections.emptySet())
+                    .contains(context.language().belongsTo().name());
             if(concurrentInProject) {
                 return current;
             }

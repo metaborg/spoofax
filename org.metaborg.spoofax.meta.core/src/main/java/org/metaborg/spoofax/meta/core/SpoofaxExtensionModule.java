@@ -5,6 +5,7 @@ import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.stratego.primitive.SpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.legacy.LegacySpoofaxPrimitiveLibrary;
 import org.metaborg.spoofax.meta.core.stratego.primitive.CheckSdf2TablePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.GenerateNamespacedGrammarPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.GetContextualGrammarPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecPpNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecSrcGenDirectory;
@@ -50,6 +51,7 @@ public class SpoofaxExtensionModule extends AbstractModule {
         bindAutoClosableSpoofaxPrimitive(CheckSdf2TablePrimitive.class);
         bindAutoClosableSpoofaxPrimitive(PlaceholderCharsPrimitive.class);
         bindAutoClosableSpoofaxPrimitive(StrategoPieAnalyzePrimitive.class);
+        bindAutoClosableSpoofaxPrimitive(GenerateNamespacedGrammarPrimitive.class);
         bindSpoofaxPrimitive(LayoutSensitivePrettyPrinterPrimitive.class);
         bindSpoofaxPrimitive(GetContextualGrammarPrimitive.class);
 
