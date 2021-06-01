@@ -3,29 +3,34 @@ plugins {
   id("org.metaborg.gradle.config.junit-testing")
 }
 
+fun compositeBuild(name: String) = "$group:$name:$version"
+val spoofax2Version: String by ext
 dependencies {
-  api(platform("org.metaborg:parent:$version"))
+  api(platform("org.metaborg:parent:$spoofax2Version"))
 
   api(project(":org.metaborg.core"))
 
-  api("org.metaborg:org.metaborg.util:$version")
-  api("org.metaborg:org.spoofax.terms:$version")
-  api("org.metaborg:nabl2.solver:$version")
-  api("org.metaborg:statix.solver:$version")
-  api("org.metaborg:flowspec.runtime:$version")
-  api("org.metaborg:org.spoofax.interpreter.core:$version")
-  api("org.metaborg:org.spoofax.jsglr2:$version")
-  api("org.metaborg:org.strategoxt.strj:$version")
-  api("org.metaborg:org.spoofax.interpreter.library.index:$version")
-  api("org.metaborg:org.metaborg.runtime.task:$version")
+  api(compositeBuild("org.metaborg.util"))
+  api(compositeBuild("org.spoofax.terms"))
+  api(compositeBuild("org.spoofax.interpreter.core"))
+  api(compositeBuild("org.strategoxt.strj"))
+  api(compositeBuild("nabl2.terms"))
+  implementation(compositeBuild("org.spoofax.jsglr2"))
+  implementation(compositeBuild("nabl2.solver"))
+  implementation(compositeBuild("statix.solver"))
+  implementation(compositeBuild("org.spoofax.interpreter.library.index"))
+  implementation(compositeBuild("renaming.java"))
+
+  implementation("org.metaborg:flowspec.runtime:$spoofax2Version")
+  implementation("org.metaborg:org.metaborg.runtime.task:$spoofax2Version")
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")
   api("com.google.inject.extensions:guice-multibindings")
-  api("commons-io:commons-io")
-  api("org.apache.commons:commons-vfs2")
-  api("com.google.guava:guava")
-  api("io.reactivex.rxjava3:rxjava")
+  implementation("commons-io:commons-io")
+  implementation("org.apache.commons:commons-vfs2")
+  implementation("com.google.guava:guava")
+  implementation("io.reactivex.rxjava3:rxjava")
 
   compileOnly("com.google.code.findbugs:jsr305")
 
