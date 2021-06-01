@@ -636,7 +636,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 if(nextOldArg instanceof File) {
                     nextOldArgPath = ((File) nextOldArg).toPath();
                 } else if(nextOldArg instanceof String) {
-                    nextOldArgPath = Paths.get(projectPath, (String) nextOldArg);
+                    final String nextOldArgString = (String) nextOldArg;
+                    final Path path = Paths.get(nextOldArgString);
+                    if(path.isAbsolute()) {
+                        nextOldArgPath = path;
+                    } else {
+                        nextOldArgPath = Paths.get(projectPath, nextOldArgString);
+                    }
                 } else {
                     logger.error(
                         "-I argument is not a string or file? Ignoring this for import resolution: "
@@ -644,7 +650,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     newArgs.add(oldArg, nextOldArg);
                     continue;
                 }
-                includeDirs.add(new FSPath(nextOldArgPath));
+                if(Files.exists(nextOldArgPath)) {
+                    includeDirs.add(new FSPath(nextOldArgPath));
+                } else {
+                    logger.warn("-I argument '" + nextOldArgPath + "' does not exist, ignoring.");
+                }
             } else if(oldArg.equals("-la")) {
                 final Object nextOldArg = iterator.next();
                 final String nextOldArgString = nextOldArg instanceof String ? (String) nextOldArg : nextOldArg.toString();

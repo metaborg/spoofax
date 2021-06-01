@@ -95,9 +95,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final String moduleName;
         if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
-        	moduleName = path;
+            moduleName = path;
         } else {
-        	moduleName = TermUtils.toJavaStringAt(ast, 0);
+            moduleName = TermUtils.toJavaStringAt(ast, 0);
         }
 
         final IProject project = context.project();
@@ -234,9 +234,6 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                 logger.debug("No origins for message: " + message);
             }
             final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
-            if(config.strGradualSetting() == StrategoGradualSetting.NONE && message instanceof TypeMessage) {
-                continue;
-            }
             switch(message.severity) {
                 case ERROR:
                     errors.add(messageTuple);
