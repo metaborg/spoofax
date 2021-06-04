@@ -39,7 +39,7 @@ public class SpoofaxLangSpecCommonPaths extends SpoofaxCommonPaths {
     public FileObject strSrcGenJavaTransDir(String languageId) {
         final String pkg = strJavaTransPkg(languageId);
         final String pkgPath = pkg.replace('.', '/');
-        return resolve(srcGenDir(), "java", pkgPath);
+        return resolve(strSrcGenJavaDir(), pkgPath);
     }
 
     /**
@@ -85,12 +85,5 @@ public class SpoofaxLangSpecCommonPaths extends SpoofaxCommonPaths {
      */
     public FileObject plutoBuildInfoDir() {
         return resolve(targetDir(), "pluto");
-    }
-
-    @Override public Collection<FileObject> javaSrcDirs(String languageId) {
-        final Collection<FileObject> dirs = Lists.newArrayList();
-        dirs.addAll(super.javaSrcDirs(languageId));
-        dirs.add(strSrcGenJavaTransDir(languageId));
-        return dirs;
     }
 }

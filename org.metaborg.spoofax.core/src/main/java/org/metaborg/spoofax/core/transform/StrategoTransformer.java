@@ -239,10 +239,10 @@ public class StrategoTransformer implements IStrategoTransformer {
             throw new MetaborgException("First term of result tuple {} is not a string, cannot write output file");
         } else {
             final String resourceString = TermUtils.toJavaString(resourceTerm);
-            final String resultContents = common.toString(contentTerm);
             // writing to output file is allowed
             FileObject output;
             if(!config.dryRun()) {
+                final String resultContents = common.toString(contentTerm);
                 output = resourceService.resolve(location, resourceString);
                 try(OutputStream stream = output.getContent().getOutputStream()) {
                     IOUtils.write(resultContents, stream, Charset.defaultCharset());

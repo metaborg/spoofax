@@ -2,32 +2,40 @@ plugins {
   id("org.metaborg.gradle.config.java-library")
 }
 
+fun compositeBuild(name: String) = "$group:$name:$version"
+val pieVersion = "0.14.0"
+val spoofax2Version: String by ext
 dependencies {
-  api(platform("org.metaborg:parent:$version"))
+  api(platform("org.metaborg:parent:$spoofax2Version"))
 
   api(project(":org.metaborg.core"))
   api(project(":org.metaborg.meta.core"))
   api(project(":org.metaborg.spoofax.core"))
 
-  api("org.metaborg:org.metaborg.spoofax.nativebundle:$version") // TODO: project dependency
-  api("org.metaborg:org.metaborg.util:$version")
-  api("org.metaborg:strategoxt-min-jar:$version")
-  api("org.metaborg:make-permissive:$version")
-  api("org.metaborg:sdf2table:$version")
-  api("org.metaborg:sdf2parenthesize:$version")
-  api("org.metaborg:org.metaborg.parsetable:$version")
-  api("org.metaborg:stratego.compiler.pack:$version")
-  api("org.metaborg:stratego.build:$version")
-  api("org.metaborg:stratego.build.spoofax2:$version")
-  api("build.pluto:pluto")
-  api("build.pluto:build-java")
-  api("org.metaborg:pie.runtime")
-  api("org.metaborg:pie.taskdefs.guice")
+  implementation(compositeBuild("org.metaborg.util"))
+  implementation(compositeBuild("sdf2table"))
+  implementation(compositeBuild("sdf2parenthesize"))
+  implementation(compositeBuild("org.metaborg.parsetable"))
+  implementation(compositeBuild("stratego.compiler.pack"))
+  implementation(compositeBuild("stratego.build"))
+  implementation(compositeBuild("stratego.build.spoofax2"))
+  implementation(compositeBuild("nabl2.solver"))
+  implementation(compositeBuild("statix.solver"))
+
+  implementation(project(":org.metaborg.spoofax.nativebundle"))
+  implementation("org.metaborg:strategoxt-min-jar:$spoofax2Version")
+  implementation("org.metaborg:make-permissive:$spoofax2Version")
+
+  implementation("build.pluto:pluto")
+  implementation("build.pluto:build-java")
+  implementation("org.metaborg:log.backend.slf4j:0.5.0")
+  implementation("org.metaborg:pie.runtime:$pieVersion")
+  implementation("org.metaborg:pie.taskdefs.guice:$pieVersion")
   api("com.google.inject:guice")
   api("com.google.inject.extensions:guice-multibindings")
-  api("com.github.spullara.mustache.java:compiler")
-  api("org.apache.ant:ant:1.9.6")
-  api("ant-contrib:ant-contrib:1.0b3")
+  implementation("com.github.spullara.mustache.java:compiler")
+  implementation("org.apache.ant:ant:1.9.6")
+  implementation("ant-contrib:ant-contrib:1.0b3")
 
   compileOnly("com.google.code.findbugs:jsr305")
 }

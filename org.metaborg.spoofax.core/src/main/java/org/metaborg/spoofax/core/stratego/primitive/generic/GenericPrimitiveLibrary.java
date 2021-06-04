@@ -16,6 +16,11 @@ public class GenericPrimitiveLibrary extends AbstractStrategoOperatorRegistry {
     }
 
 
+    protected void onDuplicatePrimitiveAddition(AbstractPrimitive first, AbstractPrimitive second) {
+        throw new RuntimeException("Attempted to add second primitives with name "
+            + first.getName() + " to OperatorRegistry " + name + ". \n" + "First:\n" + first + "\nSecond:\n" + second);
+    }
+
     @Override public String getOperatorRegistryName() {
         return name;
     }

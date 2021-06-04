@@ -8,7 +8,11 @@ import javax.annotation.Nullable;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.metaborg.core.config.*;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IGenerateConfig;
+import org.metaborg.core.config.JSGLR2Logging;
+import org.metaborg.core.config.JSGLRVersion;
+import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
@@ -52,7 +56,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_META = PROP_SDF + ".sdf-meta";
 
     private static final String PROP_STR = "language.stratego";
-    private static final String PROP_STR_BUILD_SETTING = PROP_STR + ".build";
     private static final String PROP_STR_GRADUAL_SETTING = PROP_STR + ".gradual";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
@@ -121,9 +124,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             config.setProperty(PROP_SDF_ARGS, sdfArgs);
         }
 
-        if(buildSetting != null) {
-            config.setProperty(PROP_STR_BUILD_SETTING, buildSetting);
-        }
         if(gradualSetting != null) {
             config.setProperty(PROP_STR_GRADUAL_SETTING, gradualSetting);
         }
@@ -201,9 +201,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return arguments;
     }
 
-    @Override public StrategoBuildSetting strBuildSetting() {
-        final String value = this.config.getString(PROP_STR_BUILD_SETTING);
-        return value != null ? StrategoBuildSetting.valueOf(value) : StrategoBuildSetting.batch;
+    @Override public StrategoBuildSetting strBuildSetting() {;
+        return
+            containsStrategoLang(compileDeps()) ?
+                StrategoBuildSetting.incremental : StrategoBuildSetting.batch;
     }
 
     @Override public StrategoGradualSetting strGradualSetting() {
@@ -236,6 +237,15 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             }
         }
         return arguments;
+    }
+
+    public static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
+        for(LanguageIdentifier compileDep : compileDeps) {
+            if(compileDep.groupId.equals("org.metaborg") && compileDep.id.equals("stratego.lang")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override public Collection<IBuildStepConfig> buildSteps() {

@@ -22,7 +22,12 @@ import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.config.*;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.ILanguageComponentConfig;
+import org.metaborg.core.config.ILanguageComponentConfigBuilder;
+import org.metaborg.core.config.ILanguageComponentConfigWriter;
+import org.metaborg.core.config.JSGLRVersion;
+import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.StreamMessagePrinter;
@@ -38,13 +43,11 @@ import org.metaborg.spoofax.meta.core.config.SdfVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
-import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxReporting;
 import org.metaborg.spoofax.meta.core.pluto.build.main.ArchiveBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder;
-import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder.Input;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.FileUtils;
@@ -56,7 +59,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -105,6 +107,9 @@ public class LanguageSpecBuilder implements AutoCloseable {
         try {
             paths.srcGenDir().createFolder();
             paths.targetMetaborgDir().createFolder();
+            for(FileObject javaSrcDir : paths.javaSrcDirs()) {
+                javaSrcDir.createFolder();
+            }
         } catch(FileSystemException e) {
             throw new MetaborgException("Initializing directories failed", e);
         }
@@ -147,7 +152,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage, e);
             } else {
-                throw new MetaborgException();
+                throw new MetaborgException(e);
             }
         } catch(RuntimeException e) {
             throw e;
