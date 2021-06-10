@@ -2,6 +2,8 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,6 +69,7 @@ import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 
@@ -561,10 +564,20 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                             for(Message message : failure.messages) {
                                 switch(message.severity) {
                                     case NOTE:
-                                        logger.info(message.toString());
+                                        if(message.filename != null && Paths.get(new URI(message.filename))
+                                            .startsWith(projectLocation.toPath())) {
+                                            if(!(message.filename.endsWith(".str") && message instanceof TypeMessage)) {
+                                                logger.info(message.toString());
+                                            }
+                                        }
                                         break;
                                     case WARNING:
-                                        logger.warn(message.toString());
+                                        if(message.filename != null && Paths.get(new URI(message.filename))
+                                            .startsWith(projectLocation.toPath())) {
+                                            if(!(message.filename.endsWith(".str") && message instanceof TypeMessage)) {
+                                                logger.warn(message.toString());
+                                            }
+                                        }
                                         break;
                                     case ERROR:
                                         logger.error(message.toString());
@@ -586,6 +599,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                         throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
                     } catch(InterruptedException e) {
                         // Ignore
+                    } catch(URISyntaxException e) {
+                        e.printStackTrace();
                     }
                 }
             } else {
