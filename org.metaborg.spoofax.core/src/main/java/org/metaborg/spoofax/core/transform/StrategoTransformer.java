@@ -200,6 +200,7 @@ public class StrategoTransformer implements IStrategoTransformer {
                     outputs = Collections.emptyList();
                 }
             } catch(MetaborgException ex) {
+                logger.error("Failed to output result", ex);
                 resultTerm = null;
                 outputs = Collections.emptyList();
             }
