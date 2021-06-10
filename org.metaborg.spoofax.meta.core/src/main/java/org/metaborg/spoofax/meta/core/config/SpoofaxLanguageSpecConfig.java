@@ -28,7 +28,6 @@ import com.google.common.collect.Lists;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * An implementation of the {@link ISpoofaxLanguageSpecConfig} interface that is backed by an
@@ -87,7 +86,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
             @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
             @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting,
-            @Nullable StrategoGradualSetting gradualSetting, @Nullable StrategoFormat format, @Nullable String externalJar,
+            @Nullable StrategoFormat format, @Nullable String externalJar,
             @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
             @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
@@ -124,9 +123,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             config.setProperty(PROP_SDF_ARGS, sdfArgs);
         }
 
-        if(gradualSetting != null) {
-            config.setProperty(PROP_STR_GRADUAL_SETTING, gradualSetting);
-        }
         if(format != null) {
             config.setProperty(PROP_STR_FORMAT, format);
         }
@@ -205,11 +201,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return
             containsStrategoLang(compileDeps()) ?
                 StrategoBuildSetting.incremental : StrategoBuildSetting.batch;
-    }
-
-    @Override public StrategoGradualSetting strGradualSetting() {
-        final String value = this.config.getString(PROP_STR_GRADUAL_SETTING);
-        return value != null ? StrategoGradualSetting.valueOf(value.toUpperCase()) : StrategoGradualSetting.NONE;
     }
 
     @Override public StrategoFormat strFormat() {

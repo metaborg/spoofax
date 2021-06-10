@@ -69,7 +69,6 @@ import mb.stratego.build.strincr.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilder.Input, None> {
     public static class Input extends SpoofaxInput {
@@ -108,7 +107,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final List<File> strjIncludeFiles;
         public final Arguments strjArgs;
         public final StrategoBuildSetting strBuildSetting;
-        public final StrategoGradualSetting strGradualSetting;
 
 
         public Input(SpoofaxContext context, String languageId, Collection<LanguageIdentifier> sourceDeps,
@@ -120,7 +118,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
             StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
             List<File> strjIncludeDirs, List<File> strjIncludeFiles, Arguments strjArgs,
-            StrategoBuildSetting strBuildSetting, StrategoGradualSetting strGradualSetting) {
+            StrategoBuildSetting strBuildSetting) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -150,7 +148,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strjIncludeFiles = strjIncludeFiles;
             this.strjArgs = strjArgs;
             this.strBuildSetting = strBuildSetting;
-            this.strGradualSetting = strGradualSetting;
         }
     }
 
@@ -536,7 +533,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final ResourcePath projectPath = new FSPath(projectLocation);
                 final CompileInput compileInput = new CompileInput(mainModuleIdentifier,
                     projectPath, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
-                    strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), input.strGradualSetting, true,
+                    strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true,
                     true);
                 final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
