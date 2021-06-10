@@ -154,7 +154,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
             } else {
                 throw new MetaborgException(e);
             }
-        } catch(RuntimeException e) {
+        } catch(RuntimeException | MetaborgException e) {
             throw e;
         } catch(Throwable e) {
             throw new MetaborgException(e);

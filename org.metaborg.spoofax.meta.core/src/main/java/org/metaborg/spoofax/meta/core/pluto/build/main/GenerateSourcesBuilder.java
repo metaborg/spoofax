@@ -585,8 +585,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                                         break;
                                 }
                             }
-                            throw new MetaborgException(
-                                "Incremental Stratego Compilation failed with " + errorsCount + " errors.");
+                            throw MetaborgException.withoutStackTrace(
+                                "Incremental Stratego Compilation failed with " + errorsCount + " errors.", null);
                         } else {
                             assert compileOutput instanceof CompileOutput.Success;
                             final CompileOutput.Success success = (CompileOutput.Success) compileOutput;
@@ -596,7 +596,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                             }
                         }
                     } catch(ExecException e) {
-                        throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(), e);
+                        throw MetaborgException.withoutStackTrace("Incremental Stratego build failed: " + e.getMessage(), e);
                     } catch(InterruptedException e) {
                         // Ignore
                     } catch(URISyntaxException e) {
