@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.stratego.primitive.statix;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.IContext;
@@ -14,6 +15,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.inject.Inject;
+
+import mb.statix.spoofax.SolverMode;
 
 public class STX_is_concurrent_enabled extends ASpoofaxContextPrimitive {
 
@@ -29,9 +32,9 @@ public class STX_is_concurrent_enabled extends ASpoofaxContextPrimitive {
             IContext context) throws MetaborgException, IOException {
         ISpoofaxProjectConfig config = projectConfigService.get(context.project());
         if(config != null) {
-            boolean concurrentInProject = config.statixConfig().parallelLanguages(Collections.emptySet())
-                    .contains(context.language().belongsTo().name());
-            if(concurrentInProject) {
+            String languageName = context.language().belongsTo().name();
+            Map<String, SolverMode> modes = config.statixConfig().languageModes(Collections.emptyMap());
+            if(modes.containsKey(languageName) && modes.get(languageName) != SolverMode.TRADITIONAL) {
                 return current;
             }
         }
