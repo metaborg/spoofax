@@ -7,7 +7,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 
 /**
  * Configuration of a language component at runtime.
- * 
+ *
  * To create a new instance of this interface, use an {@link ILanguageComponentConfigBuilder} interface.
  */
 public interface ILanguageComponentConfig extends IProjectConfig {
@@ -31,28 +31,28 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      * @return The language contributions.
      */
     Collection<LanguageContributionIdentifier> langContribs();
-    
+
     /**
      * Gets the languages for while files are generated.
      *
      * @return The languages for while files are generated.
      */
     Collection<IGenerateConfig> generates();
-    
+
     /**
      * Gets whether the project depends on SDF or not.
      *
      * @return true if SDF is enabled and false otherwise.
      */
-    Boolean sdfEnabled();   
-    
+    Boolean sdfEnabled();
+
     /**
      * Gets the (relative) path to the parse table.
      *
      * @return path to the parse table.
      */
-    String parseTable();    
-    
+    String parseTable();
+
     /**
      * Gets the (relative) path to the completions parse table.
      *
@@ -66,14 +66,14 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      * @return sdf2table version to use.
      */
     Sdf2tableVersion sdf2tableVersion();
-    
+
     /**
      * Gets whether to check for missing priorities in expression grammars or not.
      *
      * @return true if checking for priorities and false otherwise.
      */
     Boolean checkPriorities();
-    
+
     /**
      * Gets whether to check for harmful overlap in productions that cause inherent ambiguities.
      *
@@ -94,13 +94,13 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      * @return the logging scope.
      */
     JSGLR2Logging jsglr2Logging();
-    
+
     /**
      * Return Statix configuration for this language component.
-     * 
+     *
      * Specific to Spoofax.
      */
-    boolean statixConcurrentComponent();
+    StatixSolverMode statixSolverMode();
 
     /**
      * Gets the file exports.
@@ -109,5 +109,5 @@ public interface ILanguageComponentConfig extends IProjectConfig {
      */
     Collection<IExportConfig> exports();
 
-    
+
 }

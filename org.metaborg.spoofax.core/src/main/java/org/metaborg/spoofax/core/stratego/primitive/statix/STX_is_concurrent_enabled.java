@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.config.StatixSolverMode;
 import org.metaborg.core.context.IContext;
 import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfig;
@@ -39,7 +40,7 @@ public class STX_is_concurrent_enabled extends ASpoofaxContextPrimitive {
             }
         }
         boolean concurrentInLanguage = context.language().components().stream()
-                .anyMatch(lc -> lc.hasFacet(AnalysisFacet.class) && lc.config().statixConcurrentComponent());
+                .anyMatch(lc -> lc.hasFacet(AnalysisFacet.class) && lc.config().statixSolverMode() != StatixSolverMode.traditional);
         if(concurrentInLanguage) {
             return current;
         }
