@@ -32,7 +32,7 @@ public class StatixProjectConfigReaderWriter {
         parallelLanguages.forEach(languageName -> modes.put(languageName, SolverMode.CONCURRENT));
         config.getKeys(PROP_MODES).forEachRemaining(modeKey -> {
             String languageName = modeKey.substring(PROP_MODES.length() + 1);
-            SolverMode mode = SolverMode.valueOf(config.getString(modeKey).toUpperCase());
+            SolverMode mode = SolverMode.valueOf(config.getString(modeKey).toUpperCase().replace('-', '_'));
             modes.put(languageName, mode);
         });
         Integer messageStacktraceLength = config.getInteger(PROP_MESSAGE_TRACE_LENGTH, null);
