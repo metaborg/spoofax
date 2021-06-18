@@ -41,6 +41,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_SDF_JSGLR2_LOGGING = PROP_SDF + ".jsglr2-logging";
 
     private static final String PROP_STATIX = PROP_LANGUAGE + ".statix";
+    private static final String PROP_STATIX_CONCURRENT = PROP_STATIX + ".concurrent";
     private static final String PROP_STATIX_MODE = PROP_STATIX + ".mode";
 
     private final ProjectConfig projectConfig;
@@ -291,6 +292,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     @Override public StatixSolverMode statixSolverMode() {
         String value = this.config.getString(PROP_STATIX_MODE);
         if(value == null) {
+            if(this.config.getBoolean(PROP_STATIX_CONCURRENT, false)) {
+                logger.warn("Config option {} is deprecated. Use {}: concurrent instead.", PROP_STATIX_CONCURRENT, PROP_STATIX_MODE);
+                return StatixSolverMode.concurrent;
+            }
             return StatixSolverMode.traditional;
         }
         if(value.equals("incremental-scopegraph-diff")) {
