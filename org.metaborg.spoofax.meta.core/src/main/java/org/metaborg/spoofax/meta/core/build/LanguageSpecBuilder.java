@@ -418,9 +418,9 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         FileObject sdfCompletionFileCandidate = null;
 
-        if(sdf2tableVersion == Sdf2tableVersion.c) {
+        if(!sdf2tableVersion.javaBased) {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFile(sdfCompletionModule);
-        } else if(sdf2tableVersion == Sdf2tableVersion.java || sdf2tableVersion == Sdf2tableVersion.dynamic) {
+        } else {
             sdfCompletionFileCandidate = paths.syntaxCompletionMainFileNormalized(sdfCompletionModule);
         }
 
@@ -441,10 +441,15 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final @Nullable List<File> sdfMetaFiles = Lists.newArrayList();
 
         for(String sdfMetaModule : sdfMetaModules) {
-            final FileObject sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
-            if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists()) {
+            final FileObject sdfMetaFileCandidate;
+
+            if(config.sdf2tableVersion().javaBased)
+                sdfMetaFileCandidate = paths.syntaxSrcGenMainNormFile(sdfMetaModule);
+            else
+                sdfMetaFileCandidate = paths.findSyntaxMainFile(sdfRoots, sdfMetaModule);
+
+            if(sdfMetaFileCandidate != null && sdfMetaFileCandidate.exists())
                 sdfMetaFiles.add(resourceService.localPath(sdfMetaFileCandidate));
-            }
         }
 
 

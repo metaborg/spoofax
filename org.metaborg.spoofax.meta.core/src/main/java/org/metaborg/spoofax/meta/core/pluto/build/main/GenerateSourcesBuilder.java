@@ -207,8 +207,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     private void buildSdf(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder) throws IOException {
         if(input.sdfModule != null && input.sdfEnabled) {
-            if(input.sdf2tableVersion == Sdf2tableVersion.java || input.sdf2tableVersion == Sdf2tableVersion.dynamic
-                || input.sdf2tableVersion == Sdf2tableVersion.incremental) {
+            if(input.sdf2tableVersion.javaBased) {
                 newParseTableGenerationBuild(input, sdfOriginBuilder);
             } else {
                 oldParseTableGenerationBuild(input, sdfOriginBuilder);
@@ -221,10 +220,12 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         // Standard parser generation
         final File srcNormDir = toFile(paths.syntaxNormDir());
         final File sdfMainNormFile = FileUtils.getFile(srcNormDir, input.sdfModule + "-norm.aterm");
-        final File sdfPermissiveWaterNormFile = FileUtils.getFile(srcNormDir, "permissive-water-norm.aterm");
+        final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
+        final File tableFile = FileUtils.getFile(targetMetaborgDir, "sdf.tbl");
+        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, "table.bin");
 
-        final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration = newParseTableGeneration(input,
-            Arrays.asList(sdfMainNormFile, sdfPermissiveWaterNormFile), "sdf.tbl", "table.bin", false);
+        final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTableGeneration =
+            newParseTableGeneration(input, sdfMainNormFile, tableFile, persistedTableFile, true, false);
 
         sdfOriginBuilder.add(parseTableGeneration);
         requireBuild(parseTableGeneration);
@@ -242,8 +243,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
         // Parser generation for completions
         if(input.sdfCompletionFile != null && input.sdfEnabled) {
+            final File completionsTableFile = FileUtils.getFile(targetMetaborgDir, "sdf-completions.tbl");
+            final File completionsPersistedTableFile = FileUtils.getFile(targetMetaborgDir, "table-completions.bin");
+
             final BuildRequest<?, ?, ?, ?> parseTableGenerationCompletions = newParseTableGeneration(input,
-                Arrays.asList(input.sdfCompletionFile), "sdf-completions.tbl", "table-completions.bin", true);
+                input.sdfCompletionFile, completionsTableFile, completionsPersistedTableFile, false, true);
 
             sdfOriginBuilder.add(parseTableGenerationCompletions);
             requireBuild(parseTableGenerationCompletions);
@@ -251,11 +255,18 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     private BuildRequest<?, OutputPersisted<File>, ?, ?> newParseTableGeneration(GenerateSourcesBuilder.Input input,
-        Collection<File> sdfNormFiles, String tableFilename, String persistedTableFilename, boolean isCompletions)
+        File sdfMainNormFile, File tableFile, File persistedTableFile, boolean withRecovery, boolean isCompletions)
         throws IOException {
-        final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
-        final File tableFile = FileUtils.getFile(targetMetaborgDir, tableFilename);
-        final File persistedTableFile = FileUtils.getFile(targetMetaborgDir, persistedTableFilename);
+        List<File> sdfNormFiles = new ArrayList<>();
+
+        sdfNormFiles.add(sdfMainNormFile);
+
+        if(withRecovery) {
+            final File srcNormDir = toFile(paths.syntaxNormDir());
+            final File sdfPermissiveWaterNormFile = FileUtils.getFile(srcNormDir, "permissive-water-norm.aterm");
+
+            sdfNormFiles.add(sdfPermissiveWaterNormFile);
+        }
 
         final boolean dynamicGeneration = (input.sdf2tableVersion == Sdf2tableVersion.dynamic
             || input.sdf2tableVersion == Sdf2tableVersion.incremental);
@@ -417,8 +428,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     }
 
     private void buildSdfMeta(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder) throws IOException {
-        final File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
-
         for(int i = 0; i < input.sdfMetaFiles.size(); i++) {
             final File sdfMetaFile = input.sdfMetaFiles.get(i);
 
@@ -429,33 +438,56 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 }
                 final String sdfMetaModule = input.sdfMetaModules.get(i);
 
-                final BuildRequest<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix, SpoofaxBuilderFactory<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix>> getStrategoMixRequest =
-                    GetStrategoMix.request(new GetStrategoMix.Input(context));
-                final File strategoMixFile = requireBuild(getStrategoMixRequest).val();
-                final Origin strategoMixOrigin = Origin.from(getStrategoMixRequest);
-                final Arguments packSdfMetaArgs = new Arguments(input.packSdfArgs);
-                packSdfMetaArgs.addFile("-Idef", strategoMixFile);
-
-                final File packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + ".def");
-
-                final Origin packSdfOrigin = PackSdfLegacy.origin(new PackSdfLegacy.Input(context, sdfMetaModule,
-                    sdfMetaFile, packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, strategoMixOrigin));
-
-                final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + "-permissive.def");
-                final Origin permissiveDefOrigin = MakePermissive.origin(
-                    new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfMetaModule, packSdfOrigin));
-
-                final File transDir = toFile(paths.transDir());
-                final File tableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
-
-                Origin sdfMetaOrigin = Sdf2TableLegacy.origin(new Sdf2TableLegacy.Input(context, permissiveDefFile,
-                    tableFile, sdfMetaModule, permissiveDefOrigin));
-
-                sdfOriginBuilder.add(sdfMetaOrigin);
-
-                requireBuild(sdfMetaOrigin);
+                if(input.sdf2tableVersion.javaBased)
+                    newMetaParseTableGenerationBuild(input, sdfOriginBuilder, sdfMetaModule, sdfMetaFile);
+                else
+                    oldMetaParseTableGenerationBuild(input, sdfOriginBuilder, sdfMetaModule, sdfMetaFile);
             }
         }
+    }
+
+    private void newMetaParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder,
+        String sdfMetaModule, File sdfMainNormFile) throws IOException {
+        final File transDir = toFile(paths.transDir());
+        final File metaTableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
+        final File metaPersistedTableFile = FileUtils.getFile(transDir, "table-" + sdfMetaModule + ".bin");
+
+        final BuildRequest<?, OutputPersisted<File>, ?, ?> metaParseTableGeneration = newParseTableGeneration(input,
+            sdfMainNormFile, metaTableFile, metaPersistedTableFile, true, false);
+
+        sdfOriginBuilder.add(metaParseTableGeneration);
+        requireBuild(metaParseTableGeneration);
+    }
+
+    private void oldMetaParseTableGenerationBuild(GenerateSourcesBuilder.Input input, Origin.Builder sdfOriginBuilder,
+        String sdfMetaModule, File sdfMetaFile) throws IOException {
+        final File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
+
+        final BuildRequest<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix, SpoofaxBuilderFactory<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix>> getStrategoMixRequest =
+            GetStrategoMix.request(new GetStrategoMix.Input(context));
+        final File strategoMixFile = requireBuild(getStrategoMixRequest).val();
+        final Origin strategoMixOrigin = Origin.from(getStrategoMixRequest);
+        final Arguments packSdfMetaArgs = new Arguments(input.packSdfArgs);
+        packSdfMetaArgs.addFile("-Idef", strategoMixFile);
+
+        final File packSdfFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + ".def");
+
+        final Origin packSdfOrigin = PackSdfLegacy.origin(new PackSdfLegacy.Input(context, sdfMetaModule, sdfMetaFile,
+            packSdfFile, input.packSdfIncludePaths, packSdfMetaArgs, strategoMixOrigin));
+
+        final File permissiveDefFile = FileUtils.getFile(srcGenSyntaxDir, sdfMetaModule + "-permissive.def");
+        final Origin permissiveDefOrigin = MakePermissive
+            .origin(new MakePermissive.Input(context, packSdfFile, permissiveDefFile, sdfMetaModule, packSdfOrigin));
+
+        final File transDir = toFile(paths.transDir());
+        final File tableFile = FileUtils.getFile(transDir, sdfMetaModule + ".tbl");
+
+        Origin sdfMetaOrigin = Sdf2TableLegacy.origin(
+            new Sdf2TableLegacy.Input(context, permissiveDefFile, tableFile, sdfMetaModule, permissiveDefOrigin));
+
+        sdfOriginBuilder.add(sdfMetaOrigin);
+
+        requireBuild(sdfMetaOrigin);
     }
 
     private void buildStratego(GenerateSourcesBuilder.Input input, Origin sdfOrigin)
