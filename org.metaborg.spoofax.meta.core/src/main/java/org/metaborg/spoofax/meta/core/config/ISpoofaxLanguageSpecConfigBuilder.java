@@ -14,7 +14,6 @@ import org.metaborg.util.cmd.Arguments;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * Builder for {@link ISpoofaxLanguageSpecConfig} objects.
@@ -227,15 +226,6 @@ public interface ISpoofaxLanguageSpecConfigBuilder extends ILanguageSpecConfigBu
      * @return This builder.
      */
     ISpoofaxLanguageSpecConfigBuilder withStrBuildSetting(StrategoBuildSetting buildSetting);
-
-    /**
-     * Sets the project artifact Stratego gradual type checking setting.
-     *
-     * @param gradualSetting
-     *            A member of the {@link StrategoGradualSetting} enumeration.
-     * @return This builder.
-     */
-    ISpoofaxLanguageSpecConfigBuilder withStrGradualSetting(StrategoGradualSetting gradualSetting);
 
     /**
      * Sets the project artifact format.

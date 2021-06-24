@@ -16,5 +16,6 @@ module Main
 {{#fileExtensions}}  extensions : {{fileExtensions}}
 {{/fileExtensions}}
 
-  provider : target/metaborg/stratego.ctree
+// Add this provider when switching Stratego to interpreted mode:
+//  provider : target/metaborg/stratego.ctree
   provider : target/metaborg/stratego.jar

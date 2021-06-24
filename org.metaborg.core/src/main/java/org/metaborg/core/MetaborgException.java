@@ -19,4 +19,14 @@ public class MetaborgException extends Exception {
     public MetaborgException(Throwable cause) {
         super(cause);
     }
+
+    protected MetaborgException(String message, Throwable cause,
+                        boolean enableSuppression,
+                        boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+
+    public static MetaborgException withoutStackTrace(String message, Throwable cause) {
+        return new MetaborgException(message, cause, true, false);
+    }
 }

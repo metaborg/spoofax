@@ -10,7 +10,7 @@ dependencies:
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.lang:${metaborgVersion}
 {{/analysisNabl2}}{{#analysisStatix}}  - org.metaborg:statix.lang:${metaborgVersion}
   - org.metaborg:sdf3.ext.statix:${metaborgVersion}
-{{/analysisStatix}}  - org.metaborg:dynsem:${metaborgVersion}
+{{/analysisStatix}}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 {{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
@@ -32,7 +32,7 @@ language:
   version: sdf2
 {{/syntaxSdf2}}
   stratego:
-    format: ctree
+    format: jar
     args:
     - -la
     - stratego-lib

@@ -22,7 +22,6 @@ import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
-import org.metaborg.spoofax.meta.core.build.LanguageSpecBuilder;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfig;
@@ -36,11 +35,11 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
@@ -60,13 +59,11 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.CheckOpenModule;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.CheckOpenModuleOutput;
 import mb.stratego.build.util.LastModified;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
@@ -95,9 +92,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final String moduleName;
         if(!(ast.getName().equals("Module") && ast.getSubtermCount() == 2)) {
-        	moduleName = path;
+            moduleName = path;
         } else {
-        	moduleName = TermUtils.toJavaStringAt(ast, 0);
+            moduleName = TermUtils.toJavaStringAt(ast, 0);
         }
 
         final IProject project = context.project();
@@ -228,15 +225,16 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         for(Message message : analysisInformation.messages) {
-            final ImploderAttachment imploderAttachment =
-                ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
-            if(imploderAttachment == null) {
+            final IStrategoString term = factory.makeString(message.locationTermString);
+            if(message.filename == null) {
                 logger.debug("No origins for message: " + message);
+            } else {
+                final ImploderAttachment imploderAttachment = ImploderAttachment
+                    .createCompactPositionAttachment(message.filename, message.sourceRegion.startRow, message.sourceRegion.startColumn,
+                        message.sourceRegion.startOffset, message.sourceRegion.endOffset);
+                term.putAttachment(imploderAttachment);
             }
-            final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
-            if(config.strGradualSetting() == StrategoGradualSetting.NONE && message instanceof TypeMessage) {
-                continue;
-            }
+            final IStrategoTuple messageTuple = B.tuple(term, B.string(message.getMessage()));
             switch(message.severity) {
                 case ERROR:
                     errors.add(messageTuple);

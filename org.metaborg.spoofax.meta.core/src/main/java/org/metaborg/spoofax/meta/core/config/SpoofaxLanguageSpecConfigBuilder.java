@@ -24,7 +24,6 @@ import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
@@ -42,7 +41,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
     protected @Nullable StrategoBuildSetting strBuildSetting;
-    protected @Nullable StrategoGradualSetting strGradualSetting;
     protected @Nullable StrategoFormat strFormat;
     protected @Nullable String strExternalJar;
     protected @Nullable String strExternalJarFlags;
@@ -65,7 +63,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
             sdf2tableVersion, checkOverlap, checkPriorities, dataDependent, sdfMainFile, parseTable, jsglrVersion,
             jsglr2Logging, statixConcurrent, completionsParseTable, placeholderCharacters, prettyPrint,
-            generateNamespacedGrammar, sdfMetaFile, sdfExternalDef, sdfArgs, strBuildSetting, strGradualSetting,
+            generateNamespacedGrammar, sdfMetaFile, sdfExternalDef, sdfArgs, strBuildSetting,
             strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
@@ -267,11 +265,6 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder withStrBuildSetting(StrategoBuildSetting buildSetting) {
         this.strBuildSetting = buildSetting;
-        return this;
-    }
-
-    @Override public ISpoofaxLanguageSpecConfigBuilder withStrGradualSetting(StrategoGradualSetting gradualSetting) {
-        this.strGradualSetting = gradualSetting;
         return this;
     }
 

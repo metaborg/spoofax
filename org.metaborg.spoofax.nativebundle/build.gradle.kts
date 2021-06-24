@@ -6,8 +6,5 @@ val spoofax2Version: String by ext
 dependencies {
   api(platform("org.metaborg:parent:$spoofax2Version"))
 
-  api(project(":org.metaborg.core"))
-  api("junit:junit")
-
-  compileOnly("com.google.code.findbugs:jsr305")
+  implementation("org.apache.commons:commons-lang3")
 }
