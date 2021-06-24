@@ -42,6 +42,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     private static final String PROP_STATIX = PROP_LANGUAGE + ".statix";
     private static final String PROP_STATIX_CONCURRENT = PROP_STATIX + ".concurrent";
+    private static final String PROP_STATIX_MODE = PROP_STATIX + ".mode";
 
     private final ProjectConfig projectConfig;
 
@@ -57,7 +58,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             @Nullable String parseTable, @Nullable String completionParseTable,
             @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable Boolean checkOverlap,
             @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent, @Nullable JSGLRVersion jsglrVersion,
-            @Nullable JSGLR2Logging jsglr2Logging, @Nullable Boolean statixConcurrent,
+            @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode,
             @Nullable Collection<LanguageContributionIdentifier> langContribs,
             @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config);
@@ -87,8 +88,8 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         if(jsglr2Logging != null) {
             config.setProperty(PROP_SDF_JSGLR2_LOGGING, jsglr2Logging);
         }
-        if(statixConcurrent != null) {
-            config.setProperty(PROP_STATIX_CONCURRENT, statixConcurrent);
+        if(statixMode != null) {
+            config.setProperty(PROP_STATIX_MODE, statixMode);
         }
         if(name != null) {
             config.setProperty(PROP_NAME, name);
@@ -288,8 +289,19 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         return value != null ? JSGLR2Logging.valueOf(value) : JSGLR2Logging.none;
     }
 
-    @Override public boolean statixConcurrentComponent() {
-        return config.getBoolean(PROP_STATIX_CONCURRENT, false);
+    @Override public StatixSolverMode statixSolverMode() {
+        String value = this.config.getString(PROP_STATIX_MODE);
+        if(value == null) {
+            if(this.config.getBoolean(PROP_STATIX_CONCURRENT, false)) {
+                logger.warn("Config option {} is deprecated. Use {}: concurrent instead.", PROP_STATIX_CONCURRENT, PROP_STATIX_MODE);
+                return StatixSolverMode.concurrent;
+            }
+            return StatixSolverMode.traditional;
+        }
+        if(value.equals("incremental-scopegraph-diff")) {
+            return StatixSolverMode.incrementalScopeGraphDiff;
+        }
+        return StatixSolverMode.valueOf(value);
     }
 
 }
