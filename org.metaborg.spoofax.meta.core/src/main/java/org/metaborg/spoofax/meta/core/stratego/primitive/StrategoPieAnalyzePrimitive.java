@@ -54,7 +54,6 @@ import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
-import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
@@ -127,24 +126,25 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final FileObject baseLoc = languageSpec.location();
         final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc);
 
-        String strModule = NameUtil.toJavaId(config.strategoName().toLowerCase());
+        String strMainModule = NameUtil.toJavaId(config.strategoName().toLowerCase());
 
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(project, SpoofaxConstants.LANG_STRATEGO_NAME);
-        @Nullable File strFile;
-        final FileObject strFileCandidate = paths.findStrMainFile(strRoots, strModule);
-        if(strFileCandidate != null && strFileCandidate.exists()) {
-            strFile = resourceService.localPath(strFileCandidate);
-            if(strFile == null || !strFile.exists()) {
-                logger.info("Main Stratego2 file at " + strFile + " does not exist");
-                strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
-                strModule = moduleName;
+        @Nullable File strMainFile;
+        final FileObject strMainFileCandidate = paths.findStrMainFile(strRoots, strMainModule);
+        if(strMainFileCandidate != null && strMainFileCandidate.exists()) {
+            strMainFile = resourceService.localPath(strMainFileCandidate);
+            if(strMainFile == null || !strMainFile.exists()) {
+                logger.info("Main Stratego2 file at " + strMainFile + " does not exist");
+                strMainFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
+                strMainModule = moduleName;
             }
         } else {
             logger.info("Main Stratego2 file does not exist");
-            strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
-            strModule = moduleName;
+            strMainFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
+            strMainModule = moduleName;
         }
+        final File strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
 
         final @Nullable String strExternalJarFlags = config.strExternalJarFlags();
 
@@ -188,11 +188,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs, projectLocation.getPath());
         final LastModified<IStrategoTerm> astWLM =
             new LastModified<>(ast, Instant.now().getEpochSecond());
+        final boolean isLibrary = false;
         final ModuleIdentifier moduleIdentifier =
-            new ModuleIdentifier(false, strModule, new FSPath(strFile));
-        final boolean autoImportStd = true;
+            new ModuleIdentifier(strFile.getName().endsWith(".str"), isLibrary, moduleName, new FSPath(strFile));
+        final ModuleIdentifier mainModuleIdentifier =
+            new ModuleIdentifier(strMainFile.getName().endsWith(".str"), isLibrary, strMainModule, new FSPath(strMainFile));
+        final boolean autoImportStd = false;
         final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
-            strjIncludeDirs, linkedLibraries, astWLM, autoImportStd), moduleIdentifier, projectPath);
+            strjIncludeDirs, linkedLibraries, astWLM, autoImportStd), mainModuleIdentifier, projectPath);
         final Task<CheckOpenModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
@@ -207,8 +210,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             try(final MixedSession session = pie.newSession()) {
                 TopDownSession tdSession = session.updateAffectedBy(changedResources);
                 session.deleteUnobservedTasks(t -> true, (t, r) -> {
-                    if(r instanceof HierarchicalResource
-                        && Objects.equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                    if(Objects.equals(r.getLeafExtension(), "java")) {
                         logger.debug("Deleting garbage from previous build: " + r);
                         return true;
                     }

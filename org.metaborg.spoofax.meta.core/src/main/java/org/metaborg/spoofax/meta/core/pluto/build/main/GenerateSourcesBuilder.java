@@ -563,13 +563,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final Arguments newArgs = GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs, projectLocation.getPath());
                 final String strFileName = strFile.getName();
                 final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str2".length());
+                final boolean legacyStratego = false;
+                final boolean isLibrary = false;
                 final ModuleIdentifier mainModuleIdentifier =
-                    new ModuleIdentifier(false, mainModuleName, new FSPath(strFile));
+                    new ModuleIdentifier(legacyStratego, isLibrary, mainModuleName, new FSPath(strFile));
                 final ResourcePath projectPath = new FSPath(projectLocation);
                 final CompileInput compileInput = new CompileInput(mainModuleIdentifier,
                     projectPath, new FSPath(depPath), input.strJavaPackage, new FSPath(cacheDir), new ArrayList<>(0),
                     strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true,
-                    true);
+                    false);
                 final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
                 final IPieProvider pieProvider = context.pieProvider();
