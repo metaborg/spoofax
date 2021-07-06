@@ -1,6 +1,9 @@
 module {{strategoName}}
 
 imports
+  libstratego-lib
+
+imports
   
 {{#syntaxEnabled}}{{#syntaxSdf3}}  completion/completion
 {{/syntaxSdf3}}  pp

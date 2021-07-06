@@ -1,5 +1,8 @@
 module analysis
 
+imports
+  libstratego-lib
+
 rules // Analysis
 
   editor-analyze:

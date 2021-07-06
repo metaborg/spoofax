@@ -1,6 +1,9 @@
 module completion
 
 imports
+  libstratego-lib
+
+imports
   
   libspoofax/editor/completion/-
   completion/{{name}}-cp

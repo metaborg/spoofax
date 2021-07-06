@@ -1,6 +1,9 @@
 module outline
 
 imports
+  libstratego-lib
+
+imports
   
   {{signaturesModule}}
   libspoofax/editor/outline

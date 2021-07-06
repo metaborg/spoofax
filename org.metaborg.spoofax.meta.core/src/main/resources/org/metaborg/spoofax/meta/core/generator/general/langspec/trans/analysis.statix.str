@@ -1,6 +1,9 @@
 module analysis
 
 imports
+  libstratego-lib
+
+imports
 
   statixruntime
   statix/api

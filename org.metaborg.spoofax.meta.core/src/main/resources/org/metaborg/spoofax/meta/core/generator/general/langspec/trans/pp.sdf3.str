@@ -1,6 +1,9 @@
 module pp
 
 imports
+  libstratego-lib
+
+imports
 
   libstratego-gpp
   libspoofax/sdf/pp
