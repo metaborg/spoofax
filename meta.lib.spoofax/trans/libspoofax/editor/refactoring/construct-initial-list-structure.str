@@ -1,6 +1,9 @@
 module libspoofax/editor/refactoring/construct-initial-list-structure
 
 imports
+  libstratego-lib
+
+imports
   libspoofax/term/origin
 
 rules

@@ -1,5 +1,8 @@
 module libspoofax/editor/completion/interface
 
+imports
+  libstratego-lib
+
 // interface for collecting the suggestions
 // getting the indentation, ws and separator
 rules

@@ -1,5 +1,8 @@
 module libspoofax/editor/refactoring/construct-text
 
+imports
+  libstratego-lib
+
 imports 
 	libstratego-gpp
   libspoofax/term/origin

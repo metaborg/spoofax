@@ -1,5 +1,8 @@
 module libspoofax/ui/dialogs
 
+imports
+  libstratego-lib
+
 rules
 
   /**

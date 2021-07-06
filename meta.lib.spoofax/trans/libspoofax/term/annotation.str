@@ -1,5 +1,8 @@
 module libspoofax/term/annotation
 
+imports
+  libstratego-lib
+
 rules
 	
 	get-annotation(s) =

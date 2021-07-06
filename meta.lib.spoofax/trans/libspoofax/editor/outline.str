@@ -1,6 +1,9 @@
 module libspoofax/editor/outline
 
 imports
+  libstratego-lib
+
+imports
 	
   libspoofax/term/origin
   libspoofax/term/annotation

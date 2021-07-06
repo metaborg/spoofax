@@ -1,5 +1,8 @@
 module libspoofax/term/position
 
+imports
+  libstratego-lib
+
 signature constructors
 
   MARKER: Term

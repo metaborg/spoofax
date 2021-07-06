@@ -1,6 +1,9 @@
 module libspoofax/editor/resolution
 
 imports
+  libstratego-lib
+
+imports
 
   libspoofax/term/annotation
   libspoofax/term/origin

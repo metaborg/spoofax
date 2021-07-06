@@ -1,6 +1,9 @@
 module libspoofax/editor/completion/core
 
 imports
+  libstratego-lib
+
+imports
   libspoofax/term/origin
   libspoofax/editor/completion/interface
   libspoofax/editor/refactoring/-

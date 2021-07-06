@@ -1,6 +1,9 @@
 module libspoofax/resource/path
 
 imports
+  libstratego-lib
+
+imports
 
   libspoofax/core/language
 

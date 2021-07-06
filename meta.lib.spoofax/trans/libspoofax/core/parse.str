@@ -1,6 +1,9 @@
 module libspoofax/core/parse
 
 imports
+  libstratego-lib
+
+imports
 
   libspoofax/core/language
 

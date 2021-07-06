@@ -1,6 +1,9 @@
 module libspoofax/editor/completion/incorrect-programs
 
 imports
+  libstratego-lib
+
+imports
   libspoofax/editor/completion/core
   libspoofax/editor/completion/interface
   libspoofax/editor/refactoring/layout-adaption

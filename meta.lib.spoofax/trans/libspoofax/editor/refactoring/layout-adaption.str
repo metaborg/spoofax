@@ -1,6 +1,9 @@
 module libspoofax/editor/refactoring/layout-adaption
 
 imports
+  libstratego-lib
+
+imports
   libspoofax/term/origin
 	libspoofax/editor/refactoring/construct-text
   libspoofax/editor/refactoring/construct-initial-list-structure

@@ -1,5 +1,8 @@
 module libspoofax/analysis/constraint
 
+imports
+  libstratego-lib
+
 // This module defines the interface for a stateful analysis cycle. It supports
 // single and multi file analysis. Analysis strategies return an analysis term,
 // which is cached, and provided in later analysis cycles.
