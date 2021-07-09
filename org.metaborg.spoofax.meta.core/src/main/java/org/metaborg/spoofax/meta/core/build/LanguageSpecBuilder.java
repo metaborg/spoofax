@@ -31,6 +31,7 @@ import org.metaborg.core.config.Sdf2tableVersion;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.StreamMessagePrinter;
+import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
@@ -40,6 +41,7 @@ import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
+import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
@@ -458,12 +460,13 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_STRATEGO_NAME);
-        final FileObject strFileCandidate = paths.findStrMainFile(strRoots, strModule);
+        final FileObject strFileCandidate = config.strBuildSetting().findStrMainFile(paths, strRoots, strModule);
         final @Nullable File strFile;
         if(strFileCandidate != null && strFileCandidate.exists()) {
             strFile = resourceService.localPath(strFileCandidate);
-        } else {
-            strFile = null;
+        } else { 
+            final String fileExtension = config.strBuildSetting() == StrategoBuildSetting.batch ? "str" : "str2";
+            throw new MetaborgException("Cannot find Stratego main file '" + NameUtil.toJavaId(strModule.toLowerCase()) + "." + fileExtension + "'.");
         }
         final String strStratPkg = paths.strJavaTransPkg(config.identifier().id);
 

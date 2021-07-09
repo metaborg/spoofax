@@ -131,7 +131,8 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(project, SpoofaxConstants.LANG_STRATEGO_NAME);
         @Nullable File strMainFile;
-        final FileObject strMainFileCandidate = paths.findStrMainFile(strRoots, strMainModule);
+        final FileObject strMainFileCandidate =
+            config.strBuildSetting().findStrMainFile(paths, strRoots, config.strategoName());
         if(strMainFileCandidate != null && strMainFileCandidate.exists()) {
             strMainFile = resourceService.localPath(strMainFileCandidate);
             if(strMainFile == null || !strMainFile.exists()) {
@@ -140,7 +141,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                 strMainModule = moduleName;
             }
         } else {
-            logger.info("Main Stratego2 file does not exist");
+            logger.info("Main Stratego2 file with name " + strMainModule + ".str2 does not exist");
             strMainFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
             strMainModule = moduleName;
         }
