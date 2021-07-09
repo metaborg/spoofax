@@ -6,7 +6,8 @@ set -o nounset
 #set -o xtrace
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-[ ! -z "$DIR" ]
+[ ! -z "$DIR" ]     # Ensure the directory is not empty
+[ -d "$DIR" ]       # Ensure the directory exists
 
 BIN="implodePT"
 
@@ -94,11 +95,31 @@ do
 done
 echo $volumes
 
-# Run the docker container with the volumes mounted, and execute it
-docker run --rm -v "$DIR/":/bundle \
+# Create the docker container with the volumes mounted
+container_id=$(docker container create \
+  --mount type=bind,source="$DIR",target=/bundle \
   ${volumes} \
   ubuntu:focal \
-  /bundle/$BIN-linux ${newopts}
-# `docker run` returns the exit code of its command
+  /bin/bash -c "pwd && ls -la && \
+  echo /bundle/ && ls -la /bundle/ && \
+  /bundle/$BIN-linux ${newopts}")
+
+# Start the container
+docker container start $container_id
+
+# Show container output
+docker container logs --since 0 -f $container_id
+
+# Wait for the container to finish, and get exit code
+retVal=$(docker container wait $container_id)
+
+# Always remove the container
+docker container rm $container_id
+
+if [[ $retVal -ne 0 ]]; then
+    # It ran but failed
+    echo "Error $retVal, exit"
+    exit $retVal
+fi
 
 echo "Done"
