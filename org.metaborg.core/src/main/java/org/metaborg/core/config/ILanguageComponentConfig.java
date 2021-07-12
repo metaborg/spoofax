@@ -110,4 +110,5 @@ public interface ILanguageComponentConfig extends IProjectConfig {
     Collection<IExportConfig> exports();
 
 
+    Boolean strEnabled();
 }

@@ -456,17 +456,24 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
 
         // Stratego
+        final Boolean strEnabled = config.strEnabled();
         final String strModule = config.strategoName();
 
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_STRATEGO_NAME);
         final FileObject strFileCandidate = config.strBuildSetting().findStrMainFile(paths, strRoots, strModule);
         final @Nullable File strFile;
-        if(strFileCandidate != null && strFileCandidate.exists()) {
-            strFile = resourceService.localPath(strFileCandidate);
-        } else { 
-            final String fileExtension = config.strBuildSetting() == StrategoBuildSetting.batch ? "str" : "str2";
-            throw new MetaborgException("Cannot find Stratego main file '" + NameUtil.toJavaId(strModule.toLowerCase()) + "." + fileExtension + "'.");
+        if(strEnabled) {
+            if(strFileCandidate != null && strFileCandidate.exists()) {
+                strFile = resourceService.localPath(strFileCandidate);
+            } else {
+                final String fileExtension =
+                    config.strBuildSetting() == StrategoBuildSetting.batch ? "str" : "str2";
+                throw new MetaborgException("Cannot find Stratego main file '" + NameUtil.toJavaId(strModule.toLowerCase())
+                    + "." + fileExtension + "'.");
+            }
+        } else {
+            strFile = null;
         }
         final String strStratPkg = paths.strJavaTransPkg(config.identifier().id);
 
@@ -483,7 +490,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         final @Nullable File strExternalJar;
         final String strExternalJarStr = config.strExternalJar();
-        if(strExternalJarStr != null) {
+        if(strEnabled && strExternalJarStr != null) {
             final FileObject strExternalJarLoc = resourceService.resolve(strExternalJarStr);
             if(!strExternalJarLoc.exists()) {
                 throw new MetaborgException("External Stratego JAR at " + strExternalJarLoc + " does not exist");
@@ -517,7 +524,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         return new GenerateSourcesBuilder.Input(context, config.identifier().id, sourceDeps, sdfEnabled,
             sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
             sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
-            sdfMetaFiles, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
+            sdfMetaFiles, strEnabled, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
             strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting());
 
     }

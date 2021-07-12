@@ -87,6 +87,8 @@ public interface ILanguageComponentConfigBuilder {
      */
     ILanguageComponentConfigBuilder withName(String name);
 
+    ILanguageComponentConfigBuilder withStrEnabled(Boolean strEnabled);
+
     /**
      * Sets the language contributions.
      *

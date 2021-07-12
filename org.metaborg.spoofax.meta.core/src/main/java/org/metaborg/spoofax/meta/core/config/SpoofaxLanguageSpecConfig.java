@@ -56,7 +56,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_META = PROP_SDF + ".sdf-meta";
 
     private static final String PROP_STR = "language.stratego";
-    private static final String PROP_STR_GRADUAL_SETTING = PROP_STR + ".gradual";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
     private static final String PROP_STR_EXTERNAL_JAR_FLAGS = PROP_STR + ".externalJar.flags";
@@ -83,8 +82,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
             @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
             @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
-            @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode, @Nullable String sdfMainFile,
-            @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
+            @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode, @Nullable Boolean strEnabled,
+            @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
             @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
             @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting,
             @Nullable StrategoFormat format, @Nullable String externalJar,
@@ -92,7 +91,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
                 dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixMode,
-                langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+                strEnabled, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         this.projectConfig = projectConfig;
 
         if(sdfVersion != null) {

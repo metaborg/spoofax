@@ -44,6 +44,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     private static final String PROP_STATIX_CONCURRENT = PROP_STATIX + ".concurrent";
     private static final String PROP_STATIX_MODE = PROP_STATIX + ".mode";
 
+    private static final String PROP_STR = "language.stratego";
+    private static final String PROP_STR_ENABLED = PROP_STR + ".enabled";
+
     private final ProjectConfig projectConfig;
 
     private static final ILogger logger = LoggerUtils.logger(LanguageComponentConfig.class);
@@ -58,7 +61,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             @Nullable String parseTable, @Nullable String completionParseTable,
             @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable Boolean checkOverlap,
             @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent, @Nullable JSGLRVersion jsglrVersion,
-            @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode,
+            @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode, @Nullable Boolean strEnabled,
             @Nullable Collection<LanguageContributionIdentifier> langContribs,
             @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports) {
         super(config);
@@ -90,6 +93,9 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         }
         if(statixMode != null) {
             config.setProperty(PROP_STATIX_MODE, statixMode);
+        }
+        if(strEnabled != null) {
+            config.setProperty(PROP_STR_ENABLED, strEnabled);
         }
         if(name != null) {
             config.setProperty(PROP_NAME, name);
@@ -302,6 +308,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             return StatixSolverMode.incrementalScopeGraphDiff;
         }
         return StatixSolverMode.valueOf(value);
+    }
+
+    @Override public Boolean strEnabled() {
+        return this.config.getBoolean(PROP_STR_ENABLED, true);
     }
 
 }

@@ -36,6 +36,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable JSGLRVersion jsglrVersion;
     protected @Nullable JSGLR2Logging jsglr2Logging;
     protected @Nullable StatixSolverMode statixMode;
+    protected @Nullable Boolean strEnabled;
 
     @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
@@ -50,7 +51,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
         ProjectConfig projectConfig = projectConfigBuilder.build(configuration);
         final LanguageComponentConfig config = new LanguageComponentConfig(configuration, projectConfig, identifier,
             name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion, checkOverlap, checkPriorities,
-            dataDependent, jsglrVersion, jsglr2Logging, statixMode, langContribs, generates, exports);
+            dataDependent, jsglrVersion, jsglr2Logging, statixMode, strEnabled, langContribs, generates, exports);
         return config;
     }
 
@@ -93,6 +94,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             withCheckOverlap(config.checkOverlap());
             withCheckPriorities(config.checkPriorities());
             withSdfEnabled(config.sdfEnabled());
+            withStrEnabled(config.strEnabled());
             projectConfigBuilder.copyValuesFrom(config);
         }
         return this;
@@ -189,6 +191,11 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
 
     @Override public ILanguageComponentConfigBuilder withStatixConcurrent(StatixSolverMode mode) {
         this.statixMode = mode;
+        return this;
+    }
+
+    @Override public ILanguageComponentConfigBuilder withStrEnabled(Boolean strEnabled) {
+        this.strEnabled = strEnabled;
         return this;
     }
 

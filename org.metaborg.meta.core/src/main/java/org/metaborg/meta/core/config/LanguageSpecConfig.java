@@ -32,11 +32,11 @@ public class LanguageSpecConfig extends LanguageComponentConfig implements ILang
         @Nullable Sdf2tableVersion sdf2tableVersion, @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities,
         @Nullable Boolean dataDependent, @Nullable String parseTable, @Nullable String completionsParseTable,
         @Nullable JSGLRVersion jsglrVersion, @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode,
-        @Nullable Collection<LanguageContributionIdentifier> langContribs,
+        @Nullable Boolean strEnabled, @Nullable Collection<LanguageContributionIdentifier> langContribs,
         @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
         @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec) {
         super(config, projectConfig, id, name, sdfEnabled, parseTable, completionsParseTable, sdf2tableVersion,
-            checkOverlap, checkPriorities, dataDependent, jsglrVersion, jsglr2Logging, statixMode, langContribs,
+            checkOverlap, checkPriorities, dataDependent, jsglrVersion, jsglr2Logging, statixMode, strEnabled, langContribs,
             generates, exports);
 
         if(pardonedLanguages != null) {

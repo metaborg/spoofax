@@ -99,6 +99,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable List<String> sdfMetaModules;
         public final @Nullable List<File> sdfMetaFiles;
 
+        public final @Nullable Boolean strEnabled;
         public final @Nullable File strFile;
         public final @Nullable String strJavaPackage;
         public final @Nullable String strJavaStratPackage;
@@ -117,11 +118,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             SdfVersion sdfVersion, Sdf2tableVersion sdf2tableVersion, @Nullable Boolean checkOverlap,
             @Nullable Boolean checkPriorities, @Nullable File sdfExternalDef, List<File> packSdfIncludePaths,
             Arguments packSdfArgs, @Nullable String sdfCompletionModule, @Nullable File sdfCompletionFile,
-            @Nullable List<String> sdfMetaModules, @Nullable List<File> sdfMetaFiles, @Nullable File strFile,
-            @Nullable String strJavaPackage, @Nullable String strJavaStratPackage, @Nullable File strJavaStratFile,
-            StrategoFormat strFormat, @Nullable File strExternalJar, @Nullable String strExternalJarFlags,
-            List<File> strjIncludeDirs, List<File> strjIncludeFiles, Arguments strjArgs,
-            StrategoBuildSetting strBuildSetting) {
+            @Nullable List<String> sdfMetaModules, @Nullable List<File> sdfMetaFiles, @Nullable Boolean strEnabled,
+            @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
+            @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
+            @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, List<File> strjIncludeFiles,
+            Arguments strjArgs, StrategoBuildSetting strBuildSetting) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -140,6 +141,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.sdfCompletionFile = sdfCompletionFile;
             this.sdfMetaModules = sdfMetaModules;
             this.sdfMetaFiles = sdfMetaFiles;
+            this.strEnabled = strEnabled;
             this.strFile = strFile;
             this.strJavaPackage = strJavaPackage;
             this.strJavaStratPackage = strJavaStratPackage;
@@ -495,7 +497,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
 
         final File strFile = input.strFile;
-        if(strFile != null) {
+        final Boolean strEnabled = input.strEnabled;
+        if(strFile != null && strEnabled) {
             require(strFile, FileExistsStamper.instance);
             if(!strFile.exists()) {
                 throw new IOException("Main Stratego file at " + strFile + " does not exist");

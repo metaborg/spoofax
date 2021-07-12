@@ -62,7 +62,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         final SpoofaxLanguageSpecConfig config = new SpoofaxLanguageSpecConfig(configuration, projectConfig, identifier,
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
             sdf2tableVersion, checkOverlap, checkPriorities, dataDependent, sdfMainFile, parseTable, jsglrVersion,
-            jsglr2Logging, statixMode, completionsParseTable, placeholderCharacters, prettyPrint,
+            jsglr2Logging, statixMode, strEnabled, completionsParseTable, placeholderCharacters, prettyPrint,
             generateNamespacedGrammar, sdfMetaFile, sdfExternalDef, sdfArgs, strBuildSetting,
             strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
