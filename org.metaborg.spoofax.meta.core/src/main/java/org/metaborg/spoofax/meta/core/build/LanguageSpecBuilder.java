@@ -7,6 +7,8 @@ import build.pluto.builder.RequiredBuilderFailed;
 import build.pluto.dependency.Origin;
 import build.pluto.dependency.database.XodusDatabase;
 import build.pluto.output.Output;
+
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -501,8 +503,9 @@ public class LanguageSpecBuilder implements AutoCloseable {
         }
         final String strExternalJarFlags = config.strExternalJarFlags();
 
-        final Iterable<FileObject> strIncludePaths =
-            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
+        final Iterable<FileObject> strIncludePaths = Iterables.concat(
+            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME),
+            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO2_NAME));
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
         strjIncludesReplicateDir.delete(new AllFileSelector());
         final List<File> strjIncludeDirs = Lists.newArrayList();
@@ -521,7 +524,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier().id, sourceDeps, sdfEnabled,
+        return new GenerateSourcesBuilder.Input(context, config.identifier(), sourceDeps, sdfEnabled,
             sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
             sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
             sdfMetaFiles, strEnabled, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
