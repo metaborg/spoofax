@@ -24,6 +24,7 @@ pardonedLanguages:
 - SDF
 language:
   sdf:
+    enabled: {{syntaxEnabled}}
     pretty-print: {{name}}
     sdf2table: java
     placeholder:
