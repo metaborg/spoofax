@@ -9,9 +9,12 @@ imports
 
   libspoofax/term/annotation
 
-signature constructors
-
-  inj : String * String -> Anno
+signature
+  sorts
+    String
+    Anno
+  constructors
+    inj : String * String -> Anno
 
 rules
 
@@ -30,22 +33,30 @@ rules
    */
   remove-injections = bottomup(try(\ c#([t]) -> t where get-annotation(?inj(_, _)) \))
 
-signature constructors
+signature
+  sorts
+    Unknown
+    ConstraintTreeReference
+    ShortConstraint
+    NatCon
+    StrCon
+    IdCon
+  constructors
 
-  Parenthetical : Unknown -> Unknown
+    Parenthetical : Unknown -> Unknown
 
-  // signatures for layout constraints
-  Offside         : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
-  Indent          : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
-  NewLineIndent   : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
-  NewLineIndentBy : NatCon * ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
-  NewLine         : ConstraintTreeReference -> ShortConstraint
-  NewLineBy       : NatCon * ConstraintTreeReference -> ShortConstraint
-  Align           : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
-  Align           : ConstraintTreeReference -> ShortConstraint
-  PosRef          : NatCon -> ConstraintTreeReference
-  LiteralRef      : StrCon -> ConstraintTreeReference
-  LabelRef        : IdCon -> ConstraintTreeReference
+    // signatures for layout constraints
+    Offside         : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    Indent          : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    NewLineIndent   : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    NewLineIndentBy : NatCon * ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    NewLine         : ConstraintTreeReference -> ShortConstraint
+    NewLineBy       : NatCon * ConstraintTreeReference -> ShortConstraint
+    Align           : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    Align           : ConstraintTreeReference -> ShortConstraint
+    PosRef          : NatCon -> ConstraintTreeReference
+    LiteralRef      : StrCon -> ConstraintTreeReference
+    LabelRef        : IdCon -> ConstraintTreeReference
 
 strategies
 
@@ -107,7 +118,10 @@ strategies
 
   
 // rules for code completion
-signature constructors
+signature
+  sorts
+    cursor
+  constructors
    CURSOR_ELEMENT : cursor
    
 rules
@@ -116,9 +130,12 @@ rules
   ((?""; ![]) <+ ![S(<is-string>)])
 
 // pretty-printing empty trees
-signature constructors
-  FALSE : BooleanCondition
-  TRUE  : BooleanCondition
+signature
+  sorts
+    BooleanCondition
+  constructors
+    FALSE : BooleanCondition
+    TRUE  : BooleanCondition
 
 rules
   // typical empty non-terminals

@@ -4,12 +4,13 @@ imports
   libstratego-lib
 
 imports
-	
+
   libspoofax/term/origin
   libspoofax/term/annotation
   
 signature
-
+  sorts
+    Label Children Node
   constructors
   
     Node : Label * Children -> Node

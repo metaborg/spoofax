@@ -9,11 +9,20 @@ imports
   libspoofax/editor/refactoring/-
   libstratego-gpp
 
-signature constructors 
+signature
+  sorts
+    NewTerm
+    AST_CHANGE
+    OldTerm
+    NewTerm
+  constructors
    INSERTION_TERM : NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
    REPLACE_TERM   : OldTerm * NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
 
-signature constructors
+signature
+  sorts
+    cursor
+  constructors
    CURSOR_ELEMENT : cursor
 
 rules

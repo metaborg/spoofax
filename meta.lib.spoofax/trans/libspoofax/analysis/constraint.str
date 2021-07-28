@@ -65,6 +65,14 @@ imports
 // Analysis should not return results for removed files. 
 
 signature
+  sorts
+    String
+    Term
+
+  sorts
+    Progress
+    Cancel
+    AnalysisAction
 
   constructors // analysis
 
@@ -72,6 +80,9 @@ signature
     AnalyzeMulti   : (String, Change) * List(String, Change) * Progress * Cancel -> AnalysisAction
 
     AnalysisResult : List(String, Result) -> AnalysisResult
+
+  sorts
+    Change
 
   constructors // changes    
 
@@ -84,6 +95,9 @@ signature
            -> Change
     Cached  : Term     // analysis
            -> Change
+
+  sorts
+    Result
 
   constructors // results
 
@@ -99,6 +113,9 @@ signature
            * List(EditorMessage)    // notes
           -> Result
     Failed : Result
+
+  sorts
+    EditorMessage
 
   constructors // messages
 

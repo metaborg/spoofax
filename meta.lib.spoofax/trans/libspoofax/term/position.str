@@ -3,9 +3,11 @@ module libspoofax/term/position
 imports
   libstratego-lib
 
-signature constructors
-
-  MARKER: Term
+signature
+  sorts
+    Term
+  constructors
+    MARKER: Term
   
 strategies
 
