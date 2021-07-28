@@ -6,6 +6,12 @@ context-free syntax
   // Allow WATER on places where LAYOUT may occur
   LAYOUT.WATER = WATER
 
+lexical sorts
+  WATER
+  WATERTOKEN
+  WATERTOKENSTART
+  WATERTOKENSEPARATOR
+
 lexical syntax
   // Separate water regions into smaller chunks for recovery costs calculation
   WATER = WATERTOKEN
