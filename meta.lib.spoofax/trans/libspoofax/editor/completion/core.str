@@ -20,8 +20,6 @@ signature
    REPLACE_TERM   : OldTerm * NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
 
 signature
-  sorts
-    cursor
   constructors
    CURSOR_ELEMENT : cursor
 

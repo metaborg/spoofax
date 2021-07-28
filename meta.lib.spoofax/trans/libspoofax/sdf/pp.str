@@ -41,6 +41,7 @@ signature
     NatCon
     StrCon
     IdCon
+    List(a)
   constructors
 
     Parenthetical : Unknown -> Unknown
@@ -119,8 +120,6 @@ strategies
   
 // rules for code completion
 signature
-  sorts
-    cursor
   constructors
    CURSOR_ELEMENT : cursor
    
