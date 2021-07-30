@@ -75,20 +75,17 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
-            SpoofaxProjectConfig projectConfig, @Nullable LanguageIdentifier id, @Nullable String name,
-            @Nullable Collection<LanguageContributionIdentifier> langContribs,
-            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
-            @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec,
-            @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
-            @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
-            @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
-            @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode, @Nullable Boolean strEnabled,
-            @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
-            @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
-            @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting,
-            @Nullable StrategoFormat format, @Nullable String externalJar,
-            @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
-            @Nullable Collection<IBuildStepConfig> buildSteps) {
+        SpoofaxProjectConfig projectConfig, @Nullable LanguageIdentifier id, @Nullable String name,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs, @Nullable Collection<IGenerateConfig> generates,
+        @Nullable Collection<IExportConfig> exports, @Nullable Collection<String> pardonedLanguages,
+        @Nullable Boolean useBuildSystemSpec, @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
+        @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
+        @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
+        @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode, @Nullable Boolean strEnabled,
+        @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
+        @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
+        @Nullable Arguments sdfArgs, @Nullable StrategoFormat format, @Nullable String externalJar,
+        @Nullable String externalJarFlags, @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
                 dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixMode,
                 strEnabled, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
@@ -197,14 +194,14 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return arguments;
     }
 
-    @Override public StrategoBuildSetting strBuildSetting() {;
+    @Override public StrategoVersion strVersion() {;
         return
             containsStrategoLang(compileDeps()) ?
-                StrategoBuildSetting.incremental : StrategoBuildSetting.batch;
+                StrategoVersion.v2 : StrategoVersion.v1;
     }
 
     @Override public StrategoFormat strFormat() {
-        if(strBuildSetting() == StrategoBuildSetting.incremental) {
+        if(strVersion() == StrategoVersion.v2) {
             return StrategoFormat.jar;
         }
         final String value = this.config.getString(PROP_STR_FORMAT);

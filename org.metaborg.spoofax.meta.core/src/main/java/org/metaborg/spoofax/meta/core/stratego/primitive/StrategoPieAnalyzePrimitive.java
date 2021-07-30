@@ -30,7 +30,6 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.cmd.Arguments;
-import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.stratego.Strategy;
@@ -134,7 +133,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             languagePathService.sourcePaths(project, SpoofaxConstants.LANG_STRATEGO_NAME);
         @Nullable File strMainFile;
         final FileObject strMainFileCandidate =
-            config.strBuildSetting().findStrMainFile(paths, strRoots, config.strategoName());
+            config.strVersion().findStrMainFile(paths, strRoots, config.strategoName());
         if(strMainFileCandidate != null && strMainFileCandidate.exists()) {
             strMainFile = resourceService.localPath(strMainFileCandidate);
             if(strMainFile == null || !strMainFile.exists()) {

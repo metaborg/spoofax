@@ -77,9 +77,9 @@ public interface ISpoofaxLanguageSpecConfig extends ISpoofaxProjectConfig, ILang
     /**
      * Gets the project artifact build setting.
      *
-     * @return A member of the {@link StrategoBuildSetting} enumeration.
+     * @return A member of the {@link StrategoVersion} enumeration.
      */
-    StrategoBuildSetting strBuildSetting();
+    StrategoVersion strVersion();
 
     /**
      * Gets the project artifact format.

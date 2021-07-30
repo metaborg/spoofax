@@ -43,7 +43,7 @@ import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
-import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
+import org.metaborg.spoofax.meta.core.config.StrategoVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
@@ -463,14 +463,14 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_STRATEGO_NAME);
-        final FileObject strFileCandidate = config.strBuildSetting().findStrMainFile(paths, strRoots, strModule);
+        final FileObject strFileCandidate = config.strVersion().findStrMainFile(paths, strRoots, strModule);
         final @Nullable File strFile;
         if(strEnabled) {
             if(strFileCandidate != null && strFileCandidate.exists()) {
                 strFile = resourceService.localPath(strFileCandidate);
             } else {
                 final String fileExtension =
-                    config.strBuildSetting() == StrategoBuildSetting.batch ? "str" : "str2";
+                    config.strVersion() == StrategoVersion.v1 ? "str" : "str2";
                 throw new MetaborgException("Cannot find Stratego main file '" + NameUtil.toJavaId(strModule.toLowerCase())
                     + "." + fileExtension + "'.");
             }
@@ -528,7 +528,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
             sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
             sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
             sdfMetaFiles, strEnabled, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
-            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, strjArgs, languageSpec.config().strBuildSetting());
+            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, strjArgs, languageSpec.config().strVersion());
 
     }
 

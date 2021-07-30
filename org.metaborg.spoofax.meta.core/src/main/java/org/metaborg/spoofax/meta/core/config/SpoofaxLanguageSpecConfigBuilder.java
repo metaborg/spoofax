@@ -40,7 +40,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable Boolean generateNamespacedGrammar;
     protected @Nullable String sdfExternalDef;
     protected @Nullable Arguments sdfArgs;
-    protected @Nullable StrategoBuildSetting strBuildSetting;
+    protected @Nullable StrategoVersion strVersion;
     protected @Nullable StrategoFormat strFormat;
     protected @Nullable String strExternalJar;
     protected @Nullable String strExternalJarFlags;
@@ -63,8 +63,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
             sdf2tableVersion, checkOverlap, checkPriorities, dataDependent, sdfMainFile, parseTable, jsglrVersion,
             jsglr2Logging, statixMode, strEnabled, completionsParseTable, placeholderCharacters, prettyPrint,
-            generateNamespacedGrammar, sdfMetaFile, sdfExternalDef, sdfArgs, strBuildSetting,
-            strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            generateNamespacedGrammar, sdfMetaFile, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -80,7 +79,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         generateNamespacedGrammar = null;
         sdfExternalDef = null;
         sdfArgs = null;
-        strBuildSetting = null;
+        strVersion = null;
         strFormat = null;
         strExternalJar = null;
         strExternalJarFlags = null;
@@ -102,7 +101,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             withPlaceholderPostfix(config.placeholderChars().suffix);
             withSdfExternalDef(config.sdfExternalDef());
             withSdfArgs(config.sdfArgs());
-            withStrBuildSetting(config.strBuildSetting());
+            withStrVersion(config.strVersion());
             withStrFormat(config.strFormat());
             withStrExternalJar(config.strExternalJar());
             withStrExternalJarFlags(config.strExternalJarFlags());
@@ -263,8 +262,9 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withStrBuildSetting(StrategoBuildSetting buildSetting) {
-        this.strBuildSetting = buildSetting;
+    @Override public ISpoofaxLanguageSpecConfigBuilder withStrVersion(
+        StrategoVersion strategoVersion) {
+        this.strVersion = strategoVersion;
         return this;
     }
 

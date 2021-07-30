@@ -29,6 +29,7 @@ import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecificationPr
 import org.metaborg.spoofax.meta.core.stratego.primitive.LegacyLanguageSpecNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.PlaceholderCharsPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.StrategoPieAnalyzePrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.StrategoVersionPrimitive;
 
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
@@ -55,6 +56,7 @@ public class SpoofaxMetaModule extends MetaborgMetaModule {
         requestStaticInjection(PlaceholderCharsPrimitive.class);
         requestStaticInjection(StrategoPieAnalyzePrimitive.class);
         requestStaticInjection(GenerateNamespacedGrammarPrimitive.class);
+        requestStaticInjection(StrategoVersionPrimitive.class);
 
         requestStaticInjection(LegacyLanguageSpecNamePrimitive.class);
     }

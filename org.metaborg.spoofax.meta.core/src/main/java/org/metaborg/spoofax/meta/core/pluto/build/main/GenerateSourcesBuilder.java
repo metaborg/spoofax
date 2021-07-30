@@ -30,7 +30,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.sdf2table.parsetable.ParseTableConfiguration;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
-import org.metaborg.spoofax.meta.core.config.StrategoBuildSetting;
+import org.metaborg.spoofax.meta.core.config.StrategoVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
@@ -113,7 +113,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final List<File> strjIncludeDirs;
         public final List<File> strjIncludeFiles;
         public final Arguments strjArgs;
-        public final StrategoBuildSetting strBuildSetting;
+        public final StrategoVersion strategoVersion;
 
 
         public Input(SpoofaxContext context, LanguageIdentifier languageId, Collection<LanguageIdentifier> sourceDeps,
@@ -125,7 +125,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
             @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
             @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, List<File> strjIncludeFiles,
-            Arguments strjArgs, StrategoBuildSetting strBuildSetting) {
+            Arguments strjArgs, StrategoVersion strategoVersion) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -155,7 +155,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strjIncludeDirs = strjIncludeDirs;
             this.strjIncludeFiles = strjIncludeFiles;
             this.strjArgs = strjArgs;
-            this.strBuildSetting = strBuildSetting;
+            this.strategoVersion = strategoVersion;
         }
     }
 
@@ -543,7 +543,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             final File cacheDir = toFile(paths.strCacheDir());
 
-            if(input.strBuildSetting != StrategoBuildSetting.incremental) {
+            if(input.strategoVersion == StrategoVersion.v1) {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
                     true, true, input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir,
                     extraArgs, sdfOrigin);

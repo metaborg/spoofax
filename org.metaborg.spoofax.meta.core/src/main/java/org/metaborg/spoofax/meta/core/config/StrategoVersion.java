@@ -5,8 +5,9 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 
-public enum StrategoBuildSetting {
-    batch, incremental;
+public enum StrategoVersion {
+    v1,
+    v2;
 
     /**
      * @param languageName
@@ -16,9 +17,9 @@ public enum StrategoBuildSetting {
     public @Nullable FileObject findStrMainFile(SpoofaxCommonPaths paths, Iterable<FileObject> sources,
         String languageName) {
         switch(this) {
-            case batch:
+            case v1:
                 return paths.findStrMainFile(sources, languageName);
-            case incremental:
+            case v2:
                 return paths.findStr2MainFile(sources, languageName);
             default:
                 throw new IllegalStateException(
