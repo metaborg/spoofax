@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
+import org.metaborg.spoofax.meta.core.config.StrategoVersion;
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.util.file.IFileAccess;
@@ -14,26 +15,34 @@ import org.metaborg.util.file.IFileAccess;
  */
 public class ContinuousLanguageSpecGenerator extends BaseGenerator {
     private final boolean sdfEnabled;
-    private final @Nullable SdfVersion version;
+    private final @Nullable SdfVersion sdfVersion;
+    private final @Nullable StrategoVersion strategoVersion;
 
 
     public ContinuousLanguageSpecGenerator(GeneratorSettings scope, IFileAccess access, boolean sdfEnabled,
-        @Nullable SdfVersion version) {
+        @Nullable SdfVersion sdfVersion, @Nullable StrategoVersion strategoVersion) {
         super(scope, access);
         this.sdfEnabled = sdfEnabled;
-        this.version = version;
+        this.sdfVersion = sdfVersion;
+        this.strategoVersion = strategoVersion;
     }
 
-    public ContinuousLanguageSpecGenerator(GeneratorSettings scope, boolean sdfEnabled, @Nullable SdfVersion version) {
+    public ContinuousLanguageSpecGenerator(GeneratorSettings scope, boolean sdfEnabled, @Nullable SdfVersion sdfVersion,
+        @Nullable StrategoVersion strategoVersion) {
         super(scope);
         this.sdfEnabled = sdfEnabled;
-        this.version = version;
+        this.sdfVersion = sdfVersion;
+        this.strategoVersion = strategoVersion;
     }
 
 
     public void generateAll() throws IOException {
-        if(sdfEnabled && version == SdfVersion.sdf3) {
-            generateCompletionStrategies();
+        if(sdfEnabled && sdfVersion == SdfVersion.sdf3) {
+            if(strategoVersion == StrategoVersion.v2) {
+                generateStratego2CompletionStrategies();
+            } else {
+                generateCompletionStrategies();
+            }
             generatePermissiveAterm();
         }
     }
@@ -41,6 +50,10 @@ public class ContinuousLanguageSpecGenerator extends BaseGenerator {
 
     public void generateCompletionStrategies() throws IOException {
         writer.write("langspec/src-gen/completion/completion.str", "src-gen/completion/completion.str", true);
+    }
+
+    public void generateStratego2CompletionStrategies() throws IOException {
+        writer.write("langspec/src-gen/completion/completion.str2", "src-gen/completion/completion.str2", true);
     }
 
     public void generatePermissiveAterm() throws IOException {

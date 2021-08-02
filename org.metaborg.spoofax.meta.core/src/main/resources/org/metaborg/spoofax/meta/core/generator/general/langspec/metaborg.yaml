@@ -33,6 +33,7 @@ language:
   version: sdf2
 {{/syntaxSdf2}}
   stratego:
+    enabled: {{strategoEnabled}}
     format: jar
     args:
     - -la

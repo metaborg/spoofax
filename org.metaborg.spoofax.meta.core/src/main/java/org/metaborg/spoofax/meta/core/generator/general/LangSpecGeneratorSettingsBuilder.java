@@ -32,6 +32,7 @@ public class LangSpecGeneratorSettingsBuilder {
     private @Nullable String name;
     private @Nullable SyntaxType syntaxType;
     private @Nullable AnalysisType analysisType;
+    private @Nullable TransformationType transformationType;
     private @Nullable Collection<String> extensions;
     private @Nullable String metaborgVersion;
 
@@ -79,6 +80,11 @@ public class LangSpecGeneratorSettingsBuilder {
 
     public LangSpecGeneratorSettingsBuilder withAnalysisType(@Nullable AnalysisType analysisType) {
         this.analysisType = analysisType;
+        return this;
+    }
+
+    public LangSpecGeneratorSettingsBuilder withTransformationType(@Nullable TransformationType transformationType) {
+        this.transformationType = transformationType;
         return this;
     }
 
@@ -269,7 +275,7 @@ public class LangSpecGeneratorSettingsBuilder {
         final GeneratorSettings generatorSettings = new GeneratorSettings(projectLocation, config, analysisType);
         generatorSettings.setMetaborgVersion(metaborgVersion);
 
-        return new LangSpecGeneratorSettings(generatorSettings, extensions, syntaxType);
+        return new LangSpecGeneratorSettings(generatorSettings, extensions, syntaxType, transformationType);
     }
 
     public boolean canBuild() {

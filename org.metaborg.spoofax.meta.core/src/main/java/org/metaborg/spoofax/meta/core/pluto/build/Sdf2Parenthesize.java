@@ -22,12 +22,14 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
         public final BuildRequest<?, OutputPersisted<File>, ?, ?> parseTable;
         public final String inputModule;
         public final File outputFile;
+        public final boolean stratego2;
 
-        public Input(SpoofaxContext context, BuildRequest<?, OutputPersisted<File>, ?, ?> parseTable, String inputModule, File outputFile) {
+        public Input(SpoofaxContext context, BuildRequest<?, OutputPersisted<File>, ?, ?> parseTable, String inputModule, File outputFile, boolean stratego2) {
             super(context);
             this.parseTable = parseTable;
             this.inputModule = inputModule;
             this.outputFile = outputFile;
+            this.stratego2 = stratego2;
         }
     }
 
@@ -62,7 +64,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Out
         
         ParseTable parseTable = new ParseTableIO(parseTableFile.val).getParseTable();
         
-        Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, parseTable);
+        Parenthesizer.generateParenthesizer(input.inputModule, input.outputFile, parseTable, input.stratego2);
 
         provide(input.outputFile);
 

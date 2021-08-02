@@ -236,11 +236,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         requireBuild(parseTableGeneration);
 
         // Generate parenthesizer
+        boolean stratego2 = input.strategoVersion == StrategoVersion.v2;
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
-        final File parenthesizerOutputFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
+        final File parenthesizerOutputFile;
+        if(stratego2) {
+            parenthesizerOutputFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str2");
+        } else {
+            parenthesizerOutputFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
+        }
 
         Sdf2Parenthesize.Input parenthesizeInput =
-            new Sdf2Parenthesize.Input(context, parseTableGeneration, input.sdfModule, parenthesizerOutputFile);
+            new Sdf2Parenthesize.Input(context, parseTableGeneration, input.sdfModule, parenthesizerOutputFile, stratego2);
         final BuildRequest<?, ?, ?, ?> parenthesize = Sdf2Parenthesize.request(parenthesizeInput);
 
         sdfOriginBuilder.add(parenthesize);

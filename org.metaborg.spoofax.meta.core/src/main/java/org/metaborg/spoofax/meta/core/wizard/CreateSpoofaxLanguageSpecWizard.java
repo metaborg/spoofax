@@ -4,6 +4,7 @@ import org.metaborg.meta.core.wizard.CreateLanguageSpecWizard;
 import org.metaborg.spoofax.meta.core.generator.general.AnalysisType;
 import org.metaborg.spoofax.meta.core.generator.general.LangSpecGeneratorSettingsBuilder;
 import org.metaborg.spoofax.meta.core.generator.general.SyntaxType;
+import org.metaborg.spoofax.meta.core.generator.general.TransformationType;
 
 /**
  * Spoofax specialization of the 'create language specification' wizard helper.
@@ -15,6 +16,10 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
 
     public AnalysisType analysisType() {
         return AnalysisType.mapping().get(inputAnalysisTypeString());
+    }
+
+    public TransformationType transformationType() {
+        return TransformationType.mapping().get(inputTransformationTypeString());
     }
 
     public abstract boolean generateExampleProject();
@@ -40,6 +45,13 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
     protected abstract String inputAnalysisTypeString();
 
     protected abstract void setAnalysisType(String analysisTypeString);
+
+
+    protected abstract boolean inputTransformationTypeModified();
+
+    protected abstract String inputTransformationTypeString();
+
+    protected abstract void setTransformationType(String transformationTypeString);
 
 
     protected abstract void setGenerateExampleProject(boolean generate);

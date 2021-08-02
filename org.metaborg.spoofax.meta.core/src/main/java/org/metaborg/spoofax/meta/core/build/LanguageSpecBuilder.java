@@ -132,7 +132,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         logger.debug("Generating sources for {}", input.languageSpec().location());
 
         final ContinuousLanguageSpecGenerator generator = new ContinuousLanguageSpecGenerator(
-            new GeneratorSettings(location, config), access, config.sdfEnabled(), config.sdfVersion());
+            new GeneratorSettings(location, config), access, config.sdfEnabled(), config.sdfVersion(), config.strVersion());
         generator.generateAll();
 
         componentConfigBuilder.reset();
