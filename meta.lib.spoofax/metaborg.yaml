@@ -7,6 +7,9 @@ dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
   - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgBaselineVersion}
+  - org.metaborg:stratego.lang:${metaborgVersion}
+  source:
+  - org.metaborg:strategolib:${metaborgVersion}
 exports:
 - language: EditorService
   directory: editor
@@ -17,3 +20,14 @@ language:
     enabled: false
   stratego:
     enabled: false
+    args:
+    - -la
+    - stratego-gpp
+    - -la
+    - stratego-aterm
+#    - -la
+#    - stratego-sglr
+#    - -la
+#    - stratego-xtc
+#    - -la
+#    - stratego-rtg

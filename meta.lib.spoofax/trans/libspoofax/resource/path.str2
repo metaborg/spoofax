@@ -1,0 +1,130 @@
+module libspoofax/resource/path
+
+imports
+  strategolib
+  libspoofax/core/language
+
+rules // Builtin paths
+
+  /**
+   * Returns the path of the current project, or fails if there is no current project.
+   */
+  project-path = prim("project_path")
+
+rules // Path conversion
+
+  /**
+   * Converts a path (string) into a path on the local filesystem. If the path is already on the local filesystem, it is
+   * returned unchanged. If the path cannot be converted to the local filesystem (for example, it is a path to a remote
+   * HTTP server, or a path into a Zip file), the strategy fails.
+   */
+  local-path = prim("local_path")
+
+  /**
+   * Replicates a resource (given by a string) to the local filesystem, and returns the path (string) to it. If the
+   * resource is already on the local filesystem, its path is returned unchanged.
+   */
+  local-replicate = prim("local_replicate")
+
+  /**
+   * Make a path absolute with respect to the given absolute root path. If the path was already absolute, it is
+   * unchanged.
+   */
+  absolute-path(|root) = prim("absolute_path",root)
+
+rules // Source and include directories and files
+
+  /**
+   * Returns a list of source directories (strings) for language with given name (string).
+   */
+  language-source-directories = prim("language_source_directories", <id>)
+
+  /**
+   * Returns a list of include directories (strings) for language with given name (string).
+   */
+  language-include-directories = prim("language_include_directories", <id>)
+
+  /**
+   * Returns a list of source and include directories (strings) for language with given name (string).
+   */
+  language-source-and-include-directories = Dupl; (language-source-directories, language-include-directories); conc
+
+  /**
+   * Returns a path relative to the source folder, or the project root.
+   */
+  language-relative-source-path(|lang) = prim("language_relative_source_path", lang)
+
+
+  /**
+   * Returns a list of source directories (strings) for the current language.
+   */
+  current-language-source-directories = prim("language_source_directories", <language>)
+
+  /**
+   * Returns a list of include directories (strings) for the current language.
+   */
+  current-language-include-directories = prim("language_include_directories", <language>)
+
+  /**
+   * Returns a list of source and include directories (strings) for the current language.
+   */
+  current-language-source-and-include-directories = language; Dupl; (language-source-directories, language-include-directories); conc
+
+  /**
+   * Returns a path relative to the source folder, or the project root.
+   */
+  current-language-relative-source-path = prim("language_relative_source_path", <language>)
+
+  /**
+   * Returns a path relative to the source or include folder, or the project root.
+   */
+  current-language-relative-source-or-include-path = prim("language_relative_source_or_include_path", <language>)
+
+  /**
+   * Returns a list of source files (strings) for language with given name (string).
+   */
+  language-source-files = prim("language_source_files", <id>)
+
+  /**
+   * Returns a list of include files (strings) for language with given name (string).
+   */
+  language-include-files = prim("language_include_files", <id>)
+
+  /**
+   * Returns a list of source and include files (strings) for language with given name (string).
+   */
+  language-source-and-include-files = Dupl; (language-source-files, language-include-files); conc
+
+
+  /**
+   * Returns a list of source files (strings) for the current language.
+   */
+  current-language-source-files = prim("language_source_files", <language>)
+
+  /**
+   * Returns a list of include files (strings) for the current language.
+   */
+  current-language-include-files = prim("language_include_files", <language>)
+
+  /**
+   * Returns a list of source and include files (strings) for the current language.
+   */
+  current-language-source-and-include-files = language; Dupl; (language-source-files, language-include-files); conc
+
+  /**
+   * Load ATerm resources and their imports from the current project.
+   * Takes as input a list of (relative) paths, and a strategy that returns the list of imported resources.
+   * Returns a list of path and resource pairs. Fails if any of the resources or their imports does not exist.
+   *
+   * @param path : name:Term -> String
+   * @param imports : resource:Term -> names:List(Term)
+   * @type names:List(Term) -> List(name:Term * resource:Term)
+   */
+  project-resources(path, imports) = prim("project_resources", path, imports|)
+
+  /**
+   * Returns a relative path to a src-gen directory for the given name.
+   */
+  // This must match org.metaborg.core.build.CommonPaths::srcGenDir()
+  project-srcgen-dir: name -> $[src-gen/[name]]
+

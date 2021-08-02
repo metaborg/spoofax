@@ -1,0 +1,225 @@
+module libspoofax/sdf/pp
+
+imports
+  strategolib
+  libstratego-gpp
+  libspoofax/term/annotation
+
+signature
+  sorts
+    String
+    Anno
+  constructors
+    inj : String * String -> Anno
+
+rules
+
+  ia-get-sort = prim("SSL_EXT_get_sort_imploder_attachment", <id>)
+
+  /** Create explicit constructors for sort injections.
+   *
+   * @param inj-name: String * String -> String
+   * @type Term -> Term
+   */
+  explicate-injections(inj-name) = prim("SSL_EXT_explicate_injections",inj-name|)
+
+  /** Remove explicit constructors for sort injections.
+   *
+   * @type Term -> Term
+   */
+  remove-injections = bottomup(try(\ c#([t]) -> t where get-annotation(?inj(_, _)) \))
+
+signature
+  sorts
+    Unknown
+    ConstraintTreeReference
+    ShortConstraint
+    NatCon
+    StrCon
+    IdCon
+  constructors
+
+    Parenthetical : Unknown -> Unknown
+
+    // signatures for layout constraints
+    Offside         : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    Indent          : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    NewLineIndent   : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    NewLineIndentBy : NatCon * ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    NewLine         : ConstraintTreeReference -> ShortConstraint
+    NewLineBy       : NatCon * ConstraintTreeReference -> ShortConstraint
+    Align           : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
+    Align           : ConstraintTreeReference -> ShortConstraint
+    PosRef          : NatCon -> ConstraintTreeReference
+    LiteralRef      : StrCon -> ConstraintTreeReference
+    LabelRef        : IdCon -> ConstraintTreeReference
+
+strategies
+
+  // Unwrap Parenthetical/1 if pp fails, in case the user is using
+  // parenthesize, but grammar does not contain {bracket} production.
+  pp-one(pp) = (pp <+ ?Parenthetical(<pp>)); filter(gpp-is-real-vbox)
+
+  pp-one-V(pp) = pp-one(pp); (?[] <+ !V([], <id>))
+  pp-one-Z(pp) = pp-one(pp); (?[] <+ !Z([], <id>))
+
+  pp-option(pp) = (is-string; pp) <+ \None() -> []\ + ?Some(<pp>)
+
+  pp-V-list(pp)    = ?[] <+ !V([], <map(pp-one-V(pp))>)
+  pp-V-list(pp|vs) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp))>)
+  pp-V-list(pp|vs, sep) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp)); at-init(add-sep(|sep), id)>)
+
+  // pp-indent(|'is) = filter(gpp-is-real-vbox); (?[] <+ !I([SOpt(IS(), 'is)], H([SOpt(HS(), "0")], <id>)))
+
+  pp-indent(|'is) = filter(gpp-is-real-vbox); (?[] <+ !H([SOpt(HS(), 'is)], [S(""), H([SOpt(HS(), "0")], <map(indent-Z-boxes(|'is))>)]))
+
+  indent-Z-boxes(|'is):
+    H(opt, boxes{l*}){a*} -> H(opt, new-boxes{l*}){a*}
+    with
+      new-boxes := <map(indent-Z-boxes(|'is))> boxes
+
+  indent-Z-boxes(|'is):
+    V(opt, boxes{l*}){a*} -> V(opt, new-boxes{l*}){a*}
+    with
+      new-boxes := <map(indent-Z-boxes(|'is))> boxes
+
+  indent-Z-boxes(|'is):
+    s@S(_) -> s
+
+  indent-Z-boxes(|'is):
+    [] -> []
+
+  indent-Z-boxes(|'is):
+    z@Z([], []) -> z
+
+  indent-Z-boxes(|'is):
+    Z([], [b{b-annos*} | bs]{l*}){a*} -> Z([], [b'{b-annos*} | bs']{l*}){a*}
+    with
+      b'  := <indent-Z-boxes(|'is)> b;
+      bs' := <map(indent-boxes-list(|'is))> bs
+
+  indent-boxes-list(|'is):
+    b{a*} -> H([SOpt(HS(), 'is)], [S(""), b'{a*}])
+    with
+      b' := <indent-Z-boxes(|'is)> b
+
+  pp-H-list(pp)     = ?[] <+ !H([], <map(pp-one-Z(pp))>)
+  pp-H-list(pp|sep) = ?[] <+ !H([SOpt(HS(), "0")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+  pp-HV-list(pp)     = ?[] <+ !HV([SOpt(HS(), "0")], <map(pp-one-Z(pp))>)
+  pp-HV-list(pp|sep) = ?[] <+ !HV([SOpt(HS(), "0")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+  pp-HZ-list(pp)     = ?[] <+ !HZ([SOpt(HS(), "0")], <map(pp-one-Z(pp))>)
+  pp-HZ-list(pp|sep) = ?[] <+ !HZ([SOpt(HS(), "0")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+
+// rules for code completion
+signature
+  constructors
+   CURSOR_ELEMENT : cursor
+
+rules
+  prettyprint-origin-term = fail
+  prettyprint-completion-aux = (?CURSOR_ELEMENT(); ![S("##CURSOR##")]) <+
+  ((?""; ![]) <+ ![S(<is-string>)])
+
+// pretty-printing empty trees
+signature
+  sorts
+    BooleanCondition
+  constructors
+    FALSE : BooleanCondition
+    TRUE  : BooleanCondition
+
+rules
+  // typical empty non-terminals
+  check-nonterminal-isEmpty = ?None() <+ ?() <+ ?[]
+
+  // h is layout and read-empty is false, move on to next symbol and add current to pred-layout
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> <clean-layout-empty-symbols(|pred-layout', read-empty, read-non-empty)> hs
+    where
+      <?FALSE()> read-empty;
+      layout-string := <?S(<id>); is-layout-string> h;
+      pred-layout'  := <conc-strings> (pred-layout, layout-string)
+
+  // h is layout and read-empty is true, move on to next symbol
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> <clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty)> hs
+    where
+      <?TRUE()> read-empty;
+      layout-string := <?S(<id>); is-layout-string> h
+
+  // h is not layout and not empty symbol print pred-layout an put into list before h
+  // read-non-empty becomes true (to indicate that it's not the beginning of the list anymore)
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> [S(pred-layout), h, <clean-layout-empty-symbols(|"", FALSE(), TRUE())> hs ]
+    where
+      <not(check-nonterminal-isEmpty <+ ?S(<id>); is-layout-string)> h
+
+  // if read-non-empty is true
+  // h is empty symbol pred-layout becomes " " and
+  // read-empty becomes true
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> <clean-layout-empty-symbols(|" ", TRUE(), read-non-empty)> hs
+    where
+      <?TRUE()> read-non-empty;
+      <check-nonterminal-isEmpty> h
+
+  // read-non-empty is false
+  // h is empty symbol pred-layout becomes "" and
+  // read-empty becomes true
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [h | hs] -> <clean-layout-empty-symbols(|"", TRUE(), read-non-empty)> hs
+    where
+      <?FALSE()> read-non-empty;
+      <check-nonterminal-isEmpty> h
+
+  clean-layout-empty-symbols(|pred-layout, read-empty, read-non-empty):
+    [] -> []
+
+  is-layout-string:
+    s -> s
+    where
+      <explode-string; map(is-whitespace)> s
+
+// separator for lists
+rules
+
+ add-sep(|sep):
+    V(vs, boxes) -> V(vs, result)
+    where
+      if [h] := boxes
+      then
+        (c, [cs, inner-boxes]) := <explode-term> h;
+        box-with-sep := <mkterm> (c, [cs, <conc> (inner-boxes, [S(sep)])]);
+        result := [box-with-sep]
+        else
+        result' := [<last; add-sep(|sep)> boxes];
+        result  := <at-last(!result')> boxes
+        end
+
+ add-sep(|sep):
+  H(options, boxes) -> H(options, result)
+  where
+      result := <conc> (boxes, [S(sep)])
+
+ add-sep(|sep):
+  I('is, H(hs, boxes)) -> I('is, H(hs, result))
+  where
+      result := <conc> (boxes, [S(sep)])
+
+ add-sep(|sep):
+  HV(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])
+
+ add-sep(|sep):
+  HZ(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])
+
+ add-sep(|sep):
+  Z(hs, boxes) -> HV(hs, result)
+  where
+      result := <conc> (boxes, [S(sep)])

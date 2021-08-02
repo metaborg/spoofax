@@ -1,0 +1,25 @@
+module libspoofax
+imports
+  libspoofax/analysis/constraint
+  libspoofax/core/language
+  libspoofax/core/parse
+  libspoofax/editor/completion/core
+  libspoofax/editor/completion/correct-programs
+  libspoofax/editor/completion/incorrect-programs
+  libspoofax/editor/completion/interface
+  libspoofax/editor/completion/legacy
+  libspoofax/editor/refactoring/construct-initial-list-structure
+  libspoofax/editor/refactoring/construct-text
+  libspoofax/editor/refactoring/interface
+  libspoofax/editor/refactoring/layout-adaption
+  libspoofax/editor/outline
+  libspoofax/editor/resolution
+  libspoofax/resource/cache
+  libspoofax/resource/path
+  libspoofax/sdf/pp
+  libspoofax/stratego/debug
+  libspoofax/stratego/dynrule
+  libspoofax/term/annotation
+  libspoofax/term/origin
+  libspoofax/term/position
+  libspoofax/ui/dialogs
