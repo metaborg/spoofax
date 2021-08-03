@@ -7,8 +7,6 @@ dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
   - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgBaselineVersion}
-  source:
-  - org.metaborg:strategolib:${metaborgVersion}
 exports:
 - language: EditorService
   directory: editor
