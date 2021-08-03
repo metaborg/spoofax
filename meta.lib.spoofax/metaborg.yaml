@@ -7,7 +7,6 @@ dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
   - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgBaselineVersion}
-  - org.metaborg:stratego.lang:${metaborgVersion}
   source:
   - org.metaborg:strategolib:${metaborgVersion}
 exports:
