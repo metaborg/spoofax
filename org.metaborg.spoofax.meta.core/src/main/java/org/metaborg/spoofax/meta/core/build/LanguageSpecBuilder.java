@@ -1,19 +1,14 @@
 package org.metaborg.spoofax.meta.core.build;
 
-import build.pluto.PersistableEntity;
-import build.pluto.builder.BuildManager;
-import build.pluto.builder.BuildRequest;
-import build.pluto.builder.RequiredBuilderFailed;
-import build.pluto.dependency.Origin;
-import build.pluto.dependency.database.XodusDatabase;
-import build.pluto.output.Output;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import jetbrains.exodus.core.execution.JobProcessor;
-import jetbrains.exodus.core.execution.ThreadJobProcessorPool;
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -25,12 +20,19 @@ import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
 import org.metaborg.core.config.ILanguageComponentConfig;
 import org.metaborg.core.config.ILanguageComponentConfigBuilder;
 import org.metaborg.core.config.ILanguageComponentConfigWriter;
 import org.metaborg.core.config.JSGLRVersion;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.config.Sdf2tableVersion;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.project.NameUtil;
@@ -39,12 +41,13 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
-import org.metaborg.spoofax.meta.core.config.StrategoVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
+import org.metaborg.spoofax.meta.core.config.StrategoVersion;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
@@ -59,13 +62,25 @@ import org.metaborg.util.file.IFileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+
+import build.pluto.PersistableEntity;
+import build.pluto.builder.BuildManager;
+import build.pluto.builder.BuildRequest;
+import build.pluto.builder.RequiredBuilderFailed;
+import build.pluto.dependency.Origin;
+import build.pluto.dependency.database.XodusDatabase;
+import build.pluto.output.Output;
+import jetbrains.exodus.core.execution.JobProcessor;
+import jetbrains.exodus.core.execution.ThreadJobProcessorPool;
+import mb.pie.api.Supplier;
+import mb.pie.api.ValueSupplier;
+import mb.resource.fs.FSPath;
+import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 
 public class LanguageSpecBuilder implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecBuilder.class);
@@ -78,6 +93,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
     private final ILanguageIdentifierService languageIdentifierService;
     private final IDependencyService dependencyService;
     private final ILanguagePathService languagePathService;
+    private final ILanguageService languageService;
     private final ISpoofaxProcessorRunner runner;
     private final Set<IBuildStep> buildSteps;
     private final ILanguageComponentConfigBuilder componentConfigBuilder;
@@ -86,7 +102,8 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
     @Inject public LanguageSpecBuilder(Injector injector, IResourceService resourceService,
         ISourceTextService sourceTextService, ILanguageIdentifierService languageIdentifierService,
-        IDependencyService dependencyService, ILanguagePathService languagePathService, ISpoofaxProcessorRunner runner,
+        IDependencyService dependencyService, ILanguagePathService languagePathService,
+        ILanguageService languageService, ISpoofaxProcessorRunner runner,
         Set<IBuildStep> buildSteps, ILanguageComponentConfigBuilder componentConfigBuilder,
         ILanguageComponentConfigWriter componentConfigWriter) {
         this.injector = injector;
@@ -95,6 +112,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         this.languageIdentifierService = languageIdentifierService;
         this.dependencyService = dependencyService;
         this.languagePathService = languagePathService;
+        this.languageService = languageService;
         this.runner = runner;
         this.componentConfigBuilder = componentConfigBuilder;
         this.componentConfigWriter = componentConfigWriter;
@@ -461,6 +479,49 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final Boolean strEnabled = config.strEnabled();
         final String strModule = config.strategoName();
 
+        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>();
+        for(LanguageIdentifier sourceDep : sourceDeps) {
+            final @Nullable ILanguageImpl sourceDepImpl = languageService.getImpl(sourceDep);
+            if(sourceDepImpl == null) {
+                continue;
+            }
+            for(ILanguageComponent sourceDepImplComp : sourceDepImpl.components()) {
+                final String[] str2libProject = { null };
+                for(IExportConfig export : sourceDepImplComp.config().exports()) {
+                    if(str2libProject[0] != null) {
+                        break;
+                    }
+                    export.accept(new IExportVisitor() {
+                        @Override public void visit(LangDirExport resource) {}
+
+                        @Override public void visit(LangFileExport resource) {
+                            if(resource.language.equals("StrategoLang") && resource.file.endsWith("str2lib")) {
+                                str2libProject[0] = resource.file;
+                            }
+                        }
+
+                        @Override public void visit(ResourceExport resource) {}
+                    });
+                }
+                if(str2libProject[0] != null) {
+                    final ResourcePath str2LibFile = new FSPath(resourceService
+                        .localFile(sourceDepImplComp.location().resolveFile(str2libProject[0]),
+                            paths.replicateDir().resolveFile("strj-includes")));
+                    final @Nullable DynamicClassLoadingFacet facet =
+                        sourceDepImplComp.facet(DynamicClassLoadingFacet.class);
+                    if(facet == null) {
+                        continue;
+                    }
+                    final ArrayList<ResourcePath> jarFiles =
+                        new ArrayList<>(facet.jarFiles.size());
+                    for(FileObject file : facet.jarFiles) {
+                        jarFiles.add(new FSPath(resourceService.localFile(file)));
+                    }
+                    str2libraries.add(new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
+                }
+            }
+        }
+
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(input.project(), SpoofaxConstants.LANG_STRATEGO_NAME);
         final FileObject strFileCandidate = config.strVersion().findStrMainFile(paths, strRoots, strModule);
@@ -528,7 +589,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
             sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
             sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
             sdfMetaFiles, strEnabled, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
-            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, strjArgs, languageSpec.config().strVersion());
+            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, str2libraries, strjArgs, languageSpec.config().strVersion());
 
     }
 

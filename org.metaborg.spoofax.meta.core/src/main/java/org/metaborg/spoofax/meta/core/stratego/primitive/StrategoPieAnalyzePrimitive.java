@@ -16,11 +16,21 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
@@ -51,13 +61,16 @@ import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.STask;
+import mb.pie.api.Supplier;
 import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
+import mb.pie.api.ValueSupplier;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.CheckOpenModule;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
@@ -69,6 +82,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @Inject private static Provider<ILanguageService> languageServiceProvider;
     @Inject private static Provider<IPieProvider> pieProviderProvider;
 
     // Using provider to break cycle between Check -> Stratego runtime -> all primitives -> this primitive
@@ -103,7 +117,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             return null;
         }
 
-        if(languageSpecServiceProvider == null || pieProviderProvider == null) {
+        if(languageSpecServiceProvider == null || languageServiceProvider == null || pieProviderProvider == null) {
             // Indicates that meta-Spoofax is not available (ISpoofaxLanguageSpecService cannot be injected), but this
             // should never happen because this primitive is inside meta-Spoofax. Check for null just in case.
             logger.error("Spoofax meta services is not available; static injection failed");
@@ -175,8 +189,51 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         final File projectLocation = resourceService.localPath(paths.root());
-        final ResourcePath projectPath = new FSPath(projectLocation);
         assert projectLocation != null;
+        final ResourcePath projectPath = new FSPath(projectLocation);
+
+        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>();
+        for(LanguageIdentifier sourceDep : config.sourceDeps()) {
+            final @Nullable ILanguageImpl sourceDepImpl = languageServiceProvider.get().getImpl(sourceDep);
+            if(sourceDepImpl == null) {
+                continue;
+            }
+            for(ILanguageComponent sourceDepImplComp : sourceDepImpl.components()) {
+                final String[] str2libProject = { null };
+                for(IExportConfig export : sourceDepImplComp.config().exports()) {
+                    if(str2libProject[0] != null) {
+                        break;
+                    }
+                    export.accept(new IExportVisitor() {
+                        @Override public void visit(LangDirExport resource) {}
+
+                        @Override public void visit(LangFileExport resource) {
+                            if(resource.language.equals("StrategoLang") && resource.file.endsWith("str2lib")) {
+                                str2libProject[0] = resource.file;
+                            }
+                        }
+
+                        @Override public void visit(ResourceExport resource) {}
+                    });
+                }
+                if(str2libProject[0] != null) {
+                    final ResourcePath str2LibFile = new FSPath(resourceService
+                        .localFile(sourceDepImplComp.location().resolveFile(str2libProject[0]),
+                            paths.replicateDir().resolveFile("strj-includes")));
+                    final @Nullable DynamicClassLoadingFacet facet =
+                        sourceDepImplComp.facet(DynamicClassLoadingFacet.class);
+                    if(facet == null) {
+                        continue;
+                    }
+                    final ArrayList<ResourcePath> jarFiles =
+                        new ArrayList<>(facet.jarFiles.size());
+                    for(FileObject file : facet.jarFiles) {
+                        jarFiles.add(new FSPath(resourceService.localFile(file)));
+                    }
+                    str2libraries.add(new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
+                }
+            }
+        }
 
         final ArrayList<STask<?>> sdfTasks = new ArrayList<>(0);
 
@@ -197,8 +254,13 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final ModuleIdentifier mainModuleIdentifier =
             new ModuleIdentifier(strMainFile.getName().endsWith(".str"), isLibrary, strMainModule, new FSPath(strMainFile));
         final boolean autoImportStd = false;
-        final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
-            strjIncludeDirs, linkedLibraries, astWLM, autoImportStd), mainModuleIdentifier, projectPath);
+
+        final IModuleImportService.ImportResolutionInfo importResolutionInfo =
+            new IModuleImportService.ImportResolutionInfo(sdfTasks, strjIncludeDirs,
+                linkedLibraries, str2libraries);
+        final CheckModuleInput checkModuleInput = new CheckModuleInput(
+            new FrontInput.FileOpenInEditor(moduleIdentifier, importResolutionInfo, astWLM,
+                autoImportStd), mainModuleIdentifier, projectPath);
         final Task<CheckOpenModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
@@ -280,5 +342,6 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
     @Override public void close() throws Exception {
         pieProviderProvider = null;
         languageSpecServiceProvider = null;
+        languageServiceProvider = null;
     }
 }

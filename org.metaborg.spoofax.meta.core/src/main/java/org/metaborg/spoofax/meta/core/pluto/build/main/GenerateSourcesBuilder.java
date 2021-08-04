@@ -30,8 +30,8 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.sdf2table.parsetable.ParseTableConfiguration;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
-import org.metaborg.spoofax.meta.core.config.StrategoVersion;
 import org.metaborg.spoofax.meta.core.config.StrategoFormat;
+import org.metaborg.spoofax.meta.core.config.StrategoVersion;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
@@ -62,6 +62,7 @@ import build.pluto.stamp.FileHashStamper;
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
+import mb.pie.api.Supplier;
 import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
 import mb.resource.ResourceKey;
@@ -112,6 +113,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable String strExternalJarFlags;
         public final List<File> strjIncludeDirs;
         public final List<File> strjIncludeFiles;
+        public final List<Supplier<Stratego2LibInfo>> str2libraries;
         public final Arguments strjArgs;
         public final StrategoVersion strategoVersion;
 
@@ -125,7 +127,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
             @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
             @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, List<File> strjIncludeFiles,
-            Arguments strjArgs, StrategoVersion strategoVersion) {
+            ArrayList<Supplier<Stratego2LibInfo>> str2libraries, Arguments strjArgs, StrategoVersion strategoVersion) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -154,6 +156,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strExternalJarFlags = strExternalJarFlags;
             this.strjIncludeDirs = strjIncludeDirs;
             this.strjIncludeFiles = strjIncludeFiles;
+            this.str2libraries = str2libraries;
             this.strjArgs = strjArgs;
             this.strategoVersion = strategoVersion;
         }
@@ -592,17 +595,14 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 new ModuleIdentifier(legacyStratego, isLibrary, mainModuleName, new FSPath(strFile));
             final ResourcePath projectPath = new FSPath(projectLocation);
             final String packageName = NameUtil.toJavaId(input.languageId.id) + ".trans";
-            final Stratego2LibInfo stratego2LibInfo =
-                new Stratego2LibInfo(packageName, input.languageId.groupId, input.languageId.id,
-                    input.languageId.version.toString(),
-                    new ArrayList<>(Collections.singletonList(
-                        new FSPath(toFile(paths.targetMetaborgDir().resolveFile("stratego.jar"))))));
             final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
+            // TODO: extract stratego2libraries from sourceDeps
+            final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(input.str2libraries);
             final CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(outputDir),
                     javaClassDir, packageName, new FSPath(cacheDir), new ArrayList<>(0), strjIncludeDirs,
                     linkedLibraries, newArgs, new ArrayList<>(0), true, false, input.languageId.id,
-                    stratego2LibInfo);
+                    str2libraries);
             final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
             final IPieProvider pieProvider = context.pieProvider();
