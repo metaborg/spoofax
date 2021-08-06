@@ -132,12 +132,6 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
 
-        // Fail this primitive if there is no compilation dependency on the new incremental Stratego language project
-        if(!SpoofaxLanguageSpecConfig.containsStrategoLang(config.compileDeps())) {
-            logger.debug("Cannot find org.metaborg:stratego.lang:${metaborg-version} among compile dependencies. ");
-            return null;
-        }
-
         final FileObject baseLoc = languageSpec.location();
         final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc);
 
@@ -270,6 +264,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
         final CheckOpenModuleOutput analysisInformation;
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized(pie) {
             GenerateSourcesBuilder.initCompiler(pieProvider, checkModuleTask);
             try(final MixedSession session = pie.newSession()) {
@@ -296,6 +291,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             if(message.filename == null) {
                 logger.debug("No origins for message: " + message);
             } else {
+                assert message.sourceRegion != null; // otherwise filename would have also been null
                 final ImploderAttachment imploderAttachment = ImploderAttachment
                     .createCompactPositionAttachment(message.filename, message.sourceRegion.startRow, message.sourceRegion.startColumn,
                         message.sourceRegion.startOffset, message.sourceRegion.endOffset);
