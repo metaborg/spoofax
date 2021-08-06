@@ -11,9 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -165,8 +163,6 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
     public static SpoofaxBuilderFactory<Input, None, GenerateSourcesBuilder> factory =
         SpoofaxBuilderFactoryFactory.of(GenerateSourcesBuilder.class, Input.class);
 
-    private static final Set<String> BUILTIN_LIBS = new HashSet<>(Arrays.asList("stratego-lib", "stratego-sglr",
-        "stratego-gpp", "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc", "java-front"));
     private static final ILogger logger = LoggerUtils.logger(GenerateSourcesBuilder.class);
 
     private static Pie pie;
@@ -239,17 +235,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         requireBuild(parseTableGeneration);
 
         // Generate parenthesizer
-        boolean stratego2 = input.strategoVersion == StrategoVersion.v2;
         final File srcGenPpDir = toFile(paths.syntaxSrcGenPpDir());
-        final File parenthesizerOutputFile;
-        if(stratego2) {
-            parenthesizerOutputFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str2");
-        } else {
-            parenthesizerOutputFile = FileUtils.getFile(srcGenPpDir, input.sdfModule + "-parenthesize.str");
-        }
-
         Sdf2Parenthesize.Input parenthesizeInput =
-            new Sdf2Parenthesize.Input(context, parseTableGeneration, input.sdfModule, parenthesizerOutputFile, stratego2);
+            new Sdf2Parenthesize.Input(context, parseTableGeneration, input.sdfModule, srcGenPpDir);
         final BuildRequest<?, ?, ?, ?> parenthesize = Sdf2Parenthesize.request(parenthesizeInput);
 
         sdfOriginBuilder.add(parenthesize);
