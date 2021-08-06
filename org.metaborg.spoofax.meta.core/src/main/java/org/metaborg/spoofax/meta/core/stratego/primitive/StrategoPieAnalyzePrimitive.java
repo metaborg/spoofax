@@ -132,12 +132,6 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
 
-        // Fail this primitive if there is no compilation dependency on the new incremental Stratego language project
-        if(!SpoofaxLanguageSpecConfig.containsStrategoLang(config.compileDeps())) {
-            logger.debug("Cannot find org.metaborg:stratego.lang:${metaborg-version} among compile dependencies. ");
-            return null;
-        }
-
         final FileObject baseLoc = languageSpec.location();
         final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc);
 
