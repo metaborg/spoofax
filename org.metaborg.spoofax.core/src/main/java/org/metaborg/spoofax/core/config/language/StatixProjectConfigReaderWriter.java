@@ -22,6 +22,7 @@ public class StatixProjectConfigReaderWriter {
     private static final String PROP_MODES = "modes";
     private static final String PROP_MESSAGE_TRACE_LENGTH = "message-trace-length";
     private static final String PROP_MESSAGE_TERM_DEPTH = "message-term-depth";
+    private static final String PROP_TESTLOG = "test-log";
 
     public static IStatixProjectConfig read(HierarchicalConfiguration<ImmutableNode> config) {
         Collection<String> parallelLanguages = config.getList(String.class, PROP_CONCURRENT, Collections.emptyList());
@@ -37,7 +38,8 @@ public class StatixProjectConfigReaderWriter {
         });
         Integer messageStacktraceLength = config.getInteger(PROP_MESSAGE_TRACE_LENGTH, null);
         Integer messageTermDepth = config.getInteger(PROP_MESSAGE_TERM_DEPTH, null);
-        return new StatixProjectConfig(modes, messageStacktraceLength, messageTermDepth);
+        String testLog = config.getString(PROP_TESTLOG, null);
+        return new StatixProjectConfig(modes, messageStacktraceLength, messageTermDepth, testLog);
     }
 
     public static void write(IStatixProjectConfig statixConfig, HierarchicalConfiguration<ImmutableNode> config) {

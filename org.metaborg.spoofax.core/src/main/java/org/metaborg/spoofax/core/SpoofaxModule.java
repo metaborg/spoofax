@@ -252,6 +252,7 @@ import mb.statix.spoofax.STX_solve_constraint_concurrent;
 import mb.statix.spoofax.STX_solve_multi;
 import mb.statix.spoofax.STX_solve_multi_file;
 import mb.statix.spoofax.STX_solve_multi_project;
+import mb.statix.spoofax.STX_test_log_level;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -518,6 +519,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_solve_multi.class);
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);
+        bindPrimitive(statixLibrary, STX_test_log_level.class);
 
         /*
          * Note that FS_solve first needs to be identified as a Singleton, so that afterwards it
