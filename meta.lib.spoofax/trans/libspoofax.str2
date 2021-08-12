@@ -22,4 +22,5 @@ imports
   libspoofax/term/annotation
   libspoofax/term/origin
   libspoofax/term/position
+  libspoofax/term/amb
   libspoofax/ui/dialogs
