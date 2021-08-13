@@ -229,7 +229,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
 
     public static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
         for(LanguageIdentifier compileDep : compileDeps) {
-            if(compileDep.groupId.equals("org.metaborg") && compileDep.id.equals("stratego.lang")) {
+            if(compileDep.groupId.contains("org.metaborg") && compileDep.id.equals("stratego.lang")) {
                 return true;
             }
         }
