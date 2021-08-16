@@ -54,8 +54,8 @@ public class STX_solver_mode extends ASpoofaxContextPrimitive {
                 return SolverMode.TRADITIONAL;
             case concurrent:
                 return SolverMode.CONCURRENT;
-            case incrementalScopeGraphDiff:
-                return SolverMode.INCREMENTAL_SCOPEGRAPH_DIFF;
+            case incremental:
+                return SolverMode.FULL;
             default:
                 throw new MetaborgException("Cannot get solver mode for configuration option " + mode);
         }
