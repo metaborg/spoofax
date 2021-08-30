@@ -92,6 +92,9 @@ public class LangSpecGenerator extends BaseGenerator {
         return syntaxEnabled() || analysisEnabled();
     }
 
+    public boolean strategoEnabled() {
+        return config.transformationType != TransformationType.None;
+    }
 
     public void generateAll() throws IOException {
         generateREADME();
