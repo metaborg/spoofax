@@ -613,14 +613,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     if(compileOutput instanceof CompileOutput.Failure) {
                         logger.info("> Incremental compilation of Stratego failed:");
                         final CompileOutput.Failure failure = (CompileOutput.Failure) compileOutput;
-                        int errorsCount = 0;
+                        final ArrayList<String> notes = new ArrayList<>();
+                        final ArrayList<String> warnings = new ArrayList<>();
+                        final ArrayList<String> errors = new ArrayList<>();
                         for(Message message : failure.messages) {
                             switch(message.severity) {
                                 case NOTE:
                                     if(message.filename != null && Paths.get(new URI(message.filename))
                                         .startsWith(projectLocation.toPath())) {
                                         if(!(message.filename.endsWith(".str") && message instanceof TypeMessage)) {
-                                            logger.info(message.toString());
+                                            notes.add(message.toString());
                                         }
                                     }
                                     break;
@@ -628,18 +630,26 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                                     if(message.filename != null && Paths.get(new URI(message.filename))
                                         .startsWith(projectLocation.toPath())) {
                                         if(!(message.filename.endsWith(".str") && message instanceof TypeMessage)) {
-                                            logger.warn(message.toString());
+                                            warnings.add(message.toString());
                                         }
                                     }
                                     break;
                                 case ERROR:
-                                    logger.error(message.toString());
-                                    errorsCount++;
+                                    errors.add(message.toString());
                                     break;
                             }
                         }
+                        for(String note : notes) {
+                            logger.info(note);
+                        }
+                        for(String warning : warnings) {
+                            logger.warn(warning);
+                        }
+                        for(String error : errors) {
+                            logger.error(error);
+                        }
                         throw MetaborgException.withoutStackTrace(
-                            "Incremental Stratego Compilation failed with " + errorsCount + " errors.", null);
+                            "Incremental Stratego Compilation failed with " + errors.size() + " errors.", null);
                     } else {
                         assert compileOutput instanceof CompileOutput.Success;
                         final CompileOutput.Success success = (CompileOutput.Success) compileOutput;
