@@ -222,7 +222,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                     final ArrayList<ResourcePath> jarFiles =
                         new ArrayList<>(facet.jarFiles.size());
                     for(FileObject file : facet.jarFiles) {
-                        jarFiles.add(new FSPath(resourceService.localFile(file)));
+                        jarFiles.add(new FSPath(resourceService.localFile(file, paths.replicateDir().resolveFile("str2-includes"))));
                     }
                     str2libraries.add(new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
                 }
