@@ -504,9 +504,12 @@ public class LanguageSpecBuilder implements AutoCloseable {
                     });
                 }
                 if(str2libProject[0] != null) {
+                    final String str2IncludeDir =
+                        "str2-includes/" + sourceDepImplComp.id().toFullFileString() + "-"
+                            + sourceDepImplComp.sequenceId();
                     final ResourcePath str2LibFile = new FSPath(resourceService
                         .localFile(sourceDepImplComp.location().resolveFile(str2libProject[0]),
-                            paths.replicateDir().resolveFile("strj-includes")));
+                            paths.replicateDir().resolveFile(str2IncludeDir)));
                     final @Nullable DynamicClassLoadingFacet facet =
                         sourceDepImplComp.facet(DynamicClassLoadingFacet.class);
                     if(facet == null) {
@@ -515,7 +518,8 @@ public class LanguageSpecBuilder implements AutoCloseable {
                     final ArrayList<ResourcePath> jarFiles =
                         new ArrayList<>(facet.jarFiles.size());
                     for(FileObject file : facet.jarFiles) {
-                        jarFiles.add(new FSPath(resourceService.localFile(file, paths.replicateDir().resolveFile("str2-includes"))));
+                        jarFiles.add(new FSPath(resourceService.localFile(file, paths.replicateDir().resolveFile(
+                            str2IncludeDir))));
                     }
                     str2libraries.add(new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
                 }
