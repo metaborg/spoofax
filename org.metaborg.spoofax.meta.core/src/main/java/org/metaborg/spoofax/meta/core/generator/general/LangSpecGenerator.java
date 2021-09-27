@@ -139,18 +139,26 @@ public class LangSpecGenerator extends BaseGenerator {
     }
 
     public void generateTrans() throws IOException {
-        writer.write("langspec/trans/{{strategoName}}.str", "trans/{{strategoName}}.str", false);
+        final String fileExt = config.transformationType.fileExtension;
+        if(strategoEnabled()) {
+            writer.write("langspec/trans/{{strategoName}}." + fileExt, "trans/{{strategoName}}." + fileExt, false);
+        }
         if(analysisEnabled()) {
-            writer.writeResolve("langspec/trans/analysis.{{analysisType.id}}.str", "trans/analysis.str", false);
+            if(strategoEnabled()) {
+                writer.writeResolve("langspec/trans/analysis.{{analysisType.id}}." + fileExt, "trans/analysis." + fileExt, false);
+            }
             if(analysisNabl2()) {
                 writer.write("langspec/trans/statics.nabl2", "trans/statics.nabl2", false);
             } else if(analysisStatix()) {
                 writer.write("langspec/trans/statics.stx", "trans/statics.stx", false);
             }
         }
-        if(syntaxEnabled()) {
-            writer.write("langspec/trans/outline.str", "trans/outline.str", false);
-            writer.writeResolve("langspec/trans/pp.{{syntaxType.id}}.str", "trans/pp.str", false);
+        if(syntaxEnabled() && strategoEnabled()) {
+            writer.write("langspec/trans/outline." + fileExt, "trans/outline." + fileExt, false);
+            writer.writeResolve("langspec/trans/pp.{{syntaxType.id}}." + fileExt, "trans/pp." + fileExt, false);
+            if(config.transformationType == TransformationType.Stratego2) {
+                writer.write("langspec/trans/pp/{{name}}-parenthesizer.str2", "trans/pp/{{name}}-parenthesizer.str2", false);
+            }
         }
     }
 
