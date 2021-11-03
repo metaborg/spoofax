@@ -55,17 +55,24 @@ while getopts "bcdghi:l:m:no:p:tvV" o; do
         g) newopts+=" -g" ;;
         h) newopts+=" -h" ;;
         i)
-            newopts+=" -i  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -i  ${absfile}"
+            vols+=($abspath)
             ;;
         l)
-            newopts+=" -l  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -l  ${absfile}"
+            vols+=($abspath)
             ;;
         m) newopts+=" -m  ${OPTARG}" ;;
         n) newopts+=" -n" ;;
-        o) newopts+=" -o  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+        o)
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -o  ${absfile}"
+            vols+=($abspath)
             ;;
         #p) newopts+=" -p  ${OPTARG}" ;;    # Not supported
         t) newopts+=" -t" ;;

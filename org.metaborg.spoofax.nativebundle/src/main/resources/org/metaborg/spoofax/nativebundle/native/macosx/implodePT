@@ -51,13 +51,18 @@ while getopts "aAbchi:lOo:pPtvILVqX" o; do
         c) newopts+=" -c" ;;
         h) newopts+=" -h" ;;
         i)
-            newopts+=" -i  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -i  ${absfile}"
+            vols+=($abspath)
             ;;
         l) newopts+=" -l" ;;
         O) newopts+=" -O" ;;
-        o) newopts+=" -o  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+        o)
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -o  ${absfile}"
+            vols+=($abspath)
             ;;
         p) newopts+=" -p" ;;
         P) newopts+=" -P" ;;
