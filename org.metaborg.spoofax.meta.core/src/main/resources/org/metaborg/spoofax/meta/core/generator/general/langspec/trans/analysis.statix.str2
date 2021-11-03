@@ -1,0 +1,55 @@
+module analysis
+
+imports
+  strategolib
+
+imports
+
+  statixruntime
+  statix/api
+  statix/runtime/renaming
+
+  pp
+  injections/-
+
+  libspoofax/term/origin
+
+rules // Analysis
+
+  // single-file analysis
+  editor-analyze = stx-editor-analyze(pre-analyze, post-analyze|"statics", "programOk")
+
+  // see README.md for details on how to switch to multi-file analysis
+  // multi-file analysis
+//  editor-analyze = stx-editor-analyze(pre-analyze, post-analyze|"statics", "projectOk", "fileOk")
+
+  pre-analyze  = origin-track-forced(explicate-injections-{{name}}-{{startSymbol}})
+  post-analyze = origin-track-forced(implicate-injections-{{name}}-{{startSymbol}})
+
+rules // Editor Services
+
+  editor-resolve = stx-editor-resolve
+
+  editor-hover = stx-editor-hover
+
+rules // Debugging
+
+  // Prints the abstract syntax ATerm of a selection.
+  debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
+    with filename := <guarantee-extension(|"aterm")> path
+       ; result   := selected
+
+  // Prints the pre-analyzed abstract syntax ATerm of a selection.
+  debug-show-pre-analyzed: (selected, _, _, path, project-path) -> (filename, result)
+    with filename := <guarantee-extension(|"pre-analyzed.aterm")> path
+       ; result   := <pre-analyze> selected
+
+  // Prints the analyzed annotated abstract syntax ATerm of a selection.
+  debug-show-analyzed: (selected, _, _, path, project-path) -> (filename, result)
+    with filename := <guarantee-extension(|"analyzed.aterm")> path
+       ; result   := selected
+
+rules // Rename refactoring
+
+  // change last strategy argument to id if multi-file analysis is enabled
+  rename-menu-action = rename-action(construct-textual-change, editor-analyze, fail)

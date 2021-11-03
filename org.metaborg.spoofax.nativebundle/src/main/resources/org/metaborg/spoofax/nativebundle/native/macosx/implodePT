@@ -51,13 +51,18 @@ while getopts "aAbchi:lOo:pPtvILVqX" o; do
         c) newopts+=" -c" ;;
         h) newopts+=" -h" ;;
         i)
-            newopts+=" -i  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -i  ${absfile}"
+            vols+=($abspath)
             ;;
         l) newopts+=" -l" ;;
         O) newopts+=" -O" ;;
-        o) newopts+=" -o  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+        o)
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -o  ${absfile}"
+            vols+=($abspath)
             ;;
         p) newopts+=" -p" ;;
         P) newopts+=" -P" ;;
@@ -100,9 +105,7 @@ container_id=$(docker container create \
   --mount type=bind,source="$DIR",target=/bundle \
   ${volumes} \
   ubuntu:focal \
-  /bin/bash -c "pwd && ls -la && \
-  echo /bundle/ && ls -la /bundle/ && \
-  /bundle/$BIN-linux ${newopts}")
+  /bin/bash -c "/bundle/$BIN-linux ${newopts}")
 
 # Start the container
 docker container start $container_id
