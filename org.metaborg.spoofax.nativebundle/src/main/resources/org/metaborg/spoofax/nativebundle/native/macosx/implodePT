@@ -105,9 +105,7 @@ container_id=$(docker container create \
   --mount type=bind,source="$DIR",target=/bundle \
   ${volumes} \
   ubuntu:focal \
-  /bin/bash -c "pwd && ls -la && \
-  echo /bundle/ && ls -la /bundle/ && \
-  /bundle/$BIN-linux ${newopts}")
+  /bin/bash -c "/bundle/$BIN-linux ${newopts}")
 
 # Start the container
 docker container start $container_id
