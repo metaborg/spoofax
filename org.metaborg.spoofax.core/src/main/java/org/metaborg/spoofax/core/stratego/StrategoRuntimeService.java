@@ -158,7 +158,9 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     private HybridInterpreter createPrototype(ILanguageComponent component) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", component);
         final HybridInterpreter runtime = createNew(termFactory);
+        logger.debug("Done creating prototype runtime for {}", component);
         loadFiles(runtime, component);
+        logger.debug("Done loading files for prototype {}", component);
         prototypes.put(component, runtime);
         return runtime;
     }

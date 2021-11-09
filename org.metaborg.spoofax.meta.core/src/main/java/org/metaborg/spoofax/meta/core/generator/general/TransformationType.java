@@ -21,10 +21,10 @@ public enum TransformationType {
 
 
     public static Map<String, TransformationType> mapping() {
-        final Map<String, TransformationType> syntaxTypes = Maps.newHashMap();
-        for(TransformationType syntaxType : TransformationType.values()) {
-            syntaxTypes.put(syntaxType.name, syntaxType);
+        final Map<String, TransformationType> transformationTypes = Maps.newHashMap();
+        for(TransformationType transformationType : TransformationType.values()) {
+            transformationTypes.put(transformationType.name, transformationType);
         }
-        return syntaxTypes;
+        return transformationTypes;
     }
 }
