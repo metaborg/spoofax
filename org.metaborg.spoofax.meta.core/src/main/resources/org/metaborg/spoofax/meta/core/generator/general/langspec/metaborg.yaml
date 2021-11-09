@@ -10,14 +10,16 @@ dependencies:
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.lang:${metaborgVersion}
 {{/analysisNabl2}}{{#analysisStatix}}  - org.metaborg:statix.lang:${metaborgVersion}
   - org.metaborg:sdf3.ext.statix:${metaborgVersion}
-{{/analysisStatix}}
+{{/analysisStatix}}{{#transformationStratego2}}  - org.metaborg:stratego.lang:${metaborgVersion}
+{{/transformationStratego2}}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 {{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.shared:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.nabl2.runtime:${metaborgVersion}
 {{/analysisNabl2}}{{#analysisStatix}}  - org.metaborg:statix.runtime:${metaborgVersion}
-{{/analysisStatix}}
+{{/analysisStatix}}{{#transformationStratego2}}  - org.metaborg:strategolib:${metaborgVersion}
+{{/transformationStratego2}}
 pardonedLanguages:
 - EditorService
 - Stratego-Sugar
@@ -36,9 +38,9 @@ language:
     enabled: {{strategoEnabled}}
     format: jar
     args:
-    - -la
+{{#transformationStratego1}}    - -la
     - stratego-lib
-    - -la
+{{/transformationStratego1}}    - -la
     - stratego-sglr
     - -la
     - stratego-gpp

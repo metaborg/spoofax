@@ -24,6 +24,7 @@ public class LangSpecGeneratorSettingsBuilder {
     public static final String standardVersionString = "0.1.0-SNAPSHOT";
     public static final AnalysisType standardAnalysisType = AnalysisType.Statix;
     public static final SyntaxType standardSyntaxType = SyntaxType.SDF3;
+    public static final TransformationType standardTransformationType = TransformationType.Stratego1;
     public static final String standardMetaborgVersion = MetaborgConstants.METABORG_VERSION;
 
     private @Nullable String groupId;
@@ -40,6 +41,7 @@ public class LangSpecGeneratorSettingsBuilder {
     private @Nullable LanguageVersion defaultVersion = LanguageVersion.parse(standardVersionString);
     private @Nullable AnalysisType defaultAnalysisType = standardAnalysisType;
     private @Nullable SyntaxType defaultSyntaxType = standardSyntaxType;
+    private @Nullable TransformationType defaultTransformationType = standardTransformationType;
     private @Nullable String defaultMetaborgVersion = standardMetaborgVersion;
 
 
@@ -120,6 +122,11 @@ public class LangSpecGeneratorSettingsBuilder {
 
     public LangSpecGeneratorSettingsBuilder withDefaultSyntaxType(@Nullable SyntaxType defaultSyntaxType) {
         this.defaultSyntaxType = defaultSyntaxType;
+        return this;
+    }
+
+    public LangSpecGeneratorSettingsBuilder withDefaultTransformationType(@Nullable TransformationType defaultTransformationType) {
+        this.defaultTransformationType = defaultTransformationType;
         return this;
     }
 
@@ -233,6 +240,22 @@ public class LangSpecGeneratorSettingsBuilder {
             }
         }
 
+        while(transformationType == null) {
+            final String transformationTypeString =
+                prompter.readString("Type of transformation (one of " + Joiner.on(", ").join(TransformationType.values()) + ")"
+                    + (defaultTransformationType != null ? " [" + defaultTransformationType + "]" : "")).trim();
+            if(transformationTypeString.isEmpty()) {
+                transformationType = defaultTransformationType;
+            } else {
+                try {
+                    transformationType = TransformationType.valueOf(transformationTypeString.trim());
+                } catch(IllegalArgumentException e) {
+                    System.err.println("Please enter a valid syntax type");
+                    transformationType = null;
+                }
+            }
+        }
+
         while(metaborgVersion == null || metaborgVersion.isEmpty()) {
             metaborgVersion =
                 prompter.readString("Version for MetaBorg artifacts [" + defaultMetaborgVersion + "]").trim();
@@ -264,6 +287,9 @@ public class LangSpecGeneratorSettingsBuilder {
         if(analysisType == null) {
             analysisType = defaultAnalysisType;
         }
+        if(transformationType == null) {
+            transformationType = defaultTransformationType;
+        }
         if(metaborgVersion == null) {
             metaborgVersion = defaultMetaborgVersion;
         }
@@ -282,6 +308,7 @@ public class LangSpecGeneratorSettingsBuilder {
         return (groupId != null || defaultGroupId != null) && id != null && (version != null || defaultVersion != null)
             && name != null && extensions != null && (syntaxType != null || defaultSyntaxType != null)
             && (analysisType != null || defaultAnalysisType != null)
+            && (transformationType != null || defaultTransformationType != null)
             && (metaborgVersion != null || defaultMetaborgVersion != null);
     }
 
@@ -308,6 +335,9 @@ public class LangSpecGeneratorSettingsBuilder {
         if(analysisType == null && defaultAnalysisType == null) {
             missing.add("analysis type");
         }
+        if(transformationType == null && defaultTransformationType == null) {
+            missing.add("transformation type");
+        }
         if(metaborgVersion == null && defaultMetaborgVersion == null) {
             missing.add("metaborg version");
         }
@@ -316,7 +346,7 @@ public class LangSpecGeneratorSettingsBuilder {
 
     public boolean isComplete() {
         return groupId != null && id != null && version != null && name != null && extensions != null
-            && syntaxType != null && analysisType != null && metaborgVersion != null;
+            && syntaxType != null && analysisType != null && transformationType != null && metaborgVersion != null;
     }
 
     public Iterable<String> stillRequired() {
@@ -341,6 +371,9 @@ public class LangSpecGeneratorSettingsBuilder {
         }
         if(analysisType == null) {
             missing.add("analysis type");
+        }
+        if(transformationType == null) {
+            missing.add("syntax type");
         }
         if(metaborgVersion == null) {
             missing.add("metaborg version");

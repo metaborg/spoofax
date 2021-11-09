@@ -74,6 +74,9 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
         if(!inputAnalysisTypeModified()) {
             setAnalysisType(LangSpecGeneratorSettingsBuilder.standardAnalysisType.name);
         }
+        if(!inputTransformationTypeModified()) {
+            setTransformationType(LangSpecGeneratorSettingsBuilder.standardTransformationType.name);
+        }
 
         setGenerateExampleProject(false);
         setGenerateTestProject(false);

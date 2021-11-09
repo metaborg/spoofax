@@ -92,6 +92,14 @@ public class LangSpecGenerator extends BaseGenerator {
         return syntaxEnabled() || analysisEnabled();
     }
 
+    public boolean transformationStratego1() {
+        return config.transformationType == TransformationType.Stratego1;
+    }
+
+    public boolean transformationStratego2() {
+        return config.transformationType == TransformationType.Stratego2;
+    }
+
     public boolean strategoEnabled() {
         return config.transformationType != TransformationType.None;
     }
@@ -157,7 +165,7 @@ public class LangSpecGenerator extends BaseGenerator {
             writer.write("langspec/trans/outline." + fileExt, "trans/outline." + fileExt, false);
             writer.writeResolve("langspec/trans/pp.{{syntaxType.id}}." + fileExt, "trans/pp." + fileExt, false);
             if(config.transformationType == TransformationType.Stratego2) {
-                writer.write("langspec/trans/pp/{{name}}-parenthesizer.str2", "trans/pp/{{name}}-parenthesizer.str2", false);
+                writer.write("langspec/trans/pp/{{name}}-parenthesize.str2", "trans/pp/{{name}}-parenthesize.str2", false);
             }
         }
     }
