@@ -159,7 +159,7 @@ public class ResourceService implements IResourceService {
             }
             copyLoc.copyFrom(resource, new AllFileSelector());
 
-            return FileUtils.toFile(copyLoc);
+            return localPath(copyLoc);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException("Could not get local file for " + resource, e);
         }
@@ -186,7 +186,7 @@ public class ResourceService implements IResourceService {
             }
             copyLoc.copyFrom(resource, new ModifiedFileSelector(copyLoc));
 
-            return FileUtils.toFile(copyLoc);
+            return localPath(copyLoc);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException("Could not get local file for " + resource, e);
         }
