@@ -12,7 +12,7 @@ imports
   pp/{{name}}-pp
 
 rules
-
+  editor-format :: ? * ? * ? * string * string -> string * ?
   editor-format:
     (node, _, ast, path, project-path) -> (filename, result)
     with
