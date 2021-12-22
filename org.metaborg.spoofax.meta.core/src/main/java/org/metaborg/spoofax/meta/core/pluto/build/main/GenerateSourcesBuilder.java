@@ -627,10 +627,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                                     }
                                     break;
                                 case WARNING:
-                                    if(message.filename != null && Paths.get(new URI(message.filename))
-                                        .startsWith(projectLocation.toPath())) {
-                                        if(!(message.filename.endsWith(".str") && message instanceof TypeMessage)) {
-                                            warnings.add(message.toString());
+                                    if(message.filename != null) {
+                                        final URI uri = new URI(message.filename);
+                                        if(uri.getScheme() != null) {
+                                            if(Paths.get(uri).startsWith(projectLocation.toPath())) {
+                                                if(!(message.filename.endsWith(".str")
+                                                    && message instanceof TypeMessage)) {
+                                                    warnings.add(message.toString());
+                                                }
+                                            }
+                                        } else {
+                                            logger.error("no uri scheme on filename of message: " + message);
                                         }
                                     }
                                     break;
