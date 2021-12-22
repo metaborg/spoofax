@@ -2,7 +2,7 @@ module libspoofax/sdf/pp
 
 imports
   strategolib
-  libstratego-gpp
+  gpp
   libspoofax/term/annotation
 
 signature

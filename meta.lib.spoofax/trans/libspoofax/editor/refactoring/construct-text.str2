@@ -2,7 +2,7 @@ module libspoofax/editor/refactoring/construct-text
 
 imports
   strategolib
-  libstratego-gpp
+  gpp
   libspoofax/term/origin
   libspoofax/editor/refactoring/layout-adaption
   libspoofax/editor/completion/core
