@@ -161,14 +161,13 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME),
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO2_NAME));
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
-        strjIncludesReplicateDir.delete(new AllFileSelector());
         final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
         for(FileObject strIncludePath : strIncludePaths) {
             if(!strIncludePath.exists()) {
                 continue;
             }
             if(strIncludePath.isFolder()) {
-                strjIncludeDirs.add(new FSPath(resourceService.localFile(strIncludePath, strjIncludesReplicateDir)));
+                strjIncludeDirs.add(new FSPath(resourceService.localFileUpdate(strIncludePath, strjIncludesReplicateDir)));
             }
         }
 
@@ -211,7 +210,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                 }
                 if(str2libProject[0] != null) {
                     final ResourcePath str2LibFile = new FSPath(resourceService
-                        .localFile(sourceDepImplComp.location().resolveFile(str2libProject[0]),
+                        .localFileUpdate(sourceDepImplComp.location().resolveFile(str2libProject[0]),
                             paths.replicateDir().resolveFile("strj-includes")));
                     final @Nullable DynamicClassLoadingFacet facet =
                         sourceDepImplComp.facet(DynamicClassLoadingFacet.class);
@@ -221,7 +220,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                     final ArrayList<ResourcePath> jarFiles =
                         new ArrayList<>(facet.jarFiles.size());
                     for(FileObject file : facet.jarFiles) {
-                        jarFiles.add(new FSPath(resourceService.localFile(file, paths.replicateDir().resolveFile("str2-includes"))));
+                        jarFiles.add(new FSPath(resourceService.localFileUpdate(file, paths.replicateDir().resolveFile("str2-includes"))));
                     }
                     str2libraries.add(new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
                 }
