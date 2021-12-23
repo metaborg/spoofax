@@ -19,6 +19,7 @@ dependencies:
   - org.metaborg:org.metaborg.meta.nabl2.runtime:${metaborgVersion}
 {{/analysisNabl2}}{{#analysisStatix}}  - org.metaborg:statix.runtime:${metaborgVersion}
 {{/analysisStatix}}{{#transformationStratego2}}  - org.metaborg:strategolib:${metaborgVersion}
+  - org.metaborg:gpp:${metaborgVersion}
 {{/transformationStratego2}}
 pardonedLanguages:
 - EditorService
@@ -40,10 +41,10 @@ language:
     args:
 {{#transformationStratego1}}    - -la
     - stratego-lib
-{{/transformationStratego1}}    - -la
-    - stratego-sglr
     - -la
     - stratego-gpp
+{{/transformationStratego1}}    - -la
+    - stratego-sglr
     - -la
     - stratego-xtc
     - -la
