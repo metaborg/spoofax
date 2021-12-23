@@ -589,11 +589,12 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         final Arguments strjArgs = config.strArgs();
 
-        return new GenerateSourcesBuilder.Input(context, config.identifier(), sourceDeps, sdfEnabled,
-            sdfModule, sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities,
-            sdfExternalDef, packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules,
-            sdfMetaFiles, strEnabled, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
-            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, str2libraries, strjArgs, languageSpec.config().strVersion());
+        return new GenerateSourcesBuilder.Input(context, config.identifier(), sourceDeps, sdfEnabled, sdfModule,
+            sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities, sdfExternalDef,
+            packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles,
+            strEnabled, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
+            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, str2libraries, strjArgs,
+            languageSpec.config().strShadowJar(), languageSpec.config().strVersion());
 
     }
 

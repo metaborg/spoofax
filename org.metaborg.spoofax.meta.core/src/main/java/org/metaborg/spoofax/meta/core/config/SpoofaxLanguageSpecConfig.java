@@ -59,6 +59,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
     private static final String PROP_STR_EXTERNAL_JAR_FLAGS = PROP_STR + ".externalJar.flags";
+    private static final String PROP_STR_SHADOW_JAR = PROP_STR + ".shadow-jar";
     private static final String PROP_STR_ARGS = PROP_STR + ".args";
 
     private static final LanguageSpecBuildPhase defaultPhase = LanguageSpecBuildPhase.compile;
@@ -225,6 +226,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             }
         }
         return arguments;
+    }
+
+    @Override public boolean strShadowJar() {
+        return config.getBoolean(PROP_STR_SHADOW_JAR, true);
     }
 
     public static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
