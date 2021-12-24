@@ -176,8 +176,6 @@ public class ResourceService implements IResourceService {
                 + " is not on the local filesystem, cannot get local file for " + resource);
         }
         try {
-            dir.createFolder();
-
             final FileObject copyLoc;
             if(resource.getType() == FileType.FOLDER) {
                 copyLoc = dir;

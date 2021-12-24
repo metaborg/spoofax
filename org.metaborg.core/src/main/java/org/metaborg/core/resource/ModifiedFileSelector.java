@@ -14,13 +14,13 @@ public class ModifiedFileSelector implements FileSelector {
     @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
         final FileObject originalFile = fileInfo.getFile();
         final FileObject copyToCandidate = copyToLocation.resolveFile(
-            originalFile.getName().getRelativeName(fileInfo.getBaseFolder().getName()));
+            fileInfo.getBaseFolder().getName().getRelativeName(originalFile.getName()));
         return !(copyToCandidate.exists()
             && copyToCandidate.getContent().getLastModifiedTime() > originalFile.getContent()
             .getLastModifiedTime());
     }
 
     @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
-        return includeFile(fileInfo);
+        return true;
     }
 }
