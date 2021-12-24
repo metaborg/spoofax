@@ -587,16 +587,16 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 new ModuleIdentifier(legacyStratego, isLibrary, mainModuleName, new FSPath(strFile));
             final ResourcePath projectPath = new FSPath(projectLocation);
             final String packageName = NameUtil.toJavaId(input.languageId.id) + ".trans";
-            final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
-            // TODO: extract stratego2libraries from sourceDeps
+            final ResourcePath str2libReplicateDir =
+                new FSPath(context.resourceService().localPath(paths.targetClassesDir()));
             final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(input.str2libraries);
             final boolean library = true;
             final boolean autoImportStd = false;
-            final boolean createShadowJar = input.strategoShadowJar;
             final CompileInput compileInput =
-                new CompileInput(mainModuleIdentifier, projectPath, new FSPath(outputDir), javaClassDir, packageName,
-                    new FSPath(cacheDir), new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
-                    new ArrayList<>(0), library, autoImportStd, createShadowJar, input.languageId.id, str2libraries);
+                new CompileInput(mainModuleIdentifier, projectPath, new FSPath(outputDir), str2libReplicateDir,
+                    packageName, new FSPath(cacheDir), new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
+                    new ArrayList<>(0), library, autoImportStd, input.strategoShadowJar, input.languageId.id,
+                    str2libraries);
             final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
             final IPieProvider pieProvider = context.pieProvider();

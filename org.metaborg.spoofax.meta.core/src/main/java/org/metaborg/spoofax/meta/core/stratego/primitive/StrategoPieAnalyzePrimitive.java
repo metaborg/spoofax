@@ -11,7 +11,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -209,9 +208,12 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                     });
                 }
                 if(str2libProject[0] != null) {
+                    final String str2IncludeDir =
+                        "str2-includes/" + sourceDepImplComp.id().toFullFileString() + "-"
+                            + sourceDepImplComp.sequenceId();
                     final ResourcePath str2LibFile = new FSPath(resourceService
                         .localFileUpdate(sourceDepImplComp.location().resolveFile(str2libProject[0]),
-                            paths.replicateDir().resolveFile("strj-includes")));
+                            paths.replicateDir().resolveFile(str2IncludeDir)));
                     final @Nullable DynamicClassLoadingFacet facet =
                         sourceDepImplComp.facet(DynamicClassLoadingFacet.class);
                     if(facet == null) {
@@ -220,9 +222,11 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                     final ArrayList<ResourcePath> jarFiles =
                         new ArrayList<>(facet.jarFiles.size());
                     for(FileObject file : facet.jarFiles) {
-                        jarFiles.add(new FSPath(resourceService.localFileUpdate(file, paths.replicateDir().resolveFile("str2-includes"))));
+                        jarFiles.add(new FSPath(resourceService.localFileUpdate(file, paths.replicateDir().resolveFile(
+                            str2IncludeDir))));
                     }
-                    str2libraries.add(new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
+                    str2libraries.add(
+                        new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
                 }
             }
         }
