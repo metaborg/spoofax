@@ -1,0 +1,75 @@
+module statics
+
+/* Project template */
+
+rules
+
+  projectOk : scope
+
+  projectOk(s_prj).
+
+  groupOk: scope * string * scope
+
+  groupOk(s_parent, grp_name, s_grp) :-
+    s_grp -P-> s_parent.
+
+  fileOk : scope * Start
+
+  fileOk(s_grp, Empty()).
+
+signature
+  sorts Start constructors
+    Empty : Start
+
+  name-resolution
+    labels P
+
+
+/* Indirect type representation */
+
+signature
+
+  sorts TYPE constructors
+
+  relations
+    typeOf: TYPE
+
+rules
+
+  withType: TYPE -> scope
+  typeOf: scope -> TYPE
+
+  withType(T) = s :-
+    new s, !typeOf[T] in s.
+
+  typeOf(s) = T :-
+    query typeOf filter e in s |-> [(_, T)].
+
+/* Example usage */
+
+signature
+
+  sorts ID = string
+  relations
+    var: ID -> scope
+
+rules
+
+  declareVar: scope * string * TYPE
+  resolveVar: scope * string -> list((path * (ID * scope)))
+  typeOfVar: scope * string -> TYPE
+
+  declareVar(s, x, T) :-
+    !var[x, withType(T)] in s,
+    resolveVar(s, x) == [_]
+    | error $[Variable [x] declared multiple times] @x.
+
+  resolveVar(s, x) = R :-
+    query var
+      filter P* and { x' :- x' == x }
+         min $ < P
+          in s |-> R.
+
+  typeOfVar(s, x) = typeOf(T) :-
+    resolveVar(s, x) == [(_, (_, T))]
+    | error $[Variable [x] could not be resolved] @x.

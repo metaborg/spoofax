@@ -14,13 +14,17 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
         return SyntaxType.mapping().get(inputSyntaxTypeString());
     }
 
+    public TransformationType transformationType() {
+        return TransformationType.mapping().get(inputTransformationTypeString());
+    }
+
     public AnalysisType analysisType() {
         return AnalysisType.mapping().get(inputAnalysisTypeString());
     }
 
-    public TransformationType transformationType() {
-        return TransformationType.mapping().get(inputTransformationTypeString());
-    }
+    public abstract boolean analysisIncremental();
+
+    public abstract boolean directoryBasedGrouping();
 
     public abstract boolean generateExampleProject();
 
@@ -52,10 +56,6 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
     protected abstract String inputAnalysisTypeString();
 
     protected abstract void setAnalysisType(String analysisTypeString);
-
-    protected abstract boolean incremental();
-
-    protected abstract boolean directoryBasedGrouping();
 
     protected abstract void setIncremental(boolean incremental);
 

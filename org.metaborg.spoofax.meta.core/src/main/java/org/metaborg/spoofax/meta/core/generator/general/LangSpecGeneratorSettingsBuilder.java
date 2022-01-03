@@ -22,9 +22,9 @@ import com.google.common.collect.Lists;
 public class LangSpecGeneratorSettingsBuilder {
     public static final String standardGroupId = "org.example";
     public static final String standardVersionString = "0.1.0-SNAPSHOT";
-    public static final AnalysisType standardAnalysisType = AnalysisType.Statix;
     public static final SyntaxType standardSyntaxType = SyntaxType.SDF3;
     public static final TransformationType standardTransformationType = TransformationType.Stratego1;
+    public static final AnalysisType standardAnalysisType = AnalysisType.Statix;
     public static final String standardMetaborgVersion = MetaborgConstants.METABORG_VERSION;
 
     private @Nullable String groupId;
@@ -32,16 +32,18 @@ public class LangSpecGeneratorSettingsBuilder {
     private @Nullable LanguageVersion version;
     private @Nullable String name;
     private @Nullable SyntaxType syntaxType;
-    private @Nullable AnalysisType analysisType;
     private @Nullable TransformationType transformationType;
+    private @Nullable AnalysisType analysisType;
+    private boolean analysisIncremental = false;
+    private boolean directoryBasedGrouping = false;
     private @Nullable Collection<String> extensions;
     private @Nullable String metaborgVersion;
 
     private @Nullable String defaultGroupId = standardGroupId;
     private @Nullable LanguageVersion defaultVersion = LanguageVersion.parse(standardVersionString);
-    private @Nullable AnalysisType defaultAnalysisType = standardAnalysisType;
     private @Nullable SyntaxType defaultSyntaxType = standardSyntaxType;
     private @Nullable TransformationType defaultTransformationType = standardTransformationType;
+    private @Nullable AnalysisType defaultAnalysisType = standardAnalysisType;
     private @Nullable String defaultMetaborgVersion = standardMetaborgVersion;
 
 
@@ -80,13 +82,23 @@ public class LangSpecGeneratorSettingsBuilder {
         return this;
     }
 
+    public LangSpecGeneratorSettingsBuilder withTransformationType(@Nullable TransformationType transformationType) {
+        this.transformationType = transformationType;
+        return this;
+    }
+
     public LangSpecGeneratorSettingsBuilder withAnalysisType(@Nullable AnalysisType analysisType) {
         this.analysisType = analysisType;
         return this;
     }
 
-    public LangSpecGeneratorSettingsBuilder withTransformationType(@Nullable TransformationType transformationType) {
-        this.transformationType = transformationType;
+    public LangSpecGeneratorSettingsBuilder withAnalysisIncremental(boolean analysisIncremental) {
+        this.analysisIncremental = analysisIncremental;
+        return this;
+    }
+
+    public LangSpecGeneratorSettingsBuilder withDirectoryBasedGrouping(boolean directoryBasedGrouping) {
+        this.directoryBasedGrouping = directoryBasedGrouping;
         return this;
     }
 
@@ -115,11 +127,6 @@ public class LangSpecGeneratorSettingsBuilder {
         return this;
     }
 
-    public LangSpecGeneratorSettingsBuilder withDefaultAnalysisType(@Nullable AnalysisType defaultAnalysisType) {
-        this.defaultAnalysisType = defaultAnalysisType;
-        return this;
-    }
-
     public LangSpecGeneratorSettingsBuilder withDefaultSyntaxType(@Nullable SyntaxType defaultSyntaxType) {
         this.defaultSyntaxType = defaultSyntaxType;
         return this;
@@ -127,6 +134,11 @@ public class LangSpecGeneratorSettingsBuilder {
 
     public LangSpecGeneratorSettingsBuilder withDefaultTransformationType(@Nullable TransformationType defaultTransformationType) {
         this.defaultTransformationType = defaultTransformationType;
+        return this;
+    }
+
+    public LangSpecGeneratorSettingsBuilder withDefaultAnalysisType(@Nullable AnalysisType defaultAnalysisType) {
+        this.defaultAnalysisType = defaultAnalysisType;
         return this;
     }
 
@@ -301,7 +313,8 @@ public class LangSpecGeneratorSettingsBuilder {
         final GeneratorSettings generatorSettings = new GeneratorSettings(projectLocation, config, analysisType);
         generatorSettings.setMetaborgVersion(metaborgVersion);
 
-        return new LangSpecGeneratorSettings(generatorSettings, extensions, syntaxType, transformationType);
+        return new LangSpecGeneratorSettings(generatorSettings, extensions, syntaxType, transformationType,
+                analysisIncremental, directoryBasedGrouping);
     }
 
     public boolean canBuild() {

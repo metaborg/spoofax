@@ -32,7 +32,7 @@ language:
     sdf2table: java
     placeholder:
       prefix: "$"
-{{#syntaxSdf2}}  
+{{#syntaxSdf2}}
   version: sdf2
 {{/syntaxSdf2}}
   stratego:
@@ -53,6 +53,10 @@ language:
     - stratego-sdf
     - -la
     - strc
+{{#analysisStatix}}
+  statix:
+    mode: {{statixMode}}
+{{/analysisStatix}}
 exports:
 {{#analysisStatix}}- language: ATerm
   directory: src-gen/statix
