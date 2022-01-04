@@ -1,5 +1,6 @@
 module statics
 
+
 /* Project template */
 
 rules
@@ -18,6 +19,7 @@ rules
   fileOk(s_grp, Empty()).
 
 signature
+
   sorts Start constructors
     Empty : Start
 
@@ -45,24 +47,26 @@ rules
   typeOf(s) = T :-
     query typeOf filter e in s |-> [(_, T)].
 
+
 /* Example usage */
 
 signature
 
   sorts ID = string
+
   relations
     var: ID -> scope
 
 rules
 
-  declareVar: scope * string * TYPE
-  resolveVar: scope * string -> list((path * (ID * scope)))
-  typeOfVar: scope * string -> TYPE
+  declareVar: scope * ID * TYPE
+  resolveVar: scope * ID -> list((path * (ID * scope)))
+  typeOfVar: scope * ID -> TYPE
 
   declareVar(s, x, T) :-
     !var[x, withType(T)] in s,
     resolveVar(s, x) == [_]
-    | error $[Variable [x] declared multiple times] @x.
+    | error $[Duplicate variable [x].] @x.
 
   resolveVar(s, x) = R :-
     query var
@@ -72,4 +76,4 @@ rules
 
   typeOfVar(s, x) = typeOf(T) :-
     resolveVar(s, x) == [(_, (_, T))]
-    | error $[Variable [x] could not be resolved] @x.
+    | error $[Variable [x] could not be resolved.] @x.

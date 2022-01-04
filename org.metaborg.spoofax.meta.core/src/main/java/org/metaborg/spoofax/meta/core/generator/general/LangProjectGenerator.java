@@ -52,6 +52,13 @@ public class LangProjectGenerator extends BaseGenerator {
     }
 
     public boolean analysisStatix() {
-        return settings.analysisType() == AnalysisType.Statix;
+        return settings.analysisType() == AnalysisType.Statix || settings.analysisType() == AnalysisType.Statix_Concurrent;
+    }
+
+    public String statixMode() {
+        if(settings.analysisType() == AnalysisType.Statix_Concurrent) {
+            return settings.incremental() ? "incremental" : "concurrent";
+        }
+        return "traditional";
     }
 }

@@ -310,7 +310,7 @@ public class LangSpecGeneratorSettingsBuilder {
 
         final ISpoofaxLanguageSpecConfig config =
             languageSpecConfigBuilder.withIdentifier(identifier).withName(name).build(projectLocation);
-        final GeneratorSettings generatorSettings = new GeneratorSettings(projectLocation, config, analysisType);
+        final GeneratorSettings generatorSettings = new GeneratorSettings(projectLocation, config, analysisType, analysisIncremental);
         generatorSettings.setMetaborgVersion(metaborgVersion);
 
         return new LangSpecGeneratorSettings(generatorSettings, extensions, syntaxType, transformationType,
