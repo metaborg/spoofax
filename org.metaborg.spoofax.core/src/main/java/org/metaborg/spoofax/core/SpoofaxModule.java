@@ -246,6 +246,7 @@ import mb.statix.spoofax.STX_get_ast_property;
 import mb.statix.spoofax.STX_get_scopegraph;
 import mb.statix.spoofax.STX_get_scopegraph_data;
 import mb.statix.spoofax.STX_get_scopegraph_edges;
+import mb.statix.spoofax.STX_incremental_diagnostics;
 import mb.statix.spoofax.STX_is_analysis;
 import mb.statix.spoofax.STX_solve_constraint;
 import mb.statix.spoofax.STX_solve_constraint_concurrent;
@@ -520,6 +521,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);
         bindPrimitive(statixLibrary, STX_test_log_level.class);
+        bindPrimitive(statixLibrary, STX_incremental_diagnostics.class);
 
         /*
          * Note that FS_solve first needs to be identified as a Singleton, so that afterwards it
