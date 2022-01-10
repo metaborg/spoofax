@@ -110,6 +110,13 @@ public interface ISpoofaxLanguageSpecConfig extends ISpoofaxProjectConfig, ILang
     Arguments strArgs();
 
     /**
+     * Gets Stratego shadow jar setting
+     * 
+     * @return The Stratego shadow jar setting.
+     */
+    boolean strShadowJar();
+
+    /**
      * Gets additional build step configurations.
      * 
      * @return Additional build step configurations.

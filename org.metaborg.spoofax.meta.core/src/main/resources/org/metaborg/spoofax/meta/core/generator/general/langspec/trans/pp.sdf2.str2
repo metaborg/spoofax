@@ -5,7 +5,7 @@ imports
 
 imports
 
-  libstratego-gpp
+  gpp
   libspoofax/sdf/pp
   libspoofax/editor/refactoring/-
   pp/{{name}}-parenthesize

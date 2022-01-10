@@ -113,7 +113,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final List<File> strjIncludeFiles;
         public final List<Supplier<Stratego2LibInfo>> str2libraries;
         public final Arguments strjArgs;
+        public final boolean strategoShadowJar;
         public final StrategoVersion strategoVersion;
+
 
 
         public Input(SpoofaxContext context, LanguageIdentifier languageId, Collection<LanguageIdentifier> sourceDeps,
@@ -125,7 +127,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
             @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
             @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, List<File> strjIncludeFiles,
-            ArrayList<Supplier<Stratego2LibInfo>> str2libraries, Arguments strjArgs, StrategoVersion strategoVersion) {
+            ArrayList<Supplier<Stratego2LibInfo>> str2libraries, Arguments strjArgs, boolean strategoShadowJar,
+            StrategoVersion strategoVersion) {
             super(context);
             this.languageId = languageId;
             this.sdfEnabled = sdfEnabled;
@@ -156,6 +159,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             this.strjIncludeFiles = strjIncludeFiles;
             this.str2libraries = str2libraries;
             this.strjArgs = strjArgs;
+            this.strategoShadowJar = strategoShadowJar;
             this.strategoVersion = strategoVersion;
         }
     }
@@ -583,13 +587,15 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 new ModuleIdentifier(legacyStratego, isLibrary, mainModuleName, new FSPath(strFile));
             final ResourcePath projectPath = new FSPath(projectLocation);
             final String packageName = NameUtil.toJavaId(input.languageId.id) + ".trans";
-            final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
-            // TODO: extract stratego2libraries from sourceDeps
+            final ResourcePath str2libReplicateDir =
+                new FSPath(context.resourceService().localPath(paths.targetClassesDir()));
             final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(input.str2libraries);
+            final boolean library = true;
+            final boolean autoImportStd = false;
             final CompileInput compileInput =
-                new CompileInput(mainModuleIdentifier, projectPath, new FSPath(outputDir),
-                    javaClassDir, packageName, new FSPath(cacheDir), new ArrayList<>(0), strjIncludeDirs,
-                    linkedLibraries, newArgs, new ArrayList<>(0), true, false, input.languageId.id,
+                new CompileInput(mainModuleIdentifier, projectPath, new FSPath(outputDir), str2libReplicateDir,
+                    packageName, new FSPath(cacheDir), new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
+                    new ArrayList<>(0), library, autoImportStd, input.strategoShadowJar, input.languageId.id,
                     str2libraries);
             final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
@@ -627,10 +633,17 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                                     }
                                     break;
                                 case WARNING:
-                                    if(message.filename != null && Paths.get(new URI(message.filename))
-                                        .startsWith(projectLocation.toPath())) {
-                                        if(!(message.filename.endsWith(".str") && message instanceof TypeMessage)) {
-                                            warnings.add(message.toString());
+                                    if(message.filename != null) {
+                                        final URI uri = new URI(message.filename);
+                                        if(uri.getScheme() != null) {
+                                            if(Paths.get(uri).startsWith(projectLocation.toPath())) {
+                                                if(!(message.filename.endsWith(".str")
+                                                    && message instanceof TypeMessage)) {
+                                                    warnings.add(message.toString());
+                                                }
+                                            }
+                                        } else {
+                                            logger.error("no uri scheme on filename of message: " + message);
                                         }
                                     }
                                     break;

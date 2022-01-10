@@ -6,7 +6,7 @@ imports
   libspoofax/term/origin
   libspoofax/editor/completion/interface
   libspoofax/editor/refactoring/-
-  libstratego-gpp
+  gpp
 
 signature
   sorts

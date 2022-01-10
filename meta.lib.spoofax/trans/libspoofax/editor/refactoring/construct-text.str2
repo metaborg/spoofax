@@ -2,7 +2,7 @@ module libspoofax/editor/refactoring/construct-text
 
 imports
   strategolib
-  libstratego-gpp
+  gpp
   libspoofax/term/origin
   libspoofax/editor/refactoring/layout-adaption
   libspoofax/editor/completion/core
@@ -58,7 +58,7 @@ construct-textual-change(pp, parenthesize, override-reconstruction, resugar):
     <equal> (oldnode, newnode)
 
 construct-textual-change(pp, parenthesize, override-reconstruction, resugar)=
-  map(construct-textual-change(pp, parenthesize, override-reconstruction, resugar))
+  is-list; map(construct-textual-change(pp, parenthesize, override-reconstruction, resugar))
 
 //treat olnode as a candidate origin term to protect against loss of origin (and to preserve sugar in first diff)
 construct-text-from-old(pp, override-reconstruction, resugar):
@@ -342,6 +342,8 @@ rules //helper rules text construction
 find-origin-sublist:
   lst -> sublst
   where
+    is(List(?))
+  where
     at-suffix(sublst := <origin-sublist-term; ?[_,_|_]>) <+
     sublst := <init; find-origin-sublist> lst
 
@@ -351,7 +353,7 @@ has-origin-sublist =
 is-terminating-diff(|newnode):
   ast-changes -> ast-changes
   where
-    <not(fetch(?REPLACEMENT(_, newnode)))> ast-changes
+    <not(is(List(?));fetch(?REPLACEMENT(_, newnode)))> ast-changes
     //lists are constructed from their elements, so non-termination is not a problem for insertion
 
 rules //helper rules diff
