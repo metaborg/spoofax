@@ -12,6 +12,7 @@ dependencies {
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")
+  api("com.google.guava:failureaccess:1.0.1")
   api("com.google.inject.extensions:guice-multibindings")
   implementation("commons-io:commons-io")
   api("org.apache.commons:commons-vfs2")
