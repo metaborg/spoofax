@@ -294,6 +294,9 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
                 logger.debug("No origins for message: " + message);
             } else {
                 assert message.sourceRegion != null; // otherwise filename would have also been null
+                if(!resourceService.resolve(message.filename).equals(resourceService.resolve(baseLoc, path))) {
+                    continue;
+                }
                 final ImploderAttachment imploderAttachment = ImploderAttachment
                     .createCompactPositionAttachment(message.filename, message.sourceRegion.startRow, message.sourceRegion.startColumn,
                         message.sourceRegion.startOffset, message.sourceRegion.endOffset);
