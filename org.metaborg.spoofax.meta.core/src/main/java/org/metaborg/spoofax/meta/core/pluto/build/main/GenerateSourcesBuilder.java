@@ -469,7 +469,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         String sdfMetaModule, File sdfMetaFile) throws IOException {
         final File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
 
-        final BuildRequest<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix, SpoofaxBuilderFactory<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix>> getStrategoMixRequest =
+        final BuildRequest<GetStrategoMix.Input, OutputPersisted<File>, GetStrategoMix, ?> getStrategoMixRequest =
             GetStrategoMix.request(new GetStrategoMix.Input(context));
         final File strategoMixFile = requireBuild(getStrategoMixRequest).val();
         final Origin strategoMixOrigin = Origin.from(getStrategoMixRequest);
@@ -578,7 +578,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 FSPath fsPath = new FSPath(strjIncludeDir);
                 strjIncludeDirs.add(fsPath);
             }
-            final Arguments newArgs = GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs, projectLocation.getPath());
+            final Arguments newArgs = GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs,
+                linkedLibraries, strjIncludeDirs, projectLocation.getPath());
             final String strFileName = strFile.getName();
             final String mainModuleName = strFileName.substring(0, strFileName.length() - ".str2".length());
             final boolean legacyStratego = false;
@@ -586,7 +587,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final ModuleIdentifier mainModuleIdentifier =
                 new ModuleIdentifier(legacyStratego, isLibrary, mainModuleName, new FSPath(strFile));
             final ResourcePath projectPath = new FSPath(projectLocation);
-            final String packageName = NameUtil.toJavaId(input.languageId.id) + ".trans";
+            final ArrayList<String> packageNames = new ArrayList<>();
+            packageNames.add(NameUtil.toJavaId(input.languageId.id) + ".trans");
+            packageNames.add(NameUtil.toJavaId(input.languageId.id) + ".strategies");
             final ResourcePath str2libReplicateDir =
                 new FSPath(context.resourceService().localPath(paths.targetClassesDir()));
             final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(input.str2libraries);
@@ -594,7 +597,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             final boolean autoImportStd = false;
             final CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(outputDir), str2libReplicateDir,
-                    packageName, new FSPath(cacheDir), new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
+                    packageNames, new FSPath(cacheDir), new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
                     new ArrayList<>(0), library, autoImportStd, input.strategoShadowJar, input.languageId.id,
                     str2libraries);
             final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
@@ -706,7 +709,9 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
      * Copy oldArgs to newArgs, except for built-in libraries, which are split off and their names returned.
      * @return
      */
-    public static Arguments splitOffLinkedLibrariesIncludeDirs(Arguments oldArgs, Collection<IModuleImportService.ModuleIdentifier> builtinLibs, Collection<ResourcePath> includeDirs, String projectPath) {
+    public static Arguments splitOffLinkedLibrariesIncludeDirs(Arguments oldArgs,
+        Collection<IModuleImportService.ModuleIdentifier> builtinLibs, Collection<ResourcePath> includeDirs,
+        String projectPath) {
         final Arguments newArgs = new Arguments();
         for(Iterator<Object> iterator = oldArgs.iterator(); iterator.hasNext();) {
             Object oldArg = iterator.next();
@@ -740,7 +745,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                 final String nextOldArgString = nextOldArg instanceof String ? (String) nextOldArg : nextOldArg.toString();
                 final @Nullable BuiltinLibraryIdentifier libraryIdentifier = BuiltinLibraryIdentifier.fromString(nextOldArgString);
                 if(libraryIdentifier == null) {
-                    // throw new MetaborgRuntimeException("Incremental compiler internal bug: missing support for custom pre-compiled libraries such as: " + nextOldArgString);
+                    // throw new MetaborgRuntimeException("Incremental compiler internal bug: "
+                    //     + "missing support for custom pre-compiled libraries such as: " + nextOldArgString);
                     newArgs.add(oldArg, nextOldArg);
                     continue;
                 }
