@@ -2,9 +2,8 @@ module libspoofax/editor/completion/legacy
 
 signature
   sorts
-    String
     Term
 
   constructors
-    COMPLETION : String -> Term
+    COMPLETION : string -> Term
     NOCONTEXT  : Term   -> Term

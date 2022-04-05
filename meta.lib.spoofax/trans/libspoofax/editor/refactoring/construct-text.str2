@@ -9,9 +9,9 @@ imports
 
 signature
   sorts
-    Unknown
+    Term
   constructors
-    Parenthetical : Unknown -> Unknown
+    Parenthetical : Term -> Term
 
 rules
 
@@ -167,15 +167,12 @@ construct-text-with-comments(pp, override-reconstruction, resugar|default-indent
 
 signature
   sorts
-    OldList
-    OldNode
-    NewNode
-    NewList
+    AST_CHANGE
   constructors //signatures for AST changes
-    DELETION    : OldList -> AST_CHANGE
-    REPLACEMENT   : OldNode * NewNode -> AST_CHANGE //TODO: REPLACEMENT_IN_LIST, REPLACEMENT + bracket insertion for REPLACEMENT
-    INSERT_BEFORE : OldNode * NewList -> AST_CHANGE
-    INSERT_AT_END : OldNode * NewList -> AST_CHANGE
+    DELETION    : List(?) -> AST_CHANGE
+    REPLACEMENT   : ? * ? -> AST_CHANGE //TODO: REPLACEMENT_IN_LIST, REPLACEMENT + bracket insertion for REPLACEMENT
+    INSERT_BEFORE : ? * List(?) -> AST_CHANGE
+    INSERT_AT_END : ? * List(?) -> AST_CHANGE
 
 rules //ast-diff
 

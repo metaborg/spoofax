@@ -4,13 +4,12 @@ imports
   strategolib
   gpp
   libspoofax/term/annotation
+  libspoofax/editor/refactoring/construct-text
+  libspoofax/editor/completion/core
 
 signature
-  sorts
-    String
-    Anno
   constructors
-    inj : String * String -> Anno
+    inj : string * string -> Anno
 
 rules
 
@@ -18,7 +17,7 @@ rules
 
   /** Create explicit constructors for sort injections.
    *
-   * @param inj-name: String * String -> String
+   * @param inj-name: string * string -> string
    * @type Term -> Term
    */
   explicate-injections(inj-name) = prim("SSL_EXT_explicate_injections",inj-name|)
@@ -31,15 +30,12 @@ rules
 
 signature
   sorts
-    Unknown
     ConstraintTreeReference
     ShortConstraint
     NatCon
     StrCon
     IdCon
   constructors
-
-    Parenthetical : Unknown -> Unknown
 
     // signatures for layout constraints
     Offside         : ConstraintTreeReference * List(ConstraintTreeReference) -> ShortConstraint
@@ -114,10 +110,6 @@ strategies
 
 
 // rules for code completion
-signature
-  constructors
-   CURSOR_ELEMENT : cursor
-
 rules
   prettyprint-origin-term = fail
   prettyprint-completion-aux = (?CURSOR_ELEMENT(); ![S("##CURSOR##")]) <+

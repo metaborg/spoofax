@@ -10,17 +10,16 @@ imports
 
 signature
   sorts
-    NewTerm
     AST_CHANGE
-    OldTerm
-    NewTerm
   constructors
-   INSERTION_TERM : NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
-   REPLACE_TERM   : OldTerm * NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
+   INSERTION_TERM : ? -> AST_CHANGE // Inserting a new term in the completed AST
+   REPLACE_TERM   : ? * ? -> AST_CHANGE // Replacing an old term with a new term in the completed AST
 
 signature
+  sorts
+    Cursor
   constructors
-   CURSOR_ELEMENT : cursor
+   CURSOR_ELEMENT : Cursor
 
 rules
 
@@ -31,6 +30,7 @@ rules
 
   add-completions(|suggestion) = iset-add(|suggestion)
   add-list-completions(|suggestion*) = iset-addlist(|suggestion*)
+  wrap-term(|string) :: List(?) -> ?
   wrap-term(|new-cons) = ?t; !new-cons#(t)
 
   // inline completions with only one LHS?
@@ -86,9 +86,11 @@ rules
   get-index-cursor-position(|idx):
     (position, []) -> idx
 
+  my-position-of-term(? -> ?|int) :: ? -> List(?)
   my-position-of-term(is-term|start-index):
     [] -> <fail>
 
+  my-position-of-term(? -> ?) :: ? -> List(?)
   my-position-of-term(is-term):
     _#(t*) -> <my-position-of-term(is-term|0)> t*
     where

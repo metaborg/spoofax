@@ -6,10 +6,8 @@ imports
   libspoofax/term/origin
 
 signature
-  sorts
-    Term
   constructors
-    HyperlinkText : Term -> Term
+    HyperlinkText : ? -> Anno
 
 strategies
 
