@@ -7,10 +7,10 @@ imports
 
 signature
   sorts
-    Label Children Node
+    OutlineNode
   constructors
 
-    Node : Label * Children -> Node
+    Node : string * List(Node) -> OutlineNode
 
 rules
 

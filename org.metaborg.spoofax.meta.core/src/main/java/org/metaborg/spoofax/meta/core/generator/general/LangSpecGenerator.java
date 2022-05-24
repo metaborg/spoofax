@@ -85,11 +85,37 @@ public class LangSpecGenerator extends BaseGenerator {
     }
 
     public boolean analysisStatix() {
-        return syntaxEnabled() && config.generatorSettings.analysisType() == AnalysisType.Statix;
+        return syntaxEnabled() && (analysisStatixTraditional() || analysisStatixConcurrent());
+    }
+
+    public boolean analysisStatixTraditional() {
+        return config.generatorSettings.analysisType() == AnalysisType.Statix;
+    }
+
+    public boolean analysisStatixConcurrent() {
+        return config.generatorSettings.analysisType() == AnalysisType.Statix_Concurrent;
+    }
+
+    public boolean analysisIncremental() {
+        return config.analysisIncremental;
+    }
+
+    public boolean directoryBasedGrouping() {
+        return config.directoryBasedGrouping;
     }
 
     public boolean syntaxOrAnalysisEnabled() {
         return syntaxEnabled() || analysisEnabled();
+    }
+
+    public String statixMode() {
+        if(analysisIncremental()) {
+            return "incremental";
+        }
+        if(analysisStatixConcurrent()) {
+            return "concurrent";
+        }
+        return "traditional";
     }
 
     public boolean transformationStratego1() {
@@ -158,7 +184,11 @@ public class LangSpecGenerator extends BaseGenerator {
             if(analysisNabl2()) {
                 writer.write("langspec/trans/statics.nabl2", "trans/statics.nabl2", false);
             } else if(analysisStatix()) {
-                writer.write("langspec/trans/statics.stx", "trans/statics.stx", false);
+                if(analysisStatixTraditional()) {
+                    writer.write("langspec/trans/statics.traditional.stx", "trans/statics.stx", false);
+                } else {
+                    writer.write("langspec/trans/statics.concurrent.stx", "trans/statics.stx", false);
+                }
             }
         }
         if(syntaxEnabled() && strategoEnabled()) {

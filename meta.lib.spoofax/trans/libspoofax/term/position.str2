@@ -4,10 +4,8 @@ imports
   strategolib
 
 signature
-  sorts
-    Term
   constructors
-    MARKER: Term
+    MARKER: Anno
 
 strategies
 

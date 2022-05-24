@@ -12,11 +12,9 @@ imports
   libspoofax/term/annotation
 
 signature
-  sorts
-    String
   constructors
-    INSERTION_TERM    : NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
-    REPLACE_TERM_TEXT : OldTerm * String -> AST_CHANGE
+    INSERTION_TERM    : ? -> AST_CHANGE // Inserting a new term in the completed AST
+    REPLACE_TERM_TEXT : ? * string -> AST_CHANGE
 
 rules
 

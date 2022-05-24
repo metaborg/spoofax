@@ -66,10 +66,6 @@ imports
 
 signature
   sorts
-    String
-    Term
-
-  sorts
     Progress
     Cancel
     AnalysisAction
@@ -77,24 +73,24 @@ signature
 
   constructors // analysis
 
-    AnalyzeSingle  : List(String * Change) * Progress * Cancel -> AnalysisAction
-    AnalyzeMulti   : (String, Change) * List(String * Change) * Progress * Cancel -> AnalysisAction
+    AnalyzeSingle  : List(string * Change) * Progress * Cancel -> AnalysisAction
+    AnalyzeMulti   : (string, Change) * List(string * Change) * Progress * Cancel -> AnalysisAction
 
-    AnalysisResult : List(String * Result) -> AnalysisResult
+    AnalysisResult : List(string * Result) -> AnalysisResult
 
   sorts
     Change
 
   constructors // changes    
 
-    Added   : Term     // ast
+    Added   : ?     // ast
            -> Change
-    Removed : Term     // analysis
+    Removed : ?     // analysis
            -> Change
-    Changed : Term     // ast
-            * Term     // analysis
+    Changed : ?     // ast
+            * ?     // analysis
            -> Change
-    Cached  : Term     // analysis
+    Cached  : ?     // analysis
            -> Change
 
   sorts
@@ -102,13 +98,13 @@ signature
 
   constructors // results
 
-    Full : Term                   // ast
-         * Term                   // analysis
+    Full : ?                      // ast
+         * ?                      // analysis
          * List(EditorMessage)    // errors
          * List(EditorMessage)    // warnings
          * List(EditorMessage)    // notes
         -> Result
-    Update : Term                   // analysis
+    Update : ?                      // analysis
            * List(EditorMessage)    // errors
            * List(EditorMessage)    // warnings
            * List(EditorMessage)    // notes
@@ -120,29 +116,29 @@ signature
 
   constructors // messages
 
-    : Term      // origin term
-    * String    // message
+    : ?         // origin term
+    * string    // message
    -> EditorMessage
 
 rules
 
   /** Get analysis result for the given resource
    *
-   * @type resource:String -> analysis:Term
+   * @type resource:string -> analysis:?
    */
   get-resource-constraint-analysis =
     prim("C_get_resource_analysis")
 
   /** Get analyses result for all resources in the project
    *
-   * @type _ -> List(resource:String * analysis:Term)
+   * @type _ -> List(resource:string * analysis:?)
    */
   get-project-constraint-analyses =
     prim("C_get_project_analyses")
 
   /** Get analyzed ASTs for all resources in the project
    *
-   * @type _ -> List(resource:String * ast:Term)
+   * @type _ -> List(resource:string * ast:?)
    */
   get-project-analyzed-asts =
     prim("C_get_project_analyzed_asts")

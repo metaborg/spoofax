@@ -304,9 +304,6 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             }
             return StatixSolverMode.traditional;
         }
-        if(value.equals("incremental-scopegraph-diff")) {
-            return StatixSolverMode.incrementalScopeGraphDiff;
-        }
         return StatixSolverMode.valueOf(value);
     }
 

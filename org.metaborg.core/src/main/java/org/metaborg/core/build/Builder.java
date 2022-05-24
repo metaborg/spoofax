@@ -68,7 +68,7 @@ import com.google.inject.Provider;
 
 /**
  * Builder implementation.
- * 
+ *
  * @param <P>
  *            Type of parse units.
  * @param <A>
@@ -219,7 +219,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         final boolean analyze = input.analyze && analysisService.available(language);
         final boolean transform = input.transform;
-        progress.setWorkRemaining(10 + (analyze ? 45 : 0) + (transform ? 45 : 0));
+        progress.setWorkRemaining(10 + (analyze ? 70 : 0) + (transform ? 30 : 0));
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
@@ -270,7 +270,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             // Run analysis
             cancel.throwIfCancelled();
             allAnalyzeUnits = analyze(input, language, location, parseUnitsPerContext, includeParseUnits, pardoned,
-                allAnalyzeUpdates, removedResources, extraMessages, success, progress.subProgress(45), cancel);
+                allAnalyzeUpdates, removedResources, extraMessages, success, progress.subProgress(70), cancel);
         } else {
             allAnalyzeUnits = ArrayListMultimap.create();
         }
@@ -280,7 +280,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         final Collection<T> allTransformUnits;
         if(transform) {
             allTransformUnits = transform(input, language, location, parseUnitsPerContext, allAnalyzeUnits, includes, pardoned,
-                removedResources, extraMessages, success, progress.subProgress(45), cancel);
+                removedResources, extraMessages, success, progress.subProgress(30), cancel);
         } else {
             allTransformUnits = Lists.newLinkedList();
         }
