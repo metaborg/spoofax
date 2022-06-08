@@ -43,6 +43,9 @@ public class ContinuousLanguageSpecGenerator extends BaseGenerator {
             } else {
                 generateCompletionStrategies();
             }
+        }
+
+        if (sdfVersion == SdfVersion.sdf3) {
             generatePermissiveAterm();
         }
     }
