@@ -42,6 +42,7 @@ public class DialectIdentifier implements IDialectIdentifier {
     }
 
 
+    // FIXME: why is this restricted to Stratego files?
     @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
         final ILanguage strategoLanguage = languageService.getLanguage(SpoofaxConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
@@ -57,7 +58,8 @@ public class DialectIdentifier implements IDialectIdentifier {
         }
         // HACK: assuming single identification facet
         final IdentificationFacet facet = strategoImpl.facet(IdentificationFacet.class);
-        if(facet == null || !facet.identify(resource)) {
+        // HACK: allow str2 files from the Stratego 2 language to be identified too.
+        if(facet == null || !(facet.identify(resource) || resource.getName().getExtension().equals("str2"))) {
             return null;
         }
 
@@ -78,7 +80,20 @@ public class DialectIdentifier implements IDialectIdentifier {
                     String.format("Resource %s requires dialect %s, but that dialect does not exist", resource, name);
                 throw new MetaborgException(message);
             }
-            final ILanguageImpl base = dialectService.getBase(dialect);
+            final ILanguageImpl base;
+            stratego2Active: {
+                if(resource.getName().getExtension().equals("str2")) {
+                    final ILanguage stratego2Language = languageService.getLanguage(SpoofaxConstants.LANG_STRATEGO2_NAME);
+                    if(stratego2Language != null) {
+                        final ILanguageImpl stratego2Impl = stratego2Language.activeImpl();
+                        if(stratego2Impl != null) {
+                            base = stratego2Language.activeImpl();
+                            break stratego2Active;
+                        }
+                    }
+                }
+                base = dialectService.getBase(dialect);
+            }
             return new IdentifiedDialect(dialect, base);
         } catch(ParseError | IOException e) {
             throw new MetaborgException("Unable to open or parse .meta file", e);
