@@ -11,21 +11,28 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
-import org.metaborg.spoofax.meta.core.build.LanguageSpecBuilder;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.config.SpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.pluto.build.main.GenerateSourcesBuilder;
 import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
@@ -36,14 +43,15 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -51,27 +59,28 @@ import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.STask;
+import mb.pie.api.Supplier;
 import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
+import mb.pie.api.ValueSupplier;
 import mb.resource.ResourceKey;
 import mb.resource.fs.FSPath;
-import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.CheckOpenModule;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.CheckOpenModuleOutput;
 import mb.stratego.build.util.LastModified;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
 
     @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @Inject private static Provider<ILanguageService> languageServiceProvider;
     @Inject private static Provider<IPieProvider> pieProviderProvider;
 
     // Using provider to break cycle between Check -> Stratego runtime -> all primitives -> this primitive
@@ -106,7 +115,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             return null;
         }
 
-        if(languageSpecServiceProvider == null || pieProviderProvider == null) {
+        if(languageSpecServiceProvider == null || languageServiceProvider == null || pieProviderProvider == null) {
             // Indicates that meta-Spoofax is not available (ISpoofaxLanguageSpecService cannot be injected), but this
             // should never happen because this primitive is inside meta-Spoofax. Check for null just in case.
             logger.error("Spoofax meta services is not available; static injection failed");
@@ -121,47 +130,43 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
 
-        // Fail this primitive if there is no compilation dependency on the new incremental Stratego language project
-        if(!SpoofaxLanguageSpecConfig.containsStrategoLang(config.compileDeps())) {
-            logger.debug("Cannot find org.metaborg:stratego.lang:${metaborg-version} among compile dependencies. ");
-            return null;
-        }
-
         final FileObject baseLoc = languageSpec.location();
         final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(baseLoc);
 
-        String strModule = NameUtil.toJavaId(config.strategoName().toLowerCase());
+        String strMainModule = NameUtil.toJavaId(config.strategoName().toLowerCase());
 
         final Iterable<FileObject> strRoots =
             languagePathService.sourcePaths(project, SpoofaxConstants.LANG_STRATEGO_NAME);
-        @Nullable File strFile;
-        final FileObject strFileCandidate = paths.findStrMainFile(strRoots, strModule);
-        if(strFileCandidate != null && strFileCandidate.exists()) {
-            strFile = resourceService.localPath(strFileCandidate);
-            if(strFile == null || !strFile.exists()) {
-                logger.info("Main Stratego2 file at " + strFile + " does not exist");
-                strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
-                strModule = moduleName;
+        @Nullable File strMainFile;
+        final FileObject strMainFileCandidate =
+            config.strVersion().findStrMainFile(paths, strRoots, config.strategoName());
+        if(strMainFileCandidate != null && strMainFileCandidate.exists()) {
+            strMainFile = resourceService.localPath(strMainFileCandidate);
+            if(strMainFile == null || !strMainFile.exists()) {
+                logger.info("Main Stratego2 file at " + strMainFile + " does not exist");
+                strMainFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
+                strMainModule = moduleName;
             }
         } else {
-            logger.info("Main Stratego2 file does not exist");
-            strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
-            strModule = moduleName;
+            logger.info("Main Stratego2 file with name " + strMainModule + ".str2 does not exist");
+            strMainFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
+            strMainModule = moduleName;
         }
+        final File strFile = resourceService.localFile(resourceService.resolve(baseLoc, path));
 
         final @Nullable String strExternalJarFlags = config.strExternalJarFlags();
 
-        final Iterable<FileObject> strIncludePaths =
-            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME);
+        final Iterable<FileObject> strIncludePaths = Iterables.concat(
+            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME),
+            languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO2_NAME));
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
-        strjIncludesReplicateDir.delete(new AllFileSelector());
         final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
         for(FileObject strIncludePath : strIncludePaths) {
             if(!strIncludePath.exists()) {
                 continue;
             }
             if(strIncludePath.isFolder()) {
-                strjIncludeDirs.add(new FSPath(resourceService.localFile(strIncludePath, strjIncludesReplicateDir)));
+                strjIncludeDirs.add(new FSPath(resourceService.localFileUpdate(strIncludePath, strjIncludesReplicateDir)));
             }
         }
 
@@ -175,8 +180,56 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         final File projectLocation = resourceService.localPath(paths.root());
-        final ResourcePath projectPath = new FSPath(projectLocation);
         assert projectLocation != null;
+        final ResourcePath projectPath = new FSPath(projectLocation);
+
+        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>();
+        for(LanguageIdentifier sourceDep : config.sourceDeps()) {
+            final @Nullable ILanguageImpl sourceDepImpl = languageServiceProvider.get().getImpl(sourceDep);
+            if(sourceDepImpl == null) {
+                continue;
+            }
+            for(ILanguageComponent sourceDepImplComp : sourceDepImpl.components()) {
+                final String[] str2libProject = { null };
+                for(IExportConfig export : sourceDepImplComp.config().exports()) {
+                    if(str2libProject[0] != null) {
+                        break;
+                    }
+                    export.accept(new IExportVisitor() {
+                        @Override public void visit(LangDirExport resource) {}
+
+                        @Override public void visit(LangFileExport resource) {
+                            if(resource.language.equals("StrategoLang") && resource.file.endsWith("str2lib")) {
+                                str2libProject[0] = resource.file;
+                            }
+                        }
+
+                        @Override public void visit(ResourceExport resource) {}
+                    });
+                }
+                if(str2libProject[0] != null) {
+                    final String str2IncludeDir =
+                        "str2-includes/" + sourceDepImplComp.id().toFullFileString() + "-"
+                            + sourceDepImplComp.sequenceId();
+                    final ResourcePath str2LibFile = new FSPath(resourceService
+                        .localFileUpdate(sourceDepImplComp.location().resolveFile(str2libProject[0]),
+                            paths.replicateDir().resolveFile(str2IncludeDir)));
+                    final @Nullable DynamicClassLoadingFacet facet =
+                        sourceDepImplComp.facet(DynamicClassLoadingFacet.class);
+                    if(facet == null) {
+                        continue;
+                    }
+                    final ArrayList<ResourcePath> jarFiles =
+                        new ArrayList<>(facet.jarFiles.size());
+                    for(FileObject file : facet.jarFiles) {
+                        jarFiles.add(new FSPath(resourceService.localFileUpdate(file, paths.replicateDir().resolveFile(
+                            str2IncludeDir))));
+                    }
+                    str2libraries.add(
+                        new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
+                }
+            }
+        }
 
         final ArrayList<STask<?>> sdfTasks = new ArrayList<>(0);
 
@@ -191,11 +244,19 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         GenerateSourcesBuilder.splitOffLinkedLibrariesIncludeDirs(extraArgs, linkedLibraries, strjIncludeDirs, projectLocation.getPath());
         final LastModified<IStrategoTerm> astWLM =
             new LastModified<>(ast, Instant.now().getEpochSecond());
+        final boolean isLibrary = false;
         final ModuleIdentifier moduleIdentifier =
-            new ModuleIdentifier(false, strModule, new FSPath(strFile));
-        final boolean autoImportStd = true;
-        final CheckModuleInput checkModuleInput = new CheckModuleInput(new FrontInput.FileOpenInEditor(moduleIdentifier, sdfTasks,
-            strjIncludeDirs, linkedLibraries, astWLM, autoImportStd), moduleIdentifier, projectPath);
+            new ModuleIdentifier(strFile.getName().endsWith(".str"), isLibrary, moduleName, new FSPath(strFile));
+        final ModuleIdentifier mainModuleIdentifier =
+            new ModuleIdentifier(strMainFile.getName().endsWith(".str"), isLibrary, strMainModule, new FSPath(strMainFile));
+        final boolean autoImportStd = false;
+
+        final IModuleImportService.ImportResolutionInfo importResolutionInfo =
+            new IModuleImportService.ImportResolutionInfo(sdfTasks, strjIncludeDirs,
+                linkedLibraries, str2libraries);
+        final CheckModuleInput checkModuleInput = new CheckModuleInput(
+            new FrontInput.FileOpenInEditor(moduleIdentifier, importResolutionInfo, astWLM,
+                autoImportStd), mainModuleIdentifier, projectPath);
         final Task<CheckOpenModuleOutput> checkModuleTask = checkModuleProvider.get().createTask(checkModuleInput);
 
         final IPieProvider pieProvider = pieProviderProvider.get();
@@ -205,13 +266,13 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         final IStrategoList.Builder warnings = B.listBuilder();
         final IStrategoList.Builder notes = B.listBuilder();
         final CheckOpenModuleOutput analysisInformation;
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized(pie) {
             GenerateSourcesBuilder.initCompiler(pieProvider, checkModuleTask);
             try(final MixedSession session = pie.newSession()) {
                 TopDownSession tdSession = session.updateAffectedBy(changedResources);
                 session.deleteUnobservedTasks(t -> true, (t, r) -> {
-                    if(r instanceof HierarchicalResource
-                        && Objects.equals(((HierarchicalResource) r).getLeafExtension(), "java")) {
+                    if(Objects.equals(r.getLeafExtension(), "java")) {
                         logger.debug("Deleting garbage from previous build: " + r);
                         return true;
                     }
@@ -228,12 +289,20 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         }
 
         for(Message message : analysisInformation.messages) {
-            final ImploderAttachment imploderAttachment =
-                ImploderAttachment.get(OriginAttachment.tryGetOrigin(message.locationTerm));
-            if(imploderAttachment == null) {
+            final IStrategoString term = factory.makeString(message.locationTermString);
+            if(message.filename == null) {
                 logger.debug("No origins for message: " + message);
+            } else {
+                assert message.sourceRegion != null; // otherwise filename would have also been null
+                if(!resourceService.resolve(message.filename).equals(resourceService.resolve(baseLoc, path))) {
+                    continue;
+                }
+                final ImploderAttachment imploderAttachment = ImploderAttachment
+                    .createCompactPositionAttachment(message.filename, message.sourceRegion.startRow, message.sourceRegion.startColumn,
+                        message.sourceRegion.startOffset, message.sourceRegion.endOffset);
+                term.putAttachment(imploderAttachment);
             }
-            final IStrategoTuple messageTuple = B.tuple(message.locationTerm, B.string(message.getMessage()));
+            final IStrategoTuple messageTuple = B.tuple(term, B.string(message.getMessage()));
             switch(message.severity) {
                 case ERROR:
                     errors.add(messageTuple);
@@ -274,5 +343,6 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
     @Override public void close() throws Exception {
         pieProviderProvider = null;
         languageSpecServiceProvider = null;
+        languageServiceProvider = null;
     }
 }

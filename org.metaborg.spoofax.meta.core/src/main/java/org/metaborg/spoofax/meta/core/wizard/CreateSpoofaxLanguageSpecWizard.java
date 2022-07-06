@@ -4,6 +4,7 @@ import org.metaborg.meta.core.wizard.CreateLanguageSpecWizard;
 import org.metaborg.spoofax.meta.core.generator.general.AnalysisType;
 import org.metaborg.spoofax.meta.core.generator.general.LangSpecGeneratorSettingsBuilder;
 import org.metaborg.spoofax.meta.core.generator.general.SyntaxType;
+import org.metaborg.spoofax.meta.core.generator.general.TransformationType;
 
 /**
  * Spoofax specialization of the 'create language specification' wizard helper.
@@ -13,9 +14,17 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
         return SyntaxType.mapping().get(inputSyntaxTypeString());
     }
 
+    public TransformationType transformationType() {
+        return TransformationType.mapping().get(inputTransformationTypeString());
+    }
+
     public AnalysisType analysisType() {
         return AnalysisType.mapping().get(inputAnalysisTypeString());
     }
+
+    public abstract boolean analysisIncremental();
+
+    public abstract boolean directoryBasedGrouping();
 
     public abstract boolean generateExampleProject();
 
@@ -35,11 +44,22 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
     protected abstract void setSyntaxType(String syntaxTypeString);
 
 
+    protected abstract boolean inputTransformationTypeModified();
+
+    protected abstract String inputTransformationTypeString();
+
+    protected abstract void setTransformationType(String transformationTypeString);
+
+
     protected abstract boolean inputAnalysisTypeModified();
 
     protected abstract String inputAnalysisTypeString();
 
     protected abstract void setAnalysisType(String analysisTypeString);
+
+    protected abstract void setIncremental(boolean incremental);
+
+    protected abstract void setDirectoryBasedGrouping(boolean directoryBasedGrouping);
 
 
     protected abstract void setGenerateExampleProject(boolean generate);
@@ -61,6 +81,11 @@ public abstract class CreateSpoofaxLanguageSpecWizard extends CreateLanguageSpec
         }
         if(!inputAnalysisTypeModified()) {
             setAnalysisType(LangSpecGeneratorSettingsBuilder.standardAnalysisType.name);
+            setIncremental(false);
+            setDirectoryBasedGrouping(false);
+        }
+        if(!inputTransformationTypeModified()) {
+            setTransformationType(LangSpecGeneratorSettingsBuilder.standardTransformationType.name);
         }
 
         setGenerateExampleProject(false);

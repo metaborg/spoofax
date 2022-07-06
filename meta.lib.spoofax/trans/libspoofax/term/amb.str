@@ -1,0 +1,5 @@
+module libspoofax/term/amb
+
+signature
+  constructors
+    amb : List(Term) -> Term

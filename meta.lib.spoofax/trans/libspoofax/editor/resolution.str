@@ -1,12 +1,18 @@
 module libspoofax/editor/resolution
 
 imports
+  libstratego-lib
+
+imports
 
   libspoofax/term/annotation
   libspoofax/term/origin
 
-signature constructors
-  HyperlinkText : Term -> Term
+signature
+  sorts
+    Term
+  constructors
+    HyperlinkText : Term -> Term
 
 strategies
 

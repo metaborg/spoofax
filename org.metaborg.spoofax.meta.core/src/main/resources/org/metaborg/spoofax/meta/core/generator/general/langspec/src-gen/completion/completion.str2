@@ -1,0 +1,74 @@
+module completion
+
+imports
+  strategolib
+
+  libspoofax/editor/completion/-
+  completion/{{name}}-cp
+  pp/-
+  pp
+
+
+rules
+
+  pp-partial-{{name}}-string(|sort) = fail
+  pp-partial-{{name}}-string = fail
+  parenthesize-{{name}} = fail
+  {{ppName}}-get-indent = fail
+  {{ppName}}-get-leading-ws = fail
+  {{ppName}}-get-separator = fail
+
+
+  get-proposals-empty-program-{{name}} =
+    ?(sort, _);
+    get-proposals-empty-program(pp-partial-{{name}}-string(|sort), parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)
+
+  get-proposals-left-recursive-{{name}} =
+    ?(sort, _);
+    get-proposals-left-recursive(pp-partial-{{name}}-string, parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)
+
+  get-proposals-right-recursive-{{name}} =
+    ?(sort, _);
+    get-proposals-right-recursive(pp-partial-{{name}}-string, parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)
+
+  get-proposals-placeholder-{{name}} =
+    ?(sort, _, _, _);
+    get-proposals-placeholder(pp-partial-{{name}}-string(|sort), parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)
+
+  get-proposals-optional-{{name}} =
+    ?(sort, _, _);
+    get-proposals-optional(pp-partial-{{name}}-string(|sort), parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)
+
+  get-proposals-list-{{name}} =
+    ?(sort, _, _, _);
+    get-proposals-list(pp-partial-{{name}}-string(|sort), parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)
+
+  get-proposals-incorrect-programs-{{name}} =
+    ?(sort, _, _, _, _);
+    get-proposals-incorrect-programs(pp-partial-{{name}}-string(|sort), parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)
+
+  get-proposals-incorrect-programs-nested-{{name}} =
+    ?(sort, _, _, _, _, _);
+    get-proposals-incorrect-programs-nested(pp-partial-{{name}}-string(|sort), parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)
+
+  get-proposals-incorrect-programs-single-placeholder-{{name}} =
+    ?(sort, _, _, _, _, _, _);
+    get-proposals-incorrect-programs-single-placeholder(pp-partial-{{name}}-string(|sort), parenthesize-{{name}},
+                                {{ppName}}-get-indent, {{ppName}}-get-leading-ws,
+                                {{ppName}}-get-separator)

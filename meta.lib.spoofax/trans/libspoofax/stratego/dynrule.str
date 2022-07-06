@@ -1,5 +1,8 @@
 module libspoofax/stratego/dynrule
 
+imports
+  libstratego-lib
+
 rules
 	
   reset-dynamic-rules =

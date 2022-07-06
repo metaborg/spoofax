@@ -1,7 +1,12 @@
 module libspoofax/editor/completion/legacy
 
-signature
+imports
+  libstratego-lib
 
+signature
+  sorts
+    String
+    Term
   constructors
 
     COMPLETION : String -> Term

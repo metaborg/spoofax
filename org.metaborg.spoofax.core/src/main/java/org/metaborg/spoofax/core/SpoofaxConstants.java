@@ -20,6 +20,9 @@ public class SpoofaxConstants {
     public static final String LANG_STRATEGO_ID = "org.metaborg.meta.lang.stratego";
     public static final String LANG_STRATEGO_NAME = "Stratego-Sugar";
 
+    public static final String LANG_STRATEGO2_ID = "stratego.lang";
+    public static final String LANG_STRATEGO2_NAME = "StrategoLang";
+
     public static final String LANG_ESV_ID = "org.metaborg.meta.lang.esv";
     public static final String LANG_ESV_NAME = "EditorService";
 

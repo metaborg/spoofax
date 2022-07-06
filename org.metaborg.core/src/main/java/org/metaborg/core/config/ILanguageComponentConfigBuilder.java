@@ -12,7 +12,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 public interface ILanguageComponentConfigBuilder {
     /**
      * Builds the configuration.
-     * 
+     *
      * @return The built configuration.
      */
     ILanguageComponentConfig build(@Nullable FileObject rootFolder) throws IllegalStateException;
@@ -87,6 +87,8 @@ public interface ILanguageComponentConfigBuilder {
      */
     ILanguageComponentConfigBuilder withName(String name);
 
+    ILanguageComponentConfigBuilder withStrEnabled(Boolean strEnabled);
+
     /**
      * Sets the language contributions.
      *
@@ -106,7 +108,7 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withSdfTable(String parseTable);
-    
+
     /**
      * Sets whether SDF is enabled in the project
      *
@@ -115,9 +117,9 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withSdfEnabled(Boolean sdfEnabled);
-    
+
     ILanguageComponentConfigBuilder withCheckOverlap(Boolean checkOverlap);
-    
+
     /**
      * Sets the completion parse table (relative) path.
      *
@@ -135,7 +137,7 @@ public interface ILanguageComponentConfigBuilder {
      * @return This builder.
      */
     ILanguageComponentConfigBuilder withSdf2tableVersion(Sdf2tableVersion sdf2tableVersion);
-    
+
     /**
      * Sets the JSGLR parser version.
      *
@@ -155,13 +157,13 @@ public interface ILanguageComponentConfigBuilder {
     ILanguageComponentConfigBuilder withJSGLR2Logging(JSGLR2Logging jsglr2Logging);
 
     /**
-     * Set whether concurrent solver should be used.
-     * 
-     * @param concurrent
-     *            True to enable, false to disable.
+     * Set which solver configuration should be used.
+     *
+     * @param mode
+     *            The Statix solver mode
      * @return This builder.
      */
-    ILanguageComponentConfigBuilder withStatixConcurrent(Boolean concurrent);
+    ILanguageComponentConfigBuilder withStatixConcurrent(StatixSolverMode mode);
 
     /**
      * Adds language contributions.

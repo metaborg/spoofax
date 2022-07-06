@@ -1,6 +1,9 @@
 module libspoofax/resource/cache
 
 imports
+  libstratego-lib
+
+imports
 
   libspoofax/resource/path
 

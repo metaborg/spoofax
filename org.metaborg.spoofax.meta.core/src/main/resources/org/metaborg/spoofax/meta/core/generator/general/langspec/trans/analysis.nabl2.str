@@ -1,6 +1,9 @@
 module analysis
 
 imports
+  libstratego-lib
+
+imports
 
   nabl2/api
   nabl2/runtime

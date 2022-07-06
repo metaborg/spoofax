@@ -10,8 +10,6 @@ import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfig;
 import org.metaborg.util.cmd.Arguments;
 
-import mb.stratego.build.util.StrategoGradualSetting;
-
 /**
  * Spoofax-specific configuration for a language specification.
  *
@@ -79,16 +77,9 @@ public interface ISpoofaxLanguageSpecConfig extends ISpoofaxProjectConfig, ILang
     /**
      * Gets the project artifact build setting.
      *
-     * @return A member of the {@link StrategoBuildSetting} enumeration.
+     * @return A member of the {@link StrategoVersion} enumeration.
      */
-    StrategoBuildSetting strBuildSetting();
-
-    /**
-     * Gets the project artifact build setting.
-     *
-     * @return A member of the {@link StrategoGradualSetting} enumeration.
-     */
-    StrategoGradualSetting strGradualSetting();
+    StrategoVersion strVersion();
 
     /**
      * Gets the project artifact format.
@@ -117,6 +108,13 @@ public interface ISpoofaxLanguageSpecConfig extends ISpoofaxProjectConfig, ILang
      * @return The Stratego arguments.
      */
     Arguments strArgs();
+
+    /**
+     * Gets Stratego shadow jar setting
+     * 
+     * @return The Stratego shadow jar setting.
+     */
+    boolean strShadowJar();
 
     /**
      * Gets additional build step configurations.

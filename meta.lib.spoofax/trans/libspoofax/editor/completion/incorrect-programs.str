@@ -1,6 +1,9 @@
 module libspoofax/editor/completion/incorrect-programs
 
 imports
+  libstratego-lib
+
+imports
   libspoofax/editor/completion/core
   libspoofax/editor/completion/interface
   libspoofax/editor/refactoring/layout-adaption
@@ -9,9 +12,12 @@ imports
   libspoofax/term/origin
   libspoofax/term/annotation
 
-signature constructors 
-   INSERTION_TERM    : NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
-   REPLACE_TERM_TEXT : OldTerm * String -> AST_CHANGE
+signature
+  sorts
+    String
+  constructors 
+    INSERTION_TERM    : NewTerm -> AST_CHANGE //Inserting a new term in the completed AST
+    REPLACE_TERM_TEXT : OldTerm * String -> AST_CHANGE
 
 rules
 

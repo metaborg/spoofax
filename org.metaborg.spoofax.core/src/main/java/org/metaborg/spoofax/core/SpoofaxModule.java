@@ -137,6 +137,7 @@ import org.metaborg.spoofax.core.stratego.primitive.nabl2.SG_is_debug_resolution
 import org.metaborg.spoofax.core.stratego.primitive.renaming.RenamingLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.statix.STX_is_concurrent_enabled;
 import org.metaborg.spoofax.core.stratego.primitive.statix.STX_project_config;
+import org.metaborg.spoofax.core.stratego.primitive.statix.STX_solver_mode;
 import org.metaborg.spoofax.core.stratego.primitive.statix.StatixLibrary;
 import org.metaborg.spoofax.core.stratego.primitive.nabl2.NaBL2Library;
 import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
@@ -241,16 +242,23 @@ import mb.statix.spoofax.STX_debug_scopegraph;
 import mb.statix.spoofax.STX_delays_as_errors;
 import mb.statix.spoofax.STX_diff_scopegraphs;
 import mb.statix.spoofax.STX_extract_messages;
+import mb.statix.spoofax.STX_get_all_properties;
+import mb.statix.spoofax.STX_get_ast_properties;
 import mb.statix.spoofax.STX_get_ast_property;
 import mb.statix.spoofax.STX_get_scopegraph;
 import mb.statix.spoofax.STX_get_scopegraph_data;
 import mb.statix.spoofax.STX_get_scopegraph_edges;
+import mb.statix.spoofax.STX_incremental_diagnostics;
 import mb.statix.spoofax.STX_is_analysis;
+import mb.statix.spoofax.STX_labelord_lt;
+import mb.statix.spoofax.STX_labelre_to_states;
+import mb.statix.spoofax.STX_ords_to_relation;
 import mb.statix.spoofax.STX_solve_constraint;
 import mb.statix.spoofax.STX_solve_constraint_concurrent;
 import mb.statix.spoofax.STX_solve_multi;
 import mb.statix.spoofax.STX_solve_multi_file;
 import mb.statix.spoofax.STX_solve_multi_project;
+import mb.statix.spoofax.STX_test_log_level;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -499,6 +507,7 @@ public class SpoofaxModule extends MetaborgModule {
         // libspoofax
         bindPrimitive(statixLibrary, STX_is_concurrent_enabled.class);
         bindPrimitive(statixLibrary, STX_project_config.class);
+        bindPrimitive(statixLibrary, STX_solver_mode.class);
         // statix.solver
         bindPrimitive(statixLibrary, STX_analysis_has_errors.class);
         bindPrimitive(statixLibrary, STX_compare_patterns.class);
@@ -507,6 +516,8 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_diff_scopegraphs.class);
         bindPrimitive(statixLibrary, STX_extract_messages.class);
         bindPrimitive(statixLibrary, STX_get_ast_property.class);
+        bindPrimitive(statixLibrary, STX_get_ast_properties.class);
+        bindPrimitive(statixLibrary, STX_get_all_properties.class);
         bindPrimitive(statixLibrary, STX_get_scopegraph.class);
         bindPrimitive(statixLibrary, STX_get_scopegraph_data.class);
         bindPrimitive(statixLibrary, STX_get_scopegraph_edges.class);
@@ -516,6 +527,12 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_solve_multi.class);
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);
+        bindPrimitive(statixLibrary, STX_test_log_level.class);
+        bindPrimitive(statixLibrary, STX_incremental_diagnostics.class);
+
+        bindPrimitive(statixLibrary, STX_labelre_to_states.class);
+        bindPrimitive(statixLibrary, STX_ords_to_relation.class);
+        bindPrimitive(statixLibrary, STX_labelord_lt.class);
 
         /*
          * Note that FS_solve first needs to be identified as a Singleton, so that afterwards it

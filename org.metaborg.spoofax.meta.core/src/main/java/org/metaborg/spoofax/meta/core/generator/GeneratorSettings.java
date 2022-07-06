@@ -21,12 +21,13 @@ public class GeneratorSettings {
     private final ISpoofaxLanguageSpecConfig config;
     private final SpoofaxCommonPaths paths;
     private final AnalysisType analysisType;
+    private final boolean incremental;
 
     public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config) throws ProjectException {
-        this(location, config, AnalysisType.None);
+        this(location, config, AnalysisType.None, false);
     }
 
-    public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config, AnalysisType analysisType) throws ProjectException {
+    public GeneratorSettings(FileObject location, ISpoofaxLanguageSpecConfig config, AnalysisType analysisType, boolean incremental) throws ProjectException {
         if(!config.identifier().valid()) {
             throw new ProjectException("Invalid language identifier: " + config.identifier());
         }
@@ -56,6 +57,7 @@ public class GeneratorSettings {
         this.config = config;
         this.paths = new SpoofaxLangSpecCommonPaths(location);
         this.analysisType = analysisType;
+        this.incremental = incremental;
     }
 
 
@@ -123,7 +125,11 @@ public class GeneratorSettings {
     public AnalysisType analysisType() {
         return analysisType;
     }
- 
+
+    public boolean incremental() {
+        return incremental;
+    }
+
     public String strategoName() {
         return config.strategoName();
     }

@@ -138,6 +138,22 @@ public interface IResourceService extends AutoCloseable {
     File localFile(FileObject resource, FileObject dir);
 
     /**
+     * Attempts to get a local file for given resource, or copies the resource to the local file system at given
+     * directory if it does not reside on the local file system. If a copy of the resource already exists on the
+     * local file system, the method only updates files from the given resource that are newer.
+     *
+     * @param resource
+     *            Resource to get a local file for.
+     * @param dir
+     *            Directory to copy the resources to if they are not on a local filesystem. Must be on the local
+     *            filesystem.
+     * @return Local file.
+     * @throws MetaborgRuntimeException
+     *             When given resource does not exist.
+     */
+    File localFileUpdate(FileObject resource, FileObject dir);
+
+    /**
      * Attempts to get a local file handle for given resource.
      * 
      * @param resource

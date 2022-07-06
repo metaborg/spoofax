@@ -1,12 +1,19 @@
 module libspoofax/editor/refactoring/construct-text
 
+imports
+  libstratego-lib
+
 imports 
 	libstratego-gpp
-  libspoofax/term/origin
+	libspoofax/term/origin
 	libspoofax/editor/refactoring/layout-adaption
+	libspoofax/editor/completion/core
 
-signature constructors
-  Parenthetical : Unknown -> Unknown
+signature
+	sorts
+		Unknown
+	constructors
+		Parenthetical : Unknown -> Unknown
 
 rules
 	
@@ -160,11 +167,17 @@ construct-text-with-comments(pp, override-reconstruction, resugar|default-indent
 		modified-full-text := <apply-text-changes>(text-changes, full-text, full-text-start-offset); 
 		node-text := <replace-indentation(|default-indent, <origin-indent <+ !""> origin-node)> modified-full-text
 
-signature constructors //signatures for AST changes
-	DELETION      : OldList -> AST_CHANGE
-	REPLACEMENT   : OldNode * NewNode -> AST_CHANGE //TODO: REPLACEMENT_IN_LIST, REPLACEMENT + bracket insertion for REPLACEMENT
-	INSERT_BEFORE : OldNode * NewList -> AST_CHANGE
-	INSERT_AT_END : OldNode * NewList -> AST_CHANGE
+signature
+	sorts
+		OldList
+		OldNode
+		NewNode
+		NewList
+	constructors //signatures for AST changes
+		DELETION      : OldList -> AST_CHANGE
+		REPLACEMENT   : OldNode * NewNode -> AST_CHANGE //TODO: REPLACEMENT_IN_LIST, REPLACEMENT + bracket insertion for REPLACEMENT
+		INSERT_BEFORE : OldNode * NewList -> AST_CHANGE
+		INSERT_AT_END : OldNode * NewList -> AST_CHANGE
 
 rules //ast-diff
 

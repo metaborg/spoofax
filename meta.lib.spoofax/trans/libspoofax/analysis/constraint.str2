@@ -1,0 +1,144 @@
+module libspoofax/analysis/constraint
+
+imports
+  strategolib
+
+// This module defines the interface for a stateful analysis cycle. It supports
+// single and multi file analysis. Analysis strategies return an analysis term,
+// which is cached, and provided in later analysis cycles.
+//
+// Single file mode
+// ~~~~~~~~~~~~~~~~
+//
+// Single file analysis treats all files in isolation. To use it, set the following
+// in your ESV file:
+//
+//     observer : ANALYSIS-STRATEGY (constraint)
+//
+// The ANALYSIS-STRATEGY is called with an AnalyzeSingle/1 term. Its argument is
+// a list of resource-change tuples. See below for details on changes.
+//
+// An AnalysisResult/1 term should be returned, with a list of resource-result
+// tuples as argument. The results should contain a full result for all added
+// and changed files, while it may contain updates for cached files. See below
+// for details on results.
+//
+// Multi file mode
+// ~~~~~~~~~~~~~~~
+//
+// Multi file analysis analyses the files in a project together. To use multi
+// file mode, set the following in your ESV file:
+//
+//     observer : ANALYSIS-STRATEGY (constraint) (multifile)
+//
+// The ANALYSIS-STRATEGY is called with an AnalyzeMulti/2 term. Its arguments
+// are a resource-change tuple for the project, and a list of resource-change
+// tuples. See below for details on changes.
+//
+// An AnalysisResult/1 term should be returned, with a list of resource-result
+// tuples as argument. The results should contain a full result for all added
+// and changed files, while it may contain updates for cached files. Project
+// results are also included in this list.
+//
+// Changes
+// ~~~~~~~
+//
+// There are four different changes on resources:
+// 1. Added/1 for a new file, with the file's AST as the first argument.
+// 2. Removed/1 for a removed file, with the file's last analysis result as its
+//    first argument.
+// 3. Changed/2 for a changed file, with the file's new AST as the first, and
+//    the file's last analysis result as the second argument.
+// 4. Cached/1 for an unchanged file, with the file's last analysis result as
+//    the first argument.
+//
+// Results
+// ~~~~~~~
+//
+// There are three possible results for resources:
+// 1. Full/5 for added and changed files. It takes as arguments (1) the analyzed
+//    AST, (2) the analysis result, and (3-5) error, warning and note messages.
+// 2. Update/4 for cached files. It takes as arguments (1) the analysis result,
+//    and (2-4) error, warning, and note messages.
+// 3. Failed/0 to indicate an internal failure in the analysis. Can be returned
+//    for added, changed, and cached files.
+// Analysis should not return results for removed files. 
+
+signature
+  sorts
+    Progress
+    Cancel
+    AnalysisAction
+    AnalysisResult
+
+  constructors // analysis
+
+    AnalyzeSingle  : List(string * Change) * Progress * Cancel -> AnalysisAction
+    AnalyzeMulti   : (string, Change) * List(string * Change) * Progress * Cancel -> AnalysisAction
+
+    AnalysisResult : List(string * Result) -> AnalysisResult
+
+  sorts
+    Change
+
+  constructors // changes    
+
+    Added   : ?     // ast
+           -> Change
+    Removed : ?     // analysis
+           -> Change
+    Changed : ?     // ast
+            * ?     // analysis
+           -> Change
+    Cached  : ?     // analysis
+           -> Change
+
+  sorts
+    Result
+
+  constructors // results
+
+    Full : ?                      // ast
+         * ?                      // analysis
+         * List(EditorMessage)    // errors
+         * List(EditorMessage)    // warnings
+         * List(EditorMessage)    // notes
+        -> Result
+    Update : ?                      // analysis
+           * List(EditorMessage)    // errors
+           * List(EditorMessage)    // warnings
+           * List(EditorMessage)    // notes
+          -> Result
+    Failed : Result
+
+  sorts
+    EditorMessage
+
+  constructors // messages
+
+    : ?         // origin term
+    * string    // message
+   -> EditorMessage
+
+rules
+
+  /** Get analysis result for the given resource
+   *
+   * @type resource:string -> analysis:?
+   */
+  get-resource-constraint-analysis =
+    prim("C_get_resource_analysis")
+
+  /** Get analyses result for all resources in the project
+   *
+   * @type _ -> List(resource:string * analysis:?)
+   */
+  get-project-constraint-analyses =
+    prim("C_get_project_analyses")
+
+  /** Get analyzed ASTs for all resources in the project
+   *
+   * @type _ -> List(resource:string * ast:?)
+   */
+  get-project-analyzed-asts =
+    prim("C_get_project_analyzed_asts")

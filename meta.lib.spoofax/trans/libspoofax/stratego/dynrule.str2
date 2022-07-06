@@ -1,0 +1,9 @@
+module libspoofax/stratego/dynrule
+
+imports
+  strategolib
+
+rules
+  reset-dynamic-rules =
+    try(dr-scope-all-end);
+    dr-scope-all-start

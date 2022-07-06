@@ -13,6 +13,7 @@ import org.metaborg.core.config.IGenerateConfig;
 import org.metaborg.core.config.JSGLR2Logging;
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.config.Sdf2tableVersion;
+import org.metaborg.core.config.StatixSolverMode;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
@@ -28,7 +29,6 @@ import com.google.common.collect.Lists;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * An implementation of the {@link ISpoofaxLanguageSpecConfig} interface that is backed by an
@@ -56,10 +56,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_SDF_META = PROP_SDF + ".sdf-meta";
 
     private static final String PROP_STR = "language.stratego";
-    private static final String PROP_STR_GRADUAL_SETTING = PROP_STR + ".gradual";
     private static final String PROP_STR_FORMAT = PROP_STR + ".format";
     private static final String PROP_STR_EXTERNAL_JAR = PROP_STR + ".externalJar.name";
     private static final String PROP_STR_EXTERNAL_JAR_FLAGS = PROP_STR + ".externalJar.flags";
+    private static final String PROP_STR_SHADOW_JAR = PROP_STR + ".shadow-jar";
     private static final String PROP_STR_ARGS = PROP_STR + ".args";
 
     private static final LanguageSpecBuildPhase defaultPhase = LanguageSpecBuildPhase.compile;
@@ -76,23 +76,20 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     }
 
     protected SpoofaxLanguageSpecConfig(final HierarchicalConfiguration<ImmutableNode> config,
-            SpoofaxProjectConfig projectConfig, @Nullable LanguageIdentifier id, @Nullable String name,
-            @Nullable Collection<LanguageContributionIdentifier> langContribs,
-            @Nullable Collection<IGenerateConfig> generates, @Nullable Collection<IExportConfig> exports,
-            @Nullable Collection<String> pardonedLanguages, @Nullable Boolean useBuildSystemSpec,
-            @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
-            @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
-            @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
-            @Nullable JSGLR2Logging jsglr2Logging, Boolean statixConcurrent, @Nullable String sdfMainFile,
-            @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
-            @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
-            @Nullable Arguments sdfArgs, @Nullable StrategoBuildSetting buildSetting,
-            @Nullable StrategoGradualSetting gradualSetting, @Nullable StrategoFormat format, @Nullable String externalJar,
-            @Nullable String externalJarFlags, @Nullable Arguments strategoArgs,
-            @Nullable Collection<IBuildStepConfig> buildSteps) {
+        SpoofaxProjectConfig projectConfig, @Nullable LanguageIdentifier id, @Nullable String name,
+        @Nullable Collection<LanguageContributionIdentifier> langContribs, @Nullable Collection<IGenerateConfig> generates,
+        @Nullable Collection<IExportConfig> exports, @Nullable Collection<String> pardonedLanguages,
+        @Nullable Boolean useBuildSystemSpec, @Nullable SdfVersion sdfVersion, @Nullable Boolean sdfEnabled, @Nullable Sdf2tableVersion sdf2tableVersion,
+        @Nullable Boolean checkOverlap, @Nullable Boolean checkPriorities, @Nullable Boolean dataDependent,
+        @Nullable String parseTable, @Nullable String completionsParseTable, @Nullable JSGLRVersion jsglrVersion,
+        @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode, @Nullable Boolean strEnabled,
+        @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
+        @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
+        @Nullable Arguments sdfArgs, @Nullable StrategoFormat format, @Nullable String externalJar,
+        @Nullable String externalJarFlags, @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
-                dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixConcurrent,
-                langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
+                dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixMode,
+                strEnabled, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec);
         this.projectConfig = projectConfig;
 
         if(sdfVersion != null) {
@@ -124,9 +121,6 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             config.setProperty(PROP_SDF_ARGS, sdfArgs);
         }
 
-        if(gradualSetting != null) {
-            config.setProperty(PROP_STR_GRADUAL_SETTING, gradualSetting);
-        }
         if(format != null) {
             config.setProperty(PROP_STR_FORMAT, format);
         }
@@ -201,19 +195,14 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return arguments;
     }
 
-    @Override public StrategoBuildSetting strBuildSetting() {;
+    @Override public StrategoVersion strVersion() {;
         return
             containsStrategoLang(compileDeps()) ?
-                StrategoBuildSetting.incremental : StrategoBuildSetting.batch;
-    }
-
-    @Override public StrategoGradualSetting strGradualSetting() {
-        final String value = this.config.getString(PROP_STR_GRADUAL_SETTING);
-        return value != null ? StrategoGradualSetting.valueOf(value.toUpperCase()) : StrategoGradualSetting.NONE;
+                StrategoVersion.v2 : StrategoVersion.v1;
     }
 
     @Override public StrategoFormat strFormat() {
-        if(strBuildSetting() == StrategoBuildSetting.incremental) {
+        if(strVersion() == StrategoVersion.v2) {
             return StrategoFormat.jar;
         }
         final String value = this.config.getString(PROP_STR_FORMAT);
@@ -239,9 +228,13 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return arguments;
     }
 
+    @Override public boolean strShadowJar() {
+        return config.getBoolean(PROP_STR_SHADOW_JAR, true);
+    }
+
     public static boolean containsStrategoLang(Collection<LanguageIdentifier> compileDeps) {
         for(LanguageIdentifier compileDep : compileDeps) {
-            if(compileDep.groupId.equals("org.metaborg") && compileDep.id.equals("stratego.lang")) {
+            if(compileDep.groupId.contains("org.metaborg") && compileDep.id.equals("stratego.lang")) {
                 return true;
             }
         }

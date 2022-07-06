@@ -159,7 +159,32 @@ public class ResourceService implements IResourceService {
             }
             copyLoc.copyFrom(resource, new AllFileSelector());
 
-            return localDir;
+            return localPath(copyLoc);
+        } catch(FileSystemException e) {
+            throw new MetaborgRuntimeException("Could not get local file for " + resource, e);
+        }
+    }
+
+    @Override public File localFileUpdate(FileObject resource, FileObject dir) {
+        if(resource instanceof LocalFile) {
+            return FileUtils.toFile(resource);
+        }
+
+        final File localDir = localPath(dir);
+        if(localDir == null) {
+            throw new MetaborgRuntimeException("Replication directory " + dir
+                + " is not on the local filesystem, cannot get local file for " + resource);
+        }
+        try {
+            final FileObject copyLoc;
+            if(resource.getType() == FileType.FOLDER) {
+                copyLoc = dir;
+            } else {
+                copyLoc = ResourceUtils.resolveFile(dir, resource.getName().getBaseName());
+            }
+            copyLoc.copyFrom(resource, new ModifiedFileSelector(copyLoc));
+
+            return localPath(copyLoc);
         } catch(FileSystemException e) {
             throw new MetaborgRuntimeException("Could not get local file for " + resource, e);
         }

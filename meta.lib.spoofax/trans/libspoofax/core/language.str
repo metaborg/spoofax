@@ -1,5 +1,8 @@
 module libspoofax/core/language
 
+imports
+  libstratego-lib
+
 rules
 
   /**

@@ -6,7 +6,8 @@ set -o nounset
 #set -o xtrace
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-[ ! -z "$DIR" ]
+[ ! -z "$DIR" ]     # Ensure the directory is not empty
+[ -d "$DIR" ]       # Ensure the directory exists
 
 BIN="sdf2table"
 
@@ -54,17 +55,24 @@ while getopts "bcdghi:l:m:no:p:tvV" o; do
         g) newopts+=" -g" ;;
         h) newopts+=" -h" ;;
         i)
-            newopts+=" -i  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -i  ${absfile}"
+            vols+=($abspath)
             ;;
         l)
-            newopts+=" -l  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -l  ${absfile}"
+            vols+=($abspath)
             ;;
         m) newopts+=" -m  ${OPTARG}" ;;
         n) newopts+=" -n" ;;
-        o) newopts+=" -o  ${OPTARG}"
-            vols+=($(realpath -s $(dirname "${OPTARG}")))
+        o)
+            abspath=$(realpath -s $(dirname "${OPTARG}"))
+            absfile=$(realpath -s "${OPTARG}")
+            newopts+=" -o  ${absfile}"
+            vols+=($abspath)
             ;;
         #p) newopts+=" -p  ${OPTARG}" ;;    # Not supported
         t) newopts+=" -t" ;;
@@ -97,11 +105,29 @@ do
 done
 echo $volumes
 
-# Run the docker container with the volumes mounted, and execute it
-docker run --rm -v "$DIR/":/bundle \
+# Create the docker container with the volumes mounted
+container_id=$(docker container create \
+  --mount type=bind,source="$DIR",target=/bundle \
   ${volumes} \
   ubuntu:focal \
-  /bundle/$BIN-linux ${newopts}
-# `docker run` returns the exit code of its command
+  /bin/bash -c "/bundle/$BIN-linux ${newopts}")
+
+# Start the container
+docker container start $container_id
+
+# Show container output
+docker container logs --since 0 -f $container_id
+
+# Wait for the container to finish, and get exit code
+retVal=$(docker container wait $container_id)
+
+# Always remove the container
+docker container rm $container_id
+
+if [[ $retVal -ne 0 ]]; then
+    # It ran but failed
+    echo "Error $retVal, exit"
+    exit $retVal
+fi
 
 echo "Done"

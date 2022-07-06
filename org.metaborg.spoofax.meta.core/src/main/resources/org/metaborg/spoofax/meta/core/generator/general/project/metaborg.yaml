@@ -8,5 +8,14 @@ dependencies:
   nabl2:
     debug: analysis files
 {{/analysisNabl2}}
+{{#analysisStatix}}runtime:
+  statix:
+    modes:
+      {{name}}: {{statixMode}} # Duplicate from language definition
+    message-trace-length: 0
+    message-term-depth: 3
+    test-log: none # other options: error, warn, info, debug, trace (case-insensitive)
+    suppress-cascading-errors: true
+{{/analysisStatix}}
 build:
   useBuildSystemSpec: true

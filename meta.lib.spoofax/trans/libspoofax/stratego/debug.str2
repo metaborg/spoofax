@@ -1,0 +1,143 @@
+module libspoofax/stratego/debug
+
+imports
+  strategolib
+  libstratego-aterm
+
+rules
+
+  debug(|t) = where(write-to-string; debug(!t))
+
+  debug0 = debug(|"0 ")
+  debug1 = debug(|"1 ")
+  debug2 = debug(|"2 ")
+  debug3 = debug(|"3 ")
+  debug4 = debug(|"4 ")
+  debug5 = debug(|"5 ")
+  debug6 = debug(|"6 ")
+  debug7 = debug(|"7 ")
+  debug8 = debug(|"8 ")
+  debug9 = debug(|"9 ")
+
+  debuga = debug(|"a ")
+  debugb = debug(|"b ")
+  debugc = debug(|"c ")
+  debugd = debug(|"d ")
+  debuge = debug(|"e ")
+  debugf = debug(|"f ")
+  debugg = debug(|"g ")
+  debugh = debug(|"h ")
+  debugi = debug(|"i ")
+  debugj = debug(|"j ")
+  debugk = debug(|"k ")
+  debugl = debug(|"l ")
+  debugm = debug(|"m ")
+  debugn = debug(|"n ")
+  debugo = debug(|"o ")
+  debugp = debug(|"p ")
+  debugq = debug(|"q ")
+  debugr = debug(|"r ")
+  debugs = debug(|"s ")
+  debugt = debug(|"t ")
+  debugu = debug(|"u ")
+  debugv = debug(|"v ")
+  debugw = debug(|"w ")
+  debugx = debug(|"x ")
+  debugy = debug(|"y ")
+  debugz = debug(|"z ")
+
+rules
+
+  ppdebug(|t) = where(pp-aterm; debug(!t))
+
+  ppdebug0 = ppdebug(|"0 ")
+  ppdebug1 = ppdebug(|"1 ")
+  ppdebug2 = ppdebug(|"2 ")
+  ppdebug3 = ppdebug(|"3 ")
+  ppdebug4 = ppdebug(|"4 ")
+  ppdebug5 = ppdebug(|"5 ")
+  ppdebug6 = ppdebug(|"6 ")
+  ppdebug7 = ppdebug(|"7 ")
+  ppdebug8 = ppdebug(|"8 ")
+  ppdebug9 = ppdebug(|"9 ")
+
+  ppdebuga = ppdebug(|"a ")
+  ppdebugb = ppdebug(|"b ")
+  ppdebugc = ppdebug(|"c ")
+  ppdebugd = ppdebug(|"d ")
+  ppdebuge = ppdebug(|"e ")
+  ppdebugf = ppdebug(|"f ")
+  ppdebugg = ppdebug(|"g ")
+  ppdebugh = ppdebug(|"h ")
+  ppdebugi = ppdebug(|"i ")
+  ppdebugj = ppdebug(|"j ")
+  ppdebugk = ppdebug(|"k ")
+  ppdebugl = ppdebug(|"l ")
+  ppdebugm = ppdebug(|"m ")
+  ppdebugn = ppdebug(|"n ")
+  ppdebugo = ppdebug(|"o ")
+  ppdebugp = ppdebug(|"p ")
+  ppdebugq = ppdebug(|"q ")
+  ppdebugr = ppdebug(|"r ")
+  ppdebugs = ppdebug(|"s ")
+  ppdebugt = ppdebug(|"t ")
+  ppdebugu = ppdebug(|"u ")
+  ppdebugv = ppdebug(|"v ")
+  ppdebugw = ppdebug(|"w ")
+  ppdebugx = ppdebug(|"x ")
+  ppdebugy = ppdebug(|"y ")
+  ppdebugz = ppdebug(|"z ")
+
+rules
+
+  ppdebugna(|t) = where(strip-annos; pp-aterm; debug(!t))
+
+  ppdebugna0 = ppdebugna(|"0 ")
+  ppdebugna1 = ppdebugna(|"1 ")
+  ppdebugna2 = ppdebugna(|"2 ")
+  ppdebugna3 = ppdebugna(|"3 ")
+  ppdebugna4 = ppdebugna(|"4 ")
+  ppdebugna5 = ppdebugna(|"5 ")
+  ppdebugna6 = ppdebugna(|"6 ")
+  ppdebugna7 = ppdebugna(|"7 ")
+  ppdebugna8 = ppdebugna(|"8 ")
+  ppdebugna9 = ppdebugna(|"9 ")
+
+  ppdebugnaa = ppdebugna(|"a ")
+  ppdebugnab = ppdebugna(|"b ")
+  ppdebugnac = ppdebugna(|"c ")
+  ppdebugnad = ppdebugna(|"d ")
+  ppdebugnae = ppdebugna(|"e ")
+  ppdebugnaf = ppdebugna(|"f ")
+  ppdebugnag = ppdebugna(|"g ")
+  ppdebugnah = ppdebugna(|"h ")
+  ppdebugnai = ppdebugna(|"i ")
+  ppdebugnaj = ppdebugna(|"j ")
+  ppdebugnak = ppdebugna(|"k ")
+  ppdebugnal = ppdebugna(|"l ")
+  ppdebugnam = ppdebugna(|"m ")
+  ppdebugnan = ppdebugna(|"n ")
+  ppdebugnao = ppdebugna(|"o ")
+  ppdebugnap = ppdebugna(|"p ")
+  ppdebugnaq = ppdebugna(|"q ")
+  ppdebugnar = ppdebugna(|"r ")
+  ppdebugnas = ppdebugna(|"s ")
+  ppdebugnat = ppdebugna(|"t ")
+  ppdebugnau = ppdebugna(|"u ")
+  ppdebugnav = ppdebugna(|"v ")
+  ppdebugnaw = ppdebugna(|"w ")
+  ppdebugnax = ppdebugna(|"x ")
+  ppdebugnay = ppdebugna(|"y ")
+  ppdebugnaz = ppdebugna(|"z ")
+
+rules
+
+  cputime = prim("SSL_cputime")
+
+  cputime-to-seconds:
+    cputime -> <div> (cputime, 1000000000)
+
+  measure-time(s, match) =
+    where(before := <cputime>);
+    s;
+    where(after := <cputime>; !(after, before); subt; match)

@@ -1,0 +1,33 @@
+module pp/{{name}}-parenthesize
+
+/*
+This stub is generated because Spoofax 2 generates the real module in src-gen a little too late
+during the build, after Stratego 2 files are already statically checked. This means that without
+this stub file, your trans/pp.str2 file may fail to type-check after a clean. This is particularly
+problematic if you compile from the command line with Maven, such as during a CI process.
+*/
+
+imports
+  strategolib
+  signatures/-
+
+
+strategies
+  io-{{name}}-parenthesize =
+    fail
+
+  parenthesize-{{name}} =
+    fail
+
+  get-term-sort(|t) =
+    prim("SSL_EXT_get_sort_imploder_attachment", <id>) <+ !"unknown"
+
+
+signature
+  sorts
+    Unknown
+
+  constructors
+    Parenthetical : Unknown -> Unknown
+    Snoc          : Unknown * Unknown -> Unknown
+    Ins           : Unknown -> Unknown

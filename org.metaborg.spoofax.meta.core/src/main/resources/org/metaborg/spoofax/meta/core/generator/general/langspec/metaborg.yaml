@@ -10,36 +10,41 @@ dependencies:
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.lang:${metaborgVersion}
 {{/analysisNabl2}}{{#analysisStatix}}  - org.metaborg:statix.lang:${metaborgVersion}
   - org.metaborg:sdf3.ext.statix:${metaborgVersion}
-{{/analysisStatix}}  - org.metaborg:dynsem:${metaborgVersion}
+{{/analysisStatix}}{{#transformationStratego2}}  - org.metaborg:stratego.lang:${metaborgVersion}
+{{/transformationStratego2}}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 {{#analysisNablTs}}  - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
 {{/analysisNablTs}}{{#analysisNabl2}}  - org.metaborg:org.metaborg.meta.nabl2.shared:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.nabl2.runtime:${metaborgVersion}
 {{/analysisNabl2}}{{#analysisStatix}}  - org.metaborg:statix.runtime:${metaborgVersion}
-{{/analysisStatix}}
+{{/analysisStatix}}{{#transformationStratego2}}  - org.metaborg:strategolib:${metaborgVersion}
+  - org.metaborg:gpp:${metaborgVersion}
+{{/transformationStratego2}}
 pardonedLanguages:
 - EditorService
 - Stratego-Sugar
 - SDF
 language:
   sdf:
+    enabled: {{syntaxEnabled}}
     pretty-print: {{name}}
     sdf2table: java
     placeholder:
       prefix: "$"
-{{#syntaxSdf2}}  
+{{#syntaxSdf2}}
   version: sdf2
 {{/syntaxSdf2}}
   stratego:
-    format: ctree
+    enabled: {{strategoEnabled}}
+    format: jar
     args:
-    - -la
+{{#transformationStratego1}}    - -la
     - stratego-lib
     - -la
-    - stratego-sglr
-    - -la
     - stratego-gpp
+{{/transformationStratego1}}    - -la
+    - stratego-sglr
     - -la
     - stratego-xtc
     - -la
@@ -48,6 +53,10 @@ language:
     - stratego-sdf
     - -la
     - strc
+{{#analysisStatix}}
+  statix:
+    mode: {{statixMode}}
+{{/analysisStatix}}
 exports:
 {{#analysisStatix}}- language: ATerm
   directory: src-gen/statix

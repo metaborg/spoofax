@@ -1,6 +1,9 @@
 module libspoofax/stratego/debug
 
 imports
+  libstratego-lib
+
+imports
 
   libstratego-aterm
 

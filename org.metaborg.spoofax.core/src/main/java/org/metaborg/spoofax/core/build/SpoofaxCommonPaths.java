@@ -172,9 +172,16 @@ public class SpoofaxCommonPaths extends CommonPaths {
      * @return Main Stratego file.
      */
     public @Nullable FileObject findStrMainFile(Iterable<FileObject> sources, String languageName) {
-        final @Nullable FileObject str2File =
-            find(sources, NameUtil.toJavaId(languageName.toLowerCase()) + ".str2");
-        return str2File != null ? str2File : find(sources, NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
+        return find(sources, NameUtil.toJavaId(languageName.toLowerCase()) + ".str");
+    }
+
+    /**
+     * @param languageName
+     *            Name of the language.
+     * @return Main Stratego 2 file.
+     */
+    public @Nullable FileObject findStr2MainFile(Iterable<FileObject> sources, String languageName) {
+        return find(sources, NameUtil.toJavaId(languageName.toLowerCase()) + ".str2");
     }
 
     /**
