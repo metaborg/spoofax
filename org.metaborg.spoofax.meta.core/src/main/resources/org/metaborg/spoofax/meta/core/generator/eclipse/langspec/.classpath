@@ -10,6 +10,7 @@
       <attribute name="maven.pomderived" value="true"/>
     </attributes>
   </classpathentry>
+  <classpathentry kind="lib" path="target/replicate/str2libs"/>
   <classpathentry kind="src" output="target/classes" path="src/main/strategies">
     <attributes>
       <attribute name="optional" value="true"/>

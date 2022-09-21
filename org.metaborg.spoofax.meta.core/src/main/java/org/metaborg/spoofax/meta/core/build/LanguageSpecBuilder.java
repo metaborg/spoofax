@@ -125,10 +125,11 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
 
     public void initialize(LanguageSpecBuildInput input) throws MetaborgException {
-        final SpoofaxCommonPaths paths = new SpoofaxLangSpecCommonPaths(input.languageSpec().location());
+        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(input.languageSpec().location());
         try {
             paths.srcGenDir().createFolder();
             paths.targetMetaborgDir().createFolder();
+            paths.str2libsDir().createFolder();
             for(FileObject javaSrcDir : paths.javaSrcDirs()) {
                 javaSrcDir.createFolder();
             }

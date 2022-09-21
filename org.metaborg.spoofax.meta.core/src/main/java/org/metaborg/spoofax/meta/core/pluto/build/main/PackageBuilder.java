@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -18,8 +19,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.misc.CopyPattern;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
-
-import com.google.common.collect.Lists;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.buildjava.JarBuilder;
@@ -103,6 +102,7 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, Package
 
         final File targetMetaborgDir = toFile(paths.targetMetaborgDir());
         final File targetClassesDir = toFile(paths.targetClassesDir());
+        final File str2libsDir = toFile(paths.str2libsDir());
 
         final File strJavaTransDir = toFile(paths.strSrcGenJavaTransDir(input.languageId));
         final File strClassesTransDir = toFile(paths.strTargetClassesTransDir(input.languageId));
@@ -122,24 +122,19 @@ public class PackageBuilder extends SpoofaxBuilder<PackageBuilder.Input, Package
         final String jarName = "stratego.jar";
         final File jarFile = FileUtils.getFile(targetMetaborgDir, jarName);
         final File depPath = FileUtils.getFile(context.depDir, jarName + ".dep");
-        final Origin origin = jar(jarFile, targetClassesDir, copyPatternOrigin, depPath, targetClassesDir);
+        final Origin origin = jar(jarFile, copyPatternOrigin, depPath, targetClassesDir, str2libsDir);
 
         return new Output(origin);
     }
 
-    public Origin jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, File... paths)
+    public Origin jar(File jarFile, @Nullable Origin origin, @Nullable File depPath, File... paths)
         throws IOException {
-        return jar(jarFile, baseDir, origin, depPath, Lists.newArrayList(paths));
-    }
+        final Collection<JarBuilder.Entry> fileEntries = new ArrayList<>();
 
-    public Origin jar(File jarFile, File baseDir, @Nullable Origin origin, @Nullable File depPath, Iterable<File> paths)
-        throws IOException {
-        final Collection<JarBuilder.Entry> fileEntries = Lists.newLinkedList();
-
-        for(File path : paths) {
+        for(File baseDir : paths) {
             // N.B. this only checks the modified time of the dir, not subdirs which we do traverse!
-            require(path, new DirectoryModifiedStamper());
-            final Collection<File> files = findFiles(path);
+            require(baseDir, new DirectoryModifiedStamper());
+            final Collection<File> files = findFiles(baseDir);
             for(final File classFile : files) {
                 final String relative = relativize(classFile, baseDir);
                 // Ignore files that are not relative to the base directory.
