@@ -591,7 +591,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             packageNames.add(NameUtil.toJavaId(input.languageId.id) + ".trans");
             packageNames.add(NameUtil.toJavaId(input.languageId.id) + ".strategies");
             final ResourcePath str2libReplicateDir =
-                new FSPath(context.resourceService().localPath(paths.targetClassesDir()));
+                new FSPath(context.resourceService().localPath(paths.str2libsDir()));
             final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(input.str2libraries);
             final boolean library = true;
             final boolean autoImportStd = false;
