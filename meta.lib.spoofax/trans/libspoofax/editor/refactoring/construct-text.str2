@@ -130,8 +130,7 @@ construct-text-by-pp(pp, override-reconstruction, resugar):
     pp
   > node
 
-
-is-completion-placeholder = where(get-constructor; is-substring(!"-Plhdr")); id
+is-completion-placeholder = where(get-constructor; is-string; is-substring(!"-Plhdr")); id
 
 construct-text-with-comments(pp, override-reconstruction, resugar|default-indent) =
   construct-text-with-comments-desugared(pp, override-reconstruction, resugar|default-indent) <+
