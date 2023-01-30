@@ -12,6 +12,8 @@ exports:
   directory: editor
 - language: Stratego-Sugar
   directory: trans
+- language: StrategoLang
+  directory: trans
 language:
   sdf:
     enabled: false
