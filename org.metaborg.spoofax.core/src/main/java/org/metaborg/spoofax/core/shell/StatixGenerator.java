@@ -32,7 +32,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 
 import mb.nabl2.terms.ITerm;
-import mb.nabl2.terms.matching.Transform.T;
+import static mb.nabl2.terms.matching.Transform.T;
 import mb.nabl2.terms.stratego.StrategoTerms;
 import mb.nabl2.util.TermFormatter;
 import mb.statix.solver.IConstraint;
