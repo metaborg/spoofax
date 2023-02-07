@@ -31,7 +31,7 @@ dependencies {
   implementation("org.apache.commons:commons-vfs2")
   implementation("com.google.guava:guava")
   // Required for Guava >= 27.0:
-  // implementation("com.google.guava:failureaccess")
+  implementation("com.google.guava:failureaccess")
   implementation("io.reactivex.rxjava3:rxjava")
 
   compileOnly("com.google.code.findbugs:jsr305")
