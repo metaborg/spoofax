@@ -60,6 +60,13 @@ public class SpoofaxLangSpecCommonPaths extends SpoofaxCommonPaths {
         return resolve(targetClassesDir(), strJavaStratPkgPath(languageId));
     }
 
+    /**
+     * @return Stratego 2 library replication directory for unpacked class files.
+     */
+    public FileObject str2libsDir() {
+        return resolve(replicateDir(), "str2libs");
+    }
+
 
     /* DynSem */
 

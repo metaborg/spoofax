@@ -20,6 +20,9 @@ dependencies:
 {{/analysisNabl2}}{{#analysisStatix}}  - org.metaborg:statix.runtime:${metaborgVersion}
 {{/analysisStatix}}{{#transformationStratego2}}  - org.metaborg:strategolib:${metaborgVersion}
   - org.metaborg:gpp:${metaborgVersion}
+java:
+  - org.metaborg:strategolib:${metaborgVersion}
+  - org.metaborg:gpp:${metaborgVersion}
 {{/transformationStratego2}}
 pardonedLanguages:
 - EditorService

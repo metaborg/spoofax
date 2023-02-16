@@ -73,12 +73,10 @@
       <artifactId>guava</artifactId>
     </dependency>
     <!-- Required for Guava >= 27.0: -->
-    <!--
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>failureaccess</artifactId>
     </dependency>
-    -->
     <dependency>
       <groupId>io.reactivex.rxjava3</groupId>
       <artifactId>rxjava</artifactId>
