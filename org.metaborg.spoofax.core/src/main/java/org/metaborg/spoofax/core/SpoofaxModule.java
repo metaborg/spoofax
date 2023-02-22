@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core;
 
 import mb.nabl2.terms.stratego.primitives.SG_get_max_ast_index;
 import mb.nabl2.terms.stratego.primitives.SG_index_more_ast;
+import mb.nabl2.terms.stratego.primitives.SG_reindex_ast;
 import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.analysis.IAnalysisService;
@@ -461,6 +462,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_ast_resource.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_index_ast.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_index_more_ast.class);
+        bindPrimitive(spoofaxScopeGraphLibrary, SG_reindex_ast.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_get_max_ast_index.class);
         bindPrimitive(spoofaxScopeGraphLibrary, SG_set_ast_index.class);
         // nabl2.solver
