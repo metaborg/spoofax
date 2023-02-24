@@ -258,6 +258,7 @@ import mb.statix.spoofax.STX_labelre_to_states;
 import mb.statix.spoofax.STX_ords_to_relation;
 import mb.statix.spoofax.STX_solve_constraint;
 import mb.statix.spoofax.STX_solve_constraint_concurrent;
+import mb.statix.spoofax.STX_solve_constraint_with_initial_state;
 import mb.statix.spoofax.STX_solve_multi;
 import mb.statix.spoofax.STX_solve_multi_file;
 import mb.statix.spoofax.STX_solve_multi_project;
@@ -530,6 +531,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_is_analysis.class);
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
         bindPrimitive(statixLibrary, STX_solve_constraint_concurrent.class);
+        bindPrimitive(statixLibrary, STX_solve_constraint_with_initial_state.class);
         bindPrimitive(statixLibrary, STX_solve_multi.class);
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);
