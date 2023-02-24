@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.meta.core.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -257,7 +258,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         for(HierarchicalConfiguration<ImmutableNode> strConfig : strConfigs) {
             final LanguageSpecBuildPhase phase = phase(strConfig);
             final String strategy = strConfig.getString("strategy");
-            final List<String> args = strConfig.getList(String.class, "args", Lists.<String>newArrayList());
+            final List<String> args = strConfig.getList(String.class, "args",
+                new ArrayList<String>());
             if(strategy != null) {
                 buildSteps.add(new StrategoBuildStepConfig(phase, strategy, args));
             }

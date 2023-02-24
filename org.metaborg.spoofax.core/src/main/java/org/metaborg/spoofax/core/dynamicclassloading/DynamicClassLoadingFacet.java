@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.dynamicclassloading;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.jar.JarFile;
 import java.util.zip.ZipFile;
 
@@ -11,8 +12,6 @@ import org.metaborg.core.language.IFacet;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-
-import com.google.common.collect.Lists;
 
 /**
  * Represents the DynamicClassLoading facet of a language.
@@ -36,7 +35,7 @@ public class DynamicClassLoadingFacet implements IFacet {
      *             When a file operation fails.
      */
     public Collection<String> available(IResourceService resourceService) throws IOException {
-        final Collection<String> errors = Lists.newLinkedList();
+        final Collection<String> errors = new LinkedList<>();
         for(FileObject file : jarFiles) {
             if(!file.exists()) {
                 final String message = logger.format("JAR file {} does not exist", file);

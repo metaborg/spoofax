@@ -5,6 +5,7 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +31,6 @@ import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
 public class ConstraintContext implements IConstraintContext {
@@ -304,7 +304,7 @@ public class ConstraintContext implements IConstraintContext {
         public final Map<String, IConstraintContext.Entry> entries;
 
         public State() {
-            this.entries = Maps.newHashMap();
+            this.entries = new HashMap<>();
         }
 
     }

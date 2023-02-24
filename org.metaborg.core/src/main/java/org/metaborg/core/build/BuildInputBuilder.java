@@ -1,6 +1,8 @@
 package org.metaborg.core.build;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -72,22 +74,22 @@ public class BuildInputBuilder {
      */
     public BuildInputBuilder reset() {
         state = null;
-        languages = Sets.newHashSet();
+        languages = new HashSet<ILanguageImpl>();
         addDependencyLanguages = true;
         includePaths = HashMultimap.create();
         addDefaultIncludePaths = true;
-        sourceChanges = Lists.newLinkedList();
+        sourceChanges = new LinkedList<>();
         addSourcesFromDefaultSourceLocations = false;
         selector = null;
         analyze = true;
         analyzeSelector = null;
         transform = true;
         transformSelector = null;
-        transformGoals = Lists.newLinkedList();
+        transformGoals = new LinkedList<>();
         messagePrinter = null;
         throwOnErrors = false;
-        pardonedLanguages = Sets.newHashSet();
-        pardonedLanguageStrings = Sets.newHashSet();
+        pardonedLanguages = new HashSet<ILanguageImpl>();
+        pardonedLanguageStrings = new HashSet<String>();
         return this;
     }
 
@@ -193,7 +195,7 @@ public class BuildInputBuilder {
      * Set the source changes to additions from given sources.
      */
     public BuildInputBuilder withSources(Iterable<FileObject> sources) {
-        this.sourceChanges = Lists.newLinkedList();
+        this.sourceChanges = new LinkedList<>();
         return addSources(sources);
     }
 

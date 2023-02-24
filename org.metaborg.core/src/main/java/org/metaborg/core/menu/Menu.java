@@ -1,6 +1,7 @@
 package org.metaborg.core.menu;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -10,7 +11,6 @@ import org.metaborg.core.action.IAction;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 public class Menu implements IMenu {
     private final String name;
@@ -18,7 +18,7 @@ public class Menu implements IMenu {
 
 
     public Menu(String name) {
-        this(name, Lists.<IMenuItem>newLinkedList());
+        this(name, new LinkedList<IMenuItem>());
     }
 
     public Menu(String name, Collection<IMenuItem> items) {
@@ -36,7 +36,7 @@ public class Menu implements IMenu {
     }
 
     @Override public @Nullable IAction action(String name) throws MetaborgException {
-        final List<IAction> actions = Lists.newLinkedList();
+        final List<IAction> actions = new LinkedList<>();
         for(IMenuItem item : items) {
             if(item instanceof IMenuAction && name.equals(item.name())) {
                 final IMenuAction menuAction = (IMenuAction) item;

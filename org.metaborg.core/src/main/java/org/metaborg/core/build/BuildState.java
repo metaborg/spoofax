@@ -1,15 +1,14 @@
 package org.metaborg.core.build;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
 
-import com.google.common.collect.Maps;
-
 public class BuildState {
-    private final Map<ILanguageImpl, LanguageBuildState> languageBuildStates = Maps.newHashMap();
+    private final Map<ILanguageImpl, LanguageBuildState> languageBuildStates = new HashMap<>();
 
 
     public LanguageBuildState get(IResourceService resourceService,

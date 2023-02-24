@@ -1,7 +1,10 @@
 package org.metaborg.spoofax.core.language;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,8 +74,6 @@ import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.TermUtils;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
@@ -157,7 +158,8 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
     @Override public Collection<IComponentCreationConfigRequest> requestAllInDirectory(FileObject directory)
         throws MetaborgException {
-        final Set<IComponentCreationConfigRequest> requests = Sets.newHashSet();
+        final Set<IComponentCreationConfigRequest> requests =
+            new HashSet<IComponentCreationConfigRequest>();
         try {
             if(!directory.exists()) {
                 throw new MetaborgException("Cannot scan directory " + directory + ", it does not exist");
@@ -184,8 +186,8 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
 
     private IComponentCreationConfigRequest request(FileObject root) throws MetaborgException {
-        final Collection<String> errors = Lists.newLinkedList();
-        final Collection<Throwable> exceptions = Lists.newLinkedList();
+        final Collection<String> errors = new LinkedList<>();
+        final Collection<Throwable> exceptions = new LinkedList<>();
 
         final ConfigRequest<ILanguageComponentConfig> configRequest = componentConfigService.get(root);
         if(!configRequest.valid()) {
@@ -435,7 +437,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
     @Override public Collection<ComponentCreationConfig> createConfigs(Iterable<IComponentCreationConfigRequest> requests)
         throws MetaborgException {
-        final List<ComponentCreationConfig> configs = Lists.newArrayList();
+        final List<ComponentCreationConfig> configs = new ArrayList<>();
         for(IComponentCreationConfigRequest request : requests) {
             final ComponentCreationConfig config = createConfig(request);
             configs.add(config);

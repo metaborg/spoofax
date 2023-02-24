@@ -31,7 +31,6 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
@@ -202,7 +201,7 @@ public class JSGLR1I extends JSGLRI<ParseTable> {
 
     protected Collection<? extends IMessage> addNonAssocErrorMessages(IStrategoTerm ast,
         @Nullable FileObject resource) {
-        List<IMessage> result = Lists.newArrayList();
+        List<IMessage> result = new ArrayList<>();
 
         boolean addedMessage = false;
 

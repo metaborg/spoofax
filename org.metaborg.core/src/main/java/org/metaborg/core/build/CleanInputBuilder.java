@@ -1,5 +1,6 @@
 package org.metaborg.core.build;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -13,7 +14,6 @@ import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.IProject;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 
 public class CleanInputBuilder {
     private final IProject project;
@@ -31,7 +31,7 @@ public class CleanInputBuilder {
 
 
     public void reset() {
-        languages = Sets.newHashSet();
+        languages = new HashSet<ILanguageImpl>();
         addDependencyLanguages = true;
 
         selector = null;

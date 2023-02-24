@@ -1,6 +1,9 @@
 package org.metaborg.core.language;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -21,8 +24,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 
@@ -36,15 +37,16 @@ public class LanguageService implements ILanguageService, AutoCloseable {
 
     private final AtomicInteger sequenceIdGenerator = new AtomicInteger(0);
 
-    private final Map<FileName, ILanguageComponentInternal> locationToComponent = Maps.newHashMap();
-    private final Map<LanguageIdentifier, ILanguageComponentInternal> identifierToComponent = Maps.newHashMap();
+    private final Map<FileName, ILanguageComponentInternal> locationToComponent = new HashMap<>();
+    private final Map<LanguageIdentifier, ILanguageComponentInternal> identifierToComponent =
+        new HashMap<>();
     private final Subject<LanguageComponentChange> componentChanges = PublishSubject.create();
 
-    private final Map<LanguageIdentifier, ILanguageImplInternal> identifierToImpl = Maps.newHashMap();
+    private final Map<LanguageIdentifier, ILanguageImplInternal> identifierToImpl = new HashMap<>();
     private final SetMultimap<String, ILanguageImplInternal> idToImpl = HashMultimap.create();
     private final Subject<LanguageImplChange> implChanges = PublishSubject.create();
 
-    private final Map<String, ILanguageInternal> nameToLanguage = Maps.newHashMap();
+    private final Map<String, ILanguageInternal> nameToLanguage = new HashMap<>();
 
     // Added caches to ensure we always get the same ILanguage and ILanguageImpl instances,
     // even if the language (implementation) was unloaded and reloaded.
@@ -121,7 +123,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
     @Override public ILanguageComponent add(ComponentCreationConfig config) {
         validateLocation(config.location);
 
-        final Collection<ILanguageImplInternal> impls = Lists.newLinkedList();
+        final Collection<ILanguageImplInternal> impls = new LinkedList<>();
         for(LanguageContributionIdentifier identifier : config.implIds) {
             ILanguageInternal language = getOrCreateLanguage(identifier.name);
             ILanguageImplInternal impl = getOrCreateLanguageImpl(identifier.id, language);
@@ -134,7 +136,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
                 sequenceIdGenerator.getAndIncrement(), impls, config.config, config.facets);
         if(existingComponent == null) {
             addComponent(newComponent);
-            final Collection<ILanguageImplInternal> changedImpls = Lists.newLinkedList();
+            final Collection<ILanguageImplInternal> changedImpls = new LinkedList<>();
             for(ILanguageImplInternal impl : impls) {
                 if(impl.addComponent(newComponent)) {
                     changedImpls.add(impl);
@@ -152,7 +154,8 @@ public class LanguageService implements ILanguageService, AutoCloseable {
             }
         } else {
             removeComponent(existingComponent);
-            final Set<ILanguageImplInternal> removedFromImpls = Sets.newHashSet();
+            final Set<ILanguageImplInternal> removedFromImpls =
+                new HashSet<ILanguageImplInternal>();
             for(ILanguageImplInternal impl : existingComponent.contributesToInternal()) {
                 if(impl.removeComponent(existingComponent)) {
                     removedFromImpls.add(impl);
@@ -160,7 +163,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
             }
             existingComponent.clearContributions();
             addComponent(newComponent);
-            final Set<ILanguageImplInternal> addedToImpls = Sets.newHashSet();
+            final Set<ILanguageImplInternal> addedToImpls = new HashSet<ILanguageImplInternal>();
             for(ILanguageImplInternal impl : impls) {
                 if(impl.addComponent(newComponent)) {
                     addedToImpls.add(impl);
@@ -246,7 +249,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
         }
 
         removeComponent(existingComponent);
-        final Set<ILanguageImplInternal> removedFromImpls = Sets.newHashSet();
+        final Set<ILanguageImplInternal> removedFromImpls = new HashSet<ILanguageImplInternal>();
         for(ILanguageImplInternal impl : existingComponent.contributesToInternal()) {
             if(impl.removeComponent(existingComponent)) {
                 removedFromImpls.add(impl);

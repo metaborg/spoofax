@@ -1,8 +1,7 @@
 package org.metaborg.spoofax.meta.core.generator.general;
 
+import java.util.HashMap;
 import java.util.Map;
-
-import com.google.common.collect.Maps;
 
 public enum SyntaxType {
     SDF3("sdf3", "SDF3"), SDF2("sdf2", "SDF2 (deprecated)"), None("none", "None");
@@ -19,7 +18,7 @@ public enum SyntaxType {
 
 
     public static Map<String, SyntaxType> mapping() {
-        final Map<String, SyntaxType> syntaxTypes = Maps.newHashMap();
+        final Map<String, SyntaxType> syntaxTypes = new HashMap<>();
         for(SyntaxType syntaxType : SyntaxType.values()) {
             syntaxTypes.put(syntaxType.name, syntaxType);
         }

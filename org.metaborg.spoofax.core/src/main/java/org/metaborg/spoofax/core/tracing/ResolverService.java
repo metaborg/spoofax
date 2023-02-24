@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.tracing;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import javax.annotation.Nullable;
 
@@ -32,7 +33,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class ResolverService implements ISpoofaxResolverService {
@@ -149,7 +149,7 @@ public class ResolverService implements ISpoofaxResolverService {
         final IStrategoTerm output = tuple.term;
         final ISourceRegion offsetRegion = tuple.region;
 
-        final Collection<ResolutionTarget> targets = Lists.newLinkedList();
+        final Collection<ResolutionTarget> targets = new LinkedList<>();
         if(TermUtils.isList(output)) {
             for(IStrategoTerm subterm : output) {
                 final String hyperlinkText = getHyperlinkText(subterm);

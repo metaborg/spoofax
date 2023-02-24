@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.meta.core.generator.general;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -73,7 +74,7 @@ public class LangSpecGeneratorSettingsBuilder {
     }
 
     public LangSpecGeneratorSettingsBuilder withoutExtensions() {
-        withExtensions(Lists.<String>newArrayList());
+        withExtensions(new ArrayList<String>());
         return this;
     }
 
@@ -326,7 +327,7 @@ public class LangSpecGeneratorSettingsBuilder {
     }
 
     public Iterable<String> stillMissing() {
-        List<String> missing = Lists.newArrayList();
+        List<String> missing = new ArrayList<>();
         if(groupId == null && defaultGroupId == null) {
             missing.add("groupId");
         }
@@ -363,7 +364,7 @@ public class LangSpecGeneratorSettingsBuilder {
     }
 
     public Iterable<String> stillRequired() {
-        List<String> missing = Lists.newArrayList();
+        List<String> missing = new ArrayList<>();
         if(groupId == null) {
             missing.add("groupId");
         }

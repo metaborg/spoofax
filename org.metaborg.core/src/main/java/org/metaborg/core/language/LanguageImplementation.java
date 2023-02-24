@@ -1,6 +1,8 @@
 package org.metaborg.core.language;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -12,13 +14,12 @@ import org.metaborg.core.config.LanguageImplConfig;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 public class LanguageImplementation implements ILanguageImpl, ILanguageImplInternal {
     private final LanguageIdentifier id;
     private final ILanguageInternal belongsTo;
 
-    private final Set<ILanguageComponent> components = Sets.newHashSet();
+    private final Set<ILanguageComponent> components = new HashSet<ILanguageComponent>();
 
 
     public LanguageImplementation(LanguageIdentifier id, ILanguageInternal belongsTo) {
@@ -40,7 +41,7 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
     }
 
     @Override public List<FileObject> locations() {
-        final List<FileObject> locations = Lists.newLinkedList();
+        final List<FileObject> locations = new LinkedList<>();
         for(ILanguageComponent component : components) {
             locations.add(component.location());
         }
@@ -79,7 +80,7 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
     }
 
     @Override public <T extends IFacet> Iterable<T> facets(Class<T> type) {
-        final Collection<T> facets = Lists.newLinkedList();
+        final Collection<T> facets = new LinkedList<>();
         for(ILanguageComponent component : components) {
             Iterables.addAll(facets, component.facets(type));
         }
@@ -87,7 +88,7 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
     }
 
     @Override public <T extends IFacet> Iterable<FacetContribution<T>> facetContributions(Class<T> type) {
-        final Collection<FacetContribution<T>> contributions = Lists.newLinkedList();
+        final Collection<FacetContribution<T>> contributions = new LinkedList<>();
         for(ILanguageComponent component : components) {
             Iterables.addAll(contributions, component.facetContributions(type));
         }
@@ -121,7 +122,7 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
     }
 
     @Override public Iterable<IFacet> facets() {
-        final Collection<IFacet> facets = Lists.newLinkedList();
+        final Collection<IFacet> facets = new LinkedList<>();
         for(ILanguageComponent component : components) {
             Iterables.addAll(facets, component.facets());
         }
@@ -129,7 +130,7 @@ public class LanguageImplementation implements ILanguageImpl, ILanguageImplInter
     }
 
     @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
-        final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
+        final Collection<FacetContribution<IFacet>> contributions = new LinkedList<>();
         for(ILanguageComponent component : components) {
             Iterables.addAll(contributions, component.facetContributions());
         }

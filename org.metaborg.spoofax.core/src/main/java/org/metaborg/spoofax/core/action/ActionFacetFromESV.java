@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.action;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -23,7 +24,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.spoofax.terms.util.TermUtils;
 
@@ -33,7 +33,7 @@ public class ActionFacetFromESV {
 
     public static @Nullable ActionFacet create(IStrategoAppl esv) {
         final Iterable<IStrategoAppl> menuTerms = ESVReader.collectTerms(esv, "ToolbarMenu");
-        final Collection<IMenu> menus = Lists.newLinkedList();
+        final Collection<IMenu> menus = new LinkedList<>();
         final Multimap<ITransformGoal, ITransformAction> actions = HashMultimap.create();
         final ImmutableList<String> nesting = ImmutableList.of();
         for(IStrategoAppl menuTerm : menuTerms) {

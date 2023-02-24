@@ -1,6 +1,9 @@
 package org.metaborg.spoofax.core.language;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
@@ -23,7 +26,6 @@ import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -90,7 +92,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     @Override public Set<ILanguageComponent> scanComponentsInDirectory(FileObject directory) throws MetaborgException {
         final Collection<IComponentCreationConfigRequest> requests = componentFactory.requestAllInDirectory(directory);
         final Collection<ComponentCreationConfig> configs = componentFactory.createConfigs(requests);
-        final Set<ILanguageComponent> components = Sets.newHashSet();
+        final Set<ILanguageComponent> components = new HashSet<ILanguageComponent>();
         for(ComponentCreationConfig config : configs) {
             final ILanguageComponent component = languageService.add(config);
             components.add(component);
@@ -108,7 +110,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     @Deprecated @Override public Iterable<ILanguageDiscoveryRequest> request(FileObject location)
         throws MetaborgException {
-        final Collection<ILanguageDiscoveryRequest> requests = Lists.newLinkedList();
+        final Collection<ILanguageDiscoveryRequest> requests = new LinkedList<>();
         final FileObject[] configFiles;
         try {
             configFiles = location.findFiles(new FileSelector() {
@@ -151,7 +153,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     @Deprecated @Override public Iterable<ILanguageComponent> discover(Iterable<ILanguageDiscoveryRequest> requests)
         throws MetaborgException {
-        final Collection<ILanguageComponent> components = Lists.newArrayList();
+        final Collection<ILanguageComponent> components = new ArrayList<>();
         for(ILanguageDiscoveryRequest request : requests) {
             components.add(discover(request));
         }

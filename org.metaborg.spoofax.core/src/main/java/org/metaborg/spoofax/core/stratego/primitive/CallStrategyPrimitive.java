@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.metaborg.core.MetaborgException;
@@ -18,7 +19,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
@@ -47,7 +47,7 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
 
         final Iterable<ILanguageComponent> compileDeps = dependencyService.compileDeps(currentContext.project());
         final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(compileDeps);
-        final List<ILanguageImpl> selectedImpls = Lists.newArrayList();
+        final List<ILanguageImpl> selectedImpls = new ArrayList<>();
         for(ILanguageImpl impl : impls) {
             if(impl.belongsTo().name().equals(languageName)) {
                 selectedImpls.add(impl);

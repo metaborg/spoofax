@@ -1,6 +1,9 @@
 package org.metaborg.core.build;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,8 +19,6 @@ import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class LanguageBuildState {
@@ -81,7 +82,7 @@ public class LanguageBuildState {
 
     private Iterable<IdentifiedResourceChange> includeDiff(LanguageBuildState newState,
         Iterable<IdentifiedResource> newFiles) {
-        final Collection<IdentifiedResourceChange> changes = Lists.newLinkedList();
+        final Collection<IdentifiedResourceChange> changes = new LinkedList<>();
         final Set<FileName> existingFiles = Sets.newHashSet(include.files);
         for(IdentifiedResource identifiedResource : newFiles) {
             final FileObject resource = identifiedResource.resource;
@@ -116,8 +117,8 @@ public class LanguageBuildState {
 }
 
 class FilesBuildState {
-    public final Set<FileName> files = Sets.newHashSet();
-    public final Map<FileName,Long> modification = Maps.newHashMap();
+    public final Set<FileName> files = new HashSet<FileName>();
+    public final Map<FileName,Long> modification = new HashMap<>();
 
 
     public long add(FileObject resource) {

@@ -27,8 +27,6 @@ import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 
-import com.google.common.collect.Lists;
-
 public class JSGLRParseErrorHandler {
     private static final int LARGE_REGION_SIZE = 8;
     private static final String LARGE_REGION_START =
@@ -37,7 +35,7 @@ public class JSGLRParseErrorHandler {
     private final JSGLRI<?> parser;
     @Nullable private final FileObject resource;
     private final boolean hasRecoveryRules;
-    private final Collection<IMessage> messages = Lists.newArrayList();
+    private final Collection<IMessage> messages = new ArrayList<>();
 
     private boolean recoveryFailed;
 

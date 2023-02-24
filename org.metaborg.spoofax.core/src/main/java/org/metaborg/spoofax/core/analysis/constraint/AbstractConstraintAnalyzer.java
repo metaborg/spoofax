@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,8 +56,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import mb.flowspec.terms.B;
 import mb.nabl2.terms.stratego.StrategoTermIndices;
@@ -127,9 +126,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
-        final Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
-        final Map<String, ISpoofaxAnalyzeUnit> removed = Maps.newHashMap();
-        final Map<String, ISpoofaxAnalyzeUnit> invalid = Maps.newHashMap();
+        final Map<String, ISpoofaxParseUnit> changed = new HashMap<>();
+        final Map<String, ISpoofaxAnalyzeUnit> removed = new HashMap<>();
+        final Map<String, ISpoofaxAnalyzeUnit> invalid = new HashMap<>();
         for(ISpoofaxParseUnit input : inputs) {
             if(input.detached() || input.source() == null) {
                 logger.warn("Ignoring detached units");
@@ -193,8 +192,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          **************************************************/
 
         final ListMultimap<FileName, IMessage> messages = ArrayListMultimap.create();
-        final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
-        final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
+        final Set<ISpoofaxAnalyzeUnit> fullResults = new HashSet<ISpoofaxAnalyzeUnit>();
+        final Set<ISpoofaxAnalyzeUnitUpdate> updateResults =
+            new HashSet<ISpoofaxAnalyzeUnitUpdate>();
 
         processResults(changed, expects, results, messages);
 
@@ -396,7 +396,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             this.errors = errors;
             this.warnings = warnings;
             this.notes = notes;
-            this.exceptions = exceptions != null ? Lists.newArrayList(exceptions) : Lists.newArrayList();
+            this.exceptions = exceptions != null ? Lists.newArrayList(exceptions) :
+                new ArrayList<>();
             this.context = context;
         }
 

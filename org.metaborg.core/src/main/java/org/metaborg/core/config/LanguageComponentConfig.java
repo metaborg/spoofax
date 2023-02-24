@@ -1,5 +1,6 @@
 package org.metaborg.core.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -188,8 +189,10 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
             final List<String> languages = exportConfig.getList(String.class, "language");
             final String directory = exportConfig.getString("directory");
             final String file = exportConfig.getString("file");
-            final List<String> includes = exportConfig.getList(String.class, "includes", Lists.newArrayList());
-            final List<String> excludes = exportConfig.getList(String.class, "excludes", Lists.newArrayList());
+            final List<String> includes = exportConfig.getList(String.class, "includes",
+                new ArrayList<String>());
+            final List<String> excludes = exportConfig.getList(String.class, "excludes",
+                new ArrayList<String>());
             if(languages != null) {
                 if(directory != null) {
                     for(String language : languages) {

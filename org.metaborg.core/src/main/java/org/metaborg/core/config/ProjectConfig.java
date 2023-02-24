@@ -1,5 +1,6 @@
 package org.metaborg.core.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -98,7 +99,7 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
 
 
     public Collection<IMessage> validate(MessageBuilder mb) {
-        final Collection<IMessage> messages = Lists.newArrayList();
+        final Collection<IMessage> messages = new ArrayList<>();
         validateDeps(config, PROP_COMPILE_DEPENDENCIES, "compile", mb, messages);
         validateDeps(config, PROP_SOURCE_DEPENDENCIES, "source", mb, messages);
         validateDeps(config, PROP_JAVA_DEPENDENCIES, "java", mb, messages);
@@ -107,7 +108,7 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
 
     private static void validateDeps(ImmutableConfiguration config, String key, String name, MessageBuilder mb,
             Collection<IMessage> messages) {
-        final List<String> depStrs = config.getList(String.class, key, Lists.<String>newArrayList());
+        final List<String> depStrs = config.getList(String.class, key, new ArrayList<String>());
         for(String depStr : depStrs) {
             try {
                 LanguageIdentifier.parse(depStr);

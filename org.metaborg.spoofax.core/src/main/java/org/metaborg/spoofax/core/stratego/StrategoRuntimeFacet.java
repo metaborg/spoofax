@@ -2,14 +2,13 @@ package org.metaborg.spoofax.core.stratego;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.LinkedList;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-
-import com.google.common.collect.Lists;
 
 /**
  * Represents the Stratego runtime facet of a language.
@@ -33,7 +32,7 @@ public class StrategoRuntimeFacet implements IFacet {
      *             When a file operation fails.
      */
     public Collection<String> available(IResourceService resourceService) throws IOException {
-        final Collection<String> errors = Lists.newLinkedList();
+        final Collection<String> errors = new LinkedList<>();
         for(FileObject file : ctreeFiles) {
             if(!file.exists()) {
                 final String message = logger.format("Stratego CTree file {} does not exist", file);

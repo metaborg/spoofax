@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.analysis;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import javax.annotation.Nullable;
 
@@ -96,7 +97,7 @@ public class AnalysisCommon {
     }
 
     public Collection<IMessage> ambiguityMessages(final FileObject resource, IStrategoTerm ast) {
-        final Collection<IMessage> messages = Lists.newLinkedList();
+        final Collection<IMessage> messages = new LinkedList<>();
         final TermVisitor termVisitor = new TermVisitor() {
             private IStrategoTerm ambStart;
 

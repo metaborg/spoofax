@@ -50,8 +50,6 @@ import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Lists;
-
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
@@ -548,7 +546,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             if(input.strategoVersion == StrategoVersion.v1) {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
-                    true, true, input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir,
+                    true, true, input.strjIncludeDirs, input.strjIncludeFiles,
+                    new ArrayList<String>(), cacheDir,
                     extraArgs, sdfOrigin);
 
                 final Origin strjOrigin = Strj.origin(strjInput);

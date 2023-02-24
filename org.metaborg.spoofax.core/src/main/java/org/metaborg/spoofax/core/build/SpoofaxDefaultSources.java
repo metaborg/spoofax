@@ -2,18 +2,17 @@ package org.metaborg.spoofax.core.build;
 
 import static org.metaborg.spoofax.core.SpoofaxConstants.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.metaborg.core.config.AllLangSource;
 import org.metaborg.core.config.ISourceConfig;
 import org.metaborg.core.config.LangSource;
 
-import com.google.common.collect.Lists;
-
 public class SpoofaxDefaultSources {
     private static final String ROOT = ".";
 
-    public static final Collection<ISourceConfig> DEFAULT_SPOOFAX_SOURCES = Lists.newArrayList();
+    public static final Collection<ISourceConfig> DEFAULT_SPOOFAX_SOURCES = new ArrayList<>();
 
     static {
         for(String metaLang : META_LANG_NAMES) {

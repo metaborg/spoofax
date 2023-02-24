@@ -1,6 +1,7 @@
 package org.metaborg.core.language;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -9,7 +10,6 @@ import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 public class LanguageComponent implements ILanguageComponentInternal {
@@ -76,7 +76,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
     }
 
     @Override public <T extends IFacet> Iterable<FacetContribution<T>> facetContributions(Class<T> type) {
-        final Collection<FacetContribution<T>> contributions = Lists.newLinkedList();
+        final Collection<FacetContribution<T>> contributions = new LinkedList<>();
         for(T facet : facets(type)) {
             contributions.add(new FacetContribution<>(facet, this));
         }
@@ -114,7 +114,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
     }
 
     @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
-        final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
+        final Collection<FacetContribution<IFacet>> contributions = new LinkedList<>();
         for(IFacet facet : facets()) {
             contributions.add(new FacetContribution<>(facet, this));
         }

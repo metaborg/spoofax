@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.menu;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.metaborg.core.language.ILanguageImpl;
@@ -9,12 +10,11 @@ import org.metaborg.core.menu.IMenuService;
 import org.metaborg.spoofax.core.action.ActionFacet;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 public class MenuService implements IMenuService {
     @Override public Iterable<IMenuItem> menuItems(ILanguageImpl language) {
         final Iterable<ActionFacet> facets = language.facets(ActionFacet.class);
-        final List<IMenuItem> menuItems = Lists.newLinkedList();
+        final List<IMenuItem> menuItems = new LinkedList<>();
         for(ActionFacet facet : facets) {
             Iterables.addAll(menuItems, facet.menuItems);
         }

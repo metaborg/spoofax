@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.action;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import org.metaborg.core.action.IActionService;
 import org.metaborg.core.action.ITransformAction;
@@ -11,12 +12,11 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 public class ActionService implements IActionService {
     @Override public Collection<ITransformAction> actions(ILanguageImpl language, ITransformGoal goal) {
         final Iterable<ActionFacet> facets = language.facets(ActionFacet.class);
-        final Collection<ITransformAction> actions = Lists.newLinkedList();
+        final Collection<ITransformAction> actions = new LinkedList<>();
         for(ActionFacet facet : facets) {
             Iterables.addAll(actions, facet.actions(goal));
         }
@@ -27,7 +27,7 @@ public class ActionService implements IActionService {
         ITransformGoal goal) {
         final Iterable<FacetContribution<ActionFacet>> facetsContributions =
             language.facetContributions(ActionFacet.class);
-        final Collection<TransformActionContrib> actionContributions = Lists.newLinkedList();
+        final Collection<TransformActionContrib> actionContributions = new LinkedList<>();
         for(FacetContribution<ActionFacet> facetContribution : facetsContributions) {
             final ActionFacet facet = facetContribution.facet;
             final ILanguageComponent component = facetContribution.contributor;

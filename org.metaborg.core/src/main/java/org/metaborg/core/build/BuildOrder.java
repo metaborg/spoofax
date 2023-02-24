@@ -1,5 +1,6 @@
 package org.metaborg.core.build;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,7 +14,6 @@ import org.metaborg.util.collection.BiSetMultimap;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -41,7 +41,7 @@ public class BuildOrder {
         }
 
         // We're only interested in dependencies between given languages, create a lookup map for them.
-        final Map<String, ILanguageImpl> lookup = Maps.newHashMap();
+        final Map<String, ILanguageImpl> lookup = new HashMap<>();
         for(ILanguageImpl language : languages) {
             lookup.put(language.belongsTo().name(), language);
         }

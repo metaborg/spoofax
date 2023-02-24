@@ -1,9 +1,12 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +33,6 @@ import org.spoofax.terms.util.TermUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
 
@@ -70,8 +72,8 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
 
         final List<FileObject> locations = locations(context);
 
-        final Deque<IStrategoTerm> names = Lists.newLinkedList(parseNames(current));
-        final Map<IStrategoTerm, IStrategoTerm> resources = Maps.newHashMap();
+        final Deque<IStrategoTerm> names = new ArrayDeque<>(parseNames(current));
+        final Map<IStrategoTerm, IStrategoTerm> resources = new HashMap<>();
         while(!names.isEmpty()) {
             final IStrategoTerm name = names.pop();
             if(!resources.containsKey(name)) {
@@ -153,7 +155,7 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
         if(!TermUtils.isList(current)) {
             throw new MetaborgException("Expected list of names, got " + current);
         }
-        return Lists.newArrayList(current.getAllSubterms());
+        return Arrays.asList(current.getAllSubterms());
     }
 
 }

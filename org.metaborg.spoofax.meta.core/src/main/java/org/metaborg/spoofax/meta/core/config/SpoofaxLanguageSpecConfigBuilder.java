@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.meta.core.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -19,7 +20,6 @@ import org.metaborg.spoofax.core.config.SpoofaxProjectConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
@@ -299,7 +299,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder addBuildSteps(Iterable<IBuildStepConfig> buildSteps) {
         if(this.buildSteps == null) {
-            this.buildSteps = Lists.newArrayList();
+            this.buildSteps = new ArrayList<>();
         }
 
         Iterables.addAll(this.buildSteps, buildSteps);

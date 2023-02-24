@@ -1,7 +1,10 @@
 package org.metaborg.core.build;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -62,7 +65,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -223,14 +225,14 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
-        final Set<FileName> includes = Sets.newHashSet();
+        final Set<FileName> includes = new HashSet<FileName>();
         for(IdentifiedResourceChange includeChange : includeChanges) {
             includes.add(includeChange.change.resource.getName());
         }
         final FileObject location = input.project.location();
-        final Collection<FileObject> changedSources = Sets.newHashSet();
-        final Set<FileName> removedResources = Sets.newHashSet();
-        final Collection<IMessage> extraMessages = Lists.newLinkedList();
+        final Collection<FileObject> changedSources = new HashSet<FileObject>();
+        final Set<FileName> removedResources = new HashSet<FileName>();
+        final Collection<IMessage> extraMessages = new LinkedList<>();
         final RefBool success = new RefBool(true);
 
         logger.info("Building {} sources, {} includes of {}", Iterables.size(sourceChanges),
@@ -265,7 +267,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         // Analyze
         cancel.throwIfCancelled();
         final Multimap<IContext, A> allAnalyzeUnits;
-        final Collection<AU> allAnalyzeUpdates = Lists.newArrayList();
+        final Collection<AU> allAnalyzeUpdates = new ArrayList<>();
         if(analyze) {
             // Run analysis
             cancel.throwIfCancelled();
@@ -282,7 +284,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             allTransformUnits = transform(input, language, location, parseUnitsPerContext, allAnalyzeUnits, includes, pardoned,
                 removedResources, extraMessages, success, progress.subProgress(30), cancel);
         } else {
-            allTransformUnits = Lists.newLinkedList();
+            allTransformUnits = new LinkedList<>();
         }
 
         final boolean noErrors = printMessages(extraMessages, input, pardoned);
@@ -294,7 +296,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         output.add(success.get(), removedResources, includes, changedSources, allParseResults, allAnalyzeUnits.values(),
             allAnalyzeUpdates, allTransformUnits, extraMessages);
 
-        final Collection<FileObject> newResources = Lists.newArrayList();
+        final Collection<FileObject> newResources = new ArrayList<>();
         for(T transformUnit : allTransformUnits) {
             for(ITransformOutput transformOutput : transformUnit.outputs()) {
                 final FileObject outputFile = transformOutput.output();
@@ -443,7 +445,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         Multimap<IContext, P> parseUnits, Multimap<IContext, A> allAnalysisUnits, Set<FileName> includeFiles, boolean pardoned,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, IProgress progress,
         ICancel cancel) throws InterruptedException {
-        final Collection<T> allTransformUnits = Lists.newArrayList();
+        final Collection<T> allTransformUnits = new ArrayList<>();
 
         final int numberOfGoals = Iterables.size(input.transformGoals);
         progress.setWorkRemaining(numberOfGoals);
