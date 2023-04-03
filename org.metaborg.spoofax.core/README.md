@@ -166,8 +166,6 @@ Since Spoofax is LGPL, libraries need to be compatible with this license. Compat
 
 ## General utility
 
-[Guava](https://code.google.com/p/guava-libraries/) by Google provides general utility functionality such as missing collections (such as multimaps), string processing, I/O, etc. 
-
 The [Apache Commons](http://commons.apache.org/) library is similar, it provides very good I/O utilities.
 
 ## Event/streams/pipelines wiring
