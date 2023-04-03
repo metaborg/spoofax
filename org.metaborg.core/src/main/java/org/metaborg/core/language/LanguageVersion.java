@@ -1,14 +1,14 @@
 package org.metaborg.core.language;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Ordering;
-
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
+
+import org.metaborg.util.Strings;
+import org.metaborg.util.order.ChainedComparison;
 
 /**
  * Representation for the version of a language. Follows the Maven versioning style.
@@ -126,10 +126,10 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
 
     @Override public int compareTo(LanguageVersion other) {
         // @formatter:off
-        return ComparisonChain.start()
-            .compare(this.major, other.major, Ordering.natural().nullsFirst())
-            .compare(this.minor, other.minor, Ordering.natural().nullsFirst())
-            .compare(this.incremental, other.incremental, Ordering.natural().nullsFirst())
+        return new ChainedComparison()
+            .compare(this.major, other.major, Comparator.nullsFirst(Comparator.naturalOrder()))
+            .compare(this.minor, other.minor, Comparator.nullsFirst(Comparator.naturalOrder()))
+            .compare(this.incremental, other.incremental, Comparator.nullsFirst(Comparator.naturalOrder()))
             .compare(this.qualifier, other.qualifier, (left,right) -> {
                 final boolean leftNull = Strings.isNullOrEmpty(left);
                 final boolean rightNull = Strings.isNullOrEmpty(right);

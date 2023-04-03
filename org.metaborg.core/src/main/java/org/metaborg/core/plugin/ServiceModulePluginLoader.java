@@ -5,8 +5,8 @@ import java.util.LinkedList;
 import java.util.ServiceLoader;
 
 import org.metaborg.core.MetaborgException;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Module;
 
 /**
@@ -26,7 +26,7 @@ public class ServiceModulePluginLoader<T extends IServiceModulePlugin> implement
             final ServiceLoader<T> modulePlugins = ServiceLoader.load(serviceClass);
             final Collection<Module> modules = new LinkedList<>();
             for(T plugin : modulePlugins) {
-                Iterables.addAll(modules, plugin.modules());
+                Iterables2.addAll(modules, plugin.modules());
             }
             return modules;
         } catch(Exception e) {

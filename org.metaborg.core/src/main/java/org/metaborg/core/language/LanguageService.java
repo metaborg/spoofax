@@ -1,31 +1,27 @@
 package org.metaborg.core.language;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.util.collection.Sets;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
@@ -43,7 +39,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
     private final Subject<LanguageComponentChange> componentChanges = PublishSubject.create();
 
     private final Map<LanguageIdentifier, ILanguageImplInternal> identifierToImpl = new HashMap<>();
-    private final SetMultimap<String, ILanguageImplInternal> idToImpl = HashMultimap.create();
+    private final Map<String, Set<ILanguageImplInternal>> idToImpl = new HashMap<>();
     private final Subject<LanguageImplChange> implChanges = PublishSubject.create();
 
     private final Map<String, ILanguageInternal> nameToLanguage = new HashMap<>();
@@ -52,21 +48,15 @@ public class LanguageService implements ILanguageService, AutoCloseable {
     // even if the language (implementation) was unloaded and reloaded.
     // This fixes several issues, including issues with cached parse and analysis results that store
     // the old ILanguage(Impl) instances.
-    private final LoadingCache<String, ILanguageInternal> languageCache =
-        CacheBuilder.newBuilder().weakValues().build(new CacheLoader<String, ILanguageInternal>() {
-            @Override public ILanguageInternal load(final String languageName) throws Exception {
-                return new Language(languageName);
-            }
-        });
-    private final Cache<LanguageIdentifier, ILanguageImplInternal> languageImplCache =
-        CacheBuilder.newBuilder().weakValues().build();
+    private final ConcurrentMap<String, WeakReference<ILanguageInternal>> languageCache =
+        new ConcurrentHashMap<>();
+    private final ConcurrentMap<LanguageIdentifier, WeakReference<ILanguageImplInternal>>
+        languageImplCache = new ConcurrentHashMap<>();
 
 
     @Override public void close() {
-        languageImplCache.invalidateAll();
-        languageImplCache.cleanUp();
-        languageCache.invalidateAll();
-        languageCache.cleanUp();
+        languageImplCache.clear();
+        languageCache.clear();
         nameToLanguage.clear();
         implChanges.onComplete();
         idToImpl.clear();
@@ -103,7 +93,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
     }
 
     @Override public Iterable<? extends ILanguageImpl> getAllImpls(String groupId, String id) {
-        return idToImpl.get(groupIdId(groupId, id));
+        return idToImpl.getOrDefault(groupIdId(groupId, id), Collections.emptySet());
     }
 
     @Override public Iterable<? extends ILanguage> getAllLanguages() {
@@ -146,7 +136,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
             componentChange(LanguageComponentChange.Kind.Add, null, newComponent);
 
             for(ILanguageImplInternal impl : changedImpls) {
-                if(Iterables.size(impl.components()) == 1) {
+                if(Iterables2.size(impl.components()) == 1) {
                     implChange(LanguageImplChange.Kind.Add, impl);
                 } else {
                     implChange(LanguageImplChange.Kind.Reload, impl);
@@ -174,13 +164,13 @@ public class LanguageService implements ILanguageService, AutoCloseable {
 
             final Set<ILanguageImplInternal> removed = Sets.difference(removedFromImpls, addedToImpls);
             for(ILanguageImplInternal impl : removed) {
-                if(Iterables.isEmpty(impl.components())) {
+                if(Iterables2.isEmpty(impl.components())) {
                     removeImplementation(impl);
                     final ILanguageInternal language = impl.belongsToInternal();
                     language.remove(impl);
                     implChange(LanguageImplChange.Kind.Remove, impl);
 
-                    if(Iterables.isEmpty(language.impls())) {
+                    if(Iterables2.isEmpty(language.impls())) {
                         removeLanguage(language);
                     }
                 } else {
@@ -195,7 +185,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
 
             final Set<ILanguageImplInternal> added = Sets.difference(addedToImpls, removedFromImpls);
             for(ILanguageImplInternal impl : added) {
-                if(Iterables.size(impl.components()) == 1) {
+                if(Iterables2.size(impl.components()) == 1) {
                     implChange(LanguageImplChange.Kind.Add, impl);
                 } else {
                     implChange(LanguageImplChange.Kind.Reload, impl);
@@ -209,7 +199,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
     private ILanguageInternal getOrCreateLanguage(String languageName) {
         ILanguageInternal language = nameToLanguage.get(languageName);
         if(language == null) {
-            language = this.languageCache.getUnchecked(languageName);
+            language = getCached(this.languageCache, languageName, ln -> new Language(ln));
             addLanguage(language);
         }
         assert language != null;
@@ -220,15 +210,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
         final ILanguageInternal language) {
         ILanguageImplInternal impl = identifierToImpl.get(identifier);
         if(impl == null) {
-            try {
-                impl = this.languageImplCache.get(identifier, new Callable<ILanguageImplInternal>() {
-                    @Override public ILanguageImplInternal call() throws Exception {
-                        return new LanguageImplementation(identifier, language);
-                    }
-                });
-            } catch(ExecutionException e) {
-                throw new RuntimeException(e);
-            }
+            impl = getCached(this.languageImplCache, identifier, id -> new LanguageImplementation(id, language));
             addImplementation(impl);
             language.add(impl);
         } else {
@@ -240,6 +222,40 @@ public class LanguageService implements ILanguageService, AutoCloseable {
         }
         assert impl != null;
         return impl;
+    }
+
+    /**
+     * This method works like {@link ConcurrentMap#computeIfAbsent(Object, Function)} except that
+     *  it checks for not only null values but also whether the weak reference is empty.
+     * If the cache has a still available value, that is returned, otherwise a new value is computed
+     *  with the loader function, and atomically it is attempted to be added to the cache. If by
+     *  then the cache was already updated, that value is used instead.
+     */
+    private <K, V> V getCached(ConcurrentMap<K, WeakReference<V>> cache, K languageName,
+        Function<K, V> loader) {
+        V language;
+        WeakReference<V> v = cache.get(languageName);
+        if(v == null) { // if not in the cache
+            language = loader.apply(languageName); // compute new value
+            v = cache.putIfAbsent(languageName, new WeakReference<>(language)); // atomically put new value
+            if(v != null) { // if put failed, no old value of null returned, cache was updated in between
+                final V v1 = v.get(); // get a strong reference to updated cache
+                if(v1 != null) { // if this is not expired again already
+                    language = v1; // we're done, this is the value from the cache
+                } else {
+                    return getCached(cache, languageName, loader); // bah, try again
+                }
+            }
+        } else if(v.get() == null) { // if cached value expired
+            language = loader.apply(languageName); // compute new value
+            final boolean replaced = cache.replace(languageName, v, new WeakReference<>(language)); // atomically replace that expired cached value
+            if(!replaced) { // cache was updated in between
+                return getCached(cache, languageName, loader); // bah, try again.
+            }
+        } else {
+            language = v.get();
+        }
+        return language;
     }
 
     @Override public void remove(ILanguageComponent component) {
@@ -260,13 +276,13 @@ public class LanguageService implements ILanguageService, AutoCloseable {
         componentChange(LanguageComponentChange.Kind.Remove, existingComponent, null);
 
         for(ILanguageImplInternal impl : removedFromImpls) {
-            if(Iterables.isEmpty(impl.components())) {
+            if(Iterables2.isEmpty(impl.components())) {
                 removeImplementation(impl);
                 final ILanguageInternal language = impl.belongsToInternal();
                 language.remove(impl);
                 implChange(LanguageImplChange.Kind.Remove, impl);
 
-                if(Iterables.isEmpty(language.impls())) {
+                if(Iterables2.isEmpty(language.impls())) {
                     removeLanguage(language);
                 }
             } else {
@@ -297,7 +313,7 @@ public class LanguageService implements ILanguageService, AutoCloseable {
     private void addImplementation(ILanguageImplInternal impl) {
         final LanguageIdentifier id = impl.id();
         identifierToImpl.put(id, impl);
-        idToImpl.put(groupIdId(id), impl);
+        idToImpl.computeIfAbsent(groupIdId(id), k -> new HashSet<>()).add(impl);
         logger.debug("Adding {}", impl);
     }
 
@@ -316,7 +332,10 @@ public class LanguageService implements ILanguageService, AutoCloseable {
     private void removeImplementation(ILanguageImplInternal impl) {
         final LanguageIdentifier id = impl.id();
         identifierToImpl.remove(id);
-        idToImpl.remove(groupIdId(id), impl);
+        idToImpl.computeIfPresent(groupIdId(id), (k, v) -> {
+            v.remove(impl);
+            return v.isEmpty() ? null : v;
+        });
         logger.debug("Removing {}", impl);
     }
 

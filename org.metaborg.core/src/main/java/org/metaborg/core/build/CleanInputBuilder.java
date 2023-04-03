@@ -12,8 +12,7 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.IProject;
-
-import com.google.common.collect.Iterables;
+import org.metaborg.util.iterators.Iterables2;
 
 public class CleanInputBuilder {
     private final IProject project;
@@ -50,7 +49,7 @@ public class CleanInputBuilder {
      * Adds given language implementations.
      */
     public CleanInputBuilder addLanguages(Iterable<? extends ILanguageImpl> languages) {
-        Iterables.addAll(this.languages, languages);
+        Iterables2.addAll(this.languages, languages);
         return this;
     }
 

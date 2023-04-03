@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.vfs2.FileContent;
@@ -20,6 +21,7 @@ import org.metaborg.core.build.dependency.MissingDependencyException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
+import org.metaborg.util.collection.Cache;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.tuple.Tuple2;
@@ -29,10 +31,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.TermUtils;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
 
 public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
 
@@ -44,12 +42,11 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
     public AResourcesPrimitive(String name, IResourceService resourceService) {
         super(name, 2, 0);
         this.resourceService = resourceService;
-        this.fileCache = CacheBuilder.newBuilder().maximumSize(32).build();
+        this.fileCache = new Cache<>(32);
     }
 
     @Override public void close() {
-        fileCache.invalidateAll();
-        fileCache.cleanUp();
+        fileCache.clear();
     }
 
     @Override protected IStrategoTerm call(IStrategoTerm current, Strategy[] svars, IStrategoTerm[] tvars,
@@ -103,7 +100,7 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
             }
             final IStrategoTerm term;
             try(FileContent content = file.getContent()) {
-                final Tuple2<Long, IStrategoTerm> cacheEntry = fileCache.getIfPresent(file);
+                final Tuple2<Long, IStrategoTerm> cacheEntry = fileCache.get(file);
                 if(cacheEntry != null && !(cacheEntry._1() < content.getLastModifiedTime())) {
                     term = cacheEntry._2();
                 } else {
@@ -111,7 +108,7 @@ public abstract class AResourcesPrimitive extends ASpoofaxContextPrimitive imple
                     fileCache.put(file, Tuple2.of(content.getLastModifiedTime(), term));
                 }
             } catch(IOException e) {
-                fileCache.invalidateAll(Arrays.asList(file));
+                fileCache.remove(file);
                 continue;
             }
             return Optional.of(term);

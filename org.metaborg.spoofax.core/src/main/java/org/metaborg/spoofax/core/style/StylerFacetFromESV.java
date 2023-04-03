@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.style;
 
 import java.awt.Color;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,8 +14,6 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
-
-import com.google.common.collect.Iterables;
 
 import org.spoofax.terms.util.TermUtils;
 
@@ -48,8 +47,8 @@ public class StylerFacetFromESV {
             namedStyles.put(TermUtils.toJavaStringAt(styleDef, 0), style);
         }
 
-        final Iterable<IStrategoAppl> styleRules = ESVReader.collectTerms(esv, "ColorRule");
-        if(Iterables.isEmpty(styleRules)) {
+        final Collection<IStrategoAppl> styleRules = ESVReader.collectTerms(esv, "ColorRule");
+        if(styleRules.isEmpty()) {
             return null;
         }
         for(IStrategoAppl styleRule : styleRules) {

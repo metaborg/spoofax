@@ -8,15 +8,14 @@ import org.metaborg.core.menu.IMenu;
 import org.metaborg.core.menu.IMenuItem;
 import org.metaborg.core.menu.IMenuService;
 import org.metaborg.spoofax.core.action.ActionFacet;
-
-import com.google.common.collect.Iterables;
+import org.metaborg.util.iterators.Iterables2;
 
 public class MenuService implements IMenuService {
     @Override public Iterable<IMenuItem> menuItems(ILanguageImpl language) {
         final Iterable<ActionFacet> facets = language.facets(ActionFacet.class);
         final List<IMenuItem> menuItems = new LinkedList<>();
         for(ActionFacet facet : facets) {
-            Iterables.addAll(menuItems, facet.menuItems);
+            Iterables2.addAll(menuItems, facet.menuItems);
         }
         if(menuItems.size() == 1) {
             final IMenuItem item = menuItems.get(0);

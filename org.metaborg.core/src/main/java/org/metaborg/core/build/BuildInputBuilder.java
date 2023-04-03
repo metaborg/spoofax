@@ -20,14 +20,12 @@ import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ResourceUtils;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+
+import io.usethesource.capsule.SetMultimap;
 
 /**
  * Fluent interface for creating {@link BuildInput} objects.
@@ -42,7 +40,7 @@ public class BuildInputBuilder {
     private Set<ILanguageImpl> languages;
     private boolean addDependencyLanguages;
 
-    private Multimap<ILanguageImpl, FileObject> includePaths;
+    private SetMultimap.Transient<ILanguageImpl, FileObject> includePaths;
     private boolean addDefaultIncludePaths;
 
     private Collection<ResourceChange> sourceChanges;
@@ -76,7 +74,7 @@ public class BuildInputBuilder {
         state = null;
         languages = new HashSet<ILanguageImpl>();
         addDependencyLanguages = true;
-        includePaths = HashMultimap.create();
+        includePaths = SetMultimap.Transient.of();
         addDefaultIncludePaths = true;
         sourceChanges = new LinkedList<>();
         addSourcesFromDefaultSourceLocations = false;
@@ -113,8 +111,8 @@ public class BuildInputBuilder {
     /**
      * Sets the languages to given language implementations.
      */
-    public BuildInputBuilder withLanguages(Iterable<ILanguageImpl> languages) {
-        this.languages = Sets.newHashSet(languages);
+    public BuildInputBuilder withLanguages(Collection<ILanguageImpl> languages) {
+        this.languages = new HashSet<>(languages);
         return this;
     }
 
@@ -122,7 +120,7 @@ public class BuildInputBuilder {
      * Adds given language implementations.
      */
     public BuildInputBuilder addLanguages(Iterable<? extends ILanguageImpl> languages) {
-        Iterables.addAll(this.languages, languages);
+        Iterables2.addAll(this.languages, languages);
         return this;
     }
 
@@ -179,7 +177,7 @@ public class BuildInputBuilder {
      * Sets the source changes to given resource changes.
      */
     public BuildInputBuilder withSourceChanges(Iterable<ResourceChange> sourceChanges) {
-        this.sourceChanges = Lists.newArrayList(sourceChanges);
+        this.sourceChanges = Iterables2.toArrayList(sourceChanges);
         return this;
     }
 
@@ -187,7 +185,7 @@ public class BuildInputBuilder {
      * Adds a source change.
      */
     public BuildInputBuilder addSourceChanges(Iterable<ResourceChange> sourceChanges) {
-        Iterables.addAll(this.sourceChanges, sourceChanges);
+        Iterables2.addAll(this.sourceChanges, sourceChanges);
         return this;
     }
 
@@ -254,18 +252,12 @@ public class BuildInputBuilder {
 
 
     /**
-     * Sets the include files to given files.
-     */
-    public BuildInputBuilder withIncludePaths(Multimap<ILanguageImpl, FileObject> includePaths) {
-        this.includePaths = includePaths;
-        return this;
-    }
-
-    /**
      * Add given include files for given language.
      */
     public BuildInputBuilder addIncludePaths(ILanguageImpl language, Iterable<FileObject> includePaths) {
-        this.includePaths.putAll(language, includePaths);
+        for(FileObject includePath : includePaths) {
+            this.includePaths.__insert(language, includePath);
+        }
         return this;
     }
 
@@ -364,8 +356,8 @@ public class BuildInputBuilder {
     /**
      * Set the pardoned languages from given language names.
      */
-    public BuildInputBuilder withPardonedLanguageStrings(Iterable<String> pardonedLanguages) {
-        this.pardonedLanguageStrings = Sets.newHashSet(pardonedLanguages);
+    public BuildInputBuilder withPardonedLanguageStrings(Collection<String> pardonedLanguages) {
+        this.pardonedLanguageStrings = new HashSet<>(pardonedLanguages);
         return this;
     }
 
@@ -422,6 +414,9 @@ public class BuildInputBuilder {
                 addPardonedLanguage(language);
             }
         }
+
+        final SetMultimap.Immutable<ILanguageImpl, FileObject> includePaths = this.includePaths.freeze();
+        this.includePaths = includePaths.asTransient(); // just in case somebody reuses the builder :\
 
         return new BuildInput(state, this.project, sourceChanges, includePaths, new BuildOrder(languages), selector,
             analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,

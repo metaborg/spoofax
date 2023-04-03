@@ -1,6 +1,7 @@
 package org.metaborg.core.project;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.vfs2.FileName;
@@ -14,13 +15,12 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
 public class ConfigBasedProjectService implements IProjectService {
     private static final ILogger logger = LoggerUtils.logger(ConfigBasedProjectService.class);
 
-    private final ConcurrentMap<FileName, IProject> projects = Maps.newConcurrentMap();
+    private final ConcurrentMap<FileName, IProject> projects = new ConcurrentHashMap<>();
 
     private final ISourceTextService sourceTextService;
     private final IProjectConfigService projectConfigService;

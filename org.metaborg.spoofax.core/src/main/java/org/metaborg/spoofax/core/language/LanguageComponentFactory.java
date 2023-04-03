@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.language;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -73,7 +74,6 @@ import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.TermUtils;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
@@ -227,7 +227,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             try {
                 syntaxFacet = SyntaxFacetFromESV.create(esvTerm, root);
                 if(syntaxFacet != null) {
-                    Iterables.addAll(errors, syntaxFacet.available());
+                    Iterables2.addAll(errors, syntaxFacet.available());
                 }
             } catch(FileSystemException e) {
                 exceptions.add(e);
@@ -236,7 +236,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             try {
                 dynamicClassLoadingFacet = DynamicClassLoadingFacetFromESV.create(esvTerm, root);
                 if(!dynamicClassLoadingFacet.jarFiles.isEmpty()) {
-                    Iterables.addAll(errors, dynamicClassLoadingFacet.available(resourceService));
+                    Iterables2.addAll(errors, dynamicClassLoadingFacet.available(resourceService));
                 }
             } catch(IOException e) {
                 exceptions.add(e);
@@ -245,7 +245,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             try {
                 strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, root);
                 if(!strategoRuntimeFacet.ctreeFiles.isEmpty() || (dynamicClassLoadingFacet != null && !dynamicClassLoadingFacet.jarFiles.isEmpty())) {
-                    Iterables.addAll(errors, strategoRuntimeFacet.available(resourceService));
+                    Iterables2.addAll(errors, strategoRuntimeFacet.available(resourceService));
                 }
             } catch(IOException e) {
                 exceptions.add(e);
@@ -319,7 +319,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         if(esvTerm != null) {
             final String[] extensions = extensions(esvTerm);
             if(extensions.length != 0) {
-                final Iterable<String> extensionsIterable = Iterables2.from(extensions);
+                final Collection<String> extensionsIterable = Arrays.asList(extensions);
 
                 final IdentificationFacet identificationFacet =
                     new IdentificationFacet(new ResourceExtensionsIdentifier(extensionsIterable));

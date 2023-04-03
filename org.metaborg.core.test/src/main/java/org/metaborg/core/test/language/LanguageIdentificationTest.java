@@ -11,12 +11,10 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.test.MetaborgTest;
 
-import com.google.common.collect.Iterables;
-
-public class LanguageIdentitificationTest extends MetaborgTest {
+public class LanguageIdentificationTest extends MetaborgTest {
 
 
-    public LanguageIdentitificationTest(MetaborgModule module) {
+    public LanguageIdentificationTest(MetaborgModule module) {
         super(module);
     }
 
@@ -28,10 +26,10 @@ public class LanguageIdentitificationTest extends MetaborgTest {
 
         final ILanguageComponent component1 =
             language(groupId, "org.metaborg.lang.entity1", version, location1, "Entity1", "ent1");
-        final ILanguageImpl impl1 = Iterables.get(component1.contributesTo(), 0);
+        final ILanguageImpl impl1 = component1.contributesTo().iterator().next();
         final ILanguageComponent component2 =
             language(groupId, "org.metaborg.lang.entity2", version, location2, "Entity2", "ent2");
-        final ILanguageImpl impl2 = Iterables.get(component2.contributesTo(), 0);
+        final ILanguageImpl impl2 = component2.contributesTo().iterator().next();
 
         assertTrue(languageIdentifierService.identify(resourceService.resolve("ram:///Entity1/test.ent1"), impl1));
         assertFalse(languageIdentifierService.identify(resourceService.resolve("ram:///Entity2/test.ent2"), impl1));

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
@@ -13,13 +15,11 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
-import javax.annotation.Nullable;
+import com.google.inject.Inject;
+
+import io.usethesource.capsule.SetMultimap;
 
 public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     @Inject public LayoutSensitivePrettyPrinterPrimitive() {
@@ -50,7 +50,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private IStrategoTerm isolateOffsideBoxes(IStrategoTerm t) {
 
-        Multimap<Integer, IStrategoTerm> line2Box = HashMultimap.create();
+        SetMultimap.Transient<Integer, IStrategoTerm> line2Box = SetMultimap.Transient.of();
         createMappingLine2Box(t, line2Box);
 
         // create a map of line -> box
@@ -58,13 +58,13 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         // if so, put next box after the offside box in a new line
 
         IStrategoTerm positionWithLayout = getPositionWithLayout(t);
-        IStrategoTerm newBox = checkOffsideBoxes(t, line2Box);
+        IStrategoTerm newBox = checkOffsideBoxes(t, line2Box.freeze());
 
         return updateColumnBoxes(newBox, positionWithLayout);
     }
 
 
-    private void createMappingLine2Box(IStrategoTerm t, Multimap<Integer, IStrategoTerm> line2Box) {
+    private void createMappingLine2Box(IStrategoTerm t, SetMultimap.Transient<Integer, IStrategoTerm> line2Box) {
         if(TermUtils.isAppl(t)) {
             String constructorName = ((IStrategoAppl) t).getConstructor().getName();
 
@@ -73,7 +73,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                 IStrategoTerm position = getPosition(t);
                 if(position != null) {
                     int line = TermUtils.toJavaIntAt(position, 0);
-                    line2Box.put(line, t);
+                    line2Box.__insert(line, t);
                 }
 
                 for(IStrategoTerm subBox : t.getSubterm(1)) {
@@ -85,14 +85,14 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
                 IStrategoTerm position = getPosition(t);
                 if(position != null) {
                     int line = TermUtils.toJavaIntAt(position, 0);
-                    line2Box.put(line, t);
+                    line2Box.__insert(line, t);
                 }
             }
         }
     }
 
 
-    private IStrategoTerm checkOffsideBoxes(IStrategoTerm t, Multimap<Integer, IStrategoTerm> line2Box) {
+    private IStrategoTerm checkOffsideBoxes(IStrategoTerm t, SetMultimap.Immutable<Integer, IStrategoTerm> line2Box) {
 
         IStrategoTerm result = t;
 
@@ -165,7 +165,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     }
 
 
-    private boolean hasFollowingBox(IStrategoTerm t, Multimap<Integer, IStrategoTerm> line2Box) {
+    private boolean hasFollowingBox(IStrategoTerm t, SetMultimap.Immutable<Integer, IStrategoTerm> line2Box) {
         IStrategoTerm pos = getEndPosition(t, getPositionWithLayout(t));
         if(pos == null) {
             return false;

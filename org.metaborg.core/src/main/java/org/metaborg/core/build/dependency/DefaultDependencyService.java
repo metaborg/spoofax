@@ -10,10 +10,10 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.IProject;
+import org.metaborg.util.collection.ImList;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 
 /**
@@ -35,7 +35,7 @@ public final class DefaultDependencyService implements IDependencyService {
         if(config.compileDeps().isEmpty()) {
             logger.trace("No compile dependencies found for project '{}'."
                 + "Returning all active language components as compile dependencies instead.", project);
-            return ImmutableList.copyOf(LanguageUtils.allActiveComponents(languageService));
+            return ImList.Immutable.copyOf(LanguageUtils.allActiveComponents(languageService));
         }
         return getLanguages(config.compileDeps());
     }

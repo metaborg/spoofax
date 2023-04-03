@@ -1,11 +1,13 @@
 package org.metaborg.meta.core.wizard;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 import org.metaborg.core.language.LanguageIdentifier;
-
-import com.google.common.base.Splitter;
 
 /**
  * Helps with the validation and UI of a 'create language specification' wizard.
@@ -174,9 +176,7 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
     }
 
     public static Collection<String> splitExtensions(final String extensions) {
-        return Splitter.on(',')
-            .trimResults()
-            .omitEmptyStrings()
-            .splitToList(extensions);
+        return Arrays.stream(extensions.split(",")).map(String::trim).filter(String::isEmpty).collect(
+            Collectors.toList());
     }
 }

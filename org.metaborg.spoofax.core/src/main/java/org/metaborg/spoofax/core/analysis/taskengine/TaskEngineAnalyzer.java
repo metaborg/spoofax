@@ -46,7 +46,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 /**
@@ -164,7 +163,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final IStrategoTerm updateResultsTerm = resultTerm.getSubterm(1);
 
         final Collection<ISpoofaxAnalyzeUnit> fileResults =
-            Lists.newArrayListWithCapacity(resultsTerm.getSubtermCount());
+            new ArrayList<>(resultsTerm.getSubtermCount());
         for(IStrategoTerm result : resultsTerm) {
             // HACK: analysis duration per parse unit is unknown, pass -1 as duration.
             final ISpoofaxAnalyzeUnit fileResult = result(result, inputsPerSource, context, -1);
@@ -175,7 +174,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         }
 
         final Collection<ISpoofaxAnalyzeUnitUpdate> updateResults =
-            Lists.newArrayListWithCapacity(updateResultsTerm.getSubtermCount());
+            new ArrayList<>(updateResultsTerm.getSubtermCount());
         for(IStrategoTerm result : updateResultsTerm) {
             final ISpoofaxAnalyzeUnitUpdate updateResult = updateResult(result, context);
             if(updateResult == null) {
@@ -223,7 +222,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final Collection<IMessage> ambiguities = analysisCommon.ambiguityMessages(source, ast);
 
         final Collection<IMessage> messages =
-            Lists.newArrayListWithCapacity(errors.size() + warnings.size() + notes.size() + ambiguities.size());
+            new ArrayList<>(errors.size() + warnings.size() + notes.size() + ambiguities.size());
         messages.addAll(errors);
         messages.addAll(warnings);
         messages.addAll(notes);
@@ -251,7 +250,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
         final Collection<IMessage> notes = analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(3));
 
         final Collection<IMessage> messages =
-            Lists.newArrayListWithCapacity(errors.size() + warnings.size() + notes.size());
+            new ArrayList<>(errors.size() + warnings.size() + notes.size());
         messages.addAll(errors);
         messages.addAll(warnings);
         messages.addAll(notes);

@@ -7,10 +7,9 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-
-import com.google.common.collect.Iterables;
 
 public class LanguageUtils {
     private static final ILogger logger = LoggerUtils.logger(LanguageUtils.class);
@@ -19,7 +18,7 @@ public class LanguageUtils {
     public static Set<ILanguageImpl> toImpls(Iterable<? extends ILanguageComponent> components) {
         final Set<ILanguageImpl> impls = new HashSet<ILanguageImpl>();
         for(ILanguageComponent component : components) {
-            Iterables.addAll(impls, component.contributesTo());
+            Iterables2.addAll(impls, component.contributesTo());
         }
         return impls;
     }
@@ -27,7 +26,7 @@ public class LanguageUtils {
     public static Set<ILanguageComponent> toComponents(Iterable<? extends ILanguageImpl> impls) {
         final Set<ILanguageComponent> components = new HashSet<ILanguageComponent>();
         for(ILanguageImpl impl : impls) {
-            Iterables.addAll(components, impl.components());
+            Iterables2.addAll(components, impl.components());
         }
         return components;
     }
@@ -64,7 +63,7 @@ public class LanguageUtils {
         final Iterable<ILanguageImpl> activeImpls = allActiveImpls(languageService);
         final Collection<ILanguageComponent> activeComponents = new LinkedList<>();
         for(ILanguageImpl impl : activeImpls) {
-            Iterables.addAll(activeComponents, impl.components());
+            Iterables2.addAll(activeComponents, impl.components());
         }
         return activeComponents;
     }

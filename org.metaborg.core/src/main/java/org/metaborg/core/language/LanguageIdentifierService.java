@@ -1,6 +1,8 @@
 package org.metaborg.core.language;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -14,12 +16,11 @@ import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
+import org.metaborg.util.Strings;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguageIdentifierService implements ILanguageIdentifierService {
@@ -42,7 +43,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
     @Override public boolean identify(FileObject resource, ILanguageImpl language) {
         final Iterable<IdentificationFacet> facets = language.facets(IdentificationFacet.class);
-        if(Iterables.isEmpty(facets)) {
+        if(Iterables2.isEmpty(facets)) {
             logger.trace("Cannot identify if {} is of {}, language does not have an identification facet", resource,
                 language);
             return false;
@@ -135,7 +136,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         }
 
         // Identify using identification facet.
-        final Set<ILanguage> identifiedLanguages = Sets.newLinkedHashSet();
+        final Set<ILanguage> identifiedLanguages = new LinkedHashSet<>();
         ILanguageImpl identifiedImpl = null;
         for(ILanguageImpl impl : impls) {
             if(identify(resource, impl)) {
@@ -146,7 +147,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
         if(identifiedLanguages.size() > 1) {
             throw new IllegalStateException("Resource " + resource + " identifies to multiple languages: "
-                + Joiner.on(", ").join(identifiedLanguages));
+                + Strings.tsJoin(identifiedLanguages, ", "));
         }
 
         if(identifiedImpl == null) {
@@ -159,7 +160,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
     @Override public boolean available(ILanguageImpl impl) {
         final Iterable<IdentificationFacet> facets = impl.facets(IdentificationFacet.class);
-        if(Iterables.isEmpty(facets)) {
+        if(Iterables2.isEmpty(facets)) {
             return false;
         }
         return true;

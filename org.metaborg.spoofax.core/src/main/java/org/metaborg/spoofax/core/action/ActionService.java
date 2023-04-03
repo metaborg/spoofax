@@ -10,15 +10,14 @@ import org.metaborg.core.action.TransformActionContrib;
 import org.metaborg.core.language.FacetContribution;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-
-import com.google.common.collect.Iterables;
+import org.metaborg.util.iterators.Iterables2;
 
 public class ActionService implements IActionService {
     @Override public Collection<ITransformAction> actions(ILanguageImpl language, ITransformGoal goal) {
         final Iterable<ActionFacet> facets = language.facets(ActionFacet.class);
         final Collection<ITransformAction> actions = new LinkedList<>();
         for(ActionFacet facet : facets) {
-            Iterables.addAll(actions, facet.actions(goal));
+            Iterables2.addAll(actions, facet.actions(goal));
         }
         return actions;
     }

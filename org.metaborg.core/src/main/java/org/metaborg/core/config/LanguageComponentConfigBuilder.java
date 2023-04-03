@@ -10,8 +10,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 /**
@@ -216,7 +216,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             this.langContribs = new HashSet<LanguageContributionIdentifier>();
         }
 
-        Iterables.addAll(this.langContribs, contribs);
+        Iterables2.addAll(this.langContribs, contribs);
         return this;
     }
 
@@ -234,7 +234,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             this.generates = new ArrayList<>();
         }
 
-        Iterables.addAll(this.generates, generates);
+        Iterables2.addAll(this.generates, generates);
         return this;
     }
 
@@ -252,7 +252,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
             this.exports = new ArrayList<>();
         }
 
-        Iterables.addAll(this.exports, exports);
+        Iterables2.addAll(this.exports, exports);
         return this;
     }
 

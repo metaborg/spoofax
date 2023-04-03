@@ -14,8 +14,8 @@ import org.metaborg.core.config.LanguageComponentConfigBuilder;
 import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 /**
@@ -151,7 +151,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
             this.pardonedLanguages = new HashSet<String>();
         }
 
-        this.pardonedLanguages.addAll(Lists.newArrayList(languages));
+        this.pardonedLanguages.addAll(Iterables2.toArrayList(languages));
         return this;
     }
 

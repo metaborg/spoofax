@@ -31,7 +31,6 @@ import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCloseable {
@@ -272,11 +271,11 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
 
             if(overrideImploder != null) {
                 parserConfig =
-                    new ParserConfig(facet.startSymbols != null ? Iterables.get(facet.startSymbols, 0) : null, provider,
+                    new ParserConfig(facet.startSymbols != null ? facet.startSymbols.iterator().next() : null, provider,
                         overrideImploder);
             } else {
                 parserConfig = new ParserConfig(
-                    facet.startSymbols != null ? Iterables.get(facet.startSymbols, 0) : null, provider, facet.imploder);
+                    facet.startSymbols != null ? facet.startSymbols.iterator().next() : null, provider, facet.imploder);
             }
             parserConfigMap.put(lang, parserConfig);
         }
@@ -288,7 +287,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
         if(overrideJSGLRVersion != null) {
             return overrideJSGLRVersion;
         }
-        ILanguageComponent langComp = Iterables.getFirst(input.langImpl().components(), null);
+        ILanguageComponent langComp = input.langImpl().components().stream().findFirst().orElse(null);
         if(langComp == null)
             return JSGLRVersion.v1;
         else
@@ -296,7 +295,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     }
 
     private JSGLR2Logging jsglr2Logging(ISpoofaxInputUnit input) {
-        ILanguageComponent langComp = Iterables.getFirst(input.langImpl().components(), null);
+        ILanguageComponent langComp = input.langImpl().components().stream().findFirst().orElse(null);
         if(langComp == null)
             return JSGLR2Logging.none;
         else

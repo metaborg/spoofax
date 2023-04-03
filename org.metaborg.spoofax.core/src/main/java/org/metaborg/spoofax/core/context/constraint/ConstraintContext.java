@@ -21,6 +21,7 @@ import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
+import org.metaborg.util.collection.ImList;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
@@ -30,7 +31,6 @@ import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 
 public class ConstraintContext implements IConstraintContext {
@@ -329,7 +329,7 @@ public class ConstraintContext implements IConstraintContext {
             this.errors = errors;
             this.warnings = warnings;
             this.notes = notes;
-            this.exceptions = ImmutableList.copyOf(exceptions);
+            this.exceptions = ImList.Immutable.copyOf(exceptions);
         }
 
         @Override public int parseHash() {

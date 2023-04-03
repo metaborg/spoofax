@@ -31,7 +31,7 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 
-import com.google.common.collect.SetMultimap;
+import io.usethesource.capsule.SetMultimap;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
 

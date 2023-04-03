@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.config.language;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,8 +12,7 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-
-import com.google.common.collect.Sets;
+import org.metaborg.util.iterators.Iterables2;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.nabl2.config.NaBL2DebugConfig;
@@ -51,7 +51,9 @@ public final class NaBL2ConfigReaderWriter {
             } catch(IllegalArgumentException ex) {
             }
         }
-        return Sets.newEnumSet(flags, Flag.class);
+        EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
+        set.addAll(flags);
+        return set;
     }
 
     public static Collection<IMessage> validate(ImmutableConfiguration config, MessageBuilder mb) {

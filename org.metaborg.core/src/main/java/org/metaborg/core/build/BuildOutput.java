@@ -14,8 +14,7 @@ import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
-
-import com.google.common.collect.Iterables;
+import org.metaborg.util.iterators.Iterables2;
 
 public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>>
     implements IBuildOutputInternal<P, A, AU, T> {
@@ -74,13 +73,13 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extend
     @Override public Iterable<IMessage> allMessages() {
         final Collection<IMessage> messages = new LinkedList<>();
         for(P result : parseResults) {
-            Iterables.addAll(messages, result.messages());
+            Iterables2.addAll(messages, result.messages());
         }
         for(A result : analysisResults) {
-            Iterables.addAll(messages, result.messages());
+            Iterables2.addAll(messages, result.messages());
         }
         for(T result : transformResults) {
-            Iterables.addAll(messages, result.messages());
+            Iterables2.addAll(messages, result.messages());
         }
         return messages;
     }
@@ -95,13 +94,13 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extend
         Iterable<A> analysisResults, Iterable<AU> analysisUpdates, Iterable<T> transformResults,
         Iterable<IMessage> extraMessages) {
         this.success &= success;
-        Iterables.addAll(this.removedResources, removedResources);
-        Iterables.addAll(this.includedResources, includedResources);
-        Iterables.addAll(this.changedResources, changedResources);
-        Iterables.addAll(this.parseResults, parseResults);
-        Iterables.addAll(this.analysisResults, analysisResults);
-        Iterables.addAll(this.analysisUpdates, analysisUpdates);
-        Iterables.addAll(this.transformResults, transformResults);
-        Iterables.addAll(this.extraMessages, extraMessages);
+        Iterables2.addAll(this.removedResources, removedResources);
+        Iterables2.addAll(this.includedResources, includedResources);
+        Iterables2.addAll(this.changedResources, changedResources);
+        Iterables2.addAll(this.parseResults, parseResults);
+        Iterables2.addAll(this.analysisResults, analysisResults);
+        Iterables2.addAll(this.analysisUpdates, analysisUpdates);
+        Iterables2.addAll(this.transformResults, transformResults);
+        Iterables2.addAll(this.extraMessages, extraMessages);
     }
 }

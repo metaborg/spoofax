@@ -54,7 +54,6 @@ import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 import static org.spoofax.jsglr.client.imploder.IToken.Kind.*;
@@ -238,17 +237,17 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             if(placeholder != null) {
                 completions.addAll(placeholderCompletions(placeholder, languageName, component, location));
             } else {
-                if(Iterables.size(lists) != 0) {
+                if(Iterables2.size(lists) != 0) {
                     completions.addAll(
                         listsCompletions(position, blankLineCompletion, lists, languageName, component, location));
                 }
 
-                if(Iterables.size(optionals) != 0) {
+                if(Iterables2.size(optionals) != 0) {
                     completions
                         .addAll(optionalCompletions(optionals, blankLineCompletion, languageName, component, location));
                 }
                 // TODO Improve recursive completions
-                // if(Iterables.size(leftRecursive) != 0 || Iterables.size(rightRecursive) != 0) {
+                // if(Iterables2.size(leftRecursive) != 0 || Iterables2.size(rightRecursive) != 0) {
                 // completions
                 // .addAll(recursiveCompletions(leftRecursive, rightRecursive, languageName, component, location));
                 // }
@@ -803,7 +802,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                         continue;
                     }
 
-                    IStrategoAppl placeholderTerm = (IStrategoAppl) Iterables.get(placeholders, 0);
+                    IStrategoAppl placeholderTerm = (IStrategoAppl) placeholders.iterator().next();
                     IStrategoAppl placeholder = termFactory
                         .makeAppl(termFactory.makeConstructor(placeholderTerm.getConstructor().getName(), 0));
 

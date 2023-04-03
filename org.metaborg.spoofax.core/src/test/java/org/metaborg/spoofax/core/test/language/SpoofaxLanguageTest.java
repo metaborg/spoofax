@@ -16,8 +16,7 @@ import org.metaborg.spoofax.core.analysis.AnalysisFacet;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
-
-import com.google.common.collect.Iterables;
+import org.metaborg.util.iterators.Iterables2;
 
 public class SpoofaxLanguageTest extends LanguageServiceTest {
     public SpoofaxLanguageTest() {
@@ -34,10 +33,10 @@ public class SpoofaxLanguageTest extends LanguageServiceTest {
 
         final Iterable<ILanguageComponent> languages = languageDiscoveryService.discover(languageDiscoveryService.request(location));
 
-        assertEquals(1, Iterables.size(languages));
+        assertEquals(1, Iterables2.size(languages));
 
-        final ILanguageComponent component = Iterables.get(languages, 0);
-        final ILanguageImpl impl = Iterables.get(component.contributesTo(), 0);
+        final ILanguageComponent component = languages.iterator().next();
+        final ILanguageImpl impl = component.contributesTo().iterator().next();
         final ILanguage language = impl.belongsTo();
 
         assertEquals("Entity", language.name());

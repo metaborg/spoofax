@@ -19,8 +19,6 @@ import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Sets;
-
 public class LanguageBuildState {
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
@@ -83,7 +81,7 @@ public class LanguageBuildState {
     private Iterable<IdentifiedResourceChange> includeDiff(LanguageBuildState newState,
         Iterable<IdentifiedResource> newFiles) {
         final Collection<IdentifiedResourceChange> changes = new LinkedList<>();
-        final Set<FileName> existingFiles = Sets.newHashSet(include.files);
+        final Set<FileName> existingFiles = new HashSet<>(include.files);
         for(IdentifiedResource identifiedResource : newFiles) {
             final FileObject resource = identifiedResource.resource;
             final FileName name = resource.getName();

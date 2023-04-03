@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.build;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import javax.annotation.Nullable;
@@ -9,8 +10,6 @@ import org.metaborg.core.build.CommonPaths;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-
-import com.google.common.collect.Lists;
 
 public class SpoofaxCommonPaths extends CommonPaths {
     static final ILogger logger = LoggerUtils.logger(SpoofaxCommonPaths.class);
@@ -278,6 +277,7 @@ public class SpoofaxCommonPaths extends CommonPaths {
      * @return A list of Java source root folders.
      */
     public Collection<FileObject> javaSrcDirs() {
-        return Lists.newArrayList(strJavaStratDir(), strSrcGenJavaDir(), dsManualJavaDir(), dsSrcGenJavaDir());
+        return Arrays.asList(strJavaStratDir(), strSrcGenJavaDir(), dsManualJavaDir(),
+            dsSrcGenJavaDir());
     }
 }

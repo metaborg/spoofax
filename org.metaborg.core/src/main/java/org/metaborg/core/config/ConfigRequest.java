@@ -1,5 +1,7 @@
 package org.metaborg.core.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -7,8 +9,6 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.IMessagePrinter;
-
-import com.google.common.collect.Lists;
 
 public class ConfigRequest<T> {
     private final @Nullable T config;
@@ -28,7 +28,7 @@ public class ConfigRequest<T> {
     }
 
     public ConfigRequest(IMessage error) {
-        this(null, Lists.newArrayList(error));
+        this(null, Arrays.asList(error));
     }
 
     public ConfigRequest(@Nullable T config, Collection<IMessage> errors) {

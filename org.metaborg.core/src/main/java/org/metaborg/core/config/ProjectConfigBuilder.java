@@ -11,8 +11,8 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 /**
@@ -90,7 +90,7 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
             this.sources = new ArrayList<>();
         }
 
-        Iterables.addAll(this.sources, sources);
+        Iterables2.addAll(this.sources, sources);
         return this;
     }
 
@@ -108,7 +108,7 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
             this.compileDeps = new HashSet<LanguageIdentifier>();
         }
 
-        Iterables.addAll(this.compileDeps, deps);
+        Iterables2.addAll(this.compileDeps, deps);
         return this;
     }
 
@@ -126,7 +126,7 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
             this.sourceDeps = new HashSet<LanguageIdentifier>();
         }
 
-        Iterables.addAll(this.sourceDeps, deps);
+        Iterables2.addAll(this.sourceDeps, deps);
         return this;
     }
 
@@ -144,7 +144,7 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
             this.javaDeps = new HashSet<LanguageIdentifier>();
         }
 
-        Iterables.addAll(this.javaDeps, deps);
+        Iterables2.addAll(this.javaDeps, deps);
         return this;
     }
 

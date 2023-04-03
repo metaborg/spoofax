@@ -21,12 +21,11 @@ import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageUtils;
+import org.metaborg.util.Strings;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
@@ -44,32 +43,32 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
 
     @Override public ILanguageImpl languageFromDirectory(FileObject directory) throws MetaborgException {
-        final Iterable<ILanguageImpl> languages = languagesFromDirectory(directory);
-        if(Iterables.size(languages) > 1) {
+        final Collection<ILanguageImpl> languages = languagesFromDirectory(directory);
+        if(languages.size() > 1) {
             throw new MetaborgException("Attempted to load a single language implementation from directory " + directory
-                + " but got multiple: " + Joiner.on(", ").join(languages));
+                + " but got multiple: " + Strings.tsJoin(languages, ", "));
         }
-        return Iterables.get(languages, 0);
+        return languages.iterator().next();
     }
 
     @Override public Set<ILanguageImpl> languagesFromDirectory(FileObject directory) throws MetaborgException {
         final ILanguageComponent component = componentFromDirectory(directory);
-        return Sets.newHashSet(component.contributesTo());
+        return Iterables2.toHashSet(component.contributesTo());
     }
 
 
     @Override public ILanguageImpl languageFromArchive(FileObject archiveFile) throws MetaborgException {
-        final Iterable<ILanguageImpl> languages = languagesFromArchive(archiveFile);
-        if(Iterables.size(languages) > 1) {
+        final Collection<ILanguageImpl> languages = languagesFromArchive(archiveFile);
+        if(languages.size() > 1) {
             throw new MetaborgException("Attempted to load a single language implementation from archive " + archiveFile
-                + " but got multiple: " + Joiner.on(", ").join(languages));
+                + " but got multiple: " + Strings.tsJoin(languages,", "));
         }
-        return Iterables.get(languages, 0);
+        return languages.iterator().next();
     }
 
     @Override public Set<ILanguageImpl> languagesFromArchive(FileObject archiveFile) throws MetaborgException {
         final ILanguageComponent component = componentFromArchive(archiveFile);
-        return Sets.newHashSet(component.contributesTo());
+        return Iterables2.toHashSet(component.contributesTo());
     }
 
 

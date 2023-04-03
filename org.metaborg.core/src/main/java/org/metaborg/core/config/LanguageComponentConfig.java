@@ -17,7 +17,6 @@ import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Lists;
 
 /**
  * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
@@ -154,7 +153,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
         final List<HierarchicalConfiguration<ImmutableNode>> langContribConfigs =
                 config.configurationsAt(PROP_LANGUAGE_CONTRIBUTIONS);
         final List<LanguageContributionIdentifier> langContribs =
-                Lists.newArrayListWithCapacity(langContribConfigs.size());
+            new ArrayList<>(langContribConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> langContribConfig : langContribConfigs) {
             // HACK: for some reason get(LanguageIdentifier.class, "id") does not work here, it cannot convert to a
             // language identifier, do manually instead.
@@ -168,7 +167,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
 
     @Override public Collection<IGenerateConfig> generates() {
         final List<HierarchicalConfiguration<ImmutableNode>> generateConfigs = config.configurationsAt(PROP_GENERATES);
-        final List<IGenerateConfig> generates = Lists.newArrayListWithCapacity(generateConfigs.size());
+        final List<IGenerateConfig> generates = new ArrayList<>(generateConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> generateConfig : generateConfigs) {
             final List<String> languages = generateConfig.getList(String.class, "language", Collections.emptyList());
             final String directory = generateConfig.getString("directory");
@@ -184,7 +183,7 @@ public class LanguageComponentConfig extends AConfig implements ILanguageCompone
     @Override public Collection<IExportConfig> exports() {
         final List<HierarchicalConfiguration<ImmutableNode>> exportConfigs =
                 config.configurationsAt(PROP_EXPORTS, false);
-        final List<IExportConfig> exports = Lists.newArrayListWithCapacity(exportConfigs.size());
+        final List<IExportConfig> exports = new ArrayList<>(exportConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> exportConfig : exportConfigs) {
             final List<String> languages = exportConfig.getList(String.class, "language");
             final String directory = exportConfig.getString("directory");

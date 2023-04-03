@@ -12,7 +12,7 @@ import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 
-import com.google.common.collect.Multimap;
+import io.usethesource.capsule.SetMultimap;
 
 /**
  * Input for a build. Use the {@link BuildInputBuilder} fluent interface to create objects of this class.
@@ -38,7 +38,7 @@ public class BuildInput {
     /**
      * Per-language include paths;
      */
-    public final Multimap<ILanguageImpl, FileObject> includePaths;
+    public final SetMultimap.Immutable<ILanguageImpl, FileObject> includePaths;
 
     /**
      * Language build order.
@@ -96,7 +96,7 @@ public class BuildInput {
 
 
     public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
-        Multimap<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
+        SetMultimap.Immutable<ILanguageImpl, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
         boolean analyze, @Nullable FileSelector analyzeSelector, boolean transform,
         @Nullable FileSelector transformSelector, Iterable<ITransformGoal> transformGoals,
         @Nullable IMessagePrinter messagePrinter, boolean throwOnErrors, Set<ILanguageImpl> pardonedLanguages) {

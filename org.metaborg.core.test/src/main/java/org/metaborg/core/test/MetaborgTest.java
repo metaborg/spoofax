@@ -1,5 +1,7 @@
 package org.metaborg.core.test;
 
+import java.util.Arrays;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.After;
@@ -114,7 +116,7 @@ public class MetaborgTest {
     protected ILanguageComponent language(LanguageIdentifier identifier, FileObject location, String name,
         String... extensions) {
         return language(identifier, location, name,
-            new IdentificationFacet(new ResourceExtensionsIdentifier(Iterables2.from(extensions))));
+            new IdentificationFacet(new ResourceExtensionsIdentifier(Arrays.asList(extensions))));
     }
 
     protected ILanguageComponent language(String groupId, String id, LanguageVersion version, FileObject location,

@@ -18,8 +18,8 @@ import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
@@ -302,7 +302,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             this.buildSteps = new ArrayList<>();
         }
 
-        Iterables.addAll(this.buildSteps, buildSteps);
+        Iterables2.addAll(this.buildSteps, buildSteps);
         return this;
     }
 }

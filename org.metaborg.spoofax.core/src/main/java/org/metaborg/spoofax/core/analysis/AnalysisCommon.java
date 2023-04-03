@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.analysis;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -19,7 +20,6 @@ import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class AnalysisCommon {
@@ -37,7 +37,7 @@ public class AnalysisCommon {
     }
 
     public Collection<IMessage> messages(@Nullable FileObject resource, MessageSeverity severity, IStrategoTerm messagesTerm) {
-        final Collection<IMessage> messages = Lists.newArrayListWithExpectedSize(messagesTerm.getSubtermCount());
+        final Collection<IMessage> messages = new ArrayList<>(messagesTerm.getSubtermCount());
 
         for(IStrategoTerm term : messagesTerm.getAllSubterms()) {
             final IStrategoTerm originTerm;
@@ -67,7 +67,7 @@ public class AnalysisCommon {
     }
 
     public Collection<IMessage> messages(MessageSeverity severity, IStrategoTerm messagesTerm) {
-        final Collection<IMessage> messages = Lists.newArrayListWithExpectedSize(messagesTerm.getSubtermCount());
+        final Collection<IMessage> messages = new ArrayList<>(messagesTerm.getSubtermCount());
 
         for(IStrategoTerm term : messagesTerm.getAllSubterms()) {
             final IStrategoTerm originTerm;

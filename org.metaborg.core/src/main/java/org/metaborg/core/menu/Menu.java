@@ -3,14 +3,14 @@ package org.metaborg.core.menu;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.action.IAction;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
+import org.metaborg.util.Strings;
+import org.metaborg.util.iterators.Iterables2;
 
 public class Menu implements IMenu {
     private final String name;
@@ -18,7 +18,7 @@ public class Menu implements IMenu {
 
 
     public Menu(String name) {
-        this(name, new LinkedList<IMenuItem>());
+        this(name, new LinkedList<>());
     }
 
     public Menu(String name, Collection<IMenuItem> items) {
@@ -50,7 +50,7 @@ public class Menu implements IMenu {
             return null;
         } else if(size > 1) {
             final String message =
-                String.format("Found multiple actions with name %s: %s", name, Joiner.on(", ").join(actions));
+                String.format("Found multiple actions with name %s: %s", name, Strings.tsJoin(actions, ", "));
             throw new MetaborgException(message);
         }
         return actions.get(0);
@@ -62,7 +62,7 @@ public class Menu implements IMenu {
     }
 
     public void add(Iterable<? extends IMenuItem> items) {
-        Iterables.addAll(this.items, items);
+        Iterables2.addAll(this.items, items);
     }
 
     @Override public void accept(final IMenuItemVisitor visitor) {
