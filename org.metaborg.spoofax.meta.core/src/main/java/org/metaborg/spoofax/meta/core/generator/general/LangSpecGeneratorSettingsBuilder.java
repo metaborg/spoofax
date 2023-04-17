@@ -362,7 +362,7 @@ public class LangSpecGeneratorSettingsBuilder {
             && syntaxType != null && analysisType != null && transformationType != null && metaborgVersion != null;
     }
 
-    public Iterable<String> stillRequired() {
+    public Collection<String> stillRequired() {
         List<String> missing = new ArrayList<>();
         if(groupId == null) {
             missing.add("groupId");
