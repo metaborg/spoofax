@@ -20,12 +20,11 @@ import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.messages.IMessagePrinter;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
+import org.metaborg.util.collection.SetMultimap;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.inject.Inject;
-
-import io.usethesource.capsule.SetMultimap;
 
 /**
  * Fluent interface for creating {@link BuildInput} objects.
@@ -40,7 +39,7 @@ public class BuildInputBuilder {
     private Set<ILanguageImpl> languages;
     private boolean addDependencyLanguages;
 
-    private SetMultimap.Transient<ILanguageImpl, FileObject> includePaths;
+    private SetMultimap<ILanguageImpl, FileObject> includePaths;
     private boolean addDefaultIncludePaths;
 
     private Collection<ResourceChange> sourceChanges;
@@ -74,7 +73,7 @@ public class BuildInputBuilder {
         state = null;
         languages = new HashSet<ILanguageImpl>();
         addDependencyLanguages = true;
-        includePaths = SetMultimap.Transient.of();
+        includePaths = new SetMultimap<>();
         addDefaultIncludePaths = true;
         sourceChanges = new LinkedList<>();
         addSourcesFromDefaultSourceLocations = false;
@@ -256,7 +255,7 @@ public class BuildInputBuilder {
      */
     public BuildInputBuilder addIncludePaths(ILanguageImpl language, Iterable<FileObject> includePaths) {
         for(FileObject includePath : includePaths) {
-            this.includePaths.__insert(language, includePath);
+            this.includePaths.put(language, includePath);
         }
         return this;
     }
@@ -415,10 +414,7 @@ public class BuildInputBuilder {
             }
         }
 
-        final SetMultimap.Immutable<ILanguageImpl, FileObject> includePaths = this.includePaths.freeze();
-        this.includePaths = includePaths.asTransient(); // just in case somebody reuses the builder :\
-
-        return new BuildInput(state, this.project, sourceChanges, includePaths, new BuildOrder(languages), selector,
+        return new BuildInput(state, this.project, sourceChanges, this.includePaths, new BuildOrder(languages), selector,
             analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
             pardonedLanguages);
     }

@@ -21,13 +21,12 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
+import org.metaborg.util.collection.SetMultimap;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
 import com.google.inject.Inject;
-
-import io.usethesource.capsule.SetMultimap;
 
 /**
  * Default implementation for the dialect service. It is mostly generic, but contains some logic for .meta files, which
@@ -55,7 +54,7 @@ public class DialectService implements IDialectService {
 
     private final Map<String, ILanguageImpl> nameToDialect = new HashMap<>();
     private final Map<ILanguageImpl, ILanguageImpl> dialectToBase = new HashMap<>();
-    private final SetMultimap.Transient<ILanguageImpl, ILanguageImpl> baseLanguageToDialects = SetMultimap.Transient.of();
+    private final SetMultimap<ILanguageImpl, ILanguageImpl> baseLanguageToDialects = new SetMultimap<>();
 
 
     @Inject public DialectService(ILanguageService languageService) {
@@ -100,7 +99,7 @@ public class DialectService implements IDialectService {
 
         nameToDialect.put(name, dialect);
         dialectToBase.put(dialect, base);
-        baseLanguageToDialects.__insert(base, dialect);
+        baseLanguageToDialects.put(base, dialect);
         return dialect;
     }
 
@@ -163,7 +162,7 @@ public class DialectService implements IDialectService {
         logger.debug("Removing dialect {}", name);
 
         final ILanguageImpl base = dialectToBase.remove(dialect);
-        baseLanguageToDialects.__remove(base, dialect);
+        baseLanguageToDialects.remove(base, dialect);
         try {
             // Remove dialect after updating maps, exception indicates that dialect has already been removed.
             final ILanguageComponent dialectComponent = dialect.components().iterator().next();
@@ -188,7 +187,7 @@ public class DialectService implements IDialectService {
             final String name = dialect.belongsTo().name();
             nameToDialect.remove(name);
             dialectToBase.remove(dialect);
-            baseLanguageToDialects.__remove(base, dialect);
+            baseLanguageToDialects.remove(base, dialect);
             try {
                 // Remove dialect after updating maps, exception indicates that dialect has already been removed.
                 final ILanguageComponent dialectComponent = dialect.components().iterator().next();

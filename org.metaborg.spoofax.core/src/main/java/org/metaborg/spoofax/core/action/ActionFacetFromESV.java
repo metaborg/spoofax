@@ -18,13 +18,12 @@ import org.metaborg.core.menu.MenuAction;
 import org.metaborg.core.menu.Separator;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.collection.ImList;
+import org.metaborg.util.collection.SetMultimap;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
-
-import io.usethesource.capsule.SetMultimap;
 
 public class ActionFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(ActionFacetFromESV.class);
@@ -33,7 +32,7 @@ public class ActionFacetFromESV {
     public static @Nullable ActionFacet create(IStrategoAppl esv) {
         final Iterable<IStrategoAppl> menuTerms = ESVReader.collectTerms(esv, "ToolbarMenu");
         final Collection<IMenu> menus = new LinkedList<>();
-        final SetMultimap.Transient<ITransformGoal, ITransformAction> actions = SetMultimap.Transient.of();
+        final SetMultimap<ITransformGoal, ITransformAction> actions = new SetMultimap<>();
         final ImList.Immutable<String> nesting = ImList.Immutable.of();
         for(IStrategoAppl menuTerm : menuTerms) {
             final IMenu submenu = menu(menuTerm, new TransformActionFlags(), nesting, actions);
@@ -43,11 +42,11 @@ public class ActionFacetFromESV {
         if(menus.isEmpty() && actions.isEmpty()) {
             return null;
         }
-        return new ActionFacet(actions.freeze(), menus);
+        return new ActionFacet(actions, menus);
     }
 
     private static Menu menu(IStrategoTerm menuTerm, TransformActionFlags flags, ImList.Immutable<String> nesting,
-        SetMultimap.Transient<ITransformGoal, ITransformAction> actions) {
+        SetMultimap<ITransformGoal, ITransformAction> actions) {
         final String name = name(menuTerm.getSubterm(0));
         final ImList.Immutable<String> newNesting;
         {
@@ -85,8 +84,8 @@ public class ActionFacetFromESV {
                     }
                     final NamedGoal goal = new NamedGoal(newActionNesting);
                     final TransformAction action = new TransformAction(actionName, goal, mergedActionFlags, strategy);
-                    actions.__insert(goal, action);
-                    actions.__insert(new EndNamedGoal(goal.names.get(goal.names.size() - 1)), action);
+                    actions.put(goal, action);
+                    actions.put(new EndNamedGoal(goal.names.get(goal.names.size() - 1)), action);
                     final MenuAction menuAction = new MenuAction(action);
                     menu.add(menuAction);
                     break;
@@ -145,7 +144,7 @@ public class ActionFacetFromESV {
         return flags;
     }
 
-    private static void addCompileGoal(IStrategoAppl esv, SetMultimap.Transient<ITransformGoal, ITransformAction> actions) {
+    private static void addCompileGoal(IStrategoAppl esv, SetMultimap<ITransformGoal, ITransformAction> actions) {
         final List<IStrategoAppl> onSaveHandlers = ESVReader.collectTerms(esv, "OnSave");
         if(onSaveHandlers.isEmpty()) {
             return;
@@ -154,7 +153,7 @@ public class ActionFacetFromESV {
             final String strategyName = TermUtils.toJavaStringAt(onSaveHandler.getSubterm(0), 0);
             final ITransformGoal goal = new CompileGoal();
             final ITransformAction action = new TransformAction("Compile", goal, new TransformActionFlags(), strategyName);
-            actions.__insert(goal, action);
+            actions.put(goal, action);
         }
     }
 }
