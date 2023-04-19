@@ -13,6 +13,7 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.unit.ParseContrib;
+import org.metaborg.util.collection.SetMultimap;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -30,8 +31,6 @@ import org.spoofax.terms.attachments.ParentTermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
-
-import io.usethesource.capsule.SetMultimap;
 
 public class JSGLR1I extends JSGLRI<ParseTable> {
 
