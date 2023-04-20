@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Function;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -63,7 +62,7 @@ public class LanguagePathService implements ILanguagePathService {
     }
 
     @Override public Iterable<FileObject> sourceAndIncludePaths(IProject project, String languageName) {
-        final ImList.Transient<FileObject> paths = ImList.Transient.of();
+        final ImList.Mutable<FileObject> paths = ImList.Mutable.of();
         // make sure source paths come before include paths
         paths.addAll(sourcePaths(project, languageName));
         paths.addAll(includePaths(project, languageName));

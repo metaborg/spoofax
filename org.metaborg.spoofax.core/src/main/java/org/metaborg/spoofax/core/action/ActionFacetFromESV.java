@@ -50,7 +50,7 @@ public class ActionFacetFromESV {
         final String name = name(menuTerm.getSubterm(0));
         final ImList.Immutable<String> newNesting;
         {
-            final ImList.Transient<String> newNestingT = ImList.Transient.of();
+            final ImList.Mutable<String> newNestingT = ImList.Mutable.of();
             newNestingT.addAll(nesting);
             newNestingT.add(name);
             newNesting = newNestingT.freeze();
@@ -77,7 +77,7 @@ public class ActionFacetFromESV {
                     final TransformActionFlags mergedActionFlags = TransformActionFlags.merge(mergedFlags, actionFlags);
                     final ImList.Immutable<String> newActionNesting;
                     {
-                        final ImList.Transient<String> newActionNestingT = ImList.Transient.of();
+                        final ImList.Mutable<String> newActionNestingT = ImList.Mutable.of();
                         newActionNestingT.addAll(newNesting);
                         newActionNestingT.add(actionName);
                         newActionNesting = newActionNestingT.freeze();

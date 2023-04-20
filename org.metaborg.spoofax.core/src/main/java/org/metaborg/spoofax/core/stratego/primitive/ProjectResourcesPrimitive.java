@@ -22,7 +22,7 @@ public class ProjectResourcesPrimitive extends AResourcesPrimitive {
     }
 
     @Override protected List<FileObject> locations(IContext context) throws MissingDependencyException {
-        final ImList.Transient<FileObject> locations = ImList.Transient.of();
+        final ImList.Mutable<FileObject> locations = ImList.Mutable.of();
         locations.add(context.project().location());
         for(ILanguageComponent lang : dependenceService.sourceDeps(context.project())) {
             locations.add(lang.location());
