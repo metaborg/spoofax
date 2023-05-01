@@ -5,6 +5,8 @@ set -o noclobber
 set -o nounset
 #set -o xtrace
 
+{
+
 # Realpath alternative function, replacing `realpath -s`
 myrealpath() {
   [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
@@ -132,3 +134,5 @@ if [[ $retVal -ne 0 ]]; then
 fi
 
 echo "Done"
+
+} 2>&1 | (tee "/tmp/$BIN.log" || cat)
