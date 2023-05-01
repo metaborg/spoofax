@@ -5,6 +5,8 @@ set -o noclobber
 set -o nounset
 #set -o xtrace
 
+BIN="sdf2table"
+
 {
 
 # Realpath alternative function, replacing `realpath -s`
@@ -15,8 +17,6 @@ myrealpath() {
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [ ! -z "$DIR" ]     # Ensure the directory is not empty
 [ -d "$DIR" ]       # Ensure the directory exists
-
-BIN="sdf2table"
 
 usage() { echo "sdf2table in Docker
 
