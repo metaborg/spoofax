@@ -94,6 +94,7 @@ if [[ $retVal -ne 126 ]]; then
 fi
 # The command didn't run, attempt run using Docker
 echo "$BIN failed to run natively, attemping using Docker"
+echo "\$PATH: $PATH"
 
 # Gather the volumes to mount (basically, every directory mentioned in -i, or -o)
 volumes=""
