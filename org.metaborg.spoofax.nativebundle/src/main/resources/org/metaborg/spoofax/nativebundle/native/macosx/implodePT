@@ -5,6 +5,11 @@ set -o noclobber
 set -o nounset
 #set -o xtrace
 
+# Realpath alternative function, replacing `realpath -s`
+myrealpath() {
+  [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [ ! -z "$DIR" ]     # Ensure the directory is not empty
 [ -d "$DIR" ]       # Ensure the directory exists
@@ -51,16 +56,16 @@ while getopts "aAbchi:lOo:pPtvILVqX" o; do
         c) newopts+=" -c" ;;
         h) newopts+=" -h" ;;
         i)
-            abspath=$(realpath -s $(dirname "${OPTARG}"))
-            absfile=$(realpath -s "${OPTARG}")
+            abspath=$(myrealpath $(dirname "${OPTARG}"))
+            absfile=$(myrealpath "${OPTARG}")
             newopts+=" -i  ${absfile}"
             vols+=($abspath)
             ;;
         l) newopts+=" -l" ;;
         O) newopts+=" -O" ;;
         o)
-            abspath=$(realpath -s $(dirname "${OPTARG}"))
-            absfile=$(realpath -s "${OPTARG}")
+            abspath=$(myrealpath $(dirname "${OPTARG}"))
+            absfile=$(myrealpath "${OPTARG}")
             newopts+=" -o  ${absfile}"
             vols+=($abspath)
             ;;
