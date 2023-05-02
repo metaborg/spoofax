@@ -252,9 +252,12 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             new ModuleIdentifier(strMainFile.getName().endsWith(".str"), isLibrary, strMainModule, new FSPath(strMainFile));
         final boolean autoImportStd = false;
 
+        // TODO: make configurable in metaborg.yaml
+        final boolean supportRTree = false;
+        final boolean supportStr1 = false;
         final IModuleImportService.ImportResolutionInfo importResolutionInfo =
             new IModuleImportService.ImportResolutionInfo(sdfTasks, strjIncludeDirs,
-                linkedLibraries, str2libraries);
+                linkedLibraries, str2libraries, supportRTree, supportStr1);
         final CheckModuleInput checkModuleInput = new CheckModuleInput(
             new FrontInput.FileOpenInEditor(moduleIdentifier, importResolutionInfo, astWLM,
                 autoImportStd), mainModuleIdentifier, projectPath);
