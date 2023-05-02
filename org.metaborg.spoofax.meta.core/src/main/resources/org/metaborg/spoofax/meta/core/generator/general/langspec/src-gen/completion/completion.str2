@@ -5,18 +5,12 @@ imports
 
   libspoofax/editor/completion/-
   completion/{{name}}-cp
-  pp/-
+  pp/{{name}}-parenthesize
+  pp/{{name}}-pp
   pp
 
 
 rules
-
-  pp-partial-{{name}}-string(|sort) = fail
-  pp-partial-{{name}}-string = fail
-  parenthesize-{{name}} = fail
-  {{ppName}}-get-indent = fail
-  {{ppName}}-get-leading-ws = fail
-  {{ppName}}-get-separator = fail
 
 
   get-proposals-empty-program-{{name}} =
