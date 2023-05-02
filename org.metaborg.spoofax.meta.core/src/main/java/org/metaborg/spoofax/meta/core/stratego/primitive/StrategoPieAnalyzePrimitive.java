@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -160,7 +161,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME),
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO2_NAME));
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
-        final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
+        final LinkedHashSet<ResourcePath> strjIncludeDirs = new LinkedHashSet<>();
         for(FileObject strIncludePath : strIncludePaths) {
             if(!strIncludePath.exists()) {
                 continue;
