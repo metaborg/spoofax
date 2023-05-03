@@ -184,7 +184,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         assert projectLocation != null;
         final ResourcePath projectPath = new FSPath(projectLocation);
 
-        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>();
+        final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>();
         for(LanguageIdentifier sourceDep : config.sourceDeps()) {
             final @Nullable ILanguageImpl sourceDepImpl = languageServiceProvider.get().getImpl(sourceDep);
             if(sourceDepImpl == null) {

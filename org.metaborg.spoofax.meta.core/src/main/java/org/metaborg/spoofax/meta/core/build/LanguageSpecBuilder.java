@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -480,7 +481,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final Boolean strEnabled = config.strEnabled();
         final String strModule = config.strategoName();
 
-        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>();
+        final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>();
         for(LanguageIdentifier sourceDep : sourceDeps) {
             final @Nullable ILanguageImpl sourceDepImpl = languageService.getImpl(sourceDep);
             if(sourceDepImpl == null) {

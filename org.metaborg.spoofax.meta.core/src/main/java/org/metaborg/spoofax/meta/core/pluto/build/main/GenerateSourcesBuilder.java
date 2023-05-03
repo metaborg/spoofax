@@ -113,7 +113,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable String strExternalJarFlags;
         public final List<File> strjIncludeDirs;
         public final List<File> strjIncludeFiles;
-        public final List<Supplier<Stratego2LibInfo>> str2libraries;
+        public final Set<Supplier<Stratego2LibInfo>> str2libraries;
         public final Arguments strjArgs;
         public final boolean strategoShadowJar;
         public final StrategoVersion strategoVersion;
@@ -129,7 +129,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
             @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
             @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, List<File> strjIncludeFiles,
-            ArrayList<Supplier<Stratego2LibInfo>> str2libraries, Arguments strjArgs, boolean strategoShadowJar,
+            Set<Supplier<Stratego2LibInfo>> str2libraries, Arguments strjArgs, boolean strategoShadowJar,
             StrategoVersion strategoVersion) {
             super(context);
             this.languageId = languageId;
@@ -594,7 +594,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             packageNames.add(NameUtil.toJavaId(input.languageId.id) + ".strategies");
             final ResourcePath str2libReplicateDir =
                 new FSPath(context.resourceService().localPath(paths.str2libsDir()));
-            final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(input.str2libraries);
+            final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>(input.str2libraries);
             final boolean library = true;
             final boolean autoImportStd = false;
             final ArrayList<String> constants = new ArrayList<>(0);
