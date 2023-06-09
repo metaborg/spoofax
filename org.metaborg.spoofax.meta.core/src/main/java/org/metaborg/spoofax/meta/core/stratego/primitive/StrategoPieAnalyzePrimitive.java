@@ -255,9 +255,11 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         // TODO: make configurable in metaborg.yaml
         final boolean supportRTree = false;
         final boolean supportStr1 = false;
+        // config this one as a boolean too
+        final ResourcePath resolveExternals = new FSPath(resourceService.localFile(resourceService.resolve(paths.strJavaStratDir(), paths.strJavaStratPkgPath(config.identifier().id))));
         final IModuleImportService.ImportResolutionInfo importResolutionInfo =
             new IModuleImportService.ImportResolutionInfo(sdfTasks, strjIncludeDirs,
-                linkedLibraries, str2libraries, supportRTree, supportStr1);
+                linkedLibraries, str2libraries, supportRTree, supportStr1, resolveExternals);
         final CheckModuleInput checkModuleInput = new CheckModuleInput(
             new FrontInput.FileOpenInEditor(moduleIdentifier, importResolutionInfo, astWLM,
                 autoImportStd), mainModuleIdentifier, projectPath);

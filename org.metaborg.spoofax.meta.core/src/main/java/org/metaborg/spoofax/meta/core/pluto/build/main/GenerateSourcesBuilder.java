@@ -603,11 +603,13 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             // TODO: make configurable in metaborg.yaml
             boolean supportRTree = false;
             boolean supportStr1 = false;
+            // config this one as a boolean too
+            final ResourcePath resolveExternals = new FSPath(context.resourceService().localFile(context.resourceService().resolve(paths.strJavaStratDir(), paths.strJavaStratPkgPath(input.languageId.id))));
             final CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(outputDir), str2libReplicateDir,
                     packageNames, new FSPath(cacheDir), constants, strjIncludeDirs, linkedLibraries, newArgs,
                     strFileGeneratingTasks, library, autoImportStd, input.strategoShadowJar, input.languageId.id,
-                    str2libraries, supportRTree, supportStr1);
+                    str2libraries, supportRTree, supportStr1, resolveExternals);
             final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
             final IPieProvider pieProvider = context.pieProvider();
