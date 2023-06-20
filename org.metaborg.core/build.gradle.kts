@@ -12,6 +12,7 @@ dependencies {
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")
+  api("com.google.guava:failureaccess:1.0.1")
   api("com.google.inject.extensions:guice-multibindings")
   implementation("commons-io:commons-io")
   api("org.apache.commons:commons-vfs2")
@@ -22,6 +23,9 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.core:jackson-annotations")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("com.google.guava:guava")
+  // Required for Guava >= 27.0:
+  implementation("com.google.guava:failureaccess")
   implementation("io.reactivex.rxjava3:rxjava")
 
   compileOnly("com.google.code.findbugs:jsr305")
