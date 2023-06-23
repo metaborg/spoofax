@@ -21,8 +21,8 @@ import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.test.MetaborgTest;
 import org.metaborg.util.iterators.Iterables2;
-import org.metaborg.util.observable.ITestableObserver;
-import org.metaborg.util.observable.TestableObserver;
+import org.metaborg.core.test.utils.ITestableObserver;
+import org.metaborg.core.test.utils.TestableObserver;
 
 import com.google.common.collect.Iterables;
 

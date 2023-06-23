@@ -3,8 +3,8 @@ package org.metaborg.core.test;
 import static org.junit.Assert.fail;
 
 import org.metaborg.util.iterators.Iterables2;
-import org.metaborg.util.observable.ITestableObserver;
-import org.metaborg.util.observable.TimestampedNotification;
+import org.metaborg.core.test.utils.ITestableObserver;
+import org.metaborg.core.test.utils.TimestampedNotification;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
