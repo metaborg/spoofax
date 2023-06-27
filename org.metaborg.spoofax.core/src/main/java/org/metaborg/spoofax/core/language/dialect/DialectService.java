@@ -28,7 +28,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Default implementation for the dialect service. It is mostly generic, but contains some logic for .meta files, which

@@ -42,7 +42,7 @@ import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class StrategoTransformer implements IStrategoTransformer {
     private static final ILogger logger = LoggerUtils.logger(StrategoTransformer.class);

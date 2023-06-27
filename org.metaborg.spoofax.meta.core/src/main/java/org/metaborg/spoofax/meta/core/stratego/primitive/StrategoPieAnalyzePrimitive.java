@@ -53,8 +53,8 @@ import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
 import com.google.common.collect.Iterables;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;

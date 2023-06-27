@@ -19,7 +19,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ResourceUtils;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class DependencyPathProvider implements ILanguagePathProvider {
     private final IDependencyService dependencyService;

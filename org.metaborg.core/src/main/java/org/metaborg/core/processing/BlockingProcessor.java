@@ -1,6 +1,6 @@
 package org.metaborg.core.processing;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;

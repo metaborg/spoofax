@@ -30,7 +30,7 @@ import org.metaborg.spoofax.meta.core.stratego.primitive.LegacyLanguageSpecNameP
 import org.metaborg.spoofax.meta.core.stratego.primitive.PlaceholderCharsPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.StrategoPieAnalyzePrimitive;
 
-import com.google.inject.Singleton;
+import javax.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 
 public class SpoofaxMetaModule extends MetaborgMetaModule {

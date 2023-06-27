@@ -3,7 +3,7 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.log.api.Logger;
 import mb.log.api.LoggerFactory;

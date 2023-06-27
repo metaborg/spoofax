@@ -72,7 +72,7 @@ import org.metaborg.core.testing.TeamCityWriter;
 import org.metaborg.core.transform.ITransformUnit;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
+import javax.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;

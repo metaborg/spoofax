@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.metaborg.core.context.IContext;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.core.dialogs.ISpoofaxDialogService;

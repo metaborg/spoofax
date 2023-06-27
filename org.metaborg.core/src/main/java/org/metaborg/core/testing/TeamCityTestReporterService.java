@@ -1,6 +1,6 @@
 package org.metaborg.core.testing;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.time.StopWatch;
 import org.metaborg.util.log.ILogger;

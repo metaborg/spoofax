@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.context;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextFactory;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import com.google.inject.Injector;
 
 public class LegacyContextFactory implements IContextFactory {

@@ -39,7 +39,7 @@ import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Analyzer for legacy Stratego projects. Calls the analysis strategy for each input.

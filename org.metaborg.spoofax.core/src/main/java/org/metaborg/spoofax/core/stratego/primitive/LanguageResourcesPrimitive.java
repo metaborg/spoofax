@@ -8,7 +8,7 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.resource.IResourceService;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class LanguageResourcesPrimitive extends AResourcesPrimitive {
 

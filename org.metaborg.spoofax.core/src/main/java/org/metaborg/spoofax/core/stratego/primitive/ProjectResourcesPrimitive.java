@@ -11,7 +11,7 @@ import org.metaborg.core.resource.IResourceService;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class ProjectResourcesPrimitive extends AResourcesPrimitive {
 

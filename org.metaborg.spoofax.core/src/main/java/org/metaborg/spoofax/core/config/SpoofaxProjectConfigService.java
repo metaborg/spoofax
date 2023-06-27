@@ -18,7 +18,7 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.IProject;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class SpoofaxProjectConfigService extends AConfigService<IProject, ISpoofaxProjectConfig>
         implements ISpoofaxProjectConfigService, ISpoofaxProjectConfigWriter {

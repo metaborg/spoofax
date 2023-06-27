@@ -8,7 +8,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Typedef class for {@link AnalysisResultProcessor} with Spoofax interfaces.

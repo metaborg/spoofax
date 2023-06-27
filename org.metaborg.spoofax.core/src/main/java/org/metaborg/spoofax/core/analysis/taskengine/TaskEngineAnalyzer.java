@@ -46,7 +46,7 @@ import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Analyzer for NaBL + TS + index + task engine projects. Calls the analysis strategy with a list of all inputs.

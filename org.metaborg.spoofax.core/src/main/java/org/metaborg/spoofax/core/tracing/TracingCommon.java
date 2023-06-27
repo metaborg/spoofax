@@ -13,7 +13,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class TracingCommon {
     /**

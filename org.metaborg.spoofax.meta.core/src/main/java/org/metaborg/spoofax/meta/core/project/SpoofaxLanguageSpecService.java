@@ -13,7 +13,7 @@ import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
     private static final ILogger logger = LoggerUtils.logger(SpoofaxLanguageSpecService.class);

@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.project.IProject;

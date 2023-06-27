@@ -14,7 +14,7 @@ import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Default implementation of the {@link IDependencyService} interface.

@@ -73,7 +73,7 @@ import org.spoofax.terms.util.TermUtils;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
     private static final ILogger logger = LoggerUtils.logger(LanguageComponentFactory.class);

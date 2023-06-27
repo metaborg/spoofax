@@ -17,7 +17,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 import javax.annotation.Nullable;

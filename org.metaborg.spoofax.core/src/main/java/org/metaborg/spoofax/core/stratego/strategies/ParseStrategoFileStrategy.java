@@ -4,7 +4,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.strc.parse_stratego_file_0_0;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class ParseStrategoFileStrategy extends parse_stratego_file_0_0 {
     private final ParseFileStrategy parseFileStrategy;

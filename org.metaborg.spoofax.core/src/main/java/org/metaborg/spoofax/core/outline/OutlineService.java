@@ -38,7 +38,7 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class OutlineService implements ISpoofaxOutlineService {
     private static final ILogger logger = LoggerUtils.logger(OutlineService.class);

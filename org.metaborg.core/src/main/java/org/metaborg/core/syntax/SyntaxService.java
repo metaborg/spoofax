@@ -10,7 +10,7 @@ import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> implements ISyntaxService<I, P> {
     private static final ILogger logger = LoggerUtils.logger(SyntaxService.class);

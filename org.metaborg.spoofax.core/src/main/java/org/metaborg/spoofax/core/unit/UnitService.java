@@ -11,7 +11,7 @@ import org.metaborg.core.unit.IUnit;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class UnitService implements ISpoofaxUnitService {
     private final ITermFactory termFactory;

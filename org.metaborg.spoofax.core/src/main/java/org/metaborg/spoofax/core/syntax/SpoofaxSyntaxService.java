@@ -21,7 +21,7 @@ import org.metaborg.util.task.IProgress;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class SpoofaxSyntaxService extends SyntaxService<ISpoofaxInputUnit, ISpoofaxParseUnit>
     implements ISpoofaxSyntaxService {

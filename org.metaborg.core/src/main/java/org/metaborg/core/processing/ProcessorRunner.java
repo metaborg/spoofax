@@ -17,7 +17,7 @@ import org.metaborg.core.transform.ITransformUnit;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Default implementation for the processor runner.
