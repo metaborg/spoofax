@@ -47,10 +47,6 @@ rules
     <+ <bottomup(try(not(is-string); not(is-list); not(pp-{{name}}-string); debug(!"cannot pp ")))> ast
     ;  result := ""
 
-  {{name}}-get-indent = fail
-  {{name}}-get-leading-ws = fail
-  {{name}}-get-separator = fail
-
 rules
   
   construct-textual-change = construct-textual-change(pp-partial-{{name}}-string, parenthesize, override-reconstruction, resugar)
