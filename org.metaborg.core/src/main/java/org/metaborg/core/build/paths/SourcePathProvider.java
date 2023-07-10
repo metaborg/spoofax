@@ -1,5 +1,6 @@
 package org.metaborg.core.build.paths;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
@@ -11,12 +12,10 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ResourceUtils;
 
-import com.google.common.collect.Lists;
-
 public class SourcePathProvider implements ILanguagePathProvider {
 
     @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) {
-        final Collection<FileObject> sources = Lists.newArrayList();
+        final Collection<FileObject> sources = new ArrayList<>();
         for(ISourceConfig source : project.config().sources()) {
             source.accept(ISourceVisitor.of(langSource -> {
                 if(langSource.language.equals(languageName)) {

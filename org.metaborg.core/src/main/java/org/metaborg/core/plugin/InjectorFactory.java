@@ -1,11 +1,12 @@
 package org.metaborg.core.plugin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.metaborg.core.MetaborgException;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.inject.CreationException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -17,14 +18,14 @@ import com.google.inject.Module;
 public class InjectorFactory {
     public static Iterable<Module> modules(IModulePluginLoader loader, Iterable<Module> modules)
         throws MetaborgException {
-        final Collection<Module> allModules = Lists.newArrayList(modules);
-        Iterables.addAll(allModules, loader.modules());
+        final Collection<Module> allModules = Iterables2.toArrayList(modules);
+        Iterables2.addAll(allModules, loader.modules());
         return allModules;
     }
 
     public static Iterable<Module> modules(IModulePluginLoader loader, Module... modules) throws MetaborgException {
-        final Collection<Module> allModules = Lists.newArrayList(modules);
-        Iterables.addAll(allModules, loader.modules());
+        final Collection<Module> allModules = new ArrayList<>(Arrays.asList(modules));
+        Iterables2.addAll(allModules, loader.modules());
         return allModules;
     }
 

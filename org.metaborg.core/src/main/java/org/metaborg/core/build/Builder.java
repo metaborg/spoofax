@@ -1,8 +1,10 @@
 package org.metaborg.core.build;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map.Entry;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -50,6 +52,7 @@ import org.metaborg.core.transform.ITransformUnit;
 import org.metaborg.core.transform.TransformException;
 import org.metaborg.core.unit.IUnitService;
 import org.metaborg.util.RefBool;
+import org.metaborg.util.collection.ListMultimap;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
@@ -58,11 +61,6 @@ import org.metaborg.util.resource.FileSelectorUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -129,7 +127,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         throws InterruptedException {
         cancel.throwIfCancelled();
 
-        final Multimap<ILanguageImpl, IdentifiedResourceChange> changes = ArrayListMultimap.create();
+        final ListMultimap<ILanguageImpl, IdentifiedResourceChange> changes = new ListMultimap<>();
         identifyResources(input.sourceChanges, input, changes, cancel);
         if(changes.size() == 0) {
             // When there are no source changes, keep the old state and skip building.
@@ -146,7 +144,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         buildOutput.setState(newState);
 
         final Iterable<ILanguageImpl> buildOrder = input.buildOrder.buildOrder();
-        progress.setWorkRemaining(Iterables.size(buildOrder));
+        progress.setWorkRemaining(Iterables2.size(buildOrder));
         for(ILanguageImpl language : buildOrder) {
             cancel.throwIfCancelled();
 
@@ -183,7 +181,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
 
     private void identifyResources(Iterable<ResourceChange> changes, BuildInput input,
-        Multimap<ILanguageImpl, IdentifiedResourceChange> identifiedChanges, ICancel cancel)
+        ListMultimap<ILanguageImpl, IdentifiedResourceChange> identifiedChanges, ICancel cancel)
         throws InterruptedException {
         final Iterable<ILanguageImpl> languages = input.buildOrder.languages();
         final FileSelector selector = input.selector;
@@ -223,18 +221,18 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
-        final Set<FileName> includes = Sets.newHashSet();
+        final Set<FileName> includes = new HashSet<FileName>();
         for(IdentifiedResourceChange includeChange : includeChanges) {
             includes.add(includeChange.change.resource.getName());
         }
         final FileObject location = input.project.location();
-        final Collection<FileObject> changedSources = Sets.newHashSet();
-        final Set<FileName> removedResources = Sets.newHashSet();
-        final Collection<IMessage> extraMessages = Lists.newLinkedList();
+        final Collection<FileObject> changedSources = new HashSet<FileObject>();
+        final Set<FileName> removedResources = new HashSet<FileName>();
+        final Collection<IMessage> extraMessages = new LinkedList<>();
         final RefBool success = new RefBool(true);
 
-        logger.info("Building {} sources, {} includes of {}", Iterables.size(sourceChanges),
-            Iterables.size(includeChanges), language);
+        logger.info("Building {} sources, {} includes of {}", Iterables2.size(sourceChanges),
+            Iterables2.size(includeChanges), language);
 
         // Parse
         cancel.throwIfCancelled();
@@ -244,10 +242,10 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         // approach does not do that!
         final Collection<P> includeParseUnits = parse(input, language, includeChanges, pardoned, changedSources,
             removedResources, extraMessages, success, progress.subProgress(5), cancel);
-        final Iterable<P> allParseResults = Iterables.concat(sourceParseUnits, includeParseUnits);
+        final Iterable<P> allParseResults = Iterables2.fromConcat(sourceParseUnits, includeParseUnits);
 
         // Segregate by context
-        final Multimap<IContext, P> parseUnitsPerContext = ArrayListMultimap.create();
+        final ListMultimap<IContext, P> parseUnitsPerContext = new ListMultimap<>();
         for(P parseResult : sourceParseUnits) {
             cancel.throwIfCancelled();
             final FileObject resource = parseResult.source();
@@ -264,15 +262,15 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
 
         // Analyze
         cancel.throwIfCancelled();
-        final Multimap<IContext, A> allAnalyzeUnits;
-        final Collection<AU> allAnalyzeUpdates = Lists.newArrayList();
+        final ListMultimap<IContext, A> allAnalyzeUnits;
+        final Collection<AU> allAnalyzeUpdates = new ArrayList<>();
         if(analyze) {
             // Run analysis
             cancel.throwIfCancelled();
             allAnalyzeUnits = analyze(input, language, location, parseUnitsPerContext, includeParseUnits, pardoned,
                 allAnalyzeUpdates, removedResources, extraMessages, success, progress.subProgress(70), cancel);
         } else {
-            allAnalyzeUnits = ArrayListMultimap.create();
+            allAnalyzeUnits = new ListMultimap<>();
         }
 
         // Transform
@@ -282,7 +280,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
             allTransformUnits = transform(input, language, location, parseUnitsPerContext, allAnalyzeUnits, includes, pardoned,
                 removedResources, extraMessages, success, progress.subProgress(30), cancel);
         } else {
-            allTransformUnits = Lists.newLinkedList();
+            allTransformUnits = new LinkedList<>();
         }
 
         final boolean noErrors = printMessages(extraMessages, input, pardoned);
@@ -294,7 +292,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         output.add(success.get(), removedResources, includes, changedSources, allParseResults, allAnalyzeUnits.values(),
             allAnalyzeUpdates, allTransformUnits, extraMessages);
 
-        final Collection<FileObject> newResources = Lists.newArrayList();
+        final Collection<FileObject> newResources = new ArrayList<>();
         for(T transformUnit : allTransformUnits) {
             for(ITransformOutput transformOutput : transformUnit.outputs()) {
                 final FileObject outputFile = transformOutput.output();
@@ -310,9 +308,9 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         boolean pardoned, Collection<FileObject> changedResources, Set<FileName> removedResources,
         Collection<IMessage> extraMessages, RefBool success, IProgress progress, ICancel cancel)
         throws InterruptedException {
-        final int size = Iterables.size(changes);
+        final int size = Iterables2.size(changes);
         progress.setWorkRemaining(size);
-        final Collection<P> allParseUnits = Lists.newArrayListWithCapacity(size);
+        final Collection<P> allParseUnits = new ArrayList<>(size);
         if(size == 0) {
             return allParseUnits;
         }
@@ -374,26 +372,24 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
         return allParseUnits;
     }
 
-    private Multimap<IContext, A> analyze(BuildInput input, ILanguageImpl langImpl, FileObject location,
-        Multimap<IContext, P> sourceParseUnits, Iterable<P> includeParseUnits, boolean pardoned,
+    private ListMultimap<IContext, A> analyze(BuildInput input, ILanguageImpl langImpl, FileObject location,
+        ListMultimap<IContext, P> sourceParseUnits, Iterable<P> includeParseUnits, boolean pardoned,
         Collection<AU> analyzeUpdates, Set<FileName> removedResources, Collection<IMessage> extraMessages,
         RefBool success, IProgress progress, ICancel cancel) throws InterruptedException {
-        final int size = sourceParseUnits.size() + Iterables.size(includeParseUnits);
-        final Multimap<IContext, A> allAnalyzeUnits = ArrayListMultimap.create();
+        final int size = sourceParseUnits.size() + Iterables2.size(includeParseUnits);
+        final ListMultimap<IContext, A> allAnalyzeUnits = new ListMultimap<>();
         if(size == 0) {
             return allAnalyzeUnits;
         }
 
-        final Set<Entry<IContext, Collection<P>>> toAnalyze = sourceParseUnits.asMap().entrySet();
-        final int toAnalyzeSize = toAnalyze.size();
+        final int toAnalyzeSize = sourceParseUnits.keySet().size();
         progress.setWorkRemaining(toAnalyzeSize);
         progress.setDescription("Analyzing " + size + " file(s) of " + langImpl.belongsTo().name());
         logger.debug("Analyzing {} parse results in {} context(s)", size, toAnalyzeSize);
 
-        for(Entry<IContext, Collection<P>> entry : toAnalyze) {
+        sourceParseUnits.<InterruptedException>forEach((context, parseUnits) ->  {
             cancel.throwIfCancelled();
-            final IContext context = entry.getKey();
-            final Iterable<P> parseResults = Iterables.concat(entry.getValue(), includeParseUnits);
+            final Iterable<P> parseResults = Iterables2.fromConcat(parseUnits, includeParseUnits);
 
             try {
                 try(IClosableLock lock = context.write()) {
@@ -432,7 +428,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 success.and(noErrors);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             }
-        }
+        });
         if(input.throwOnErrors && !success.get()) {
             throw new MetaborgRuntimeException("Analysis produced errors");
         }
@@ -440,12 +436,12 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     }
 
     private Collection<T> transform(BuildInput input, ILanguageImpl langImpl, FileObject location,
-        Multimap<IContext, P> parseUnits, Multimap<IContext, A> allAnalysisUnits, Set<FileName> includeFiles, boolean pardoned,
+        ListMultimap<IContext, P> parseUnits, ListMultimap<IContext, A> allAnalysisUnits, Set<FileName> includeFiles, boolean pardoned,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, RefBool success, IProgress progress,
         ICancel cancel) throws InterruptedException {
-        final Collection<T> allTransformUnits = Lists.newArrayList();
+        final Collection<T> allTransformUnits = new ArrayList<>();
 
-        final int numberOfGoals = Iterables.size(input.transformGoals);
+        final int numberOfGoals = Iterables2.size(input.transformGoals);
         progress.setWorkRemaining(numberOfGoals);
         if(numberOfGoals == 0) {
             return allTransformUnits;
@@ -468,15 +464,13 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 transformProgress.setDescription("Compiling " + size + " file(s) with " + goal);
                 logger.debug("Compiling {} analysis results", size);
 
-                for(Entry<IContext, Collection<A>> entry : allAnalysisUnits.asMap().entrySet()) {
+                allAnalysisUnits.<InterruptedException>forEach((context, analysisResults) -> {
                     cancel.throwIfCancelled();
-                    final IContext context = entry.getKey();
-                    final Collection<A> analysisResults = entry.getValue();
 
                     if(!transformService.available(context.language(), goal)) {
                         logger.trace("No {} transformation required for {}", goal, context.language());
                         transformProgress.work(analysisResults.size());
-                        continue;
+                        return;
                     }
 
                     try(IClosableLock lock = context.read()) {
@@ -523,7 +517,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                             }
                         }
                     }
-                }
+                });
             } else {
                 final int size = parseUnits.size();
                 final IProgress transformProgress = progress.subProgress(1);
@@ -533,15 +527,13 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                 transformProgress.setDescription("Compiling " + size + " file(s) with " + goal);
                 logger.debug("Compiling {} parse results", size);
 
-                for(Entry<IContext, Collection<P>> entry : parseUnits.asMap().entrySet()) {
+                parseUnits.<InterruptedException>forEach((context, parseResults) -> {
                     cancel.throwIfCancelled();
-                    final IContext context = entry.getKey();
-                    final Collection<P> parseResults = entry.getValue();
 
                     if(!transformService.available(context.language(), goal)) {
                         logger.trace("No {} transformation required for {}", goal, context.language());
                         transformProgress.work(parseResults.size());
-                        continue;
+                        return;
                     }
 
                     for(P parseResult : parseResults) {
@@ -586,7 +578,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
                                 MessageFactory.newBuilderErrorAtTop(location, "Transformation failed unexpectedly", e));
                         }
                     }
-                }
+                });
                 // GTODO: also compile any affected sources
             }
         }

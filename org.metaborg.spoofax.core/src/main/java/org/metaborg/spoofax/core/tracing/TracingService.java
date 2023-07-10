@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.tracing;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -23,7 +24,6 @@ import org.spoofax.terms.visitor.AStrategoTermVisitor;
 import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 
-import com.google.common.collect.Lists;
 import javax.inject.Inject;
 
 public class TracingService implements ISpoofaxTracingService {
@@ -91,7 +91,7 @@ public class TracingService implements ISpoofaxTracingService {
         if(ast == null || region == null) {
             return Iterables2.empty();
         }
-        final Collection<IStrategoTerm> parsed = Lists.newLinkedList();
+        final Collection<IStrategoTerm> parsed = new LinkedList<>();
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
             @Override public boolean visit(IStrategoTerm term) {
                 final ISourceLocation location = location(term);
@@ -137,7 +137,7 @@ public class TracingService implements ISpoofaxTracingService {
         if(ast == null || region == null) {
             return Iterables2.empty();
         }
-        final Collection<IStrategoTerm> parsed = Lists.newLinkedList();
+        final Collection<IStrategoTerm> parsed = new LinkedList<>();
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
             @Override public boolean visit(IStrategoTerm term) {
                 if(TermUtils.isList(term, 1)) {

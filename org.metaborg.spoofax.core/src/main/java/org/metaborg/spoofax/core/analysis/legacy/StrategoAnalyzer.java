@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.analysis.legacy;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
@@ -37,8 +38,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import javax.inject.Inject;
 
 /**
@@ -121,9 +120,9 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
-        final int size = Iterables.size(inputs);
+        final int size = Iterables2.size(inputs);
         progress.setWorkRemaining(size);
-        final Collection<ISpoofaxAnalyzeUnit> results = Lists.newArrayListWithCapacity(size);
+        final Collection<ISpoofaxAnalyzeUnit> results = new ArrayList<>(size);
         for(ISpoofaxParseUnit input : inputs) {
             cancel.throwIfCancelled();
             if(!input.valid()) {
@@ -191,7 +190,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final Collection<IMessage> ambiguities = analysisCommon.ambiguityMessages(source, ast);
 
         final Collection<IMessage> messages =
-            Lists.newArrayListWithCapacity(errors.size() + warnings.size() + notes.size() + ambiguities.size());
+            new ArrayList<>(errors.size() + warnings.size() + notes.size() + ambiguities.size());
         messages.addAll(errors);
         messages.addAll(warnings);
         messages.addAll(notes);
@@ -212,7 +211,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
         final Collection<IMessage> notes = analysisCommon.messages(source, MessageSeverity.NOTE, result.getSubterm(2));
 
         final Collection<IMessage> messages =
-            Lists.newArrayListWithCapacity(errors.size() + warnings.size() + notes.size());
+            new ArrayList<>(errors.size() + warnings.size() + notes.size());
         messages.addAll(errors);
         messages.addAll(warnings);
         messages.addAll(notes);

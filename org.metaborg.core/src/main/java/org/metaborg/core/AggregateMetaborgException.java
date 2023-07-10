@@ -1,18 +1,18 @@
 package org.metaborg.core;
 
-import com.google.common.collect.ImmutableList;
+import org.metaborg.util.collection.ImList;
 
 public class AggregateMetaborgException extends MetaborgException {
 
     private static final long serialVersionUID = -6575523728704461990L;
 
-    private final ImmutableList<MetaborgException> causes;
+    private final ImList.Immutable<MetaborgException> causes;
 
     public AggregateMetaborgException(Iterable<MetaborgException> causes) {
-        this(ImmutableList.copyOf(causes));
+        this(ImList.Immutable.copyOf(causes));
     }
 
-    private AggregateMetaborgException(ImmutableList<MetaborgException> causes) {
+    private AggregateMetaborgException(ImList.Immutable<MetaborgException> causes) {
         super("Multiple exception occurred.");
         this.causes = causes;
     }
@@ -33,7 +33,7 @@ public class AggregateMetaborgException extends MetaborgException {
     }
 
     public static void throwIfAny(Iterable<MetaborgException> exceptions) throws MetaborgException {
-        ImmutableList<MetaborgException> causes = ImmutableList.copyOf(exceptions);
+        ImList.Immutable<MetaborgException> causes = ImList.Immutable.copyOf(exceptions);
         switch(causes.size()) {
         case 0:
             return;

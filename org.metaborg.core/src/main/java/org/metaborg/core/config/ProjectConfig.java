@@ -1,5 +1,6 @@
 package org.metaborg.core.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -13,8 +14,6 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-
-import com.google.common.collect.Lists;
 
 /**
  * An implementation of the {@link ILanguageComponentConfig} interface that is backed by an
@@ -68,7 +67,7 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
 
     @Override public Collection<ISourceConfig> sources() {
         final List<HierarchicalConfiguration<ImmutableNode>> sourceConfigs = config.configurationsAt(PROP_SOURCES, false);
-        final List<ISourceConfig> sources = Lists.newArrayListWithCapacity(sourceConfigs.size());
+        final List<ISourceConfig> sources = new ArrayList<>(sourceConfigs.size());
         for(HierarchicalConfiguration<ImmutableNode> sourceConfig : sourceConfigs) {
             final List<String> languages = sourceConfig.getList(String.class, "language", Collections.emptyList());
             final String directory = sourceConfig.getString("directory");
@@ -98,7 +97,7 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
 
 
     public Collection<IMessage> validate(MessageBuilder mb) {
-        final Collection<IMessage> messages = Lists.newArrayList();
+        final Collection<IMessage> messages = new ArrayList<>();
         validateDeps(config, PROP_COMPILE_DEPENDENCIES, "compile", mb, messages);
         validateDeps(config, PROP_SOURCE_DEPENDENCIES, "source", mb, messages);
         validateDeps(config, PROP_JAVA_DEPENDENCIES, "java", mb, messages);
@@ -107,7 +106,7 @@ public class ProjectConfig extends AConfig implements IProjectConfig, IConfig {
 
     private static void validateDeps(ImmutableConfiguration config, String key, String name, MessageBuilder mb,
             Collection<IMessage> messages) {
-        final List<String> depStrs = config.getList(String.class, key, Lists.<String>newArrayList());
+        final List<String> depStrs = config.getList(String.class, key, new ArrayList<String>());
         for(String depStr : depStrs) {
             try {
                 LanguageIdentifier.parse(depStr);

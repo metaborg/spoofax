@@ -1,8 +1,7 @@
 package org.metaborg.spoofax.meta.core.generator.general;
 
+import java.util.HashMap;
 import java.util.Map;
-
-import com.google.common.collect.Maps;
 
 public enum TransformationType {
     Stratego1("stratego", "Stratego", "str"), Stratego2("stratego2", "Stratego 2", "str2"), None("none", "None", "");
@@ -21,7 +20,7 @@ public enum TransformationType {
 
 
     public static Map<String, TransformationType> mapping() {
-        final Map<String, TransformationType> transformationTypes = Maps.newHashMap();
+        final Map<String, TransformationType> transformationTypes = new HashMap<>();
         for(TransformationType transformationType : TransformationType.values()) {
             transformationTypes.put(transformationType.name, transformationType);
         }

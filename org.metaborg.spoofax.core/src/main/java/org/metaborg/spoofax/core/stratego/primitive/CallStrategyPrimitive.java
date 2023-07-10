@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.metaborg.core.MetaborgException;
@@ -11,14 +12,13 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
+import org.metaborg.util.Strings;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
@@ -47,7 +47,7 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
 
         final Iterable<ILanguageComponent> compileDeps = dependencyService.compileDeps(currentContext.project());
         final Iterable<ILanguageImpl> impls = LanguageUtils.toImpls(compileDeps);
-        final List<ILanguageImpl> selectedImpls = Lists.newArrayList();
+        final List<ILanguageImpl> selectedImpls = new ArrayList<>();
         for(ILanguageImpl impl : impls) {
             if(impl.belongsTo().name().equals(languageName)) {
                 selectedImpls.add(impl);
@@ -61,7 +61,7 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
         } else if(selectedImpls.size() > 1) {
             final String message = logger.format(
                 "Stratego strategy call of '{}' into language '{}' failed, multiple language implementations found: {}",
-                strategyName, languageName, Joiner.on(", ").join(selectedImpls));
+                strategyName, languageName, Strings.tsJoin(selectedImpls, ", "));
             throw new MetaborgException(message);
         }
         final ILanguageImpl impl = selectedImpls.get(0);

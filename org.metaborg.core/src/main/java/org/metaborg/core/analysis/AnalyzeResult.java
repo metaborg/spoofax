@@ -1,10 +1,9 @@
 package org.metaborg.core.analysis;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.metaborg.core.context.IContext;
-
-import com.google.common.collect.Lists;
 
 public class AnalyzeResult<A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate> implements IAnalyzeResult<A, AU> {
     private final A result;
@@ -19,7 +18,7 @@ public class AnalyzeResult<A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate
     }
 
     public AnalyzeResult(A result, IContext context) {
-        this(result, Lists.<AU>newArrayList(), context);
+        this(result, new ArrayList<AU>(), context);
     }
 
 

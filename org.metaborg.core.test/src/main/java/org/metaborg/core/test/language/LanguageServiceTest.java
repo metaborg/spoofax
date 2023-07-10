@@ -24,8 +24,6 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.core.test.utils.ITestableObserver;
 import org.metaborg.core.test.utils.TestableObserver;
 
-import com.google.common.collect.Iterables;
-
 public class LanguageServiceTest extends MetaborgTest {
     public LanguageServiceTest(MetaborgModule module) {
         super(module);
@@ -51,13 +49,13 @@ public class LanguageServiceTest extends MetaborgTest {
         final String name3 = "Entity3";
 
         final ILanguageComponent component1 = language(identifier1, location1, name1);
-        final ILanguageImpl impl1 = Iterables.get(component1.contributesTo(), 0);
+        final ILanguageImpl impl1 = component1.contributesTo().iterator().next();
         final ILanguage lang1 = impl1.belongsTo();
         final ILanguageComponent component2 = language(identifier2, location2, name2);
-        final ILanguageImpl impl2 = Iterables.get(component2.contributesTo(), 0);
+        final ILanguageImpl impl2 = component2.contributesTo().iterator().next();
         final ILanguage lang2 = impl2.belongsTo();
         final ILanguageComponent component3 = language(identifier3, location3, name3);
-        final ILanguageImpl impl3 = Iterables.get(component3.contributesTo(), 0);
+        final ILanguageImpl impl3 = component3.contributesTo().iterator().next();
         final ILanguage lang3 = impl3.belongsTo();
 
         assertEquals(component1, languageService.getComponent(location1.getName()));
@@ -109,7 +107,7 @@ public class LanguageServiceTest extends MetaborgTest {
         final String name = "Entity";
 
         final ILanguageComponent component1 = language(identifier1, location1, name);
-        final ILanguageImpl impl1 = Iterables.get(component1.contributesTo(), 0);
+        final ILanguageImpl impl1 = component1.contributesTo().iterator().next();
         final ILanguage lang = impl1.belongsTo();
 
         assertSame(component1, languageService.getComponent(location1.getName()));
@@ -118,7 +116,7 @@ public class LanguageServiceTest extends MetaborgTest {
         assertSame(lang, languageService.getLanguage(name));
 
         final ILanguageComponent component2 = language(identifier2, location2, name);
-        final ILanguageImpl impl2 = Iterables.get(component2.contributesTo(), 0);
+        final ILanguageImpl impl2 = component2.contributesTo().iterator().next();
 
         // Language 2 with higher version number becomes active.
         assertSame(component1, languageService.getComponent(location1.getName()));
@@ -149,7 +147,7 @@ public class LanguageServiceTest extends MetaborgTest {
         final String name = "Entity";
 
         final ILanguageComponent component1 = language(identifier1, location1, name);
-        final ILanguageImpl impl1 = Iterables.get(component1.contributesTo(), 0);
+        final ILanguageImpl impl1 = component1.contributesTo().iterator().next();
         final ILanguage lang = impl1.belongsTo();
 
         assertSame(component1, languageService.getComponent(location1.getName()));
@@ -158,7 +156,7 @@ public class LanguageServiceTest extends MetaborgTest {
         assertSame(lang, languageService.getLanguage(name));
 
         final ILanguageComponent component2 = language(identifier2, location2, name);
-        final ILanguageImpl impl2 = Iterables.get(component2.contributesTo(), 0);
+        final ILanguageImpl impl2 = component2.contributesTo().iterator().next();
 
         // Language 1 with higher version number stays active.
         assertSame(component1, languageService.getComponent(location1.getName()));
@@ -195,14 +193,14 @@ public class LanguageServiceTest extends MetaborgTest {
         final String name = "Entity";
 
         final ILanguageComponent component1 = language(identifier1, location1, name);
-        final ILanguageImpl impl1 = Iterables.get(component1.contributesTo(), 0);
+        final ILanguageImpl impl1 = component1.contributesTo().iterator().next();
         final ILanguage lang = impl1.belongsTo();
         assertSame(impl1, lang.activeImpl());
         final ILanguageComponent component2 = language(identifier2, location2, name);
-        final ILanguageImpl impl2 = Iterables.get(component2.contributesTo(), 0);
+        final ILanguageImpl impl2 = component2.contributesTo().iterator().next();
         assertSame(impl2, lang.activeImpl());
         final ILanguageComponent component3 = language(identifier3, location3, name);
-        final ILanguageImpl impl3 = Iterables.get(component3.contributesTo(), 0);
+        final ILanguageImpl impl3 = component3.contributesTo().iterator().next();
         assertSame(impl3, lang.activeImpl());
 
         languageService.remove(component3);
@@ -212,7 +210,7 @@ public class LanguageServiceTest extends MetaborgTest {
         assertSame(impl2, lang.activeImpl());
 
         final ILanguageComponent component4 = language(identifier4, location4, name);
-        final ILanguageImpl impl4 = Iterables.get(component4.contributesTo(), 0);
+        final ILanguageImpl impl4 = component4.contributesTo().iterator().next();
         assertSame(impl4, lang.activeImpl());
 
         languageService.remove(component4);
@@ -235,13 +233,13 @@ public class LanguageServiceTest extends MetaborgTest {
 
         // GTODO: test multiple contributing components
         final ILanguageComponent componentBefore = language(groupId, id, version, location, name);
-        final ILanguageImpl implBefore = Iterables.get(componentBefore.contributesTo(), 0);
+        final ILanguageImpl implBefore = componentBefore.contributesTo().iterator().next();
         final ILanguage langBefore = implBefore.belongsTo();
 
         assertSame(componentBefore, languageService.getComponent(location.getName()));
 
         final ILanguageComponent componentAfter = language(groupId, id, version, location, name);
-        final ILanguageImpl implAfter = Iterables.get(componentAfter.contributesTo(), 0);
+        final ILanguageImpl implAfter = componentAfter.contributesTo().iterator().next();
         final ILanguage langAfter = implAfter.belongsTo();
 
         // Before components are equal, but not the same object, since they are re-created.

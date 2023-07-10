@@ -1,7 +1,11 @@
 package org.metaborg.spoofax.core.language;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,9 +74,6 @@ import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.TermUtils;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import javax.inject.Inject;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
@@ -157,7 +158,8 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
     @Override public Collection<IComponentCreationConfigRequest> requestAllInDirectory(FileObject directory)
         throws MetaborgException {
-        final Set<IComponentCreationConfigRequest> requests = Sets.newHashSet();
+        final Set<IComponentCreationConfigRequest> requests =
+            new HashSet<IComponentCreationConfigRequest>();
         try {
             if(!directory.exists()) {
                 throw new MetaborgException("Cannot scan directory " + directory + ", it does not exist");
@@ -184,8 +186,8 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
 
     private IComponentCreationConfigRequest request(FileObject root) throws MetaborgException {
-        final Collection<String> errors = Lists.newLinkedList();
-        final Collection<Throwable> exceptions = Lists.newLinkedList();
+        final Collection<String> errors = new LinkedList<>();
+        final Collection<Throwable> exceptions = new LinkedList<>();
 
         final ConfigRequest<ILanguageComponentConfig> configRequest = componentConfigService.get(root);
         if(!configRequest.valid()) {
@@ -225,7 +227,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             try {
                 syntaxFacet = SyntaxFacetFromESV.create(esvTerm, root);
                 if(syntaxFacet != null) {
-                    Iterables.addAll(errors, syntaxFacet.available());
+                    Iterables2.addAll(errors, syntaxFacet.available());
                 }
             } catch(FileSystemException e) {
                 exceptions.add(e);
@@ -234,7 +236,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             try {
                 dynamicClassLoadingFacet = DynamicClassLoadingFacetFromESV.create(esvTerm, root);
                 if(!dynamicClassLoadingFacet.jarFiles.isEmpty()) {
-                    Iterables.addAll(errors, dynamicClassLoadingFacet.available(resourceService));
+                    Iterables2.addAll(errors, dynamicClassLoadingFacet.available(resourceService));
                 }
             } catch(IOException e) {
                 exceptions.add(e);
@@ -243,7 +245,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
             try {
                 strategoRuntimeFacet = StrategoRuntimeFacetFromESV.create(esvTerm, root);
                 if(!strategoRuntimeFacet.ctreeFiles.isEmpty() || (dynamicClassLoadingFacet != null && !dynamicClassLoadingFacet.jarFiles.isEmpty())) {
-                    Iterables.addAll(errors, strategoRuntimeFacet.available(resourceService));
+                    Iterables2.addAll(errors, strategoRuntimeFacet.available(resourceService));
                 }
             } catch(IOException e) {
                 exceptions.add(e);
@@ -317,7 +319,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
         if(esvTerm != null) {
             final String[] extensions = extensions(esvTerm);
             if(extensions.length != 0) {
-                final Iterable<String> extensionsIterable = Iterables2.from(extensions);
+                final Collection<String> extensionsIterable = Arrays.asList(extensions);
 
                 final IdentificationFacet identificationFacet =
                     new IdentificationFacet(new ResourceExtensionsIdentifier(extensionsIterable));
@@ -435,7 +437,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
 
     @Override public Collection<ComponentCreationConfig> createConfigs(Iterable<IComponentCreationConfigRequest> requests)
         throws MetaborgException {
-        final List<ComponentCreationConfig> configs = Lists.newArrayList();
+        final List<ComponentCreationConfig> configs = new ArrayList<>();
         for(IComponentCreationConfigRequest request : requests) {
             final ComponentCreationConfig config = createConfig(request);
             configs.add(config);

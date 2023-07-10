@@ -3,8 +3,6 @@ package org.metaborg.core.build.dependency;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
-
 public class MissingDependencies {
     public final Iterable<LanguageIdentifier> compile;
     public final Iterable<LanguageIdentifier> runtime;
@@ -21,7 +19,7 @@ public class MissingDependencies {
 
 
     public boolean empty() {
-        return Iterables.isEmpty(compile) && Iterables.isEmpty(runtime);
+        return Iterables2.isEmpty(compile) && Iterables2.isEmpty(runtime);
     }
 
 

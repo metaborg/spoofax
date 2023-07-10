@@ -1,14 +1,13 @@
 package org.metaborg.core.language;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageComponentConfig;
 
-import com.google.common.collect.Lists;
-
 public class ComponentCreationConfig {
-    protected final Collection<IFacet> facets = Lists.newLinkedList();
+    protected final Collection<IFacet> facets = new LinkedList<>();
 
     public final LanguageIdentifier identifier;
     public final FileObject location;

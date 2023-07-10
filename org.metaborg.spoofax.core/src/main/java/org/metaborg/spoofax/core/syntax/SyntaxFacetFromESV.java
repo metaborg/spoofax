@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import javax.annotation.Nullable;
 
@@ -13,7 +14,6 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
-import com.google.common.collect.Lists;
 import org.spoofax.terms.util.TermUtils;
 
 public class SyntaxFacetFromESV {
@@ -76,7 +76,7 @@ public class SyntaxFacetFromESV {
     }
 
     private static Iterable<String> singleLineCommentPrefixes(IStrategoAppl document) {
-        final Collection<String> lineCommentPrefixes = Lists.newLinkedList();
+        final Collection<String> lineCommentPrefixes = new LinkedList<>();
         final Iterable<IStrategoAppl> terms = ESVReader.collectTerms(document, "LineCommentPrefix");
         for(IStrategoAppl term : terms) {
             lineCommentPrefixes.add(ESVReader.termContents(term.getSubterm(0)));
@@ -85,7 +85,8 @@ public class SyntaxFacetFromESV {
     }
 
     private static Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(IStrategoAppl document) {
-        final Collection<MultiLineCommentCharacters> multiLineCommentCharacters = Lists.newLinkedList();
+        final Collection<MultiLineCommentCharacters> multiLineCommentCharacters =
+            new LinkedList<>();
         final Iterable<IStrategoAppl> terms = ESVReader.collectTerms(document, "BlockCommentDef");
         for(IStrategoAppl term : terms) {
             final String prefix = ESVReader.termContents(term.getSubterm(0));
@@ -96,7 +97,7 @@ public class SyntaxFacetFromESV {
     }
 
     private static Iterable<FenceCharacters> fenceCharacters(IStrategoAppl document) {
-        final Collection<FenceCharacters> fenceCharacters = Lists.newLinkedList();
+        final Collection<FenceCharacters> fenceCharacters = new LinkedList<>();
         final Iterable<IStrategoAppl> terms = ESVReader.collectTerms(document, "FenceDef");
         for(IStrategoAppl term : terms) {
             final String open = ESVReader.termContents(term.getSubterm(0));

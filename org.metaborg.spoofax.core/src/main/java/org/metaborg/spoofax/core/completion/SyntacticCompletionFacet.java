@@ -3,14 +3,14 @@ package org.metaborg.spoofax.core.completion;
 import javax.annotation.Nullable;
 
 import org.metaborg.core.language.IFacet;
-
-import com.google.common.collect.Multimap;
+import org.metaborg.util.collection.ListMultimap;
 
 public class SyntacticCompletionFacet implements IFacet {
-    private final Multimap<Integer, CompletionDefinition> completionDefinitions;
+    // Used to be a Multimap from guava, but no idea is it needs to be a list-based one because this class is unused.
+    private final ListMultimap<Integer, CompletionDefinition> completionDefinitions;
 
 
-    public SyntacticCompletionFacet(Multimap<Integer, CompletionDefinition> completionDefinitions) {
+    public SyntacticCompletionFacet(ListMultimap<Integer, CompletionDefinition> completionDefinitions) {
         this.completionDefinitions = completionDefinitions;
     }
 

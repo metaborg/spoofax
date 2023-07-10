@@ -1,6 +1,10 @@
 package org.metaborg.core.build;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileName;
@@ -10,23 +14,20 @@ import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.core.transform.ITransformUnit;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.metaborg.util.iterators.Iterables2;
 
 public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extends IAnalyzeUnitUpdate, T extends ITransformUnit<?>>
     implements IBuildOutputInternal<P, A, AU, T> {
     private boolean success = true;
     public BuildState state;
-    public final Set<FileName> removedResources = Sets.newHashSet();
-    public final Set<FileName> includedResources = Sets.newHashSet();
-    public final Collection<FileObject> changedResources = Lists.newArrayList();
-    public final Collection<P> parseResults = Lists.newArrayList();
-    public final Collection<A> analysisResults = Lists.newArrayList();
-    public final Collection<AU> analysisUpdates = Lists.newArrayList();
-    public final Collection<T> transformResults = Lists.newArrayList();
-    public final Collection<IMessage> extraMessages = Lists.newLinkedList();
+    public final Set<FileName> removedResources = new HashSet<FileName>();
+    public final Set<FileName> includedResources = new HashSet<FileName>();
+    public final Collection<FileObject> changedResources = new ArrayList<>();
+    public final Collection<P> parseResults = new ArrayList<>();
+    public final Collection<A> analysisResults = new ArrayList<>();
+    public final Collection<AU> analysisUpdates = new ArrayList<>();
+    public final Collection<T> transformResults = new ArrayList<>();
+    public final Collection<IMessage> extraMessages = new LinkedList<>();
 
 
     @Override public boolean success() {
@@ -53,8 +54,8 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extend
         return parseResults;
     }
 
-    @Override public Iterable<A> analysisResults() {
-        return analysisResults;
+    @Override public Collection<A> analysisResults() {
+        return Collections.unmodifiableCollection(analysisResults);
     }
 
     @Override public Iterable<AU> analysisUpdates() {
@@ -70,15 +71,15 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extend
     }
 
     @Override public Iterable<IMessage> allMessages() {
-        final Collection<IMessage> messages = Lists.newLinkedList();
+        final Collection<IMessage> messages = new LinkedList<>();
         for(P result : parseResults) {
-            Iterables.addAll(messages, result.messages());
+            Iterables2.addAll(messages, result.messages());
         }
         for(A result : analysisResults) {
-            Iterables.addAll(messages, result.messages());
+            Iterables2.addAll(messages, result.messages());
         }
         for(T result : transformResults) {
-            Iterables.addAll(messages, result.messages());
+            Iterables2.addAll(messages, result.messages());
         }
         return messages;
     }
@@ -93,13 +94,13 @@ public class BuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU extend
         Iterable<A> analysisResults, Iterable<AU> analysisUpdates, Iterable<T> transformResults,
         Iterable<IMessage> extraMessages) {
         this.success &= success;
-        Iterables.addAll(this.removedResources, removedResources);
-        Iterables.addAll(this.includedResources, includedResources);
-        Iterables.addAll(this.changedResources, changedResources);
-        Iterables.addAll(this.parseResults, parseResults);
-        Iterables.addAll(this.analysisResults, analysisResults);
-        Iterables.addAll(this.analysisUpdates, analysisUpdates);
-        Iterables.addAll(this.transformResults, transformResults);
-        Iterables.addAll(this.extraMessages, extraMessages);
+        Iterables2.addAll(this.removedResources, removedResources);
+        Iterables2.addAll(this.includedResources, includedResources);
+        Iterables2.addAll(this.changedResources, changedResources);
+        Iterables2.addAll(this.parseResults, parseResults);
+        Iterables2.addAll(this.analysisResults, analysisResults);
+        Iterables2.addAll(this.analysisUpdates, analysisUpdates);
+        Iterables2.addAll(this.transformResults, transformResults);
+        Iterables2.addAll(this.extraMessages, extraMessages);
     }
 }

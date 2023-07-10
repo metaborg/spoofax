@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.outline;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import javax.annotation.Nullable;
 
@@ -37,7 +38,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Lists;
 import javax.inject.Inject;
 
 public class OutlineService implements ISpoofaxOutlineService {
@@ -149,7 +149,7 @@ public class OutlineService implements ISpoofaxOutlineService {
 
 
     private @Nullable IOutline toOutline(IStrategoTerm term, int expandTo, FileObject location) {
-        final Collection<IOutlineNode> roots = Lists.newLinkedList();
+        final Collection<IOutlineNode> roots = new LinkedList<>();
         if(TermUtils.isList(term)) {
             final IStrategoList termList = (IStrategoList) term;
             for(IStrategoTerm rootTerm : termList) {

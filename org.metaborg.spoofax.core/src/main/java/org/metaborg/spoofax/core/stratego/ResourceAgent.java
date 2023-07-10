@@ -13,6 +13,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.vfs2.AllFileSelector;
@@ -26,8 +27,6 @@ import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.PrintStreamWriter;
-
-import com.google.common.collect.Maps;
 
 public class ResourceAgent extends IOAgent {
     private static class ResourceHandle {
@@ -48,7 +47,7 @@ public class ResourceAgent extends IOAgent {
     private final IResourceService resourceService;
     private final FileObject tempDir;
 
-    private final Map<Integer, ResourceHandle> openFiles = Maps.newHashMap();
+    private final Map<Integer, ResourceHandle> openFiles = new HashMap<>();
 
     private final OutputStream stdout;
     private final Writer stdoutWriter;

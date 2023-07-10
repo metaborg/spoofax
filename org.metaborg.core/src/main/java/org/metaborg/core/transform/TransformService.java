@@ -1,5 +1,6 @@
 package org.metaborg.core.transform;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.metaborg.core.action.IActionService;
@@ -14,7 +15,6 @@ import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Lists;
 import javax.inject.Inject;
 
 public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>>
@@ -50,7 +50,7 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         }
 
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
-        final Collection<TP> results = Lists.newArrayList();
+        final Collection<TP> results = new ArrayList<>();
         for(TransformActionContrib action : actions) {
             if(analysisService.available(context.language()))
                 checkAnalyzed(action);
@@ -79,7 +79,7 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
         }
 
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
-        final Collection<TA> results = Lists.newArrayList();
+        final Collection<TA> results = new ArrayList<>();
         for(TransformActionContrib action : actions) {
             if (!isActionEnabled(action, context)) {
                 // Skip action because it is not enabled by the project or a compile dependency.
@@ -106,7 +106,7 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     @Override public Collection<TP> transformAllParsed(Iterable<P> inputs, IContext context, ITransformGoal goal,
         ITransformConfig config) throws TransformException {
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
-        final Collection<TP> results = Lists.newArrayList();
+        final Collection<TP> results = new ArrayList<>();
         for(TransformActionContrib action : actions) {
             if(analysisService.available(context.language()))
                 checkAnalyzed(action);
@@ -127,7 +127,7 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     @Override public Collection<TA> transformAllAnalyzed(Iterable<A> inputs, IContext context, ITransformGoal goal,
         ITransformConfig config) throws TransformException {
         final Iterable<TransformActionContrib> actions = actionService.actionContributions(context.language(), goal);
-        final Collection<TA> results = Lists.newArrayList();
+        final Collection<TA> results = new ArrayList<>();
         for(TransformActionContrib action : actions) {
             final Collection<TA> result = transformer.transformAllAnalyzed(inputs, context, action, config);
             results.addAll(result);

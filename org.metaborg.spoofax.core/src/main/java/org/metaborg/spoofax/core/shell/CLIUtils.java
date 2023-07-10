@@ -29,11 +29,10 @@ import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.util.concurrent.IClosableLock;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import com.google.common.collect.Iterables;
 
 public class CLIUtils {
     private static final ILogger logger = LoggerUtils.logger(CLIUtils.class);
@@ -198,7 +197,7 @@ public class CLIUtils {
         }
         final TransformActionContrib action;
         try {
-            action = Iterables.getOnlyElement(spoofax.actionService.actionContributions(lang, goal));
+            action = Iterables2.getOnlyElement(spoofax.actionService.actionContributions(lang, goal));
         } catch(NoSuchElementException ex) {
             throw new MetaborgException("Transformation " + goal + " not a singleton.");
         }

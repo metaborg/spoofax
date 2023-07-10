@@ -17,12 +17,12 @@ import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ExtensionFileSelector;
 import org.metaborg.util.resource.FileSelectorUtils;
 
-import com.google.common.collect.Iterables;
 import javax.inject.Inject;
 
 public class DialectProcessor implements IDialectProcessor {
@@ -43,7 +43,7 @@ public class DialectProcessor implements IDialectProcessor {
 
 
     @Override public void update(FileObject location, Iterable<ResourceChange> changes) {
-        final int numChanges = Iterables.size(changes);
+        final int numChanges = Iterables2.size(changes);
         if(numChanges == 0) {
             return;
         }

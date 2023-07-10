@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.meta.core.build;
 
+import java.util.HashMap;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.resource.IResourceService;
@@ -8,7 +10,6 @@ import org.metaborg.spoofax.meta.core.ant.IAntRunnerService;
 import org.metaborg.spoofax.meta.core.config.AntBuildStepConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
 
-import com.google.common.collect.Maps;
 import javax.inject.Inject;
 
 public class AntBuildStep extends AConfigBuildStep<AntBuildStepConfig> {
@@ -27,7 +28,7 @@ public class AntBuildStep extends AConfigBuildStep<AntBuildStepConfig> {
         LanguageSpecBuildInput input) throws MetaborgException {
         final FileObject root = input.languageSpec().location();
         final FileObject file = resourceService.resolve(root, config.file);
-        final IAntRunner runner = antRunnerService.get(file, root, Maps.<String, String>newHashMap(), null, null);
+        final IAntRunner runner = antRunnerService.get(file, root, new HashMap<String, String>(), null, null);
         runner.execute(config.target, null);
     }
 

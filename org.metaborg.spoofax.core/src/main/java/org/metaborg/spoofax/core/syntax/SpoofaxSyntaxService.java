@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.syntax;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,13 +15,12 @@ import org.metaborg.core.syntax.ParseFacet;
 import org.metaborg.core.syntax.SyntaxService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import javax.inject.Inject;
 
 public class SpoofaxSyntaxService extends SyntaxService<ISpoofaxInputUnit, ISpoofaxParseUnit>
@@ -34,27 +34,27 @@ public class SpoofaxSyntaxService extends SyntaxService<ISpoofaxInputUnit, ISpoo
 
     @Override public Iterable<String> singleLineCommentPrefixes(ILanguageImpl language) {
         final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
-        final Set<String> prefixes = Sets.newLinkedHashSet();
+        final Set<String> prefixes = new LinkedHashSet<>();
         for(SyntaxFacet facet : facets) {
-            Iterables.addAll(prefixes, facet.singleLineCommentPrefixes);
+            Iterables2.addAll(prefixes, facet.singleLineCommentPrefixes);
         }
         return prefixes;
     }
 
     @Override public Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguageImpl language) {
         final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
-        final Set<MultiLineCommentCharacters> chars = Sets.newLinkedHashSet();
+        final Set<MultiLineCommentCharacters> chars = new LinkedHashSet<>();
         for(SyntaxFacet facet : facets) {
-            Iterables.addAll(chars, facet.multiLineCommentCharacters);
+            Iterables2.addAll(chars, facet.multiLineCommentCharacters);
         }
         return chars;
     }
 
     @Override public Iterable<FenceCharacters> fenceCharacters(ILanguageImpl language) {
         final Iterable<SyntaxFacet> facets = language.facets(SyntaxFacet.class);
-        final Set<FenceCharacters> fences = Sets.newLinkedHashSet();
+        final Set<FenceCharacters> fences = new LinkedHashSet<>();
         for(SyntaxFacet facet : facets) {
-            Iterables.addAll(fences, facet.fenceCharacters);
+            Iterables2.addAll(fences, facet.fenceCharacters);
         }
         return fences;
     }

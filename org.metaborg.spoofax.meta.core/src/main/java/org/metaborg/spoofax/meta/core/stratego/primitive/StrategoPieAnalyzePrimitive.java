@@ -39,6 +39,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.stratego.Strategy;
@@ -52,7 +53,6 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
-import com.google.common.collect.Iterables;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -157,7 +157,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final @Nullable String strExternalJarFlags = config.strExternalJarFlags();
 
-        final Iterable<FileObject> strIncludePaths = Iterables.concat(
+        final Iterable<FileObject> strIncludePaths = Iterables2.fromConcat(
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME),
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO2_NAME));
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
