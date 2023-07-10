@@ -61,8 +61,8 @@ import org.metaborg.util.resource.FileSelectorUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 /**
  * Builder implementation.

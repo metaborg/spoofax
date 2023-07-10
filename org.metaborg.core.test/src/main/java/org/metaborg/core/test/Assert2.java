@@ -7,8 +7,8 @@ import static org.junit.Assert.fail;
 
 import org.metaborg.util.Strings;
 import org.metaborg.util.iterators.Iterables2;
-import org.metaborg.util.observable.ITestableObserver;
-import org.metaborg.util.observable.TimestampedNotification;
+import org.metaborg.core.test.utils.ITestableObserver;
+import org.metaborg.core.test.utils.TimestampedNotification;
 
 import io.reactivex.rxjava3.core.Notification;
 

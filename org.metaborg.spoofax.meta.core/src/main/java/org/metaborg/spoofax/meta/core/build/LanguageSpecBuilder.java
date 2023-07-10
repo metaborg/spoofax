@@ -64,7 +64,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import com.google.inject.Injector;
 
 import build.pluto.PersistableEntity;

@@ -16,7 +16,7 @@ import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class SpoofaxLanguageSpecConfigService extends AConfigService<ILanguageSpec, ISpoofaxLanguageSpecConfig>
     implements ISpoofaxLanguageSpecConfigService, ISpoofaxLanguageSpecConfigWriter {

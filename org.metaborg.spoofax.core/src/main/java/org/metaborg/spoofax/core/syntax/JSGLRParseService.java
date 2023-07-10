@@ -31,7 +31,7 @@ import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCloseable {
     public static final String name = "jsglr";

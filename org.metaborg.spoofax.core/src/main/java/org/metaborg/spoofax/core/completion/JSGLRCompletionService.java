@@ -54,7 +54,7 @@ import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import static org.spoofax.jsglr.client.imploder.IToken.Kind.*;
 

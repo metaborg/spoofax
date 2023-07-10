@@ -4,7 +4,7 @@ import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextFactory;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import com.google.inject.Injector;
 
 public class IndexTaskContextFactory implements IContextFactory {

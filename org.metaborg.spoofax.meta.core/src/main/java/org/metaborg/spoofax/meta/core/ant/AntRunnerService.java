@@ -9,7 +9,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.tools.ant.BuildListener;
 import org.metaborg.core.resource.IResourceService;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class AntRunnerService implements IAntRunnerService {
     private final IResourceService resourceService;

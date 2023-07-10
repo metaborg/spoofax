@@ -12,7 +12,7 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.iterators.Iterables2;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Configuration-based builder for {@link ILanguageComponentConfig} objects.

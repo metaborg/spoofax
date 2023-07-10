@@ -38,7 +38,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Analyzer for legacy Stratego projects. Calls the analysis strategy for each input.

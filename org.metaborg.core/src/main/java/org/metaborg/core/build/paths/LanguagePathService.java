@@ -21,7 +21,7 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class LanguagePathService implements ILanguagePathService {
     private static final ILogger logger = LoggerUtils.logger(LanguagePathService.class);

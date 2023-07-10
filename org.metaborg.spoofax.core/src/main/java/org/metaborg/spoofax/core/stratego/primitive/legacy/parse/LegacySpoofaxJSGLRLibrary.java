@@ -6,8 +6,8 @@ import org.metaborg.spoofax.core.stratego.primitive.generic.GenericPrimitiveLibr
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 public class LegacySpoofaxJSGLRLibrary extends GenericPrimitiveLibrary {
     public static final String injectionName = "LegacySpoofaxJSGLRLibrary";

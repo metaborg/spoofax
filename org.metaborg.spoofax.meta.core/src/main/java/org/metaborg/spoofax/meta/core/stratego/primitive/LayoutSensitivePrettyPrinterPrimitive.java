@@ -16,9 +16,8 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
-
-import com.google.inject.Inject;
 
 public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     @Inject public LayoutSensitivePrettyPrinterPrimitive() {

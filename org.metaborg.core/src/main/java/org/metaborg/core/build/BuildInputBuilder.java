@@ -24,7 +24,7 @@ import org.metaborg.util.collection.SetMultimap;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ResourceUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Fluent interface for creating {@link BuildInput} objects.

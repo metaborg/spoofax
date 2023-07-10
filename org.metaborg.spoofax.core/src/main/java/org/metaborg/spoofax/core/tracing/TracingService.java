@@ -24,7 +24,7 @@ import org.spoofax.terms.visitor.AStrategoTermVisitor;
 import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class TracingService implements ISpoofaxTracingService {
     private final IResourceService resourceService;

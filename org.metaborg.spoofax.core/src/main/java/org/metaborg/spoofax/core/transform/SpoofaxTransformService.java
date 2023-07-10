@@ -8,7 +8,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Typedef class for {@link TransformService} with {@link IStrategoTerm}.

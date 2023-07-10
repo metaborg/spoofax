@@ -10,7 +10,7 @@ import org.metaborg.spoofax.meta.core.ant.IAntRunnerService;
 import org.metaborg.spoofax.meta.core.config.AntBuildStepConfig;
 import org.metaborg.spoofax.meta.core.config.LanguageSpecBuildPhase;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class AntBuildStep extends AConfigBuildStep<AntBuildStepConfig> {
     private final IResourceService resourceService;

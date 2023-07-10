@@ -14,7 +14,7 @@ import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Default implementation for the language change processor.

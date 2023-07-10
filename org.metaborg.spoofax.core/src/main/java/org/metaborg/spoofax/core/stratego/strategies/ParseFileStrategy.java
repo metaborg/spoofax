@@ -19,7 +19,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.Strategy;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class ParseFileStrategy extends Strategy {
     private final IResourceService resourceService;

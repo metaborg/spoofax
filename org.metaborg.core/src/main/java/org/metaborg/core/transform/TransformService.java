@@ -15,7 +15,7 @@ import org.metaborg.core.syntax.IParseUnit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP extends ITransformUnit<P>, TA extends ITransformUnit<A>>
     implements ITransformService<P, A, TP, TA> {

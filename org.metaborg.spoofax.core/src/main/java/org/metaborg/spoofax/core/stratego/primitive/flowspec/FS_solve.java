@@ -28,7 +28,7 @@ import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.M;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.flowspec.controlflow.IFlowSpecSolution;
 import mb.flowspec.primitives.AnalysisPrimitive;

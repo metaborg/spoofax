@@ -23,7 +23,7 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import com.google.inject.Injector;
 
 public class DynamicClassLoadingService implements IDynamicClassLoadingService, ILanguageCache {

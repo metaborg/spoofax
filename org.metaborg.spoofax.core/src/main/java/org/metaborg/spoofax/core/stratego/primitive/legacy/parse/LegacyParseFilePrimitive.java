@@ -20,7 +20,7 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class LegacyParseFilePrimitive extends AbstractPrimitive {

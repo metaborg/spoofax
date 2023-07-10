@@ -30,7 +30,7 @@ import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.strc.parse_stratego_file_0_0;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class StrategoRuntimeService implements IStrategoRuntimeService, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeService.class);

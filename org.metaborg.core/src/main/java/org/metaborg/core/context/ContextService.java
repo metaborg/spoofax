@@ -15,7 +15,7 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import com.google.inject.Injector;
 
 public class ContextService implements IContextService, IContextProcessor {

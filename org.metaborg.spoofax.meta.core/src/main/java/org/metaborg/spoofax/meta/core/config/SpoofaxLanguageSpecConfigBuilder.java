@@ -20,7 +20,7 @@ import org.metaborg.spoofax.core.config.SpoofaxProjectConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.iterators.Iterables2;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;

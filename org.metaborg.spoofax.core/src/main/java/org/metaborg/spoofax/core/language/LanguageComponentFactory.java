@@ -74,7 +74,7 @@ import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.TermUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
     private static final ILogger logger = LoggerUtils.logger(LanguageComponentFactory.class);

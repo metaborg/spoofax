@@ -33,7 +33,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class ResolverService implements ISpoofaxResolverService {
     private static final ILogger logger = LoggerUtils.logger(ResolverService.class);

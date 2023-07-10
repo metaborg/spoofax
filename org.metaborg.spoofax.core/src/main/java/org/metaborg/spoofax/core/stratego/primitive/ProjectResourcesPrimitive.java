@@ -10,7 +10,7 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.collection.ImList;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class ProjectResourcesPrimitive extends AResourcesPrimitive {
 

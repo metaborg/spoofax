@@ -20,8 +20,8 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 public class CheckSdf2TablePrimitive extends AbstractPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(CheckSdf2TablePrimitive.class);

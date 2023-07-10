@@ -15,8 +15,8 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 public class LanguageSpecPpNamePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecPpNamePrimitive.class);
