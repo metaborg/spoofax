@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.style;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -7,13 +8,11 @@ import javax.annotation.Nullable;
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.style.IStyle;
 
-import com.google.common.collect.Maps;
-
 public class StylerFacet implements IFacet {
-    private final Map<SortConsCategory, IStyle> sortConsToStyle = Maps.newHashMap();
-    private final Map<String, IStyle> consToStyle = Maps.newHashMap();
-    private final Map<String, IStyle> sortToStyle = Maps.newHashMap();
-    private final Map<String, IStyle> tokenToStyle = Maps.newHashMap();
+    private final Map<SortConsCategory, IStyle> sortConsToStyle = new HashMap<>();
+    private final Map<String, IStyle> consToStyle = new HashMap<>();
+    private final Map<String, IStyle> sortToStyle = new HashMap<>();
+    private final Map<String, IStyle> tokenToStyle = new HashMap<>();
 
 
     public boolean hasSortConsStyle(String sort, String cons) {

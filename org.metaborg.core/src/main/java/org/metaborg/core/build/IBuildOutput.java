@@ -1,6 +1,7 @@
 package org.metaborg.core.build;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileName;
@@ -60,7 +61,7 @@ public interface IBuildOutput<P extends IParseUnit, A extends IAnalyzeUnit, AU e
     /**
      * @return Analysis results for changed resources. Resources that could not be parsed are not analyzed.
      */
-    Iterable<A> analysisResults();
+    Collection<A> analysisResults();
 
     /**
      * @return Analysis updates for affected resources.

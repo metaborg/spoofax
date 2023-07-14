@@ -17,7 +17,7 @@ import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.util.resource.ResourceUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILanguageSpecConfig>
     implements ILanguageSpecConfigService, ILanguageSpecConfigWriter {

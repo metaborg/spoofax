@@ -1,16 +1,17 @@
 package org.metaborg.core.language;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.config.LanguageIdentifierDeserializer;
 import org.metaborg.core.config.LanguageIdentifierSerializer;
+import org.metaborg.util.order.ChainedComparison;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.common.collect.ComparisonChain;
 
 @JsonSerialize(using = LanguageIdentifierSerializer.class)
 @JsonDeserialize(using = LanguageIdentifierDeserializer.class)
@@ -115,14 +116,11 @@ public class LanguageIdentifier implements Comparable<LanguageIdentifier>, Seria
     }
 
     @Override public int compareTo(LanguageIdentifier other) {
-        // @formatter:off
-        return ComparisonChain.start()
+        return new ChainedComparison()
             .compare(this.groupId, other.groupId)
             .compare(this.id, other.id)
             .compare(this.version, other.version)
-            .result()
-            ;
-        // @formatter:on
+            .result();
     }
 
     @Override public String toString() {

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -59,12 +60,11 @@ import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.file.IFileAccess;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import com.google.inject.Injector;
 
 import build.pluto.PersistableEntity;
@@ -425,7 +425,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_SDF_NAME);
         final FileObject packSdfIncludesReplicateDir = paths.replicateDir().resolveFile("pack-sdf-includes");
         packSdfIncludesReplicateDir.delete(new AllFileSelector());
-        final List<File> packSdfIncludePaths = Lists.newArrayList();
+        final List<File> packSdfIncludePaths = new ArrayList<>();
         for(FileObject path : sdfIncludePaths) {
             if(!path.exists()) {
                 continue;
@@ -461,7 +461,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         // final String sdfMetaModule = config.metaSdfName();
 
         List<String> sdfMetaModules = config.sdfMetaFiles();
-        final @Nullable List<File> sdfMetaFiles = Lists.newArrayList();
+        final @Nullable List<File> sdfMetaFiles = new ArrayList<>();
 
         for(String sdfMetaModule : sdfMetaModules) {
             final FileObject sdfMetaFileCandidate;
@@ -480,7 +480,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final Boolean strEnabled = config.strEnabled();
         final String strModule = config.strategoName();
 
-        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>();
+        final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>();
         for(LanguageIdentifier sourceDep : sourceDeps) {
             final @Nullable ILanguageImpl sourceDepImpl = languageService.getImpl(sourceDep);
             if(sourceDepImpl == null) {
@@ -570,13 +570,13 @@ public class LanguageSpecBuilder implements AutoCloseable {
         }
         final String strExternalJarFlags = config.strExternalJarFlags();
 
-        final Iterable<FileObject> strIncludePaths = Iterables.concat(
+        final Iterable<FileObject> strIncludePaths = Iterables2.fromConcat(
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME),
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO2_NAME));
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
         strjIncludesReplicateDir.delete(new AllFileSelector());
-        final List<File> strjIncludeDirs = Lists.newArrayList();
-        final List<File> strjIncludeFiles = Lists.newArrayList();
+        final List<File> strjIncludeDirs = new ArrayList<>();
+        final List<File> strjIncludeFiles = new ArrayList<>();
         for(FileObject path : strIncludePaths) {
             if(!path.exists()) {
                 continue;

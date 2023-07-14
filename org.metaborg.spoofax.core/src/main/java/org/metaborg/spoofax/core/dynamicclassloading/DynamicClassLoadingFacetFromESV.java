@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.dynamicclassloading;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
@@ -10,8 +11,6 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
-import com.google.common.collect.Sets;
-
 public class DynamicClassLoadingFacetFromESV {
     private static final ILogger logger = LoggerUtils.logger(DynamicClassLoadingFacetFromESV.class);
 
@@ -19,7 +18,7 @@ public class DynamicClassLoadingFacetFromESV {
     public static DynamicClassLoadingFacet create(IStrategoAppl esv, FileObject location) throws FileSystemException {
         final Set<FileObject> strategoFiles = providerResources(esv, location);
         // Use LinkedHashSet to maintain ordering.
-        final Set<FileObject> jarFiles = Sets.newLinkedHashSet();
+        final Set<FileObject> jarFiles = new LinkedHashSet<>();
         for(FileObject strategoFile : strategoFiles) {
             final String extension = strategoFile.getName().getExtension();
             switch (extension) {
@@ -40,7 +39,7 @@ public class DynamicClassLoadingFacetFromESV {
 
     private static Set<FileObject> providerResources(IStrategoAppl esv, FileObject location) throws FileSystemException {
         // Use LinkedHashSet to maintain ordering.
-        final Set<FileObject> attachedFiles = Sets.newLinkedHashSet();
+        final Set<FileObject> attachedFiles = new LinkedHashSet<>();
         for(IStrategoAppl s : ESVReader.collectTerms(esv, "SemanticProvider")) {
             attachedFiles.add(ResourceUtils.resolveFile(location, ESVReader.termContents(s)));
         }

@@ -1,26 +1,23 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import org.metaborg.util.collection.SetMultimap;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
-
-import javax.annotation.Nullable;
 
 public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     @Inject public LayoutSensitivePrettyPrinterPrimitive() {
@@ -51,7 +48,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private IStrategoTerm isolateOffsideBoxes(IStrategoTerm t) {
 
-        Multimap<Integer, IStrategoTerm> line2Box = HashMultimap.create();
+        SetMultimap<Integer, IStrategoTerm> line2Box = new SetMultimap<>();
         createMappingLine2Box(t, line2Box);
 
         // create a map of line -> box
@@ -65,7 +62,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     }
 
 
-    private void createMappingLine2Box(IStrategoTerm t, Multimap<Integer, IStrategoTerm> line2Box) {
+    private void createMappingLine2Box(IStrategoTerm t, SetMultimap<Integer, IStrategoTerm> line2Box) {
         if(TermUtils.isAppl(t)) {
             String constructorName = ((IStrategoAppl) t).getConstructor().getName();
 
@@ -93,7 +90,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     }
 
 
-    private IStrategoTerm checkOffsideBoxes(IStrategoTerm t, Multimap<Integer, IStrategoTerm> line2Box) {
+    private IStrategoTerm checkOffsideBoxes(IStrategoTerm t, SetMultimap<Integer, IStrategoTerm> line2Box) {
 
         IStrategoTerm result = t;
 
@@ -166,7 +163,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     }
 
 
-    private boolean hasFollowingBox(IStrategoTerm t, Multimap<Integer, IStrategoTerm> line2Box) {
+    private boolean hasFollowingBox(IStrategoTerm t, SetMultimap<Integer, IStrategoTerm> line2Box) {
         IStrategoTerm pos = getEndPosition(t, getPositionWithLayout(t));
         if(pos == null) {
             return false;
@@ -580,7 +577,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             String constructorName = ((IStrategoAppl) t).getConstructor().getName();
 
             if(constructorName.equals("H") || constructorName.equals("V")) {
-                List<IStrategoTerm> newBoxes = Lists.newArrayList();
+                List<IStrategoTerm> newBoxes = new ArrayList<>();
                 IStrategoTerm boxes = t.getSubterm(1);
                 for(IStrategoTerm subTerm : boxes) {
                     newBoxes.add(indentZboxes(subTerm, hBoxConfig));
@@ -592,7 +589,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             }
 
             if(constructorName.equals("Z")) {
-                List<IStrategoTerm> newBoxes = Lists.newArrayList();
+                List<IStrategoTerm> newBoxes = new ArrayList<>();
                 IStrategoTerm boxes = t.getSubterm(1);
                 if(boxes.getSubtermCount() != 0) {
                     newBoxes.add(indentZboxes(boxes.getSubterm(0), hBoxConfig));
@@ -649,7 +646,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             }
 
             if(constructorName.equals("H") || constructorName.equals("V")) {
-                List<IStrategoTerm> newBoxes = Lists.newArrayList();
+                List<IStrategoTerm> newBoxes = new ArrayList<>();
                 IStrategoTerm boxes = t.getSubterm(1);
                 for(IStrategoTerm subTerm : boxes) {
                     newBoxes.add(applyOffsideConstraintToZBoxes(subTerm, posRef));
@@ -661,7 +658,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             }
 
             if(constructorName.equals("Z")) {
-                List<IStrategoTerm> newBoxes = Lists.newArrayList();
+                List<IStrategoTerm> newBoxes = new ArrayList<>();
                 IStrategoTerm boxes = t.getSubterm(1);
                 if(boxes.getSubtermCount() != 0) {
                     IStrategoTerm emptyBox = tf.makeAppl(tf.makeConstructor("S", 1), tf.makeString(""));
@@ -739,7 +736,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         if(constructorName.equals("H") || constructorName.equals("V") || constructorName.equals("Z")) {
             IStrategoTerm boxes = t.getSubterm(1);
             if(boxes.getSubtermCount() != 0) {
-                List<IStrategoTerm> subterms = Lists.newArrayList();
+                List<IStrategoTerm> subterms = new ArrayList<>();
 
                 subterms.add(removeCurrentIndentation(boxes.getSubterm(0)));
                 for(int i = 1; i < boxes.getSubtermCount(); i++) {
@@ -876,7 +873,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
             }
 
             IStrategoTerm head = updateColumnBoxes(t.getSubterm(1).getSubterm(0), position);
-            List<IStrategoTerm> tail = Lists.newArrayList();
+            List<IStrategoTerm> tail = new ArrayList<>();
 
             for(int i = 1; i < t.getSubterm(1).getAllSubterms().length; i++) {
                 tail.add(t.getSubterm(1).getSubterm(i));
@@ -923,7 +920,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         IStrategoTerm position, int hs) {
         IStrategoTerm updatedPosition = shiftColumn(getEndPosition(head, position), hs);
 
-        List<IStrategoTerm> newList = Lists.newArrayList();
+        List<IStrategoTerm> newList = new ArrayList<>();
 
         newList.add(head);
         newList.addAll(updateColumnBoxesHorizontal(updatedPosition, hs, tail));
@@ -953,7 +950,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
         IStrategoTerm updatedPosition = shiftLine(getEndPosition(head, position), vs, column);
 
-        List<IStrategoTerm> newList = Lists.newArrayList();
+        List<IStrategoTerm> newList = new ArrayList<>();
 
         newList.add(head);
         newList.addAll(updateColumnBoxesVertical(updatedPosition, vs, tail));
@@ -978,7 +975,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
         IStrategoTerm position) {
         IStrategoTerm updatedPosition = shiftLine(getEndPosition(head, position), 1);
 
-        List<IStrategoTerm> newList = Lists.newArrayList();
+        List<IStrategoTerm> newList = new ArrayList<>();
 
         newList.add(head);
         newList.addAll(updateColumnBoxesVerticalZ(updatedPosition, 1, tail));
@@ -1121,7 +1118,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
 
     private IStrategoTerm annotateBoxPosition(IStrategoTerm t, IStrategoTerm position, IStrategoList oldAnnotations) {
-        List<IStrategoTerm> newAnnotations = Lists.newArrayList();
+        List<IStrategoTerm> newAnnotations = new ArrayList<>();
 
         for(IStrategoTerm anno : oldAnnotations) {
             if(TermUtils.isAppl(anno) && ((IStrategoAppl) anno).getConstructor().getName().equals("Position")) {
@@ -1135,7 +1132,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private IStrategoTerm annotateBoxPositionWithLayout(IStrategoTerm t, IStrategoTerm position,
         IStrategoList oldAnnotations) {
-        List<IStrategoTerm> newAnnotations = Lists.newArrayList();
+        List<IStrategoTerm> newAnnotations = new ArrayList<>();
 
         for(IStrategoTerm anno : oldAnnotations) {
             if(TermUtils.isAppl(anno)
@@ -1151,7 +1148,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private List<IStrategoTerm> updateColumnBoxesHorizontal(IStrategoTerm position, int hs, List<IStrategoTerm> list) {
 
-        List<IStrategoTerm> result = Lists.newArrayList();
+        List<IStrategoTerm> result = new ArrayList<>();
 
         if(list.isEmpty()) {
             return result;
@@ -1171,7 +1168,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
     private Collection<? extends IStrategoTerm> updateColumnBoxesVertical(IStrategoTerm position, int vs,
         List<IStrategoTerm> list) {
 
-        List<IStrategoTerm> result = Lists.newArrayList();
+        List<IStrategoTerm> result = new ArrayList<>();
 
         if(list.isEmpty()) {
             return result;
@@ -1191,7 +1188,7 @@ public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
 
     private Collection<? extends IStrategoTerm> updateColumnBoxesVerticalZ(IStrategoTerm position, int vs,
         List<IStrategoTerm> list) {
-        List<IStrategoTerm> result = Lists.newArrayList();
+        List<IStrategoTerm> result = new ArrayList<>();
 
         if(list.isEmpty()) {
             return result;

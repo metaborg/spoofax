@@ -1,10 +1,9 @@
 package org.metaborg.core.language;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-
-import com.google.common.collect.Sets;
 
 public class Language implements ILanguage, ILanguageInternal {
     private final String name;
@@ -13,7 +12,7 @@ public class Language implements ILanguage, ILanguageInternal {
 
     public Language(String name) {
         this.name = name;
-        this.impls = Sets.newHashSet();
+        this.impls = new HashSet<ILanguageImplInternal>();
     }
 
 

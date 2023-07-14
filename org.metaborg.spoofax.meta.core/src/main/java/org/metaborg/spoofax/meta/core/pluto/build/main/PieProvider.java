@@ -3,13 +3,14 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.log.api.Logger;
 import mb.log.api.LoggerFactory;
 import mb.pie.api.Pie;
 import mb.pie.api.PieBuilder;
 import mb.pie.runtime.PieBuilderImpl;
+import mb.pie.runtime.tracer.LoggingTracer;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 
 public class PieProvider implements IPieProvider {
@@ -30,6 +31,7 @@ public class PieProvider implements IPieProvider {
             }
         });
         pieBuilder.withTaskDefs(guiceTaskDefs);
+        pieBuilder.withTracerFactory(LoggingTracer::new);
         this.pie = pieBuilder.build();
     }
 

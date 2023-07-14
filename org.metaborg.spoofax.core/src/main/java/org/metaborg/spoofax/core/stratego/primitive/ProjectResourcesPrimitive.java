@@ -8,10 +8,9 @@ import org.metaborg.core.build.dependency.MissingDependencyException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.resource.IResourceService;
+import org.metaborg.util.collection.ImList;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class ProjectResourcesPrimitive extends AResourcesPrimitive {
 
@@ -23,12 +22,12 @@ public class ProjectResourcesPrimitive extends AResourcesPrimitive {
     }
 
     @Override protected List<FileObject> locations(IContext context) throws MissingDependencyException {
-        final Builder<FileObject> locations = ImmutableList.builder();
+        final ImList.Mutable<FileObject> locations = ImList.Mutable.of();
         locations.add(context.project().location());
         for(ILanguageComponent lang : dependenceService.sourceDeps(context.project())) {
             locations.add(lang.location());
         }
-        return locations.build();
+        return locations.freeze();
     }
 
 }

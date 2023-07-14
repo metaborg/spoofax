@@ -1,6 +1,6 @@
 package org.metaborg.core.testing;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.metaborg.util.log.AbstractLogger;
 import org.slf4j.helpers.MessageFormatter;
 

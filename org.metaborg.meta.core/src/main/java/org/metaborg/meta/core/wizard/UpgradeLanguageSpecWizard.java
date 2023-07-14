@@ -1,11 +1,10 @@
 package org.metaborg.meta.core.wizard;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
-
-import com.google.common.collect.Lists;
 
 /**
  * Helps with the validation and UI of an 'upgrade language specification' wizard.
@@ -78,7 +77,7 @@ public abstract class UpgradeLanguageSpecWizard {
 
     public ValidationResult validate() {
         boolean complete = true;
-        final List<String> errors = Lists.newArrayList();
+        final List<String> errors = new ArrayList<>();
 
         final String name = inputName();
         if(inputNameModified()) {

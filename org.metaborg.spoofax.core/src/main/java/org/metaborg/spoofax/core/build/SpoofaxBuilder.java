@@ -22,8 +22,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 /**
  * Typedef class for {@link Builder} with Spoofax interfaces.

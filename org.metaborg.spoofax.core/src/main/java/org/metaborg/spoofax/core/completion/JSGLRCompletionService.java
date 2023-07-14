@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.completion;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -52,10 +54,7 @@ import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import static org.spoofax.jsglr.client.imploder.IToken.Kind.*;
 
@@ -94,7 +93,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             completionParseResult = syntaxService.parse(modifiedInput);
         }
 
-        Collection<ICompletion> completions = Lists.newLinkedList();
+        Collection<ICompletion> completions = new LinkedList<>();
 
         // Completion in case of empty input
         String inputText = parseInput.input().text();
@@ -137,7 +136,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     public Collection<? extends ICompletion> completionEmptyProgram(Iterable<String> startSymbols, int endOffset,
         ILanguageImpl language, FileObject location) throws MetaborgException {
-        Collection<ICompletion> completions = Lists.newLinkedList();
+        Collection<ICompletion> completions = new LinkedList<>();
 
         final String languageName = language.belongsTo().name();
 
@@ -214,7 +213,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     public Collection<ICompletion> completionCorrectPrograms(int position, boolean blankLineCompletion,
         ISpoofaxParseUnit parseResult) throws MetaborgException {
 
-        Collection<ICompletion> completions = Sets.newHashSet();
+        Collection<ICompletion> completions = new HashSet<ICompletion>();
         final FileObject location = parseResult.source();
         final ILanguageImpl language = parseResult.input().langImpl();
         final String languageName = language.belongsTo().name();
@@ -238,17 +237,17 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
             if(placeholder != null) {
                 completions.addAll(placeholderCompletions(placeholder, languageName, component, location));
             } else {
-                if(Iterables.size(lists) != 0) {
+                if(Iterables2.size(lists) != 0) {
                     completions.addAll(
                         listsCompletions(position, blankLineCompletion, lists, languageName, component, location));
                 }
 
-                if(Iterables.size(optionals) != 0) {
+                if(Iterables2.size(optionals) != 0) {
                     completions
                         .addAll(optionalCompletions(optionals, blankLineCompletion, languageName, component, location));
                 }
                 // TODO Improve recursive completions
-                // if(Iterables.size(leftRecursive) != 0 || Iterables.size(rightRecursive) != 0) {
+                // if(Iterables2.size(leftRecursive) != 0 || Iterables2.size(rightRecursive) != 0) {
                 // completions
                 // .addAll(recursiveCompletions(leftRecursive, rightRecursive, languageName, component, location));
                 // }
@@ -260,7 +259,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private Collection<? extends ICompletion> recursiveCompletions(Iterable<IStrategoTerm> leftRecursive,
         Iterable<IStrategoTerm> rightRecursive, String languageName, ILanguageComponent component, FileObject location)
         throws MetaborgException {
-        Collection<ICompletion> completions = Lists.newLinkedList();
+        Collection<ICompletion> completions = new LinkedList<>();
 
         // call Stratego part of the framework to compute change
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
@@ -369,7 +368,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     public Collection<ICompletion> placeholderCompletions(IStrategoAppl placeholder, String languageName,
         ILanguageComponent component, FileObject location) throws MetaborgException {
-        Collection<ICompletion> completions = Lists.newLinkedList();
+        Collection<ICompletion> completions = new LinkedList<>();
 
         // call Stratego part of the framework to compute change
         final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
@@ -437,7 +436,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     public Collection<ICompletion> optionalCompletions(Iterable<IStrategoTerm> optionals, boolean blankLineCompletion,
         String languageName, ILanguageComponent component, FileObject location) throws MetaborgException {
 
-        Collection<ICompletion> completions = Lists.newLinkedList();
+        Collection<ICompletion> completions = new LinkedList<>();
 
         for(IStrategoTerm optional : optionals) {
 
@@ -500,7 +499,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         Iterable<IStrategoList> lists, String languageName, ILanguageComponent component, FileObject location)
         throws MetaborgException {
 
-        Collection<ICompletion> completions = Lists.newLinkedList();
+        Collection<ICompletion> completions = new LinkedList<>();
 
         for(IStrategoList list : lists) {
             ListImploderAttachment attachment = list.getAttachment(null);
@@ -787,8 +786,8 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final FileObject location = completionParseResult.source();
         final ILanguageImpl language = completionParseResult.input().langImpl();
         final String languageName = language.belongsTo().name();
-        final Collection<ICompletion> completions = Lists.newLinkedList();
-        final Collection<IStrategoTerm> proposalsTerm = Lists.newLinkedList();
+        final Collection<ICompletion> completions = new LinkedList<>();
+        final Collection<IStrategoTerm> proposalsTerm = new LinkedList<>();
 
         for(ILanguageComponent component : language.components()) {
             for(IStrategoTerm completionTerm : completionTerms) {
@@ -796,14 +795,14 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
                 final IStrategoTerm topMostAmb = findTopMostAmbNode(completionTerm);
 
                 if(ImploderAttachment.get(completionTerm).isSinglePlaceholderCompletion()) {
-                    Collection<IStrategoTerm> placeholders = Lists.newLinkedList();
+                    Collection<IStrategoTerm> placeholders = new LinkedList<>();
                     placeholders.addAll(findPlaceholderTerms(completionTerm));
                     if(placeholders.size() != 1) {
                         logger.error("Getting proposals for {} failed", completionTerm);
                         continue;
                     }
 
-                    IStrategoAppl placeholderTerm = (IStrategoAppl) Iterables.get(placeholders, 0);
+                    IStrategoAppl placeholderTerm = (IStrategoAppl) placeholders.iterator().next();
                     IStrategoAppl placeholder = termFactory
                         .makeAppl(termFactory.makeConstructor(placeholderTerm.getConstructor().getName(), 0));
 
@@ -1153,14 +1152,14 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         final FileObject location = completionParseResult.source();
         final ILanguageImpl language = completionParseResult.input().langImpl();
         final String languageName = language.belongsTo().name();
-        final Collection<ICompletion> completions = Lists.newLinkedList();
+        final Collection<ICompletion> completions = new LinkedList<>();
         IStrategoTerm completionAst = completionParseResult.ast();
 
         for(ILanguageComponent component : language.components()) {
             for(IStrategoTerm nestedCompletionTerm : nestedCompletionTerms) {
                 final HybridInterpreter runtime = strategoRuntimeService.runtime(component, location);
 
-                Collection<IStrategoTerm> inputsStrategoNested = Lists.newLinkedList();
+                Collection<IStrategoTerm> inputsStrategoNested = new LinkedList<>();
 
                 // calculate direct proposals
                 inputsStrategoNested.addAll(calculateDirectCompletionProposals(nestedCompletionTerm, termFactory,
@@ -1252,7 +1251,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private Collection<IStrategoTerm> calculateNestedCompletionProposals(IStrategoTerm mainNestedCompletionTerm,
         IStrategoTerm nestedCompletionTerm, ITermFactory termFactory, IStrategoTerm completionAst, String languageName,
         HybridInterpreter runtime) throws MetaborgException {
-        Collection<IStrategoTerm> inputsStratego = Lists.newLinkedList();
+        Collection<IStrategoTerm> inputsStratego = new LinkedList<>();
 
         Collection<IStrategoTerm> nestedCompletionTerms = findNestedCompletionTerm(nestedCompletionTerm, true);
 
@@ -1310,7 +1309,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         ITermFactory termFactory, IStrategoTerm completionAst, String languageName, HybridInterpreter runtime)
         throws MetaborgException {
 
-        Collection<IStrategoTerm> inputsStratego = Lists.newLinkedList();
+        Collection<IStrategoTerm> inputsStratego = new LinkedList<>();
         Collection<IStrategoTerm> completionTerms = findCompletionTermInsideNested(nestedCompletionTerm);
 
         for(IStrategoTerm completionTerm : completionTerms) {
@@ -1432,7 +1431,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private @Nullable Iterable<IStrategoList> getLists(final Iterable<IStrategoTerm> terms,
         Map<IStrategoTerm, Boolean> leftRecursiveTerms, Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
 
-        Collection<IStrategoList> lists = Lists.newLinkedList();
+        Collection<IStrategoList> lists = new LinkedList<>();
         for(IStrategoTerm term : terms) {
             if(TermUtils.isList(term)) {
                 final IStrategoList list = (IStrategoList) term;
@@ -1457,7 +1456,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private @Nullable Iterable<IStrategoTerm> getOptionals(final Iterable<IStrategoTerm> terms,
         Map<IStrategoTerm, Boolean> leftRecursiveTerms, Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
 
-        Collection<IStrategoTerm> optionals = Lists.newLinkedList();
+        Collection<IStrategoTerm> optionals = new LinkedList<>();
         for(IStrategoTerm term : terms) {
             IToken left = ImploderAttachment.getLeftToken(term);
             IToken right = ImploderAttachment.getRightToken(term);
@@ -1481,7 +1480,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private Iterable<IStrategoTerm> getRightRecursiveTerms(int position, Iterable<IStrategoTerm> terms,
         Map<IStrategoTerm, Boolean> rightRecursiveTerms) {
 
-        Collection<IStrategoTerm> rightRecursive = Lists.newLinkedList();
+        Collection<IStrategoTerm> rightRecursive = new LinkedList<>();
         for(IStrategoTerm term : terms) {
             boolean isRightRecursive = rightRecursiveTerms.containsKey(term);
 
@@ -1502,7 +1501,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     private Iterable<IStrategoTerm> getLeftRecursiveTerms(int position, Iterable<IStrategoTerm> terms,
         Map<IStrategoTerm, Boolean> leftRecursiveTerms) {
-        Collection<IStrategoTerm> leftRecursive = Lists.newLinkedList();
+        Collection<IStrategoTerm> leftRecursive = new LinkedList<>();
         for(IStrategoTerm term : terms) {
             boolean isLeftRecursive = leftRecursiveTerms.containsKey(term);
 
@@ -1524,13 +1523,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private Collection<IStrategoTerm> getCompletionTermsFromAST(ISpoofaxParseUnit completionParseResult) {
 
         if(completionParseResult == null) {
-            return Lists.newLinkedList();
+            return new LinkedList<>();
         }
 
         StrategoTerm ast = (StrategoTerm) completionParseResult.ast();
 
         if(ast == null) {
-            return Lists.newLinkedList();
+            return new LinkedList<>();
         }
 
         Collection<IStrategoTerm> completionTerm = findCompletionTerm(ast);
@@ -1540,13 +1539,13 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     private Collection<IStrategoTerm> getNestedCompletionTermsFromAST(ISpoofaxParseUnit completionParseResult) {
         if(completionParseResult == null) {
-            return Lists.newLinkedList();
+            return new LinkedList<>();
         }
 
         StrategoAppl ast = (StrategoAppl) completionParseResult.ast();
 
         if(ast == null) {
-            return Lists.newLinkedList();
+            return new LinkedList<>();
         }
 
         Collection<IStrategoTerm> completionTerm = findNestedCompletionTerm(ast, false);
@@ -1561,7 +1560,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
         if(result == null || region == null) {
             return Iterables2.empty();
         }
-        final Collection<IStrategoTerm> parsed = Lists.newLinkedList();
+        final Collection<IStrategoTerm> parsed = new LinkedList<>();
 
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
             @Override public boolean visit(IStrategoTerm term) {
@@ -1727,7 +1726,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private Collection<IStrategoTerm> findCompletionTerm(StrategoTerm ast) {
 
 
-        final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
+        final Collection<IStrategoTerm> completionTerms = new LinkedList<>();
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
 
             @Override public boolean visit(IStrategoTerm term) {
@@ -1749,7 +1748,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     private Collection<IStrategoTerm> findPlaceholderTerms(IStrategoTerm ast) {
 
-        final Collection<IStrategoTerm> placeholderTerms = Lists.newLinkedList();
+        final Collection<IStrategoTerm> placeholderTerms = new LinkedList<>();
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
 
             @Override public boolean visit(IStrategoTerm term) {
@@ -1770,7 +1769,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
     private Collection<IStrategoTerm> findCompletionTermInsideNested(final IStrategoTerm ast) {
 
-        final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
+        final Collection<IStrategoTerm> completionTerms = new LinkedList<>();
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
 
             @Override public boolean visit(IStrategoTerm term) {
@@ -1791,7 +1790,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
     }
 
     private Collection<IStrategoTerm> findNestedCompletionTerm(final IStrategoTerm ast, final boolean excludeIdTerm) {
-        final Collection<IStrategoTerm> completionTerms = Lists.newLinkedList();
+        final Collection<IStrategoTerm> completionTerms = new LinkedList<>();
         final IStrategoTermVisitor visitor = new AStrategoTermVisitor() {
 
             @Override public boolean visit(IStrategoTerm term) {

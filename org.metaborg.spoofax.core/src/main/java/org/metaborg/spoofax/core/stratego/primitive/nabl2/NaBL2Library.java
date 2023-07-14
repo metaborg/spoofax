@@ -5,8 +5,8 @@ import java.util.Set;
 import org.metaborg.spoofax.core.stratego.primitive.generic.GenericPrimitiveLibrary;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 public class NaBL2Library extends GenericPrimitiveLibrary {
     public static final String name = "NaBL2Library";

@@ -2,7 +2,9 @@ package org.metaborg.core;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -31,7 +33,6 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
@@ -84,7 +85,8 @@ public class MetaBorg implements AutoCloseable {
      */
     @SuppressWarnings("unchecked") public MetaBorg(IModulePluginLoader loader, MetaborgModule module,
         Module... additionalModules) throws MetaborgException {
-        final Collection<Module> metaborgModules = Lists.newArrayList(additionalModules);
+        final Collection<Module> metaborgModules = new ArrayList(additionalModules.length + 1);
+        Collections.addAll(metaborgModules, additionalModules);
         metaborgModules.add(module);
         final Iterable<Module> modules = InjectorFactory.modules(loader, metaborgModules);
         this.injector = InjectorFactory.create(modules);

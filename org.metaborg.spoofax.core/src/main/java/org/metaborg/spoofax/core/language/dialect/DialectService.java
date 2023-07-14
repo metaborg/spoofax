@@ -1,6 +1,8 @@
 package org.metaborg.spoofax.core.language.dialect;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -19,16 +21,12 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.ResourceExtensionFacet;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
+import org.metaborg.util.collection.SetMultimap;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 /**
  * Default implementation for the dialect service. It is mostly generic, but contains some logic for .meta files, which
@@ -54,9 +52,9 @@ public class DialectService implements IDialectService {
     // private final Class<IdentificationFacet> identificationFacetClass = IdentificationFacet.class;
     // private final Class<ResourceExtensionFacet> resourceExtensionFacetClass = ResourceExtensionFacet.class;
 
-    private final Map<String, ILanguageImpl> nameToDialect = Maps.newHashMap();
-    private final Map<ILanguageImpl, ILanguageImpl> dialectToBase = Maps.newHashMap();
-    private final Multimap<ILanguageImpl, ILanguageImpl> baseLanguageToDialects = HashMultimap.create();
+    private final Map<String, ILanguageImpl> nameToDialect = new HashMap<>();
+    private final Map<ILanguageImpl, ILanguageImpl> dialectToBase = new HashMap<>();
+    private final SetMultimap<ILanguageImpl, ILanguageImpl> baseLanguageToDialects = new SetMultimap<>();
 
 
     @Inject public DialectService(ILanguageService languageService) {
@@ -115,7 +113,7 @@ public class DialectService implements IDialectService {
         }
         logger.debug("Updating syntax facet for dialect {}", name);
 
-        final FileObject location = Iterables.get(dialect.components(), 0).location();
+        final FileObject location = dialect.components().iterator().next().location();
         final ILanguageImpl newDialect = createDialect(name, location, dialect, syntaxFacet, false, false);
 
         nameToDialect.put(name, newDialect);
@@ -129,10 +127,10 @@ public class DialectService implements IDialectService {
             return dialects;
         }
         logger.debug("Updating base language for {} dialects", dialects.size());
-        final Collection<ILanguageImpl> newDialects = Lists.newArrayListWithCapacity(dialects.size());
+        final Collection<ILanguageImpl> newDialects = new ArrayList<>(dialects.size());
         for(ILanguageImpl dialect : dialects) {
             final String name = dialect.belongsTo().name();
-            final FileObject location = Iterables.get(dialect.components(), 0).location();
+            final FileObject location = dialect.components().iterator().next().location();
             // HACK: assuming single syntax facet
             final IFacet syntaxFacet = dialect.facet(SyntaxFacet.class);
 
@@ -167,7 +165,7 @@ public class DialectService implements IDialectService {
         baseLanguageToDialects.remove(base, dialect);
         try {
             // Remove dialect after updating maps, exception indicates that dialect has already been removed.
-            final ILanguageComponent dialectComponent = Iterables.get(dialect.components(), 0);
+            final ILanguageComponent dialectComponent = dialect.components().iterator().next();
             languageService.remove(dialectComponent);
         } catch(IllegalStateException e) {
             final String message = String.format("Error removing dialect %s", name);
@@ -184,7 +182,7 @@ public class DialectService implements IDialectService {
         }
         logger.debug("Removing {} dialects for base language {}", dialects.size(), base);
 
-        final Collection<ILanguageImpl> removedDialects = Lists.newArrayListWithCapacity(dialects.size());
+        final Collection<ILanguageImpl> removedDialects = new ArrayList<>(dialects.size());
         for(ILanguageImpl dialect : dialects) {
             final String name = dialect.belongsTo().name();
             nameToDialect.remove(name);
@@ -192,7 +190,7 @@ public class DialectService implements IDialectService {
             baseLanguageToDialects.remove(base, dialect);
             try {
                 // Remove dialect after updating maps, exception indicates that dialect has already been removed.
-                final ILanguageComponent dialectComponent = Iterables.get(dialect.components(), 0);
+                final ILanguageComponent dialectComponent = dialect.components().iterator().next();
                 languageService.remove(dialectComponent);
             } catch(IllegalStateException e) {
                 final String message = String.format("Error removing dialect %s", name);
@@ -217,7 +215,7 @@ public class DialectService implements IDialectService {
         }
         final LanguageIdentifier id = new LanguageIdentifier(baseId.groupId, dialectId, baseId.version);
         // HACK: use config of first component.
-        final ILanguageComponentConfig config = Iterables.get(base.components(), 0).config();
+        final ILanguageComponentConfig config = base.components().iterator().next().config();
         final ComponentCreationConfig creationConfig = languageService.create(id, location,
             Iterables2.singleton(new LanguageContributionIdentifier(id, name)), config);
 
@@ -233,7 +231,7 @@ public class DialectService implements IDialectService {
         creationConfig.addFacet(syntaxFacet);
 
         final ILanguageComponent dialectComponent = languageService.add(creationConfig);
-        final ILanguageImpl dialect = Iterables.get(dialectComponent.contributesTo(), 0);
+        final ILanguageImpl dialect = dialectComponent.contributesTo().iterator().next();
 
         return dialect;
     }

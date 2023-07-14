@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -29,8 +30,7 @@ import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.strc.parse_stratego_file_0_0;
 
-import com.google.common.collect.Iterables;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class StrategoRuntimeService implements IStrategoRuntimeService, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeService.class);
@@ -182,19 +182,19 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
         }
 
         // Order is important, load CTrees first.
-        final Iterable<FileObject> ctrees = strategoRuntimeFacet.ctreeFiles;
-        if(Iterables.size(ctrees) > 0) {
+        final Collection<FileObject> ctrees = strategoRuntimeFacet.ctreeFiles;
+        if(ctrees.size() > 0) {
             loadCtrees(runtime, ctrees);
         }
-        final Iterable<FileObject> jars = dynamicClassLoadingFacet.jarFiles;
-        if(Iterables.size(jars) > 0) {
+        final Collection<FileObject> jars = dynamicClassLoadingFacet.jarFiles;
+        if(jars.size() > 0) {
             loadJars(runtime, jars);
         }
     }
 
-    private void loadJars(HybridInterpreter runtime, Iterable<FileObject> jars) throws MetaborgException {
+    private void loadJars(HybridInterpreter runtime, Collection<FileObject> jars) throws MetaborgException {
         try {
-            final URL[] classpath = new URL[Iterables.size(jars)];
+            final URL[] classpath = new URL[jars.size()];
             int i = 0;
             for(FileObject jar : jars) {
                 final File localJar = resourceService.localFile(jar);

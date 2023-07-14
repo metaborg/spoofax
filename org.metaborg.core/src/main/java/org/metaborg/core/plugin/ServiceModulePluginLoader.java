@@ -1,12 +1,12 @@
 package org.metaborg.core.plugin;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.ServiceLoader;
 
 import org.metaborg.core.MetaborgException;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.inject.Module;
 
 /**
@@ -24,9 +24,9 @@ public class ServiceModulePluginLoader<T extends IServiceModulePlugin> implement
     @Override public Iterable<Module> modules() throws MetaborgException {
         try {
             final ServiceLoader<T> modulePlugins = ServiceLoader.load(serviceClass);
-            final Collection<Module> modules = Lists.newLinkedList();
+            final Collection<Module> modules = new LinkedList<>();
             for(T plugin : modulePlugins) {
-                Iterables.addAll(modules, plugin.modules());
+                Iterables2.addAll(modules, plugin.modules());
             }
             return modules;
         } catch(Exception e) {

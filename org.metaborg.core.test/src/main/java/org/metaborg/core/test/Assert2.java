@@ -1,19 +1,20 @@
 package org.metaborg.core.test;
 
+import java.util.Collection;
+import java.util.Objects;
+
 import static org.junit.Assert.fail;
 
+import org.metaborg.util.Strings;
 import org.metaborg.util.iterators.Iterables2;
-import org.metaborg.util.observable.ITestableObserver;
-import org.metaborg.util.observable.TimestampedNotification;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
+import org.metaborg.core.test.utils.ITestableObserver;
+import org.metaborg.core.test.utils.TimestampedNotification;
 
 import io.reactivex.rxjava3.core.Notification;
 
 public class Assert2 {
     public static <T> void assertSize(int expected, Iterable<T> actual, String message) {
-        final int actualSize = Iterables.size(actual);
+        final int actualSize = Iterables2.size(actual);
         if(actualSize != expected) {
             fail(formatSize(message, expected, actualSize));
         }
@@ -41,7 +42,7 @@ public class Assert2 {
 
 
     public static <T> void assertEmpty(Iterable<T> actual, String message) {
-        final int actualSize = Iterables.size(actual);
+        final int actualSize = Iterables2.size(actual);
         if(actualSize != 0) {
             fail(formatEmpty(message, actualSize));
         }
@@ -69,7 +70,7 @@ public class Assert2 {
 
 
     public static <T> void assertIterableEquals(Iterable<T> expected, Iterable<T> actual, String message) {
-        if(!Iterables.elementsEqual(expected, actual)) {
+        if(!Iterables2.elementsEqual(expected, actual)) {
             fail(formatEquals(message, expected, actual));
         }
     }
@@ -97,7 +98,7 @@ public class Assert2 {
 
 
     public static <T> void assertContains(T expected, Iterable<? extends T> actual, String message) {
-        if(!Iterables.contains(actual, expected)) {
+        if(!Iterables2.contains(actual, expected)) {
             fail(formatContains(message, expected, actual));
         }
     }
@@ -124,7 +125,7 @@ public class Assert2 {
 
 
     public static <T> void assertNotContains(T expected, Iterable<? extends T> actual, String message) {
-        if(Iterables.contains(actual, expected)) {
+        if(Iterables2.contains(actual, expected)) {
             fail(formatNotContains(message, expected, actual));
         }
     }
@@ -240,10 +241,10 @@ public class Assert2 {
         return formatted + "expected OnNext, was: " + actual;
     }
 
-    private static <T> String formatOnNext(String message, Iterable<T> expected, T actual) {
+    private static <T> String formatOnNext(String message, Collection<T> expected, T actual) {
         final String formatted = preformat(message);
         final String actualString = String.valueOf(actual);
-        return formatted + "expected OnNext with a value of: " + Joiner.on(", ").join(expected) + " but was: "
+        return formatted + "expected OnNext with a value of: " + Strings.tsJoin(expected,", ") + " but was: "
             + formatClassAndValue(actual, actualString);
     }
 

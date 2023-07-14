@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -29,8 +30,6 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import com.google.common.collect.Lists;
 
 import build.pluto.BuildUnit.State;
 import build.pluto.builder.BuildRequest;
@@ -114,8 +113,8 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, OutputPersisted<F
     
     private List<String> srcGenNormalizedSdf3Paths(Collection<LanguageIdentifier> sourceDeps) {
         File srcGenSyntaxDir = toFile(paths.syntaxSrcGenDir());
-        
-        final List<String> paths = Lists.newLinkedList();
+
+        final List<String> paths = new LinkedList<>();
         
         paths.add(srcGenSyntaxDir.getAbsolutePath());
 

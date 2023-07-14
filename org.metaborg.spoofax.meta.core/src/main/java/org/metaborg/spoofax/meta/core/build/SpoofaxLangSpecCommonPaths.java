@@ -5,8 +5,6 @@ import java.util.Collection;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 
-import com.google.common.collect.Lists;
-
 public class SpoofaxLangSpecCommonPaths extends SpoofaxCommonPaths {
     public SpoofaxLangSpecCommonPaths(FileObject root) {
         super(root);

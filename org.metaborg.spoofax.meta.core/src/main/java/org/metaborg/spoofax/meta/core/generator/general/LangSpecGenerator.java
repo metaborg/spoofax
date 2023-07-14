@@ -5,9 +5,7 @@ import java.util.Collection;
 
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
+import org.metaborg.util.Strings;
 
 /**
  * Generates language project files that are only generated once when a new language project is created. Files are not
@@ -29,7 +27,7 @@ public class LangSpecGenerator extends BaseGenerator {
         if(extensions == null || extensions.isEmpty()) {
             return null;
         }
-        return Joiner.on(", ").join(extensions);
+        return Strings.join(extensions, ", ");
     }
 
     public String fileExtension() {
@@ -37,7 +35,7 @@ public class LangSpecGenerator extends BaseGenerator {
         if(extensions == null || extensions.isEmpty()) {
             return null;
         }
-        return Iterables.get(extensions, 0);
+        return extensions.iterator().next();
     }
 
     public SyntaxType syntaxType() {

@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -38,6 +39,7 @@ import org.metaborg.spoofax.meta.core.pluto.build.main.IPieProvider;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecService;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.stratego.Strategy;
@@ -51,9 +53,8 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
-import com.google.common.collect.Iterables;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
@@ -156,11 +157,11 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
 
         final @Nullable String strExternalJarFlags = config.strExternalJarFlags();
 
-        final Iterable<FileObject> strIncludePaths = Iterables.concat(
+        final Iterable<FileObject> strIncludePaths = Iterables2.fromConcat(
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO_NAME),
             languagePathService.sourceAndIncludePaths(languageSpec, SpoofaxConstants.LANG_STRATEGO2_NAME));
         final FileObject strjIncludesReplicateDir = paths.replicateDir().resolveFile("strj-includes");
-        final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
+        final LinkedHashSet<ResourcePath> strjIncludeDirs = new LinkedHashSet<>();
         for(FileObject strIncludePath : strIncludePaths) {
             if(!strIncludePath.exists()) {
                 continue;
@@ -183,7 +184,7 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
         assert projectLocation != null;
         final ResourcePath projectPath = new FSPath(projectLocation);
 
-        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>();
+        final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>();
         for(LanguageIdentifier sourceDep : config.sourceDeps()) {
             final @Nullable ILanguageImpl sourceDepImpl = languageServiceProvider.get().getImpl(sourceDep);
             if(sourceDepImpl == null) {
@@ -251,9 +252,14 @@ public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implem
             new ModuleIdentifier(strMainFile.getName().endsWith(".str"), isLibrary, strMainModule, new FSPath(strMainFile));
         final boolean autoImportStd = false;
 
+        // TODO: make configurable in metaborg.yaml
+        final boolean supportRTree = false;
+        final boolean supportStr1 = false;
+        // config this one as a boolean too
+        final ResourcePath resolveExternals = new FSPath(resourceService.localFile(resourceService.resolve(paths.strJavaStratDir(), paths.strJavaStratPkgPath(config.identifier().id))));
         final IModuleImportService.ImportResolutionInfo importResolutionInfo =
             new IModuleImportService.ImportResolutionInfo(sdfTasks, strjIncludeDirs,
-                linkedLibraries, str2libraries);
+                linkedLibraries, str2libraries, supportRTree, supportStr1, resolveExternals);
         final CheckModuleInput checkModuleInput = new CheckModuleInput(
             new FrontInput.FileOpenInEditor(moduleIdentifier, importResolutionInfo, astWLM,
                 autoImportStd), mainModuleIdentifier, projectPath);

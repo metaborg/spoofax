@@ -1,6 +1,7 @@
 package org.metaborg.core.project;
 
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.Nullable;
@@ -16,8 +17,7 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class SimpleProjectService implements ISimpleProjectService {
     private static final ILogger logger = LoggerUtils.logger(SimpleProjectService.class);
@@ -25,7 +25,7 @@ public class SimpleProjectService implements ISimpleProjectService {
     private final ISourceTextService sourceTextService;
     private final IProjectConfigService projectConfigService;
 
-    private final ConcurrentMap<FileName, IProject> projects = Maps.newConcurrentMap();
+    private final ConcurrentMap<FileName, IProject> projects = new ConcurrentHashMap<>();
 
 
     @Inject public SimpleProjectService(ISourceTextService sourceTextService,

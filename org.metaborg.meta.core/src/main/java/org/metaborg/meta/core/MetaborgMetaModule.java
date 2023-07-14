@@ -7,7 +7,7 @@ import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
 import org.metaborg.meta.core.config.LanguageSpecConfigService;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
+import javax.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 
 public class MetaborgMetaModule extends AbstractModule {

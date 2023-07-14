@@ -11,7 +11,7 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;

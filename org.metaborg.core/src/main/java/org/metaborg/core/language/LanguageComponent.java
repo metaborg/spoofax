@@ -1,16 +1,13 @@
 package org.metaborg.core.language;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.config.ILanguageComponentConfig;
+import org.metaborg.util.collection.ListMultimap;
 import org.metaborg.util.iterators.Iterables2;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 
 public class LanguageComponent implements ILanguageComponentInternal {
     private final LanguageIdentifier id;
@@ -19,7 +16,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
     private Iterable<ILanguageImplInternal> contributesTo;
     private final ILanguageComponentConfig config;
 
-    private final Multimap<Class<? extends IFacet>, IFacet> facets = ArrayListMultimap.create();
+    private final ListMultimap<Class<? extends IFacet>, IFacet> facets = new ListMultimap<>();
 
 
     public LanguageComponent(LanguageIdentifier identifier, FileObject location, int sequenceId,
@@ -34,7 +31,6 @@ public class LanguageComponent implements ILanguageComponentInternal {
             this.facets.put(facet.getClass(), facet);
         }
     }
-
 
     @Override public LanguageIdentifier id() {
         return id;
@@ -76,7 +72,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
     }
 
     @Override public <T extends IFacet> Iterable<FacetContribution<T>> facetContributions(Class<T> type) {
-        final Collection<FacetContribution<T>> contributions = Lists.newLinkedList();
+        final Collection<FacetContribution<T>> contributions = new LinkedList<>();
         for(T facet : facets(type)) {
             contributions.add(new FacetContribution<>(facet, this));
         }
@@ -86,27 +82,27 @@ public class LanguageComponent implements ILanguageComponentInternal {
     @Override public <T extends IFacet> T facet(Class<T> type) {
         // GTODO: code duplication with LanguageComponent, use default interface implementation in Java 8.
         final Iterable<T> facets = facets(type);
-        final int size = Iterables.size(facets);
+        final int size = Iterables2.size(facets);
         if(size == 0) {
             return null;
         } else if(size > 1) {
             throw new MetaborgRuntimeException(
                 "Multiple facets of " + type + " found, while only a single facet is supported");
         }
-        return Iterables.get(facets, 0);
+        return facets.iterator().next();
     }
 
     @Override public <T extends IFacet> FacetContribution<T> facetContribution(Class<T> type) {
         // GTODO: code duplication with LanguageComponent, use default interface implementation in Java 8.
         final Iterable<FacetContribution<T>> facetContributions = facetContributions(type);
-        final int size = Iterables.size(facetContributions);
+        final int size = Iterables2.size(facetContributions);
         if(size == 0) {
             return null;
         } else if(size > 1) {
             throw new MetaborgRuntimeException(
                 "Multiple facets of " + type + " found, while only a single facet is supported");
         }
-        return Iterables.get(facetContributions, 0);
+        return facetContributions.iterator().next();
     }
 
     @Override public Iterable<IFacet> facets() {
@@ -114,7 +110,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
     }
 
     @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
-        final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
+        final Collection<FacetContribution<IFacet>> contributions = new LinkedList<>();
         for(IFacet facet : facets()) {
             contributions.add(new FacetContribution<>(facet, this));
         }

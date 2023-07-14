@@ -5,11 +5,18 @@ set -o noclobber
 set -o nounset
 #set -o xtrace
 
+BIN="sdf2table"
+
+{
+
+# Realpath alternative function, replacing `realpath -s`
+myrealpath() {
+  [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [ ! -z "$DIR" ]     # Ensure the directory is not empty
 [ -d "$DIR" ]       # Ensure the directory exists
-
-BIN="sdf2table"
 
 usage() { echo "sdf2table in Docker
 
@@ -55,22 +62,22 @@ while getopts "bcdghi:l:m:no:p:tvV" o; do
         g) newopts+=" -g" ;;
         h) newopts+=" -h" ;;
         i)
-            abspath=$(realpath -s $(dirname "${OPTARG}"))
-            absfile=$(realpath -s "${OPTARG}")
+            abspath=$(myrealpath $(dirname "${OPTARG}"))
+            absfile=$(myrealpath "${OPTARG}")
             newopts+=" -i  ${absfile}"
             vols+=($abspath)
             ;;
         l)
-            abspath=$(realpath -s $(dirname "${OPTARG}"))
-            absfile=$(realpath -s "${OPTARG}")
+            abspath=$(myrealpath $(dirname "${OPTARG}"))
+            absfile=$(myrealpath "${OPTARG}")
             newopts+=" -l  ${absfile}"
             vols+=($abspath)
             ;;
         m) newopts+=" -m  ${OPTARG}" ;;
         n) newopts+=" -n" ;;
         o)
-            abspath=$(realpath -s $(dirname "${OPTARG}"))
-            absfile=$(realpath -s "${OPTARG}")
+            abspath=$(myrealpath $(dirname "${OPTARG}"))
+            absfile=$(myrealpath "${OPTARG}")
             newopts+=" -o  ${absfile}"
             vols+=($abspath)
             ;;
@@ -94,6 +101,7 @@ if [[ $retVal -ne 126 ]]; then
 fi
 # The command didn't run, attempt run using Docker
 echo "$BIN failed to run natively, attemping using Docker"
+echo "\$PATH: $PATH"
 
 # Gather the volumes to mount (basically, every directory mentioned in -i, -l, or -o)
 volumes=""
@@ -131,3 +139,5 @@ if [[ $retVal -ne 0 ]]; then
 fi
 
 echo "Done"
+
+} 2>&1 | (tee "/tmp/$BIN.log" || cat)

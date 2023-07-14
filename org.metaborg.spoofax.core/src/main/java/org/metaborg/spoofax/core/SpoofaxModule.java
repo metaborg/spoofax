@@ -181,7 +181,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
 
-import com.google.inject.Singleton;
+import javax.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;

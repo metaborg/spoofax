@@ -1,8 +1,10 @@
 package org.metaborg.core.source;
 
+import java.util.Collections;
+
 import javax.annotation.Nullable;
 
-import com.google.common.base.Strings;
+import org.metaborg.util.Strings;
 
 /**
  * Helper class for highlighting code in consoles.

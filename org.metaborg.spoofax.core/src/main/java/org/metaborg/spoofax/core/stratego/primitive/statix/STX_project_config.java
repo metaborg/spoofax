@@ -11,7 +11,7 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.flowspec.terms.B;
 import mb.statix.spoofax.IStatixProjectConfig;

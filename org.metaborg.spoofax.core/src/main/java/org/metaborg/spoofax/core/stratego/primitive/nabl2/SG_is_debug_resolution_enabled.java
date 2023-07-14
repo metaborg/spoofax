@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.stratego.primitive.nabl2;
 import org.metaborg.spoofax.core.config.ISpoofaxProjectConfigService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
 

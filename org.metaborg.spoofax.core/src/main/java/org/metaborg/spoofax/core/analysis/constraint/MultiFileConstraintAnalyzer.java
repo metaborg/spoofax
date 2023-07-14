@@ -9,7 +9,7 @@ import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer {
 

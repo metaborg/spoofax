@@ -5,8 +5,7 @@ import java.util.Set;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
-
-import com.google.common.collect.ImmutableSet;
+import org.metaborg.util.collection.CapsuleUtil;
 
 public class SpoofaxConstants {
     public static final String GROUP_ID = "org.metaborg";
@@ -91,36 +90,34 @@ public class SpoofaxConstants {
     }
 
     // @formatter:off
-    public static final Set<String> META_LANG_IDS = ImmutableSet.<String>builder()
-        .add(LANG_ATERM_ID)
-        .add(LANG_SDF_ID)
-        .add(LANG_STRATEGO_ID)
-        .add(LANG_ESV_ID)
-        .add(LANG_SDF3_ID)
-        .add(LANG_NABL_ID)
-        .add(LANG_TS_ID)
-        .add(LANG_NABL2_ID)
-        .add(LANG_STATIX_ID)
-        .add(LANG_FLOWSPEC_ID)
-        .add(LANG_DYNSEM_ID)
-        .add(LIB_ANALYSIS_ID)
-        .build();
+    public static final Set<String> META_LANG_IDS = CapsuleUtil.toSet(
+        LANG_ATERM_ID,
+        LANG_SDF_ID,
+        LANG_STRATEGO_ID,
+        LANG_ESV_ID,
+        LANG_SDF3_ID,
+        LANG_NABL_ID,
+        LANG_TS_ID,
+        LANG_NABL2_ID,
+        LANG_STATIX_ID,
+        LANG_FLOWSPEC_ID,
+        LANG_DYNSEM_ID,
+        LIB_ANALYSIS_ID);
     // @formatter:on
 
     // @formatter:off
-    public static final Set<String> META_LANG_NAMES = ImmutableSet.<String>builder()
-        .add(LANG_ATERM_NAME)
-        .add(LANG_SDF_NAME)
-        .add(LANG_STRATEGO_NAME)
-        .add(LANG_ESV_NAME)
-        .add(LANG_SDF3_NAME)
-        .add(LANG_NABL_NAME)
-        .add(LANG_TS_NAME)
-        .add(LANG_STATIX_NAME)
-        .add(LANG_FLOWSPEC_NAME)
-        .add(LANG_DYNSEM_NAME)
-        .add(LIB_ANALYSIS_NAME)
-        .build();
+    public static final Set<String> META_LANG_NAMES = CapsuleUtil.toSet(
+        LANG_ATERM_NAME,
+        LANG_SDF_NAME,
+        LANG_STRATEGO_NAME,
+        LANG_ESV_NAME,
+        LANG_SDF3_NAME,
+        LANG_NABL_NAME,
+        LANG_TS_NAME,
+        LANG_STATIX_NAME,
+        LANG_FLOWSPEC_NAME,
+        LANG_DYNSEM_NAME,
+        LIB_ANALYSIS_NAME);
     // @formatter:on
 
 
