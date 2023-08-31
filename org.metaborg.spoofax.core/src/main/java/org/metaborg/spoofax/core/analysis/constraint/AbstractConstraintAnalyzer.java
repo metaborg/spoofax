@@ -190,11 +190,13 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          * 3. Process analysis results & collect messages *
          **************************************************/
 
-        final ListMultimap<FileName, IMessage> messages = new ListMultimap<>();
         final Set<ISpoofaxAnalyzeUnit> fullResults = new HashSet<ISpoofaxAnalyzeUnit>();
         final Set<ISpoofaxAnalyzeUnitUpdate> updateResults =
             new HashSet<ISpoofaxAnalyzeUnitUpdate>();
 
+        try {
+        final ListMultimap<FileName, IMessage> messages = new ListMultimap<>();
+        PrintlineLogger.enableGlobal();
         processResults(changed, expects, results, messages);
 
         /************************************
@@ -206,6 +208,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             plLogger.debug("result: {}; messages: {}", expect.resource(), fileMessages);
             expect.result(fileMessages, fullResults, updateResults);
         }
+        } finally { PrintlineLogger.disableGlobal(); }
         fullResults.addAll(removed.values());
         fullResults.addAll(invalid.values());
 
