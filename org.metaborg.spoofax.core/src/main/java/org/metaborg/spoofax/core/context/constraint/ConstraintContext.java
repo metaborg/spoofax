@@ -27,6 +27,7 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.log.PrintlineLogger;
 import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -36,6 +37,7 @@ import com.google.inject.Injector;
 public class ConstraintContext implements IConstraintContext {
 
     private static final ILogger logger = LoggerUtils.logger(ConstraintContext.class);
+    private static final PrintlineLogger plLogger = PrintlineLogger.logger(ConstraintContext.class);
 
     private final ContextIdentifier identifier;
     private final String persistentIdentifier;
@@ -69,6 +71,7 @@ public class ConstraintContext implements IConstraintContext {
 
     @Override public boolean put(FileObject resource, int parseHash, IStrategoTerm analyzedAst, IStrategoTerm analysis,
             IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes, List<String> exceptions) {
+        plLogger.info("put entry: {}; errors: {}", resource, errors);
         return state.entries.put(resourceKey(resource),
                 new Entry(parseHash, analyzedAst, analysis, errors, warnings, notes, exceptions)) != null;
     }
