@@ -94,7 +94,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         if(results.results().isEmpty() && results.updates().isEmpty()) {
             throw new AnalysisException(genericContext, "Analysis failed, no result was returned.");
         }
-        return new SpoofaxAnalyzeResult(Iterables2.getOnlyElement(results.results()), results.updates(),
+        final ISpoofaxAnalyzeUnit unitResult = Iterables2.getOnlyElement(results.results());
+        plLogger.debug("analyze single: {}; messages: {}", unitResult.source(), unitResult.messages());
+        return new SpoofaxAnalyzeResult(unitResult, results.updates(),
                 results.context());
     }
 
@@ -207,6 +209,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         fullResults.addAll(removed.values());
         fullResults.addAll(invalid.values());
 
+        plLogger.debug("full results: {}; updates: {}", fullResults, updateResults);
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
     }
 
