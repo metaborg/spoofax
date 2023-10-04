@@ -13,6 +13,7 @@ import org.metaborg.spoofax.meta.core.stratego.primitive.LanguageSpecificationPr
 import org.metaborg.spoofax.meta.core.stratego.primitive.LayoutSensitivePrettyPrinterPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.LegacyLanguageSpecNamePrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.PlaceholderCharsPrimitive;
+import org.metaborg.spoofax.meta.core.stratego.primitive.SpoofaxVersionPrimitive;
 import org.metaborg.spoofax.meta.core.stratego.primitive.StrategoPieAnalyzePrimitive;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 
@@ -54,6 +55,7 @@ public class SpoofaxExtensionModule extends AbstractModule {
         bindAutoClosableSpoofaxPrimitive(GenerateNamespacedGrammarPrimitive.class);
         bindSpoofaxPrimitive(LayoutSensitivePrettyPrinterPrimitive.class);
         bindSpoofaxPrimitive(GetContextualGrammarPrimitive.class);
+        bindSpoofaxPrimitive(SpoofaxVersionPrimitive.class);
 
         bindAutoClosableLegacySpoofaxPrimitive(LegacyLanguageSpecNamePrimitive.class);
         

@@ -49,4 +49,12 @@ public class AnalyzeUnit extends UnitWrapper implements ISpoofaxAnalyzeUnit {
     @Override public long duration() {
         return contrib.duration;
     }
+
+    @Override public String toString() {
+        final StringBuilder sb = new StringBuilder("AnalyzeUnit{");
+        sb.append(" ").append("parseUnit.source=").append(parseUnit.source()).append(",");
+        sb.append(" ").append("contrib=").append(contrib);
+        return sb.append("}").toString();
+    }
+
 }
