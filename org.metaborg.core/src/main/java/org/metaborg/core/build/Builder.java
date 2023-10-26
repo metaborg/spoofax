@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -61,8 +61,8 @@ import org.metaborg.util.resource.FileSelectorUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import com.google.inject.Provider;
+
 
 /**
  * Builder implementation.
@@ -100,7 +100,7 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     private final Provider<IBuildOutputInternal<P, A, AU, T>> buildOutputProvider;
 
 
-    @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
+    @jakarta.inject.Inject @javax.inject.Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
         ILanguagePathService languagePathService, IUnitService<I, P, A, AU, TP, TA> unitService,
         ISourceTextService sourceTextService, ISyntaxService<I, P> syntaxService, IContextService contextService,
         IAnalysisService<P, A, AU> analysisService, ITransformService<P, A, TP, TA> transformService,

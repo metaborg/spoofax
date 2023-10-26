@@ -7,7 +7,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Typedef interface for {@link IParser} with Spoofax interfaces.

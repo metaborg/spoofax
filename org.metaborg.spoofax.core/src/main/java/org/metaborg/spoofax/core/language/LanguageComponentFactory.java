@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -74,7 +74,6 @@ import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.TermUtils;
 
-import javax.inject.Inject;
 
 public class LanguageComponentFactory implements ILanguageComponentFactory {
     private static final ILogger logger = LoggerUtils.logger(LanguageComponentFactory.class);
@@ -87,7 +86,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
     private final Map<String, ISpoofaxAnalyzer> analyzers;
 
 
-    @Inject public LanguageComponentFactory(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageComponentFactory(IResourceService resourceService,
         ILanguageComponentConfigService componentConfigService, ITermFactory termFactory,
         Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
         Map<String, ISpoofaxAnalyzer> analyzers) {

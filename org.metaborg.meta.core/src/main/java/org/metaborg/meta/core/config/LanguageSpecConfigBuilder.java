@@ -3,7 +3,7 @@ package org.metaborg.meta.core.config;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.AConfigurationReaderWriter;
@@ -16,7 +16,6 @@ import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.iterators.Iterables2;
 
-import javax.inject.Inject;
 
 /**
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
@@ -26,7 +25,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
     protected @Nullable Boolean useBuildSystemSpec;
 
 
-    @Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 

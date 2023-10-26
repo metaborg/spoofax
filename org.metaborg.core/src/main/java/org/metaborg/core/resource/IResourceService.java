@@ -3,7 +3,7 @@ package org.metaborg.core.resource;
 import java.io.File;
 import java.net.URI;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;

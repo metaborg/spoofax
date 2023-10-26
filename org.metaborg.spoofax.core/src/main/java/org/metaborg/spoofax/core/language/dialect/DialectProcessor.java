@@ -23,7 +23,6 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ExtensionFileSelector;
 import org.metaborg.util.resource.FileSelectorUtils;
 
-import javax.inject.Inject;
 
 public class DialectProcessor implements IDialectProcessor {
     private static final ILogger logger = LoggerUtils.logger(DialectProcessor.class);
@@ -34,7 +33,7 @@ public class DialectProcessor implements IDialectProcessor {
     private final FileSelector selector;
 
 
-    @Inject public DialectProcessor(ILanguageService languageService, IDialectService dialectService) {
+    @jakarta.inject.Inject @javax.inject.Inject public DialectProcessor(ILanguageService languageService, IDialectService dialectService) {
         this.languageService = languageService;
         this.dialectService = dialectService;
 

@@ -12,8 +12,6 @@ dependencies {
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")
-  api("com.google.guava:failureaccess:1.0.1")
-  api("com.google.inject.extensions:guice-multibindings")
   implementation("commons-io:commons-io")
   api("org.apache.commons:commons-vfs2")
   implementation("org.apache.commons:commons-lang3")
@@ -28,10 +26,10 @@ dependencies {
   implementation("com.google.guava:failureaccess")
   implementation("io.reactivex.rxjava3:rxjava")
 
-  compileOnly("com.google.code.findbugs:jsr305")
+  compileOnly("jakarta.annotation:jakarta.annotation-api")
 
   testCompileOnly("junit:junit")
-  testCompileOnly("com.google.code.findbugs:jsr305")
+  testCompileOnly("jakarta.annotation:jakarta.annotation-api")
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
   testImplementation("ch.qos.logback:logback-core")
   testImplementation("ch.qos.logback:logback-classic")

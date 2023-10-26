@@ -10,10 +10,9 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 
 public class LanguagePrimitive extends ASpoofaxContextPrimitive {
-    @Inject public LanguagePrimitive() {
+    @jakarta.inject.Inject @javax.inject.Inject public LanguagePrimitive() {
         super("language", 0, 0);
     }
 

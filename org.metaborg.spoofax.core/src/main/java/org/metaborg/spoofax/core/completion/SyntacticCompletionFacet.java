@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.completion;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.language.IFacet;
 import org.metaborg.util.collection.ListMultimap;

@@ -1,6 +1,6 @@
 package org.metaborg.core.unit;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 

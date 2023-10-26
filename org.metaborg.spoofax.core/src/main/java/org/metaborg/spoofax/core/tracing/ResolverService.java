@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.tracing;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -33,7 +33,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import javax.inject.Inject;
 
 public class ResolverService implements ISpoofaxResolverService {
     private static final ILogger logger = LoggerUtils.logger(ResolverService.class);
@@ -46,7 +45,7 @@ public class ResolverService implements ISpoofaxResolverService {
     private final TracingCommon common;
 
 
-    @Inject public ResolverService(IProjectService projectService, IContextService contextService,
+    @jakarta.inject.Inject @javax.inject.Inject public ResolverService(IProjectService projectService, IContextService contextService,
         ITermFactory termFactory, IStrategoRuntimeService strategoRuntimeService,
         ISpoofaxTracingService tracingService, TracingCommon common) {
         this.projectService = projectService;

@@ -12,7 +12,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class RelativeSourceOrIncludePath extends ASpoofaxContextPrimitive {
@@ -21,7 +20,7 @@ public class RelativeSourceOrIncludePath extends ASpoofaxContextPrimitive {
     private final IProjectService projectService;
 
 
-    @Inject public RelativeSourceOrIncludePath(ILanguagePathService languagePathService, IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public RelativeSourceOrIncludePath(ILanguagePathService languagePathService, IResourceService resourceService,
             IProjectService projectService) {
         super("language_relative_source_or_include_path", 0, 1);
         this.languagePathService = languagePathService;

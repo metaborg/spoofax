@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -31,7 +31,6 @@ import org.metaborg.util.task.IProgress;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
 
-import javax.inject.Inject;
 
 public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCloseable {
     public static final String name = "jsglr";
@@ -52,7 +51,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     private final Map<ILanguageImpl, JSGLRI<?>> parsers = new HashMap<>();
     private final Map<ILanguageImpl, JSGLRI<?>> completionParsers = new HashMap<>();
 
-    @Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactory termFactory,
+    @jakarta.inject.Inject @javax.inject.Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactory termFactory,
         IStrategoRuntimeService strategoRuntimeService, JSGLRParserConfiguration defaultParserConfig) {
         this.unitService = unitService;
         this.termFactory = termFactory;

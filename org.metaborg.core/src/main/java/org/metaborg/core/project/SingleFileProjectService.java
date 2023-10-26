@@ -5,7 +5,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.config.IProjectConfigService;
 
-import javax.inject.Inject;
 
 /**
  * Creates a project from a single file with the parent directory as project location (if possible, otherwise just the
@@ -16,7 +15,7 @@ public class SingleFileProjectService implements IProjectService {
     private final IProjectConfigService projectConfigService;
 
 
-    @Inject public SingleFileProjectService(IProjectConfigService projectConfigService) {
+    @jakarta.inject.Inject @javax.inject.Inject public SingleFileProjectService(IProjectConfigService projectConfigService) {
         this.projectConfigService = projectConfigService;
     }
 

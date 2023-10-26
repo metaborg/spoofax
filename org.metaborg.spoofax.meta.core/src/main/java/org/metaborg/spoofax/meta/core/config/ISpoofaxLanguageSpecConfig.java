@@ -3,7 +3,7 @@ package org.metaborg.spoofax.meta.core.config;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.meta.core.config.ILanguageSpecConfigBuilder;

@@ -26,7 +26,6 @@ dependencies {
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")
-  api("com.google.inject.extensions:guice-multibindings")
   implementation("commons-io:commons-io")
   implementation("org.apache.commons:commons-vfs2")
   implementation("com.google.guava:guava")
@@ -34,7 +33,7 @@ dependencies {
   implementation("com.google.guava:failureaccess")
   implementation("io.reactivex.rxjava3:rxjava")
 
-  compileOnly("com.google.code.findbugs:jsr305")
+  compileOnly("jakarta.annotation:jakarta.annotation-api")
 
   testImplementation(project(":org.metaborg.core.test"))
   testCompileOnly("junit:junit")

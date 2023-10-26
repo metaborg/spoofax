@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.processing;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.language.dialect.IDialectProcessor;
@@ -16,7 +16,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import javax.inject.Inject;
 
 /**
  * Typedef class for {@link BlockingProcessor} with Spoofax interfaces.
@@ -24,7 +23,7 @@ import javax.inject.Inject;
 public class SpoofaxBlockingProcessor extends
     BlockingProcessor<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>
     implements ISpoofaxProcessor {
-    @Inject public SpoofaxBlockingProcessor(IDialectProcessor dialectProcessor, ISpoofaxBuilder builder,
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxBlockingProcessor(IDialectProcessor dialectProcessor, ISpoofaxBuilder builder,
         ILanguageChangeProcessor languageChangeProcessor) {
         super(dialectProcessor, builder, languageChangeProcessor);
     }

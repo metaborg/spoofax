@@ -6,10 +6,9 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 
 public class ProjectPathPrimitive extends ASpoofaxContextPrimitive {
-    @Inject public ProjectPathPrimitive() {
+    @jakarta.inject.Inject @javax.inject.Inject public ProjectPathPrimitive() {
         super("project_path", 0, 0);
     }
 

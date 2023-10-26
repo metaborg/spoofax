@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.core.project.IProject;
@@ -18,14 +16,16 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import com.google.inject.Provider;
+
 public class PlaceholderCharsPrimitive extends AbstractPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(PlaceholderCharsPrimitive.class);
 
-    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
-    @Inject public PlaceholderCharsPrimitive(IProjectService projectService) {
+    @jakarta.inject.Inject @javax.inject.Inject public PlaceholderCharsPrimitive(IProjectService projectService) {
         super("SSL_EXT_placeholder_chars", 0, 0);
 
         this.projectService = projectService;

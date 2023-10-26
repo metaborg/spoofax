@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.style;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.language.IFacet;
 import org.metaborg.core.style.IStyle;

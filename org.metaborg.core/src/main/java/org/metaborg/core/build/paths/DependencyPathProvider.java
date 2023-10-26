@@ -19,13 +19,12 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ResourceUtils;
 
-import javax.inject.Inject;
 
 public class DependencyPathProvider implements ILanguagePathProvider {
     private final IDependencyService dependencyService;
 
 
-    @Inject public DependencyPathProvider(IDependencyService dependencyService) {
+    @jakarta.inject.Inject @javax.inject.Inject public DependencyPathProvider(IDependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 

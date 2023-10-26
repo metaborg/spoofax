@@ -3,7 +3,7 @@ package org.metaborg.core.language;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public class Language implements ILanguage, ILanguageInternal {
     private final String name;

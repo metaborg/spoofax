@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.style;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.style.ICategory;

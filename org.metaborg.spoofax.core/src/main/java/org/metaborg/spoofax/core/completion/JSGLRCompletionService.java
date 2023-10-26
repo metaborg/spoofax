@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -54,7 +54,6 @@ import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 import org.strategoxt.HybridInterpreter;
 
-import javax.inject.Inject;
 
 import static org.spoofax.jsglr.client.imploder.IToken.Kind.*;
 
@@ -70,7 +69,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
 
-    @Inject public JSGLRCompletionService(ITermFactory termFactory,
+    @jakarta.inject.Inject @javax.inject.Inject public JSGLRCompletionService(ITermFactory termFactory,
         IStrategoRuntimeService strategoRuntimeService, IStrategoCommon strategoCommon,
         IResourceService resourceService, ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService) {
         this.termFactory = termFactory;

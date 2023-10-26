@@ -15,7 +15,6 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 import com.google.inject.Injector;
 
 public class ContextService implements IContextService, IContextProcessor {
@@ -27,7 +26,7 @@ public class ContextService implements IContextService, IContextProcessor {
     private final ConcurrentMap<ILanguageImpl, ContextIdentifier> langToContextId = new ConcurrentHashMap<>();
     private final ConcurrentMap<ILanguageImpl, Set<ContextIdentifier>> langToDownstreamContextIds = new ConcurrentHashMap<>();
 
-    @Inject public ContextService(Injector injector) {
+    @jakarta.inject.Inject @javax.inject.Inject public ContextService(Injector injector) {
         this.injector = injector;
     }
 

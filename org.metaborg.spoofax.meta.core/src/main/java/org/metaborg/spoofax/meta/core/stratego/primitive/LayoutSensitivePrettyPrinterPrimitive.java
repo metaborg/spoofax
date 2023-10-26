@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.util.collection.SetMultimap;
 import org.spoofax.interpreter.core.IContext;
@@ -16,11 +16,10 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
-    @Inject public LayoutSensitivePrettyPrinterPrimitive() {
+    @jakarta.inject.Inject @javax.inject.Inject public LayoutSensitivePrettyPrinterPrimitive() {
         super("SSL_EXT_apply_layout_constraints_pp", 0, 0);
     }
 

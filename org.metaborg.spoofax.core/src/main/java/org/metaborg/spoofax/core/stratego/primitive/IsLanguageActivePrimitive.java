@@ -10,14 +10,13 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class IsLanguageActivePrimitive extends ASpoofaxContextPrimitive {
     private final IDependencyService dependencyService;
 
 
-    @Inject public IsLanguageActivePrimitive(IDependencyService dependencyService) {
+    @jakarta.inject.Inject @javax.inject.Inject public IsLanguageActivePrimitive(IDependencyService dependencyService) {
         super("is_language_active", 0, 0);
 
         this.dependencyService = dependencyService;

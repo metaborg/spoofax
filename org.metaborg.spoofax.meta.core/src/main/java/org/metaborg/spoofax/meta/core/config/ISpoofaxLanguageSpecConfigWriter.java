@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.meta.core.config;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.meta.core.project.ILanguageSpec;

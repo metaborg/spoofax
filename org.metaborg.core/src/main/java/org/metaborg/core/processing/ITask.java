@@ -1,6 +1,6 @@
 package org.metaborg.core.processing;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Interface for asynchronous task with cancellation.

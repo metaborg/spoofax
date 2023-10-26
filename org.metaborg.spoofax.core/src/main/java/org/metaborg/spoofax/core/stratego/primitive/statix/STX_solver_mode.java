@@ -15,7 +15,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 
 import mb.flowspec.terms.B;
 import mb.statix.spoofax.SolverMode;
@@ -24,7 +23,7 @@ public class STX_solver_mode extends ASpoofaxContextPrimitive {
 
     final ISpoofaxProjectConfigService projectConfigService;
 
-    @Inject public STX_solver_mode(ISpoofaxProjectConfigService projectConfigService) {
+    @jakarta.inject.Inject @javax.inject.Inject public STX_solver_mode(ISpoofaxProjectConfigService projectConfigService) {
         super(STX_solver_mode.class.getSimpleName(), 0, 0);
         this.projectConfigService = projectConfigService;
     }

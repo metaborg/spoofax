@@ -1,6 +1,6 @@
 package org.metaborg.core.syntax;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.unit.IUnit;

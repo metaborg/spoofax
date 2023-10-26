@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -26,7 +26,6 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 
 /**
  * Default implementation for the dialect service. It is mostly generic, but contains some logic for .meta files, which
@@ -57,7 +56,7 @@ public class DialectService implements IDialectService {
     private final SetMultimap<ILanguageImpl, ILanguageImpl> baseLanguageToDialects = new SetMultimap<>();
 
 
-    @Inject public DialectService(ILanguageService languageService) {
+    @jakarta.inject.Inject @javax.inject.Inject public DialectService(ILanguageService languageService) {
         this.languageService = languageService;
     }
 

@@ -14,7 +14,6 @@ import org.metaborg.util.collection.ImList;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 
 /**
  * Default implementation of the {@link IDependencyService} interface.
@@ -25,7 +24,7 @@ public final class DefaultDependencyService implements IDependencyService {
     private final ILanguageService languageService;
 
 
-    @Inject public DefaultDependencyService(ILanguageService languageService) {
+    @jakarta.inject.Inject @javax.inject.Inject public DefaultDependencyService(ILanguageService languageService) {
         this.languageService = languageService;
     }
 

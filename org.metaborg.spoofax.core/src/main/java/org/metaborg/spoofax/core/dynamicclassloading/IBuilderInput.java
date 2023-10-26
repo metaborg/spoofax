@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.dynamicclassloading;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 

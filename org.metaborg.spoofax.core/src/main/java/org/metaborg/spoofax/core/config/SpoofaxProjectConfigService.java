@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.config;
 
 import java.util.Collection;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -18,14 +18,13 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.IProject;
 
-import javax.inject.Inject;
 
 public class SpoofaxProjectConfigService extends AConfigService<IProject, ISpoofaxProjectConfig>
         implements ISpoofaxProjectConfigService, ISpoofaxProjectConfigWriter {
     private final SpoofaxProjectConfigBuilder configBuilder;
 
 
-    @Inject public SpoofaxProjectConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxProjectConfigService(AConfigurationReaderWriter configReaderWriter,
             SpoofaxProjectConfigBuilder configBuilder) {
         super(configReaderWriter);
 

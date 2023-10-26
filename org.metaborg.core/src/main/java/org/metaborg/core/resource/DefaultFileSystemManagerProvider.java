@@ -25,7 +25,7 @@ import org.apache.commons.vfs2.provider.tar.TgzFileProvider;
 import org.apache.commons.vfs2.provider.temp.TemporaryFileProvider;
 import org.apache.commons.vfs2.provider.zip.ZipFileProvider;
 
-import javax.inject.Provider;
+import com.google.inject.Provider;
 
 /**
  * Guice provider for the VFS file system manager. Subclass and override the protected methods, and bind the provider in

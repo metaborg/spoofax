@@ -8,7 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
@@ -64,7 +64,6 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 import com.google.inject.Injector;
 
 import build.pluto.PersistableEntity;
@@ -100,7 +99,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
     private final ILanguageComponentConfigWriter componentConfigWriter;
 
 
-    @Inject public LanguageSpecBuilder(Injector injector, IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecBuilder(Injector injector, IResourceService resourceService,
         ISourceTextService sourceTextService, ILanguageIdentifierService languageIdentifierService,
         IDependencyService dependencyService, ILanguagePathService languagePathService,
         ILanguageService languageService, ISpoofaxProcessorRunner runner,

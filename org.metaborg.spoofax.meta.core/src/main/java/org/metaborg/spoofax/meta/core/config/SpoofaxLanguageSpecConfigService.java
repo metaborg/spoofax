@@ -16,14 +16,13 @@ import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 
-import javax.inject.Inject;
 
 public class SpoofaxLanguageSpecConfigService extends AConfigService<ILanguageSpec, ISpoofaxLanguageSpecConfig>
     implements ISpoofaxLanguageSpecConfigService, ISpoofaxLanguageSpecConfigWriter {
     private final SpoofaxLanguageSpecConfigBuilder configBuilder;
 
 
-    @Inject public SpoofaxLanguageSpecConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxLanguageSpecConfigService(AConfigurationReaderWriter configReaderWriter,
         SpoofaxLanguageSpecConfigBuilder configBuilder) {
         super(configReaderWriter);
 

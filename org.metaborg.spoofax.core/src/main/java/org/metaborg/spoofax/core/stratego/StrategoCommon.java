@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.stratego;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.AggregateMetaborgException;
@@ -32,7 +32,6 @@ import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
 import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
 import org.strategoxt.stratego_gpp.box2text_string_0_1;
 
-import javax.inject.Inject;
 
 /**
  * Common code for using Stratego transformations in Spoofax.
@@ -44,7 +43,7 @@ public class StrategoCommon implements IStrategoCommon {
     private final ITermFactory termFactory;
 
 
-    @Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
+    @jakarta.inject.Inject @javax.inject.Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
         ITermFactory termFactory) {
         this.strategoRuntimeService = strategoRuntimeService;
         this.termFactory = termFactory;

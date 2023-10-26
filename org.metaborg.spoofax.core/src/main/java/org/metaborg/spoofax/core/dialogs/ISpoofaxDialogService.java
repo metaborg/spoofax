@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.dialogs;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;

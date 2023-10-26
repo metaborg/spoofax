@@ -8,11 +8,10 @@ import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.resource.IResourceService;
 
-import javax.inject.Inject;
 
 public class LanguageResourcesPrimitive extends AResourcesPrimitive {
 
-    @Inject public LanguageResourcesPrimitive(IResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageResourcesPrimitive(IResourceService resourceService) {
         super("language_resources", resourceService);
     }
 

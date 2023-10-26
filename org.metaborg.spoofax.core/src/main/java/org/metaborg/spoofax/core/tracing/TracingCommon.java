@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.tracing;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -13,7 +13,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
-import javax.inject.Inject;
 
 public class TracingCommon {
     /**
@@ -38,7 +37,7 @@ public class TracingCommon {
     private final IStrategoCommon common;
 
 
-    @Inject public TracingCommon(ISpoofaxTracingService tracingService, IStrategoCommon common) {
+    @jakarta.inject.Inject @javax.inject.Inject public TracingCommon(ISpoofaxTracingService tracingService, IStrategoCommon common) {
         this.tracingService = tracingService;
         this.common = common;
     }
