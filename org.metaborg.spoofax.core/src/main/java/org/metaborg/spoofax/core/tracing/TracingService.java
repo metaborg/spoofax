@@ -24,13 +24,12 @@ import org.spoofax.terms.visitor.AStrategoTermVisitor;
 import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 
-import javax.inject.Inject;
 
 public class TracingService implements ISpoofaxTracingService {
     private final IResourceService resourceService;
 
 
-    @Inject public TracingService(IResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public TracingService(IResourceService resourceService) {
         this.resourceService = resourceService;
     }
 

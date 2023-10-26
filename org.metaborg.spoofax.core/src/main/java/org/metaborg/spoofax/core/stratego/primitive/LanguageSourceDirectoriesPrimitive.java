@@ -13,7 +13,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class LanguageSourceDirectoriesPrimitive extends ASpoofaxContextPrimitive {
@@ -21,7 +20,7 @@ public class LanguageSourceDirectoriesPrimitive extends ASpoofaxContextPrimitive
     private final IProjectService projectService;
 
 
-    @Inject public LanguageSourceDirectoriesPrimitive(ILanguagePathService languagePathService,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSourceDirectoriesPrimitive(ILanguagePathService languagePathService,
         IProjectService projectService) {
         super("language_source_directories", 0, 1);
         this.languagePathService = languagePathService;

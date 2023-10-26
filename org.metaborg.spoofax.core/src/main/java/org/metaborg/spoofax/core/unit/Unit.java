@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.unit;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.unit.IUnit;

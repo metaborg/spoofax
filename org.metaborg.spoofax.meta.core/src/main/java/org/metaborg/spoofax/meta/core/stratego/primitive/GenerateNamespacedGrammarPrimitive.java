@@ -15,18 +15,18 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import com.google.inject.Provider;
+
 
 public class GenerateNamespacedGrammarPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(GenerateNamespacedGrammarPrimitive.class);
 
-    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
 
-    @Inject public GenerateNamespacedGrammarPrimitive(IProjectService projectService) {
+    @jakarta.inject.Inject @javax.inject.Inject public GenerateNamespacedGrammarPrimitive(IProjectService projectService) {
         super("generate_namespaced_grammar", 0, 0);
 
         this.projectService = projectService;

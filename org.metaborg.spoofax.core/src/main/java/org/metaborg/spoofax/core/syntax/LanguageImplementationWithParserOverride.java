@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.syntax;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageImplConfig;

@@ -2,7 +2,7 @@ package org.metaborg.spoofax.meta.core.pluto.util;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;

@@ -13,10 +13,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
 
-import javax.inject.Inject;
 
 public class GetContextualGrammarPrimitive extends AbstractPrimitive {
-    @Inject public GetContextualGrammarPrimitive() {
+    @jakarta.inject.Inject @javax.inject.Inject public GetContextualGrammarPrimitive() {
         super("SSL_EXT_get_contextual_grammar", 0, 1);
     }
 

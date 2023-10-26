@@ -14,17 +14,17 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import com.google.inject.Provider;
+
 import org.spoofax.terms.util.TermUtils;
 
 public class LanguageSpecSrcGenDirectory extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecSrcGenDirectory.class);
 
-    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
 
-    @Inject public LanguageSpecSrcGenDirectory() {
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecSrcGenDirectory() {
         super("language_spec_srcgen_dir", 0, 0);
     }
 

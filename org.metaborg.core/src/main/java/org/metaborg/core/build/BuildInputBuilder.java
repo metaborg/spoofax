@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
@@ -24,7 +24,6 @@ import org.metaborg.util.collection.SetMultimap;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ResourceUtils;
 
-import javax.inject.Inject;
 
 /**
  * Fluent interface for creating {@link BuildInput} objects.
@@ -60,7 +59,7 @@ public class BuildInputBuilder {
     private Set<String> pardonedLanguageStrings;
 
 
-    @Inject public BuildInputBuilder(IProject project) {
+    @jakarta.inject.Inject @javax.inject.Inject public BuildInputBuilder(IProject project) {
         this.project = project;
         reset();
     }

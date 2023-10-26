@@ -6,7 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;

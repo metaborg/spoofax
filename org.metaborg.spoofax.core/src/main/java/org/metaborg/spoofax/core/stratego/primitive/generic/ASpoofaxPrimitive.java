@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.stratego.primitive.generic;
 
 import java.io.IOException;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.MetaborgException;
 import org.spoofax.interpreter.core.IContext;

@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -46,7 +46,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import javax.inject.Inject;
 
 /**
  * Analyzer for NaBL + TS + index + task engine projects. Calls the analysis strategy with a list of all inputs.
@@ -66,7 +65,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private final IStrategoConstructor fileCons;
 
 
-    @Inject public TaskEngineAnalyzer(IResourceService resourceService, ISpoofaxUnitService unitService,
+    @jakarta.inject.Inject @javax.inject.Inject public TaskEngineAnalyzer(IResourceService resourceService, ISpoofaxUnitService unitService,
         ITermFactory termFactory, IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
         AnalysisCommon analysisCommon) {
         this.resourceService = resourceService;

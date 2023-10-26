@@ -1,6 +1,6 @@
 package org.metaborg.core.outline;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.source.ISourceRegion;

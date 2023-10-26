@@ -19,7 +19,6 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.Strategy;
 
-import javax.inject.Inject;
 
 public class ParseFileStrategy extends Strategy {
     private final IResourceService resourceService;
@@ -29,7 +28,7 @@ public class ParseFileStrategy extends Strategy {
     private final ISpoofaxSyntaxService syntaxService;
 
 
-    @Inject public ParseFileStrategy(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public ParseFileStrategy(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ISpoofaxUnitService unitService,
         ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
         this.resourceService = resourceService;

@@ -3,7 +3,7 @@ package org.metaborg.core.build;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;

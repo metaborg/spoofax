@@ -10,7 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -53,8 +53,8 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import com.google.inject.Provider;
+
 
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
@@ -80,16 +80,16 @@ import mb.stratego.build.util.LastModified;
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
 
-    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
-    @Inject private static Provider<ILanguageService> languageServiceProvider;
-    @Inject private static Provider<IPieProvider> pieProviderProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ILanguageService> languageServiceProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<IPieProvider> pieProviderProvider;
 
     // Using provider to break cycle between Check -> Stratego runtime -> all primitives -> this primitive
     private final Provider<CheckOpenModule> checkModuleProvider;
     private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
 
-    @Inject public StrategoPieAnalyzePrimitive(Provider<CheckOpenModule> checkModuleProvider, ILanguagePathService languagePathService,
+    @jakarta.inject.Inject @javax.inject.Inject public StrategoPieAnalyzePrimitive(Provider<CheckOpenModule> checkModuleProvider, ILanguagePathService languagePathService,
         IResourceService resourceService) {
         super("stratego_pie_analyze", 0, 0);
         this.checkModuleProvider = checkModuleProvider;

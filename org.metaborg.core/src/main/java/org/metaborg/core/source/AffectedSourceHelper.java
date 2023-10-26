@@ -2,7 +2,7 @@ package org.metaborg.core.source;
 
 import java.util.Collections;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.util.Strings;
 

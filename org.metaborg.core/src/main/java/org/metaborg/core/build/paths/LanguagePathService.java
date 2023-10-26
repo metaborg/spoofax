@@ -21,7 +21,6 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 
-import javax.inject.Inject;
 
 public class LanguagePathService implements ILanguagePathService {
     private static final ILogger logger = LoggerUtils.logger(LanguagePathService.class);
@@ -30,7 +29,7 @@ public class LanguagePathService implements ILanguagePathService {
     private final Set<ILanguagePathProvider> providers;
 
 
-    @Inject public LanguagePathService(ILanguageIdentifierService languageIdentifierService,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguagePathService(ILanguageIdentifierService languageIdentifierService,
         Set<ILanguagePathProvider> providers) {
         this.languageIdentifierService = languageIdentifierService;
         this.providers = providers;

@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
-import javax.inject.Inject;
 import org.metaborg.core.context.IContext;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxContextPrimitive;
 import org.metaborg.spoofax.core.dialogs.ISpoofaxDialogService;
@@ -9,7 +8,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,7 +21,7 @@ public final class SLShowDialogPrimitive extends ASpoofaxContextPrimitive {
 
     private final ISpoofaxDialogService dialogService;
 
-    @Inject public SLShowDialogPrimitive(ISpoofaxDialogService dialogService) {
+    @jakarta.inject.Inject @javax.inject.Inject public SLShowDialogPrimitive(ISpoofaxDialogService dialogService) {
         super("SL_show_dialog", 0, 4);
         this.dialogService = dialogService;
     }

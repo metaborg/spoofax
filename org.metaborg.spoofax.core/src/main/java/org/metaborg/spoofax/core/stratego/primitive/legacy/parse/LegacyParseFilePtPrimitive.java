@@ -6,10 +6,9 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.syntax.SpoofaxSyntaxService;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 
-import javax.inject.Inject;
 
 public class LegacyParseFilePtPrimitive extends LegacyParseFilePrimitive {
-    @Inject public LegacyParseFilePtPrimitive(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public LegacyParseFilePtPrimitive(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ISpoofaxUnitService unitService,
         ISourceTextService sourceTextService, SpoofaxSyntaxService syntaxService) {
         super("STRSGLR_parse_string_pt", resourceService, languageIdentifierService, unitService, sourceTextService,

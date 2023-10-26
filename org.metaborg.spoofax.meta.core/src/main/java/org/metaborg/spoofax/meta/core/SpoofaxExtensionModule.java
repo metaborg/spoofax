@@ -18,7 +18,7 @@ import org.metaborg.spoofax.meta.core.stratego.primitive.StrategoPieAnalyzePrimi
 import org.spoofax.interpreter.library.AbstractPrimitive;
 
 import com.google.inject.AbstractModule;
-import javax.inject.Singleton;
+import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 

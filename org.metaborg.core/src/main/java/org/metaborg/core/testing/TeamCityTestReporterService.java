@@ -1,11 +1,10 @@
 package org.metaborg.core.testing;
 
-import javax.inject.Inject;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.time.StopWatch;
 import org.metaborg.util.log.ILogger;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
@@ -36,7 +35,7 @@ public class TeamCityTestReporterService extends TestReporterServiceBase {
      */
     private PrintStream err = new PrintStream(this.errStream);
 
-    @Inject
+    @jakarta.inject.Inject @javax.inject.Inject
     public TeamCityTestReporterService(TeamCityWriter writer, TeamCityLogger logger) {
         this.writer = writer;
         this.logger = logger;

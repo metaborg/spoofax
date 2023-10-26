@@ -17,7 +17,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class LanguageSourceFilesPrimitive extends ASpoofaxContextPrimitive {
@@ -26,7 +25,7 @@ public class LanguageSourceFilesPrimitive extends ASpoofaxContextPrimitive {
     private final IProjectService projectService;
 
 
-    @Inject public LanguageSourceFilesPrimitive(ILanguageService languageService,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSourceFilesPrimitive(ILanguageService languageService,
         ILanguagePathService languagePathService, IProjectService projectService) {
         super("language_source_files", 0, 1);
         this.languageService = languageService;

@@ -20,18 +20,18 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import com.google.inject.Provider;
+
 
 public class CheckSdf2TablePrimitive extends AbstractPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(CheckSdf2TablePrimitive.class);
 
-    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
     private final ILanguagePathService languagePathService;
 
-    @Inject public CheckSdf2TablePrimitive(IProjectService projectService, ILanguagePathService languagePathService) {
+    @jakarta.inject.Inject @javax.inject.Inject public CheckSdf2TablePrimitive(IProjectService projectService, ILanguagePathService languagePathService) {
         super("SSL_EXT_check_sdf2_table", 0, 0);
 
         this.projectService = projectService;

@@ -42,7 +42,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import javax.inject.Inject;
 
 public class StrategoTransformer implements IStrategoTransformer {
     private static final ILogger logger = LoggerUtils.logger(StrategoTransformer.class);
@@ -55,7 +54,7 @@ public class StrategoTransformer implements IStrategoTransformer {
     private final IStrategoCommon common;
 
 
-    @Inject public StrategoTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
+    @jakarta.inject.Inject @javax.inject.Inject public StrategoTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
         IEditorRegistry editorRegistry, ISpoofaxTracingService tracingService,
         IStrategoRuntimeService strategoRuntimeService, IStrategoCommon common) {
         this.resourceService = resourceService;

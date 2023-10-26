@@ -15,7 +15,6 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 
 public class ConfigBasedProjectService implements IProjectService {
     private static final ILogger logger = LoggerUtils.logger(ConfigBasedProjectService.class);
@@ -25,7 +24,7 @@ public class ConfigBasedProjectService implements IProjectService {
     private final ISourceTextService sourceTextService;
     private final IProjectConfigService projectConfigService;
     
-    @Inject public ConfigBasedProjectService(ISourceTextService sourceTextService,
+    @jakarta.inject.Inject @javax.inject.Inject public ConfigBasedProjectService(ISourceTextService sourceTextService,
         IProjectConfigService projectConfigService) {
         this.sourceTextService = sourceTextService;
         this.projectConfigService = projectConfigService;

@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.shell;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.terms.IStrategoAppl;

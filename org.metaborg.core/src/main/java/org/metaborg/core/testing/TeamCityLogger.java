@@ -1,10 +1,9 @@
 package org.metaborg.core.testing;
 
-import javax.inject.Inject;
 import org.metaborg.util.log.AbstractLogger;
 import org.slf4j.helpers.MessageFormatter;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Logger producing TeamCity messages.
@@ -13,7 +12,7 @@ public class TeamCityLogger extends AbstractLogger {
 
     private final TeamCityWriter writer;
 
-    @Inject
+    @jakarta.inject.Inject @javax.inject.Inject
     public TeamCityLogger(TeamCityWriter writer) {
         this.writer = writer;
     }

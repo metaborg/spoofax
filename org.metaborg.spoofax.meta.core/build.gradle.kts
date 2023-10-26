@@ -32,10 +32,9 @@ dependencies {
   implementation("org.metaborg:pie.runtime:$pieVersion")
   implementation("org.metaborg:pie.taskdefs.guice:$pieVersion")
   api("com.google.inject:guice")
-  api("com.google.inject.extensions:guice-multibindings")
   implementation("com.github.spullara.mustache.java:compiler")
   implementation("org.apache.ant:ant:1.9.6")
   implementation("ant-contrib:ant-contrib:1.0b3")
 
-  compileOnly("com.google.code.findbugs:jsr305")
+  compileOnly("jakarta.annotation:jakarta.annotation-api")
 }

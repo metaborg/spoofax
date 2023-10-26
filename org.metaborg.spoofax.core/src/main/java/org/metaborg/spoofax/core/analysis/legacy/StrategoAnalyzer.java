@@ -38,7 +38,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import javax.inject.Inject;
 
 /**
  * Analyzer for legacy Stratego projects. Calls the analysis strategy for each input.
@@ -56,7 +55,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     private final AnalysisCommon analysisCommon;
 
 
-    @Inject public StrategoAnalyzer(ISpoofaxUnitService unitService, ITermFactory termFactory,
+    @jakarta.inject.Inject @javax.inject.Inject public StrategoAnalyzer(ISpoofaxUnitService unitService, ITermFactory termFactory,
             IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
         AnalysisCommon analysisCommon) {
         this.unitService = unitService;

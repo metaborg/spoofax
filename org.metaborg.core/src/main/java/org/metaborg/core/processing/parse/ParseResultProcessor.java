@@ -3,7 +3,7 @@ package org.metaborg.core.processing.parse;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -16,7 +16,6 @@ import org.metaborg.core.syntax.ParseException;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
@@ -31,7 +30,7 @@ public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit>
         new ConcurrentHashMap<>();
 
 
-    @Inject public ParseResultProcessor(ISyntaxService<I, P> syntaxService) {
+    @jakarta.inject.Inject @javax.inject.Inject public ParseResultProcessor(ISyntaxService<I, P> syntaxService) {
         this.syntaxService = syntaxService;
     }
 

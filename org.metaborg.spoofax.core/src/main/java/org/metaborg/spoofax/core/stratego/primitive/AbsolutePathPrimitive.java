@@ -8,14 +8,13 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class AbsolutePathPrimitive extends ASpoofaxPrimitive {
     private final IResourceService resourceService;
 
 
-    @Inject public AbsolutePathPrimitive(IResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public AbsolutePathPrimitive(IResourceService resourceService) {
         super("absolute_path", 0, 1);
         this.resourceService = resourceService;
     }

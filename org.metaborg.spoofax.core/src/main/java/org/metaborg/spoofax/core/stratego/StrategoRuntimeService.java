@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -30,7 +30,6 @@ import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.strc.parse_stratego_file_0_0;
 
-import javax.inject.Inject;
 
 public class StrategoRuntimeService implements IStrategoRuntimeService, AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoRuntimeService.class);
@@ -44,7 +43,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     private final Map<ILanguageComponent, HybridInterpreter> prototypes = new HashMap<>();
 
 
-    @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactory termFactory,
+    @jakarta.inject.Inject @javax.inject.Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactory termFactory,
         Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy,
         Set<ClassLoader> additionalClassLoaders) {
         this.resourceService = resourceService;

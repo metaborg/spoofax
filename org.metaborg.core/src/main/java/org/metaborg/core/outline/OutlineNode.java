@@ -3,7 +3,7 @@ package org.metaborg.core.outline;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.source.ISourceRegion;

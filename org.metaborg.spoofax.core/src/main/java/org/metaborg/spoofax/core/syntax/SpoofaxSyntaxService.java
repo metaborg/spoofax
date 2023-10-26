@@ -4,7 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.language.ILanguageImpl;
@@ -21,13 +21,12 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import javax.inject.Inject;
 
 public class SpoofaxSyntaxService extends SyntaxService<ISpoofaxInputUnit, ISpoofaxParseUnit>
     implements ISpoofaxSyntaxService {
     private static final ILogger logger = LoggerUtils.logger(SpoofaxSyntaxService.class);
 
-    @Inject public SpoofaxSyntaxService(Map<String, ISpoofaxParser> parsers) {
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxSyntaxService(Map<String, ISpoofaxParser> parsers) {
         super(parsers);
     }
 

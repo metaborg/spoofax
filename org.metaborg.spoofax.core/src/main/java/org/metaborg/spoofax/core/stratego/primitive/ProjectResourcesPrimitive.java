@@ -10,13 +10,12 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.collection.ImList;
 
-import javax.inject.Inject;
 
 public class ProjectResourcesPrimitive extends AResourcesPrimitive {
 
     private final IDependencyService dependenceService;
 
-    @Inject public ProjectResourcesPrimitive(IDependencyService dependencyService, IResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public ProjectResourcesPrimitive(IDependencyService dependencyService, IResourceService resourceService) {
         super("project_resources", resourceService);
         this.dependenceService = dependencyService;
     }

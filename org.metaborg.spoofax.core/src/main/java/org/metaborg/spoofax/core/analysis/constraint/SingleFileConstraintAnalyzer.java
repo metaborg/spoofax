@@ -9,13 +9,12 @@ import org.metaborg.spoofax.core.tracing.ISpoofaxTracingService;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 
 public class SingleFileConstraintAnalyzer extends AbstractConstraintAnalyzer {
 
     public static final String name = "constraint-singlefile";
 
-    @Inject public SingleFileConstraintAnalyzer(AnalysisCommon analysisCommon,
+    @jakarta.inject.Inject @javax.inject.Inject public SingleFileConstraintAnalyzer(AnalysisCommon analysisCommon,
             final ISpoofaxAnalysisResultRequester analysisResultRequester, IResourceService resourceService,
             IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon, ITermFactory termFactory,
             ISpoofaxTracingService tracingService, ISpoofaxUnitService unitService) {

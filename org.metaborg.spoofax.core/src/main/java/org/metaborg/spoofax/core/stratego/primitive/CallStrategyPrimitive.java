@@ -19,7 +19,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import javax.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
@@ -30,7 +29,7 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
     private final IStrategoCommon common;
 
 
-    @Inject public CallStrategyPrimitive(IDependencyService dependencyService, IContextService contextService,
+    @jakarta.inject.Inject @javax.inject.Inject public CallStrategyPrimitive(IDependencyService dependencyService, IContextService contextService,
         IStrategoCommon common) {
         super("call_strategy", 0, 2);
 

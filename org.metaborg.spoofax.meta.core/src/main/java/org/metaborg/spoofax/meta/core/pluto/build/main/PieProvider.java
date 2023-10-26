@@ -3,7 +3,6 @@ package org.metaborg.spoofax.meta.core.pluto.build.main;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 
 import mb.log.api.Logger;
 import mb.log.api.LoggerFactory;
@@ -19,7 +18,7 @@ public class PieProvider implements IPieProvider {
 
     protected boolean logInfoAndBelow = false;
 
-    @Inject public PieProvider(GuiceTaskDefs guiceTaskDefs) {
+    @jakarta.inject.Inject @javax.inject.Inject public PieProvider(GuiceTaskDefs guiceTaskDefs) {
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withLoggerFactory(new LoggerFactory() {
             @Override public Logger create(String name) {

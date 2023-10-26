@@ -21,8 +21,6 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.ResourceUtils;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 
 public class ResourceService implements IResourceService {
     private static final ILogger logger = LoggerUtils.logger(ResourceService.class);
@@ -31,8 +29,8 @@ public class ResourceService implements IResourceService {
     private final FileSystemOptions fileSystemOptions;
 
 
-    @Inject public ResourceService(FileSystemManager fileSystemManager,
-        @Named("ResourceClassLoader") ClassLoader classLoader) {
+    @jakarta.inject.Inject @javax.inject.Inject public ResourceService(FileSystemManager fileSystemManager,
+        @jakarta.inject.Named("ResourceClassLoader") @javax.inject.Named("ResourceClassLoader") ClassLoader classLoader) {
         this.fileSystemManager = fileSystemManager;
         this.fileSystemOptions = new FileSystemOptions();
 

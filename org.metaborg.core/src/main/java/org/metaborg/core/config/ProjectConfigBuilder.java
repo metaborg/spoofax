@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -13,7 +13,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.iterators.Iterables2;
 
-import javax.inject.Inject;
 
 /**
  * Configuration-based builder for {@link ILanguageComponentConfig} objects.
@@ -26,7 +25,7 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
     protected @Nullable Set<LanguageIdentifier> javaDeps;
 
 
-    @Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject @javax.inject.Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 

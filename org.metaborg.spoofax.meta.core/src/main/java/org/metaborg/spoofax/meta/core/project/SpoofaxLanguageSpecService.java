@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.meta.core.project;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ConfigException;
@@ -13,7 +13,6 @@ import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 
 public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
     private static final ILogger logger = LoggerUtils.logger(SpoofaxLanguageSpecService.class);
@@ -22,7 +21,7 @@ public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
     private final ISpoofaxLanguageSpecConfigService configService;
 
 
-    @Inject public SpoofaxLanguageSpecService(ISourceTextService sourceTextService,
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxLanguageSpecService(ISourceTextService sourceTextService,
         ISpoofaxLanguageSpecConfigService configService) {
         this.sourceTextService = sourceTextService;
         this.configService = configService;

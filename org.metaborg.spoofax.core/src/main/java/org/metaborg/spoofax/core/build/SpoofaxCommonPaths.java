@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.build;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.build.CommonPaths;

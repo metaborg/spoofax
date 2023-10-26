@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.analysis;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.analysis.IAnalyzeResult;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;

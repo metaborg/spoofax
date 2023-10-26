@@ -5,10 +5,9 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import javax.inject.Inject;
 
 public class SpoofaxVersionPrimitive extends AbstractPrimitive {
-    @Inject public SpoofaxVersionPrimitive() {
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxVersionPrimitive() {
         super("spoofax_version", 0, 0);
     }
 

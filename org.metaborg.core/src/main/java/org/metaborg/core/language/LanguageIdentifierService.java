@@ -4,7 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -21,7 +21,6 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 
 public class LanguageIdentifierService implements ILanguageIdentifierService {
     private static final ILogger logger = LoggerUtils.logger(LanguageIdentifierService.class);
@@ -32,7 +31,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     private final IDependencyService dependencyService;
 
 
-    @Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier,
         IProjectService projectService, IDependencyService dependencyService) {
         this.languageService = languageService;
         this.dialectIdentifier = dialectIdentifier;

@@ -26,7 +26,6 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import javax.inject.Inject;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private static final ILogger logger = LoggerUtils.logger(LanguageDiscoveryService.class);
@@ -35,7 +34,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private final ILanguageComponentFactory componentFactory;
 
 
-    @Inject public LanguageDiscoveryService(ILanguageService languageService,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageDiscoveryService(ILanguageService languageService,
         ILanguageComponentFactory componentFactory) {
         this.languageService = languageService;
         this.componentFactory = componentFactory;

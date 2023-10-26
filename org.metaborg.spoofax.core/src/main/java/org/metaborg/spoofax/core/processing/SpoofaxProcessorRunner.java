@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.processing;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.language.ILanguageService;
@@ -14,7 +14,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import javax.inject.Inject;
 
 /**
  * Typedef class for {@link ProcessorRunner} with Spoofax interfaces.
@@ -22,7 +21,7 @@ import javax.inject.Inject;
 public class SpoofaxProcessorRunner
     extends ProcessorRunner<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>
     implements ISpoofaxProcessorRunner {
-    @Inject public SpoofaxProcessorRunner(ISpoofaxProcessor processor, ILanguageService languageService) {
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxProcessorRunner(ISpoofaxProcessor processor, ILanguageService languageService) {
         super(processor, languageService);
     }
 

@@ -5,14 +5,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.iterators.Iterables2;
 
-import javax.inject.Inject;
 
 /**
  * Configuration-based builder for {@link ILanguageComponentConfig} objects.
@@ -38,7 +37,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable StatixSolverMode statixMode;
     protected @Nullable Boolean strEnabled;
 
-    @Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
         this.projectConfigBuilder = new ProjectConfigBuilder(configReaderWriter);
     }
