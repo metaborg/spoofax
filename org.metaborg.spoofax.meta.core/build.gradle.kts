@@ -36,5 +36,5 @@ dependencies {
   implementation("org.apache.ant:ant:1.9.6")
   implementation("ant-contrib:ant-contrib:1.0b3")
 
-  compileOnly("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.annotation:jakarta.annotation-api")
 }

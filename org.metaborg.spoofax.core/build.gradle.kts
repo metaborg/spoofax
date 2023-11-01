@@ -33,7 +33,7 @@ dependencies {
   implementation("com.google.guava:failureaccess")
   implementation("io.reactivex.rxjava3:rxjava")
 
-  compileOnly("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.annotation:jakarta.annotation-api")
 
   testImplementation(project(":org.metaborg.core.test"))
   testCompileOnly("junit:junit")

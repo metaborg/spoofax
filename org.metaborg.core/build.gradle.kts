@@ -26,7 +26,7 @@ dependencies {
   implementation("com.google.guava:failureaccess")
   implementation("io.reactivex.rxjava3:rxjava")
 
-  compileOnly("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.annotation:jakarta.annotation-api")
 
   testCompileOnly("junit:junit")
   testCompileOnly("jakarta.annotation:jakarta.annotation-api")
