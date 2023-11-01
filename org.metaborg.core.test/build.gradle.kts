@@ -9,5 +9,5 @@ dependencies {
   api(project(":org.metaborg.core"))
   api("junit:junit")
 
-  compileOnly("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.annotation:jakarta.annotation-api")
 }
