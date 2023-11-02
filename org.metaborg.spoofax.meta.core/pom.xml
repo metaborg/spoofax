@@ -64,11 +64,6 @@
       		<artifactId>org.metaborg.parsetable</artifactId>
       		<version>${metaborg-version}</version>
     	</dependency>
-    	<dependency>
-      		<groupId>org.metaborg</groupId>
-      		<artifactId>stratego.compiler.pack</artifactId>
-      		<version>${metaborg-version}</version>
-    	</dependency>
 		<dependency>
 			<groupId>org.metaborg</groupId>
 			<artifactId>stratego.build.spoofax2</artifactId>

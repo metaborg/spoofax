@@ -16,7 +16,6 @@ dependencies {
   implementation(compositeBuild("sdf2table"))
   implementation(compositeBuild("sdf2parenthesize"))
   implementation(compositeBuild("org.metaborg.parsetable"))
-  implementation(compositeBuild("stratego.compiler.pack"))
   implementation(compositeBuild("stratego.build"))
   implementation(compositeBuild("stratego.build.spoofax2"))
   implementation(compositeBuild("nabl2.solver"))
