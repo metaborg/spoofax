@@ -1,6 +1,6 @@
 package org.metaborg.core.testing;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.Objects;
 import java.util.Stack;
 

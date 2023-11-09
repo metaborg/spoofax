@@ -2,6 +2,7 @@ package org.metaborg.core.build.dependency;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 
 import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.language.ILanguageComponent;
@@ -9,12 +10,10 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageUtils;
 import org.metaborg.core.project.IProject;
+import org.metaborg.util.collection.ImList;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * Default implementation of the {@link IDependencyService} interface.
@@ -25,7 +24,7 @@ public final class DefaultDependencyService implements IDependencyService {
     private final ILanguageService languageService;
 
 
-    @Inject public DefaultDependencyService(ILanguageService languageService) {
+    @jakarta.inject.Inject @javax.inject.Inject public DefaultDependencyService(ILanguageService languageService) {
         this.languageService = languageService;
     }
 
@@ -35,7 +34,7 @@ public final class DefaultDependencyService implements IDependencyService {
         if(config.compileDeps().isEmpty()) {
             logger.trace("No compile dependencies found for project '{}'."
                 + "Returning all active language components as compile dependencies instead.", project);
-            return ImmutableList.copyOf(LanguageUtils.allActiveComponents(languageService));
+            return ImList.Immutable.copyOf(LanguageUtils.allActiveComponents(languageService));
         }
         return getLanguages(config.compileDeps());
     }
@@ -57,7 +56,7 @@ public final class DefaultDependencyService implements IDependencyService {
         final IProjectConfig config = project.config();
 
         final Collection<LanguageIdentifier> compileDeps = config.compileDeps();
-        final Collection<LanguageIdentifier> missingCompile = Lists.newLinkedList();
+        final Collection<LanguageIdentifier> missingCompile = new LinkedList<>();
         for(LanguageIdentifier identifier : compileDeps) {
             if(languageService.getComponent(identifier) == null) {
                 missingCompile.add(identifier);
@@ -65,7 +64,7 @@ public final class DefaultDependencyService implements IDependencyService {
         }
 
         final Collection<LanguageIdentifier> sourceDeps = config.sourceDeps();
-        final Collection<LanguageIdentifier> missingSource = Lists.newLinkedList();
+        final Collection<LanguageIdentifier> missingSource = new LinkedList<>();
         for(LanguageIdentifier identifier : sourceDeps) {
             if(languageService.getComponent(identifier) == null) {
                 missingSource.add(identifier);
@@ -84,7 +83,7 @@ public final class DefaultDependencyService implements IDependencyService {
      */
     private Collection<ILanguageComponent> getLanguages(Iterable<LanguageIdentifier> ids)
         throws MissingDependencyException {
-        final Collection<ILanguageComponent> components = Lists.newLinkedList();
+        final Collection<ILanguageComponent> components = new LinkedList<>();
         for(LanguageIdentifier id : ids) {
             final ILanguageComponent component = this.languageService.getComponent(id);
             if(component == null) {

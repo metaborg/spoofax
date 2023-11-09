@@ -11,14 +11,13 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 
-import com.google.inject.Inject;
 
 public class LanguageComponentConfigService extends AConfigService<ILanguageComponent, ILanguageComponentConfig>
     implements ILanguageComponentConfigService, ILanguageComponentConfigWriter {
     private final LanguageComponentConfigBuilder configBuilder;
 
 
-    @Inject public LanguageComponentConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageComponentConfigService(AConfigurationReaderWriter configReaderWriter,
         LanguageComponentConfigBuilder configBuilder) {
         super(configReaderWriter);
 

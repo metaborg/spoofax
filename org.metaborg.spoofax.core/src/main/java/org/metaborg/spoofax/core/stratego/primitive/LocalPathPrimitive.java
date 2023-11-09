@@ -11,14 +11,13 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class LocalPathPrimitive extends ASpoofaxPrimitive {
     private final IResourceService resourceService;
 
 
-    @Inject public LocalPathPrimitive(IResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public LocalPathPrimitive(IResourceService resourceService) {
         super("local_path", 0, 0);
         this.resourceService = resourceService;
     }

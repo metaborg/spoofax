@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.meta.core.generator;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.util.file.IFileAccess;
 

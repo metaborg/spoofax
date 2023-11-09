@@ -1,8 +1,9 @@
 package org.metaborg.spoofax.core.style;
 
+import java.util.LinkedList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.style.ICategory;
@@ -14,8 +15,6 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import com.google.common.collect.Lists;
 
 public class StylerService implements ISpoofaxStylerService {
     private static final ILogger logger = LoggerUtils.logger(StylerService.class);
@@ -30,7 +29,7 @@ public class StylerService implements ISpoofaxStylerService {
             return Iterables2.empty();
         }
 
-        final List<IRegionStyle<IStrategoTerm>> regionStyles = Lists.newLinkedList();
+        final List<IRegionStyle<IStrategoTerm>> regionStyles = new LinkedList<>();
         for(IRegionCategory<IStrategoTerm> regionCategory : categorization) {
             final IRegionStyle<IStrategoTerm> regionStyle = style(facet, regionCategory);
             if(regionStyle != null) {

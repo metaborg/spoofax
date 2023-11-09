@@ -15,18 +15,18 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
+
 
 public class LegacyLanguageSpecNamePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LegacyLanguageSpecNamePrimitive.class);
 
-    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
 
-    @Inject public LegacyLanguageSpecNamePrimitive(IProjectService projectService) {
+    @jakarta.inject.Inject @javax.inject.Inject public LegacyLanguageSpecNamePrimitive(IProjectService projectService) {
         super("SSL_EXT_language_spec_name", 0, 0);
 
         this.projectService = projectService;

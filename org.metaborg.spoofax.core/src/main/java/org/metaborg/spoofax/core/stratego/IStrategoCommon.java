@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.stratego;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;

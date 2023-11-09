@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.metaborg.core.MetaborgException;
@@ -16,8 +17,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class LanguageSourceFilesPrimitive extends ASpoofaxContextPrimitive {
@@ -26,7 +25,7 @@ public class LanguageSourceFilesPrimitive extends ASpoofaxContextPrimitive {
     private final IProjectService projectService;
 
 
-    @Inject public LanguageSourceFilesPrimitive(ILanguageService languageService,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSourceFilesPrimitive(ILanguageService languageService,
         ILanguagePathService languagePathService, IProjectService projectService) {
         super("language_source_files", 0, 1);
         this.languageService = languageService;
@@ -60,7 +59,7 @@ public class LanguageSourceFilesPrimitive extends ASpoofaxContextPrimitive {
         }
 
         final Iterable<IdentifiedResource> sourceFiles = languagePathService.sourceFiles(project, impl);
-        final List<IStrategoTerm> terms = Lists.newArrayList();
+        final List<IStrategoTerm> terms = new ArrayList<>();
         for(IdentifiedResource sourceFile : sourceFiles) {
             terms.add(factory.makeString(sourceFile.resource.getName().getURI()));
         }

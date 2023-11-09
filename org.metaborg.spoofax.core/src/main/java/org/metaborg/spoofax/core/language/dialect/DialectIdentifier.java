@@ -23,7 +23,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
-import com.google.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class DialectIdentifier implements IDialectIdentifier {
@@ -34,7 +33,7 @@ public class DialectIdentifier implements IDialectIdentifier {
     private final ITermFactory termFactory;
 
 
-    @Inject public DialectIdentifier(ILanguageService languageService, IDialectService dialectService,
+    @jakarta.inject.Inject @javax.inject.Inject public DialectIdentifier(ILanguageService languageService, IDialectService dialectService,
         ITermFactory termFactory) {
         this.languageService = languageService;
         this.dialectService = dialectService;

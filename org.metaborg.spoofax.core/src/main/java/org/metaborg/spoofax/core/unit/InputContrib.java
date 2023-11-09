@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.unit;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.unit.IUnitContrib;

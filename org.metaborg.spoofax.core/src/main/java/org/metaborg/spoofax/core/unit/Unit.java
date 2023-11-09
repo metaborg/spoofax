@@ -1,14 +1,13 @@
 package org.metaborg.spoofax.core.unit;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.unit.IUnit;
 import org.metaborg.core.unit.IUnitContrib;
-
-import com.google.common.collect.Maps;
 
 public class Unit implements IUnit {
     private final @Nullable FileObject source;
@@ -21,7 +20,7 @@ public class Unit implements IUnit {
     }
 
     public Unit(@Nullable FileObject source) {
-        this(source, Maps.<String, IUnitContrib>newHashMap());
+        this(source, new HashMap<String, IUnitContrib>());
     }
 
     public Unit() {

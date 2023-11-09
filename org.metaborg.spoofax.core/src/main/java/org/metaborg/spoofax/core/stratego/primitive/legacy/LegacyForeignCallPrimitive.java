@@ -14,7 +14,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class LegacyForeignCallPrimitive extends ASpoofaxContextPrimitive {
@@ -25,7 +24,7 @@ public class LegacyForeignCallPrimitive extends ASpoofaxContextPrimitive {
     private final IStrategoCommon common;
 
 
-    @Inject public LegacyForeignCallPrimitive(ILanguageService languageService, IContextService contextService,
+    @jakarta.inject.Inject @javax.inject.Inject public LegacyForeignCallPrimitive(ILanguageService languageService, IContextService contextService,
         IProjectService projectService, IStrategoCommon common) {
         super("SSL_EXT_foreigncall", 0, 2);
 

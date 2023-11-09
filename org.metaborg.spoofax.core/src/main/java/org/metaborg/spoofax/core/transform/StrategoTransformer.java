@@ -3,6 +3,8 @@ package org.metaborg.spoofax.core.transform;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -40,9 +42,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 public class StrategoTransformer implements IStrategoTransformer {
     private static final ILogger logger = LoggerUtils.logger(StrategoTransformer.class);
@@ -55,7 +54,7 @@ public class StrategoTransformer implements IStrategoTransformer {
     private final IStrategoCommon common;
 
 
-    @Inject public StrategoTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
+    @jakarta.inject.Inject @javax.inject.Inject public StrategoTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
         IEditorRegistry editorRegistry, ISpoofaxTracingService tracingService,
         IStrategoRuntimeService strategoRuntimeService, IStrategoCommon common) {
         this.resourceService = resourceService;
@@ -89,9 +88,9 @@ public class StrategoTransformer implements IStrategoTransformer {
     @Override public Collection<ISpoofaxTransformUnit<ISpoofaxParseUnit>> transformAllParsed(
         Iterable<ISpoofaxParseUnit> inputs, IContext context, TransformActionContrib action, ITransformConfig config)
         throws TransformException {
-        final int size = Iterables.size(inputs);
+        final int size = Iterables2.size(inputs);
         final Collection<ISpoofaxTransformUnit<ISpoofaxParseUnit>> transformUnits =
-            Lists.newArrayListWithCapacity(size);
+            new ArrayList<>(size);
         for(ISpoofaxParseUnit input : inputs) {
             if(!input.valid()) {
                 throw new TransformException("Cannot transform parse unit " + input + ", it is not valid");
@@ -104,9 +103,9 @@ public class StrategoTransformer implements IStrategoTransformer {
     @Override public Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> transformAllAnalyzed(
         Iterable<ISpoofaxAnalyzeUnit> inputs, IContext context, TransformActionContrib action, ITransformConfig config)
         throws TransformException {
-        final int size = Iterables.size(inputs);
+        final int size = Iterables2.size(inputs);
         final Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> transformUnits =
-            Lists.newArrayListWithCapacity(size);
+            new ArrayList<>(size);
         for(ISpoofaxAnalyzeUnit input : inputs) {
             if(!input.valid()) {
                 throw new TransformException("Cannot transform analyze unit " + input + ", it is not valid");
@@ -177,7 +176,7 @@ public class StrategoTransformer implements IStrategoTransformer {
             try {
                 if(TermUtils.isString(resourceTerm)) {
                     resultTerm = contentTerm;
-                    outputs = Lists.newArrayList(output(resourceTerm, contentTerm, location, config));
+                    outputs = Arrays.asList(output(resourceTerm, contentTerm, location, config));
                 } else if(TermUtils.isList(resourceTerm)) {
                     if(!TermUtils.isList(contentTerm)
                         || resourceTerm.getSubtermCount() != contentTerm.getSubtermCount()) {
@@ -185,7 +184,7 @@ public class StrategoTransformer implements IStrategoTransformer {
                         resultTerm = null;
                         outputs = Collections.emptyList();
                     } else {
-                        outputs = Lists.newArrayListWithExpectedSize(resourceTerm.getSubtermCount());
+                        outputs = new ArrayList<>(resourceTerm.getSubtermCount());
                         for(int i = 0; i < resourceTerm.getSubtermCount(); i++) {
                             outputs
                                 .add(output(resourceTerm.getSubterm(i), contentTerm.getSubterm(i), location, config));
@@ -211,7 +210,7 @@ public class StrategoTransformer implements IStrategoTransformer {
 
         // Open editor
         if(action.flags.openEditor) {
-            List<FileObject> resources = Lists.newArrayListWithExpectedSize(outputs.size());
+            List<FileObject> resources = new ArrayList<>(outputs.size());
             for(TransformOutput output : outputs) {
                 if(output.resource != null) {
                     resources.add(output.resource);
@@ -221,7 +220,7 @@ public class StrategoTransformer implements IStrategoTransformer {
         }
 
         // Return result
-        final TransformContrib contrib = new TransformContrib(resultTerm != null || !Iterables.isEmpty(outputs), true,
+        final TransformContrib contrib = new TransformContrib(resultTerm != null || !Iterables2.isEmpty(outputs), true,
             resultTerm, outputs, Iterables2.<IMessage>empty(), duration);
         return unitService.transformUnit(input, contrib, context, actionContribution);
     }

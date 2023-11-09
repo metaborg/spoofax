@@ -1,5 +1,6 @@
 package org.metaborg.core.syntax;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -9,8 +10,6 @@ import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> implements ISyntaxService<I, P> {
     private static final ILogger logger = LoggerUtils.logger(SyntaxService.class);
@@ -18,7 +17,7 @@ public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> 
     protected final Map<String, ? extends IParser<I, P>> parsers;
 
 
-    @Inject public SyntaxService(Map<String, ? extends IParser<I, P>> parsers) {
+    @jakarta.inject.Inject @javax.inject.Inject public SyntaxService(Map<String, ? extends IParser<I, P>> parsers) {
         this.parsers = parsers;
     }
 
@@ -40,7 +39,7 @@ public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> 
 
     @Override public Collection<P> parseAll(Iterable<I> inputs, IProgress progress, ICancel cancel)
         throws ParseException, InterruptedException {
-        final Collection<P> results = Lists.newArrayList();
+        final Collection<P> results = new ArrayList<>();
         for(I input : inputs) {
             results.add(parse(input, progress, cancel));
         }

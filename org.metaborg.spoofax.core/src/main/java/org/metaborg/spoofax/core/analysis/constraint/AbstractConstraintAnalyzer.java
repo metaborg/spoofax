@@ -3,11 +3,12 @@ package org.metaborg.spoofax.core.analysis.constraint;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -38,9 +39,12 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.metaborg.util.Ref;
+import org.metaborg.util.collection.ImList;
+import org.metaborg.util.collection.ListMultimap;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.log.PrintlineLogger;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.metaborg.util.time.Timer;
@@ -48,15 +52,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import mb.flowspec.terms.B;
 import mb.nabl2.terms.stratego.StrategoTermIndices;
@@ -66,6 +61,7 @@ import mb.nabl2.terms.stratego.TermOrigin;
 public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
+    private static final PrintlineLogger plLogger = PrintlineLogger.logger(AbstractConstraintAnalyzer.class);
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
@@ -98,7 +94,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         if(results.results().isEmpty() && results.updates().isEmpty()) {
             throw new AnalysisException(genericContext, "Analysis failed, no result was returned.");
         }
-        return new SpoofaxAnalyzeResult(Iterables.getOnlyElement(results.results()), results.updates(),
+        final ISpoofaxAnalyzeUnit unitResult = Iterables2.getOnlyElement(results.results());
+        plLogger.debug("analyze single: {}; messages: {}", unitResult.source(), unitResult.messages());
+        return new SpoofaxAnalyzeResult(unitResult, results.updates(),
                 results.context());
     }
 
@@ -127,9 +125,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(context, "Failed to get Stratego runtime", e);
         }
 
-        final Map<String, ISpoofaxParseUnit> changed = Maps.newHashMap();
-        final Map<String, ISpoofaxAnalyzeUnit> removed = Maps.newHashMap();
-        final Map<String, ISpoofaxAnalyzeUnit> invalid = Maps.newHashMap();
+        final Map<String, ISpoofaxParseUnit> changed = new HashMap<>();
+        final Map<String, ISpoofaxAnalyzeUnit> removed = new HashMap<>();
+        final Map<String, ISpoofaxAnalyzeUnit> invalid = new HashMap<>();
         for(ISpoofaxParseUnit input : inputs) {
             if(input.detached() || input.source() == null) {
                 logger.warn("Ignoring detached units");
@@ -179,6 +177,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          * 2. Call analysis, and parse results *
          ***************************************/
 
+        try {
+        PrintlineLogger.enableGlobal();
         final Map<String, IStrategoTerm> results = new HashMap<>();
 
         if(realChange) {
@@ -192,10 +192,11 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          * 3. Process analysis results & collect messages *
          **************************************************/
 
-        final ListMultimap<FileName, IMessage> messages = ArrayListMultimap.create();
-        final Set<ISpoofaxAnalyzeUnit> fullResults = Sets.newHashSet();
-        final Set<ISpoofaxAnalyzeUnitUpdate> updateResults = Sets.newHashSet();
+        final Set<ISpoofaxAnalyzeUnit> fullResults = new HashSet<ISpoofaxAnalyzeUnit>();
+        final Set<ISpoofaxAnalyzeUnitUpdate> updateResults =
+            new HashSet<ISpoofaxAnalyzeUnitUpdate>();
 
+        final ListMultimap<FileName, IMessage> messages = new ListMultimap<>();
         processResults(changed, expects, results, messages);
 
         /************************************
@@ -204,12 +205,15 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         for(Expect expect : expects.values()) {
             Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
+            plLogger.debug("result: {}; messages: {}", expect.resource(), fileMessages);
             expect.result(fileMessages, fullResults, updateResults);
         }
         fullResults.addAll(removed.values());
         fullResults.addAll(invalid.values());
 
+        plLogger.debug("full results: {}; updates: {}", fullResults, updateResults);
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
+        } finally { PrintlineLogger.disableGlobal(); }
     }
 
     private boolean computeChanges(IConstraintContext context, Map<String, ISpoofaxParseUnit> changed,
@@ -372,7 +376,9 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         // collect messages
         for(Map.Entry<String, Expect> entry : expects.entrySet()) {
             final Expect expect = entry.getValue();
-            messages.putAll(expect.messages());
+            ListMultimap<FileName, IMessage> msgs = expect.messages();
+            plLogger.debug("collected messages: {}", msgs);
+            messages.putAll(msgs);
         }
 
     }
@@ -396,7 +402,8 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             this.errors = errors;
             this.warnings = warnings;
             this.notes = notes;
-            this.exceptions = exceptions != null ? Lists.newArrayList(exceptions) : Lists.newArrayList();
+            this.exceptions = exceptions != null ? new ArrayList<>(exceptions) :
+                new ArrayList<>();
             this.context = context;
         }
 
@@ -407,6 +414,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         abstract boolean requireResult();
 
         protected void resultMessages(IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes) {
+            plLogger.debug("{} errors: {}", resource, errors);
             this.errors = errors;
             this.warnings = warnings;
             this.notes = notes;
@@ -423,7 +431,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
                 Collection<ISpoofaxAnalyzeUnitUpdate> updateResults);
 
         ListMultimap<FileName, IMessage> messages() {
-            final ListMultimap<FileName, IMessage> messages = LinkedListMultimap.create();
+            final ListMultimap<FileName, IMessage> messages = new ListMultimap<>();
             messages(MessageSeverity.ERROR, errors, messages);
             messages(MessageSeverity.WARNING, warnings, messages);
             messages(MessageSeverity.NOTE, notes, messages);
@@ -670,7 +678,7 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         if(term == null || !TermUtils.isAppl(term) || !TermUtils.isAppl(term, op, n)) {
             return null;
         }
-        return ImmutableList.copyOf(term.getAllSubterms());
+        return ImList.Immutable.copyOf(term.getAllSubterms());
     }
 
 }

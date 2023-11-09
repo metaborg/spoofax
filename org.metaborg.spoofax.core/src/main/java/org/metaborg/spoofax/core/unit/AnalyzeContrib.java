@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.unit;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.unit.IUnitContrib;
@@ -34,4 +34,15 @@ public class AnalyzeContrib implements IUnitContrib {
     @Override public String id() {
         return "analyze";
     }
+
+    @Override public String toString() {
+        final StringBuilder sb = new StringBuilder("AnalyzeUnit{");
+        sb.append(" ").append("valid=").append(valid).append(",");
+        sb.append(" ").append("success=").append(success).append(",");
+        sb.append(" ").append("hasAst=").append(hasAst).append(",");
+        sb.append(" ").append("messages=").append(messages).append(",");
+        sb.append(" ").append("duration=").append(duration).append(",");
+        return sb.append("}").toString();
+    }
+
 }

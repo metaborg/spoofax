@@ -3,7 +3,7 @@ package org.metaborg.spoofax.meta.core.pluto.build;
 import java.io.File;
 import java.io.IOException;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilder;

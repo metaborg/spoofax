@@ -1,9 +1,11 @@
 package org.metaborg.spoofax.meta.core.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;
@@ -24,8 +26,6 @@ import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-
-import com.google.common.collect.Lists;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;
@@ -244,7 +244,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     @Override public Collection<IBuildStepConfig> buildSteps() {
         final List<HierarchicalConfiguration<ImmutableNode>> antConfigs = config.configurationsAt(PROP_BUILD_ANT);
         final List<HierarchicalConfiguration<ImmutableNode>> strConfigs = config.configurationsAt(PROP_BUILD_STR);
-        final List<IBuildStepConfig> buildSteps = Lists.newArrayListWithCapacity(antConfigs.size() + strConfigs.size());
+        final List<IBuildStepConfig> buildSteps = new ArrayList<>(antConfigs.size() + strConfigs.size());
 
         for(HierarchicalConfiguration<ImmutableNode> antConfig : antConfigs) {
             final LanguageSpecBuildPhase phase = phase(antConfig);
@@ -257,7 +257,8 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         for(HierarchicalConfiguration<ImmutableNode> strConfig : strConfigs) {
             final LanguageSpecBuildPhase phase = phase(strConfig);
             final String strategy = strConfig.getString("strategy");
-            final List<String> args = strConfig.getList(String.class, "args", Lists.<String>newArrayList());
+            final List<String> args = strConfig.getList(String.class, "args",
+                new ArrayList<String>());
             if(strategy != null) {
                 buildSteps.add(new StrategoBuildStepConfig(phase, strategy, args));
             }
@@ -335,7 +336,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     @Override public List<String> sdfMetaFiles() {
         final List<String> values = config.getList(String.class, PROP_SDF_META);
         if(values == null) {
-            return Lists.newArrayList("Stratego-" + sdfName());
+            return Arrays.asList("Stratego-" + sdfName());
         }
         return values;
     }

@@ -28,7 +28,6 @@ import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.M;
 
-import com.google.inject.Inject;
 
 import mb.flowspec.controlflow.IFlowSpecSolution;
 import mb.flowspec.primitives.AnalysisPrimitive;
@@ -48,7 +47,7 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
     private static final String FLOWSPEC_STATIC_INFO_DIR = "target/metaborg/flowspec-static-info";
     private final Map<ILanguageComponent, InterpreterBuilder> flowSpecTransferFunctionCache = new HashMap<>();
 
-    @Inject public FS_solve(IResourceService resourceService, ITermFactory termFactory) {
+    @jakarta.inject.Inject @javax.inject.Inject public FS_solve(IResourceService resourceService, ITermFactory termFactory) {
         super(FS_solve.class.getSimpleName(), 0, 2);
         this.resourceService = resourceService;
         this.termFactory = termFactory;

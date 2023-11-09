@@ -22,17 +22,15 @@ import org.metaborg.core.processing.ITask;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.spoofax.core.build.ISpoofaxBuildOutput;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.tuple.Tuple2;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Streams;
-
 import mb.nabl2.terms.ITerm;
-import mb.nabl2.terms.matching.Transform.T;
+import static mb.nabl2.terms.matching.Transform.T;
 import mb.nabl2.terms.stratego.StrategoTerms;
 import mb.nabl2.util.TermFormatter;
 import mb.statix.solver.IConstraint;
@@ -91,7 +89,7 @@ public class StatixGenerator {
         }
 
         ISpoofaxAnalyzeUnit analyzeUnit;
-        if((analyzeUnit = Streams.stream(output.analysisResults().iterator())
+        if((analyzeUnit = output.analysisResults().stream()
                 .filter(r -> r.source().getName().equals(resource.getName())).findFirst().orElse(null)) == null) {
             throw new MetaborgException("Cannot find " + resource);
         }
@@ -130,8 +128,8 @@ public class StatixGenerator {
     public static TermFormatter pretty(Spoofax S, IContext context, String strategy) {
         final ILanguageImpl lang = context.language();
         final TermFormatter pp;
-        if(!Iterables.isEmpty(lang.components())) {
-            final ILanguageComponent lc = Iterables.getOnlyElement(lang.components());
+        if(!Iterables2.isEmpty(lang.components())) {
+            final ILanguageComponent lc = Iterables2.getOnlyElement(lang.components());
             final ITermFactory tf;
             final HybridInterpreter runtime;
             try {

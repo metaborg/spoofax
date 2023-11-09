@@ -1,19 +1,18 @@
 package org.metaborg.core.config;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 /**
  * Configuration-based builder for {@link ILanguageComponentConfig} objects.
@@ -26,7 +25,7 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
     protected @Nullable Set<LanguageIdentifier> javaDeps;
 
 
-    @Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject @javax.inject.Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 
@@ -87,10 +86,10 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
 
     @Override public IProjectConfigBuilder addSources(Iterable<IExportConfig> sources) {
         if(this.sources == null) {
-            this.sources = Lists.newArrayList();
+            this.sources = new ArrayList<>();
         }
 
-        Iterables.addAll(this.sources, sources);
+        Iterables2.addAll(this.sources, sources);
         return this;
     }
 
@@ -105,10 +104,10 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
 
     @Override public IProjectConfigBuilder addCompileDeps(Iterable<LanguageIdentifier> deps) {
         if(this.compileDeps == null) {
-            this.compileDeps = Sets.newHashSet();
+            this.compileDeps = new HashSet<LanguageIdentifier>();
         }
 
-        Iterables.addAll(this.compileDeps, deps);
+        Iterables2.addAll(this.compileDeps, deps);
         return this;
     }
 
@@ -123,10 +122,10 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
 
     @Override public IProjectConfigBuilder addSourceDeps(Iterable<LanguageIdentifier> deps) {
         if(this.sourceDeps == null) {
-            this.sourceDeps = Sets.newHashSet();
+            this.sourceDeps = new HashSet<LanguageIdentifier>();
         }
 
-        Iterables.addAll(this.sourceDeps, deps);
+        Iterables2.addAll(this.sourceDeps, deps);
         return this;
     }
 
@@ -141,10 +140,10 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
 
     @Override public IProjectConfigBuilder addJavaDeps(Iterable<LanguageIdentifier> deps) {
         if(this.javaDeps == null) {
-            this.javaDeps = Sets.newHashSet();
+            this.javaDeps = new HashSet<LanguageIdentifier>();
         }
 
-        Iterables.addAll(this.javaDeps, deps);
+        Iterables2.addAll(this.javaDeps, deps);
         return this;
     }
 

@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +23,6 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 public class DynamicClassLoadingService implements IDynamicClassLoadingService, ILanguageCache {
@@ -32,12 +31,13 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
     private final IResourceService resourceService;
     private final Set<ClassLoader> additionalClassLoaders;
 
-    private final Map<ILanguageComponent, ClassLoader> classLoaderCache = Maps.newHashMap();
-    private final Map<ILanguageComponent, Map<Class<?>, ServiceLoader<?>>> serviceLoaderCache = Maps.newHashMap();
+    private final Map<ILanguageComponent, ClassLoader> classLoaderCache = new HashMap<>();
+    private final Map<ILanguageComponent, Map<Class<?>, ServiceLoader<?>>> serviceLoaderCache =
+        new HashMap<>();
     private final Injector injector;
 
 
-    @Inject public DynamicClassLoadingService(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public DynamicClassLoadingService(IResourceService resourceService,
         Set<ClassLoader> additionalClassLoaders, Injector injector) {
         this.resourceService = resourceService;
         this.additionalClassLoaders = additionalClassLoaders;
@@ -82,7 +82,7 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
                 return initializeInjectionFields(serviceLoader.iterator());
             }
         } else {
-            serviceLoaderCacheLevel2 = Maps.newHashMap();
+            serviceLoaderCacheLevel2 = new HashMap<>();
             serviceLoaderCache.put(component, serviceLoaderCacheLevel2);
         }
         final ClassLoader classLoader = classLoader(component);

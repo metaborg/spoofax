@@ -1,6 +1,5 @@
 package org.metaborg.core.processing;
 
-import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
@@ -19,7 +18,7 @@ import org.metaborg.util.task.IProgress;
 import org.metaborg.util.task.NullCancel;
 import org.metaborg.util.task.NullProgress;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Processor implementation that uses {@link BlockingTask} as task implementation. Tasks execute and block when
@@ -32,7 +31,7 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU 
     private final ILanguageChangeProcessor languageChangeProcessor;
 
 
-    @Inject public BlockingProcessor(IDialectProcessor dialectProcessor, IBuilder<P, A, AU, T> builder,
+    @jakarta.inject.Inject @javax.inject.Inject public BlockingProcessor(IDialectProcessor dialectProcessor, IBuilder<P, A, AU, T> builder,
         ILanguageChangeProcessor languageChangeProcessor) {
         this.dialectProcessor = dialectProcessor;
         this.builder = builder;

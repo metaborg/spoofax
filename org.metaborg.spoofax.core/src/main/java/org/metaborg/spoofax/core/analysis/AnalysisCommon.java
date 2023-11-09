@@ -1,8 +1,10 @@
 package org.metaborg.spoofax.core.analysis;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
@@ -18,14 +20,12 @@ import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 public class AnalysisCommon {
     private final ISpoofaxTracingService tracingService;
 
 
-    @Inject public AnalysisCommon(ISpoofaxTracingService tracingService) {
+    @jakarta.inject.Inject @javax.inject.Inject public AnalysisCommon(ISpoofaxTracingService tracingService) {
         this.tracingService = tracingService;
     }
 
@@ -36,7 +36,7 @@ public class AnalysisCommon {
     }
 
     public Collection<IMessage> messages(@Nullable FileObject resource, MessageSeverity severity, IStrategoTerm messagesTerm) {
-        final Collection<IMessage> messages = Lists.newArrayListWithExpectedSize(messagesTerm.getSubtermCount());
+        final Collection<IMessage> messages = new ArrayList<>(messagesTerm.getSubtermCount());
 
         for(IStrategoTerm term : messagesTerm.getAllSubterms()) {
             final IStrategoTerm originTerm;
@@ -66,7 +66,7 @@ public class AnalysisCommon {
     }
 
     public Collection<IMessage> messages(MessageSeverity severity, IStrategoTerm messagesTerm) {
-        final Collection<IMessage> messages = Lists.newArrayListWithExpectedSize(messagesTerm.getSubtermCount());
+        final Collection<IMessage> messages = new ArrayList<>(messagesTerm.getSubtermCount());
 
         for(IStrategoTerm term : messagesTerm.getAllSubterms()) {
             final IStrategoTerm originTerm;
@@ -96,7 +96,7 @@ public class AnalysisCommon {
     }
 
     public Collection<IMessage> ambiguityMessages(final FileObject resource, IStrategoTerm ast) {
-        final Collection<IMessage> messages = Lists.newLinkedList();
+        final Collection<IMessage> messages = new LinkedList<>();
         final TermVisitor termVisitor = new TermVisitor() {
             private IStrategoTerm ambStart;
 

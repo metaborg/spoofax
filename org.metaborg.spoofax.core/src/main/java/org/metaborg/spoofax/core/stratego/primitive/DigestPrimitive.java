@@ -1,14 +1,14 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxPrimitive;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-
-import com.google.common.hash.Hashing;
 import org.spoofax.terms.util.TermUtils;
 
 public class DigestPrimitive extends ASpoofaxPrimitive {
@@ -23,7 +23,28 @@ public class DigestPrimitive extends ASpoofaxPrimitive {
             return null;
         }
         final String str = TermUtils.toJavaString(current);
-        final String hash = Hashing.sha256().hashString(str, StandardCharsets.UTF_8).toString();
+        final String hash;
+        try {
+            hash = sha256(str);
+        } catch(NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
         return factory.makeString(hash);
+    }
+
+    private static String sha256(String str) throws NoSuchAlgorithmException {
+        byte[] hash =
+            MessageDigest.getInstance("SHA-256").digest(str.getBytes(StandardCharsets.UTF_8));
+        StringBuilder hexString = new StringBuilder(2 * hash.length);
+        for (int i = 0; i < hash.length; i++) {
+            final int unsignedByte = 0xff & hash[i];
+            final String hex = Integer.toHexString(unsignedByte);
+            if(hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 }

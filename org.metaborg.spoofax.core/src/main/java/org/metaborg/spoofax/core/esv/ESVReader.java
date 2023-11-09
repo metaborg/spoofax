@@ -3,13 +3,12 @@ package org.metaborg.spoofax.core.esv;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.common.collect.Lists;
 import org.spoofax.terms.util.TermUtils;
 
 /**
@@ -78,7 +77,7 @@ public class ESVReader {
         if(t == null)
             return null;
 
-        List<String> results = Lists.newArrayList();
+        List<String> results = new ArrayList<>();
 
         if(TermUtils.isAppl(t, "Values", 1)) {
             IStrategoList values = TermUtils.toListAt(t, 0);

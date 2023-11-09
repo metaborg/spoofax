@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.tracing;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -28,7 +28,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.inject.Inject;
 
 public class HoverService implements ISpoofaxHoverService {
     private static final ILogger logger = LoggerUtils.logger(HoverService.class);
@@ -41,7 +40,7 @@ public class HoverService implements ISpoofaxHoverService {
     private final TracingCommon common;
 
 
-    @Inject public HoverService(IProjectService projectService, IContextService contextService,
+    @jakarta.inject.Inject @javax.inject.Inject public HoverService(IProjectService projectService, IContextService contextService,
         ITermFactory termFactory, IStrategoRuntimeService strategoRuntimeService,
         ISpoofaxTracingService tracingService, TracingCommon common) {
         this.projectService = projectService;

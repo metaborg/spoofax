@@ -3,7 +3,7 @@ package org.metaborg.meta.core.config;
 import java.util.Collection;
 import java.util.Collections;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ImmutableConfiguration;

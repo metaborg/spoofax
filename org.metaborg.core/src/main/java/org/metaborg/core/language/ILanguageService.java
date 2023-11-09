@@ -5,7 +5,7 @@ import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.ILanguageComponentConfig;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Interface for a language service that creates and destroys languages, maps names to active languages, and provides an

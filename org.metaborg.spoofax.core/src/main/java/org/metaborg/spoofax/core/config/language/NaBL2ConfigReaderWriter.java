@@ -1,7 +1,9 @@
 package org.metaborg.spoofax.core.config.language;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,9 +12,7 @@ import org.apache.commons.configuration2.ImmutableConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.metaborg.util.iterators.Iterables2;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.nabl2.config.NaBL2DebugConfig;
@@ -44,20 +44,22 @@ public final class NaBL2ConfigReaderWriter {
     }
 
     private static Collection<Flag> readFlags(String flagNames) {
-        List<Flag> flags = Lists.newArrayList();
+        List<Flag> flags = new ArrayList<>();
         for(String name : splitString(flagNames)) {
             try {
                 flags.add(Flag.valueOf(name.toUpperCase()));
             } catch(IllegalArgumentException ex) {
             }
         }
-        return Sets.newEnumSet(flags, Flag.class);
+        EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
+        set.addAll(flags);
+        return set;
     }
 
     public static Collection<IMessage> validate(ImmutableConfiguration config, MessageBuilder mb) {
         final String allFlags = String.join(" ", Arrays.asList(Flag.values()).stream().map(Flag::name)
                 .map(String::toLowerCase).collect(Collectors.toList()));
-        List<IMessage> messages = Lists.newArrayList();
+        List<IMessage> messages = new ArrayList<>();
         for(String flag : splitString(config.getString(PROP_DEBUG, ""))) {
             try {
                 Flag.valueOf(flag.toUpperCase());

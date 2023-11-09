@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.analysis;
 
 import java.util.Collection;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.analysis.AnalyzeResults;
 import org.metaborg.core.context.IContext;

@@ -1,19 +1,18 @@
 package org.metaborg.core.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.metaborg.core.language.LanguageIdentifier;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 public class LanguageImplConfig implements ILanguageImplConfig {
-    private final Set<LanguageIdentifier> compileDeps = Sets.newHashSet();
-    private final Set<LanguageIdentifier> sourceDeps = Sets.newHashSet();
-    private final Set<LanguageIdentifier> javaDeps = Sets.newHashSet();
-    private final Collection<IGenerateConfig> generates = Lists.newArrayList();
-    private final Collection<IExportConfig> exports = Lists.newArrayList();
+    private final Set<LanguageIdentifier> compileDeps = new HashSet<LanguageIdentifier>();
+    private final Set<LanguageIdentifier> sourceDeps = new HashSet<LanguageIdentifier>();
+    private final Set<LanguageIdentifier> javaDeps = new HashSet<LanguageIdentifier>();
+    private final Collection<IGenerateConfig> generates = new ArrayList<>();
+    private final Collection<IExportConfig> exports = new ArrayList<>();
 
 
     public LanguageImplConfig(Iterable<ILanguageComponentConfig> configs) {

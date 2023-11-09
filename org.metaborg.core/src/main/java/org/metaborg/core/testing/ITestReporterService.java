@@ -2,7 +2,7 @@ package org.metaborg.core.testing;
 
 import org.metaborg.util.log.ILogger;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.io.PrintStream;
 
 /**

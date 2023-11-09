@@ -1,6 +1,6 @@
 package org.metaborg.core.language;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Represents a change of a language component in the {@link ILanguageService}.

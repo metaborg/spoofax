@@ -1,8 +1,9 @@
 package org.metaborg.meta.core.config;
 
+import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.AConfigurationReaderWriter;
@@ -13,10 +14,8 @@ import org.metaborg.core.config.LanguageComponentConfigBuilder;
 import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.language.LanguageContributionIdentifier;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 /**
  * Configuration-based builder for {@link ILanguageSpecConfig} objects.
@@ -26,7 +25,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
     protected @Nullable Boolean useBuildSystemSpec;
 
 
-    @Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 
@@ -148,10 +147,10 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
 
     @Override public ILanguageSpecConfigBuilder addPardonedLanguages(Iterable<String> languages) {
         if(this.pardonedLanguages == null) {
-            this.pardonedLanguages = Sets.newHashSet();
+            this.pardonedLanguages = new HashSet<String>();
         }
 
-        this.pardonedLanguages.addAll(Lists.newArrayList(languages));
+        this.pardonedLanguages.addAll(Iterables2.toArrayList(languages));
         return this;
     }
 

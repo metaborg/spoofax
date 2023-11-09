@@ -14,7 +14,6 @@ import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
 import org.metaborg.core.processing.parse.IParseResultProcessor;
 
-import com.google.inject.Inject;
 
 /**
  * Default implementation for the language change processor.
@@ -28,7 +27,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     private final Set<ILanguageCache> languageCaches;
 
 
-    @Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IContextProcessor contextProcessor,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IContextProcessor contextProcessor,
         IParseResultProcessor<?, ?> parseResultProcessor, IAnalysisResultProcessor<?, ?, ?> analysisResultProcessor,
         IEditorRegistry editorRegistry, Set<ILanguageCache> languageCaches) {
         this.dialectProcessor = dialectProcessor;

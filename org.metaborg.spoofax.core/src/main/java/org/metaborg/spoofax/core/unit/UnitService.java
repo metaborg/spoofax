@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.unit;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -11,13 +11,12 @@ import org.metaborg.core.unit.IUnit;
 import org.metaborg.spoofax.core.syntax.JSGLRParserConfiguration;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
 
 public class UnitService implements ISpoofaxUnitService {
     private final ITermFactory termFactory;
 
 
-    @Inject public UnitService(ITermFactory termFactory) {
+    @jakarta.inject.Inject @javax.inject.Inject public UnitService(ITermFactory termFactory) {
         this.termFactory = termFactory;
     }
 

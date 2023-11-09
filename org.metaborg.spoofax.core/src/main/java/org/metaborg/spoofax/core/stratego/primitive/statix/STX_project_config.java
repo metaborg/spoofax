@@ -11,7 +11,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
 
 import mb.flowspec.terms.B;
 import mb.statix.spoofax.IStatixProjectConfig;
@@ -20,7 +19,7 @@ public class STX_project_config extends ASpoofaxContextPrimitive {
 
     final ISpoofaxProjectConfigService projectConfigService;
 
-    @Inject public STX_project_config(ISpoofaxProjectConfigService projectConfigService) {
+    @jakarta.inject.Inject @javax.inject.Inject public STX_project_config(ISpoofaxProjectConfigService projectConfigService) {
         super(STX_project_config.class.getSimpleName(), 0, 0);
         this.projectConfigService = projectConfigService;
     }

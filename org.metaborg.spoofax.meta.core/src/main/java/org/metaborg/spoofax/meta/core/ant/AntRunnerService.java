@@ -3,19 +3,18 @@ package org.metaborg.spoofax.meta.core.ant;
 import java.net.URL;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.tools.ant.BuildListener;
 import org.metaborg.core.resource.IResourceService;
 
-import com.google.inject.Inject;
 
 public class AntRunnerService implements IAntRunnerService {
     private final IResourceService resourceService;
 
 
-    @Inject public AntRunnerService(IResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public AntRunnerService(IResourceService resourceService) {
         this.resourceService = resourceService;
     }
 

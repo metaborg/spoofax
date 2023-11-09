@@ -3,7 +3,7 @@ package org.metaborg.core.test.language;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.junit.Test;
 import org.metaborg.core.language.LanguageVersion;

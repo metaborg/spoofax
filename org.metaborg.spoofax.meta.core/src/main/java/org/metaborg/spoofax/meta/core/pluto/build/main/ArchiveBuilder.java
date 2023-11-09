@@ -18,11 +18,10 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder.Output;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.FileSelectorUtils;
 import org.metaborg.util.resource.ResourceUtils;
 import org.metaborg.util.resource.ZipArchiver;
-
-import com.google.common.collect.Iterables;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
@@ -118,13 +117,13 @@ public class ArchiveBuilder extends SpoofaxBuilder<ArchiveBuilder.Input, OutputT
                     try {
                         final FileObject dir = ResourceUtils.resolveFile(paths.root(), directory);
                         final FileSelector includesSelector;
-                        if(Iterables.isEmpty(includes)) {
+                        if(Iterables2.isEmpty(includes)) {
                             includesSelector = FileSelectorUtils.all();
                         } else {
                             includesSelector = FileSelectorUtils.ant(includes);
                         }
                         final FileSelector excludesSelector;
-                        if(Iterables.isEmpty(excludes)) {
+                        if(Iterables2.isEmpty(excludes)) {
                             excludesSelector = FileSelectorUtils.none();
                         } else {
                             excludesSelector = FileSelectorUtils.ant(excludes);

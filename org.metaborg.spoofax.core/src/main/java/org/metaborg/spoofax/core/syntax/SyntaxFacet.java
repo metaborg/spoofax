@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.syntax;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -11,9 +12,7 @@ import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Lists;
-
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Represents the syntax (or parsing) facet of a language.
@@ -90,7 +89,7 @@ public class SyntaxFacet implements IFacet {
      * @return Errors, or empty if there are no errors.
      */
     public Iterable<String> available() throws FileSystemException {
-        final Collection<String> errors = Lists.newLinkedList();
+        final Collection<String> errors = new LinkedList<>();
         if(parseTable != null && !parseTable.exists()) {
             final String message = logger.format("SDF parse table file {} does not exist", parseTable);
             errors.add(message);

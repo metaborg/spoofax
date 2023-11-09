@@ -8,13 +8,12 @@ import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor;
 import org.metaborg.spoofax.meta.core.pluto.util.StrategoExecutor.ExecutionResult;
 
-import com.google.inject.Inject;
 
 public class StrategoBuildStep extends AConfigBuildStep<StrategoBuildStepConfig> {
     private final IResourceService resourceService;
 
 
-    @Inject public StrategoBuildStep(IResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public StrategoBuildStep(IResourceService resourceService) {
         super(StrategoBuildStepConfig.class);
 
         this.resourceService = resourceService;

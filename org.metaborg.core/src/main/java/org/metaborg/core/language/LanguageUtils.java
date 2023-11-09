@@ -1,33 +1,32 @@
 package org.metaborg.core.language;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 public class LanguageUtils {
     private static final ILogger logger = LoggerUtils.logger(LanguageUtils.class);
 
 
     public static Set<ILanguageImpl> toImpls(Iterable<? extends ILanguageComponent> components) {
-        final Set<ILanguageImpl> impls = Sets.newHashSet();
+        final Set<ILanguageImpl> impls = new HashSet<ILanguageImpl>();
         for(ILanguageComponent component : components) {
-            Iterables.addAll(impls, component.contributesTo());
+            Iterables2.addAll(impls, component.contributesTo());
         }
         return impls;
     }
     
     public static Set<ILanguageComponent> toComponents(Iterable<? extends ILanguageImpl> impls) {
-        final Set<ILanguageComponent> components = Sets.newHashSet();
+        final Set<ILanguageComponent> components = new HashSet<ILanguageComponent>();
         for(ILanguageImpl impl : impls) {
-            Iterables.addAll(components, impl.components());
+            Iterables2.addAll(components, impl.components());
         }
         return components;
     }
@@ -46,7 +45,7 @@ public class LanguageUtils {
 
     public static Iterable<ILanguageImpl> allActiveImpls(ILanguageService languageService) {
         final Iterable<? extends ILanguage> languages = languageService.getAllLanguages();
-        final Collection<ILanguageImpl> activeImpls = Lists.newLinkedList();
+        final Collection<ILanguageImpl> activeImpls = new LinkedList<>();
         for(ILanguage language : languages) {
             final ILanguageImpl impl = language.activeImpl();
             if(impl == null) {
@@ -62,9 +61,9 @@ public class LanguageUtils {
 
     public static Iterable<ILanguageComponent> allActiveComponents(ILanguageService languageService) {
         final Iterable<ILanguageImpl> activeImpls = allActiveImpls(languageService);
-        final Collection<ILanguageComponent> activeComponents = Lists.newLinkedList();
+        final Collection<ILanguageComponent> activeComponents = new LinkedList<>();
         for(ILanguageImpl impl : activeImpls) {
-            Iterables.addAll(activeComponents, impl.components());
+            Iterables2.addAll(activeComponents, impl.components());
         }
         return activeComponents;
     }

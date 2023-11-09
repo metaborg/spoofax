@@ -1,9 +1,11 @@
 package org.metaborg.spoofax.meta.core.generator.general;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgConstants;
@@ -14,10 +16,8 @@ import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfigBuilder;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
+import org.metaborg.util.Strings;
 import org.metaborg.util.prompt.Prompter;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 public class LangSpecGeneratorSettingsBuilder {
     public static final String standardGroupId = "org.example";
@@ -73,7 +73,7 @@ public class LangSpecGeneratorSettingsBuilder {
     }
 
     public LangSpecGeneratorSettingsBuilder withoutExtensions() {
-        withExtensions(Lists.<String>newArrayList());
+        withExtensions(new ArrayList<String>());
         return this;
     }
 
@@ -203,9 +203,9 @@ public class LangSpecGeneratorSettingsBuilder {
             final String extensionString =
                 prompter.readString("File extensions (space separated) [" + defaultExt + "]").trim();
             if(extensionString.isEmpty()) {
-                extensions = Lists.newArrayList(defaultExt);
+                extensions = new ArrayList<>(Arrays.asList(defaultExt));
             } else {
-                extensions = Lists.newArrayList(extensionString.split("\\s+"));
+                extensions = new ArrayList<>(Arrays.asList(extensionString.split("\\s+")));
                 if(extensions.isEmpty()) {
                     System.err.println("Please enter valid file extensions.");
                     extensions = null;
@@ -222,7 +222,7 @@ public class LangSpecGeneratorSettingsBuilder {
 
         while(syntaxType == null) {
             final String syntaxTypeString =
-                prompter.readString("Type of syntax (one of " + Joiner.on(", ").join(SyntaxType.values()) + ")"
+                prompter.readString("Type of syntax (one of " + Strings.tsJoin(SyntaxType.values(), ", ") + ")"
                     + (defaultSyntaxType != null ? " [" + defaultSyntaxType + "]" : "")).trim();
             if(syntaxTypeString.isEmpty()) {
                 syntaxType = defaultSyntaxType;
@@ -238,7 +238,7 @@ public class LangSpecGeneratorSettingsBuilder {
 
         while(analysisType == null) {
             final String analysisTypeString =
-                prompter.readString("Type of analysis (one of " + Joiner.on(", ").join(AnalysisType.values()) + ")"
+                prompter.readString("Type of analysis (one of " + Strings.tsJoin(AnalysisType.values(), ", ") + ")"
                     + (defaultAnalysisType != null ? " [" + defaultAnalysisType + "]" : "")).trim();
             if(analysisTypeString.isEmpty()) {
                 analysisType = defaultAnalysisType;
@@ -254,7 +254,7 @@ public class LangSpecGeneratorSettingsBuilder {
 
         while(transformationType == null) {
             final String transformationTypeString =
-                prompter.readString("Type of transformation (one of " + Joiner.on(", ").join(TransformationType.values()) + ")"
+                prompter.readString("Type of transformation (one of " + Strings.tsJoin(TransformationType.values(), ", ") + ")"
                     + (defaultTransformationType != null ? " [" + defaultTransformationType + "]" : "")).trim();
             if(transformationTypeString.isEmpty()) {
                 transformationType = defaultTransformationType;
@@ -284,7 +284,7 @@ public class LangSpecGeneratorSettingsBuilder {
         final ISpoofaxLanguageSpecConfigBuilder languageSpecConfigBuilder) throws ProjectException {
         if(!canBuild()) {
             throw new ProjectException(
-                "Cannot build incomplete configuration, missing " + Joiner.on(", ").join(stillMissing()));
+                "Cannot build incomplete configuration, missing " + Strings.join(stillMissing(), ", "));
         }
 
         if(groupId == null) {
@@ -325,8 +325,8 @@ public class LangSpecGeneratorSettingsBuilder {
             && (metaborgVersion != null || defaultMetaborgVersion != null);
     }
 
-    public Iterable<String> stillMissing() {
-        List<String> missing = Lists.newArrayList();
+    public Collection<String> stillMissing() {
+        List<String> missing = new ArrayList<>();
         if(groupId == null && defaultGroupId == null) {
             missing.add("groupId");
         }
@@ -362,8 +362,8 @@ public class LangSpecGeneratorSettingsBuilder {
             && syntaxType != null && analysisType != null && transformationType != null && metaborgVersion != null;
     }
 
-    public Iterable<String> stillRequired() {
-        List<String> missing = Lists.newArrayList();
+    public Collection<String> stillRequired() {
+        List<String> missing = new ArrayList<>();
         if(groupId == null) {
             missing.add("groupId");
         }

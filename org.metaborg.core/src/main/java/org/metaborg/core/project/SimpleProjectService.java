@@ -1,9 +1,10 @@
 package org.metaborg.core.project;
 
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -16,8 +17,6 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 public class SimpleProjectService implements ISimpleProjectService {
     private static final ILogger logger = LoggerUtils.logger(SimpleProjectService.class);
@@ -25,10 +24,10 @@ public class SimpleProjectService implements ISimpleProjectService {
     private final ISourceTextService sourceTextService;
     private final IProjectConfigService projectConfigService;
 
-    private final ConcurrentMap<FileName, IProject> projects = Maps.newConcurrentMap();
+    private final ConcurrentMap<FileName, IProject> projects = new ConcurrentHashMap<>();
 
 
-    @Inject public SimpleProjectService(ISourceTextService sourceTextService,
+    @jakarta.inject.Inject @javax.inject.Inject public SimpleProjectService(ISourceTextService sourceTextService,
         IProjectConfigService projectConfigService) {
         this.sourceTextService = sourceTextService;
         this.projectConfigService = projectConfigService;

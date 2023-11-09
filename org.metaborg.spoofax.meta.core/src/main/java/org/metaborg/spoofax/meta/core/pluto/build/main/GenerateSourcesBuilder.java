@@ -14,11 +14,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.metaborg.core.MetaborgException;
@@ -49,8 +50,6 @@ import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Lists;
-
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
 import build.pluto.output.None;
@@ -60,6 +59,7 @@ import build.pluto.stamp.FileHashStamper;
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
+import mb.pie.api.STask;
 import mb.pie.api.Supplier;
 import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
@@ -111,7 +111,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
         public final @Nullable String strExternalJarFlags;
         public final List<File> strjIncludeDirs;
         public final List<File> strjIncludeFiles;
-        public final List<Supplier<Stratego2LibInfo>> str2libraries;
+        public final Set<Supplier<Stratego2LibInfo>> str2libraries;
         public final Arguments strjArgs;
         public final boolean strategoShadowJar;
         public final StrategoVersion strategoVersion;
@@ -127,7 +127,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             @Nullable File strFile, @Nullable String strJavaPackage, @Nullable String strJavaStratPackage,
             @Nullable File strJavaStratFile, StrategoFormat strFormat, @Nullable File strExternalJar,
             @Nullable String strExternalJarFlags, List<File> strjIncludeDirs, List<File> strjIncludeFiles,
-            ArrayList<Supplier<Stratego2LibInfo>> str2libraries, Arguments strjArgs, boolean strategoShadowJar,
+            Set<Supplier<Stratego2LibInfo>> str2libraries, Arguments strjArgs, boolean strategoShadowJar,
             StrategoVersion strategoVersion) {
             super(context);
             this.languageId = languageId;
@@ -546,7 +546,8 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
             if(input.strategoVersion == StrategoVersion.v1) {
                 final Strj.Input strjInput = new Strj.Input(context, strFile, outputFile, depPath, input.strJavaPackage,
-                    true, true, input.strjIncludeDirs, input.strjIncludeFiles, Lists.newArrayList(), cacheDir,
+                    true, true, input.strjIncludeDirs, input.strjIncludeFiles,
+                    new ArrayList<String>(), cacheDir,
                     extraArgs, sdfOrigin);
 
                 final Origin strjOrigin = Strj.origin(strjInput);
@@ -573,7 +574,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             }
 
             final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>();
-            final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>();
+            final LinkedHashSet<ResourcePath> strjIncludeDirs = new LinkedHashSet<>();
             for(File strjIncludeDir : input.strjIncludeDirs) {
                 FSPath fsPath = new FSPath(strjIncludeDir);
                 strjIncludeDirs.add(fsPath);
@@ -592,14 +593,22 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             packageNames.add(NameUtil.toJavaId(input.languageId.id) + ".strategies");
             final ResourcePath str2libReplicateDir =
                 new FSPath(context.resourceService().localPath(paths.str2libsDir()));
-            final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(input.str2libraries);
+            final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>(input.str2libraries);
             final boolean library = true;
             final boolean autoImportStd = false;
+            final ArrayList<String> constants = new ArrayList<>(0);
+            final ArrayList<STask<?>> strFileGeneratingTasks = new ArrayList<>(0);
+
+            // TODO: make configurable in metaborg.yaml
+            boolean supportRTree = false;
+            boolean supportStr1 = false;
+            // config this one as a boolean too
+            final ResourcePath resolveExternals = new FSPath(context.resourceService().localFile(context.resourceService().resolve(paths.strJavaStratDir(), paths.strJavaStratPkgPath(input.languageId.id))));
             final CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(outputDir), str2libReplicateDir,
-                    packageNames, new FSPath(cacheDir), new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
-                    new ArrayList<>(0), library, autoImportStd, input.strategoShadowJar, input.languageId.id,
-                    str2libraries);
+                    packageNames, new FSPath(cacheDir), constants, strjIncludeDirs, linkedLibraries, newArgs,
+                    strFileGeneratingTasks, library, autoImportStd, input.strategoShadowJar, input.languageId.id,
+                    str2libraries, supportRTree, supportStr1, resolveExternals);
             final Task<CompileOutput> compileTask = context.getCompileTask().createTask(compileInput);
 
             final IPieProvider pieProvider = context.pieProvider();
@@ -764,10 +773,11 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
 
     public static Pie initCompiler(IPieProvider pieProvider, Task<?> strIncrTask, @Nullable File outputPath)
         throws MetaborgException {
+        pieProvider.setLogLevelTrace();
         pie = pieProvider.pie();
         if(!pie.hasBeenExecuted(strIncrTask)) {
             if(outputPath != null && outputPath.exists()) {
-                logger.info("> Clean build required by PIE");
+                logger.info("> Removing Java files generated by Stratego 2");
                 try {
                     FileUtils.deleteDirectory(outputPath);
                     Files.createDirectories(outputPath.toPath());
@@ -775,7 +785,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
                     throw new MetaborgException("Failed to clean: " + e.getMessage(), e);
                 }
             }
-            pieProvider.setLogLevelWarn();
+//            pieProvider.setLogLevelWarn();
             try(final MixedSession session = pie.newSession()) {
                 session.require(strIncrTask);
             } catch(ExecException e) {
@@ -783,7 +793,7 @@ public class GenerateSourcesBuilder extends SpoofaxBuilder<GenerateSourcesBuilde
             } catch(InterruptedException e) {
                 // Ignore
             }
-            pieProvider.setLogLevelTrace();
+//            pieProvider.setLogLevelTrace();
         }
         return pie;
     }

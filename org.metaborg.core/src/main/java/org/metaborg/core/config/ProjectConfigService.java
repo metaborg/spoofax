@@ -11,14 +11,13 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.core.project.IProject;
 
-import com.google.inject.Inject;
 
 public class ProjectConfigService extends AConfigService<IProject, IProjectConfig>
         implements IProjectConfigService, IProjectConfigWriter {
     private final ProjectConfigBuilder configBuilder;
 
 
-    @Inject public ProjectConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject @javax.inject.Inject public ProjectConfigService(AConfigurationReaderWriter configReaderWriter,
             ProjectConfigBuilder configBuilder) {
         super(configReaderWriter);
 

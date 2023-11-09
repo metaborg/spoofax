@@ -20,7 +20,6 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class LegacyParseFilePrimitive extends AbstractPrimitive {
@@ -31,7 +30,7 @@ public class LegacyParseFilePrimitive extends AbstractPrimitive {
     private final ISpoofaxSyntaxService syntaxService;
 
 
-    @Inject public LegacyParseFilePrimitive(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public LegacyParseFilePrimitive(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ISpoofaxUnitService unitService,
         ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
         this("STRSGLR_parse_string", resourceService, languageIdentifierService, unitService, sourceTextService,

@@ -1,9 +1,10 @@
 package org.metaborg.spoofax.meta.core.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.config.AConfigurationReaderWriter;
@@ -17,10 +18,8 @@ import org.metaborg.meta.core.config.LanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfig;
 import org.metaborg.spoofax.core.config.SpoofaxProjectConfigBuilder;
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.iterators.Iterables2;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;
@@ -48,7 +47,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable Collection<IBuildStepConfig> buildSteps;
 
 
-    @Inject public SpoofaxLanguageSpecConfigBuilder(final AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxLanguageSpecConfigBuilder(final AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
         this.projectConfigBuilder = new SpoofaxProjectConfigBuilder(configReaderWriter);
     }
@@ -299,10 +298,10 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
 
     @Override public ISpoofaxLanguageSpecConfigBuilder addBuildSteps(Iterable<IBuildStepConfig> buildSteps) {
         if(this.buildSteps == null) {
-            this.buildSteps = Lists.newArrayList();
+            this.buildSteps = new ArrayList<>();
         }
 
-        Iterables.addAll(this.buildSteps, buildSteps);
+        Iterables2.addAll(this.buildSteps, buildSteps);
         return this;
     }
 }

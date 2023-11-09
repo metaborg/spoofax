@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.stratego.primitive;
 
 import java.io.IOException;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -29,7 +29,6 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
 import org.spoofax.terms.util.TermUtils;
 
 public class ParsePrimitive extends ASpoofaxPrimitive {
@@ -42,7 +41,7 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
     private final ISpoofaxSyntaxService syntaxService;
 
 
-    @Inject public ParsePrimitive(IResourceService resourceService, ILanguageService languageService,
+    @jakarta.inject.Inject @javax.inject.Inject public ParsePrimitive(IResourceService resourceService, ILanguageService languageService,
         ILanguageIdentifierService languageIdentifierService, IDialectIdentifier dialectIdentifier,
         ISpoofaxUnitService unitService, ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
         super("parse", 0, 4);

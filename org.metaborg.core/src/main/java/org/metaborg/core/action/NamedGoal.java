@@ -1,8 +1,9 @@
 package org.metaborg.core.action;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import com.google.common.base.Joiner;
+import org.metaborg.util.Strings;
 
 /**
  * Named transform goal that points to a builder in a menu via a list of menu names and builder name.
@@ -36,6 +37,6 @@ public class NamedGoal implements ITransformGoal {
     }
 
     @Override public String toString() {
-        return "'" + Joiner.on(" -> ").join(names) + "'";
+        return "'" + Strings.join(names," -> ") + "'";
     }
 }

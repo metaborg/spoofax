@@ -10,7 +10,7 @@ import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.metaborg.util.task.NullCancel;
 import org.metaborg.util.task.NullProgress;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Typedef interface for {@link ISyntaxService} with Spoofax interfaces.

@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.style;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.metaborg.core.language.ILanguageImpl;
@@ -20,15 +21,13 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.util.TermUtils;
 
-import com.google.common.collect.Lists;
-
 public class CategorizerService implements ISpoofaxCategorizerService {
     private static final ILogger logger = LoggerUtils.logger(CategorizerService.class);
 
 
     @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguageImpl language,
         ISpoofaxParseUnit parseResult) {
-        final List<IRegionCategory<IStrategoTerm>> regionCategories = Lists.newLinkedList();
+        final List<IRegionCategory<IStrategoTerm>> regionCategories = new LinkedList<>();
         if(!parseResult.valid()) {
             return regionCategories;
         }

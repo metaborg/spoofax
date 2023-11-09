@@ -1,9 +1,10 @@
 package org.metaborg.core.processing.analyze;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -23,8 +24,6 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
@@ -37,10 +36,10 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
     private final IParseResultRequester<I, P> parseResultRequester;
 
     private final ConcurrentMap<FileName, BehaviorSubject<AnalysisChange<A>>> updatesPerResource =
-        Maps.newConcurrentMap();
+        new ConcurrentHashMap<>();
 
 
-    @Inject public AnalysisResultProcessor(IAnalysisService<P, A, AU> analysisService,
+    @jakarta.inject.Inject @javax.inject.Inject public AnalysisResultProcessor(IAnalysisService<P, A, AU> analysisService,
         IParseResultRequester<I, P> parseResultRequester) {
         this.analysisService = analysisService;
         this.parseResultRequester = parseResultRequester;

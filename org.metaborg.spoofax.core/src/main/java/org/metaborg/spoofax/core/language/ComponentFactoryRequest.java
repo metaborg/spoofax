@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.language;
 import java.util.Collection;
 import java.util.Collections;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -12,9 +12,8 @@ import org.metaborg.core.language.IComponentCreationConfigRequest;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
+import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-
-import com.google.common.collect.Iterables;
 
 public class ComponentFactoryRequest implements IComponentCreationConfigRequest {
     private final boolean available;
@@ -207,8 +206,8 @@ public class ComponentFactoryRequest implements IComponentCreationConfigRequest 
             sb.append(this.location);
             sb.append(".\n");
         }
-        final boolean hasErrors = !Iterables.isEmpty(errors);
-        final boolean hasExceptions = !Iterables.isEmpty(exceptions);
+        final boolean hasErrors = !Iterables2.isEmpty(errors);
+        final boolean hasExceptions = !Iterables2.isEmpty(exceptions);
 
         if(hasErrors) {
             sb.append("The following errors occurred: \n");

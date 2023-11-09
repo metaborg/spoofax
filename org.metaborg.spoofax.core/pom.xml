@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.metaborg</groupId>
 		<artifactId>parent.java</artifactId>
-		<version>2.5.18</version>
+		<version>2.6.0-SNAPSHOT</version>
 		<relativePath>../../releng/parent/java</relativePath>
 	</parent>
 
@@ -84,7 +84,7 @@
 		  <artifactId>renaming.java</artifactId>
 		  <version>${metaborg-version}</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.metaborg</groupId> <artifactId>org.metaborg.meta.lang.dynsem.interpreter</artifactId> 
+		<!-- <dependency> <groupId>org.metaborg</groupId> <artifactId>org.metaborg.meta.lang.dynsem.interpreter</artifactId>
 			<version>${metaborg-version}</version> </dependency> -->
 
 		<dependency>
@@ -96,8 +96,8 @@
 			<artifactId>guice</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-multibindings</artifactId>
+			<groupId>jakarta.inject</groupId>
+			<artifactId>jakarta.inject-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -112,21 +112,22 @@
 			<artifactId>guava</artifactId>
 		</dependency>
 		<!-- Required for Guava >= 27.0: -->
-		<!--
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>failureaccess</artifactId>
 		</dependency>
-		-->
 		<dependency>
 			<groupId>io.reactivex.rxjava3</groupId>
 			<artifactId>rxjava</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>jsr305</artifactId>
-			<scope>provided</scope>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
 		</dependency>
 
     <dependency>

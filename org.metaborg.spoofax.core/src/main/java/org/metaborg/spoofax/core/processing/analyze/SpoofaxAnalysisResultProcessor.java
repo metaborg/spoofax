@@ -8,7 +8,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnitUpdate;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 
-import com.google.inject.Inject;
 
 /**
  * Typedef class for {@link AnalysisResultProcessor} with Spoofax interfaces.
@@ -16,7 +15,7 @@ import com.google.inject.Inject;
 public class SpoofaxAnalysisResultProcessor extends
     AnalysisResultProcessor<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>
     implements ISpoofaxAnalysisResultProcessor {
-    @Inject public SpoofaxAnalysisResultProcessor(ISpoofaxAnalysisService analysisService,
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxAnalysisResultProcessor(ISpoofaxAnalysisService analysisService,
         ISpoofaxParseResultRequester parseResultRequester) {
         super(analysisService, parseResultRequester);
     }

@@ -1,6 +1,6 @@
 package org.metaborg.core.processing;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
@@ -17,7 +17,6 @@ import org.metaborg.core.transform.ITransformUnit;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 
-import com.google.inject.Inject;
 
 /**
  * Default implementation for the processor runner.
@@ -27,7 +26,7 @@ public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, AU ex
     private final IProcessor<P, A, AU, T> processor;
 
 
-    @Inject public ProcessorRunner(IProcessor<P, A, AU, T> processor, ILanguageService languageService) {
+    @jakarta.inject.Inject @javax.inject.Inject public ProcessorRunner(IProcessor<P, A, AU, T> processor, ILanguageService languageService) {
         this.processor = processor;
 
         languageService.componentChanges().subscribe(this::languageChange);

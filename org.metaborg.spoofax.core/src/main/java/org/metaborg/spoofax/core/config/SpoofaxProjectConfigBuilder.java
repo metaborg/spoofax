@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.config;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -11,7 +11,6 @@ import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.ProjectConfigBuilder;
 import org.metaborg.core.language.LanguageIdentifier;
 
-import com.google.inject.Inject;
 
 import mb.nabl2.config.NaBL2Config;
 import mb.statix.spoofax.IStatixProjectConfig;
@@ -20,7 +19,7 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
     protected @Nullable NaBL2Config nabl2Config;
     protected @Nullable IStatixProjectConfig statixConfig;
 
-    @Inject public SpoofaxProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 

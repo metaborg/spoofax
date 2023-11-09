@@ -16,7 +16,6 @@ dependencies {
   implementation(compositeBuild("sdf2table"))
   implementation(compositeBuild("sdf2parenthesize"))
   implementation(compositeBuild("org.metaborg.parsetable"))
-  implementation(compositeBuild("stratego.compiler.pack"))
   implementation(compositeBuild("stratego.build"))
   implementation(compositeBuild("stratego.build.spoofax2"))
   implementation(compositeBuild("nabl2.solver"))
@@ -32,10 +31,9 @@ dependencies {
   implementation("org.metaborg:pie.runtime:$pieVersion")
   implementation("org.metaborg:pie.taskdefs.guice:$pieVersion")
   api("com.google.inject:guice")
-  api("com.google.inject.extensions:guice-multibindings")
   implementation("com.github.spullara.mustache.java:compiler")
   implementation("org.apache.ant:ant:1.9.6")
   implementation("ant-contrib:ant-contrib:1.0b3")
 
-  compileOnly("com.google.code.findbugs:jsr305")
+  implementation("jakarta.annotation:jakarta.annotation-api")
 }

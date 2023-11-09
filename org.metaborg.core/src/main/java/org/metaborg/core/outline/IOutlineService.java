@@ -1,6 +1,6 @@
 package org.metaborg.core.outline;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.IAnalyzeUnit;

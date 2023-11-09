@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.context.constraint;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContextFactory;
 
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 public class ConstraintContextFactory implements IContextFactory {
@@ -12,7 +11,7 @@ public class ConstraintContextFactory implements IContextFactory {
 
     private final Injector injector;
 
-    @Inject public ConstraintContextFactory(Injector injector) {
+    @jakarta.inject.Inject @javax.inject.Inject public ConstraintContextFactory(Injector injector) {
         this.injector = injector;
     }
 

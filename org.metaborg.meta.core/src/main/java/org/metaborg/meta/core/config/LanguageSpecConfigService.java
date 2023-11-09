@@ -17,14 +17,13 @@ import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.util.resource.ResourceUtils;
 
-import com.google.inject.Inject;
 
 public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILanguageSpecConfig>
     implements ILanguageSpecConfigService, ILanguageSpecConfigWriter {
     private final LanguageSpecConfigBuilder configBuilder;
 
 
-    @Inject public LanguageSpecConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecConfigService(AConfigurationReaderWriter configReaderWriter,
         LanguageSpecConfigBuilder configBuilder) {
         super(configReaderWriter);
 

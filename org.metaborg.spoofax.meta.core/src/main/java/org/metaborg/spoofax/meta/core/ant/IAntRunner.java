@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.meta.core.ant;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.core.MetaborgException;
 import org.metaborg.util.task.ICancel;

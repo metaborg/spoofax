@@ -1,8 +1,9 @@
 package org.metaborg.spoofax.core.stratego;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.AggregateMetaborgException;
@@ -31,8 +32,6 @@ import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
 import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
 import org.strategoxt.stratego_gpp.box2text_string_0_1;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 /**
  * Common code for using Stratego transformations in Spoofax.
@@ -44,7 +43,7 @@ public class StrategoCommon implements IStrategoCommon {
     private final ITermFactory termFactory;
 
 
-    @Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
+    @jakarta.inject.Inject @javax.inject.Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
         ITermFactory termFactory) {
         this.strategoRuntimeService = strategoRuntimeService;
         this.termFactory = termFactory;
@@ -62,7 +61,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input,
         String strategy) throws MetaborgException {
-        List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
         for(ILanguageComponent component : impl.components()) {
             if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;
@@ -82,7 +81,7 @@ public class StrategoCommon implements IStrategoCommon {
     
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, IContext context, IStrategoTerm input,
             String strategy, List<IStrategoTerm> termArguments) throws MetaborgException {
-            List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
             for(ILanguageComponent component : impl.components()) {
                 if(!IStrategoCommon.hasStrategoFacets(component)) {
                     continue;
@@ -102,7 +101,7 @@ public class StrategoCommon implements IStrategoCommon {
 
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
         String strategy) throws MetaborgException {
-        List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
         for(ILanguageComponent component : impl.components()) {
             if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;
@@ -122,7 +121,7 @@ public class StrategoCommon implements IStrategoCommon {
     
     @Override public @Nullable IStrategoTerm invoke(ILanguageImpl impl, FileObject location, IStrategoTerm input,
             String strategy, List<IStrategoTerm> termArguments) throws MetaborgException {
-            List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
             for(ILanguageComponent component : impl.components()) {
                 if(!IStrategoCommon.hasStrategoFacets(component)) {
                     continue;

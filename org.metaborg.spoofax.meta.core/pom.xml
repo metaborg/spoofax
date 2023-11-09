@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.metaborg</groupId>
 		<artifactId>parent.java</artifactId>
-		<version>2.5.18</version>
+		<version>2.6.0-SNAPSHOT</version>
 		<relativePath>../../releng/parent/java</relativePath>
 	</parent>
 
@@ -64,11 +64,6 @@
       		<artifactId>org.metaborg.parsetable</artifactId>
       		<version>${metaborg-version}</version>
     	</dependency>
-    	<dependency>
-      		<groupId>org.metaborg</groupId>
-      		<artifactId>stratego.compiler.pack</artifactId>
-      		<version>${metaborg-version}</version>
-    	</dependency>
 		<dependency>
 			<groupId>org.metaborg</groupId>
 			<artifactId>stratego.build.spoofax2</artifactId>
@@ -96,8 +91,12 @@
 			<artifactId>guice</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-multibindings</artifactId>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.inject</groupId>
+			<artifactId>jakarta.inject-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.spullara.mustache.java</groupId>
@@ -106,7 +105,7 @@
 		<dependency>
 			<groupId>org.apache.ant</groupId>
 			<artifactId>ant</artifactId>
-			<version>1.10.9</version>
+			<version>1.10.11</version>
 		</dependency>
 		<dependency>
 			<groupId>ant-contrib</groupId>
@@ -121,9 +120,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>jsr305</artifactId>
-			<scope>provided</scope>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
 		</dependency>
 	</dependencies>
 

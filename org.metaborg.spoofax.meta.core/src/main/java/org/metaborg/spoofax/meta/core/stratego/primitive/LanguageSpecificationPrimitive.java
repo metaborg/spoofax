@@ -15,16 +15,16 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
+
 
 public class LanguageSpecificationPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecificationPrimitive.class);
 
-    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
 
-    @Inject public LanguageSpecificationPrimitive() {
+    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecificationPrimitive() {
         super("language_specification", 0, 0);
     }
 
