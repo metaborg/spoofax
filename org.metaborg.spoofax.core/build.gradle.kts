@@ -26,7 +26,6 @@ dependencies {
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")
-  api("com.google.inject.extensions:guice-multibindings")
   implementation("commons-io:commons-io")
   implementation("org.apache.commons:commons-vfs2")
   implementation("com.google.guava:guava")

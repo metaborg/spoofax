@@ -12,7 +12,6 @@ dependencies {
 
   api("org.slf4j:slf4j-api")
   api("com.google.inject:guice")
-  api("com.google.inject.extensions:guice-multibindings")
   implementation("commons-io:commons-io")
   api("org.apache.commons:commons-vfs2")
   implementation("org.apache.commons:commons-lang3")
@@ -28,6 +27,7 @@ dependencies {
   implementation("io.reactivex.rxjava3:rxjava")
 
   compileOnly("com.google.code.findbugs:jsr305")
+  compileOnly("javax.annotation:javax.annotation-api")
 
   testCompileOnly("junit:junit")
   testCompileOnly("com.google.code.findbugs:jsr305")
