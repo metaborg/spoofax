@@ -34,6 +34,7 @@ dependencies {
   implementation("io.reactivex.rxjava3:rxjava")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.inject:jakarta.inject-api")
 
   testImplementation(project(":org.metaborg.core.test"))
   testCompileOnly("junit:junit")

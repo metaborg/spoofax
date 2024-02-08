@@ -36,4 +36,5 @@ dependencies {
   implementation("ant-contrib:ant-contrib:1.0b3")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.inject:jakarta.inject-api")
 }

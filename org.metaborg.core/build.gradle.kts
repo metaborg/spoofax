@@ -27,6 +27,7 @@ dependencies {
   implementation("io.reactivex.rxjava3:rxjava")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.inject:jakarta.inject-api")
 
   testCompileOnly("junit:junit")
   testCompileOnly("jakarta.annotation:jakarta.annotation-api")
