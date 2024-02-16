@@ -1,0 +1,93 @@
+module libspoofax/term/tokenstream
+
+imports
+  strategolib
+  libspoofax/term/origin
+
+/** Provide primitive access to the token stream of the parser. */
+
+signature
+  sorts
+    TokenStream
+    Token
+    TokenKind
+    
+  constructors
+  	/** The character offset in the file, and list of "tokens", a tuple of the token index, the token text, and the token kind as integer */
+    TokenStream: int * List((int, string, int)) -> TokenStream
+    /** A token, with the offset in the file, the token text, and the token kind as integer */
+    Token: int * string * int -> Token
+    /** Unknown token kind. */
+    TK_UNKNOWN: TokenKind
+    /** Token kind for a generic identifier. */
+    TK_IDENTIFIER: TokenKind
+    /** Token kind for a generic numeric value. */
+    TK_NUMBER: TokenKind
+    /** Token kind for a generic string literal. */
+    TK_STRING: TokenKind
+    /** Token kind for a generic keyword token. */
+    TK_KEYWORD: TokenKind
+    /** Token kind for a generic operator token. */
+    TK_OPERATOR: TokenKind
+    /** Token kind for a meta-variable. */
+    TK_VAR: TokenKind
+    /** Token kind for a layout (or comment) token. */
+    TK_LAYOUT: TokenKind
+    /** Token kind for an EOF token. */
+    TK_EOF: TokenKind
+    /** Token kind for an erroneous non-keyword token. */
+    TK_ERROR: TokenKind
+    /** Token kind for an erroneous keyword token. */
+    TK_ERROR_KEYWORD: TokenKind
+    /** Token kind for an whitespace near an erroneous token. */
+    TK_ERROR_LAYOUT: TokenKind
+    /** Token kind for an erroneous token. */
+    TK_ERROR_EOF_UNEXPECTED: TokenKind
+    /** Token kind for a meta-escape operator. */
+    TK_ESCAPE_OPERATOR: TokenKind
+    /** A reserved token kind for internal use only. */
+    TK_RESERVED: TokenKind
+    /** A special value indicating no token kind is specified or desired. */
+    TK_NO_TOKEN_KIND: TokenKind
+    
+
+strategies
+
+/** Raw access to the list of tokens. You probably want `open-imploder` instead. */
+origin-token-stream :: ? -> List((int * string * int))
+origin-token-stream: ast -> <prim("SSL_EXT_origin_token_stream", ast)>
+
+/** Create the token stream, a TokenStream term from which you can access information with the other strategies in this module. */
+create-token-stream :: ? -> TokenStream
+create-token-stream: ast -> TokenStream(<origin-offset;Fst>, <origin-token-stream>)
+
+/** Get a token from the token stream, plus the stream advanced one step. The token is a Token term from which you can access information with the other strategies in this module. */
+get-token :: TokenStream -> Token * TokenStream
+get-token: TokenStream(o, [(_, s, k) | t]) -> (Token(o, s, k), TokenStream(<addi> (o, <strlen> s), t))
+
+/** Query the token kind, one of 15 options. */
+token-kind :: Token -> TokenKind
+token-kind: Token(_, _,  0) -> TK_UNKNOWN()
+token-kind: Token(_, _,  1) -> TK_IDENTIFIER()
+token-kind: Token(_, _,  2) -> TK_NUMBER()
+token-kind: Token(_, _,  3) -> TK_STRING()
+token-kind: Token(_, _,  4) -> TK_KEYWORD()
+token-kind: Token(_, _,  5) -> TK_OPERATOR()
+token-kind: Token(_, _,  6) -> TK_VAR()
+token-kind: Token(_, _,  7) -> TK_LAYOUT()
+token-kind: Token(_, _,  8) -> TK_EOF()
+token-kind: Token(_, _,  9) -> TK_ERROR()
+token-kind: Token(_, _, 10) -> TK_ERROR_KEYWORD()
+token-kind: Token(_, _, 11) -> TK_ERROR_LAYOUT()
+token-kind: Token(_, _, 12) -> TK_ERROR_EOF_UNEXPECTED()
+token-kind: Token(_, _, 13) -> TK_ESCAPE_OPERATOR()
+token-kind: Token(_, _, 14) -> TK_RESERVED()
+token-kind: Token(_, _, 15) -> TK_NO_TOKEN_KIND()
+
+/** Query the token offset, which is the start and finish offset of the token in the file. */
+token-offset :: Token -> int * int
+token-offset: Token(o, s, _) -> (o, <addi> (o, <strlen> s))
+
+/** Query the token string, which is the text that the token spans */
+token-string :: Token -> string
+token-string: Token(_, s, _) -> s
