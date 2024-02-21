@@ -16,13 +16,14 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 import org.spoofax.terms.visitor.AStrategoTermVisitor;
 import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
+
+import jsglr.shared.IToken;
+import jsglr.shared.ImploderAttachment;
 
 
 public class TracingService implements ISpoofaxTracingService {

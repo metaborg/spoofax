@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import jakarta.annotation.Nullable;
+import jsglr.shared.ImploderAttachment;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -49,7 +50,6 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 

@@ -1,8 +1,8 @@
 package org.metaborg.spoofax.core.syntax;
 
-import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findLeftMostTokenOnSameLine;
-import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findRightMostTokenOnSameLine;
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+import static jsglr.shared.AbstractTokenizer.findLeftMostTokenOnSameLine;
+import static jsglr.shared.AbstractTokenizer.findRightMostTokenOnSameLine;
+import static jsglr.shared.ImploderAttachment.getTokenizer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Objects;
 
 import jakarta.annotation.Nullable;
+import jsglr.shared.AbstractTokenizer;
+import jsglr.shared.IToken;
+import jsglr.shared.ITokenizer;
+import jsglr.shared.ITokens;
+import jsglr.shared.Token;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
@@ -19,11 +24,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.MultiBadTokenException;
 import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.RegionRecovery;
-import org.spoofax.jsglr.client.imploder.AbstractTokenizer;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.ITokens;
-import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 

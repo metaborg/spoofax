@@ -12,6 +12,7 @@ dependencies {
 
   api(compositeBuild("org.metaborg.util"))
   api(compositeBuild("org.spoofax.terms"))
+  api(compositeBuild("jsglr.shared"))
   api(compositeBuild("org.spoofax.interpreter.core"))
   api(compositeBuild("org.strategoxt.strj"))
   api(compositeBuild("nabl2.terms"))

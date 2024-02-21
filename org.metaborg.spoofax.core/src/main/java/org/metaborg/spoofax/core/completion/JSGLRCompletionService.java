@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.completion;
 
+import static jsglr.shared.IToken.Kind.*;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,6 +9,10 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import jakarta.annotation.Nullable;
+import jsglr.shared.IToken;
+import jsglr.shared.ITokenizer;
+import jsglr.shared.ImploderAttachment;
+import jsglr.shared.ListImploderAttachment;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -40,10 +46,6 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.jsglr.client.imploder.ListImploderAttachment;
 import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.StrategoConstructor;
 import org.spoofax.terms.StrategoTerm;
@@ -53,9 +55,6 @@ import org.spoofax.terms.visitor.AStrategoTermVisitor;
 import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 import org.strategoxt.HybridInterpreter;
-
-
-import static org.spoofax.jsglr.client.imploder.IToken.Kind.*;
 
 public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private static final Logger logger = LoggerFactory.getLogger(JSGLRCompletionService.class);
