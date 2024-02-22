@@ -11,7 +11,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import jakarta.annotation.Nullable;
-import jsglr.shared.ImploderAttachment;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -55,7 +54,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import com.google.inject.Provider;
 
-
+import mb.jsglr.shared.ImploderAttachment;
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;

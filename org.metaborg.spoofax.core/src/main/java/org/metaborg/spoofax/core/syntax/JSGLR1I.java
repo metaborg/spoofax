@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.*;
 
 import jakarta.annotation.Nullable;
-import jsglr.shared.ImploderAttachment;
-import jsglr.shared.NullTokenizer;
+import mb.jsglr.shared.ImploderAttachment;
+import mb.jsglr.shared.NullTokenizer;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;

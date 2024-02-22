@@ -1,8 +1,8 @@
 package org.metaborg.spoofax.core.syntax;
 
-import static jsglr.shared.AbstractTokenizer.findLeftMostTokenOnSameLine;
-import static jsglr.shared.AbstractTokenizer.findRightMostTokenOnSameLine;
-import static jsglr.shared.ImploderAttachment.getTokenizer;
+import static mb.jsglr.shared.AbstractTokenizer.findLeftMostTokenOnSameLine;
+import static mb.jsglr.shared.AbstractTokenizer.findRightMostTokenOnSameLine;
+import static mb.jsglr.shared.ImploderAttachment.getTokenizer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Objects;
 
 import jakarta.annotation.Nullable;
-import jsglr.shared.AbstractTokenizer;
-import jsglr.shared.IToken;
-import jsglr.shared.ITokenizer;
-import jsglr.shared.ITokens;
-import jsglr.shared.Token;
+import mb.jsglr.shared.AbstractTokenizer;
+import mb.jsglr.shared.IToken;
+import mb.jsglr.shared.ITokenizer;
+import mb.jsglr.shared.ITokens;
+import mb.jsglr.shared.Token;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;

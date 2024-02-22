@@ -18,9 +18,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.util.TermUtils;
 
-import jsglr.shared.IToken;
-import jsglr.shared.ITokens;
-import jsglr.shared.ImploderAttachment;
+import mb.jsglr.shared.IToken;
+import mb.jsglr.shared.ITokens;
+import mb.jsglr.shared.ImploderAttachment;
 
 public class CategorizerService implements ISpoofaxCategorizerService {
     private static final ILogger logger = LoggerUtils.logger(CategorizerService.class);

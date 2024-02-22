@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.syntax;
 
-import static jsglr.shared.ImploderAttachment.hasImploderOrigin;
+import static mb.jsglr.shared.ImploderAttachment.hasImploderOrigin;
 import static org.spoofax.terms.attachments.OriginAttachment.getOrigin;
 
 import org.apache.commons.vfs2.FileObject;
@@ -11,7 +11,7 @@ import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.attachments.TermAttachmentType;
 import org.spoofax.terms.attachments.VolatileTermAttachmentType;
 
-import jsglr.shared.ImploderAttachment;
+import mb.jsglr.shared.ImploderAttachment;
 
 /**
  * A tree-wide source resource and parse controller attachment.

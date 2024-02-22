@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.completion;
 
-import static jsglr.shared.IToken.Kind.*;
+import static mb.jsglr.shared.IToken.Kind.*;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,10 +9,10 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import jakarta.annotation.Nullable;
-import jsglr.shared.IToken;
-import jsglr.shared.ITokenizer;
-import jsglr.shared.ImploderAttachment;
-import jsglr.shared.ListImploderAttachment;
+import mb.jsglr.shared.IToken;
+import mb.jsglr.shared.ITokenizer;
+import mb.jsglr.shared.ImploderAttachment;
+import mb.jsglr.shared.ListImploderAttachment;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
