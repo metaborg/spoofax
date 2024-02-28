@@ -177,8 +177,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
          * 2. Call analysis, and parse results *
          ***************************************/
 
-        try {
-        PrintlineLogger.enableGlobal();
         final Map<String, IStrategoTerm> results = new HashMap<>();
 
         if(realChange) {
@@ -213,7 +211,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         plLogger.debug("full results: {}; updates: {}", fullResults, updateResults);
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
-        } finally { PrintlineLogger.disableGlobal(); }
     }
 
     private boolean computeChanges(IConstraintContext context, Map<String, ISpoofaxParseUnit> changed,
