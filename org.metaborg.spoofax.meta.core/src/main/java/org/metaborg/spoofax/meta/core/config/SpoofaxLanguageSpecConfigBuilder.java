@@ -62,7 +62,8 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
             name, langContribs, generates, exports, pardonedLanguages, useBuildSystemSpec, sdfVersion, sdfEnabled,
             sdf2tableVersion, checkOverlap, checkPriorities, dataDependent, sdfMainFile, parseTable, jsglrVersion,
             jsglr2Logging, statixMode, strEnabled, completionsParseTable, placeholderCharacters, prettyPrint,
-            generateNamespacedGrammar, sdfMetaFile, sdfExternalDef, sdfArgs, strFormat, strExternalJar, strExternalJarFlags, strArgs, buildSteps);
+            generateNamespacedGrammar, sdfMetaFile, sdfExternalDef, sdfArgs, strVersion, strFormat, strExternalJar,
+            strExternalJarFlags, strArgs, buildSteps);
         return config;
 
     }
@@ -261,8 +262,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
         return this;
     }
 
-    @Override public ISpoofaxLanguageSpecConfigBuilder withStrVersion(
-        StrategoVersion strategoVersion) {
+    @Override public ISpoofaxLanguageSpecConfigBuilder withStrVersion(StrategoVersion strategoVersion) {
         this.strVersion = strategoVersion;
         return this;
     }
