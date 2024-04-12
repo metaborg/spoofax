@@ -15,11 +15,12 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokens;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.util.TermUtils;
+
+import mb.jsglr.shared.IToken;
+import mb.jsglr.shared.ITokens;
+import mb.jsglr.shared.ImploderAttachment;
 
 public class CategorizerService implements ISpoofaxCategorizerService {
     private static final ILogger logger = LoggerUtils.logger(CategorizerService.class);

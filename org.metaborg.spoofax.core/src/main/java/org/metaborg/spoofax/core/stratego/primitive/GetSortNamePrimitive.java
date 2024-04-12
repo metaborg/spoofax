@@ -4,7 +4,8 @@ import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+
+import mb.jsglr.shared.ImploderAttachment;
 
 public class GetSortNamePrimitive extends AbstractPrimitive {
     public GetSortNamePrimitive() {
