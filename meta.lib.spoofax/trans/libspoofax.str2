@@ -21,6 +21,7 @@ imports
   libspoofax/stratego/dynrule
   libspoofax/term/annotation
   libspoofax/term/origin
+  libspoofax/term/tokenstream
   libspoofax/term/position
   libspoofax/term/amb
   libspoofax/ui/dialogs

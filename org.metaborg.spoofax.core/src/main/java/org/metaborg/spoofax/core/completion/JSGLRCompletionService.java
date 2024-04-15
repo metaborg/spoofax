@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.completion;
 
+import static mb.jsglr.shared.IToken.Kind.*;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,6 +9,10 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import jakarta.annotation.Nullable;
+import mb.jsglr.shared.IToken;
+import mb.jsglr.shared.ITokenizer;
+import mb.jsglr.shared.ImploderAttachment;
+import mb.jsglr.shared.ListImploderAttachment;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
@@ -40,10 +46,6 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.jsglr.client.imploder.ListImploderAttachment;
 import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.StrategoConstructor;
 import org.spoofax.terms.StrategoTerm;

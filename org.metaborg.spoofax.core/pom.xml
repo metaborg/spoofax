@@ -36,6 +36,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.metaborg</groupId>
+			<artifactId>jsglr.shared</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
 			<artifactId>nabl2.solver</artifactId>
 			<version>${metaborg-version}</version>
 		</dependency>

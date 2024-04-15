@@ -176,7 +176,9 @@ public abstract class CreateLanguageSpecWizard extends UpgradeLanguageSpecWizard
     }
 
     public static Collection<String> splitExtensions(final String extensions) {
-        return Arrays.stream(extensions.split(",")).map(String::trim).filter(String::isEmpty).collect(
-            Collectors.toList());
+        return Arrays.stream(extensions.split(","))
+                .map(String::trim)
+                .filter(ext -> !ext.isEmpty())
+                .collect(Collectors.toList());
     }
 }

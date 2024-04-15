@@ -2,7 +2,8 @@ package org.metaborg.spoofax.core.syntax;
 
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.source.SourceRegion;
-import org.spoofax.jsglr.client.imploder.IToken;
+
+import mb.jsglr.shared.IToken;
 
 public class JSGLRSourceRegionFactory {
     public static ISourceRegion fromToken(IToken token) {
