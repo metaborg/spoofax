@@ -56,9 +56,6 @@ import org.spoofax.terms.visitor.IStrategoTermVisitor;
 import org.spoofax.terms.visitor.StrategoTermVisitee;
 import org.strategoxt.HybridInterpreter;
 
-
-import static org.spoofax.jsglr.client.imploder.IToken.Kind.*;
-
 public class JSGLRCompletionService implements ISpoofaxCompletionService {
     private static final Logger logger = LoggerFactory.getLogger(JSGLRCompletionService.class);
 
