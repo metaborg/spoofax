@@ -533,6 +533,7 @@ public class SpoofaxModule extends MetaborgModule {
         bindPrimitive(statixLibrary, STX_solve_constraint.class);
         bindPrimitive(statixLibrary, STX_solve_constraint_with_initial_state.class);
         bindPrimitive(statixLibrary, STX_solve_constraint_concurrent.class);
+        bindPrimitive(statixLibrary, STX_solve_constraint_with_initial_state.class);
         bindPrimitive(statixLibrary, STX_solve_multi.class);
         bindPrimitive(statixLibrary, STX_solve_multi_file.class);
         bindPrimitive(statixLibrary, STX_solve_multi_project.class);

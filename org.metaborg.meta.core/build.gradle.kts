@@ -9,4 +9,5 @@ dependencies {
   api(project(":org.metaborg.core"))
 
   implementation("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.inject:jakarta.inject-api")
 }
