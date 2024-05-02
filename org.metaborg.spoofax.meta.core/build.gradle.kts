@@ -13,6 +13,7 @@ dependencies {
     api(project(":org.metaborg.spoofax.core"))
 
     implementation(compositeBuild("org.metaborg.util"))
+    implementation(compositeBuild("util-vfs2"))
     implementation(compositeBuild("jsglr.shared"))
     implementation(compositeBuild("sdf2table"))
     implementation(compositeBuild("sdf2parenthesize"))

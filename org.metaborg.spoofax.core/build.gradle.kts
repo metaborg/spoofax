@@ -11,6 +11,7 @@ dependencies {
     api(project(":org.metaborg.core"))
 
     api(compositeBuild("org.metaborg.util"))
+    api(compositeBuild("util-vfs2"))
     api(compositeBuild("org.spoofax.terms"))
     api(compositeBuild("jsglr.shared"))
     api(compositeBuild("org.spoofax.interpreter.core"))

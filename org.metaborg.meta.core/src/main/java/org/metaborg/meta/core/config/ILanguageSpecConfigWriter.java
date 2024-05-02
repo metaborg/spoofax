@@ -4,7 +4,7 @@ import jakarta.annotation.Nullable;
 
 import org.metaborg.core.config.ConfigException;
 import org.metaborg.meta.core.project.ILanguageSpec;
-import org.metaborg.util.file.IFileAccess;
+import mb.util.vfs2.file.IFileAccess;
 
 /**
  * Writes a configuration for the specified {@link ILanguageSpec}.

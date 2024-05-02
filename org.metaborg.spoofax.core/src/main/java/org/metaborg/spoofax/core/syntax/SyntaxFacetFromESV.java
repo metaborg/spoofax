@@ -11,7 +11,7 @@ import org.metaborg.core.syntax.FenceCharacters;
 import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.iterators.Iterables2;
-import org.metaborg.util.resource.ResourceUtils;
+import mb.util.vfs2.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 import org.spoofax.terms.util.TermUtils;

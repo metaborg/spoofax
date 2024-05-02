@@ -20,8 +20,8 @@ import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.ExtensionFileSelector;
-import org.metaborg.util.resource.FileSelectorUtils;
+import mb.util.vfs2.resource.ExtensionFileSelector;
+import mb.util.vfs2.resource.FileSelectorUtils;
 
 
 public class DialectProcessor implements IDialectProcessor {

@@ -15,11 +15,11 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.util.file.FileUtils;
-import org.metaborg.util.file.URIEncode;
+import mb.util.vfs2.file.FileUtils;
+import mb.util.vfs2.file.URIEncode;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.ResourceUtils;
+import mb.util.vfs2.resource.ResourceUtils;
 
 
 public class ResourceService implements IResourceService {

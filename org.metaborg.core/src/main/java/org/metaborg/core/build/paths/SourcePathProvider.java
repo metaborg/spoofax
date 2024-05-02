@@ -10,7 +10,7 @@ import org.metaborg.core.config.ISourceConfig;
 import org.metaborg.core.config.ISourceVisitor;
 import org.metaborg.core.project.IProject;
 import org.metaborg.util.iterators.Iterables2;
-import org.metaborg.util.resource.ResourceUtils;
+import mb.util.vfs2.resource.ResourceUtils;
 
 public class SourcePathProvider implements ILanguagePathProvider {
 

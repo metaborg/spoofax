@@ -19,9 +19,9 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
 import org.metaborg.spoofax.meta.core.pluto.build.main.PackageBuilder.Output;
 import org.metaborg.spoofax.meta.core.pluto.stamp.DirectoryModifiedStamper;
 import org.metaborg.util.iterators.Iterables2;
-import org.metaborg.util.resource.FileSelectorUtils;
-import org.metaborg.util.resource.ResourceUtils;
-import org.metaborg.util.resource.ZipArchiver;
+import mb.util.vfs2.resource.FileSelectorUtils;
+import mb.util.vfs2.resource.ResourceUtils;
+import mb.util.vfs2.resource.ZipArchiver;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.dependency.Origin;
