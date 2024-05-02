@@ -15,7 +15,7 @@ import org.metaborg.core.config.ProjectConfig;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageBuilder;
 import org.metaborg.meta.core.project.ILanguageSpec;
-import org.metaborg.util.resource.ResourceUtils;
+import mb.util.vfs2.resource.ResourceUtils;
 
 
 public class LanguageSpecConfigService extends AConfigService<ILanguageSpec, ILanguageSpecConfig>

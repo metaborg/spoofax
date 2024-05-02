@@ -43,7 +43,7 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
             // only read serialized table when table generation is dynamic (#states = 0)
             // or when using layout-sensitive parsing
             if((parseTable.totalStates() == 0 || parseTable.isLayoutSensitive()) && persistedTable.exists()) {
-                ParseTableIO ptg = new ParseTableIO(persistedTable);
+                ParseTableIO ptg = new ParseTableIO(persistedTable.getContent().getInputStream(), true);
 
                 org.metaborg.sdf2table.parsetable.ParseTable parseTableFromSerializable = ptg.getParseTable();
 

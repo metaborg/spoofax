@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.meta.core.generator.BaseGenerator;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
-import org.metaborg.util.file.IFileAccess;
+import mb.util.vfs2.file.IFileAccess;
 
 public class EclipseSiteGenerator extends BaseGenerator {
     public EclipseSiteGenerator(GeneratorSettings scope, IFileAccess access) {

@@ -51,7 +51,7 @@ public class JSGLR1FileParseTableProvider implements IParseTableProvider {
                 if(persistedTable.exists()
                     && e.getMessage() == "Parse table does not contain any state and normalized grammar is null") {
                     parseTable =
-                        new ParseTable(parseTableTerm, termFactory, new ParseTableIO(persistedTable));
+                        new ParseTable(parseTableTerm, termFactory, new ParseTableIO(persistedTable.getContent().getInputStream(), true));
                 } else {
                     throw e;
                 }

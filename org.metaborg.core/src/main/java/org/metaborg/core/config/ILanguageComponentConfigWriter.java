@@ -4,7 +4,7 @@ import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.util.file.IFileAccess;
+import mb.util.vfs2.file.IFileAccess;
 
 /**
  * Writes a configuration for the specified {@link ILanguageComponent}.

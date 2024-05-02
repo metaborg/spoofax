@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.dynamicclassloading;
 import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.util.resource.ResourceUtils;
+import mb.util.vfs2.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.StrategoString;

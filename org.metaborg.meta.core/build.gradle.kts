@@ -7,6 +7,7 @@ dependencies {
   api(platform("org.metaborg:parent:$spoofax2Version"))
 
   api(project(":org.metaborg.core"))
+  api(compositeBuild("util-vfs2"))
 
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("jakarta.inject:jakarta.inject-api")

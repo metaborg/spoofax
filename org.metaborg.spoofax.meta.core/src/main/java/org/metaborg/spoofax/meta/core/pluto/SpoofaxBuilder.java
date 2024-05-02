@@ -7,7 +7,7 @@ import java.io.ObjectInputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
 import org.metaborg.spoofax.meta.core.pluto.util.ResourceAgentTracker;
-import org.metaborg.util.file.IFileAccess;
+import mb.util.vfs2.file.IFileAccess;
 
 import build.pluto.builder.Builder;
 import build.pluto.output.Output;
