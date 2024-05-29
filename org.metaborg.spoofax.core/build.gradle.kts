@@ -18,6 +18,7 @@ dependencies {
     api(compositeBuild("org.strategoxt.strj"))
     api(compositeBuild("nabl2.terms"))
     implementation(compositeBuild("org.spoofax.jsglr2"))
+    implementation(compositeBuild("sdf2table"))
     implementation(compositeBuild("nabl2.solver"))
     implementation(compositeBuild("statix.solver"))
     implementation(compositeBuild("org.spoofax.interpreter.library.index"))
