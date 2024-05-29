@@ -22,6 +22,12 @@
 
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.util</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>util-vfs2</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
