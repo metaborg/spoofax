@@ -8,8 +8,8 @@ val spoofax2Version: String by ext
 dependencies {
     api(platform("org.metaborg:parent:$spoofax2Version"))
 
-    api(compositeBuild("org.metaborg.util"))
-    api(compositeBuild("util-vfs2"))
+    api(libs.spoofax2.metaborg.util)
+    api(libs.spoofax2.util.vfs2)
 
     api("org.slf4j:slf4j-api")
     api("com.google.inject:guice")
