@@ -10,4 +10,5 @@ dependencies {
     api("junit:junit")
 
     implementation("jakarta.annotation:jakarta.annotation-api")
+    implementation("io.reactivex.rxjava3:rxjava")
 }
