@@ -44,7 +44,6 @@ import org.metaborg.util.collection.ListMultimap;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.log.PrintlineLogger;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 import org.metaborg.util.time.Timer;
@@ -61,7 +60,6 @@ import mb.nabl2.terms.stratego.TermOrigin;
 public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
     private static final ILogger logger = LoggerUtils.logger(AbstractConstraintAnalyzer.class);
-    private static final PrintlineLogger plLogger = PrintlineLogger.logger(AbstractConstraintAnalyzer.class);
 
     protected final AnalysisCommon analysisCommon;
     protected final IResourceService resourceService;
@@ -95,7 +93,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
             throw new AnalysisException(genericContext, "Analysis failed, no result was returned.");
         }
         final ISpoofaxAnalyzeUnit unitResult = Iterables2.getOnlyElement(results.results());
-        plLogger.debug("analyze single: {}; messages: {}", unitResult.source(), unitResult.messages());
         return new SpoofaxAnalyzeResult(unitResult, results.updates(),
                 results.context());
     }
@@ -179,8 +176,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         // Enable this to debug the spurious SPT test failures
         // that might involve the change where Guava collection classes were replaced by our own implementations.
-//        try {
-//        PrintlineLogger.enableGlobal();
         final Map<String, IStrategoTerm> results = new HashMap<>();
 
         if(realChange) {
@@ -207,15 +202,12 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
 
         for(Expect expect : expects.values()) {
             Collection<IMessage> fileMessages = messages.get(expect.resource().getName());
-            plLogger.debug("result: {}; messages: {}", expect.resource(), fileMessages);
             expect.result(fileMessages, fullResults, updateResults);
         }
         fullResults.addAll(removed.values());
         fullResults.addAll(invalid.values());
 
-        plLogger.debug("full results: {}; updates: {}", fullResults, updateResults);
         return new SpoofaxAnalyzeResults(fullResults, updateResults, context, null);
-//        } finally { PrintlineLogger.disableGlobal(); }
     }
 
     private boolean computeChanges(IConstraintContext context, Map<String, ISpoofaxParseUnit> changed,
@@ -379,7 +371,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         for(Map.Entry<String, Expect> entry : expects.entrySet()) {
             final Expect expect = entry.getValue();
             ListMultimap<FileName, IMessage> msgs = expect.messages();
-            plLogger.debug("collected messages: {}", msgs);
             messages.putAll(msgs);
         }
 
@@ -416,7 +407,6 @@ public abstract class AbstractConstraintAnalyzer implements ISpoofaxAnalyzer {
         abstract boolean requireResult();
 
         protected void resultMessages(IStrategoTerm errors, IStrategoTerm warnings, IStrategoTerm notes) {
-            plLogger.debug("{} errors: {}", resource, errors);
             this.errors = errors;
             this.warnings = warnings;
             this.notes = notes;
