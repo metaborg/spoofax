@@ -5,48 +5,47 @@ plugins {
     id("org.metaborg.convention.maven-publish")
 }
 
-fun compositeBuild(name: String) = "$group:$name:$version"
-val spoofax2Version: String by ext
 dependencies {
     api(platform(libs.metaborg.platform)) { version { require("latest.integration") } }
 
     api(project(":org.metaborg.core"))
 
-    api(compositeBuild("org.metaborg.util"))
-    api(compositeBuild("util-vfs2"))
-    api(compositeBuild("org.spoofax.terms"))
-    api(compositeBuild("jsglr.shared"))
-    api(compositeBuild("org.spoofax.interpreter.core"))
-    api(compositeBuild("org.strategoxt.strj"))
-    api(compositeBuild("nabl2.terms"))
-    implementation(compositeBuild("org.spoofax.jsglr2"))
-    implementation(compositeBuild("sdf2table"))
-    implementation(compositeBuild("nabl2.solver"))
-    implementation(compositeBuild("statix.solver"))
-    implementation(compositeBuild("org.spoofax.interpreter.library.index"))
-    implementation(compositeBuild("renaming.java"))
+    api(libs.metaborg.util)
+    api(libs.util.vfs2)
+    api(libs.spoofax.terms)
+    api(libs.jsglr.shared)
+    api(libs.interpreter.core)
+    api(libs.strategoxt.strj)
+    api(libs.nabl2.terms)
+    implementation(libs.jsglr2)
+    implementation(libs.sdf2table)
+    implementation(libs.nabl2.solver)
+    implementation(libs.statix.solver)
+    implementation(libs.interpreter.library.index)
+    implementation(libs.nabl.renaming.java)
 
-    implementation("org.metaborg:flowspec.runtime:$spoofax2Version")
-    implementation("org.metaborg:org.metaborg.runtime.task:$spoofax2Version")
+    implementation(libs.flowspec.runtime)
+    implementation(libs.metaborg.runtime.task)
 
-    api("org.slf4j:slf4j-api")
-    api("com.google.inject:guice")
-    implementation("commons-io:commons-io")
-    implementation("org.apache.commons:commons-vfs2")
-    implementation("com.google.guava:guava")
+    api(libs.slf4j.api)
+    api(libs.guice)
+    implementation(libs.commons.io)
+    implementation(libs.commons.vfs2)
+    implementation(libs.guava)
     // Required for Guava >= 27.0:
-    implementation("com.google.guava:failureaccess")
-    implementation("io.reactivex.rxjava3:rxjava")
+    implementation(libs.failureaccess)
+    implementation(libs.rxjava)
 
-    implementation("jakarta.annotation:jakarta.annotation-api")
-    implementation("jakarta.inject:jakarta.inject-api")
+    implementation(libs.jakarta.annotation)
+    implementation(libs.jakarta.inject)
 
     testImplementation(project(":org.metaborg.core.test"))
-    testCompileOnly("junit:junit")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
-    testImplementation("ch.qos.logback:logback-core")
-    testImplementation("ch.qos.logback:logback-classic")
-    testImplementation("org.slf4j:jcl-over-slf4j")
+    testImplementation(libs.junit)
+    testCompileOnly(libs.junit4)
+    testRuntimeOnly(libs.junit.vintage)
+    testImplementation(libs.logback.core)
+    testImplementation(libs.logback)
+    testImplementation(libs.jcl.over.slf4j)
 }
 
 // Copy test resources into classes directory, to make them accessible as classloader resources at runtime.

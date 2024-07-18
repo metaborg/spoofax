@@ -5,9 +5,8 @@ plugins {
     id("org.metaborg.convention.maven-publish")
 }
 
-val spoofax2Version: String by ext
 dependencies {
     api(platform(libs.metaborg.platform)) { version { require("latest.integration") } }
 
-    implementation("org.apache.commons:commons-lang3")
+    implementation(libs.commons.lang3)
 }

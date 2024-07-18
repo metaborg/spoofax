@@ -5,39 +5,38 @@ plugins {
     id("org.metaborg.convention.maven-publish")
 }
 
-fun compositeBuild(name: String) = "$group:$name:$version"
-val spoofax2Version: String by ext
 dependencies {
     api(platform(libs.metaborg.platform)) { version { require("latest.integration") } }
 
-    api(compositeBuild("org.metaborg.util"))
-    api(compositeBuild("util-vfs2"))
+    api(libs.metaborg.util)
+    api(libs.util.vfs2)
 
-    api("org.slf4j:slf4j-api")
-    api("com.google.inject:guice")
-    implementation("commons-io:commons-io")
-    api("org.apache.commons:commons-vfs2")
-    implementation("org.apache.commons:commons-lang3")
-    api("org.apache.commons:commons-configuration2")
-    api("com.virtlink.commons:commons-configuration2-jackson")
-    implementation("com.fasterxml.jackson.core:jackson-core")
-    implementation("com.fasterxml.jackson.core:jackson-databind")
-    implementation("com.fasterxml.jackson.core:jackson-annotations")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    implementation("com.google.guava:guava")
+    api(libs.slf4j.api)
+    api(libs.guice)
+    implementation(libs.commons.io)
+    api(libs.commons.vfs2)
+    implementation(libs.commons.lang3)
+    api(libs.commons.configuration2)
+    api(libs.commons.configuration2.jackson)
+    implementation(libs.jackson.core)
+    implementation(libs.jackson.databind)
+    implementation(libs.jackson.annotations)
+    implementation(libs.jackson.dataformat.yaml)
+    implementation(libs.guava)
     // Required for Guava >= 27.0:
-    implementation("com.google.guava:failureaccess")
-    implementation("io.reactivex.rxjava3:rxjava")
+    implementation(libs.failureaccess)
+    implementation(libs.rxjava)
 
-    implementation("jakarta.annotation:jakarta.annotation-api")
-    implementation("jakarta.inject:jakarta.inject-api")
+    implementation(libs.jakarta.annotation)
+    implementation(libs.jakarta.inject)
 
-    testCompileOnly("junit:junit")
-    testCompileOnly("jakarta.annotation:jakarta.annotation-api")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
-    testImplementation("ch.qos.logback:logback-core")
-    testImplementation("ch.qos.logback:logback-classic")
-    testImplementation("org.slf4j:jcl-over-slf4j")
+    testImplementation(libs.junit)
+    testCompileOnly(libs.junit4)
+    testCompileOnly(libs.jakarta.annotation)
+    testRuntimeOnly(libs.junit.vintage)
+    testImplementation(libs.logback.core)
+    testImplementation(libs.logback)
+    testImplementation(libs.jcl.over.slf4j)
 }
 
 // Copy test resources into classes directory, to make them accessible as classloader resources at runtime.
