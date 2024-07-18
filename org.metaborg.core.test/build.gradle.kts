@@ -7,7 +7,7 @@ plugins {
 
 val spoofax2Version: String by ext
 dependencies {
-    api(platform("org.metaborg:parent:$spoofax2Version"))
+    api(platform(libs.metaborg.platform)) { version { require("latest.integration") } }
 
     api(project(":org.metaborg.core"))
     api("junit:junit")
