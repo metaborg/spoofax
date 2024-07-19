@@ -136,7 +136,7 @@ public class StrategoExecutor {
                 return new ExecutionResult(true, tracker.stdout(), tracker.stderr());
             }
             if(!silent) {
-                log.error("Executing {} failed: {}", name, e);
+                log.error("Executing {} failed: {}", e, name, e.getMessage());
             }
             return new ExecutionResult(false, tracker.stdout(), tracker.stderr());
         } finally {
