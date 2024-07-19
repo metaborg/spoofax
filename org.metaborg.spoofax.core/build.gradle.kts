@@ -24,8 +24,8 @@ dependencies {
     implementation(libs.interpreter.library.index)
     implementation(libs.nabl.renaming.java)
 
-    implementation(libs.flowspec.runtime)
-    implementation(libs.metaborg.runtime.task)
+    implementation(libs.spoofax2.flowspec.runtime)
+    implementation(libs.spoofax2.metaborg.runtime.task)
 
     api(libs.slf4j.api)
     api(libs.guice)

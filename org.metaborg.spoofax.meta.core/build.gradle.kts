@@ -25,8 +25,8 @@ dependencies {
     implementation(libs.statix.solver)
 
     implementation(project(":org.metaborg.spoofax.nativebundle"))
-    implementation(libs.strategoxt.minjar)
-    implementation(libs.makepermissive)
+    implementation(libs.spoofax2.strategoxt.minjar)
+    implementation(libs.spoofax2.makepermissive)
 
     implementation(libs.pluto)
     implementation(libs.pluto.build.java)
