@@ -16,6 +16,8 @@ spoofaxLanguageSpecification {
 }
 
 dependencies {
+    api(platform(libs.metaborg.platform)) { version { require("latest.integration") } }
+
     compileLanguage(libs.spoofax2.esv.lang)         // Bootstrap using Spoofax 2 artifact
     compileLanguage(libs.spoofax2.stratego.lang)    // Bootstrap using Spoofax 2 artifact
 
