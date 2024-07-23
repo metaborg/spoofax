@@ -57,7 +57,7 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.FileSelectorUtils;
+import mb.util.vfs2.resource.FileSelectorUtils;
 import org.metaborg.util.task.ICancel;
 import org.metaborg.util.task.IProgress;
 

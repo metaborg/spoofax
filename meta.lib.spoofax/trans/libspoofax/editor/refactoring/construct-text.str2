@@ -130,8 +130,7 @@ construct-text-by-pp(pp, override-reconstruction, resugar):
     pp
   > node
 
-
-is-completion-placeholder = where(get-constructor; is-substring(!"-Plhdr")); id
+is-completion-placeholder = where(get-constructor; is-string; is-substring(!"-Plhdr")); id
 
 construct-text-with-comments(pp, override-reconstruction, resugar|default-indent) =
   construct-text-with-comments-desugared(pp, override-reconstruction, resugar|default-indent) <+
@@ -224,7 +223,7 @@ collect-ast-changes-rec-node(override-reconstruction, resugar):
 collect-ast-changes-rec-list(override-reconstruction, resugar):
   (origin-lst, lst) -> ast-changes
   where
-    <not(violates-homomorphism-list)> (origin-lst, lst)
+    <(is-list, is-list); not(violates-homomorphism-list)> (origin-lst, lst)
   where
     ast-changes := <
       list-diff(override-reconstruction, resugar|origin-lst);

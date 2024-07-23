@@ -19,7 +19,7 @@ import org.metaborg.util.functions.CheckedFunction1;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.metaborg.util.resource.ResourceUtils;
+import mb.util.vfs2.resource.ResourceUtils;
 
 
 public class LanguagePathService implements ILanguagePathService {

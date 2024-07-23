@@ -24,11 +24,11 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.util.collection.ImList;
 import org.metaborg.util.concurrent.ClosableLock;
 import org.metaborg.util.concurrent.IClosableLock;
-import org.metaborg.util.file.FileUtils;
+import mb.util.vfs2.file.FileUtils;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.log.PrintlineLogger;
-import org.metaborg.util.resource.ResourceUtils;
+import mb.util.vfs2.resource.ResourceUtils;
 import org.metaborg.util.time.Timer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 

@@ -2,7 +2,7 @@ package org.metaborg.spoofax.meta.core.generator;
 
 import jakarta.annotation.Nullable;
 
-import org.metaborg.util.file.IFileAccess;
+import mb.util.vfs2.file.IFileAccess;
 
 public abstract class BaseGenerator {
     protected final MustacheWriter writer;

@@ -264,7 +264,7 @@ assert-no-overlap =
   ?[(_, _, _)] <+ ?[]
 
 assert-valid-offset =
-  map(assert-valid-offset)
+  is-list; map(assert-valid-offset)
 
 assert-valid-offset =
   ?(s,e,_);

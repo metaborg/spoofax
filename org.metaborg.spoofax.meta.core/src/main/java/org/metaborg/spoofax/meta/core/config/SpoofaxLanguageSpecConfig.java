@@ -61,6 +61,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
     private static final String PROP_STR_EXTERNAL_JAR_FLAGS = PROP_STR + ".externalJar.flags";
     private static final String PROP_STR_SHADOW_JAR = PROP_STR + ".shadow-jar";
     private static final String PROP_STR_ARGS = PROP_STR + ".args";
+    private static final String PROP_STR_VERSION = PROP_STR + ".version";
 
     private static final LanguageSpecBuildPhase defaultPhase = LanguageSpecBuildPhase.compile;
     private static final String PROP_BUILD = "build";
@@ -85,7 +86,7 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         @Nullable JSGLR2Logging jsglr2Logging, @Nullable StatixSolverMode statixMode, @Nullable Boolean strEnabled,
         @Nullable String sdfMainFile, @Nullable PlaceholderCharacters placeholderCharacters, @Nullable String prettyPrint,
         @Nullable Boolean generateNamespacedGrammar, @Nullable List<String> sdfMetaFile, @Nullable String externalDef,
-        @Nullable Arguments sdfArgs, @Nullable StrategoFormat format, @Nullable String externalJar,
+        @Nullable Arguments sdfArgs, @Nullable StrategoVersion strVersion, @Nullable StrategoFormat format, @Nullable String externalJar,
         @Nullable String externalJarFlags, @Nullable Arguments strategoArgs, @Nullable Collection<IBuildStepConfig> buildSteps) {
         super(config, projectConfig, id, name, sdfEnabled, sdf2tableVersion, checkOverlap, checkPriorities,
                 dataDependent, parseTable, completionsParseTable, jsglrVersion, jsglr2Logging, statixMode,
@@ -121,6 +122,9 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
             config.setProperty(PROP_SDF_ARGS, sdfArgs);
         }
 
+        if(strVersion != null) {
+            config.setProperty(PROP_STR_VERSION, strVersion);
+        }
         if(format != null) {
             config.setProperty(PROP_STR_FORMAT, format);
         }
@@ -195,10 +199,10 @@ public class SpoofaxLanguageSpecConfig extends LanguageSpecConfig implements ISp
         return arguments;
     }
 
-    @Override public StrategoVersion strVersion() {;
-        return
-            containsStrategoLang(compileDeps()) ?
-                StrategoVersion.v2 : StrategoVersion.v1;
+    @Override public StrategoVersion strVersion() {
+        final String value = this.config.getString(PROP_STR_VERSION);
+        if (value != null) return StrategoVersion.valueOf(value);
+        else return containsStrategoLang(compileDeps()) ? StrategoVersion.v2 : StrategoVersion.v1;
     }
 
     @Override public StrategoFormat strFormat() {

@@ -87,7 +87,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
             return null;
         } else if(size > 1) {
             throw new MetaborgRuntimeException(
-                "Multiple facets of type " + type + " found, while only a single facet is supported");
+                "Multiple facets of " + type + " found, while only a single facet is supported");
         }
         return facets.iterator().next();
     }
@@ -100,7 +100,7 @@ public class LanguageComponent implements ILanguageComponentInternal {
             return null;
         } else if(size > 1) {
             throw new MetaborgRuntimeException(
-                "Multiple facets of type " + type + " found, while only a single facet is supported");
+                "Multiple facets of " + type + " found, while only a single facet is supported");
         }
         return facetContributions.iterator().next();
     }

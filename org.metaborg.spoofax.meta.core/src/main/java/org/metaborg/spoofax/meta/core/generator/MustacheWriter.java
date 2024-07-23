@@ -8,7 +8,7 @@ import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.util.file.IFileAccess;
+import mb.util.vfs2.file.IFileAccess;
 
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;

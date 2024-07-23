@@ -28,7 +28,7 @@ import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxBuilderFactoryFactory;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxContext;
 import org.metaborg.spoofax.meta.core.pluto.SpoofaxInput;
-import org.metaborg.util.resource.ResourceUtils;
+import mb.util.vfs2.resource.ResourceUtils;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import build.pluto.BuildUnit.State;
