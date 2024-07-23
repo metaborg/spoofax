@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: meta.lib.spoofax language Eclipse plugin
 Bundle-SymbolicName: meta.lib.spoofax.eclipse;singleton:=true
-Bundle-Version: 2.6.0.qualifier
+Bundle-Version: 2.5.21
 Bundle-Vendor: org.metaborg
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.metaborg.spoofax.eclipse
