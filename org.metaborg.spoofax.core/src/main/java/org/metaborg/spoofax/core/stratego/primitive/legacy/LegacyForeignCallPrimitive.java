@@ -24,7 +24,7 @@ public class LegacyForeignCallPrimitive extends ASpoofaxContextPrimitive {
     private final IStrategoCommon common;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LegacyForeignCallPrimitive(ILanguageService languageService, IContextService contextService,
+    @jakarta.inject.Inject public LegacyForeignCallPrimitive(ILanguageService languageService, IContextService contextService,
         IProjectService projectService, IStrategoCommon common) {
         super("SSL_EXT_foreigncall", 0, 2);
 

@@ -25,7 +25,7 @@ public class LanguageIncludeFilesPrimitive extends ASpoofaxContextPrimitive {
     private final IProjectService projectService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageIncludeFilesPrimitive(ILanguageService languageService,
+    @jakarta.inject.Inject public LanguageIncludeFilesPrimitive(ILanguageService languageService,
         ILanguagePathService languagePathService, IProjectService projectService) {
         super("language_include_files", 0, 1);
         this.languageService = languageService;

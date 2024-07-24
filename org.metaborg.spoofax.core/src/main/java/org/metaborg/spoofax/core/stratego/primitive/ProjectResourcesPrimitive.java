@@ -15,7 +15,7 @@ public class ProjectResourcesPrimitive extends AResourcesPrimitive {
 
     private final IDependencyService dependenceService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public ProjectResourcesPrimitive(IDependencyService dependencyService, IResourceService resourceService) {
+    @jakarta.inject.Inject public ProjectResourcesPrimitive(IDependencyService dependencyService, IResourceService resourceService) {
         super("project_resources", resourceService);
         this.dependenceService = dependencyService;
     }

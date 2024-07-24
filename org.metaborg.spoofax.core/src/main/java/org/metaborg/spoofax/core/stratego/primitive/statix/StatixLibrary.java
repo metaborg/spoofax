@@ -10,7 +10,7 @@ public class StatixLibrary extends GenericPrimitiveLibrary {
     public static final String name = "StatixLibrary";
     public static final String REGISTRY_NAME = "STATIX";
 
-    @jakarta.inject.Inject @javax.inject.Inject public StatixLibrary(@jakarta.inject.Named(name) @javax.inject.Named(name) Set<AbstractPrimitive> primitives) {
+    @jakarta.inject.Inject public StatixLibrary(@jakarta.inject.Named(name) Set<AbstractPrimitive> primitives) {
         super(primitives, StatixLibrary.REGISTRY_NAME);
     }
 

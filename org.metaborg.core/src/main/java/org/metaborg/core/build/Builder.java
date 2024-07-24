@@ -9,6 +9,7 @@ import java.util.Set;
 
 import jakarta.annotation.Nullable;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
@@ -100,12 +101,12 @@ public class Builder<I extends IInputUnit, P extends IParseUnit, A extends IAnal
     private final Provider<IBuildOutputInternal<P, A, AU, T>> buildOutputProvider;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ILanguagePathService languagePathService, IUnitService<I, P, A, AU, TP, TA> unitService,
-        ISourceTextService sourceTextService, ISyntaxService<I, P> syntaxService, IContextService contextService,
-        IAnalysisService<P, A, AU> analysisService, ITransformService<P, A, TP, TA> transformService,
-        IParseResultUpdater<P> parseResultUpdater, IAnalysisResultUpdater<P, A> analysisResultUpdater,
-        Provider<IBuildOutputInternal<P, A, AU, T>> buildOutputProvider) {
+    @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
+                           ILanguagePathService languagePathService, IUnitService<I, P, A, AU, TP, TA> unitService,
+                           ISourceTextService sourceTextService, ISyntaxService<I, P> syntaxService, IContextService contextService,
+                           IAnalysisService<P, A, AU> analysisService, ITransformService<P, A, TP, TA> transformService,
+                           IParseResultUpdater<P> parseResultUpdater, IAnalysisResultUpdater<P, A> analysisResultUpdater,
+                           Provider<IBuildOutputInternal<P, A, AU, T>> buildOutputProvider) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
         this.languagePathService = languagePathService;

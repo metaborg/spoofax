@@ -9,7 +9,7 @@ public class ParseStrategoFileStrategy extends parse_stratego_file_0_0 {
     private final ParseFileStrategy parseFileStrategy;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ParseStrategoFileStrategy(ParseFileStrategy parseFileStrategy) {
+    @jakarta.inject.Inject public ParseStrategoFileStrategy(ParseFileStrategy parseFileStrategy) {
         this.parseFileStrategy = parseFileStrategy;
     }
 

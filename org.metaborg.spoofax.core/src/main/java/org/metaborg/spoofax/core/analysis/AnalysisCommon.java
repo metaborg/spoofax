@@ -6,6 +6,7 @@ import java.util.LinkedList;
 
 import jakarta.annotation.Nullable;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
@@ -25,7 +26,7 @@ public class AnalysisCommon {
     private final ISpoofaxTracingService tracingService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public AnalysisCommon(ISpoofaxTracingService tracingService) {
+    @Inject public AnalysisCommon(ISpoofaxTracingService tracingService) {
         this.tracingService = tracingService;
     }
 

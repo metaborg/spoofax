@@ -30,7 +30,7 @@ public class TracingService implements ISpoofaxTracingService {
     private final IResourceService resourceService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public TracingService(IResourceService resourceService) {
+    @jakarta.inject.Inject public TracingService(IResourceService resourceService) {
         this.resourceService = resourceService;
     }
 

@@ -21,10 +21,10 @@ import org.spoofax.terms.util.TermUtils;
 public class LanguageSpecSrcGenDirectory extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecSrcGenDirectory.class);
 
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecSrcGenDirectory() {
+    @jakarta.inject.Inject public LanguageSpecSrcGenDirectory() {
         super("language_spec_srcgen_dir", 0, 0);
     }
 

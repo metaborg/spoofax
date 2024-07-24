@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitive;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.primitive.generic.ASpoofaxPrimitive;
@@ -14,7 +15,7 @@ public class AbsolutePathPrimitive extends ASpoofaxPrimitive {
     private final IResourceService resourceService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public AbsolutePathPrimitive(IResourceService resourceService) {
+    @Inject public AbsolutePathPrimitive(IResourceService resourceService) {
         super("absolute_path", 0, 1);
         this.resourceService = resourceService;
     }

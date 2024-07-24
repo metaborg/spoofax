@@ -19,7 +19,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 
 public class LayoutSensitivePrettyPrinterPrimitive extends AbstractPrimitive {
-    @jakarta.inject.Inject @javax.inject.Inject public LayoutSensitivePrettyPrinterPrimitive() {
+    @jakarta.inject.Inject public LayoutSensitivePrettyPrinterPrimitive() {
         super("SSL_EXT_apply_layout_constraints_pp", 0, 0);
     }
 

@@ -15,7 +15,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 public class SpoofaxAnalysisResultProcessor extends
     AnalysisResultProcessor<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate>
     implements ISpoofaxAnalysisResultProcessor {
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxAnalysisResultProcessor(ISpoofaxAnalysisService analysisService,
+    @jakarta.inject.Inject public SpoofaxAnalysisResultProcessor(ISpoofaxAnalysisService analysisService,
         ISpoofaxParseResultRequester parseResultRequester) {
         super(analysisService, parseResultRequester);
     }

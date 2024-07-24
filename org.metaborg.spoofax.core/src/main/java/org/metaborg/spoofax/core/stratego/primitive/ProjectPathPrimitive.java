@@ -8,7 +8,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 
 
 public class ProjectPathPrimitive extends ASpoofaxContextPrimitive {
-    @jakarta.inject.Inject @javax.inject.Inject public ProjectPathPrimitive() {
+    @jakarta.inject.Inject public ProjectPathPrimitive() {
         super("project_path", 0, 0);
     }
 

@@ -20,7 +20,7 @@ public class RelativeSourcePath extends ASpoofaxContextPrimitive {
     private final IProjectService projectService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public RelativeSourcePath(ILanguagePathService languagePathService, IResourceService resourceService,
+    @jakarta.inject.Inject public RelativeSourcePath(ILanguagePathService languagePathService, IResourceService resourceService,
             IProjectService projectService) {
         super("language_relative_source_path", 0, 1);
         this.languagePathService = languagePathService;

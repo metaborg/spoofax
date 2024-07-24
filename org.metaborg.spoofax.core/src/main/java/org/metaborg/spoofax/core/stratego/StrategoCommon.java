@@ -43,7 +43,7 @@ public class StrategoCommon implements IStrategoCommon {
     private final ITermFactory termFactory;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
+    @jakarta.inject.Inject public StrategoCommon(IStrategoRuntimeService strategoRuntimeService,
         ITermFactory termFactory) {
         this.strategoRuntimeService = strategoRuntimeService;
         this.termFactory = termFactory;

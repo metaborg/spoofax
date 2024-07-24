@@ -16,7 +16,7 @@ public class IsLanguageActivePrimitive extends ASpoofaxContextPrimitive {
     private final IDependencyService dependencyService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public IsLanguageActivePrimitive(IDependencyService dependencyService) {
+    @jakarta.inject.Inject public IsLanguageActivePrimitive(IDependencyService dependencyService) {
         super("is_language_active", 0, 0);
 
         this.dependencyService = dependencyService;

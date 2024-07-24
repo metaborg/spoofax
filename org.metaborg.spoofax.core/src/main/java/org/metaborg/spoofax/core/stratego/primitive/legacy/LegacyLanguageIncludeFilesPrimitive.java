@@ -5,7 +5,7 @@ import org.metaborg.spoofax.core.stratego.primitive.generic.RedirectingPrimitive
 
 
 public class LegacyLanguageIncludeFilesPrimitive extends RedirectingPrimitive {
-    @jakarta.inject.Inject @javax.inject.Inject public LegacyLanguageIncludeFilesPrimitive(LanguageIncludeFilesPrimitive prim) {
+    @jakarta.inject.Inject public LegacyLanguageIncludeFilesPrimitive(LanguageIncludeFilesPrimitive prim) {
         super("SSL_EXT_language_include_files", prim);
     }
 }

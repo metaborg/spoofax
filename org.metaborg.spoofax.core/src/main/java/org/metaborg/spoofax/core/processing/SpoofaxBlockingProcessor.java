@@ -23,7 +23,7 @@ import org.metaborg.util.task.IProgress;
 public class SpoofaxBlockingProcessor extends
     BlockingProcessor<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>>
     implements ISpoofaxProcessor {
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxBlockingProcessor(IDialectProcessor dialectProcessor, ISpoofaxBuilder builder,
+    @jakarta.inject.Inject public SpoofaxBlockingProcessor(IDialectProcessor dialectProcessor, ISpoofaxBuilder builder,
         ILanguageChangeProcessor languageChangeProcessor) {
         super(dialectProcessor, builder, languageChangeProcessor);
     }

@@ -10,7 +10,7 @@ public class LegacySpoofaxPrimitiveLibrary extends GenericPrimitiveLibrary {
     public static final String name = "LegacySpoofaxLibrary";
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LegacySpoofaxPrimitiveLibrary(@jakarta.inject.Named(name) @javax.inject.Named(name) Set<AbstractPrimitive> primitives) {
+    @jakarta.inject.Inject public LegacySpoofaxPrimitiveLibrary(@jakarta.inject.Named(name) Set<AbstractPrimitive> primitives) {
         super(primitives, name);
     }
 }

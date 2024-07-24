@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.language.dialect;
 
 import java.io.IOException;
 
+import jakarta.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -33,8 +34,8 @@ public class DialectIdentifier implements IDialectIdentifier {
     private final ITermFactory termFactory;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public DialectIdentifier(ILanguageService languageService, IDialectService dialectService,
-        ITermFactory termFactory) {
+    @Inject public DialectIdentifier(ILanguageService languageService, IDialectService dialectService,
+                                     ITermFactory termFactory) {
         this.languageService = languageService;
         this.dialectService = dialectService;
         this.termFactory = termFactory;

@@ -25,7 +25,7 @@ public class TransformService<P extends IParseUnit, A extends IAnalyzeUnit, TP e
     private final ITransformer<P, A, TP, TA> transformer;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public TransformService(IActionService actionService, IAnalysisService<P, A, ?> analysisService,
+    @jakarta.inject.Inject public TransformService(IActionService actionService, IAnalysisService<P, A, ?> analysisService,
             ITransformer<P, A, TP, TA> transformer) {
         this.actionService = actionService;
         this.analysisService = analysisService;

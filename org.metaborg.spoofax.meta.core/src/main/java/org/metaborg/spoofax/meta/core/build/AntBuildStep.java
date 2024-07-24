@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core.build;
 
 import java.util.HashMap;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.resource.IResourceService;
@@ -16,7 +17,7 @@ public class AntBuildStep extends AConfigBuildStep<AntBuildStepConfig> {
     private final IAntRunnerService antRunnerService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public AntBuildStep(IResourceService resourceService, IAntRunnerService antRunnerService) {
+    @Inject public AntBuildStep(IResourceService resourceService, IAntRunnerService antRunnerService) {
         super(AntBuildStepConfig.class);
         this.resourceService = resourceService;
         this.antRunnerService = antRunnerService;

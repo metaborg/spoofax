@@ -20,7 +20,7 @@ public class LanguageSourceDirectoriesPrimitive extends ASpoofaxContextPrimitive
     private final IProjectService projectService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageSourceDirectoriesPrimitive(ILanguagePathService languagePathService,
+    @jakarta.inject.Inject public LanguageSourceDirectoriesPrimitive(ILanguagePathService languagePathService,
         IProjectService projectService) {
         super("language_source_directories", 0, 1);
         this.languagePathService = languagePathService;

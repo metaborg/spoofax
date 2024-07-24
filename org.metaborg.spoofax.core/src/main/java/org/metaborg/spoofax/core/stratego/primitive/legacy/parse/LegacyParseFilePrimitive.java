@@ -30,7 +30,7 @@ public class LegacyParseFilePrimitive extends AbstractPrimitive {
     private final ISpoofaxSyntaxService syntaxService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LegacyParseFilePrimitive(IResourceService resourceService,
+    @jakarta.inject.Inject public LegacyParseFilePrimitive(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ISpoofaxUnitService unitService,
         ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
         this("STRSGLR_parse_string", resourceService, languageIdentifierService, unitService, sourceTextService,

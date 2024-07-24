@@ -17,7 +17,7 @@ public class ProjectConfigService extends AConfigService<IProject, IProjectConfi
     private final ProjectConfigBuilder configBuilder;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ProjectConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject public ProjectConfigService(AConfigurationReaderWriter configReaderWriter,
             ProjectConfigBuilder configBuilder) {
         super(configReaderWriter);
 

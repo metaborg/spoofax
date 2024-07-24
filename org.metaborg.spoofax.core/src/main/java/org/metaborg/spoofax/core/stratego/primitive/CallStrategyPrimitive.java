@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.stratego.primitive;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.inject.Inject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.context.IContext;
@@ -29,8 +30,8 @@ public class CallStrategyPrimitive extends ASpoofaxContextPrimitive {
     private final IStrategoCommon common;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public CallStrategyPrimitive(IDependencyService dependencyService, IContextService contextService,
-        IStrategoCommon common) {
+    @Inject public CallStrategyPrimitive(IDependencyService dependencyService, IContextService contextService,
+                                         IStrategoCommon common) {
         super("call_strategy", 0, 2);
 
         this.dependencyService = dependencyService;

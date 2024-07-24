@@ -17,7 +17,7 @@ public class LanguageComponentConfigService extends AConfigService<ILanguageComp
     private final LanguageComponentConfigBuilder configBuilder;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageComponentConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject public LanguageComponentConfigService(AConfigurationReaderWriter configReaderWriter,
         LanguageComponentConfigBuilder configBuilder) {
         super(configReaderWriter);
 

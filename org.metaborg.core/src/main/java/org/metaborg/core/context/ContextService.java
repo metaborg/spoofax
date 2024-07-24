@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageImplChange;
@@ -26,7 +27,7 @@ public class ContextService implements IContextService, IContextProcessor {
     private final ConcurrentMap<ILanguageImpl, ContextIdentifier> langToContextId = new ConcurrentHashMap<>();
     private final ConcurrentMap<ILanguageImpl, Set<ContextIdentifier>> langToDownstreamContextIds = new ConcurrentHashMap<>();
 
-    @jakarta.inject.Inject @javax.inject.Inject public ContextService(Injector injector) {
+    @Inject public ContextService(Injector injector) {
         this.injector = injector;
     }
 

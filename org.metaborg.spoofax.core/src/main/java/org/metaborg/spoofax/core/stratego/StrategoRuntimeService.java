@@ -43,7 +43,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, AutoClos
     private final Map<ILanguageComponent, HybridInterpreter> prototypes = new HashMap<>();
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactory termFactory,
+    @jakarta.inject.Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactory termFactory,
         Set<IOperatorRegistry> strategoLibraries, ParseStrategoFileStrategy parseStrategoFileStrategy,
         Set<ClassLoader> additionalClassLoaders) {
         this.resourceService = resourceService;

@@ -22,7 +22,7 @@ public class STX_is_concurrent_enabled extends ASpoofaxContextPrimitive {
 
     final ISpoofaxProjectConfigService projectConfigService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public STX_is_concurrent_enabled(ISpoofaxProjectConfigService projectConfigService) {
+    @jakarta.inject.Inject public STX_is_concurrent_enabled(ISpoofaxProjectConfigService projectConfigService) {
         super(STX_is_concurrent_enabled.class.getSimpleName(), 0, 0);
         this.projectConfigService = projectConfigService;
     }

@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -24,8 +25,8 @@ public class ConfigBasedProjectService implements IProjectService {
     private final ISourceTextService sourceTextService;
     private final IProjectConfigService projectConfigService;
     
-    @jakarta.inject.Inject @javax.inject.Inject public ConfigBasedProjectService(ISourceTextService sourceTextService,
-        IProjectConfigService projectConfigService) {
+    @Inject public ConfigBasedProjectService(ISourceTextService sourceTextService,
+                                             IProjectConfigService projectConfigService) {
         this.sourceTextService = sourceTextService;
         this.projectConfigService = projectConfigService;
     }

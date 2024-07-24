@@ -24,7 +24,7 @@ public class SpoofaxProjectConfigService extends AConfigService<IProject, ISpoof
     private final SpoofaxProjectConfigBuilder configBuilder;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxProjectConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject public SpoofaxProjectConfigService(AConfigurationReaderWriter configReaderWriter,
             SpoofaxProjectConfigBuilder configBuilder) {
         super(configReaderWriter);
 
