@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.meta.core.stratego.primitive;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.config.ConfigException;
@@ -21,12 +22,12 @@ import com.google.inject.Provider;
 public class GenerateNamespacedGrammarPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(GenerateNamespacedGrammarPrimitive.class);
 
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public GenerateNamespacedGrammarPrimitive(IProjectService projectService) {
+    @Inject public GenerateNamespacedGrammarPrimitive(IProjectService projectService) {
         super("generate_namespaced_grammar", 0, 0);
 
         this.projectService = projectService;

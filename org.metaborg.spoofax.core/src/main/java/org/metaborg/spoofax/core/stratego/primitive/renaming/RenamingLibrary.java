@@ -10,7 +10,7 @@ public class RenamingLibrary extends GenericPrimitiveLibrary {
     public static final String name = "RenamingLibrary";
     public static final String REGISTRY_NAME = "RENAMING";
 
-    @jakarta.inject.Inject @javax.inject.Inject public RenamingLibrary(@jakarta.inject.Named(name) @javax.inject.Named(name) Set<AbstractPrimitive> primitives) {
+    @jakarta.inject.Inject public RenamingLibrary(@jakarta.inject.Named(name) Set<AbstractPrimitive> primitives) {
         super(primitives, RenamingLibrary.REGISTRY_NAME);
     }
 

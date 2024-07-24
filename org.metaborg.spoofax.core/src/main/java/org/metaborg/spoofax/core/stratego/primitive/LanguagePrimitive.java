@@ -12,7 +12,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 
 
 public class LanguagePrimitive extends ASpoofaxContextPrimitive {
-    @jakarta.inject.Inject @javax.inject.Inject public LanguagePrimitive() {
+    @jakarta.inject.Inject public LanguagePrimitive() {
         super("language", 0, 0);
     }
 

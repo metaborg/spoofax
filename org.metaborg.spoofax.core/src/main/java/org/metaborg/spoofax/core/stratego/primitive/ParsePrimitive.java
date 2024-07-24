@@ -41,7 +41,7 @@ public class ParsePrimitive extends ASpoofaxPrimitive {
     private final ISpoofaxSyntaxService syntaxService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ParsePrimitive(IResourceService resourceService, ILanguageService languageService,
+    @jakarta.inject.Inject public ParsePrimitive(IResourceService resourceService, ILanguageService languageService,
         ILanguageIdentifierService languageIdentifierService, IDialectIdentifier dialectIdentifier,
         ISpoofaxUnitService unitService, ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
         super("parse", 0, 4);

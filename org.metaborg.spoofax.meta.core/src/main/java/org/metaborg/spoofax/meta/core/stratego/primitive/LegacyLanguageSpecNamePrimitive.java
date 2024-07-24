@@ -21,12 +21,12 @@ import com.google.inject.Provider;
 public class LegacyLanguageSpecNamePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LegacyLanguageSpecNamePrimitive.class);
 
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LegacyLanguageSpecNamePrimitive(IProjectService projectService) {
+    @jakarta.inject.Inject public LegacyLanguageSpecNamePrimitive(IProjectService projectService) {
         super("SSL_EXT_language_spec_name", 0, 0);
 
         this.projectService = projectService;

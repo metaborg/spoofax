@@ -30,7 +30,7 @@ public class ParseResultProcessor<I extends IInputUnit, P extends IParseUnit>
         new ConcurrentHashMap<>();
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ParseResultProcessor(ISyntaxService<I, P> syntaxService) {
+    @jakarta.inject.Inject public ParseResultProcessor(ISyntaxService<I, P> syntaxService) {
         this.syntaxService = syntaxService;
     }
 

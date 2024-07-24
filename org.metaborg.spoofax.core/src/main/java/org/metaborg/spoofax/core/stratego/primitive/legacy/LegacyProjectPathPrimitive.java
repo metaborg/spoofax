@@ -5,7 +5,7 @@ import org.metaborg.spoofax.core.stratego.primitive.generic.RedirectingPrimitive
 
 
 public class LegacyProjectPathPrimitive extends RedirectingPrimitive {
-    @jakarta.inject.Inject @javax.inject.Inject public LegacyProjectPathPrimitive(ProjectPathPrimitive prim) {
+    @jakarta.inject.Inject public LegacyProjectPathPrimitive(ProjectPathPrimitive prim) {
         super("SSL_EXT_projectpath", prim);
     }
 }

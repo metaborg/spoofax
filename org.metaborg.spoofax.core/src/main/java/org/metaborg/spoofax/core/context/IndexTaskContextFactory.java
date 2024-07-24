@@ -13,7 +13,7 @@ public class IndexTaskContextFactory implements IContextFactory {
     private final ITermFactory termFactory;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public IndexTaskContextFactory(Injector injector, ITermFactory termFactory) {
+    @jakarta.inject.Inject public IndexTaskContextFactory(Injector injector, ITermFactory termFactory) {
         this.injector = injector;
         this.termFactory = termFactory;
     }

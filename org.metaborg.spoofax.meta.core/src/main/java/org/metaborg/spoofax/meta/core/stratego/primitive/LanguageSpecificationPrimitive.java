@@ -21,10 +21,10 @@ import com.google.inject.Provider;
 public class LanguageSpecificationPrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(LanguageSpecificationPrimitive.class);
 
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecificationPrimitive() {
+    @jakarta.inject.Inject public LanguageSpecificationPrimitive() {
         super("language_specification", 0, 0);
     }
 

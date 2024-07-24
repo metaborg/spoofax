@@ -11,7 +11,7 @@ import org.metaborg.core.resource.IResourceService;
 
 public class LanguageResourcesPrimitive extends AResourcesPrimitive {
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageResourcesPrimitive(IResourceService resourceService) {
+    @jakarta.inject.Inject public LanguageResourcesPrimitive(IResourceService resourceService) {
         super("language_resources", resourceService);
     }
 

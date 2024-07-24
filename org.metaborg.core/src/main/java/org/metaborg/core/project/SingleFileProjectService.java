@@ -15,7 +15,7 @@ public class SingleFileProjectService implements IProjectService {
     private final IProjectConfigService projectConfigService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public SingleFileProjectService(IProjectConfigService projectConfigService) {
+    @jakarta.inject.Inject public SingleFileProjectService(IProjectConfigService projectConfigService) {
         this.projectConfigService = projectConfigService;
     }
 

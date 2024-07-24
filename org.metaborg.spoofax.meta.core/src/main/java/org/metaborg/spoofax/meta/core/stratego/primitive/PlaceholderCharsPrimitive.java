@@ -21,11 +21,11 @@ import com.google.inject.Provider;
 public class PlaceholderCharsPrimitive extends AbstractPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(PlaceholderCharsPrimitive.class);
 
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public PlaceholderCharsPrimitive(IProjectService projectService) {
+    @jakarta.inject.Inject public PlaceholderCharsPrimitive(IProjectService projectService) {
         super("SSL_EXT_placeholder_chars", 0, 0);
 
         this.projectService = projectService;

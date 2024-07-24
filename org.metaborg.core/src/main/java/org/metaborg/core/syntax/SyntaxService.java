@@ -17,7 +17,7 @@ public abstract class SyntaxService<I extends IInputUnit, P extends IParseUnit> 
     protected final Map<String, ? extends IParser<I, P>> parsers;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public SyntaxService(Map<String, ? extends IParser<I, P>> parsers) {
+    @jakarta.inject.Inject public SyntaxService(Map<String, ? extends IParser<I, P>> parsers) {
         this.parsers = parsers;
     }
 

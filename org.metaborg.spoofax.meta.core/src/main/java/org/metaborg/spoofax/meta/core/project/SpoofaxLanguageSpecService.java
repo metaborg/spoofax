@@ -21,7 +21,7 @@ public class SpoofaxLanguageSpecService implements ISpoofaxLanguageSpecService {
     private final ISpoofaxLanguageSpecConfigService configService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxLanguageSpecService(ISourceTextService sourceTextService,
+    @jakarta.inject.Inject public SpoofaxLanguageSpecService(ISourceTextService sourceTextService,
         ISpoofaxLanguageSpecConfigService configService) {
         this.sourceTextService = sourceTextService;
         this.configService = configService;

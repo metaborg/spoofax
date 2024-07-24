@@ -26,7 +26,7 @@ public class ProcessorRunner<P extends IParseUnit, A extends IAnalyzeUnit, AU ex
     private final IProcessor<P, A, AU, T> processor;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ProcessorRunner(IProcessor<P, A, AU, T> processor, ILanguageService languageService) {
+    @jakarta.inject.Inject public ProcessorRunner(IProcessor<P, A, AU, T> processor, ILanguageService languageService) {
         this.processor = processor;
 
         languageService.componentChanges().subscribe(this::languageChange);

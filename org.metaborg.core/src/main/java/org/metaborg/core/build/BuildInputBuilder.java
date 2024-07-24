@@ -7,6 +7,7 @@ import java.util.Set;
 
 import jakarta.annotation.Nullable;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgException;
@@ -59,7 +60,7 @@ public class BuildInputBuilder {
     private Set<String> pardonedLanguageStrings;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public BuildInputBuilder(IProject project) {
+    @Inject public BuildInputBuilder(IProject project) {
         this.project = project;
         reset();
     }

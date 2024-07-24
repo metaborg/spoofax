@@ -2,6 +2,7 @@ package org.metaborg.spoofax.meta.core.stratego.primitive;
 
 import java.util.List;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.paths.ILanguagePathService;
@@ -26,12 +27,12 @@ import com.google.inject.Provider;
 public class CheckSdf2TablePrimitive extends AbstractPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(CheckSdf2TablePrimitive.class);
 
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
 
     private final IProjectService projectService;
     private final ILanguagePathService languagePathService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public CheckSdf2TablePrimitive(IProjectService projectService, ILanguagePathService languagePathService) {
+    @Inject public CheckSdf2TablePrimitive(IProjectService projectService, ILanguagePathService languagePathService) {
         super("SSL_EXT_check_sdf2_table", 0, 0);
 
         this.projectService = projectService;

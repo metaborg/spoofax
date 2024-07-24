@@ -22,7 +22,7 @@ public class SpoofaxLanguageSpecConfigService extends AConfigService<ILanguageSp
     private final SpoofaxLanguageSpecConfigBuilder configBuilder;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxLanguageSpecConfigService(AConfigurationReaderWriter configReaderWriter,
+    @jakarta.inject.Inject public SpoofaxLanguageSpecConfigService(AConfigurationReaderWriter configReaderWriter,
         SpoofaxLanguageSpecConfigBuilder configBuilder) {
         super(configReaderWriter);
 

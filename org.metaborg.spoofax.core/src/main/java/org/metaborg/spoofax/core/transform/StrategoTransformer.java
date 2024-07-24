@@ -54,7 +54,7 @@ public class StrategoTransformer implements IStrategoTransformer {
     private final IStrategoCommon common;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public StrategoTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
+    @jakarta.inject.Inject public StrategoTransformer(IResourceService resourceService, ISpoofaxUnitService unitService,
         IEditorRegistry editorRegistry, ISpoofaxTracingService tracingService,
         IStrategoRuntimeService strategoRuntimeService, IStrategoCommon common) {
         this.resourceService = resourceService;

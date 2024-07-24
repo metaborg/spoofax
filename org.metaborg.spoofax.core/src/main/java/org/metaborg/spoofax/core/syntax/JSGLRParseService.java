@@ -51,7 +51,7 @@ public class JSGLRParseService implements ISpoofaxParser, ILanguageCache, AutoCl
     private final Map<ILanguageImpl, JSGLRI<?>> parsers = new HashMap<>();
     private final Map<ILanguageImpl, JSGLRI<?>> completionParsers = new HashMap<>();
 
-    @jakarta.inject.Inject @javax.inject.Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactory termFactory,
+    @jakarta.inject.Inject public JSGLRParseService(ISpoofaxUnitService unitService, ITermFactory termFactory,
         IStrategoRuntimeService strategoRuntimeService, JSGLRParserConfiguration defaultParserConfig) {
         this.unitService = unitService;
         this.termFactory = termFactory;

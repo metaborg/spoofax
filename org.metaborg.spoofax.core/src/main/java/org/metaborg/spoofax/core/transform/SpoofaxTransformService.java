@@ -15,7 +15,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 public class SpoofaxTransformService extends
     TransformService<ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
     implements ISpoofaxTransformService {
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxTransformService(IActionService actionService, ISpoofaxAnalysisService analysisService,
+    @jakarta.inject.Inject public SpoofaxTransformService(IActionService actionService, ISpoofaxAnalysisService analysisService,
             IStrategoTransformer transformer) {
         super(actionService, analysisService, transformer);
     }

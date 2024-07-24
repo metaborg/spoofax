@@ -68,7 +68,7 @@ public class JSGLRCompletionService implements ISpoofaxCompletionService {
 
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public JSGLRCompletionService(ITermFactory termFactory,
+    @jakarta.inject.Inject public JSGLRCompletionService(ITermFactory termFactory,
         IStrategoRuntimeService strategoRuntimeService, IStrategoCommon strategoCommon,
         IResourceService resourceService, ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService) {
         this.termFactory = termFactory;

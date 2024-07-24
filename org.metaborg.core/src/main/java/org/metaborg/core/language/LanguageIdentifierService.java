@@ -31,7 +31,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     private final IDependencyService dependencyService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier,
+    @jakarta.inject.Inject public LanguageIdentifierService(ILanguageService languageService, IDialectIdentifier dialectIdentifier,
         IProjectService projectService, IDependencyService dependencyService) {
         this.languageService = languageService;
         this.dialectIdentifier = dialectIdentifier;

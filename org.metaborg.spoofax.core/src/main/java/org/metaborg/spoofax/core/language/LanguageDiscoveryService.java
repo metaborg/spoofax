@@ -34,7 +34,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private final ILanguageComponentFactory componentFactory;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageDiscoveryService(ILanguageService languageService,
+    @jakarta.inject.Inject public LanguageDiscoveryService(ILanguageService languageService,
         ILanguageComponentFactory componentFactory) {
         this.languageService = languageService;
         this.componentFactory = componentFactory;

@@ -17,7 +17,7 @@ public class LocalPathPrimitive extends ASpoofaxPrimitive {
     private final IResourceService resourceService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LocalPathPrimitive(IResourceService resourceService) {
+    @jakarta.inject.Inject public LocalPathPrimitive(IResourceService resourceService) {
         super("local_path", 0, 0);
         this.resourceService = resourceService;
     }

@@ -23,7 +23,7 @@ public class STX_solver_mode extends ASpoofaxContextPrimitive {
 
     final ISpoofaxProjectConfigService projectConfigService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public STX_solver_mode(ISpoofaxProjectConfigService projectConfigService) {
+    @jakarta.inject.Inject public STX_solver_mode(ISpoofaxProjectConfigService projectConfigService) {
         super(STX_solver_mode.class.getSimpleName(), 0, 0);
         this.projectConfigService = projectConfigService;
     }

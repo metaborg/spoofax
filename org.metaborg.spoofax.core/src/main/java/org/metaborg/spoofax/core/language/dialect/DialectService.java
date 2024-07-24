@@ -7,6 +7,7 @@ import java.util.Map;
 
 import jakarta.annotation.Nullable;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.config.ILanguageComponentConfig;
@@ -56,7 +57,7 @@ public class DialectService implements IDialectService {
     private final SetMultimap<ILanguageImpl, ILanguageImpl> baseLanguageToDialects = new SetMultimap<>();
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public DialectService(ILanguageService languageService) {
+    @Inject public DialectService(ILanguageService languageService) {
         this.languageService = languageService;
     }
 

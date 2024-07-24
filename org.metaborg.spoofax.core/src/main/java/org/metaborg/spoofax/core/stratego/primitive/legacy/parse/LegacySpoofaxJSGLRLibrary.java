@@ -11,7 +11,7 @@ public class LegacySpoofaxJSGLRLibrary extends GenericPrimitiveLibrary {
     public static final String injectionName = "LegacySpoofaxJSGLRLibrary";
 
     
-    @jakarta.inject.Inject @javax.inject.Inject public LegacySpoofaxJSGLRLibrary(@jakarta.inject.Named(injectionName) @javax.inject.Named(injectionName) Set<AbstractPrimitive> primitives) {
+    @jakarta.inject.Inject public LegacySpoofaxJSGLRLibrary(@jakarta.inject.Named(injectionName) Set<AbstractPrimitive> primitives) {
         super(primitives, JSGLRLibrary.REGISTRY_NAME);
     }
 }

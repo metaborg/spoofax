@@ -11,7 +11,7 @@ public class LegacyContextFactory implements IContextFactory {
     private final Injector injector;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LegacyContextFactory(Injector injector) {
+    @jakarta.inject.Inject public LegacyContextFactory(Injector injector) {
         this.injector = injector;
     }
 

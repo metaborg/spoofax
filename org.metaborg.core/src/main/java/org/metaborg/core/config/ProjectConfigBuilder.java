@@ -25,7 +25,7 @@ public class ProjectConfigBuilder extends AConfigBuilder implements IProjectConf
     protected @Nullable Set<LanguageIdentifier> javaDeps;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject public ProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 

@@ -31,7 +31,7 @@ import com.google.inject.Provider;
 public class SpoofaxBuilder extends
     Builder<ISpoofaxInputUnit, ISpoofaxParseUnit, ISpoofaxAnalyzeUnit, ISpoofaxAnalyzeUnitUpdate, ISpoofaxTransformUnit<?>, ISpoofaxTransformUnit<ISpoofaxParseUnit>, ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>>
     implements ISpoofaxBuilder {
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
+    @jakarta.inject.Inject public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
         ILanguagePathService languagePathService, ISpoofaxUnitService unitService, ISourceTextService sourceTextService,
         ISpoofaxSyntaxService syntaxService, IContextService contextService, ISpoofaxAnalysisService analysisService,
         ISpoofaxTransformService transformService, ISpoofaxParseResultUpdater parseResultUpdater,

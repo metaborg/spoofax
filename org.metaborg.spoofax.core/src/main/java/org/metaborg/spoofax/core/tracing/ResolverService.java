@@ -45,7 +45,7 @@ public class ResolverService implements ISpoofaxResolverService {
     private final TracingCommon common;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ResolverService(IProjectService projectService, IContextService contextService,
+    @jakarta.inject.Inject public ResolverService(IProjectService projectService, IContextService contextService,
         ITermFactory termFactory, IStrategoRuntimeService strategoRuntimeService,
         ISpoofaxTracingService tracingService, TracingCommon common) {
         this.projectService = projectService;

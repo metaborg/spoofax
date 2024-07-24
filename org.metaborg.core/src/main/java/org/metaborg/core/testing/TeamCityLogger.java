@@ -12,7 +12,7 @@ public class TeamCityLogger extends AbstractLogger {
 
     private final TeamCityWriter writer;
 
-    @jakarta.inject.Inject @javax.inject.Inject
+    @jakarta.inject.Inject
     public TeamCityLogger(TeamCityWriter writer) {
         this.writer = writer;
     }

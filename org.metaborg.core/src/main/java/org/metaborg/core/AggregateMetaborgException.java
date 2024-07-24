@@ -17,6 +17,14 @@ public class AggregateMetaborgException extends MetaborgException {
         this.causes = causes;
     }
 
+    @Override
+    public synchronized Throwable getCause() {
+        if(causes.size() == 1) {
+            return causes.get(0);
+        }
+        return super.getCause();
+    }
+
     public Iterable<MetaborgException> getCauses() {
         return causes;
     }

@@ -16,7 +16,7 @@ public class UnitService implements ISpoofaxUnitService {
     private final ITermFactory termFactory;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public UnitService(ITermFactory termFactory) {
+    @jakarta.inject.Inject public UnitService(ITermFactory termFactory) {
         this.termFactory = termFactory;
     }
 

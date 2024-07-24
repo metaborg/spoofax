@@ -47,7 +47,7 @@ public class SpoofaxLanguageSpecConfigBuilder extends LanguageSpecConfigBuilder
     protected @Nullable Collection<IBuildStepConfig> buildSteps;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxLanguageSpecConfigBuilder(final AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject public SpoofaxLanguageSpecConfigBuilder(final AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
         this.projectConfigBuilder = new SpoofaxProjectConfigBuilder(configReaderWriter);
     }
