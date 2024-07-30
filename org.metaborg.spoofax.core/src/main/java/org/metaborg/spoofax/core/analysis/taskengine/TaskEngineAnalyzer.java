@@ -65,7 +65,7 @@ public class TaskEngineAnalyzer implements ISpoofaxAnalyzer {
     private final IStrategoConstructor fileCons;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public TaskEngineAnalyzer(IResourceService resourceService, ISpoofaxUnitService unitService,
+    @jakarta.inject.Inject public TaskEngineAnalyzer(IResourceService resourceService, ISpoofaxUnitService unitService,
         ITermFactory termFactory, IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
         AnalysisCommon analysisCommon) {
         this.resourceService = resourceService;

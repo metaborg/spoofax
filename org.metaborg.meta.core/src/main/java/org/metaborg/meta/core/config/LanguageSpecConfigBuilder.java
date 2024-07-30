@@ -25,7 +25,7 @@ public class LanguageSpecConfigBuilder extends LanguageComponentConfigBuilder im
     protected @Nullable Boolean useBuildSystemSpec;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject public LanguageSpecConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 

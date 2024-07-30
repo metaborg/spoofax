@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import jakarta.annotation.Nullable;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -39,8 +40,8 @@ public class AnalysisResultProcessor<I extends IInputUnit, P extends IParseUnit,
         new ConcurrentHashMap<>();
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public AnalysisResultProcessor(IAnalysisService<P, A, AU> analysisService,
-        IParseResultRequester<I, P> parseResultRequester) {
+    @Inject public AnalysisResultProcessor(IAnalysisService<P, A, AU> analysisService,
+                                           IParseResultRequester<I, P> parseResultRequester) {
         this.analysisService = analysisService;
         this.parseResultRequester = parseResultRequester;
     }

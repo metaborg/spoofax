@@ -14,7 +14,7 @@ public class SingleFileConstraintAnalyzer extends AbstractConstraintAnalyzer {
 
     public static final String name = "constraint-singlefile";
 
-    @jakarta.inject.Inject @javax.inject.Inject public SingleFileConstraintAnalyzer(AnalysisCommon analysisCommon,
+    @jakarta.inject.Inject public SingleFileConstraintAnalyzer(AnalysisCommon analysisCommon,
             final ISpoofaxAnalysisResultRequester analysisResultRequester, IResourceService resourceService,
             IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon, ITermFactory termFactory,
             ISpoofaxTracingService tracingService, ISpoofaxUnitService unitService) {

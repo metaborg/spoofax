@@ -26,7 +26,7 @@ public class SpoofaxSyntaxService extends SyntaxService<ISpoofaxInputUnit, ISpoo
     implements ISpoofaxSyntaxService {
     private static final ILogger logger = LoggerUtils.logger(SpoofaxSyntaxService.class);
 
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxSyntaxService(Map<String, ISpoofaxParser> parsers) {
+    @jakarta.inject.Inject public SpoofaxSyntaxService(Map<String, ISpoofaxParser> parsers) {
         super(parsers);
     }
 

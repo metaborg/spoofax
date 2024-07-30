@@ -99,7 +99,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
     private final ILanguageComponentConfigWriter componentConfigWriter;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageSpecBuilder(Injector injector, IResourceService resourceService,
+    @jakarta.inject.Inject public LanguageSpecBuilder(Injector injector, IResourceService resourceService,
         ISourceTextService sourceTextService, ILanguageIdentifierService languageIdentifierService,
         IDependencyService dependencyService, ILanguagePathService languagePathService,
         ILanguageService languageService, ISpoofaxProcessorRunner runner,

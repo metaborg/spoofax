@@ -86,7 +86,7 @@ public class LanguageComponentFactory implements ILanguageComponentFactory {
     private final Map<String, ISpoofaxAnalyzer> analyzers;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageComponentFactory(IResourceService resourceService,
+    @jakarta.inject.Inject public LanguageComponentFactory(IResourceService resourceService,
         ILanguageComponentConfigService componentConfigService, ITermFactory termFactory,
         Map<String, IContextFactory> contextFactories, Map<String, IContextStrategy> contextStrategies,
         Map<String, ISpoofaxAnalyzer> analyzers) {

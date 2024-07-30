@@ -13,7 +13,7 @@ public class StrategoBuildStep extends AConfigBuildStep<StrategoBuildStepConfig>
     private final IResourceService resourceService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public StrategoBuildStep(IResourceService resourceService) {
+    @jakarta.inject.Inject public StrategoBuildStep(IResourceService resourceService) {
         super(StrategoBuildStepConfig.class);
 
         this.resourceService = resourceService;

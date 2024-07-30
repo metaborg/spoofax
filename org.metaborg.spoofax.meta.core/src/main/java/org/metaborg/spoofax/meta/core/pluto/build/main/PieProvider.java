@@ -18,7 +18,7 @@ public class PieProvider implements IPieProvider {
 
     protected boolean logInfoAndBelow = false;
 
-    @jakarta.inject.Inject @javax.inject.Inject public PieProvider(GuiceTaskDefs guiceTaskDefs) {
+    @jakarta.inject.Inject public PieProvider(GuiceTaskDefs guiceTaskDefs) {
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withLoggerFactory(new LoggerFactory() {
             @Override public Logger create(String name) {

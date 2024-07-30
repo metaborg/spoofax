@@ -27,7 +27,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     private final Set<ILanguageCache> languageCaches;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IContextProcessor contextProcessor,
+    @jakarta.inject.Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IContextProcessor contextProcessor,
         IParseResultProcessor<?, ?> parseResultProcessor, IAnalysisResultProcessor<?, ?, ?> analysisResultProcessor,
         IEditorRegistry editorRegistry, Set<ILanguageCache> languageCaches) {
         this.dialectProcessor = dialectProcessor;

@@ -49,7 +49,7 @@ public class OutlineService implements ISpoofaxOutlineService {
     private final IStrategoCommon common;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public OutlineService(IProjectService projectService, IContextService contextService,
+    @jakarta.inject.Inject public OutlineService(IProjectService projectService, IContextService contextService,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxTracingService tracingService, IStrategoCommon common) {
         this.projectService = projectService;
         this.contextService = contextService;

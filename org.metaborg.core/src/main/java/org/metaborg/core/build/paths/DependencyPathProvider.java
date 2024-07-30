@@ -3,6 +3,7 @@ package org.metaborg.core.build.paths;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgException;
@@ -24,7 +25,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     private final IDependencyService dependencyService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public DependencyPathProvider(IDependencyService dependencyService) {
+    @Inject public DependencyPathProvider(IDependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 

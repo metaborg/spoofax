@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import jakarta.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -47,7 +48,7 @@ public class FS_solve extends AbstractPrimitive implements ILanguageCache {
     private static final String FLOWSPEC_STATIC_INFO_DIR = "target/metaborg/flowspec-static-info";
     private final Map<ILanguageComponent, InterpreterBuilder> flowSpecTransferFunctionCache = new HashMap<>();
 
-    @jakarta.inject.Inject @javax.inject.Inject public FS_solve(IResourceService resourceService, ITermFactory termFactory) {
+    @Inject public FS_solve(IResourceService resourceService, ITermFactory termFactory) {
         super(FS_solve.class.getSimpleName(), 0, 2);
         this.resourceService = resourceService;
         this.termFactory = termFactory;

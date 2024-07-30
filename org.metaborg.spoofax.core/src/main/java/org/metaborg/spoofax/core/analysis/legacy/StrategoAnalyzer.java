@@ -55,7 +55,7 @@ public class StrategoAnalyzer implements ISpoofaxAnalyzer {
     private final AnalysisCommon analysisCommon;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public StrategoAnalyzer(ISpoofaxUnitService unitService, ITermFactory termFactory,
+    @jakarta.inject.Inject public StrategoAnalyzer(ISpoofaxUnitService unitService, ITermFactory termFactory,
             IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon,
         AnalysisCommon analysisCommon) {
         this.unitService = unitService;

@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.language.dialect;
 
+import jakarta.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
@@ -33,7 +34,7 @@ public class DialectProcessor implements IDialectProcessor {
     private final FileSelector selector;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public DialectProcessor(ILanguageService languageService, IDialectService dialectService) {
+    @Inject public DialectProcessor(ILanguageService languageService, IDialectService dialectService) {
         this.languageService = languageService;
         this.dialectService = dialectService;
 

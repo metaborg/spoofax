@@ -21,7 +21,7 @@ public final class SLShowDialogPrimitive extends ASpoofaxContextPrimitive {
 
     private final ISpoofaxDialogService dialogService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public SLShowDialogPrimitive(ISpoofaxDialogService dialogService) {
+    @jakarta.inject.Inject public SLShowDialogPrimitive(ISpoofaxDialogService dialogService) {
         super("SL_show_dialog", 0, 4);
         this.dialogService = dialogService;
     }

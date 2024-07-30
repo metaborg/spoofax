@@ -27,7 +27,7 @@ public class SimpleProjectService implements ISimpleProjectService {
     private final ConcurrentMap<FileName, IProject> projects = new ConcurrentHashMap<>();
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public SimpleProjectService(ISourceTextService sourceTextService,
+    @jakarta.inject.Inject public SimpleProjectService(ISourceTextService sourceTextService,
         IProjectConfigService projectConfigService) {
         this.sourceTextService = sourceTextService;
         this.projectConfigService = projectConfigService;

@@ -28,7 +28,7 @@ public class ParseFileStrategy extends Strategy {
     private final ISpoofaxSyntaxService syntaxService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ParseFileStrategy(IResourceService resourceService,
+    @jakarta.inject.Inject public ParseFileStrategy(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ISpoofaxUnitService unitService,
         ISourceTextService sourceTextService, ISpoofaxSyntaxService syntaxService) {
         this.resourceService = resourceService;

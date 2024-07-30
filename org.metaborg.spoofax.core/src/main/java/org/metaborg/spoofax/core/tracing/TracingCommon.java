@@ -37,7 +37,7 @@ public class TracingCommon {
     private final IStrategoCommon common;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public TracingCommon(ISpoofaxTracingService tracingService, IStrategoCommon common) {
+    @jakarta.inject.Inject public TracingCommon(ISpoofaxTracingService tracingService, IStrategoCommon common) {
         this.tracingService = tracingService;
         this.common = common;
     }

@@ -35,7 +35,7 @@ public class TeamCityTestReporterService extends TestReporterServiceBase {
      */
     private PrintStream err = new PrintStream(this.errStream);
 
-    @jakarta.inject.Inject @javax.inject.Inject
+    @jakarta.inject.Inject
     public TeamCityTestReporterService(TeamCityWriter writer, TeamCityLogger logger) {
         this.writer = writer;
         this.logger = logger;

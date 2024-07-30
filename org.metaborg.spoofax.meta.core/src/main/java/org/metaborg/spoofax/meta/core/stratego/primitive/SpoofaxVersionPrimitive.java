@@ -7,7 +7,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 
 public class SpoofaxVersionPrimitive extends AbstractPrimitive {
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxVersionPrimitive() {
+    @jakarta.inject.Inject public SpoofaxVersionPrimitive() {
         super("spoofax_version", 0, 0);
     }
 

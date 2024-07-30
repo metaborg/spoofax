@@ -8,7 +8,7 @@ import mb.nabl2.config.NaBL2Config;
 
 public class SG_is_debug_custom_enabled extends ScopeGraphConfigPrimitive {
 
-    @jakarta.inject.Inject @javax.inject.Inject public SG_is_debug_custom_enabled(ISpoofaxProjectConfigService configService) {
+    @jakarta.inject.Inject public SG_is_debug_custom_enabled(ISpoofaxProjectConfigService configService) {
         super(SG_is_debug_custom_enabled.class.getSimpleName(), configService);
     }
 

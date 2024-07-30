@@ -37,7 +37,7 @@ public class LanguageComponentConfigBuilder extends AConfigBuilder implements IL
     protected @Nullable StatixSolverMode statixMode;
     protected @Nullable Boolean strEnabled;
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject public LanguageComponentConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
         this.projectConfigBuilder = new ProjectConfigBuilder(configReaderWriter);
     }

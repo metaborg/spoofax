@@ -1,5 +1,6 @@
 package org.metaborg.core.processing;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.analysis.IAnalyzeUnit;
 import org.metaborg.core.analysis.IAnalyzeUnitUpdate;
@@ -31,8 +32,8 @@ public class BlockingProcessor<P extends IParseUnit, A extends IAnalyzeUnit, AU 
     private final ILanguageChangeProcessor languageChangeProcessor;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public BlockingProcessor(IDialectProcessor dialectProcessor, IBuilder<P, A, AU, T> builder,
-        ILanguageChangeProcessor languageChangeProcessor) {
+    @Inject public BlockingProcessor(IDialectProcessor dialectProcessor, IBuilder<P, A, AU, T> builder,
+                                     ILanguageChangeProcessor languageChangeProcessor) {
         this.dialectProcessor = dialectProcessor;
         this.builder = builder;
         this.languageChangeProcessor = languageChangeProcessor;

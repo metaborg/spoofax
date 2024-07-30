@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -37,8 +38,8 @@ public class DynamicClassLoadingService implements IDynamicClassLoadingService, 
     private final Injector injector;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public DynamicClassLoadingService(IResourceService resourceService,
-        Set<ClassLoader> additionalClassLoaders, Injector injector) {
+    @Inject public DynamicClassLoadingService(IResourceService resourceService,
+                                              Set<ClassLoader> additionalClassLoaders, Injector injector) {
         this.resourceService = resourceService;
         this.additionalClassLoaders = additionalClassLoaders;
         this.injector = injector;

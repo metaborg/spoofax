@@ -29,8 +29,8 @@ public class ResourceService implements IResourceService {
     private final FileSystemOptions fileSystemOptions;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ResourceService(FileSystemManager fileSystemManager,
-        @jakarta.inject.Named("ResourceClassLoader") @javax.inject.Named("ResourceClassLoader") ClassLoader classLoader) {
+    @jakarta.inject.Inject public ResourceService(FileSystemManager fileSystemManager,
+        @jakarta.inject.Named("ResourceClassLoader") ClassLoader classLoader) {
         this.fileSystemManager = fileSystemManager;
         this.fileSystemOptions = new FileSystemOptions();
 

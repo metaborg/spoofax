@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import jakarta.inject.Inject;
 import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageService;
@@ -24,7 +25,7 @@ public final class DefaultDependencyService implements IDependencyService {
     private final ILanguageService languageService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public DefaultDependencyService(ILanguageService languageService) {
+    @Inject public DefaultDependencyService(ILanguageService languageService) {
         this.languageService = languageService;
     }
 

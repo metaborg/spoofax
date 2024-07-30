@@ -14,7 +14,7 @@ public class MultiFileConstraintAnalyzer extends AbstractConstraintAnalyzer {
 
     public static final String name = "constraint-multifile";
 
-    @jakarta.inject.Inject @javax.inject.Inject public MultiFileConstraintAnalyzer(AnalysisCommon analysisCommon,
+    @jakarta.inject.Inject public MultiFileConstraintAnalyzer(AnalysisCommon analysisCommon,
             final ISpoofaxAnalysisResultRequester analysisResultRequester, IResourceService resourceService,
             IStrategoRuntimeService runtimeService, IStrategoCommon strategoCommon, ITermFactory termFactory,
             ISpoofaxTracingService tracingService, ISpoofaxUnitService unitService) {

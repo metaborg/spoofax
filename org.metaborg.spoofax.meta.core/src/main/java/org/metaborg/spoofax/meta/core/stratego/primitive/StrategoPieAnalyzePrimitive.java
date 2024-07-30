@@ -79,16 +79,16 @@ import mb.stratego.build.util.LastModified;
 public class StrategoPieAnalyzePrimitive extends ASpoofaxContextPrimitive implements AutoCloseable {
     private static final ILogger logger = LoggerUtils.logger(StrategoPieAnalyzePrimitive.class);
 
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<ILanguageService> languageServiceProvider;
-    @jakarta.inject.Inject @javax.inject.Inject private static Provider<IPieProvider> pieProviderProvider;
+    @jakarta.inject.Inject private static Provider<ISpoofaxLanguageSpecService> languageSpecServiceProvider;
+    @jakarta.inject.Inject private static Provider<ILanguageService> languageServiceProvider;
+    @jakarta.inject.Inject private static Provider<IPieProvider> pieProviderProvider;
 
     // Using provider to break cycle between Check -> Stratego runtime -> all primitives -> this primitive
     private final Provider<CheckOpenModule> checkModuleProvider;
     private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public StrategoPieAnalyzePrimitive(Provider<CheckOpenModule> checkModuleProvider, ILanguagePathService languagePathService,
+    @jakarta.inject.Inject public StrategoPieAnalyzePrimitive(Provider<CheckOpenModule> checkModuleProvider, ILanguagePathService languagePathService,
         IResourceService resourceService) {
         super("stratego_pie_analyze", 0, 0);
         this.checkModuleProvider = checkModuleProvider;

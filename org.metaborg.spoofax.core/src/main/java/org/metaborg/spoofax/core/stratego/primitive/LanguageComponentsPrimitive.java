@@ -16,7 +16,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 
 
 public class LanguageComponentsPrimitive extends ASpoofaxContextPrimitive {
-    @jakarta.inject.Inject @javax.inject.Inject public LanguageComponentsPrimitive() {
+    @jakarta.inject.Inject public LanguageComponentsPrimitive() {
         super("language_components", 0, 0);
     }
 

@@ -19,7 +19,7 @@ public class STX_project_config extends ASpoofaxContextPrimitive {
 
     final ISpoofaxProjectConfigService projectConfigService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public STX_project_config(ISpoofaxProjectConfigService projectConfigService) {
+    @jakarta.inject.Inject public STX_project_config(ISpoofaxProjectConfigService projectConfigService) {
         super(STX_project_config.class.getSimpleName(), 0, 0);
         this.projectConfigService = projectConfigService;
     }

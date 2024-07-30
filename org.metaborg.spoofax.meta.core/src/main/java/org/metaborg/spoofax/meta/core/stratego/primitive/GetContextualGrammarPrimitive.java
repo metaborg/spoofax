@@ -3,6 +3,7 @@ package org.metaborg.spoofax.meta.core.stratego.primitive;
 import java.io.IOException;
 import java.io.InputStream;
 
+import jakarta.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.ResourceService;
 import org.spoofax.interpreter.core.IContext;
@@ -15,7 +16,7 @@ import org.spoofax.terms.io.binary.TermReader;
 
 
 public class GetContextualGrammarPrimitive extends AbstractPrimitive {
-    @jakarta.inject.Inject @javax.inject.Inject public GetContextualGrammarPrimitive() {
+    @Inject public GetContextualGrammarPrimitive() {
         super("SSL_EXT_get_contextual_grammar", 0, 1);
     }
 

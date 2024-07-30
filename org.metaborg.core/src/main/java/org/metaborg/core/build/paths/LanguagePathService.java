@@ -29,7 +29,7 @@ public class LanguagePathService implements ILanguagePathService {
     private final Set<ILanguagePathProvider> providers;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LanguagePathService(ILanguageIdentifierService languageIdentifierService,
+    @jakarta.inject.Inject public LanguagePathService(ILanguageIdentifierService languageIdentifierService,
         Set<ILanguagePathProvider> providers) {
         this.languageIdentifierService = languageIdentifierService;
         this.providers = providers;

@@ -19,7 +19,7 @@ public class SpoofaxProjectConfigBuilder extends ProjectConfigBuilder implements
     protected @Nullable NaBL2Config nabl2Config;
     protected @Nullable IStatixProjectConfig statixConfig;
 
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
+    @jakarta.inject.Inject public SpoofaxProjectConfigBuilder(AConfigurationReaderWriter configReaderWriter) {
         super(configReaderWriter);
     }
 

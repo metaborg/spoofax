@@ -11,7 +11,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
  */
 public class SpoofaxParseResultProcessor extends ParseResultProcessor<ISpoofaxInputUnit, ISpoofaxParseUnit>
     implements ISpoofaxParseResultProcessor {
-    @jakarta.inject.Inject @javax.inject.Inject public SpoofaxParseResultProcessor(ISpoofaxSyntaxService syntaxService) {
+    @jakarta.inject.Inject public SpoofaxParseResultProcessor(ISpoofaxSyntaxService syntaxService) {
         super(syntaxService);
     }
 }

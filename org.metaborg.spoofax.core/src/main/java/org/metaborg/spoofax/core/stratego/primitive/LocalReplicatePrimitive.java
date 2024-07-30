@@ -17,7 +17,7 @@ public class LocalReplicatePrimitive extends ASpoofaxPrimitive {
     private final IResourceService resourceService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public LocalReplicatePrimitive(IResourceService resourceService) {
+    @jakarta.inject.Inject public LocalReplicatePrimitive(IResourceService resourceService) {
         super("local_replicate", 0, 0);
         this.resourceService = resourceService;
     }
