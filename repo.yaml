@@ -1,0 +1,70 @@
+---
+repoOwner: "metaborg"
+repoName: "spoofax"
+mainBranch: "master"
+mavenGroup: "org.metaborg.devenv"
+releaseTagPrefix: "devenv-release/"
+
+title: "Spoofax 2"
+inceptionYear: "2007"
+
+languages:
+  - group: "org.metaborg.devenv"
+    name: "meta.lib.spoofax"
+
+libraries:
+  - group: "org.metaborg.devenv"
+    name: "org.metaborg.core"
+  - group: "org.metaborg.devenv"
+    name: "org.metaborg.core.test"
+  - group: "org.metaborg.devenv"
+    name: "org.metaborg.meta.core"
+  - group: "org.metaborg.devenv"
+    name: "org.metaborg.spoofax.core"
+  - group: "org.metaborg.devenv"
+    name: "org.metaborg.spoofax.meta.core"
+  - group: "org.metaborg.devenv"
+    name: "org.metaborg.spoofax.nativebundle"
+
+contributors:
+  - id: "Gohla"
+    name: "Gabriel Konat"
+  - id: "lennartcl"
+    name: "Lennart Kats"
+  - id: "hendrikvanantwerpen"
+    name: "Hendrik van Antwerpen"
+  - id: "oskar-van-rest"
+    name: "Oskar van Rest"
+  - id: "maartje"
+    name: "Maartje de Jonge"
+  - id: "udesou"
+    name: "Eduardo Souza"
+  - id: "vvergu"
+    name: "Vlad Vergu"
+  - id: "Virtlink"
+    name: "Daniel A. A. Pelsmaeker"
+  - id: "jasperdenkers"
+    name: "Jasper Denkers"
+
+developers:
+  - id: "Apanatshka"
+    name: "Jeff Smits"
+
+files:
+  changelog:
+    generate: false
+  githubWorkflows:
+    publishRelease: true
+    publishSnapshot: true
+  gradleRootProject:
+    update: true
+    createPublishTasks: true
+    rootProjectName: "spoofax2-project"
+    includedProjects:
+      - name: ":meta.lib.spoofax"
+      - name: ":org.metaborg.core"
+      - name: ":org.metaborg.core.test"
+      - name: ":org.metaborg.meta.core"
+      - name: ":org.metaborg.spoofax.core"
+      - name: ":org.metaborg.spoofax.meta.core"
+      - name: ":org.metaborg.spoofax.nativebundle"
