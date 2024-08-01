@@ -1,24 +1,80 @@
+# !! THIS FILE WAS GENERATED USING repoman !!
+# Modify `repo.yaml` instead and use `repoman` to update this file
+# See: https://github.com/metaborg/metaborg-gradle/
+
 # Java
 *.class
+*.log
 *.jar
-hs_err_pid*
+*.war
+*.nar
+*.ear
+
 
 # Gradle
-**/.gradle
-/build
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
 
 # IntelliJ
-**/.idea
+.idea/*
+!.idea/icon.svg
+!.idea/icon_dark.svg
+*.iws
+out/
 *.iml
-**/out
+*.ipr
+!**/src/main/**/out/
+!**/src/test/**/out/
+
 
 # Eclipse
-**/.project
-**/.settings
-**/.classpath
-**/.factorypath
-**/bin
+.metadata
+.classpath
+.project
+.apt_generated
+.settings
+.springBeans
+.sts4-cache
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.factorypath
+.recommenders/
+.apt_generated/
+.apt_generated_test/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+
+# VS Code
+.vscode/
+
+# Misc
+.cache
+.DS_Store
+*.lock
+jte-classes/
 
 # Spoofax
-**/src-gen
-**/target
+src-gen/
+target/
+

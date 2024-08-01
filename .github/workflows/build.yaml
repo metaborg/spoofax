@@ -1,0 +1,45 @@
+---
+# !! THIS FILE WAS GENERATED USING repoman !!
+# Modify `repo.yaml` instead and use `repoman` to update this file
+# See: https://github.com/metaborg/metaborg-gradle/
+
+name: 'Build & Publish'
+
+on:  # yamllint disable-line rule:truthy
+  push:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    uses: metaborg/actions/.github/workflows/gradle-build-matrix.yaml@main
+    with:
+      gradle-command: |
+        gradle build
+  # Publish snapshots
+  publish-snapshot:
+    uses: metaborg/actions/.github/workflows/gradle-publish.yaml@main
+    with:
+      gradle-command: |
+        gradle publish -Pgitonium.isSnapshot=true
+      gradle-version-command: |
+        gradle -q :printVersion -Pgitonium.isSnapshot=true
+    if: "github.event_name == 'push' && github.ref == 'refs/heads/master'"
+    needs: [build]
+    secrets:
+      METABORG_ARTIFACTS_USERNAME: ${{ secrets.METABORG_ARTIFACTS_USERNAME }}
+      METABORG_ARTIFACTS_PASSWORD: ${{ secrets.METABORG_ARTIFACTS_PASSWORD }}
+  # Publish releases
+  publish-release:
+    uses: metaborg/actions/.github/workflows/gradle-publish.yaml@main
+    with:
+      gradle-command: |
+        gradle publish
+      gradle-version-command: |
+        gradle -q :printVersion
+    if: "github.event_name == 'push' && startsWith(github.ref, 'refs/tags/devenv-release/')"
+    needs: [build]
+    secrets:
+      METABORG_ARTIFACTS_USERNAME: ${{ secrets.METABORG_ARTIFACTS_USERNAME }}
+      METABORG_ARTIFACTS_PASSWORD: ${{ secrets.METABORG_ARTIFACTS_PASSWORD }}

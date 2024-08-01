@@ -8,11 +8,11 @@ releaseTagPrefix: "devenv-release/"
 title: "Spoofax 2"
 inceptionYear: "2007"
 
-languages:
+spoofax3Languages:
   - group: "org.metaborg.devenv"
     name: "meta.lib.spoofax"
 
-libraries:
+spoofax3Libraries:
   - group: "org.metaborg.devenv"
     name: "org.metaborg.core"
   - group: "org.metaborg.devenv"
@@ -24,6 +24,28 @@ libraries:
   - group: "org.metaborg.devenv"
     name: "org.metaborg.spoofax.meta.core"
   - group: "org.metaborg.devenv"
+    name: "org.metaborg.spoofax.nativebundle"
+
+spoofax2Languages:
+  - group: "org.metaborg"
+    name: "meta.lib.spoofax"
+
+spoofax2Libraries:
+  - group: "org.metaborg"
+    name: "meta.lib.spoofax.eclipse"
+  - group: "org.metaborg"
+    name: "org.metaborg.core"
+  - group: "org.metaborg"
+    name: "org.metaborg.core.test"
+  - group: "org.metaborg"
+    name: "org.metaborg.meta.core"
+  - group: "org.metaborg"
+    name: "org.metaborg.spoofax.core"
+  - group: "org.metaborg"
+    name: "org.metaborg.spoofax.core.uber"
+  - group: "org.metaborg"
+    name: "org.metaborg.spoofax.meta.core"
+  - group: "org.metaborg"
     name: "org.metaborg.spoofax.nativebundle"
 
 contributors:
@@ -51,14 +73,11 @@ developers:
     name: "Jeff Smits"
 
 files:
-  changelog:
-    generate: false
   githubWorkflows:
     publishRelease: true
     publishSnapshot: true
   gradleRootProject:
-    update: true
-    createPublishTasks: true
+    generate: true
     rootProjectName: "spoofax2-project"
     includedProjects:
       - name: ":meta.lib.spoofax"
