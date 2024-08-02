@@ -76,6 +76,11 @@
     	</dependency>
 		<dependency>
 			<groupId>org.metaborg</groupId>
+			<artifactId>stratego.build</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
 			<artifactId>stratego.build.spoofax2</artifactId>
 			<version>${metaborg-version}</version>
 		</dependency>
