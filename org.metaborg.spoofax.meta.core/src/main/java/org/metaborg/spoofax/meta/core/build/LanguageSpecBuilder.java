@@ -158,24 +158,6 @@ public class LanguageSpecBuilder implements AutoCloseable {
         final ILanguageComponentConfig componentConfig = componentConfigBuilder.build(location);
         componentConfigWriter.write(location, componentConfig, access);
 
-        // HACK: make sure mix syntax parse table is generated earlier in the process
-        // Pulling the whole Pluto build forward like this is a bit heavy-handed, but seems like the simplest way
-        initPluto();
-        try {
-            final String path = path(input);
-            plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input, true)), path);
-        } catch(RequiredBuilderFailed e) {
-            if(e.getMessage().contains("no rebuild of failing builder")) {
-                throw new MetaborgException(failingRebuildMessage, e);
-            } else {
-                throw new MetaborgException(e);
-            }
-        } catch(RuntimeException | MetaborgException e) {
-            throw e;
-        } catch(Throwable e) {
-            throw new MetaborgException(e);
-        }
-
         for(IBuildStep buildStep : buildSteps) {
             buildStep.execute(LanguageSpecBuildPhase.generateSources, input);
         }
@@ -187,7 +169,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         initPluto();
         try {
             final String path = path(input);
-            plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input, false)), path);
+            plutoBuild(GenerateSourcesBuilder.request(generateSourcesBuilderInput(input)), path);
         } catch(RequiredBuilderFailed e) {
             if(e.getMessage().contains("no rebuild of failing builder")) {
                 throw new MetaborgException(failingRebuildMessage, e);
@@ -272,7 +254,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         initPluto();
         try {
-            final Origin origin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input, false));
+            final Origin origin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
             final String path = path(input);
             plutoBuild(PackageBuilder.request(packageBuilderInput(input, origin)), path);
         } catch(RequiredBuilderFailed e) {
@@ -297,7 +279,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
         initPluto();
         final File archiveFile;
         try {
-            final Origin generateSourcesOrigin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input, false));
+            final Origin generateSourcesOrigin = GenerateSourcesBuilder.origin(generateSourcesBuilderInput(input));
             final BuildRequest<?,PackageBuilder.Output,?,?> packageBuildRequest = PackageBuilder.request(packageBuilderInput(input, generateSourcesOrigin));
             final String path = path(input);
             archiveFile = plutoBuild(ArchiveBuilder.request(archiveBuilderInput(input, generateSourcesOrigin, packageBuildRequest)), path).val();
@@ -384,7 +366,7 @@ public class LanguageSpecBuilder implements AutoCloseable {
     }
 
 
-    private GenerateSourcesBuilder.Input generateSourcesBuilderInput(LanguageSpecBuildInput input, boolean disableStratego)
+    private GenerateSourcesBuilder.Input generateSourcesBuilderInput(LanguageSpecBuildInput input)
         throws FileSystemException, MetaborgException {
         final ISpoofaxLanguageSpec languageSpec = input.languageSpec();
         final ISpoofaxLanguageSpecConfig config = languageSpec.config();
@@ -608,21 +590,13 @@ public class LanguageSpecBuilder implements AutoCloseable {
 
         final Arguments strjArgs = config.strArgs();
 
-        if(disableStratego) {
-            return new GenerateSourcesBuilder.Input(context, config.identifier(), sourceDeps, sdfEnabled, sdfModule,
-                    sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities, sdfExternalDef,
-                    packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles,
-                    false, null, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
-                    strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, str2libraries, strjArgs,
-                    languageSpec.config().strShadowJar(), languageSpec.config().strVersion());
-        } else {
-            return new GenerateSourcesBuilder.Input(context, config.identifier(), sourceDeps, sdfEnabled, sdfModule,
-                    sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities, sdfExternalDef,
-                    packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles,
-                    strEnabled, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
-                    strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, str2libraries, strjArgs,
-                    languageSpec.config().strShadowJar(), languageSpec.config().strVersion());
-        }
+        return new GenerateSourcesBuilder.Input(context, config.identifier(), sourceDeps, sdfEnabled, sdfModule,
+            sdfFile, jsglrVersion, sdfVersion, sdf2tableVersion, checkOverlap, checkPriorities, sdfExternalDef,
+            packSdfIncludePaths, packSdfArgs, sdfCompletionModule, sdfCompletionFile, sdfMetaModules, sdfMetaFiles,
+            strEnabled, strFile, strStratPkg, strJavaStratPkg, strJavaStratFile, strFormat, strExternalJar,
+            strExternalJarFlags, strjIncludeDirs, strjIncludeFiles, str2libraries, strjArgs,
+            languageSpec.config().strShadowJar(), languageSpec.config().strVersion());
+
     }
 
     private PackageBuilder.Input packageBuilderInput(LanguageSpecBuildInput input, Origin origin)
