@@ -56,10 +56,10 @@ public class AnalysisCommon {
                     final ISourceRegion region = location.region();
                     messages.add(message(resource, region, message, severity));
                 } else {
-                    messages.add(message(resource, message, severity));
+                    messages.add(message(resource, originTerm, message, severity));
                 }
             } else {
-                messages.add(message(resource, message, severity));
+                messages.add(message(resource, term, message, severity));
             }
         }
 
@@ -86,10 +86,10 @@ public class AnalysisCommon {
                     final ISourceRegion region = location.region();
                     messages.add(message(location.resource(), region, message, severity));
                 } else {
-                    messages.add(message(null, message, severity));
+                    messages.add(message(null, originTerm, message, severity));
                 }
             } else {
-                messages.add(message(null, message, severity));
+                messages.add(message(null, term, message, severity));
             }
         }
 
@@ -109,7 +109,7 @@ public class AnalysisCommon {
                         final ISourceRegion region = location.region();
                         messages.add(message(resource, region, text, MessageSeverity.WARNING));
                     } else {
-                        messages.add(message(resource, text, MessageSeverity.WARNING));
+                        messages.add(message(resource, term, text, MessageSeverity.WARNING));
                     }
 
                     ambStart = term;
@@ -156,7 +156,7 @@ public class AnalysisCommon {
         return MessageFactory.newAnalysisMessage(resource, region, message, severity, null);
     }
 
-    private IMessage message(@Nullable FileObject resource, String message, MessageSeverity severity) {
-        return MessageFactory.newAnalysisMessageAtTop(resource, message + " (no origin information)", severity, null);
+    private IMessage message(@Nullable FileObject resource, IStrategoTerm theTerm, String message, MessageSeverity severity) {
+        return MessageFactory.newAnalysisMessageAtTop(resource, message + " (no origin information), it was on:" + theTerm.toString(3), severity, null);
     }
 }

@@ -47,8 +47,6 @@ public class JSGLR2FileParseTableProvider implements IParseTableProvider {
 
                 org.metaborg.sdf2table.parsetable.ParseTable parseTableFromSerializable = ptg.getParseTable();
 
-                // TODO: markRejectableStates(states);
-
                 return parseTableFromSerializable;
             }
 
